@@ -54,13 +54,18 @@ public struct BulletDataUpdateJob : IJobParallelFor
         float2 unGravitatedPos = rotatedVector + bullet.originPos;
 
         //重力の影響を加算
-        float h = bullet.gravity * bullet.time * bullet.time / 2;
-        float2 gravitatedPos = unGravitatedPos - new float2(0, h);
-        bullet.velocity = gravitatedPos - bullet.position;
-        bullet.position = gravitatedPos;
+        if(bullet.gravity != 0)
+        {
+            float h = bullet.gravity * bullet.time * bullet.time / 2;
+            float2 gravitatedPos = unGravitatedPos - new float2(0, h);
+            bullet.velocity = gravitatedPos - bullet.position;
+            bullet.position = gravitatedPos;
+        }
+        
 
         //角度を計算
-        bullet.angle = GetAngleRad(bullet.velocity.x, bullet.velocity.y);
+        float a = GetAngleRad(bullet.velocity.x, bullet.velocity.y);
+        bullet.angle = a + bullet.angleSpeed * bullet.time;
 
         //四分木秩序に変換
         int n = GetTreeNum(new float2(bullet.position.x, bullet.position.y));

@@ -122,7 +122,7 @@ public class QuadOrder : MonoBehaviour
         List<BulletClip> clips = new List<BulletClip>() {
                 new BulletClip()
                 {
-                    data = new BulletData(new(0, 0), new(0, 0), 8, 0, 0, new(1, 0), 0, 3, 0, new(0, -2, 1, 0), 0, 10, new float4(255, 255, 255, 255)),
+                    data = new BulletData(new(0, 0), new(0, 0), 8, 0, 0, 0, new(1, 0), 0, 3, 0, new(0, -2, 1, 0), 0, 10, new float4(255, 255, 255, 255)),
                     number = 8,
                     disRad = 0.3f,
                     homing = false,
@@ -248,7 +248,7 @@ public class QuadOrder : MonoBehaviour
             JobHandle handle0 = job0.Schedule(playerBullets.Length, 64);
             handle0.Complete();
         }
-        
+
         //敵の弾の更新
         if (hasEnemyBullets)
         {
@@ -360,9 +360,52 @@ public class QuadOrder : MonoBehaviour
             enemyBullets[oldLength + i] = newBullets[i];
         }
     }
+
+    public void EmitEnemyBullet(BulletClip clip, float2 pPos)
+    {
+        if (!enemyBullets.IsCreated)
+        {
+            enemyBullets = new NativeList<BulletData>(256, Allocator.Persistent);
+        }
+
+        if (enemyBullets.Length >= enemyBullets.Capacity)
+        {
+            int nextCapacity = math.max(enemyBullets.Length + 1, math.max(256, enemyBullets.Capacity * 2));
+            enemyBullets.Capacity = nextCapacity;
+        }
+
+        NativeArray<BulletData> newBullets = new NativeArray<BulletData>(clip.number, Allocator.Temp);
+
+        float2 dis = new float2(GManager.Control.PController.pos.x, GManager.Control.PController.pos.y) - pPos;
+        float range = (clip.number - 1) * clip.disRad;
+        if (clip.homing)
+        {
+            float baseAngle = math.atan2(dis.y, dis.x);
+
+            for (int i = 0; i < clip.number; i++)
+            {
+                BulletData bullet = clip.data;
+                float angle = baseAngle + math.radians(-range / 2 + clip.disRad * i);
+                bullet.polarForm = new float2(bullet.polarForm.x, angle);
+                newBullets[i] = bullet;
+            }
+        }
+        else
+        {
+            for (int i = 0; i < clip.number; i++)
+            {
+                BulletData bullet = clip.data;
+                float angle = math.radians(range * i);
+                bullet.polarForm = new float2(bullet.polarForm.x, angle);
+                newBullets[i] = bullet;
+            }
+        }
+
+    }
+
     public NativeArray<BulletData> GetEnemyBullets() => enemyBullets.IsCreated ? enemyBullets.AsArray() : default;
     public int GetEnemyBulletCount() => enemyBullets.IsCreated ? enemyBullets.Length : 0;
-    
+
     public void AddPlayerBullets(NativeArray<BulletData> newBullets)
     {
         if (newBullets.Length == 0) return;
@@ -389,7 +432,7 @@ public class QuadOrder : MonoBehaviour
             playerBullets[oldLength + i] = newBullets[i];
         }
     }
-    
+
     public NativeArray<BulletData> GetPlayerBullets() => playerBullets.IsCreated ? playerBullets.AsArray() : default;
     public int GetPlayerBulletCount() => playerBullets.IsCreated ? playerBullets.Length : 0;
     #endregion

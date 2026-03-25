@@ -10,10 +10,11 @@ public struct BulletData
 
     public float2 originPos; //原点位置
     public float2 originVlc; //原点の移動速度
-
     public float speed; //弾丸の速度
     public float acccel;//弾丸の加速
     public float gravity;//弾丸にかかる重力加速度
+    public float angleSpeed;//弾丸の速度
+
 
     public float2 polarForm;//原点中心に回転させる虚数(r,t);
     public float radiusVlc;//r の速さ
@@ -40,6 +41,7 @@ public struct BulletData
     /// <param name="_s">スピード speed</param>
     /// <param name="_acc">加速度 accel</param>
     /// <param name="_g">重力加速度 gravity</param>
+    /// <param name="_as">角速度 angleSpeed</param>
     /// <param name="_polar">極形式回転 polar</param>
     /// <param name="_absV">絶対値速度 radiusVlc</param>
     /// <param name="_theV">回転角速度 thetaVlc</param>
@@ -48,7 +50,7 @@ public struct BulletData
     /// <param name="type">弾のタイプID typeId</param>
     /// <param name="_size">弾のサイズ size</param>
     /// <param name="_color">弾の色 color</param>
-    public BulletData(float2 _pos, float2 _vlc, float _s, float _acc, float _g, float2 _polar, float _absV, float _theV, float _start, float4 _poly, int type, float _size, float4 _color)
+    public BulletData(float2 _pos, float2 _vlc, float _s, float _acc, float _g, float _as, float2 _polar, float _absV, float _theV, float _start, float4 _poly, int type, float _size, float4 _color)
     {
         position = _pos;
         velocity = new(0, 0);
@@ -58,6 +60,7 @@ public struct BulletData
         speed = _s;
         acccel = _acc;
         gravity = _g;
+        angleSpeed = _as;
         polarForm = _polar;
         radiusVlc = _absV;
         thetaVlc = _theV;
