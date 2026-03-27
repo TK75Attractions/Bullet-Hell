@@ -61,7 +61,11 @@ public struct BulletDataUpdateJob : IJobParallelFor
             bullet.velocity = gravitatedPos - bullet.position;
             bullet.position = gravitatedPos;
         }
-        
+        else
+        {
+            bullet.velocity = unGravitatedPos - bullet.position;
+            bullet.position = unGravitatedPos;
+        }
 
         //角度を計算
         float a = GetAngleRad(bullet.velocity.x, bullet.velocity.y);

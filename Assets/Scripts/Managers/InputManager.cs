@@ -17,6 +17,14 @@ public class InputManager : MonoBehaviour
     public bool leftPressed;
     public bool rightPressed;
 
+    public void Init()
+    {
+        if (isDebugMode)
+        {
+            Debug.Log("InputManager is in debug mode. Using keyboard input.");
+        }
+    }
+
     public void UpdateInput()
     {
         if (isDebugMode)

@@ -867,9 +867,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.3040828
+    x: 0.30655912
     y: 0
-    width: 0.39183435
+    width: 0.38688177
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -1498,9 +1498,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.3040828
+    x: 0.30655912
     y: 0
-    width: 0.39183435
+    width: 0.38688177
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -1629,9 +1629,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.3040828
+    x: 0.30655912
     y: 0
-    width: 0.39183435
+    width: 0.38688177
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -1799,33 +1799,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 272a7a0f1cb76f546b2b644706027d59, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InputManager
-  esp32Ip: 192.168.4.1
-  port: 5000
-  reconnectIntervalMs: 1500
-  autoStartServer: 1
-  useKeyboardInput: 1
-  OnUpSwing:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1890939115}
-        m_TargetAssemblyTypeName: GManager, Assembly-CSharp
-        m_MethodName: UpSlash
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-  OnDownSwing:
-    m_PersistentCalls:
-      m_Calls: []
-  up: 0
-  down: 0
-  left: 0
-  right: 0
+  isDebugMode: 0
+  buttonPressed: 0
+  upPressed: 0
+  downPressed: 0
+  leftPressed: 0
+  rightPressed: 0
 --- !u!114 &1890939114
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1839,12 +1818,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QuadOrder
   cellSize: 0.8
-  separateLevel: 5
+  separateLevel: 6
   cellCount: 0
   inactiveCleanupInterval: 6
   drawLaserCollisionGizmos: 1
   laserCollisionGizmoColor: {r: 1, g: 0.2, b: 0.2, a: 0.9}
   laserCollisionGizmoZ: 100
+  debugSyncEnemyBulletsToInspector: 1
+  debugEnemyBulletDisplayLimit: 128
+  debugEnemyBulletSlotCount: 0
+  debugEnemyBulletActiveCount: 0
+  debugEnemyBulletEntries: []
   laserEmitter: {fileID: 1890939116}
   allLASERs: []
 --- !u!114 &1890939115
@@ -2080,9 +2064,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.3040828
+    x: 0.30655912
     y: 0
-    width: 0.39183435
+    width: 0.38688177
     height: 1
   near clip plane: 0.3
   far clip plane: 1000

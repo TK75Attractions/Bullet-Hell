@@ -56,12 +56,16 @@ public class QuadOrder : MonoBehaviour
     }
     #endregion
 
+    #region //Arrays
     private NativeList<BulletData> playerBullets;
     private NativeList<BulletData> enemyBullets;
+    private List<Enemy> enemies = new List<Enemy>();
     private NativeArray<float2> collisionVerts;
     private NativeArray<int2> collisionVertRanges;
     private NativeArray<int> collisionHitFlag;
     private NativeList<BulletData> collisionCheckBullets;
+    #endregion
+
     private bool collisionDataDirty = true;
     private List<int> collisionCheckCells = new List<int>(9);
     [SerializeField] private int inactiveCleanupInterval = 8;
@@ -264,13 +268,6 @@ public class QuadOrder : MonoBehaviour
             handle1.Complete();
         }
 
-        inactiveCleanupCounter++;
-        if (inactiveCleanupCounter >= inactiveCleanupInterval)
-        {
-            RemoveInactiveBullets();
-            inactiveCleanupCounter = 0;
-        }
-
         // areaNum を使ってセルを再構築
         RebuildCellsFromBullets();
     }
@@ -279,24 +276,7 @@ public class QuadOrder : MonoBehaviour
     {
         if (!enemyBullets.IsCreated || enemyBullets.Length == 0) return;
 
-        int writeIndex = 0;
-        int length = enemyBullets.Length;
-        for (int readIndex = 0; readIndex < length; readIndex++)
-        {
-            BulletData bullet = enemyBullets[readIndex];
-            if (!bullet.isActive) continue;
 
-            if (writeIndex != readIndex)
-            {
-                enemyBullets[writeIndex] = bullet;
-            }
-            writeIndex++;
-        }
-
-        if (writeIndex < length)
-        {
-            enemyBullets.ResizeUninitialized(writeIndex);
-        }
     }
 
     private void ClearAllCells()
@@ -316,6 +296,7 @@ public class QuadOrder : MonoBehaviour
             for (int i = 0; i < enemyBullets.Length; i++)
             {
                 BulletData bullet = enemyBullets[i];
+                if (!bullet.isActive) continue;
                 int areaNum = bullet.areaNum;
                 if (areaNum < 0 || areaNum >= cells.Length) continue;
                 cells[areaNum].enemyBullets.Add(bullet);
@@ -327,6 +308,7 @@ public class QuadOrder : MonoBehaviour
             for (int i = 0; i < playerBullets.Length; i++)
             {
                 BulletData bullet = playerBullets[i];
+                if (!bullet.isActive) continue;
                 int areaNum = bullet.areaNum;
                 if (areaNum < 0 || areaNum >= cells.Length) continue;
                 cells[areaNum].playerBullets.Add(bullet);
@@ -334,9 +316,9 @@ public class QuadOrder : MonoBehaviour
         }
     }
 
-    public void AddEnemyBullets(NativeArray<BulletData> newBullets)
+    public List<int> AddEnemyBullets(NativeArray<BulletData> newBullets)
     {
-        if (newBullets.Length == 0) return;
+        if (newBullets.Length == 0) return null;
 
         if (!enemyBullets.IsCreated)
         {
@@ -353,15 +335,18 @@ public class QuadOrder : MonoBehaviour
         }
 
         enemyBullets.ResizeUninitialized(newLength);
+        List<int> indexes = new List<int>(newBullets.Length);
 
         // 新しい弾をコピー
         for (int i = 0; i < newBullets.Length; i++)
         {
             enemyBullets[oldLength + i] = newBullets[i];
+            indexes.Add(oldLength + i);
         }
+        return indexes;
     }
 
-    public void EmitEnemyBullet(BulletClip clip, float2 pPos)
+    public List<int> EmitEnemyBullet(BulletClip clip, float2 pPos)
     {
         if (!enemyBullets.IsCreated)
         {
@@ -401,10 +386,13 @@ public class QuadOrder : MonoBehaviour
             }
         }
 
+        List<int> indexes = AddEnemyBullets(newBullets);
+        newBullets.Dispose();
+        return indexes;
     }
 
     public NativeArray<BulletData> GetEnemyBullets() => enemyBullets.IsCreated ? enemyBullets.AsArray() : default;
-    public int GetEnemyBulletCount() => enemyBullets.IsCreated ? enemyBullets.Length : 0;
+    public int GetEnemyBulletCount() => CountActiveBullets(enemyBullets);
 
     public void AddPlayerBullets(NativeArray<BulletData> newBullets)
     {
@@ -434,7 +422,20 @@ public class QuadOrder : MonoBehaviour
     }
 
     public NativeArray<BulletData> GetPlayerBullets() => playerBullets.IsCreated ? playerBullets.AsArray() : default;
-    public int GetPlayerBulletCount() => playerBullets.IsCreated ? playerBullets.Length : 0;
+    public int GetPlayerBulletCount() => CountActiveBullets(playerBullets);
+
+    private int CountActiveBullets(NativeList<BulletData> bullets)
+    {
+        if (!bullets.IsCreated || bullets.Length == 0) return 0;
+
+        int count = 0;
+        for (int i = 0; i < bullets.Length; i++)
+        {
+            if (bullets[i].isActive) count++;
+        }
+
+        return count;
+    }
     #endregion
 
     #region //collisionMethods
@@ -595,6 +596,19 @@ public class QuadOrder : MonoBehaviour
                 }
                 cells.Dispose();
             }
+        }
+    }
+    #endregion
+
+    #region //EnemyMethods
+    public void AddEnemy(Enemy enemy)
+    {
+        enemies.Add(enemy);
+        Vector2Int cell = BitCompact32(GetTreeNum(enemy.OriginPos));
+        int treeNum = GetTreeNum(cell.x, cell.y);
+        if (treeNum >= 0 && treeNum < cells.Length)
+        {
+            cells[treeNum].AddEnemy(enemy);
         }
     }
     #endregion

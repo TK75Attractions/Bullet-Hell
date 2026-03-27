@@ -32,10 +32,11 @@ public class GManager : MonoBehaviour
     public PerlinRandom PRandom;
     public QuadOrder QOrder;
     public BulletTypeDataBase BTDB;
+    public StageDataBase SDB;
+
     public BulletRenderSystem BRS;
     public bool ready = false;
     private readonly BulletData[] spawnBuffer = new BulletData[6];
-
 
     public class PerlinRandom
     {
@@ -74,6 +75,7 @@ public class GManager : MonoBehaviour
                 p[i] = permutation[i];
                 p[256 + i] = permutation[i];
             }
+            
         }
 
         public double Noise(double x)
@@ -112,9 +114,15 @@ public class GManager : MonoBehaviour
 
         IManager = GetComponent<InputManager>();
         IManager.Init();
+        
+        BTDB.Init();
+        SDB.Init();
+
         BRS = GetComponent<BulletRenderSystem>();
         BRS.Init();
-        BTDB.Init();
+
+        //BTDB.Init();
+
         QOrder = GetComponent<QuadOrder>();
         QOrder.AwakeSetting();
         PRandom = new PerlinRandom();
@@ -149,7 +157,11 @@ public class GManager : MonoBehaviour
                 spawnBuffer,
                 Allocator.TempJob
             );
-            QOrder.AddEnemyBullets(tempBullets);
+            List<int> indexes = QOrder.AddEnemyBullets(tempBullets);
+            foreach (int index in indexes)
+            {
+                Debug.Log($"Spawned Bullet at index: {index}");
+            }
             tempBullets.Dispose();
         }
 

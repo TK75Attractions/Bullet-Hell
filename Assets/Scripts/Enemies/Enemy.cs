@@ -4,6 +4,8 @@ using Unity.Mathematics;
 public class Enemy : MonoBehaviour
 {
     public int id = 0;
+    public int arrayIndex = 0;
+
     public float2 OriginPos;
 
     

@@ -7,4 +7,9 @@ using System.Collections.Generic;
 public class StageDataBase : ScriptableObject
 {
     public List<StageData> stages;
+
+    public void Init()
+    {
+        
+    }
 }

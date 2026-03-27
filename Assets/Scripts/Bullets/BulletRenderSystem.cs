@@ -191,24 +191,9 @@ public class BulletRenderSystem : MonoBehaviour
             count = MaxBullets;
         }
 
-        for (int i = 0; i < count; i++)
-        {
-            var b = bullets[i];
-            var type = GManager.Control.BTDB.types[b.typeId];
-
-            renderArray[i] = new BulletRenderData
-            {
-                pos = b.position,
-                angle = b.angle,
-                size = b.size * type.baseSize,
-                texIndex = b.typeId,
-                maskIndex = b.typeId,
-                color = b.color,
-            };
-        }
-
-        bulletBuffer.SetData(renderArray, 0, 0, count);
-        UpdateInstanceCount(count);
+        int writeIndex = AppendRenderData(bullets, count, 0, count);
+        bulletBuffer.SetData(renderArray, 0, 0, writeIndex);
+        UpdateInstanceCount(writeIndex);
     }
 
     public void BuildRenderData(
@@ -251,11 +236,13 @@ public class BulletRenderSystem : MonoBehaviour
     private int AppendRenderData(NativeArray<BulletData> bullets, int count, int startIndex, int maxCount)
     {
         int writeIndex = startIndex;
-        int readCount = math.min(count, bullets.Length);
+        int activeCount = 0;
 
-        for (int i = 0; i < readCount && writeIndex < maxCount; i++)
+        for (int i = 0; i < bullets.Length && writeIndex < maxCount; i++)
         {
             var b = bullets[i];
+            if (!b.isActive) continue;
+            
             var type = GManager.Control.BTDB.types[b.typeId];
 
             renderArray[writeIndex] = new BulletRenderData
@@ -268,6 +255,8 @@ public class BulletRenderSystem : MonoBehaviour
                 color = b.color,
             };
             writeIndex++;
+            activeCount++;
+            if (activeCount >= count) break;
         }
 
         return writeIndex;
