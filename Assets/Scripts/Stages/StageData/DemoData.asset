@@ -12,7 +12,216 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6aba377c37e68164b855733210beea9e, type: 3}
   m_Name: DemoData
   m_EditorClassIdentifier: Assembly-CSharp::StageData
-  stageId: 255
+  stageId: 0
   difficulty: 0
   stageName: DemoStage
   stageDescription: "\u3067\u3082\u30D7\u30EC\u30A4\u7528\u306E\u30C7\u30FC\u30BF\u3060\u3088"
+  enemySpawners:
+  - id: 0
+    count: 10
+    interval: 0.3
+    next: 5
+    orbit:
+      position:
+        x: 0
+        y: 0
+      velocity:
+        x: 0
+        y: 0
+      angle: 0
+      originPos:
+        x: 2
+        y: 10
+      originVlc:
+        x: 1
+        y: 0
+      startX: 3
+      speed: 0
+      acccel: 0
+      gravity: 0
+      angleSpeed: 0
+      polarForm:
+        x: 1
+        y: 0
+      radiusVlc: 0
+      thetaVlc: 5
+      startPos:
+        x: -1
+        y: 0
+      nowCalculateVlc:
+        x: 0
+        y: 0
+      nowCalculateX: 0
+      polynomial:
+        x: 0
+        y: 0
+        z: 0
+        w: 0
+      typeId: 0
+      size: 0.3
+      color:
+        x: 255
+        y: 255
+        z: 255
+        w: 255
+      areaNum: 0
+      time: 0
+      isActive: 1
+    bulletClip:
+      data:
+        position:
+          x: 0
+          y: 0
+        velocity:
+          x: 0
+          y: 0
+        angle: 0
+        originPos:
+          x: 0
+          y: 0
+        originVlc:
+          x: 0
+          y: 0
+        startX: 0
+        speed: 5
+        acccel: 0
+        gravity: 0
+        angleSpeed: 0
+        polarForm:
+          x: 1
+          y: 0
+        radiusVlc: 0
+        thetaVlc: 0
+        startPos:
+          x: 0
+          y: 0
+        nowCalculateVlc:
+          x: 0
+          y: 0
+        nowCalculateX: 0
+        polynomial:
+          x: 0
+          y: 0
+          z: 0
+          w: 0
+        typeId: 0
+        size: 1
+        color:
+          x: 1
+          y: 0
+          z: 0
+          w: 1
+        areaNum: 0
+        time: 0
+        isActive: 1
+      number: 3
+      interval: 0.3
+      count: 8
+      disRad: 30
+      homing: 1
+      generateType: 0
+    bulletChangeClips: []
+  - id: 0
+    count: 0
+    interval: 0
+    next: 0
+    orbit:
+      position:
+        x: 0
+        y: 0
+      velocity:
+        x: 0
+        y: 0
+      angle: 0
+      originPos:
+        x: 0
+        y: 0
+      originVlc:
+        x: 0
+        y: 0
+      startX: 0
+      speed: 0
+      acccel: 0
+      gravity: 0
+      angleSpeed: 0
+      polarForm:
+        x: 0
+        y: 0
+      radiusVlc: 0
+      thetaVlc: 0
+      startPos:
+        x: 0
+        y: 0
+      nowCalculateVlc:
+        x: 0
+        y: 0
+      nowCalculateX: 0
+      polynomial:
+        x: 0
+        y: 0
+        z: 0
+        w: 0
+      typeId: 0
+      size: 0
+      color:
+        x: 0
+        y: 0
+        z: 0
+        w: 0
+      areaNum: 0
+      time: 0
+      isActive: 0
+    bulletClip:
+      data:
+        position:
+          x: 0
+          y: 0
+        velocity:
+          x: 0
+          y: 0
+        angle: 0
+        originPos:
+          x: 0
+          y: 0
+        originVlc:
+          x: 0
+          y: 0
+        startX: 0
+        speed: 0
+        acccel: 0
+        gravity: 0
+        angleSpeed: 0
+        polarForm:
+          x: 0
+          y: 0
+        radiusVlc: 0
+        thetaVlc: 0
+        startPos:
+          x: 0
+          y: 0
+        nowCalculateVlc:
+          x: 0
+          y: 0
+        nowCalculateX: 0
+        polynomial:
+          x: 0
+          y: 0
+          z: 0
+          w: 0
+        typeId: 0
+        size: 0
+        color:
+          x: 0
+          y: 0
+          z: 0
+          w: 0
+        areaNum: 0
+        time: 0
+        isActive: 0
+      number: 0
+      interval: 0
+      count: 0
+      disRad: 0
+      homing: 0
+      generateType: 0
+    bulletChangeClips: []

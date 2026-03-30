@@ -26,16 +26,23 @@ public class GManager : MonoBehaviour
     public GameState state = GameState.Title;
 
     public GameObject PlayerObj;
+    public GameObject EnemyObj;
     public PlayerController PController;
 
     public InputManager IManager;
+    public StageReader SReader;
     public PerlinRandom PRandom;
     public QuadOrder QOrder;
     public BulletTypeDataBase BTDB;
     public StageDataBase SDB;
+    public EnemyDataBase EDB;
 
     public BulletRenderSystem BRS;
+
+    public float gameTime;
     public bool ready = false;
+
+
     private readonly BulletData[] spawnBuffer = new BulletData[6];
 
     public class PerlinRandom
@@ -121,7 +128,7 @@ public class GManager : MonoBehaviour
         BRS = GetComponent<BulletRenderSystem>();
         BRS.Init();
 
-        //BTDB.Init();
+        EDB.Init();
 
         QOrder = GetComponent<QuadOrder>();
         QOrder.AwakeSetting();
@@ -129,6 +136,9 @@ public class GManager : MonoBehaviour
         PController = new PlayerController();
         GameObject ptemp = Instantiate(PlayerObj);
         PController.Init(ptemp);
+
+        SReader = GetComponent<StageReader>();
+
         InitSpawnBuffer();
         ready = true;
         state = GameState.Title;
@@ -148,6 +158,7 @@ public class GManager : MonoBehaviour
     {
         if (!ready) return;
         float t = Time.deltaTime;
+        gameTime += t;
         QOrder.QuadUpdate(t);
 
         if (Keyboard.current != null && Keyboard.current.aKey.wasPressedThisFrame)
@@ -165,8 +176,20 @@ public class GManager : MonoBehaviour
             tempBullets.Dispose();
         }
 
+        if(Keyboard.current != null && Keyboard.current.gKey.wasPressedThisFrame)
+        {
+            StageData stage = SDB.GetStage(0);
+            if(stage != null)            {
+                SReader.Init(stage);
+                state = GameState.Playing;
+                Debug.Log($"Started Stage: {stage.stageName}");
+            }
+        }
+
         IManager.UpdateInput();
         if (PController != null) PController.UpdatePos(t);
+        SReader.UpdateStage(t);
+        
     }
 
     public void LateUpdate()

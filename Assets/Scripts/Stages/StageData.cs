@@ -1,6 +1,7 @@
 using UnityEngine;
 using Unity.Collections;
 using Unity.Mathematics;
+using System.Collections.Generic;
 
 [CreateAssetMenu(fileName ="StageData",menuName ="Stage/StageData")]
 public class StageData : ScriptableObject
@@ -11,4 +12,6 @@ public class StageData : ScriptableObject
 
     [TextArea]
     public string stageDescription;
+
+    public List<EnemySpawner> enemySpawners = new List<EnemySpawner>();
 }
