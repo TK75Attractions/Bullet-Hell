@@ -15,17 +15,35 @@ public class GManager : MonoBehaviour
 {
     static public GManager Control;
 
+    public enum GameState
+    {
+        Title,
+        ChoosingStage,
+        Playing,
+        Result
+    }
+
+    public GameState state = GameState.Title;
+
     public GameObject PlayerObj;
+    public GameObject EnemyObj;
     public PlayerController PController;
 
     public InputManager IManager;
+    public StageReader SReader;
     public PerlinRandom PRandom;
     public QuadOrder QOrder;
     public BulletTypeDataBase BTDB;
-    public BulletRenderSystem BRS;
-    public bool ready = false;
-    private readonly BulletData[] spawnBuffer = new BulletData[6];
+    public StageDataBase SDB;
+    public EnemyDataBase EDB;
 
+    public BulletRenderSystem BRS;
+
+    public float gameTime;
+    public bool ready = false;
+
+
+    private readonly BulletData[] spawnBuffer = new BulletData[6];
 
     public class PerlinRandom
     {
@@ -64,6 +82,7 @@ public class GManager : MonoBehaviour
                 p[i] = permutation[i];
                 p[256 + i] = permutation[i];
             }
+            
         }
 
         public double Noise(double x)
@@ -101,37 +120,45 @@ public class GManager : MonoBehaviour
         }
 
         IManager = GetComponent<InputManager>();
-        if (IManager != null)
-        {
-            IManager.OnUpSwing.AddListener(UpSlash);
-        }
+        IManager.Init();
+        
+        BTDB.Init();
+        SDB.Init();
+
         BRS = GetComponent<BulletRenderSystem>();
         BRS.Init();
-        BTDB.Init();
+
+        EDB.Init();
+
         QOrder = GetComponent<QuadOrder>();
         QOrder.AwakeSetting();
-        PRandom = new();
+        PRandom = new PerlinRandom();
         PController = new PlayerController();
         GameObject ptemp = Instantiate(PlayerObj);
         PController.Init(ptemp);
+
+        SReader = GetComponent<StageReader>();
+
         InitSpawnBuffer();
         ready = true;
+        state = GameState.Title;
     }
 
     private void InitSpawnBuffer()
     {
-        spawnBuffer[0] = new BulletData(new float2(5, 5), new float2(1, 0), 2f, 0, 0, new float2(1, 0), 0, 2, 0, new float4(1, 0, 0, 0), 0, 1f, new float4(1, 0, 0, 1));
-        spawnBuffer[1] = new BulletData(new float2(5, 5), new float2(1, 0), 2f, 0, 0, new float2(1, math.PI / 3), 0, 2, 0, new float4(1, 0, 0, 0), 0, 1f, new float4(1, 0, 0, 1));
-        spawnBuffer[2] = new BulletData(new float2(5, 5), new float2(1, 0), 2f, 0, 0, new float2(1, 2 * math.PI / 3), 0, 2, 0, new float4(1, 0, 0, 0), 0, 1f, new float4(1, 0, 0, 1));
-        spawnBuffer[3] = new BulletData(new float2(5, 5), new float2(1, 0), 2f, 0, 0, new float2(1, 3 * math.PI / 3), 0, 2, 0, new float4(1, 0, 0, 0), 0, 1f, new float4(1, 0, 0, 1));
-        spawnBuffer[4] = new BulletData(new float2(5, 5), new float2(1, 0), 2f, 0, 0, new float2(1, 4 * math.PI / 3), 0, 2, 0, new float4(1, 0, 0, 0), 0, 1f, new float4(1, 0, 0, 1));
-        spawnBuffer[5] = new BulletData(new float2(5, 5), new float2(1, 0), 2f, 0, 0, new float2(1, 5 * math.PI / 3), 0, 2, 0, new float4(1, 0, 0, 0), 0, 1f, new float4(1, 0, 0, 1));
+        spawnBuffer[0] = new BulletData(new float2(5, 5), new float2(1, 0), 2f, 0, 0, 0, new float2(1, 0), 0, 2, 0, new float4(1, 0, 0, 0), 0, 1f, new float4(1, 0, 0, 1));
+        spawnBuffer[1] = new BulletData(new float2(5, 5), new float2(1, 0), 2f, 0, 0, 0, new float2(1, math.PI / 3), 0, 2, 0, new float4(1, 0, 0, 0), 0, 1f, new float4(1, 0, 0, 1));
+        spawnBuffer[2] = new BulletData(new float2(5, 5), new float2(1, 0), 2f, 0, 0, 0, new float2(1, 2 * math.PI / 3), 0, 2, 0, new float4(1, 0, 0, 0), 0, 1f, new float4(1, 0, 0, 1));
+        spawnBuffer[3] = new BulletData(new float2(5, 5), new float2(1, 0), 2f, 0, 0, 0, new float2(1, 3 * math.PI / 3), 0, 2, 0, new float4(1, 0, 0, 0), 0, 1f, new float4(1, 0, 0, 1));
+        spawnBuffer[4] = new BulletData(new float2(5, 5), new float2(1, 0), 2f, 0, 0, 0, new float2(1, 4 * math.PI / 3), 0, 2, 0, new float4(1, 0, 0, 0), 0, 1f, new float4(1, 0, 0, 1));
+        spawnBuffer[5] = new BulletData(new float2(5, 5), new float2(1, 0), 2f, 0, 0, 0, new float2(1, 5 * math.PI / 3), 0, 2, 0, new float4(1, 0, 0, 0), 0, 1f, new float4(1, 0, 0, 1));
     }
 
     public void Update()
     {
         if (!ready) return;
         float t = Time.deltaTime;
+        gameTime += t;
         QOrder.QuadUpdate(t);
 
         if (Keyboard.current != null && Keyboard.current.aKey.wasPressedThisFrame)
@@ -141,12 +168,28 @@ public class GManager : MonoBehaviour
                 spawnBuffer,
                 Allocator.TempJob
             );
-            QOrder.AddEnemyBullets(tempBullets);
+            List<int> indexes = QOrder.AddEnemyBullets(tempBullets);
+            foreach (int index in indexes)
+            {
+                Debug.Log($"Spawned Bullet at index: {index}");
+            }
             tempBullets.Dispose();
+        }
+
+        if(Keyboard.current != null && Keyboard.current.gKey.wasPressedThisFrame)
+        {
+            StageData stage = SDB.GetStage(0);
+            if(stage != null)            {
+                SReader.Init(stage);
+                state = GameState.Playing;
+                Debug.Log($"Started Stage: {stage.stageName}");
+            }
         }
 
         IManager.UpdateInput();
         if (PController != null) PController.UpdatePos(t);
+        SReader.UpdateStage(t);
+        
     }
 
     public void LateUpdate()

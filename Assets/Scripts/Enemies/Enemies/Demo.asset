@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e8af88faa7365745ab2c04448ee8d06, type: 3}
+  m_Name: Demo
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyData
+  enemyId: 0
+  sprite: {fileID: 8236814533494187757, guid: 3b830cbf195e1eb4aa1eed2b215fb8d6, type: 3}
+  baseColor: {r: 1, g: 0, b: 0, a: 1}
+  baseSize: 2

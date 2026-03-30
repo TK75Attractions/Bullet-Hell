@@ -16,7 +16,6 @@ public class PlayerController
         SR = playerObj.GetComponent<SpriteRenderer>();
     }
 
-
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -33,10 +32,10 @@ public class PlayerController
     private void Move(float dt)
     {
         float2 inputVector = new float2(0, 0);
-        if (GManager.Control.IManager.up) inputVector.y += 1;
-        if (GManager.Control.IManager.down) inputVector.y -= 1;
-        if (GManager.Control.IManager.left) inputVector.x -= 1;
-        if (GManager.Control.IManager.right) inputVector.x += 1;
+        if (GManager.Control.IManager.upPressed) inputVector.y += 1;
+        if (GManager.Control.IManager.downPressed) inputVector.y -= 1;
+        if (GManager.Control.IManager.leftPressed) inputVector.x -= 1;
+        if (GManager.Control.IManager.rightPressed) inputVector.x += 1;
 
         if (math.length(inputVector) > 0)
         {
@@ -52,7 +51,7 @@ public class PlayerController
         GManager.Control.QOrder.AddPlayerBullets(bullets);
         bullets.Dispose();
     }
-    
+
     private NativeArray<BulletData> GetListOfUpBullets(float2 _pos)
     {
         NativeArray<BulletData> bullets = new NativeArray<BulletData>(6, Allocator.Temp);
@@ -80,6 +79,7 @@ public class PlayerController
             3f,
             0f,
             0f,
+            0,
             new float2(1, math.PI / 2),
             0f,
             0f,
