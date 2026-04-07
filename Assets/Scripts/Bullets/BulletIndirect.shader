@@ -113,12 +113,14 @@ Shader "Custom/BulletIndirectMasked"
 
                 float mask =
                     UNITY_SAMPLE_TEX2DARRAY(_MaskArray, float3(i.uv, i.maskIndex)).r;
+                float tintStrength = saturate(mask * i.color.a);
 
                 // デバッグ: マスク値を可視化（一時的）
                 // return fixed4(mask, mask, mask, 1); // マスクをグレースケールで表示
                 
-                // 通常のマスク適用
-                baseCol.rgb = lerp(baseCol.rgb, i.color.rgb, mask);
+                // マスク値に color.a を掛けて色の掛かり方を 0-1 で制御する
+                baseCol.rgb = lerp(baseCol.rgb, i.color.rgb, tintStrength);
+                baseCol.a = max(baseCol.a, tintStrength);
 
                 return baseCol;
             }

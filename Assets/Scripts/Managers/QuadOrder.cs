@@ -57,11 +57,12 @@ public class QuadOrder : MonoBehaviour
     #endregion
 
     #region //Arrays
+    [SerializeField] private List<Boss> bosses = new List<Boss>();
     private NativeList<BulletData> playerBullets;
     private NativeList<BulletData> enemyBullets;
     [SerializeField]
     private List<Enemy> enemies = new List<Enemy>();
-    private NativeList<BulletData> enemiesOrbitBullets; 
+    private NativeList<BulletData> enemiesOrbitBullets;
     private NativeArray<float2> collisionVerts;
     private NativeArray<int2> collisionVertRanges;
     private NativeArray<int> collisionHitFlag;
@@ -158,7 +159,7 @@ public class QuadOrder : MonoBehaviour
         List<BulletClip> clips = new List<BulletClip>() {
                 new BulletClip()
                 {
-                    data = new BulletData(new(0, 0), new(0, 0), 8, 0, 0, 0, new(1, 0), 0, 3, 0, new(0, -2, 1, 0), 0, 10, new float4(255, 255, 255, 255)),
+                    data = new BulletData(new(0, 0), new(0, 0), 8, 0, 0, 0, new(1, 0), 0, 3, 0, new(0, -2, 1, 0), 0, 10, new float4(1, 1, 1, 1)),
                     number = 8,
                     disRad = 0.3f,
                     homing = false,
@@ -181,6 +182,10 @@ public class QuadOrder : MonoBehaviour
 
         allLASERs.AddRange(laserEmitter.EmitLASER(clips[0], new float2(0, 0)));
 
+        for (int i = 0; i < bosses.Count; i++)
+        {
+            bosses[i].Init();
+        }
 
     }
 
@@ -260,6 +265,11 @@ public class QuadOrder : MonoBehaviour
         CheckCollisionWithLASER(GManager.Control.PController.pos);
         UpdateEnemyPos(_dt);
         //UpdateChangeClip();
+
+        for (int i = 0; i < bosses.Count; i++)
+        {
+            bosses[i].UpdateBoss(_dt);
+        }
     }
 
     #region //BulletMethods
@@ -305,7 +315,7 @@ public class QuadOrder : MonoBehaviour
             handle1.Complete();
         }
 
-        if(hasEnemiesOrbitBullets)
+        if (hasEnemiesOrbitBullets)
         {
             NativeArray<BulletData> bullets = enemiesOrbitBullets.AsArray();
             Debug.Log($"Updating {bullets.Length} orbit bullets");
@@ -381,6 +391,23 @@ public class QuadOrder : MonoBehaviour
         }
     }
 
+    public List<int> AddEnemyHomingBullets(NativeArray<BulletData> newBullets, float2 fromPos)
+    {
+        NativeArray<BulletData> tempBullets = new NativeArray<BulletData>(newBullets, Allocator.Temp);
+        float2 toPlayer = GManager.Control.PController.pos - fromPos;
+        float angleToPlayer = math.atan2(toPlayer.y, toPlayer.x);
+        for (int i = 0; i < newBullets.Length; i++)
+        {
+            BulletData bullet = newBullets[i];
+            bullet.Init(fromPos);
+            bullet.originPos = fromPos;
+            bullet.polarForm = new float2(bullet.polarForm.x, bullet.polarForm.y + angleToPlayer);
+            tempBullets[i] = bullet;
+        }
+
+        return AddEnemyBullets(tempBullets);
+    }
+
     public List<int> AddEnemyBullets(NativeArray<BulletData> newBullets)
     {
         if (newBullets.Length == 0) return null;
@@ -401,6 +428,9 @@ public class QuadOrder : MonoBehaviour
 
         enemyBullets.ResizeUninitialized(newLength);
         List<int> indexes = new List<int>(newBullets.Length);
+
+
+
 
         // 新しい弾をコピー
         for (int i = 0; i < newBullets.Length; i++)
@@ -464,7 +494,7 @@ public class QuadOrder : MonoBehaviour
     }
 
     public NativeArray<BulletData> GetEnemyBullets() => enemyBullets.IsCreated ? enemyBullets.AsArray() : default;
-    
+
     public int GetEnemyBulletCount() => CountActiveBullets(enemyBullets);
 
     public void AddPlayerBullets(NativeArray<BulletData> newBullets)
@@ -495,7 +525,7 @@ public class QuadOrder : MonoBehaviour
     }
 
     public NativeArray<BulletData> GetPlayerBullets() => playerBullets.IsCreated ? playerBullets.AsArray() : default;
-    
+
     public int GetPlayerBulletCount() => CountActiveBullets(playerBullets);
 
     private int CountActiveBullets(NativeList<BulletData> bullets)
@@ -748,13 +778,13 @@ public class QuadOrder : MonoBehaviour
     {
         float t = 0;
 
-        for(int i = 0; i < spawner.count; i++)
+        for (int i = 0; i < spawner.count; i++)
         {
-            while(t < spawner.interval * i)
+            while (t < spawner.interval * i)
             {
                 await Task.Yield();
                 t += Time.deltaTime;
-                if(GManager.Control.state != GManager.GameState.Playing) return;
+                if (GManager.Control.state != GManager.GameState.Playing) return;
             }
 
             Enemy enemy = Instantiate(GManager.Control.EnemyObj).GetComponent<Enemy>();
@@ -787,11 +817,11 @@ public class QuadOrder : MonoBehaviour
 
     public List<int> UpdateBulletData(List<int> indexes, BulletClip clip)
     {
-        if(indexes == null || indexes.Count == 0) return new();
-        
-        if(indexes.Count == 1 && clip.number == 1)
+        if (indexes == null || indexes.Count == 0) return new();
+
+        if (indexes.Count == 1 && clip.number == 1)
         {
-            if(indexes[0] >= 0 && indexes[0] < enemyBullets.Length)
+            if (indexes[0] >= 0 && indexes[0] < enemyBullets.Length)
             {
                 BulletData data = new BulletData(clip.data, enemyBullets[indexes[0]].position);
                 enemyBullets[indexes[0]] = data;
@@ -801,10 +831,10 @@ public class QuadOrder : MonoBehaviour
         else
         {
             List<int> temp = new();
-            for(int i = 0; i < indexes.Count; i++)
+            for (int i = 0; i < indexes.Count; i++)
             {
                 int index = indexes[i];
-                if(index < 0 || index >= enemyBullets.Length) continue;
+                if (index < 0 || index >= enemyBullets.Length) continue;
                 temp.Add(EmitEnemyBullet(clip, enemyBullets[index].position)[0]);
             }
             return temp;
@@ -812,7 +842,7 @@ public class QuadOrder : MonoBehaviour
         }
         return new();
     }
-    
+
     #endregion
 
     #region//CellsMethods

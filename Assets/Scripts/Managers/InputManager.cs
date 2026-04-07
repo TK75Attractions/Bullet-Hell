@@ -16,6 +16,10 @@ public class InputManager : MonoBehaviour
     public bool downPressed;
     public bool leftPressed;
     public bool rightPressed;
+    public bool upPressedThisFrame;
+    public bool downPressedThisFrame;
+    public bool leftPressedThisFrame;
+    public bool rightPressedThisFrame;
 
     public void Init()
     {
@@ -34,6 +38,11 @@ public class InputManager : MonoBehaviour
             downPressed = Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed;
             leftPressed = Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed;
             rightPressed = Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed;
+
+            upPressedThisFrame = Keyboard.current.wKey.wasPressedThisFrame || Keyboard.current.upArrowKey.wasPressedThisFrame;
+            downPressedThisFrame = Keyboard.current.sKey.wasPressedThisFrame || Keyboard.current.downArrowKey.wasPressedThisFrame;
+            leftPressedThisFrame = Keyboard.current.aKey.wasPressedThisFrame || Keyboard.current.leftArrowKey.wasPressedThisFrame;
+            rightPressedThisFrame = Keyboard.current.dKey.wasPressedThisFrame || Keyboard.current.rightArrowKey.wasPressedThisFrame;
         }
     }
 }

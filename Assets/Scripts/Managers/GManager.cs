@@ -30,6 +30,7 @@ public class GManager : MonoBehaviour
     public PlayerController PController;
 
     public InputManager IManager;
+    public UIManager UIManager;
     public StageReader SReader;
     public PerlinRandom PRandom;
     public QuadOrder QOrder;
@@ -140,8 +141,11 @@ public class GManager : MonoBehaviour
         SReader = GetComponent<StageReader>();
 
         InitSpawnBuffer();
-        ready = true;
         state = GameState.Title;
+            
+        UIManager = transform.parent.Find("Canvas").GetComponent<UIManager>();
+        UIManager.Init();
+        ready = true;
     }
 
     private void InitSpawnBuffer()
@@ -160,6 +164,7 @@ public class GManager : MonoBehaviour
         float t = Time.deltaTime;
         gameTime += t;
         QOrder.QuadUpdate(t);
+        IManager.UpdateInput();
 
         if (Keyboard.current != null && Keyboard.current.aKey.wasPressedThisFrame)
         {
@@ -186,10 +191,15 @@ public class GManager : MonoBehaviour
             }
         }
 
-        IManager.UpdateInput();
+        if(IManager.buttonPressed && state == GameState.Title)
+        {
+            state = GameState.ChoosingStage;
+            UIManager.GoToChooseStage();
+        }
+        UIManager.UpdateUI();
+
         if (PController != null) PController.UpdatePos(t);
         SReader.UpdateStage(t);
-        
     }
 
     public void LateUpdate()
