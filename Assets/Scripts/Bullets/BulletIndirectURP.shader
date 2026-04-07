@@ -104,9 +104,11 @@ Shader "Custom/BulletIndirectURP"
 
                 half mask = SAMPLE_TEXTURE2D_ARRAY(_MaskArray, sampler_MaskArray, 
                     input.uv, input.maskIndex).r;
+                half tintStrength = saturate(mask * input.color.a);
 
-                // 色適用
-                baseCol.rgb = lerp(baseCol.rgb, input.color.rgb, mask);
+                // マスク値に color.a を掛けて色の掛かり方を 0-1 で制御する
+                baseCol.rgb = lerp(baseCol.rgb, input.color.rgb, tintStrength);
+                baseCol.a = max(baseCol.a, tintStrength);
 
                 return baseCol;
             }

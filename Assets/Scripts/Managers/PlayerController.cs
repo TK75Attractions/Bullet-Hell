@@ -87,7 +87,7 @@ public class PlayerController
             polynomial,
             2,
             1f,
-            new float4(255, 255, 255, 255)
+            new float4(1, 1, 1, 1)
         );
     }
 

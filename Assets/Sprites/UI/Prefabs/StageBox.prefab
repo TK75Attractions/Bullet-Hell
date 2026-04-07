@@ -488,7 +488,7 @@ GameObject:
   - component: {fileID: 809467235342159544}
   - component: {fileID: 7421125722980137823}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: Description
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -622,6 +622,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 427152613338186600}
+  - component: {fileID: 4944297524730910630}
+  - component: {fileID: 4624736378660773158}
   m_Layer: 5
   m_Name: StageBox
   m_TagString: Untagged
@@ -653,3 +655,29 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &4944297524730910630
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8275224715105303500}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fffb9f3158cdb0546a0f6eea215f729b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StageBox
+  stageId: 0
+  stageData: {fileID: 0}
+--- !u!225 &4624736378660773158
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8275224715105303500}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0

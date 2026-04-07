@@ -69,7 +69,7 @@ public struct BulletData
         thetaVlc = _theV;
         polynomial = _poly;
         nowCalculateX = _start;
-        
+
         time = 0;
         typeId = type;
         areaNum = 0;
@@ -145,7 +145,7 @@ public struct BulletData
     {
         originPos = _pos;
         velocity = new(0, 0);
-        angle = 0;        
+        angle = 0;
         time = 0;
         areaNum = 0;
         isActive = true;
