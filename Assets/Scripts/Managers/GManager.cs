@@ -191,7 +191,7 @@ public class GManager : MonoBehaviour
             }
         }
 
-        if(IManager.buttonPressed && state == GameState.Title)
+        if (IManager.buttonPressedThisFrame && state == GameState.Title)
         {
             state = GameState.ChoosingStage;
             UIManager.GoToChooseStage();

@@ -12,6 +12,7 @@ public class InputManager : MonoBehaviour
 {
     public bool isDebugMode = false;
     public bool buttonPressed;
+    public bool buttonPressedThisFrame;
     public bool upPressed;
     public bool downPressed;
     public bool leftPressed;
@@ -31,9 +32,23 @@ public class InputManager : MonoBehaviour
 
     public void UpdateInput()
     {
+        buttonPressed = false;
+        buttonPressedThisFrame = false;
+        upPressed = false;
+        downPressed = false;
+        leftPressed = false;
+        rightPressed = false;
+        upPressedThisFrame = false;
+        downPressedThisFrame = false;
+        leftPressedThisFrame = false;
+        rightPressedThisFrame = false;
+
         if (isDebugMode)
         {
-            buttonPressed = Keyboard.current.spaceKey.isPressed;
+            if (Keyboard.current == null) return;
+
+            buttonPressed = Keyboard.current.anyKey.isPressed;
+            buttonPressedThisFrame = Keyboard.current.anyKey.wasPressedThisFrame;
             upPressed = Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed;
             downPressed = Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed;
             leftPressed = Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed;
