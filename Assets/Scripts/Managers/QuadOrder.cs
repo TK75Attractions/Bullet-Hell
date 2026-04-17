@@ -131,9 +131,6 @@ public class QuadOrder : MonoBehaviour
         for (int i = 0; i < n; i++) t[i] = new();
         cells = t;
 
-        GManager.Control.Log("CellCreated");
-        GManager.Control.Log($"Level : {separateLevel}, Length : {n}");
-
         BuildCollisionData();
         if (!collisionHitFlag.IsCreated)
         {

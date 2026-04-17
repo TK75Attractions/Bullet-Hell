@@ -32,6 +32,7 @@ public class GManager : MonoBehaviour
     public InputManager IManager;
     public UIManager UIManager;
     public StageReader SReader;
+    public BeatManager BManager;
     public PerlinRandom PRandom;
     public QuadOrder QOrder;
     public BulletTypeDataBase BTDB;
@@ -41,6 +42,7 @@ public class GManager : MonoBehaviour
     public BulletRenderSystem BRS;
 
     public float gameTime;
+    public float beatTime;
     public bool ready = false;
 
 
@@ -83,7 +85,7 @@ public class GManager : MonoBehaviour
                 p[i] = permutation[i];
                 p[256 + i] = permutation[i];
             }
-            
+
         }
 
         public double Noise(double x)
@@ -122,7 +124,7 @@ public class GManager : MonoBehaviour
 
         IManager = GetComponent<InputManager>();
         IManager.Init();
-        
+
         BTDB.Init();
         SDB.Init();
 
@@ -139,10 +141,21 @@ public class GManager : MonoBehaviour
         PController.Init(ptemp);
 
         SReader = GetComponent<StageReader>();
+        BManager = GetComponent<BeatManager>();
+        BManager.Init(new List<StageData.MusicEvent>()
+        {
+            new StageData.MusicEvent()
+            {
+                barCount = 6,
+                BPM = 120,
+                beatTimings = new List<int>() { 0, 2, 3 },
+                measure = 4
+            }
+        });
 
         InitSpawnBuffer();
         state = GameState.Title;
-            
+
         UIManager = transform.parent.Find("Canvas").GetComponent<UIManager>();
         UIManager.Init();
         ready = true;
@@ -163,8 +176,10 @@ public class GManager : MonoBehaviour
         if (!ready) return;
         float t = Time.deltaTime;
         gameTime += t;
+        beatTime += t;//後で消す
         QOrder.QuadUpdate(t);
         IManager.UpdateInput();
+        BManager.UpdateBeat();//後で消す
 
         if (Keyboard.current != null && Keyboard.current.aKey.wasPressedThisFrame)
         {
@@ -181,24 +196,25 @@ public class GManager : MonoBehaviour
             tempBullets.Dispose();
         }
 
-        if(Keyboard.current != null && Keyboard.current.gKey.wasPressedThisFrame)
+        if (Keyboard.current != null && Keyboard.current.gKey.wasPressedThisFrame)
         {
             StageData stage = SDB.GetStage(0);
-            if(stage != null)            {
+            if (stage != null)
+            {
                 SReader.Init(stage);
                 state = GameState.Playing;
                 Debug.Log($"Started Stage: {stage.stageName}");
             }
         }
 
-        if(IManager.buttonPressed && state == GameState.Title)
+        if (IManager.buttonPressed && state == GameState.Title)
         {
             state = GameState.ChoosingStage;
             UIManager.GoToChooseStage();
         }
         UIManager.UpdateUI();
 
-        if (PController != null) PController.UpdatePos(t);
+        if (PController != null) PController.UpdatePos(t, IManager.buttonPressed);
         SReader.UpdateStage(t);
     }
 
@@ -220,11 +236,6 @@ public class GManager : MonoBehaviour
         }
     }
 
-    public void Log(string s)
-    {
-
-    }
-
     public float GetAngleDeg(float2 vec)
     {
         return GetAngleDeg(vec.x, vec.y);
@@ -238,10 +249,4 @@ public class GManager : MonoBehaviour
         if (deg < 0) deg += 360.0;
         return (float)deg;
     }
-
-    public void UpSlash()
-    {
-        if (PController != null) PController.UpShot();
-    }
 }
-

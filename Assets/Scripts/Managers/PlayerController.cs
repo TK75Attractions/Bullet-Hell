@@ -6,6 +6,17 @@ using Unity.Collections;
 public class PlayerController
 {
     public float2 pos;
+    public int HP = 5;
+    private float invincibilityTime = 0f;
+    private const float invincibilityDuration = 1f; // 1 second of invincibility after being hit
+
+    private float dodgeIncivibilityTime = 0f;
+    private const float dodgeIncivibilityDuration = 0.5f; // 0.5 seconds of invincibility after dodging
+    private float dodgeCooldownTime = 0f;
+    private const float dodgeCooldownDuration = 0.8f; // 0.8 seconds cooldown for dodge
+
+    private float2 velocity;
+    private float angle = 0f;
     [SerializeField] private float moveSpeed = 5f;
     private Transform playerTransform;
     [SerializeField] private SpriteRenderer SR;
@@ -22,7 +33,7 @@ public class PlayerController
     }
 
     // Update is called once per frame
-    public void UpdatePos(float dt)
+    public void UpdatePos(float dt, bool buttonPressed)
     {
         Move(dt);
         playerTransform.position = new Vector3(pos.x, pos.y, 0);
@@ -40,61 +51,41 @@ public class PlayerController
         if (math.length(inputVector) > 0)
         {
             inputVector = math.normalize(inputVector);
-            pos += inputVector * moveSpeed * dt;
+            velocity = inputVector * moveSpeed;
+            angle = math.atan2(inputVector.y, inputVector.x) * Mathf.Rad2Deg;
+            playerTransform.rotation = Quaternion.Euler(0, 0, angle - 90);
+        }
+        else
+        {
+            velocity = float2.zero;
+        }
+
+        pos += velocity * dt;
+    }
+
+    private void HandleInvincibility(float dt)
+    {
+        if (invincibilityTime > 0)
+        {
+            invincibilityTime -= dt;
+
+            int i = (int)(invincibilityTime * 10) % 2;
+
+            // Flash the player sprite to indicate invincibility
+            SR.color = new Color(1, 1, 1, i == 0 ? 0.5f : 1f);
+        }
+
+        if (dodgeIncivibilityTime > 0)
+        {
+            dodgeIncivibilityTime -= dt;
+
+            int i = (int)(dodgeIncivibilityTime * 10) % 2;
+
+            // Flash the player sprite to indicate invincibility
+            SR.color = new Color(1, 1, 1, i == 0 ? 0.5f : 1f);
         }
     }
-
     #region Collision
-    public void UpShot()
-    {
-        NativeArray<BulletData> bullets = GetListOfUpBullets(pos);
-        GManager.Control.QOrder.AddPlayerBullets(bullets);
-        bullets.Dispose();
-    }
-
-    private NativeArray<BulletData> GetListOfUpBullets(float2 _pos)
-    {
-        NativeArray<BulletData> bullets = new NativeArray<BulletData>(6, Allocator.Temp);
-        BulletData b0 = CreatePlayerBullet(_pos + new float2(0.2f, 0.5f), new float4(0, 0, 0, 0));
-        BulletData b1 = CreatePlayerBullet(_pos + new float2(0.3f, 0.4f), new float4(0, 0, 0, 0));
-        BulletData b2 = CreatePlayerBullet(_pos + new float2(0.4f, 0.3f), new float4(-0.4f, 0, 0, 0));
-        BulletData b3 = CreatePlayerBullet(_pos + new float2(-0.2f, 0.5f), new float4(0, 0, 0, 0));
-        BulletData b4 = CreatePlayerBullet(_pos + new float2(-0.3f, 0.4f), new float4(0, 0, 0, 0));
-        BulletData b5 = CreatePlayerBullet(_pos + new float2(-0.4f, 0.3f), new float4(0.4f, 0, 0, 0));
-
-        bullets[0] = b0;
-        bullets[1] = b1;
-        bullets[2] = b2;
-        bullets[3] = b3;
-        bullets[4] = b4;
-        bullets[5] = b5;
-        return bullets;
-    }
-
-    private BulletData CreatePlayerBullet(float2 position, float4 polynomial)
-    {
-        return new BulletData(
-            position,
-            new float2(0, 0),
-            3f,
-            0f,
-            0f,
-            0,
-            new float2(1, math.PI / 2),
-            0f,
-            0f,
-            0f,
-            polynomial,
-            2,
-            1f,
-            new float4(1, 1, 1, 1)
-        );
-    }
-
-    public void DownShot()
-    {
-
-    }
 
     #endregion
 }
