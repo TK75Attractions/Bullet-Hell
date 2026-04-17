@@ -14,9 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StageData
   stageId: 0
   difficulty: 0
-  stageName: DemoStage0
-  StageImage: {fileID: 0}
   stageDescription: 000
+  stageName: DemoStage0
+  musicName: 
+  StageImage: {fileID: 0}
+  audioClip: {fileID: 0}
+  MusicEvents: []
   enemySpawners:
   - id: 0
     count: 1

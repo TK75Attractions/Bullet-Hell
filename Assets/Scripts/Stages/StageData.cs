@@ -1,6 +1,4 @@
 using UnityEngine;
-using Unity.Collections;
-using Unity.Mathematics;
 using System.Collections.Generic;
 
 [CreateAssetMenu(fileName = "StageData", menuName = "Stage/StageData")]
@@ -14,7 +12,7 @@ public class StageData : ScriptableObject
     public string musicName;
     public Sprite StageImage;
     public AudioClip audioClip;
-    public List<MusicEvent> BPMChanges;
+    public List<MusicEvent> MusicEvents;
 
     [System.Serializable]
     public class MusicEvent
