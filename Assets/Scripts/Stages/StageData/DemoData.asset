@@ -19,7 +19,7 @@ MonoBehaviour:
   stageDescription: 000
   enemySpawners:
   - id: 0
-    count: 1
+    count: 10
     interval: 0.3
     next: 5
     orbit:
@@ -31,10 +31,10 @@ MonoBehaviour:
         y: 0
       angle: 0
       originPos:
-        x: 5
+        x: 2
         y: 10
       originVlc:
-        x: 0
+        x: 2
         y: 0
       startX: 3
       speed: 0
