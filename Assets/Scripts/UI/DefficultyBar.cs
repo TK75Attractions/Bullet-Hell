@@ -2,15 +2,8 @@ using UnityEngine;
 
 public class DefficultyBar : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public void Init()
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        // Initialize the difficulty bar here
     }
 }

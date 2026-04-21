@@ -30,7 +30,6 @@ public class GManager : MonoBehaviour
     public PlayerController PController;
 
     public InputManager IManager;
-    public UIManager UIManager;
     public StageReader SReader;
     public PerlinRandom PRandom;
     public QuadOrder QOrder;
@@ -83,7 +82,7 @@ public class GManager : MonoBehaviour
                 p[i] = permutation[i];
                 p[256 + i] = permutation[i];
             }
-            
+
         }
 
         public double Noise(double x)
@@ -122,7 +121,7 @@ public class GManager : MonoBehaviour
 
         IManager = GetComponent<InputManager>();
         IManager.Init();
-        
+
         BTDB.Init();
         SDB.Init();
 
@@ -142,9 +141,7 @@ public class GManager : MonoBehaviour
 
         InitSpawnBuffer();
         state = GameState.Title;
-            
-        UIManager = transform.parent.Find("Canvas").GetComponent<UIManager>();
-        UIManager.Init();
+
         ready = true;
     }
 
@@ -181,22 +178,22 @@ public class GManager : MonoBehaviour
             tempBullets.Dispose();
         }
 
-        if(Keyboard.current != null && Keyboard.current.gKey.wasPressedThisFrame)
+        if (Keyboard.current != null && Keyboard.current.gKey.wasPressedThisFrame)
         {
             StageData stage = SDB.GetStage(0);
-            if(stage != null)            {
+            if (stage != null)
+            {
                 SReader.Init(stage);
                 state = GameState.Playing;
                 Debug.Log($"Started Stage: {stage.stageName}");
             }
         }
 
-        if(IManager.buttonPressed && state == GameState.Title)
+        if (IManager.buttonPressed && state == GameState.Title)
         {
             state = GameState.ChoosingStage;
-            UIManager.GoToChooseStage();
+            // Transition to stage selection screen here
         }
-        UIManager.UpdateUI();
 
         if (PController != null) PController.UpdatePos(t);
         SReader.UpdateStage(t);
