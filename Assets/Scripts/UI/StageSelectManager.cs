@@ -39,11 +39,14 @@ public class StageSelectManager : MonoBehaviour
 
     public void UpdateSelect(bool up, bool down, float dt)
     {
+        scroll.UpdateScroll(dt);
+
         switch (state)
         {
             case State.Music:
                 if (up) stageBar.Up();
                 else if (down) stageBar.Down();
+                scroll.UpdateArea(stageBar.currentStage, GManager.Control.SDB.stages.Count);
                 break;
             case State.Difficulty:
                 //if (up) defficultyBar.Up();

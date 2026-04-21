@@ -13,11 +13,15 @@ public class StageBox : MonoBehaviour
 
     private static readonly float interval = 140f;
 
+    private CanvasGroup CG;
     private TMP_Text stageNameText;
+    private RectTransform rectTransform;
     public void Init()
     {
         // Initialize the stage box here
         stageNameText = transform.Find("StageName").GetComponent<TMP_Text>();
+        rectTransform = GetComponent<RectTransform>();
+        CG = GetComponent<CanvasGroup>();
     }
 
     public void SetStageName(string name)
@@ -29,9 +33,11 @@ public class StageBox : MonoBehaviour
     {
         float a = 0.8f;
         if (2 < progress && progress < 3) a += (progress - 2) * 0.2f;
-        else if (3 <= progress && progress < 4) a = (4 - progress) * 0.2f;
+        else if (3 <= progress && progress < 4) a += (4 - progress) * 0.2f;
+        if (progress == 0 || progress == 6) a = 0;
 
-        transform.localScale = Vector3.one * (miniScale + (normalScale - miniScale) * a);
-        transform.localPosition = new Vector3((progress - 3) * interval, 0, 0);
+        CG.alpha = a;
+        rectTransform.localScale = Vector3.one * a;
+        rectTransform.localPosition = new Vector3(0, (3 - progress) * interval, 0);
     }
 }

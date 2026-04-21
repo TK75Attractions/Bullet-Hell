@@ -32,11 +32,11 @@ public class GManager : MonoBehaviour
     public InputManager IManager;
     public StageReader SReader;
     public PerlinRandom PRandom;
+    public StageSelectManager SSManager;
     public QuadOrder QOrder;
     public BulletTypeDataBase BTDB;
     public StageDataBase SDB;
     public EnemyDataBase EDB;
-
     public BulletRenderSystem BRS;
 
     public float gameTime;
@@ -130,6 +130,9 @@ public class GManager : MonoBehaviour
 
         EDB.Init();
 
+        SSManager = transform.parent.Find("Canvases").Find("StageCanvas").Find("StageBoxParent").GetComponent<StageSelectManager>();
+        SSManager.Init();
+
         QOrder = GetComponent<QuadOrder>();
         QOrder.AwakeSetting();
         PRandom = new PerlinRandom();
@@ -197,6 +200,8 @@ public class GManager : MonoBehaviour
 
         if (PController != null) PController.UpdatePos(t);
         SReader.UpdateStage(t);
+
+        SSManager.UpdateSelect(IManager.upPressedThisFrame, IManager.downPressedThisFrame, t);
     }
 
     public void LateUpdate()
