@@ -30,11 +30,8 @@ public class StageBar : MonoBehaviour
 
     public async void Down()
     {
-        Debug.Log("Up");
-        Debug.Log(isTransitioning);
         if (!isTransitioning)
         {
-            Debug.Log("UpUpUp");
             isTransitioning = true;
             float d = duration;
 

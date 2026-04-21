@@ -31,13 +31,13 @@ public class StageBox : MonoBehaviour
 
     public void SetPosition(float progress)
     {
-        float a = 0.8f;
-        if (2 < progress && progress < 3) a += (progress - 2) * 0.2f;
-        else if (3 <= progress && progress < 4) a += (4 - progress) * 0.2f;
+        float a = 0.3f;
+        if (2 < progress && progress < 3) a += (progress - 2) * 0.7f;
+        else if (3 <= progress && progress < 4) a += (4 - progress) * 0.7f;
         if (progress == 0 || progress == 6) a = 0;
 
         CG.alpha = a;
-        rectTransform.localScale = Vector3.one * a;
+        rectTransform.localScale = Vector3.one * (miniScale + (normalScale - miniScale) * a);
         rectTransform.localPosition = new Vector3(0, (3 - progress) * interval, 0);
     }
 }

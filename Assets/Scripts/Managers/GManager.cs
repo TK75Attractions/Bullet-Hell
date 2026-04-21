@@ -201,7 +201,7 @@ public class GManager : MonoBehaviour
         if (PController != null) PController.UpdatePos(t);
         SReader.UpdateStage(t);
 
-        SSManager.UpdateSelect(IManager.upPressedThisFrame, IManager.downPressedThisFrame, t);
+        SSManager.UpdateSelect(IManager.upPressedThisFrame, IManager.downPressedThisFrame, t, IManager.buttonPressedThisFrame);
     }
 
     public void LateUpdate()
