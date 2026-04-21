@@ -3,6 +3,7 @@ using Unity.Mathematics;
 using TMPro;
 using UnityEngine.Video;
 using System.Data;
+using System;
 
 public class StageDescription : MonoBehaviour
 {
@@ -18,12 +19,13 @@ public class StageDescription : MonoBehaviour
     private TMP_Text stageName = null;
     private VideoPlayer videoPlayer = null;
 
+    [Serializable]
     private struct TransformData
     {
-        public Vector2 mScale;
-        public Vector2 mPosition;
-        public Vector2 dScale;
-        public Vector2 dPosition;
+        public float mWidth;
+        public float mHeight;
+        public float dWidth;
+        public float dHeight;
     }
 
     public void Init()
@@ -45,13 +47,9 @@ public class StageDescription : MonoBehaviour
 
     public void Transition(float progress)
     {
-        backRect.localScale = Vector3.Lerp(BackData.mScale, BackData.dScale, progress);
-        backRect.localPosition = Vector3.Lerp(BackData.mPosition, BackData.dPosition, progress);
-        videoRect.localScale = Vector3.Lerp(VideoData.mScale, VideoData.dScale, progress);
-        videoRect.localPosition = Vector3.Lerp(VideoData.mPosition, VideoData.dPosition, progress);
-        LineUpLeft.localScale = Vector3.Lerp(UpLeftData.mScale, UpLeftData.dScale, progress);
-        LineUpLeft.localPosition = Vector3.Lerp(UpLeftData.mPosition, UpLeftData.dPosition, progress);
-        LineDownRight.localScale = Vector3.Lerp(DownRightData.mScale, DownRightData.dScale, progress);
-        LineDownRight.localPosition = Vector3.Lerp(DownRightData.mPosition, DownRightData.dPosition, progress);
+        backRect.sizeDelta = new Vector2(Mathf.Lerp(BackData.mWidth, BackData.dWidth, progress), Mathf.Lerp(BackData.mHeight, BackData.dHeight, progress));
+        videoRect.sizeDelta = new Vector2(Mathf.Lerp(VideoData.mWidth, VideoData.dWidth, progress), Mathf.Lerp(VideoData.mHeight, VideoData.dHeight, progress));
+        LineUpLeft.sizeDelta = new Vector2(Mathf.Lerp(UpLeftData.mWidth, UpLeftData.dWidth, progress), Mathf.Lerp(UpLeftData.mHeight, UpLeftData.dHeight, progress));
+        LineDownRight.sizeDelta = new Vector2(Mathf.Lerp(DownRightData.mWidth, DownRightData.dWidth, progress), Mathf.Lerp(DownRightData.mHeight, DownRightData.dHeight, progress));
     }
 }

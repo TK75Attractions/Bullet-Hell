@@ -1452,6 +1452,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4c26dd56bccf6346ac18c01b1e3ef82, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageDescription
+  BackData:
+    mWidth: 640
+    mHeight: 840
+    dWidth: 900
+    dHeight: 840
+  VideoData:
+    mWidth: 0
+    mHeight: 0
+    dWidth: 0
+    dHeight: 0
+  UpLeftData:
+    mWidth: 0
+    mHeight: 0
+    dWidth: 0
+    dHeight: 0
+  DownRightData:
+    mWidth: 0
+    mHeight: 0
+    dWidth: 0
+    dHeight: 0
 --- !u!1 &741509670
 GameObject:
   m_ObjectHideFlags: 0
@@ -4735,6 +4755,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InputManager
   isDebugMode: 1
   buttonPressed: 0
+  buttonPressedThisFrame: 0
   upPressed: 0
   downPressed: 0
   leftPressed: 0

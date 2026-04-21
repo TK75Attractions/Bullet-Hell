@@ -20,6 +20,8 @@ public class StageSelectManager : MonoBehaviour
 
     private State state = State.Music;
 
+    private bool isTransitioning = false;
+
     public void Init()
     {
         defficultyBar = GetComponentInChildren<DefficultyBar>();
@@ -47,6 +49,7 @@ public class StageSelectManager : MonoBehaviour
                 if (button)
                 {
                     state = State.Difficulty;
+                    TransitionToDifficulty();
                     break;
                 }
                 else
@@ -64,4 +67,27 @@ public class StageSelectManager : MonoBehaviour
                 break;
         }
     }
+
+    public async void TransitionToDifficulty()
+    {
+        if (!isTransitioning)
+        {
+            isTransitioning = true;
+            float d = 0.5f;
+
+            while (d > 0)
+            {
+                d -= Time.deltaTime;
+                float progress = 1 - d / 0.5f;
+                stageDescription.Transition(progress);
+                await Task.Yield();
+            }
+
+            stageDescription.Transition(1);
+            header.TransitionNotes(1);
+
+            isTransitioning = false;
+        }
+    }
+
 }
