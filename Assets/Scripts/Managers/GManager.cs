@@ -181,17 +181,6 @@ public class GManager : MonoBehaviour
             tempBullets.Dispose();
         }
 
-        if (Keyboard.current != null && Keyboard.current.gKey.wasPressedThisFrame)
-        {
-            StageData stage = SDB.GetStage(0);
-            if (stage != null)
-            {
-                SReader.Init(stage);
-                state = GameState.Playing;
-                Debug.Log($"Started Stage: {stage.stageName}");
-            }
-        }
-
         if (IManager.buttonPressed && state == GameState.Title)
         {
             state = GameState.ChoosingStage;
@@ -222,15 +211,6 @@ public class GManager : MonoBehaviour
         }
     }
 
-    public void Log(string s)
-    {
-
-    }
-
-    public float GetAngleDeg(float2 vec)
-    {
-        return GetAngleDeg(vec.x, vec.y);
-    }
 
     public float GetAngleDeg(float x, float y)
     {
@@ -241,9 +221,19 @@ public class GManager : MonoBehaviour
         return (float)deg;
     }
 
-    public void UpSlash()
+    public void GoGame(int index)
     {
-        if (PController != null) PController.UpShot();
+        StageData stage = SDB.GetStage(index);
+        if (stage != null)
+        {
+            SReader.Init(stage);
+            state = GameState.Playing;
+            Debug.Log($"Started Stage: {stage.stageName}");
+        }
+        else
+        {
+            Debug.LogError($"Stage with index {index} not found!");
+        }
     }
 }
 

@@ -13,7 +13,7 @@ public class DefficultyBar : MonoBehaviour
 
     private DefficultyBox[] boxes = new DefficultyBox[3];
     public int index = 0;
-    private readonly float duration = 1f;
+    private readonly float duration = 0.15f;
     private bool isTransitioning = false;
 
     private class DefficultyBox

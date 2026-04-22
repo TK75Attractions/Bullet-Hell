@@ -6,6 +6,8 @@ using Unity.VisualScripting;
 
 public class StageSelectManager : MonoBehaviour
 {
+    private CanvasGroup variableCG;
+    private CanvasGroup staticCG;
     private DefficultyBar defficultyBar;
     private Header header;
     private Scroll scroll;
@@ -16,6 +18,7 @@ public class StageSelectManager : MonoBehaviour
     {
         Music,
         Difficulty,
+        InGame,
     }
 
     private State state = State.Music;
@@ -24,6 +27,8 @@ public class StageSelectManager : MonoBehaviour
 
     public void Init()
     {
+        variableCG = GetComponent<CanvasGroup>();
+        staticCG = transform.parent.parent.Find("StaticCanvas").Find("StageBoxParent").GetComponent<CanvasGroup>();
         defficultyBar = GetComponentInChildren<DefficultyBar>();
         header = GetComponentInChildren<Header>();
         scroll = GetComponentInChildren<Scroll>();
@@ -63,12 +68,18 @@ public class StageSelectManager : MonoBehaviour
             case State.Difficulty:
                 if (button)
                 {
+                    GManager.Control.GoGame(stageBar.currentStage);
+                    state = State.InGame;
+                    variableCG.alpha = 0;
+                    staticCG.alpha = 0;
                 }
                 else
                 {
                     if (up) defficultyBar.Up();
                     else if (down) defficultyBar.Down();
                 }
+                break;
+            case State.InGame:
                 break;
             default:
                 break;
