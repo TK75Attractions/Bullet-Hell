@@ -131,9 +131,6 @@ public class QuadOrder : MonoBehaviour
         for (int i = 0; i < n; i++) t[i] = new();
         cells = t;
 
-        GManager.Control.Log("CellCreated");
-        GManager.Control.Log($"Level : {separateLevel}, Length : {n}");
-
         BuildCollisionData();
         if (!collisionHitFlag.IsCreated)
         {
@@ -318,7 +315,7 @@ public class QuadOrder : MonoBehaviour
         if (hasEnemiesOrbitBullets)
         {
             NativeArray<BulletData> bullets = enemiesOrbitBullets.AsArray();
-            Debug.Log($"Updating {bullets.Length} orbit bullets");
+            //Debug.Log($"Updating {bullets.Length} orbit bullets");
             BulletDataUpdateJob job2 = new()
             {
                 bullets = bullets,

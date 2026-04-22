@@ -11,9 +11,6 @@ using UnityEngine;
 
 public class BulletEvent
 {
-    /// <summary>
-    /// �e���̃X�v���C�g
-    /// </summary>
     public int type = 0;
     public List<Transform> bullets = new();
     public List<BulletClip> clips = new();
