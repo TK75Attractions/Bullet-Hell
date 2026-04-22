@@ -37,6 +37,7 @@ public class StageSelectManager : MonoBehaviour
         stageDescription.Init();
 
         state = State.Music;
+
     }
 
     public void UpdateSelect(bool up, bool down, float dt, bool button)
@@ -60,8 +61,14 @@ public class StageSelectManager : MonoBehaviour
                     break;
                 }
             case State.Difficulty:
-                //if (up) defficultyBar.Up();
-                //else if (down) defficultyBar.Down();
+                if (button)
+                {
+                }
+                else
+                {
+                    if (up) defficultyBar.Up();
+                    else if (down) defficultyBar.Down();
+                }
                 break;
             default:
                 break;
@@ -78,13 +85,20 @@ public class StageSelectManager : MonoBehaviour
             while (d > 0)
             {
                 d -= Time.deltaTime;
-                float progress = 1 - d / 0.5f;
+                float p = 1 - (d / 0.5f);
+                float progress = -p * (p - 2);
                 stageDescription.Transition(progress);
+                stageBar.SetAlpha(1 - progress);
+                scroll.SetAlpha(1 - progress);
+                defficultyBar.SetAlpha(progress);
                 await Task.Yield();
             }
 
             stageDescription.Transition(1);
             header.TransitionNotes(1);
+            stageBar.SetAlpha(0);
+            scroll.SetAlpha(0);
+            defficultyBar.SetAlpha(1);
 
             isTransitioning = false;
         }

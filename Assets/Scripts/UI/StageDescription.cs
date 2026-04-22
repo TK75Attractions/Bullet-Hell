@@ -7,14 +7,13 @@ using System;
 
 public class StageDescription : MonoBehaviour
 {
+    private RectTransform rect;
     private RectTransform backRect;
     [SerializeField] private TransformData BackData;
     private RectTransform videoRect;
     [SerializeField] private TransformData VideoData;
     private RectTransform LineUpLeft;
-    [SerializeField] private TransformData UpLeftData;
     private RectTransform LineDownRight;
-    [SerializeField] private TransformData DownRightData;
 
     private TMP_Text stageName = null;
     private VideoPlayer videoPlayer = null;
@@ -30,6 +29,7 @@ public class StageDescription : MonoBehaviour
 
     public void Init()
     {
+        rect = GetComponent<RectTransform>();
         backRect = transform.Find("Back").GetComponent<RectTransform>();
         videoRect = transform.Find("Video").GetComponent<RectTransform>();
         LineUpLeft = transform.Find("UpLeft").GetComponent<RectTransform>();
@@ -47,9 +47,10 @@ public class StageDescription : MonoBehaviour
 
     public void Transition(float progress)
     {
+        rect.anchoredPosition = new Vector2(Mathf.Lerp(560, -440, progress), -60);
         backRect.sizeDelta = new Vector2(Mathf.Lerp(BackData.mWidth, BackData.dWidth, progress), Mathf.Lerp(BackData.mHeight, BackData.dHeight, progress));
         videoRect.sizeDelta = new Vector2(Mathf.Lerp(VideoData.mWidth, VideoData.dWidth, progress), Mathf.Lerp(VideoData.mHeight, VideoData.dHeight, progress));
-        LineUpLeft.sizeDelta = new Vector2(Mathf.Lerp(UpLeftData.mWidth, UpLeftData.dWidth, progress), Mathf.Lerp(UpLeftData.mHeight, UpLeftData.dHeight, progress));
-        LineDownRight.sizeDelta = new Vector2(Mathf.Lerp(DownRightData.mWidth, DownRightData.dWidth, progress), Mathf.Lerp(DownRightData.mHeight, DownRightData.dHeight, progress));
+        LineUpLeft.anchoredPosition = new Vector2(-Mathf.Lerp(BackData.mWidth, BackData.dWidth, progress) / 2, Mathf.Lerp(BackData.mHeight, BackData.dHeight, progress) / 2);
+        LineDownRight.anchoredPosition = new Vector2(Mathf.Lerp(BackData.mWidth, BackData.dWidth, progress) / 2, -Mathf.Lerp(BackData.mHeight, BackData.dHeight, progress) / 2);
     }
 }

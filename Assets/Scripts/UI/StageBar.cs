@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Unity.Android.Gradle;
 using UnityEngine;
 
 
@@ -9,14 +8,17 @@ public class StageBar : MonoBehaviour
     [SerializeField] private GameObject stageBoxPrefab;
     private Transform parent;
     private CanvasGroup canvasGroup;
+    private CanvasGroup whiteBar;
     private List<StageBox> stageBoxes = new List<StageBox>();
     public int currentStage = 0;
     private bool isTransitioning = false;
-    static private readonly float duration = 0.1f;
+    static private readonly float duration = 0.15f;
 
     public void Init()
     {
         parent = transform.Find("List");
+        canvasGroup = GetComponent<CanvasGroup>();
+        whiteBar = transform.Find("White").GetComponent<CanvasGroup>();
         isTransitioning = false;
         for (int i = 0; i < 6; i++)
         {
@@ -52,13 +54,19 @@ public class StageBar : MonoBehaviour
 
             while (d > 0)
             {
-                d -= Time.deltaTime;
+                d -= Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(d / duration);
+                float progress = -t * (t - 2);
+                if (progress > 1) progress = 1;
+
                 for (int i = 0; i < stageBoxes.Count; i++)
                 {
                     int p = currentStage - 3 + i;
-                    if (0 <= p && p < length) stageBoxes[i].SetPosition(i + (d / duration));
+                    if (0 <= p && p < length) stageBoxes[i].SetPosition(i + progress);
                     else stageBoxes[i].SetPosition(0);
                 }
+
+                SetWhiteAlpha(t * t * t);
                 await Task.Yield();
             }
 
@@ -68,7 +76,7 @@ public class StageBar : MonoBehaviour
                 if (0 <= p && p < length) stageBoxes[i].SetPosition(i);
                 else stageBoxes[i].SetPosition(0);
             }
-
+            SetWhiteAlpha(1);
             isTransitioning = false;
         }
     }
@@ -97,16 +105,20 @@ public class StageBar : MonoBehaviour
 
             while (d > 0)
             {
-                d -= Time.deltaTime;
+                d -= Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(d / duration);
+                float progress = -t * (t - 2);
+
                 for (int i = 0; i < stageBoxes.Count; i++)
                 {
                     int k = 6;
                     if (i != 0) k = i - 1;
 
                     int p = currentStage - 3 + i;
-                    if (0 <= p && p < length) stageBoxes[i].SetPosition(k + 1 - (d / duration));
+                    if (0 <= p && p < length) stageBoxes[i].SetPosition(k + 1 - progress);
                     else stageBoxes[i].SetPosition(0);
                 }
+                SetWhiteAlpha(t * t * t);
                 await Task.Yield();
             }
 
@@ -116,8 +128,20 @@ public class StageBar : MonoBehaviour
                 if (0 <= p && p < length) stageBoxes[i].SetPosition(i);
                 else stageBoxes[i].SetPosition(0);
             }
+            SetWhiteAlpha(1);
 
             isTransitioning = false;
         }
+    }
+
+    public void SetAlpha(float alpha)
+    {
+        canvasGroup.alpha = alpha;
+    }
+
+    private void SetWhiteAlpha(float progress)
+    {
+        if (progress < 0.5f) whiteBar.alpha = (0.5f - progress) * 2;
+        else whiteBar.alpha = (progress - 0.5f) * 2;
     }
 }

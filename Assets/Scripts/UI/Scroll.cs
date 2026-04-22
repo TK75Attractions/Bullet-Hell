@@ -21,7 +21,7 @@ public class Scroll : MonoBehaviour
 
     public void UpdateScroll(float dt)
     {
-        dt *= 5;
+        dt *= 8;
         float targetPos = currentPos;
         velocity += (targetPos - area.anchoredPosition.y) * accel * dt;
         area.anchoredPosition += new Vector2(0, velocity * dt);
@@ -34,5 +34,10 @@ public class Scroll : MonoBehaviour
         currentPos = length / 2 - (index + 0.5f) * (length / max);
         areaHeight = length / max;
         velocity = (currentPos - area.anchoredPosition.y) * accel * 5;
+    }
+
+    public void SetAlpha(float alpha)
+    {
+        CG.alpha = alpha;
     }
 }
