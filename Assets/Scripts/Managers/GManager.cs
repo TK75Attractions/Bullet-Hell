@@ -40,6 +40,7 @@ public class GManager : MonoBehaviour
     public BulletRenderSystem BRS;
 
     public float gameTime;
+    public float beatTime;
     public bool ready = false;
 
 
@@ -163,6 +164,7 @@ public class GManager : MonoBehaviour
         if (!ready) return;
         float t = Time.deltaTime;
         gameTime += t;
+        beatTime += t;
         QOrder.QuadUpdate(t);
         IManager.UpdateInput();
 
