@@ -49,7 +49,7 @@ public class Enemy : MonoBehaviour
         trans.localScale = new Vector3(spawner.orbit.size, spawner.orbit.size, 1);
         SR = GetComponent<SpriteRenderer>();
         SR.sprite = GManager.Control.EDB.GetSprite(spawner.id);
-        
+
         isActive = true;
     }
 
@@ -58,7 +58,7 @@ public class Enemy : MonoBehaviour
         time += dt;
         if (!isReady)
         {
-            if(time > startInterval)
+            if (time > startInterval)
             {
                 isReady = true;
                 time = 0;
@@ -69,9 +69,9 @@ public class Enemy : MonoBehaviour
             if (time > interval)
             {
                 time = 0;
-                if(count < BulletCount)
+                if (count < BulletCount)
                 {
-                    Debug.Log("Enemy " + arrayIndex + " Emit Bullet");
+                    //Debug.Log("Enemy " + arrayIndex + " Emit Bullet");
                     GManager.Control.QOrder.EmitEnemyBullet(bulletClip, arrayIndex);
                     count++;
                 }

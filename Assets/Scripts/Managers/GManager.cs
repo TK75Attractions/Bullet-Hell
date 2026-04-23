@@ -31,11 +31,14 @@ public class GManager : MonoBehaviour
 
     public InputManager IManager;
     public StageReader SReader;
+    public AudioManager AManager;
+    public BeatManager BManager;
     public PerlinRandom PRandom;
     public StageSelectManager SSManager;
     public QuadOrder QOrder;
     public BulletTypeDataBase BTDB;
     public StageDataBase SDB;
+    public SEDataBase SEDB;
     public EnemyDataBase EDB;
     public BulletRenderSystem BRS;
 
@@ -122,6 +125,11 @@ public class GManager : MonoBehaviour
 
         IManager = GetComponent<InputManager>();
         IManager.Init();
+
+        AManager = transform.parent.Find("AManager").GetComponent<AudioManager>();
+        AManager.Init();
+
+        BManager = transform.parent.Find("BManager").GetComponent<BeatManager>();
 
         BTDB.Init();
         SDB.Init();

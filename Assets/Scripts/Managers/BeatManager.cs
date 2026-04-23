@@ -1,14 +1,19 @@
 using UnityEngine;
 using Unity.Mathematics;
 using System.Collections.Generic;
+using NUnit.Framework.Constraints;
 
 public class BeatManager : MonoBehaviour
 {
     private List<float> beatTimings; // List of beat timings in seconds
+    public float beatValueSin;
+    public float beatValuePoly;
     private bool ready = false;
     private int beatCount = 0;
+    private float nextBeatTime = 0;
+    private float toleranceTime = 0.1f; // Time window for beat detection
 
-    public void Init(List<StageData.MusicEvent> musicEvents)
+    public void SetBeat(List<StageData.MusicEvent> musicEvents)
     {
         beatTimings = new List<float>();
         for (int i = 0; i < musicEvents.Count; i++) musicEvents[i].Refresh();
@@ -46,16 +51,42 @@ public class BeatManager : MonoBehaviour
 
         float bt = GManager.Control.beatTime;
 
-        if (beatCount < beatTimings.Count && bt >= beatTimings[beatCount])
+        if (beatCount < beatTimings.Count && bt >= nextBeatTime)
         {
             OnBeat();
             beatCount++;
+            if (beatCount < beatTimings.Count) nextBeatTime = beatTimings[beatCount];
         }
 
+        ValueUpdate();
     }
 
     private void OnBeat()
     {
         Debug.Log($"Beat! {beatCount}");
+    }
+
+    private void ValueUpdate()
+    {
+        float bt = GManager.Control.beatTime;
+        if (beatCount == 0) return;
+
+        float pre = bt - beatTimings[beatCount - 1];
+        float next = nextBeatTime - bt;
+        if (pre > toleranceTime && next > toleranceTime)
+        {
+            beatValueSin = 0;
+            beatValuePoly = 0;
+            return;
+        }
+
+        float f = Mathf.Min(pre, next);
+
+        if (f < toleranceTime * 0.1f) beatValueSin = 1;
+        else if (f < toleranceTime) beatValueSin = Mathf.Sin((f - toleranceTime * 0.1f) / (toleranceTime * 0.9f) * Mathf.PI / 2);
+        else beatValueSin = 0;
+
+        if (f < toleranceTime) beatValuePoly = (f * f - toleranceTime * toleranceTime) / (toleranceTime * toleranceTime);
+        else beatValuePoly = 0;
     }
 }
