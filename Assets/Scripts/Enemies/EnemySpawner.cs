@@ -10,6 +10,7 @@ public class EnemySpawner
     public int count;
     public float interval;
     public float next;
+    public int bulletCount;
     public BulletData orbit;
     public BulletClip bulletClip;
     public List<BulletChangeClip> bulletChangeClips = new List<BulletChangeClip>();

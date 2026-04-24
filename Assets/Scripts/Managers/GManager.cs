@@ -52,6 +52,8 @@ public class GManager : MonoBehaviour
 
     private readonly BulletData[] spawnBuffer = new BulletData[6];
 
+    public BulletEvent testEvent = new BulletEvent();
+
     public class PerlinRandom
     {
         private static readonly int[] permutation = {
@@ -187,6 +189,7 @@ public class GManager : MonoBehaviour
 
         if (Keyboard.current != null && Keyboard.current.aKey.wasPressedThisFrame)
         {
+            /*
             Debug.Log("aaa");
             NativeArray<BulletData> tempBullets = new NativeArray<BulletData>(
                 spawnBuffer,
@@ -198,6 +201,8 @@ public class GManager : MonoBehaviour
                 Debug.Log($"Spawned Bullet at index: {index}");
             }
             tempBullets.Dispose();
+            */
+            QOrder.StartBulletEvent(testEvent);
         }
 
         if (IManager.buttonPressed && state == GameState.Title)

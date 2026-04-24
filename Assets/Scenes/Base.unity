@@ -5240,9 +5240,9 @@ MonoBehaviour:
   cellSize: 0.8
   separateLevel: 6
   cellCount: 0
-  bosses:
-  - {fileID: 495541749}
+  bosses: []
   enemies: []
+  bulletEvents: []
   inactiveCleanupInterval: 6
   drawLaserCollisionGizmos: 1
   laserCollisionGizmoColor: {r: 1, g: 0.2, b: 0.2, a: 0.9}
@@ -5293,6 +5293,56 @@ MonoBehaviour:
   beatTime: 0
   ready: 0
   musicOn: 0
+  testEvent:
+    bullets: 
+    transitions:
+    - bulletData:
+        position:
+          x: 0
+          y: 0
+        velocity:
+          x: 0
+          y: 0
+        angle: 0
+        originPos:
+          x: 0
+          y: 0
+        originVlc:
+          x: 0
+          y: 0
+        startX: 0
+        speed: 0
+        acccel: 0
+        gravity: 0
+        angleSpeed: 0
+        polarForm:
+          x: 0
+          y: 0
+        radiusVlc: 0
+        thetaVlc: 0
+        startPos:
+          x: 0
+          y: 0
+        nowCalculateVlc:
+          x: 0
+          y: 0
+        nowCalculateX: 0
+        polynomial:
+          x: 0
+          y: 0
+          z: 0
+          w: 0
+        typeId: 0
+        size: 0
+        color:
+          x: 0
+          y: 0
+          z: 0
+          w: 0
+        areaNum: 0
+        time: 0
+        isActive: 0
+      time: 0
 --- !u!114 &1890939116
 MonoBehaviour:
   m_ObjectHideFlags: 0

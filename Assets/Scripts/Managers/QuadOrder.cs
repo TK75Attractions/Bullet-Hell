@@ -67,6 +67,8 @@ public class QuadOrder : MonoBehaviour
     private NativeArray<int2> collisionVertRanges;
     private NativeArray<int> collisionHitFlag;
     private NativeList<BulletData> collisionCheckBullets;
+
+    [SerializeField] private List<BulletEvent> bulletEvents = new List<BulletEvent>();
     #endregion
 
     private bool collisionDataDirty = true;
@@ -260,7 +262,9 @@ public class QuadOrder : MonoBehaviour
         CheckCollisionWithEnemy(GManager.Control.PController.pos);
         foreach (var laser in allLASERs) laser.UpdateSet(_dt, GManager.Control.PController.pos, out bool hit);
         CheckCollisionWithLASER(GManager.Control.PController.pos);
+
         UpdateEnemyPos(_dt);
+
         //UpdateChangeClip();
 
         for (int i = 0; i < bosses.Count; i++)
@@ -280,6 +284,16 @@ public class QuadOrder : MonoBehaviour
             ClearAllCells();
             SyncNativeBulletDebugViews();
             return;
+        }
+
+        //BulletEventの更新
+        for (int i = 0; i < bulletEvents.Count; i++)
+        {
+            if (bulletEvents[i].Update(_dt))
+            {
+                bulletEvents.RemoveAt(i);
+                i--;
+            }
         }
 
         //プレーヤーの弾の更新
@@ -407,7 +421,7 @@ public class QuadOrder : MonoBehaviour
         return indexes;
     }
 
-    public List<int> AddEnemyBullets(NativeArray<BulletData> newBullets)
+    public List<int> AddEnemyBullets(NativeArray<BulletData> newBullets, float2 fromPos = new float2())
     {
         if (newBullets.Length == 0) return null;
 
@@ -427,9 +441,6 @@ public class QuadOrder : MonoBehaviour
 
         enemyBullets.ResizeUninitialized(newLength);
         List<int> indexes = new List<int>(newBullets.Length);
-
-
-
 
         // 新しい弾をコピー
         for (int i = 0; i < newBullets.Length; i++)
@@ -492,9 +503,26 @@ public class QuadOrder : MonoBehaviour
         return indexes;
     }
 
+    public void StartBulletEvent(BulletEvent bulletEvent)
+    {
+        if (bulletEvent == null) return;
+
+        if (bulletEvent.Evoke()) return;
+        else bulletEvents.Add(bulletEvent);
+    }
+
     public NativeArray<BulletData> GetEnemyBullets() => enemyBullets.IsCreated ? enemyBullets.AsArray() : default;
 
     public int GetEnemyBulletCount() => CountActiveBullets(enemyBullets);
+
+    public BulletData GetEnemyBulletData(int index)
+    {
+        if (!enemyBullets.IsCreated || index < 0 || index >= enemyBullets.Length)
+        {
+            throw new IndexOutOfRangeException($"Bullet index {index} is out of range.");
+        }
+        return enemyBullets[index];
+    }
 
     public void AddPlayerBullets(NativeArray<BulletData> newBullets)
     {
@@ -806,14 +834,6 @@ public class QuadOrder : MonoBehaviour
     #endregion
 
     #region //GenerateMethods
-    private List<BulletChangeClip> bulletChangeClips = new();
-
-    public void AddBulletChangeClip(BulletChangeClip clip)
-    {
-        clip.time += GManager.Control.gameTime;
-        bulletChangeClips.Add(clip);
-    }
-
     public List<int> UpdateBulletData(List<int> indexes, BulletClip clip)
     {
         if (indexes == null || indexes.Count == 0) return new();
@@ -835,6 +855,9 @@ public class QuadOrder : MonoBehaviour
                 int index = indexes[i];
                 if (index < 0 || index >= enemyBullets.Length) continue;
                 temp.Add(EmitEnemyBullet(clip, enemyBullets[index].position)[0]);
+                BulletData data = enemyBullets[index];
+                data.isActive = false;
+                enemyBullets[index] = data;
             }
             return temp;
 

@@ -22,12 +22,14 @@ MonoBehaviour:
     BPM: 194
     beatTimings: 0000000003000000
     measure: 5
+  delayTime: 0
   stageDescription: 000
   enemySpawners:
   - id: 0
-    count: 1
-    interval: 0.3
+    count: 5
+    interval: 0.7
     next: 5
+    bulletCount: 3
     orbit:
       position:
         x: 0
@@ -38,9 +40,9 @@ MonoBehaviour:
       angle: 0
       originPos:
         x: 5
-        y: 10
+        y: 14
       originVlc:
-        x: 0
+        x: 2
         y: 0
       startX: 3
       speed: 0
@@ -67,10 +69,10 @@ MonoBehaviour:
       typeId: 0
       size: 0.3
       color:
-        x: 255
-        y: 255
-        z: 255
-        w: 255
+        x: 1
+        y: 1
+        z: 1
+        w: 1
       areaNum: 0
       time: 0
       isActive: 1
@@ -121,10 +123,61 @@ MonoBehaviour:
         areaNum: 0
         time: 0
         isActive: 1
-      number: 3
-      interval: 0.3
-      count: 8
-      disRad: 30
+      number: 5
+      disRad: 60
       homing: 1
       generateType: 0
-    bulletChangeClips: []
+    bulletChangeClips:
+    - clip:
+        data:
+          position:
+            x: 0
+            y: 0
+          velocity:
+            x: 0
+            y: 0
+          angle: 0
+          originPos:
+            x: 0
+            y: 0
+          originVlc:
+            x: 0
+            y: 0
+          startX: 0
+          speed: 5
+          acccel: 0
+          gravity: 0
+          angleSpeed: 0
+          polarForm:
+            x: 1
+            y: 0
+          radiusVlc: 0
+          thetaVlc: 0
+          startPos:
+            x: 0
+            y: 0
+          nowCalculateVlc:
+            x: 0
+            y: 0
+          nowCalculateX: 0
+          polynomial:
+            x: 0
+            y: 0
+            z: 0
+            w: 0
+          typeId: 1
+          size: 1
+          color:
+            x: 0
+            y: 0
+            z: 1
+            w: 1
+          areaNum: 0
+          time: 0
+          isActive: 1
+        number: 3
+        disRad: 30
+        homing: 1
+        generateType: 0
+      time: 1
+      interval: 0
