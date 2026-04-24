@@ -787,7 +787,7 @@ public class QuadOrder : MonoBehaviour
             Enemy enemy = Instantiate(GManager.Control.EnemyObj).GetComponent<Enemy>();
             enemy.Init(enemies.Count, spawner);
             enemies.Add(enemy);
-            Debug.Log($"Spawned enemy: {spawner.orbit.speed}");
+            //Debug.Log($"Spawned enemy: {spawner.orbit.speed}");
             enemiesOrbitBullets.Add(spawner.orbit);
         }
     }

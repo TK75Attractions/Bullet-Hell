@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -27,12 +28,17 @@ public class AudioManager : MonoBehaviour
         isready = true;
     }
 
-    public void PlayBGM(AudioClip clip, float volume = 1.0f)
+    public async Task<AudioSource> PlayBGM(AudioClip clip, float volume = 1.0f)
     {
-        if (!isready) return;
+        if (!isready) return null;
+        clip.LoadAudioData();
+        while (clip.loadState != AudioDataLoadState.Loaded)
+        {
+            await Task.Yield();
+        }
         BGMSource.clip = clip;
         BGMSource.volume = volume;
-        BGMSource.Play();
+        return BGMSource;
     }
 
     public int PlaySE(string seName)
@@ -62,11 +68,9 @@ public class AudioManager : MonoBehaviour
         foreach (AudioSource source in SEPool)
         { if (!source.isPlaying) return source; }
 
-
         GameObject go = Instantiate(audioSourcePrefab, SEParent);
         AudioSource so = go.GetComponent<AudioSource>();
         SEPool.Add(so);
         return so;
     }
-
 }

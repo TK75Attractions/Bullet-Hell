@@ -46,6 +46,7 @@ public class GManager : MonoBehaviour
     public float beatTime;
     public bool ready = false;
 
+    public bool musicOn = false;
 
     private readonly BulletData[] spawnBuffer = new BulletData[6];
 
@@ -172,9 +173,13 @@ public class GManager : MonoBehaviour
         if (!ready) return;
         float t = Time.deltaTime;
         gameTime += t;
-        beatTime += t;
         QOrder.QuadUpdate(t);
         IManager.UpdateInput();
+        if (musicOn)
+        {
+            beatTime += t;
+            BManager.UpdateBeat();
+        }
 
         if (Keyboard.current != null && Keyboard.current.aKey.wasPressedThisFrame)
         {
@@ -195,6 +200,11 @@ public class GManager : MonoBehaviour
         {
             state = GameState.ChoosingStage;
             // Transition to stage selection screen here
+        }
+
+        if (Keyboard.current != null && Keyboard.current.sKey.wasPressedThisFrame)
+        {
+            Debug.Log($"{beatTime}");
         }
 
         if (PController != null) PController.UpdatePos(t);
