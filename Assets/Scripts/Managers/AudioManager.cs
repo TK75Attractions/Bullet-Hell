@@ -31,13 +31,13 @@ public class AudioManager : MonoBehaviour
     public async Task<AudioSource> PlayBGM(AudioClip clip, float volume = 1.0f)
     {
         if (!isready) return null;
+        BGMSource.clip = clip;
+        BGMSource.volume = volume;
         clip.LoadAudioData();
         while (clip.loadState != AudioDataLoadState.Loaded)
         {
             await Task.Yield();
         }
-        BGMSource.clip = clip;
-        BGMSource.volume = volume;
         return BGMSource;
     }
 

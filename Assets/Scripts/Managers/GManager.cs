@@ -35,8 +35,10 @@ public class GManager : MonoBehaviour
     public BeatManager BManager;
     public PerlinRandom PRandom;
     public StageSelectManager SSManager;
+    public BulletClipManager BClipManager;
     public QuadOrder QOrder;
     public BulletTypeDataBase BTDB;
+
     public StageDataBase SDB;
     public SEDataBase SEDB;
     public EnemyDataBase EDB;
@@ -134,6 +136,8 @@ public class GManager : MonoBehaviour
 
         BTDB.Init();
         SDB.Init();
+        BClipManager = new();
+        BClipManager.Init();
 
         BRS = GetComponent<BulletRenderSystem>();
         BRS.Init();

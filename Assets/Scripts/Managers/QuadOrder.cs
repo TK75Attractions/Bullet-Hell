@@ -402,7 +402,9 @@ public class QuadOrder : MonoBehaviour
             tempBullets[i] = bullet;
         }
 
-        return AddEnemyBullets(tempBullets);
+        List<int> indexes = AddEnemyBullets(tempBullets);
+        tempBullets.Dispose();
+        return indexes;
     }
 
     public List<int> AddEnemyBullets(NativeArray<BulletData> newBullets)
