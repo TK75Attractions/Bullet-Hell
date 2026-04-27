@@ -75,6 +75,7 @@ MonoBehaviour:
         w: 1
       areaNum: 0
       time: 0
+      random: 0
       isActive: 1
     bulletClip:
       data:
@@ -122,6 +123,7 @@ MonoBehaviour:
           w: 1
         areaNum: 0
         time: 0
+        random: 1
         isActive: 1
       number: 5
       disRad: 60
@@ -174,6 +176,7 @@ MonoBehaviour:
             w: 1
           areaNum: 0
           time: 0
+          random: 1
           isActive: 1
         number: 3
         disRad: 30

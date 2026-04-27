@@ -7,6 +7,7 @@ using UnityEngine;
 [BurstCompile]
 public struct BulletDataUpdateJob : IJobParallelFor
 {
+    private const float NoiseFrequency = 1f;
 
     public NativeArray<BulletData> bullets;
     public float dt;
@@ -22,6 +23,15 @@ public struct BulletDataUpdateJob : IJobParallelFor
 
         //ベースの座標を更新
         bullet.originPos += bullet.originVlc * dt;
+
+        //random を揺らぎ量として、線形補間したスムーズノイズを原点に加える
+        float2 noisyOriginPos = bullet.originPos;
+        if (bullet.random > 0f)
+        {
+            float noiseTime = bullet.time * NoiseFrequency;
+            float2 noise = GetSmoothNoise(index, noiseTime) * bullet.random;
+            noisyOriginPos += noise;
+        }
 
         //弾の見かけの原点からのベクトルを計算
         float2 delta = bullet.nowCalculateVlc * dt;
@@ -51,10 +61,10 @@ public struct BulletDataUpdateJob : IJobParallelFor
         float2 rotatedVector = bullet.polarForm.x * new float2(disVector.x * cos - disVector.y * sin, disVector.x * sin + disVector.y * cos);
 
         //位置を計算
-        float2 unGravitatedPos = rotatedVector + bullet.originPos;
+        float2 unGravitatedPos = rotatedVector + noisyOriginPos;
 
         //重力の影響を加算
-        if(bullet.gravity != 0)
+        if (bullet.gravity != 0)
         {
             float h = bullet.gravity * bullet.time * bullet.time / 2;
             float2 gravitatedPos = unGravitatedPos - new float2(0, h);
@@ -105,5 +115,27 @@ public struct BulletDataUpdateJob : IJobParallelFor
         double rad = math.atan2(y, x);
         if (rad < 0) rad += 2 * math.PI;
         return (float)rad;
+    }
+
+    private float2 GetSmoothNoise(int index, float time)
+    {
+        float baseTime = math.floor(time);
+        float t = time - baseTime;
+        t = t * t * (3f - 2f * t);
+
+        float seed = index * 17.0f;
+        float2 noiseA = new float2(HashSigned(seed + baseTime), HashSigned(seed + baseTime + 53.0f));
+        float2 noiseB = new float2(HashSigned(seed + baseTime + 1.0f), HashSigned(seed + baseTime + 54.0f));
+        return math.lerp(noiseA, noiseB, t);
+    }
+
+    private float HashSigned(float value)
+    {
+        return Hash01(value) * 2f - 1f;
+    }
+
+    private float Hash01(float value)
+    {
+        return math.frac(math.sin(value) * 43758.5453f);
     }
 }
