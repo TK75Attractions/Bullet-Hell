@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbd360919789aba45b7e5b8e684967f4, type: 3}
+  m_Name: box
+  m_EditorClassIdentifier: Assembly-CSharp::BulletType
+  typeId: 2
+  baseSprite: {fileID: 2800000, guid: 7a60740c61952b847b1052e7fee8aa00, type: 3}
+  maskSprite: {fileID: 2800000, guid: 6cb322efa2d9aa443ae425189c100f13, type: 3}
+  baseColor: {r: 1, g: 1, b: 1, a: 1}
+  baseSize: 1
+  verts:
+  - x: -0.5
+    y: -0.5
+  - x: 0.5
+    y: -0.5
+  - x: 0.5
+    y: 0.5
+  - x: -0.5
+    y: 0.5

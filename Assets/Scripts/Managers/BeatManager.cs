@@ -11,7 +11,8 @@ public class BeatManager : MonoBehaviour
     private bool ready = false;
     private int beatCount = 0;
     private float nextBeatTime = 0;
-    private float toleranceTime = 0.1f; // Time window for beat detection
+    [SerializeField] private float debug;
+    [SerializeField] private float toleranceTime = 0.5f; // Time window for beat detection
 
     public void SetBeat(List<StageData.MusicEvent> musicEvents)
     {
@@ -42,6 +43,8 @@ public class BeatManager : MonoBehaviour
         }
 
         beatTimings.Sort();
+        foreach (float beatTime in beatTimings) Debug.Log($"Beat timing: {beatTime}");
+        if (beatTimings.Count > 0) nextBeatTime = beatTimings[0];
         ready = true;
     }
 
@@ -50,6 +53,7 @@ public class BeatManager : MonoBehaviour
         if (!ready) return;
 
         float bt = GManager.Control.beatTime;
+        bt += debug;
 
         if (beatCount < beatTimings.Count && bt >= nextBeatTime)
         {
@@ -58,7 +62,7 @@ public class BeatManager : MonoBehaviour
             if (beatCount < beatTimings.Count) nextBeatTime = beatTimings[beatCount];
         }
 
-        ValueUpdate();
+        ValueUpdate(bt);
     }
 
     private void OnBeat()
@@ -66,14 +70,13 @@ public class BeatManager : MonoBehaviour
         Debug.Log($"Beat! {beatCount}");
     }
 
-    private void ValueUpdate()
+    private void ValueUpdate(float bt)
     {
-        float bt = GManager.Control.beatTime;
         if (beatCount == 0) return;
 
         float pre = bt - beatTimings[beatCount - 1];
         float next = nextBeatTime - bt;
-        if (pre > toleranceTime && next > toleranceTime)
+        if (pre > toleranceTime && (next > toleranceTime || next < 0))
         {
             beatValueSin = 0;
             beatValuePoly = 0;
@@ -83,10 +86,10 @@ public class BeatManager : MonoBehaviour
         float f = Mathf.Min(pre, next);
 
         if (f < toleranceTime * 0.1f) beatValueSin = 1;
-        else if (f < toleranceTime) beatValueSin = Mathf.Sin((f - toleranceTime * 0.1f) / (toleranceTime * 0.9f) * Mathf.PI / 2);
+        else if (f < toleranceTime) beatValueSin = Mathf.Sin((1 - f / toleranceTime) * Mathf.PI / 2);
         else beatValueSin = 0;
 
-        if (f < toleranceTime) beatValuePoly = (f * f - toleranceTime * toleranceTime) / (toleranceTime * toleranceTime);
+        if (f < toleranceTime) beatValuePoly = (-f * f + toleranceTime * toleranceTime) / (toleranceTime * toleranceTime);
         else beatValuePoly = 0;
     }
 }

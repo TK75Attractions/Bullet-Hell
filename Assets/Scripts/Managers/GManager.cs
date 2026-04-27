@@ -35,8 +35,10 @@ public class GManager : MonoBehaviour
     public BeatManager BManager;
     public PerlinRandom PRandom;
     public StageSelectManager SSManager;
+    public BulletClipManager BClipManager;
     public QuadOrder QOrder;
     public BulletTypeDataBase BTDB;
+
     public StageDataBase SDB;
     public SEDataBase SEDB;
     public EnemyDataBase EDB;
@@ -46,8 +48,11 @@ public class GManager : MonoBehaviour
     public float beatTime;
     public bool ready = false;
 
+    public bool musicOn = false;
 
     private readonly BulletData[] spawnBuffer = new BulletData[6];
+
+    public BulletEvent testEvent = new BulletEvent();
 
     public class PerlinRandom
     {
@@ -133,6 +138,8 @@ public class GManager : MonoBehaviour
 
         BTDB.Init();
         SDB.Init();
+        BClipManager = new();
+        BClipManager.Init();
 
         BRS = GetComponent<BulletRenderSystem>();
         BRS.Init();
@@ -172,12 +179,17 @@ public class GManager : MonoBehaviour
         if (!ready) return;
         float t = Time.deltaTime;
         gameTime += t;
-        beatTime += t;
         QOrder.QuadUpdate(t);
         IManager.UpdateInput();
+        if (musicOn)
+        {
+            beatTime += t;
+            BManager.UpdateBeat();
+        }
 
         if (Keyboard.current != null && Keyboard.current.aKey.wasPressedThisFrame)
         {
+            /*
             Debug.Log("aaa");
             NativeArray<BulletData> tempBullets = new NativeArray<BulletData>(
                 spawnBuffer,
@@ -189,12 +201,19 @@ public class GManager : MonoBehaviour
                 Debug.Log($"Spawned Bullet at index: {index}");
             }
             tempBullets.Dispose();
+            */
+            QOrder.StartBulletEvent(testEvent);
         }
 
         if (IManager.buttonPressed && state == GameState.Title)
         {
             state = GameState.ChoosingStage;
             // Transition to stage selection screen here
+        }
+
+        if (Keyboard.current != null && Keyboard.current.sKey.wasPressedThisFrame)
+        {
+            Debug.Log($"{beatTime}");
         }
 
         if (PController != null) PController.UpdatePos(t);

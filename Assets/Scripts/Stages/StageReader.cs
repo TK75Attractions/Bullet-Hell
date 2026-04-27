@@ -1,5 +1,6 @@
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using System.Threading.Tasks;
 
 public class StageReader : MonoBehaviour
 {
@@ -8,13 +9,20 @@ public class StageReader : MonoBehaviour
     private int count = 0;
     private bool isReady = false;
 
-    public void Init(StageData data)
+    public async void Init(StageData data)
     {
         stageData = data;
         time = 0f;
         count = 0;
-        if (GManager.Control.AManager != null) GManager.Control.AManager.PlayBGM(stageData.audioClip);
-        if (GManager.Control.BManager != null) GManager.Control.BManager.SetBeat(stageData.MusicEvents);
+        if (GManager.Control.AManager != null && GManager.Control.BManager != null)
+        {
+            AudioSource bgmSource = await GManager.Control.AManager.PlayBGM(stageData.audioClip);
+            await Task.Delay(5000); // Wait a moment to ensure the BGM starts playing
+            bgmSource.Play();
+            GManager.Control.beatTime -= stageData.delayTime; // Adjust beat time by the delay time
+            GManager.Control.BManager.SetBeat(stageData.MusicEvents);
+            GManager.Control.musicOn = true;
+        }
         isReady = true;
     }
 
@@ -36,7 +44,4 @@ public class StageReader : MonoBehaviour
             }
         }
     }
-
-
-
 }

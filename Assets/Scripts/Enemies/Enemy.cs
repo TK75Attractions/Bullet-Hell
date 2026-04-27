@@ -18,17 +18,20 @@ public class Enemy : MonoBehaviour
 
     public BulletClip bulletClip = new BulletClip();
     public List<BulletChangeClip> bulletChangeClips = new List<BulletChangeClip>();
+    private List<BulletChache> bulletChaches = new List<BulletChache>();
 
     [Serializable]
     private class BulletChache
     {
         public List<int> indexes = new List<int>();
+        public float time = 0;
         public int clipCount;
 
-        BulletChache(int index)
+        public BulletChache(List<int> _ind, float _time, int _clipCount)
         {
-            indexes.Add(index);
-            clipCount = 0;
+            indexes = _ind;
+            time = _time;
+            clipCount = _clipCount;
         }
     }
 
@@ -40,8 +43,8 @@ public class Enemy : MonoBehaviour
         id = spawner.id;
         arrayIndex = index;
 
-        interval = spawner.bulletClip.interval;
-        BulletCount = spawner.bulletClip.count;
+        interval = spawner.interval;
+        BulletCount = spawner.bulletCount;
         bulletClip = spawner.bulletClip;
         bulletChangeClips = spawner.bulletChangeClips;
 
@@ -56,6 +59,16 @@ public class Enemy : MonoBehaviour
     public void UpdateEnemy(float dt)
     {
         time += dt;
+
+        if (isActive)
+        {
+            Shot();
+            UpdateChache(dt);
+        }
+    }
+
+    private void Shot()
+    {
         if (!isReady)
         {
             if (time > startInterval)
@@ -71,13 +84,26 @@ public class Enemy : MonoBehaviour
                 time = 0;
                 if (count < BulletCount)
                 {
-                    //Debug.Log("Enemy " + arrayIndex + " Emit Bullet");
-                    GManager.Control.QOrder.EmitEnemyBullet(bulletClip, arrayIndex);
+                    BulletChache chache = new BulletChache(GManager.Control.QOrder.EmitEnemyBullet(bulletClip, arrayIndex), bulletChangeClips[0].time, 0);
+                    bulletChaches.Add(chache);
                     count++;
                 }
             }
         }
+    }
 
+    private void UpdateChache(float dt)
+    {
+        for (int i = bulletChaches.Count - 1; i >= 0; i--)
+        {
+            BulletChache chache = bulletChaches[i];
+            chache.time -= dt;
+            if (chache.time <= 0)
+            {
+                GManager.Control.QOrder.UpdateBulletData(chache.indexes, bulletChangeClips[chache.clipCount].clip);
+                bulletChaches.RemoveAt(i);
+            }
+        }
     }
 
     public void Destroy()

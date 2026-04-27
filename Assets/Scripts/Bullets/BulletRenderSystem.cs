@@ -242,11 +242,12 @@ public class BulletRenderSystem : MonoBehaviour
         {
             var b = bullets[i];
             if (!b.isActive) continue;
-            
+
             var type = GManager.Control.BTDB.types[b.typeId];
 
             renderArray[writeIndex] = new BulletRenderData
             {
+                // position は BulletDataUpdateJob でノイズ込みに更新済みの値を使う
                 pos = b.position,
                 angle = b.angle,
                 size = b.size * type.baseSize,

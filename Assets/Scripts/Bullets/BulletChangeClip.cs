@@ -6,8 +6,6 @@ using UnityEngine;
 [Serializable]
 public class BulletChangeClip
 {
-    public List<int> indexes = new List<int>();
-
     public BulletClip clip;
 
     public float time = 0;

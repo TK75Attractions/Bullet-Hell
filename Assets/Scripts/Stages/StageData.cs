@@ -38,6 +38,8 @@ public class StageData : ScriptableObject
         }
     }
 
+    public float delayTime;//Delay time before the stage starts, in seconds
+
     [TextArea]
     public string stageDescription;
 

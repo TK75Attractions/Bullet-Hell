@@ -34,6 +34,7 @@ public struct BulletData
 
     public int areaNum;
     public float time;
+    public float random;
     public bool isActive;
 
     /// <summary>
@@ -53,7 +54,8 @@ public struct BulletData
     /// <param name="type">弾のタイプID typeId</param>
     /// <param name="_size">弾のサイズ size</param>
     /// <param name="_color">弾の色 color</param>
-    public BulletData(float2 _pos, float2 _vlc, float _s, float _acc, float _g, float _as, float2 _polar, float _absV, float _theV, float _start, float4 _poly, int type, float _size, float4 _color)
+    /// <param name="_random">ランダム値 random</param>
+    public BulletData(float2 _pos, float2 _vlc, float _s, float _acc, float _g, float _as, float2 _polar, float _absV, float _theV, float _start, float4 _poly, int type, float _size, float4 _color, float _random = 0)
     {
         position = _pos;
         velocity = new(0, 0);
@@ -69,6 +71,7 @@ public struct BulletData
         thetaVlc = _theV;
         polynomial = _poly;
         nowCalculateX = _start;
+        random = _random;
 
         time = 0;
         typeId = type;
@@ -120,6 +123,7 @@ public struct BulletData
         areaNum = 0;
         time = 0;
         isActive = data.isActive;
+        random = data.random;
 
         startX = data.startX;
         float x = data.startX;
