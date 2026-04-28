@@ -44,4 +44,6 @@ public class StageData : ScriptableObject
     public string stageDescription;
 
     public List<EnemySpawner> enemySpawners = new List<EnemySpawner>();
+
+    public List<BulletSpawner> bulletSpawners = new List<BulletSpawner>();
 }

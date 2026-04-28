@@ -6,6 +6,20 @@ public class LaserEmitter : MonoBehaviour
 {
     public GameObject LASEROrigin;
 
+    public List<LASER> EmitLASER(List<BulletData> data, float2 pPos)
+    {
+        List<LASER> laS = new();
+        for (int i = 0; i < data.Count; i++)
+        {
+            BulletData d = data[i];
+            LASER laser = Instantiate(LASEROrigin).GetComponent<LASER>();
+            laser.transform.position = Vector3.zero;
+            laser.AwakeSetting(pPos, d.originVlc, d.angleSpeed, d.speed, d.acccel, new float2(1, d.polarForm.y), -2, new float[4] { d.polynomial.x, d.polynomial.y, d.polynomial.z, d.polynomial.w }, 4, 0.13f, new float2(1, 1), GManager.Control.QOrder.cellCount);
+            laS.Add(laser);
+        }
+        return laS;
+    }
+
     public List<LASER> EmitLASER(BulletClip clip, float2 pPos)
     {
         List<LASER> laS = new();
@@ -22,7 +36,7 @@ public class LaserEmitter : MonoBehaviour
             {
                 LASER laser = Instantiate(LASEROrigin).GetComponent<LASER>();
                 laser.transform.position = Vector3.zero;
-                laser.AwakeSetting(new float2(0, 0), new float2(1, 0), 0.5f, clip.data.speed, clip.data.acccel, new float2(1, rad - range + clip.disRad * i), -2, poly, 4, 0.13f, new float2(1, 1), GManager.Control.QOrder.cellCount);
+                laser.AwakeSetting(pPos, clip.data.originVlc, clip.data.angleSpeed, clip.data.speed, clip.data.acccel, new float2(1, rad - range + clip.disRad * i), -2, poly, 4, 0.13f, new float2(1, 1), GManager.Control.QOrder.cellCount);
                 laS.Add(laser);
             }
         }
@@ -34,7 +48,7 @@ public class LaserEmitter : MonoBehaviour
             {
                 LASER laser = Instantiate(LASEROrigin).GetComponent<LASER>();
                 laser.transform.position = Vector3.zero;
-                laser.AwakeSetting(new float2(0, 0), new float2(1, 0), 0.5f, clip.data.speed, clip.data.acccel, new float2(1, range * i), -2, poly, 4, 0.13f, new float2(1, 1), GManager.Control.QOrder.cellCount);
+                laser.AwakeSetting(pPos, clip.data.originVlc, clip.data.angleSpeed, clip.data.speed, clip.data.acccel, new float2(1, range * i), -2, poly, 4, 0.13f, new float2(1, 1), GManager.Control.QOrder.cellCount);
                 laS.Add(laser);
             }
         }

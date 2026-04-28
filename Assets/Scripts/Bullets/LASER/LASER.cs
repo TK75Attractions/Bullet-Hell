@@ -24,7 +24,7 @@ public class LASER : MonoBehaviour
     public float lastTan;
     public float initialCalculateX;
 
-    private float[] poly = new float[0];
+    [SerializeField] private float[] poly = new float[0];
     private float[] differed = new float[0];
 
     public float2 xyScale;
@@ -57,6 +57,11 @@ public class LASER : MonoBehaviour
         radius = _polar.x;
         theta = _polar.y;
         poly = _poly;
+
+        string s = "";
+        for (int i = 0; i < poly.Length; i++) s += poly[i] + " ";
+        Debug.Log("LASER Poly: " + s);
+
         initialCalculateX = _start;
         xyScale = _xy;
         timeCarry = 0;
@@ -92,7 +97,7 @@ public class LASER : MonoBehaviour
         if (vertsSet.IsCreated) vertsSet.Dispose();
     }
 
-    public bool UpdateSet(float deltaT, float2 pPos, out bool hit)
+    public bool UpdateSet(float deltaT)
     {
         timeCarry += deltaT;
         int proc = 0;
@@ -105,10 +110,9 @@ public class LASER : MonoBehaviour
         Procede(proc);
         GetVerts();
         life -= deltaT;
-        hit = false;
 
         GManager.Control.QOrder.UpdateLASERVerts(vertsSet, ref quadVerts);
-        return (life < 0);
+        return life < 0;
     }
 
     private float GetValue(float[] p, float x)
@@ -259,5 +263,10 @@ public class LASER : MonoBehaviour
         if (writeIndex > 0) NativeArray<LASERCell>.Copy(result, trimmed, writeIndex);
         result.Dispose();
         return trimmed;
+    }
+
+    public void Destroy()
+    {
+        Destroy(gameObject);
     }
 }

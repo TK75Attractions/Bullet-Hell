@@ -81,12 +81,20 @@ public class Boss : MonoBehaviour
                 return;
             }
 
-            if (!GManager.Control.BClipManager.TryGetBulletClip(pattern.clipName, ref pattern.clipIndex, out NativeArray<BulletData> bullets))
+            if (pattern.clipIndex == -1)
             {
-                return;
+                if (!GManager.Control.BClipManager.TryGetBulletClipIndex(pattern.clipName, out pattern.clipIndex))
+                {
+                    Debug.LogError($"Bullet clip not found: {pattern.clipName}");
+                    return;
+                }
             }
 
-            GManager.Control.QOrder.AddEnemyHomingBullets(bullets, pos);
+
+            List<BulletData> bullets = GManager.Control.BClipManager.GetBulletClip(pattern.clipIndex, 0, out bool isLaser);
+            NativeArray<BulletData> bulletsArray = new NativeArray<BulletData>(bullets.ToArray(), Allocator.Temp);
+            GManager.Control.QOrder.AddEnemyHomingBullets(bulletsArray, pos);
+            bulletsArray.Dispose();
             count++;
 
             if (count % repeat == 0)
