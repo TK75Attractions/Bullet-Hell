@@ -67,6 +67,7 @@ public class QuadOrder : MonoBehaviour
     private NativeArray<int2> collisionVertRanges;
     private NativeArray<int> collisionHitFlag;
     private NativeList<BulletData> collisionCheckBullets;
+    private NativeList<int> laserVertCellIndices;
 
     [SerializeField] private List<BulletEvent> bulletEvents = new List<BulletEvent>();
     #endregion
@@ -142,6 +143,10 @@ public class QuadOrder : MonoBehaviour
         {
             collisionCheckBullets = new NativeList<BulletData>(256, Allocator.Persistent);
         }
+        if (!laserVertCellIndices.IsCreated)
+        {
+            laserVertCellIndices = new NativeList<int>(256, Allocator.Persistent);
+        }
         if (!enemyBullets.IsCreated)
         {
             enemyBullets = new NativeList<BulletData>(256, Allocator.Persistent);
@@ -197,6 +202,7 @@ public class QuadOrder : MonoBehaviour
         if (collisionVertRanges.IsCreated) collisionVertRanges.Dispose();
         if (collisionHitFlag.IsCreated) collisionHitFlag.Dispose();
         if (collisionCheckBullets.IsCreated) collisionCheckBullets.Dispose();
+        if (laserVertCellIndices.IsCreated) laserVertCellIndices.Dispose();
     }
 
     private void BuildCollisionData()
@@ -733,11 +739,20 @@ public class QuadOrder : MonoBehaviour
 
         if (!vertsSet.IsCreated || vertsSet.Length == 0) return;
 
-        NativeArray<int> vertCellIndices = new NativeArray<int>(vertsSet.Length, Allocator.TempJob);
+        if (!laserVertCellIndices.IsCreated)
+        {
+            laserVertCellIndices = new NativeList<int>(math.max(vertsSet.Length, 1), Allocator.Persistent);
+        }
+        if (laserVertCellIndices.Capacity < vertsSet.Length)
+        {
+            laserVertCellIndices.Capacity = vertsSet.Length;
+        }
+        laserVertCellIndices.ResizeUninitialized(vertsSet.Length);
+
         LASERQuadJob job = new LASERQuadJob()
         {
             vertsSet = vertsSet.AsArray(),
-            vertCellIndices = vertCellIndices,
+            vertCellIndices = laserVertCellIndices.AsArray(),
             cellSize = cellSize,
             cellCount = cells.Length
         };
@@ -745,13 +760,11 @@ public class QuadOrder : MonoBehaviour
         JobHandle handle = job.Schedule(vertsSet.Length, 64);
         handle.Complete();
 
-        for (int i = 0; i < vertCellIndices.Length; i++)
+        for (int i = 0; i < laserVertCellIndices.Length; i++)
         {
-            int n = vertCellIndices[i];
+            int n = laserVertCellIndices[i];
             if (n >= 0 && n < quadVerts.Count) quadVerts[n].Add(i);
         }
-
-        vertCellIndices.Dispose();
     }
 
     public void CheckCollisionWithLASER(float2 pPos)

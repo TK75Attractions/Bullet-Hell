@@ -47,6 +47,7 @@ public class LASER : MonoBehaviour
     public void AwakeSetting(float2 _pos, float2 _vlc, float _t, float _s, float _acc, float2 _polar, float _start, float[] _poly, float _len, float _w, float2 _xy, int cellCount)
     {
         mesh = new Mesh();
+        mesh.MarkDynamic();
         GetComponent<MeshFilter>().mesh = mesh;
 
         originPos = _pos;
@@ -81,8 +82,21 @@ public class LASER : MonoBehaviour
         lastTan = tan / magnitude * speed;
 
         maxCount = speed > 0f ? System.Convert.ToInt32(length / (speed * dt)) : 0;
-        verts = new LASERvertex[0];
-        tris = new int[0];
+        verts = new LASERvertex[math.max(maxCount, 1)];
+        vs = new Vector3[math.max(maxCount * 2, 1)];
+        int maxTriLength = maxCount > 1 ? (maxCount - 1) * 6 : 0;
+        tris = new int[maxTriLength];
+        int ti = 0;
+        for (int i = 0; i < maxCount - 1; i++)
+        {
+            int bsIndex = i * 2;
+            tris[ti++] = bsIndex;
+            tris[ti++] = bsIndex + 2;
+            tris[ti++] = bsIndex + 1;
+            tris[ti++] = bsIndex + 1;
+            tris[ti++] = bsIndex + 2;
+            tris[ti++] = bsIndex + 3;
+        }
         nowCount = 0;
 
         if (vertsSet.IsCreated) vertsSet.Dispose();
@@ -126,14 +140,15 @@ public class LASER : MonoBehaviour
     {
         if (proc == 0) return;
         nowCount += proc;
-        //Debug.Log(proc);
         if (nowCount > maxCount) nowCount = maxCount;
         if (nowCount < 0) return;
 
-        LASERvertex[] add = new LASERvertex[nowCount];
-        for (int i = 0; i < nowCount - proc; i++) add[proc + i] = verts[i];
+        int insertCount = math.min(proc, nowCount);
+        if (insertCount <= 0) return;
 
-        for (int i = 0; i < proc; i++)
+        for (int i = nowCount - 1; i >= insertCount; i--) verts[i] = verts[i - insertCount];
+
+        for (int i = 0; i < insertCount; i++)
         {
             originPos += vlc * dt;
             theta += thetaVlc * dt;
@@ -146,26 +161,23 @@ public class LASER : MonoBehaviour
             float2 dis = point - startPos;
             float2 laserP = new float2(originPos.x + (dis.x * math.cos(theta) - dis.y * math.sin(theta)), originPos.y + (dis.x * math.sin(theta) + dis.y * math.cos(theta)));
 
-            if (proc + 1 - i < add.Length) add[proc - i].nutral = laserP - add[proc + 1 - i].point;
-            add[proc - 1 - i] = new LASERvertex(laserP, 0);
+            if (insertCount + 1 - i < nowCount) verts[insertCount - i].nutral = laserP - verts[insertCount + 1 - i].point;
+            verts[insertCount - 1 - i] = new LASERvertex(laserP, 0);
         }
-
-        verts = add;
     }
 
     private void GetVerts()
     {
         if (nowCount < 2)
         {
-            vs = new Vector3[0];
             if (vertsSet.IsCreated) vertsSet.Clear();
-            if (tris.Length != 0) System.Array.Resize(ref tris, 0);
             mesh.Clear();
             return;
         }
 
-        Vector3[] vts = new Vector3[nowCount * 2];
-        if (!vertsSet.IsCreated) vertsSet = new NativeList<float2>(math.max(vts.Length, 1), Allocator.Persistent);
+        int activeVertCount = nowCount * 2;
+        if (vs.Length < activeVertCount) System.Array.Resize(ref vs, activeVertCount);
+        if (!vertsSet.IsCreated) vertsSet = new NativeList<float2>(math.max(vs.Length, 1), Allocator.Persistent);
         vertsSet.Clear();
 
         for (int i = 0; i < nowCount; i++)
@@ -179,16 +191,15 @@ public class LASER : MonoBehaviour
             float2 dis = verts[i].point;// - startPos;
             float2 widthVec = width * scale * new float2(-verts[i].nutral.y, verts[i].nutral.x) / verts[i].magnitude;
 
-            vts[n + 1] = new Vector3(dis.x + widthVec.x, dis.y + widthVec.y, 0);
-            vts[n] = new Vector3(dis.x - widthVec.x, dis.y - widthVec.y, 0);
+            vs[n + 1] = new Vector3(dis.x + widthVec.x, dis.y + widthVec.y, 0);
+            vs[n] = new Vector3(dis.x - widthVec.x, dis.y - widthVec.y, 0);
 
             vertsSet.Add(verts[i].point - widthVec);
             vertsSet.Add(verts[i].point + widthVec);
         }
-        vs = vts;
 
         int targetTriLength = (nowCount - 1) * 6;
-        if (tris.Length != targetTriLength)
+        if (tris.Length < targetTriLength)
         {
             int tiIndx = tris.Length;
             int k = tiIndx / 6;
@@ -208,11 +219,9 @@ public class LASER : MonoBehaviour
         }
 
         mesh.Clear();
-        mesh.vertices = vs;
-        mesh.triangles = tris;
+        mesh.SetVertices(vs, 0, activeVertCount);
+        mesh.SetIndices(tris, 0, targetTriLength, MeshTopology.Triangles, 0, false);
         mesh.bounds = new Bounds(Vector3.zero, new Vector3(100, 100, 100));
-        mesh.RecalculateNormals();
-        mesh.RecalculateBounds();
     }
 
     public NativeArray<LASERCell> GetQuadVerts(int index)

@@ -5553,7 +5553,7 @@ MonoBehaviour:
   enemies: []
   bulletEvents: []
   inactiveCleanupInterval: 6
-  drawLaserCollisionGizmos: 1
+  drawLaserCollisionGizmos: 0
   laserCollisionGizmoColor: {r: 1, g: 0.2, b: 0.2, a: 0.9}
   laserCollisionGizmoZ: 100
   debugSyncNativeBulletListsToInspector: 0
@@ -5678,6 +5678,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47cd45980466607448fc3d54baa4c447, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageReader
+  stageData: {fileID: 0}
+  spawnEvents: []
+  time: 0
 --- !u!1 &1893457097
 GameObject:
   m_ObjectHideFlags: 0
