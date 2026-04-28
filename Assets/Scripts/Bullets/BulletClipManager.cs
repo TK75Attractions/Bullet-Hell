@@ -26,8 +26,11 @@ public class BulletClipManager
         bulletBuffers.Clear();
         bulletBuffers.AddRange(Rumia());
         bulletBuffers.Add(Line());
+        bulletBuffers.Add(LineLaser());
+        bulletBuffers.Add(Circle());
     }
 
+    #region Bullet Clips
     private List<BulletBuffer> Rumia()
     {
         List<BulletBuffer> buffers = new List<BulletBuffer>();
@@ -97,11 +100,11 @@ public class BulletClipManager
             BulletData b = new BulletData(
                 new float2(0, 0),
                 new float2(0, 0),
-                3,
+                3 + 0.1f * i,
                 0,
                 0,
                 0,
-                new float2(1 + 0.1f * i, 0.08f * i),
+                new float2(1 + 0.1f * i, 0),
                 0,
                 0,
                 0,
@@ -112,8 +115,57 @@ public class BulletClipManager
             line.Add(b);
         }
 
-        return new BulletBuffer("Line", line, true);
+        return new BulletBuffer("Line", line);
     }
+
+    private BulletBuffer LineLaser()
+    {
+        BulletData b = new BulletData(
+            new float2(0, 0),
+            new float2(0, 0),
+            3,
+            0,
+            0,
+            0,
+            new float2(1, 0),
+            0,
+            0,
+            0,
+            new float4(0, 0, 0, 0),
+            2,
+            new float4(1, 0.5f, 0, 1)
+        );
+
+        return new BulletBuffer("LineLaser", new List<BulletData> { b }, true);
+    }
+
+    private BulletBuffer Circle()
+    {
+        List<BulletData> circle = new List<BulletData>();
+        for (int i = 0; i < 16; i++)
+        {
+            BulletData b = new BulletData(
+                new float2(0, 0),
+                new float2(0, 0),
+                0,
+                0,
+                0,
+                0,
+                new float2(1, 2 * math.PI / 16 * i),
+                0,
+                4,
+                0,
+                new float4(0, 0, 0, 0),
+                2,
+                new float4(1, 0.5f, 0, 1)
+            );
+            b.startPos = new(-3, 0);
+            circle.Add(b);
+        }
+
+        return new BulletBuffer("Circle", circle);
+    }
+    #endregion
 
     public bool TryGetBulletClipIndex(string name, out int index)
     {
@@ -129,7 +181,7 @@ public class BulletClipManager
         return false;
     }
 
-    public List<BulletData> GetBulletClip(int index, float angle, out bool isLaser)
+    public List<BulletData> GetBulletClip(int index, float2 pPos, float2 _vlc, float angle, out bool isLaser)
     {
         isLaser = false;
         if (bulletBuffers.Count == 0)
@@ -146,7 +198,10 @@ public class BulletClipManager
             for (int i = 0; i < bullets.Count; i++)
             {
                 BulletData b = bullets[i];
-                bullets[i] = new BulletData(b, b.position, angle / 180 * math.PI + b.polarForm.y, b.color);
+                float2 dis = -b.startPos;
+                b = new BulletData(b, pPos, _vlc, angle / 180 * math.PI + b.polarForm.y, b.color);
+                b.startPos -= dis;
+                bullets[i] = b;
             }
 
             return bullets;

@@ -100,13 +100,13 @@ public struct BulletData
         nowCalculateVlc = vec / magnitude * speed;
     }
 
-    public BulletData(BulletData data, float2 _pos, float _theta, float4 _color = new float4())
+    public BulletData(BulletData data, float2 _pos, float2 _vlc, float _theta, float4 _color = new float4())
     {
         position = _pos;
         velocity = data.velocity;
         angle = data.angle;
         originPos = _pos;
-        originVlc = data.originVlc;
+        originVlc = _vlc;
         speed = data.speed;
         acccel = data.acccel;
         gravity = data.gravity;

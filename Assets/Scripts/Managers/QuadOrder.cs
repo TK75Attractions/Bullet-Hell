@@ -478,7 +478,7 @@ public class QuadOrder : MonoBehaviour
             enemyBullets.Capacity = nextCapacity;
         }
 
-        List<BulletData> bullets = GManager.Control.BClipManager.GetBulletClip(spawner.index, spawner.angle, out bool isLaser);
+        List<BulletData> bullets = GManager.Control.BClipManager.GetBulletClip(spawner.index, spawner.pos, spawner.originVlc, spawner.angle, out bool isLaser);
 
         if (isLaser)
         {
@@ -892,7 +892,7 @@ public class QuadOrder : MonoBehaviour
         {
             if (indexes[0] >= 0 && indexes[0] < enemyBullets.Length)
             {
-                BulletData data = new BulletData(clip.data, enemyBullets[indexes[0]].position, 0);
+                BulletData data = new BulletData(clip.data, new float2(0, 0), enemyBullets[indexes[0]].position, 0);
                 enemyBullets[indexes[0]] = data;
                 return new List<int>() { indexes[0] };
             }

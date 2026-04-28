@@ -91,7 +91,7 @@ public class Boss : MonoBehaviour
             }
 
 
-            List<BulletData> bullets = GManager.Control.BClipManager.GetBulletClip(pattern.clipIndex, 0, out bool isLaser);
+            List<BulletData> bullets = GManager.Control.BClipManager.GetBulletClip(pattern.clipIndex, new float2(0, 0), new float2(0, 0), 0, out bool isLaser);
             NativeArray<BulletData> bulletsArray = new NativeArray<BulletData>(bullets.ToArray(), Allocator.Temp);
             GManager.Control.QOrder.AddEnemyHomingBullets(bulletsArray, pos);
             bulletsArray.Dispose();
