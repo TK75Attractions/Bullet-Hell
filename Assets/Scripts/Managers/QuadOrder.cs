@@ -67,6 +67,7 @@ public class QuadOrder : MonoBehaviour
     private NativeArray<int2> collisionVertRanges;
     private NativeArray<int> collisionHitFlag;
     private NativeList<BulletData> collisionCheckBullets;
+    private NativeList<int> laserVertCellIndices;
 
     [SerializeField] private List<BulletEvent> bulletEvents = new List<BulletEvent>();
     #endregion
@@ -142,6 +143,10 @@ public class QuadOrder : MonoBehaviour
         {
             collisionCheckBullets = new NativeList<BulletData>(256, Allocator.Persistent);
         }
+        if (!laserVertCellIndices.IsCreated)
+        {
+            laserVertCellIndices = new NativeList<int>(256, Allocator.Persistent);
+        }
         if (!enemyBullets.IsCreated)
         {
             enemyBullets = new NativeList<BulletData>(256, Allocator.Persistent);
@@ -158,7 +163,7 @@ public class QuadOrder : MonoBehaviour
         List<BulletClip> clips = new List<BulletClip>() {
                 new BulletClip()
                 {
-                    data = new BulletData(new(0, 0), new(0, 0), 8, 0, 0, 0, new(1, 0), 0, 3, 0, new(0, -2, 1, 0), 0, 10, new float4(1, 1, 1, 1)),
+                    data = new BulletData(new(0, 0), new(0, 0), 8, 0, 0, 0, new(1, 0), 0, 3, 0, new(0, -2, 1, 0), 0, new float4(1, 1, 1, 1)),
                     number = 8,
                     disRad = 0.3f,
                     homing = false,
@@ -197,6 +202,7 @@ public class QuadOrder : MonoBehaviour
         if (collisionVertRanges.IsCreated) collisionVertRanges.Dispose();
         if (collisionHitFlag.IsCreated) collisionHitFlag.Dispose();
         if (collisionCheckBullets.IsCreated) collisionCheckBullets.Dispose();
+        if (laserVertCellIndices.IsCreated) laserVertCellIndices.Dispose();
     }
 
     private void BuildCollisionData()
@@ -260,7 +266,15 @@ public class QuadOrder : MonoBehaviour
     {
         BulletUpdate(_dt);
         CheckCollisionWithEnemy(GManager.Control.PController.pos);
-        foreach (var laser in allLASERs) laser.UpdateSet(_dt, GManager.Control.PController.pos, out bool hit);
+        for (int i = 0; i < allLASERs.Count; i++)
+        {
+            if (allLASERs[i].UpdateSet(_dt))
+            {
+                allLASERs[i].Destroy();
+                allLASERs.RemoveAt(i);
+                i--;
+            }
+        }
         CheckCollisionWithLASER(GManager.Control.PController.pos);
 
         UpdateEnemyPos(_dt);
@@ -404,7 +418,7 @@ public class QuadOrder : MonoBehaviour
 
     public List<int> AddEnemyHomingBullets(NativeArray<BulletData> newBullets, float2 fromPos)
     {
-        NativeArray<BulletData> tempBullets = new NativeArray<BulletData>(newBullets, Allocator.Temp);
+        NativeArray<BulletData> tempBullets = newBullets;
         float2 toPlayer = GManager.Control.PController.pos - fromPos;
         float angleToPlayer = math.atan2(toPlayer.y, toPlayer.x);
         for (int i = 0; i < newBullets.Length; i++)
@@ -417,7 +431,7 @@ public class QuadOrder : MonoBehaviour
         }
 
         List<int> indexes = AddEnemyBullets(tempBullets);
-        tempBullets.Dispose();
+        newBullets.Dispose();
         return indexes;
     }
 
@@ -449,6 +463,35 @@ public class QuadOrder : MonoBehaviour
             indexes.Add(oldLength + i);
         }
         return indexes;
+    }
+
+    public void AddEnemyBullets(BulletSpawner spawner)
+    {
+        if (!enemyBullets.IsCreated)
+        {
+            enemyBullets = new NativeList<BulletData>(256, Allocator.Persistent);
+        }
+
+        if (enemyBullets.Length >= enemyBullets.Capacity)
+        {
+            int nextCapacity = math.max(enemyBullets.Length + 1, math.max(256, enemyBullets.Capacity * 2));
+            enemyBullets.Capacity = nextCapacity;
+        }
+
+        List<BulletData> bullets = GManager.Control.BClipManager.GetBulletClip(spawner.index, spawner.pos, spawner.originVlc, spawner.angle, out bool isLaser);
+
+        if (isLaser)
+        {
+            allLASERs.AddRange(laserEmitter.EmitLASER(bullets, spawner.pos));
+            return;
+        }
+
+        NativeArray<BulletData> newBullets = new NativeArray<BulletData>(bullets.ToArray(), Allocator.Temp);
+        int oldLength = enemyBullets.Length;
+        int newLength = oldLength + newBullets.Length;
+        enemyBullets.ResizeUninitialized(newLength);
+        for (int i = 0; i < newBullets.Length; i++) enemyBullets[oldLength + i] = newBullets[i];
+        newBullets.Dispose();
     }
 
     public List<int> EmitEnemyBullet(BulletClip clip, int EnemyIndex)
@@ -696,11 +739,20 @@ public class QuadOrder : MonoBehaviour
 
         if (!vertsSet.IsCreated || vertsSet.Length == 0) return;
 
-        NativeArray<int> vertCellIndices = new NativeArray<int>(vertsSet.Length, Allocator.TempJob);
+        if (!laserVertCellIndices.IsCreated)
+        {
+            laserVertCellIndices = new NativeList<int>(math.max(vertsSet.Length, 1), Allocator.Persistent);
+        }
+        if (laserVertCellIndices.Capacity < vertsSet.Length)
+        {
+            laserVertCellIndices.Capacity = vertsSet.Length;
+        }
+        laserVertCellIndices.ResizeUninitialized(vertsSet.Length);
+
         LASERQuadJob job = new LASERQuadJob()
         {
             vertsSet = vertsSet.AsArray(),
-            vertCellIndices = vertCellIndices,
+            vertCellIndices = laserVertCellIndices.AsArray(),
             cellSize = cellSize,
             cellCount = cells.Length
         };
@@ -708,13 +760,11 @@ public class QuadOrder : MonoBehaviour
         JobHandle handle = job.Schedule(vertsSet.Length, 64);
         handle.Complete();
 
-        for (int i = 0; i < vertCellIndices.Length; i++)
+        for (int i = 0; i < laserVertCellIndices.Length; i++)
         {
-            int n = vertCellIndices[i];
+            int n = laserVertCellIndices[i];
             if (n >= 0 && n < quadVerts.Count) quadVerts[n].Add(i);
         }
-
-        vertCellIndices.Dispose();
     }
 
     public void CheckCollisionWithLASER(float2 pPos)
@@ -842,7 +892,7 @@ public class QuadOrder : MonoBehaviour
         {
             if (indexes[0] >= 0 && indexes[0] < enemyBullets.Length)
             {
-                BulletData data = new BulletData(clip.data, enemyBullets[indexes[0]].position);
+                BulletData data = new BulletData(clip.data, new float2(0, 0), enemyBullets[indexes[0]].position, 0);
                 enemyBullets[indexes[0]] = data;
                 return new List<int>() { indexes[0] };
             }

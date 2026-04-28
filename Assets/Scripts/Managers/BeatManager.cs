@@ -1,22 +1,38 @@
-using UnityEngine;
-using Unity.Mathematics;
+using System;
 using System.Collections.Generic;
-using NUnit.Framework.Constraints;
+using UnityEngine;
 
 public class BeatManager : MonoBehaviour
 {
-    private List<float> beatTimings; // List of beat timings in seconds
+    [SerializeField] private readonly List<int> beatSamples = new();
     public float beatValueSin;
     public float beatValuePoly;
     private bool ready = false;
     private int beatCount = 0;
-    private float nextBeatTime = 0;
+    private int nextBeatSample = 0;
+    private AudioClip musicClip;
+    private double startDspTime;
+    [SerializeField] private int offsetSamples = 0;
     [SerializeField] private float debug;
     [SerializeField] private float toleranceTime = 0.5f; // Time window for beat detection
 
-    public void SetBeat(List<StageData.MusicEvent> musicEvents)
+    public void SetBeat(AudioClip clip, List<StageData.MusicEvent> musicEvents, double scheduledDspTime, float delayTime)
     {
-        beatTimings = new List<float>();
+        beatSamples.Clear();
+        beatCount = 0;
+        nextBeatSample = 0;
+        beatValueSin = 0;
+        beatValuePoly = 0;
+        musicClip = clip;
+        startDspTime = scheduledDspTime;
+
+        if (musicClip == null)
+        {
+            ready = false;
+            return;
+        }
+
+        offsetSamples = Mathf.RoundToInt(delayTime * musicClip.frequency);
         for (int i = 0; i < musicEvents.Count; i++) musicEvents[i].Refresh();
 
         for (int i = 0; i < musicEvents.Count; i++)
@@ -37,32 +53,42 @@ public class BeatManager : MonoBehaviour
                 for (int j = 0; j < temp.Count; j++)
                 {
                     float beatTime = temp[j] + k * musicEvents[i].measure * beatInterval;
-                    beatTimings.Add(beatTime);
+                    int beatSample = Mathf.RoundToInt(beatTime * musicClip.frequency) - offsetSamples;
+                    beatSamples.Add(beatSample);
                 }
             }
         }
 
-        beatTimings.Sort();
-        foreach (float beatTime in beatTimings) Debug.Log($"Beat timing: {beatTime}");
-        if (beatTimings.Count > 0) nextBeatTime = beatTimings[0];
-        ready = true;
+        beatSamples.Sort();
+        //foreach (int beatSample in beatSamples) Debug.Log($"Beat sample: {beatSample}");
+        ready = beatSamples.Count > 0;
+        if (ready) nextBeatSample = beatSamples[0];
     }
 
     public void UpdateBeat()
     {
         if (!ready) return;
 
-        float bt = GManager.Control.beatTime;
-        bt += debug;
+        int currentSample = GetCurrentSample();
 
-        if (beatCount < beatTimings.Count && bt >= nextBeatTime)
+        while (beatCount < beatSamples.Count && currentSample >= nextBeatSample)
         {
             OnBeat();
             beatCount++;
-            if (beatCount < beatTimings.Count) nextBeatTime = beatTimings[beatCount];
+            if (beatCount < beatSamples.Count) nextBeatSample = beatSamples[beatCount];
         }
 
-        ValueUpdate(bt);
+        ValueUpdate(currentSample);
+    }
+
+    private int GetCurrentSample()
+    {
+        double elapsedTime = AudioSettings.dspTime - startDspTime;
+        int debugSamples = musicClip == null ? 0 : Mathf.RoundToInt(debug * musicClip.frequency);
+        if (elapsedTime <= 0 || musicClip == null) return debugSamples - offsetSamples;
+
+        int elapsedSamples = Mathf.RoundToInt((float)(elapsedTime * musicClip.frequency));
+        return elapsedSamples + debugSamples - offsetSamples;
     }
 
     private void OnBeat()
@@ -70,26 +96,37 @@ public class BeatManager : MonoBehaviour
         Debug.Log($"Beat! {beatCount}");
     }
 
-    private void ValueUpdate(float bt)
+    private void ValueUpdate(int currentSample)
     {
         if (beatCount == 0) return;
 
-        float pre = bt - beatTimings[beatCount - 1];
-        float next = nextBeatTime - bt;
-        if (pre > toleranceTime && (next > toleranceTime || next < 0))
+        int toleranceSamples = musicClip == null ? 0 : Mathf.RoundToInt(toleranceTime * musicClip.frequency);
+        if (toleranceSamples <= 0)
         {
             beatValueSin = 0;
             beatValuePoly = 0;
             return;
         }
 
-        float f = Mathf.Min(pre, next);
+        int previousBeatSample = beatSamples[beatCount - 1];
+        int nextSampleDistance = beatCount < beatSamples.Count ? beatSamples[beatCount] - currentSample : int.MaxValue;
+        int previousSampleDistance = currentSample - previousBeatSample;
 
-        if (f < toleranceTime * 0.1f) beatValueSin = 1;
-        else if (f < toleranceTime) beatValueSin = Mathf.Sin((1 - f / toleranceTime) * Mathf.PI / 2);
+        if (previousSampleDistance > toleranceSamples && (nextSampleDistance > toleranceSamples || nextSampleDistance < 0))
+        {
+            beatValueSin = 0;
+            beatValuePoly = 0;
+            return;
+        }
+
+        int nearestSampleDistance = Mathf.Min(previousSampleDistance, nextSampleDistance);
+        float normalizedDistance = nearestSampleDistance / (float)toleranceSamples;
+
+        if (nearestSampleDistance < toleranceSamples * 0.1f) beatValueSin = 1;
+        else if (nearestSampleDistance < toleranceSamples) beatValueSin = Mathf.Sin((1 - normalizedDistance) * Mathf.PI / 2);
         else beatValueSin = 0;
 
-        if (f < toleranceTime) beatValuePoly = (-f * f + toleranceTime * toleranceTime) / (toleranceTime * toleranceTime);
+        if (nearestSampleDistance < toleranceSamples) beatValuePoly = 1 - normalizedDistance * normalizedDistance;
         else beatValuePoly = 0;
     }
 }

@@ -55,7 +55,7 @@ public struct BulletData
     /// <param name="_size">弾のサイズ size</param>
     /// <param name="_color">弾の色 color</param>
     /// <param name="_random">ランダム値 random</param>
-    public BulletData(float2 _pos, float2 _vlc, float _s, float _acc, float _g, float _as, float2 _polar, float _absV, float _theV, float _start, float4 _poly, int type, float _size, float4 _color, float _random = 0)
+    public BulletData(float2 _pos, float2 _vlc, float _s, float _acc, float _g, float _as, float2 _polar, float _absV, float _theV, float _start, float4 _poly, int type, float4 _color, float _size = 1, float _random = 0)
     {
         position = _pos;
         velocity = new(0, 0);
@@ -100,25 +100,25 @@ public struct BulletData
         nowCalculateVlc = vec / magnitude * speed;
     }
 
-    public BulletData(BulletData data, float2 _pos)
+    public BulletData(BulletData data, float2 _pos, float2 _vlc, float _theta, float4 _color = new float4())
     {
         position = _pos;
         velocity = data.velocity;
         angle = data.angle;
         originPos = _pos;
-        originVlc = data.originVlc;
+        originVlc = _vlc;
         speed = data.speed;
         acccel = data.acccel;
         gravity = data.gravity;
         angleSpeed = data.angleSpeed;
-        polarForm = data.polarForm;
+        polarForm = new float2(data.polarForm.x, data.polarForm.y + _theta);
         radiusVlc = data.radiusVlc;
         thetaVlc = data.thetaVlc;
         nowCalculateX = data.startX;
         polynomial = data.polynomial;
         typeId = data.typeId;
         size = data.size;
-        color = data.color;
+        color = new float4(data.color.x * _color.x, data.color.y * _color.y, data.color.z * _color.z, data.color.w * _color.w);
 
         areaNum = 0;
         time = 0;

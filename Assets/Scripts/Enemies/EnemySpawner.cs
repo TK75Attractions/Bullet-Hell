@@ -9,7 +9,7 @@ public class EnemySpawner
     public int id;
     public int count;
     public float interval;
-    public float next;
+    public float time;
     public int bulletCount;
     public BulletData orbit;
     public BulletClip bulletClip;
