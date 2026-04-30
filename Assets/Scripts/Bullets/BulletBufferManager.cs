@@ -3,7 +3,7 @@ using Unity.Collections;
 using Unity.Mathematics;
 using System.Collections.Generic;
 
-public class BulletClipManager
+public class BulletBufferManager
 {
     private List<BulletBuffer> bulletBuffers = new List<BulletBuffer>();
 
@@ -100,7 +100,7 @@ public class BulletClipManager
             BulletData b = new BulletData(
                 new float2(0, 0),
                 new float2(0, 0),
-                3 + 0.1f * i,
+                3,
                 0,
                 0,
                 0,

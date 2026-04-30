@@ -26,10 +26,10 @@ MonoBehaviour:
   stageDescription: 000
   enemySpawners:
   - id: 0
-    count: 5
+    count: 1
     interval: 0.7
     time: 0
-    bulletCount: 3
+    bulletCount: 1
     orbit:
       position:
         x: 0
@@ -128,7 +128,6 @@ MonoBehaviour:
       number: 5
       disRad: 60
       homing: 1
-      generateType: 0
     bulletChangeClips:
     - clip:
         data:
@@ -181,11 +180,10 @@ MonoBehaviour:
         number: 3
         disRad: 30
         homing: 1
-        generateType: 0
       time: 1
       interval: 0
   bulletSpawners:
-  - index: 4
+  - index: 2
     count: 1
     interval: 0
     time: 4
@@ -201,4 +199,21 @@ MonoBehaviour:
       y: 0
       z: 0
       w: 1
-    clipName: Circle
+    clipName: Line
+  - index: 2
+    count: 1
+    interval: 0
+    time: 4
+    pos:
+      x: 5
+      y: 7
+    originVlc:
+      x: 1
+      y: 0
+    angle: 30
+    color:
+      x: 1
+      y: 0
+      z: 0
+      w: 1
+    clipName: Line

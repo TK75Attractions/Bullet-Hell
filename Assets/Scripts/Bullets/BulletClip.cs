@@ -9,5 +9,5 @@ public struct BulletClip
     public int number;
     public float disRad;
     public bool homing;
-    public int generateType;
+    //public int generateType;
 }

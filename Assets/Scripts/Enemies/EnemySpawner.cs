@@ -1,5 +1,3 @@
-using UnityEngine;
-using Unity.Mathematics;
 using System.Collections.Generic;
 using System;
 
