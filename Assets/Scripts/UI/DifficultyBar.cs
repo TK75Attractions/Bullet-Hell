@@ -5,22 +5,22 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-public class DefficultyBar : MonoBehaviour
+public class DifficultyBar : MonoBehaviour
 {
     private CanvasGroup CG;
     private RectTransform whiteBar;
     private CanvasGroup whiteCG;
 
-    private DefficultyBox[] boxes = new DefficultyBox[3];
+    private DifficultyBox[] boxes = new DifficultyBox[3];
     public int index = 0;
     private readonly float duration = 0.15f;
     private bool isTransitioning = false;
 
-    private class DefficultyBox
+    private class DifficultyBox
     {
         public CanvasGroup CG;
         public RectTransform rectTransform;
-        public DefficultyBox(Transform trans, Vector2 pos, string name, Color color)
+        public DifficultyBox(Transform trans, Vector2 pos, string name, Color color)
         {
             CG = trans.GetComponent<CanvasGroup>();
             rectTransform = trans.GetComponent<RectTransform>();
@@ -38,9 +38,9 @@ public class DefficultyBar : MonoBehaviour
     public void Init()
     {
         Transform trans = transform.Find("List");
-        boxes[0] = new DefficultyBox(trans.Find("Easy"), new Vector2(0, 0), "EASY", new Color(0f, 1f, 0.227f));
-        boxes[1] = new DefficultyBox(trans.Find("Normal"), new Vector2(0, -140), "NORMAL", new Color(0.165f, 0.592f, 1f));
-        boxes[2] = new DefficultyBox(trans.Find("Lunatic"), new Vector2(0, -280), "LUNATIC", new Color(1f, 0.447f, 0.502f));
+        boxes[0] = new DifficultyBox(trans.Find("Easy"), new Vector2(0, 0), "EASY", new Color(0f, 1f, 0.227f));
+        boxes[1] = new DifficultyBox(trans.Find("Normal"), new Vector2(0, -140), "NORMAL", new Color(0.165f, 0.592f, 1f));
+        boxes[2] = new DifficultyBox(trans.Find("Lunatic"), new Vector2(0, -280), "LUNATIC", new Color(1f, 0.447f, 0.502f));
         CG = GetComponent<CanvasGroup>();
         CG.alpha = 0;
         index = 0;

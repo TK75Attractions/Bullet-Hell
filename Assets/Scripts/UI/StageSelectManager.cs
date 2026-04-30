@@ -8,7 +8,7 @@ public class StageSelectManager : MonoBehaviour
 {
     private CanvasGroup variableCG;
     private CanvasGroup staticCG;
-    private DefficultyBar defficultyBar;
+    private DifficultyBar difficultyBar;
     private Header header;
     private Scroll scroll;
     private StageBar stageBar;
@@ -29,13 +29,13 @@ public class StageSelectManager : MonoBehaviour
     {
         variableCG = GetComponent<CanvasGroup>();
         staticCG = transform.parent.parent.Find("StaticCanvas").Find("StageBoxParent").GetComponent<CanvasGroup>();
-        defficultyBar = GetComponentInChildren<DefficultyBar>();
+        difficultyBar = GetComponentInChildren<DifficultyBar>();
         header = GetComponentInChildren<Header>();
         scroll = GetComponentInChildren<Scroll>();
         stageBar = GetComponentInChildren<StageBar>();
         stageDescription = GetComponentInChildren<StageDescription>();
 
-        defficultyBar.Init();
+        difficultyBar.Init();
         header.Init();
         scroll.Init();
         stageBar.Init();
@@ -75,8 +75,8 @@ public class StageSelectManager : MonoBehaviour
                 }
                 else
                 {
-                    if (up) defficultyBar.Up();
-                    else if (down) defficultyBar.Down();
+                    if (up) difficultyBar.Up();
+                    else if (down) difficultyBar.Down();
                 }
                 break;
             case State.InGame:
@@ -101,7 +101,7 @@ public class StageSelectManager : MonoBehaviour
                 stageDescription.Transition(progress);
                 stageBar.SetAlpha(1 - progress);
                 scroll.SetAlpha(1 - progress);
-                defficultyBar.SetAlpha(progress);
+                difficultyBar.SetAlpha(progress);
                 await Task.Yield();
             }
 
@@ -109,7 +109,7 @@ public class StageSelectManager : MonoBehaviour
             header.TransitionNotes(1);
             stageBar.SetAlpha(0);
             scroll.SetAlpha(0);
-            defficultyBar.SetAlpha(1);
+            difficultyBar.SetAlpha(1);
 
             isTransitioning = false;
         }
