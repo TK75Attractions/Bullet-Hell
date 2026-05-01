@@ -1,9 +1,6 @@
 using System;
-using System.Collections;
-using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;

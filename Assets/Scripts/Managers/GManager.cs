@@ -1,14 +1,6 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Unity.Mathematics;
-using JetBrains.Annotations;
-using System.Linq;
-using System.Threading.Tasks;
-using Unity.Burst;
-using Unity.Collections;
-using Unity.Jobs;
 using UnityEngine.InputSystem;
 
 public class GManager : MonoBehaviour

@@ -1,8 +1,6 @@
 using UnityEngine;
-using Unity.Mathematics;
 using TMPro;
 using UnityEngine.Video;
-using System.Data;
 using System;
 
 public class StageDescription : MonoBehaviour

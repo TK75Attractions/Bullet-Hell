@@ -1,7 +1,5 @@
 using System;
-using TMPro;
 using Unity.Mathematics;
-using UnityEngine.UIElements;
 
 [Serializable]
 public struct BulletData
