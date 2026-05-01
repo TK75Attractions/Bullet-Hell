@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System.Xml.Serialization;
 
 [CreateAssetMenu(fileName = "SEDataBase", menuName = "Audio/SEDataBase")]
 public class SEDataBase : ScriptableObject

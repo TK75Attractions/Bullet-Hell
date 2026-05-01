@@ -1,5 +1,4 @@
 using UnityEngine;
-using Unity.Collections;
 using Unity.Mathematics;
 
 [CreateAssetMenu(fileName ="BulletType",menuName ="Bullet/BulletType")]

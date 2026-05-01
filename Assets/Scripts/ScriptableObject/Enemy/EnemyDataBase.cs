@@ -1,6 +1,4 @@
 using UnityEngine;
-using Unity.Collections;
-using Unity.Mathematics;
 using System.Collections.Generic;
 
 [CreateAssetMenu(menuName = "Enemy/EnemyDataBase", fileName = "EnemyDataBase")]
