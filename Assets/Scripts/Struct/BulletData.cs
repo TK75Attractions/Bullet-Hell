@@ -4,38 +4,38 @@ using Unity.Mathematics;
 [Serializable]
 public struct BulletData
 {
-    public float2 position;//弾の位置
-    public float2 velocity;//弾の変位
-    public float angle;//弾の角度
+    public float2 position { get;  set; } //弾の位置
+    public float2 velocity { get;  set; } //弾の変位
+    public float angle { get;  set; }
 
-    public float2 originPos; //原点位置
-    public float2 originVlc; //原点の移動速度
-    public float startX;
-    public float speed; //弾丸の速度
-    public float acccel;//弾丸の加速
-    public float gravity;//弾丸にかかる重力加速度
-    public float angleSpeed;//弾丸の速度
+    public float2 originPos { get;  set; } //原点位置
+    public float2 originVlc { get;  set; } //原点の移動速度
+    public float startX { get;  set; }
+    public float speed { get;  set; } //弾丸の速度
+    public float acccel { get;  set; }//弾丸の加速
+    public float gravity { get;  set; }//弾丸にかかる重力加速度
+    public float angleSpeed { get;  set; }//弾丸の速度
 
     
 
 
-    public float2 polarForm;//原点中心に回転させる虚数(r,t);
-    public float radiusVlc;//r の速さ
-    public float thetaVlc;//theta の速さ
+    public float2 polarForm { get;  set; }//原点中心に回転させる虚数(r,t);
+    public float radiusVlc { get;  set; }//r の速さ
+    public float thetaVlc { get;  set; }//theta の速さ
 
-    public float2 startPos;//多項式の計算を始める x 座標（見かけの原点）
-    public float2 nowCalculateVlc;//接線速度
-    public float nowCalculateX;
-    public float4 polynomial;
+    public float2 startPos { get;  set; }//多項式の計算を始める x 座標（見かけの原点）
+    public float2 nowCalculateVlc { get;  set; }//接線速度
+    public float nowCalculateX { get;  set; }
+    public float4 polynomial { get;  set; }
 
-    public int typeId;
-    public float size;
-    public float4 color;
+    public int typeId { get;  set; }
+    public float size { get;  set; }
+    public float4 color { get;  set; }
 
-    public int areaNum;
-    public float time;
-    public float random;
-    public bool isActive;
+    public int areaNum { get;  set; }
+    public float time { get;  set; }
+    public float random { get;  set; }
+    public bool isActive { get;  set;}
 
     /// <summary>
     /// 弾幕のデータ

@@ -4,14 +4,18 @@ using UnityEngine;
 
 public class AudioManager : MonoBehaviour
 {
+    private ISoundEffectDB<ISEData> SEDB;
+
     private Transform SEParent;
     [SerializeField] private GameObject audioSourcePrefab;
     private List<AudioSource> SEPool = new();
     private AudioSource BGMSource;
     private bool isready = false;
 
-    public void Init()
+    public void Init(ISoundEffectDB<ISEData> seDB)
     {
+        SEDB = seDB;
+
         SEParent = transform.Find("SEPool");
         SEPool = new();
 
@@ -43,14 +47,14 @@ public class AudioManager : MonoBehaviour
     {
         if (!isready) return -1;
 
-        int index = GManager.Control.DBService.SEDB.GetSEData(seName);
+        int index = SEDB.GetSEData(seName);
         if (index == -1)
         {
             Debug.LogError($"SE '{seName}' not found in SEDataBase.");
             return -1;
         }
 
-        ISEData seData = GManager.Control.DBService.SEDB.GetSEData(index);
+        ISEData seData = SEDB.GetSEData(index);
         AudioSource source = GetAvailableAudioSource();
         if (source != null)
         {

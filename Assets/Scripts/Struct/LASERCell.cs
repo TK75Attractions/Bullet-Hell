@@ -5,9 +5,9 @@ using Unity.Mathematics;
 
 public struct LASERCell
 {
-    public float2 vert0;
-    public float2 vert1;
-    public float2 vert2;
+    public float2 vert0 { get; private set; }
+    public float2 vert1 { get; private set; }
+    public float2 vert2 { get; private set; }
 
     public LASERCell(float2 v0, float2 v1, float2 v2)
     {

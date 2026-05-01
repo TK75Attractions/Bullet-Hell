@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 
 public class BulletRenderSystem : MonoBehaviour
 {
+    private IBulletTypeDB BTDB;
     public Mesh quadMesh;
     public Material material;
 
@@ -21,8 +22,10 @@ public class BulletRenderSystem : MonoBehaviour
 
 
     #region //BulletRenderData Struct
-    public void Init()
+    public void Init(IBulletTypeDB bulletTypeDB)
     {
+        BTDB = bulletTypeDB;
+
         Debug.Log("Initializing BulletRenderSystem...");
         InitTextureArray();
         InitMaskArray();
@@ -35,7 +38,7 @@ public class BulletRenderSystem : MonoBehaviour
     }
     private void InitTextureArray()
     {
-        Texture2D[] textures = GManager.Control.DBService.BTDB.GetBaseTextures();
+        Texture2D[] textures = BTDB.GetBaseTextures();
         if (textures == null || textures.Length == 0)
         {
             Debug.LogWarning("BaseTextures is null or empty! Textures will not work.");
@@ -67,7 +70,7 @@ public class BulletRenderSystem : MonoBehaviour
     }
     private void InitMaskArray()
     {
-        Texture2D[] maskTextures = GManager.Control.DBService.BTDB.GetMaskTextures();
+        Texture2D[] maskTextures = BTDB.GetMaskTextures();
         if (maskTextures == null || maskTextures.Length == 0)
         {
             Debug.LogWarning("MaskTextures is null or empty! Mask will not work.");
@@ -243,7 +246,7 @@ public class BulletRenderSystem : MonoBehaviour
             var b = bullets[i];
             if (!b.isActive) continue;
 
-            var type = GManager.Control.DBService.BTDB.types[b.typeId];
+            var type = BTDB.types[b.typeId];
 
             renderArray[writeIndex] = new BulletRenderData
             {

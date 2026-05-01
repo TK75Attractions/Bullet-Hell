@@ -9,6 +9,9 @@ using UnityEngine;
 [Serializable]
 public class QuadOrder : MonoBehaviour, IQuadOrderDirty
 {
+    private IDBService DBService;
+    private PlayerController PController;
+
     #region//CellManagers
     [NonSerialized] private QuadCell[] cells = Array.Empty<QuadCell>();
     [SerializeField] private float cellSize;
@@ -88,38 +91,15 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
 
     public LaserEmitter laserEmitter;
 
-    [Serializable]
-    private class NativeBulletDebugEntry
-    {
-        public int index;
-        public bool isActive;
-        public int areaNum;
-        public int typeId;
-        public float time;
-        public float angle;
-        public float size;
-        public Vector2 position;
-        public Vector2 velocity;
-        public Vector2 originPos;
-        public Vector2 originVlc;
-        public Vector2 polarForm;
-    }
-
-    private class LASERSet
-    {
-        public LASER laser;
-        public List<List<int>> vertIndixes;
-
-        public LASERSet(LASER laser, int cellCount)
-        {
-            this.laser = laser;
-            this.vertIndixes = new List<List<int>>(cellCount);
-            for (int i = 0; i < cellCount; i++) vertIndixes.Add(new List<int>());
-        }
-    }
     public List<LASER> allLASERs = new();
 
     public List<List<int>> laserVertsIndex = new List<List<int>>();
+
+    public void Init(IDBService dbService, PlayerController playerController)
+    {
+        DBService = dbService;
+        PController = playerController;
+    }
 
     public void AwakeSetting()
     {
@@ -207,7 +187,7 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
         if (collisionVerts.IsCreated) collisionVerts.Dispose();
         if (collisionVertRanges.IsCreated) collisionVertRanges.Dispose();
 
-        var bulletTypeDB = GManager.Control.DBService.BTDB;
+        var bulletTypeDB = DBService.BTDB;
         if (bulletTypeDB == null || bulletTypeDB.types == null)
         {
             collisionVerts = new NativeArray<float2>(0, Allocator.Persistent);
@@ -262,7 +242,7 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
     public void QuadUpdate(float _dt)
     {
         BulletUpdate(_dt);
-        CheckCollisionWithEnemy(GManager.Control.PController.pos);
+        CheckCollisionWithEnemy(PController.pos);
         for (int i = 0; i < allLASERs.Count; i++)
         {
             if (allLASERs[i].UpdateSet(_dt))
@@ -272,7 +252,7 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
                 i--;
             }
         }
-        CheckCollisionWithLASER(GManager.Control.PController.pos);
+        CheckCollisionWithLASER(PController.pos);
 
         UpdateEnemyPos(_dt);
 
@@ -416,7 +396,7 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
     public List<int> AddEnemyHomingBullets(NativeArray<BulletData> newBullets, float2 fromPos)
     {
         NativeArray<BulletData> tempBullets = newBullets;
-        float2 toPlayer = GManager.Control.PController.pos - fromPos;
+        float2 toPlayer = PController.pos - fromPos;
         float angleToPlayer = math.atan2(toPlayer.y, toPlayer.x);
         for (int i = 0; i < newBullets.Length; i++)
         {
@@ -511,7 +491,7 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
 
         NativeArray<BulletData> newBullets = new NativeArray<BulletData>(clip.number, Allocator.Temp);
 
-        float2 dis = new float2(GManager.Control.PController.pos.x, GManager.Control.PController.pos.y) - pPos;
+        float2 dis = new float2(PController.pos.x, PController.pos.y) - pPos;
         float range = (clip.number - 1) * clip.disRad;
         if (clip.homing)
         {
@@ -848,7 +828,7 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
     #endregion
 
     #region //EnemyMethods
-    public async void AddEnemy(EnemySpawner spawner)
+    public async void AddEnemy(IEnemySpawner spawner)
     {
         float t = 0;
 
@@ -862,7 +842,7 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
             }
 
             Enemy enemy = Instantiate(GManager.Control.EnemyObj).GetComponent<Enemy>();
-            enemy.Init(enemies.Count, spawner);
+            enemy.Init(enemies.Count, spawner,DBService.EDB);
             enemies.Add(enemy);
             //Debug.Log($"Spawned enemy: {spawner.orbit.speed}");
             enemiesOrbitBullets.Add(spawner.orbit);

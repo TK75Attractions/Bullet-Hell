@@ -84,7 +84,7 @@ public class StageReader : MonoBehaviour
         {
             if (stageData.enemySpawners[enemyCount].time <= time)
             {
-                EnemySpawner spawner = stageData.enemySpawners[enemyCount];
+                IEnemySpawner spawner = stageData.enemySpawners[enemyCount];
                 GManager.Control.QOrder.AddEnemy(spawner);
                 Debug.Log($"Spawned enemy: {spawner.orbit.speed}");
                 enemyCount++;

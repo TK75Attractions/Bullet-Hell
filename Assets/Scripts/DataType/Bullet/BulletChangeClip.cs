@@ -1,13 +1,13 @@
 using System;
 
 [Serializable]
-public class BulletChangeClip
+public class BulletChangeClip : IBulletChangeClip
 {
-    public BulletClip clip;
+    public BulletClip clip { get; private set; }
 
-    public float time = 0;
+    public float time { get; private set; } = 0;
 
-    public float interval = 0;
+    public float interval { get; private set; } = 0;
 
     public BulletChangeClip(float _t, float _interval)
     {

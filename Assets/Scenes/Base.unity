@@ -4350,6 +4350,51 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1630216907}
   m_CullTransparentMesh: 1
+--- !u!1 &1630495903
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1630495905}
+  - component: {fileID: 1630495904}
+  m_Layer: 0
+  m_Name: Installer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1630495904
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1630495903}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5e8329688eb15a4da48185a562da64d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Installer
+  PlayerObj: {fileID: 0}
+--- !u!4 &1630495905
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1630495903}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1634412149
 GameObject:
   m_ObjectHideFlags: 0
@@ -5473,7 +5518,6 @@ GameObject:
   - component: {fileID: 1890939111}
   - component: {fileID: 1890939115}
   - component: {fileID: 1890939114}
-  - component: {fileID: 1890939113}
   - component: {fileID: 1890939112}
   - component: {fileID: 1890939116}
   - component: {fileID: 1890939117}
@@ -5513,29 +5557,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BulletRenderSystem
   quadMesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   material: {fileID: 2100000, guid: dfb65132dfc397040adb1f4f5280a272, type: 2}
---- !u!114 &1890939113
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1890939110}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 272a7a0f1cb76f546b2b644706027d59, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::InputManager
-  isDebugMode: 1
-  buttonPressed: 0
-  buttonPressedThisFrame: 0
-  upPressed: 0
-  downPressed: 0
-  leftPressed: 0
-  rightPressed: 0
-  upPressedThisFrame: 0
-  downPressedThisFrame: 0
-  leftPressedThisFrame: 0
-  rightPressedThisFrame: 0
 --- !u!114 &1890939114
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5589,15 +5610,10 @@ MonoBehaviour:
       y: 0
     moveSpeed: 5
     SR: {fileID: 0}
-  IManager: {fileID: 1890939113}
   SReader: {fileID: 0}
   AManager: {fileID: 0}
   BManager: {fileID: 0}
   SSManager: {fileID: 0}
-  BTDB: {fileID: 11400000, guid: 18e0dba5990fed9468c060d0a18757eb, type: 2}
-  SDB: {fileID: 11400000, guid: 196f8cc18dbd6c643a72049b9d4c923b, type: 2}
-  SEDB: {fileID: 0}
-  EDB: {fileID: 11400000, guid: 8df51ad6b15942041bbc8e71d4685d05, type: 2}
   BRS: {fileID: 1890939112}
   gameTime: 0
   beatTime: 0
@@ -5679,7 +5695,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47cd45980466607448fc3d54baa4c447, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageReader
-  stageData: {fileID: 0}
   spawnEvents: []
   time: 0
 --- !u!1 &1893457097
@@ -7192,3 +7207,4 @@ SceneRoots:
   - {fileID: 211372458}
   - {fileID: 2054651908}
   - {fileID: 1678331243}
+  - {fileID: 1630495905}

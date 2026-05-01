@@ -8,13 +8,13 @@ public interface IStageData
     public string stageName { get; }
     public VideoClip videoClip { get; }
     public AudioClip audioClip { get; }
-    public List<MusicEvent> MusicEvents { get; }
+    public List<IMusicEvent> MusicEvents { get; }
 
     public float delayTime { get; }//Delay time before the stage starts, in seconds
 
     public string stageDescription { get; }
 
-    public List<EnemySpawner> enemySpawners { get; }
+    public List<IEnemySpawner> enemySpawners { get; }
 
     public List<BulletSpawner> bulletSpawners { get; }
 }

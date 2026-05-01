@@ -3,21 +3,21 @@ using System.Collections.Generic;
 using UnityEngine.Video;
 
 [CreateAssetMenu(fileName = "StageData", menuName = "Stage/StageData")]
-public class StageData : ScriptableObject
+public class StageData : ScriptableObject, IStageData
 {
-    public int stageId;
-    public int difficulty;//0:easy 1:normal 2:hard 3:lunatic
-    public string stageName;
-    public VideoClip videoClip;
-    public AudioClip audioClip;
-    public List<MusicEvent> MusicEvents;
+    public int stageId { get; set; }
+    public int difficulty { get; set; } //0:easy 1:normal 2:hard 3:lunatic
+    public string stageName { get; set; }
+    public VideoClip videoClip { get; set; }
+    public AudioClip audioClip { get; set; }
+    public List<IMusicEvent> MusicEvents { get; set; }
 
-    public float delayTime;//Delay time before the stage starts, in seconds
+    public float delayTime { get; set; }//Delay time before the stage starts, in seconds
 
     [TextArea]
-    public string stageDescription;
+    public string stageDescription { get; set; }
 
-    public List<EnemySpawner> enemySpawners = new List<EnemySpawner>();
+    public List<IEnemySpawner> enemySpawners { get; set; } = new List<IEnemySpawner>();
 
-    public List<BulletSpawner> bulletSpawners = new List<BulletSpawner>();
+    public List<BulletSpawner> bulletSpawners { get; set; } = new List<BulletSpawner>();
 }

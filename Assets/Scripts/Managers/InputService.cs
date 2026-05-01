@@ -1,6 +1,11 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+
+public class ExtensionOfNativeClassAttribute : System.Attribute
+{
+}
+[ExtensionOfNativeClass]
 public class InputService : IInputService
 {
     public bool isDebugMode { get; private set;} = false;

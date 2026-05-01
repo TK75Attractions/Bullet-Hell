@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 public class Enemy : MonoBehaviour
 {
+    private IEnemyDB EDB;
     public readonly static float startInterval = 1.6f;
     public int id = 0;
     public int arrayIndex = 0;
@@ -15,13 +16,15 @@ public class Enemy : MonoBehaviour
     private int count = 0;
 
     public BulletClip bulletClip = new BulletClip();
-    public List<BulletChangeClip> bulletChangeClips = new List<BulletChangeClip>();
+    public List<IBulletChangeClip> bulletChangeClips = new List<IBulletChangeClip>();
     private List<BulletChache> bulletChaches = new List<BulletChache>();
 
     public float time = 0;
 
-    public void Init(int index, EnemySpawner spawner)
+    public void Init(int index, IEnemySpawner spawner, IEnemyDB enemyDB)
     {
+        EDB = enemyDB;
+        
         id = spawner.id;
         arrayIndex = index;
 
@@ -33,7 +36,7 @@ public class Enemy : MonoBehaviour
         trans = transform;
         trans.localScale = new Vector3(spawner.orbit.size, spawner.orbit.size, 1);
         SR = GetComponent<SpriteRenderer>();
-        SR.sprite = GManager.Control.DBService.EDB.GetSprite(spawner.id);
+        SR.sprite = EDB.GetSprite(spawner.id);
 
         isActive = true;
     }

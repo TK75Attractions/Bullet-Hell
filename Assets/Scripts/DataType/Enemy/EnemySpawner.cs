@@ -2,14 +2,14 @@ using System.Collections.Generic;
 using System;
 
 [Serializable]
-public class EnemySpawner
+public class EnemySpawner : IEnemySpawner
 {
-    public int id;
-    public int count;
-    public float interval;
-    public float time;
-    public int bulletCount;
-    public BulletData orbit;
-    public BulletClip bulletClip;
-    public List<BulletChangeClip> bulletChangeClips = new List<BulletChangeClip>();
+    public int id { get; set; }
+    public int count { get; set; }
+    public float interval { get; set; }
+    public float time { get; set; }
+    public int bulletCount { get; set; }
+    public BulletData orbit { get; set; }
+    public BulletClip bulletClip { get; set; }
+    public List<IBulletChangeClip> bulletChangeClips { get; set; } = new List<IBulletChangeClip>();
 }

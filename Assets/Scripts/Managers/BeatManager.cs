@@ -15,7 +15,7 @@ public class BeatManager : MonoBehaviour
     [SerializeField] private float debug;
     [SerializeField] private float toleranceTime = 0.5f; // Time window for beat detection
 
-    public void SetBeat(AudioClip clip, List<MusicEvent> musicEvents, double scheduledDspTime, float delayTime)
+    public void SetBeat(AudioClip clip, List<IMusicEvent> musicEvents, double scheduledDspTime, float delayTime)
     {
         beatSamples.Clear();
         beatCount = 0;
