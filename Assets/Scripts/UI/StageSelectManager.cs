@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class StageSelectManager : MonoBehaviour
 {
+    private IStageDB<IStageData> SDB;
     private CanvasGroup variableCG;
     private CanvasGroup staticCG;
     private DifficultyBar difficultyBar;
@@ -22,8 +23,10 @@ public class StageSelectManager : MonoBehaviour
 
     private bool isTransitioning = false;
 
-    public void Init()
+    public void Init(IStageDB<IStageData> stageDB)
     {
+        SDB = stageDB;
+
         variableCG = GetComponent<CanvasGroup>();
         staticCG = transform.parent.parent.Find("StaticCanvas").Find("StageBoxParent").GetComponent<CanvasGroup>();
         difficultyBar = GetComponentInChildren<DifficultyBar>();
@@ -35,8 +38,8 @@ public class StageSelectManager : MonoBehaviour
         difficultyBar.Init();
         header.Init();
         scroll.Init();
-        stageBar.Init();
-        stageDescription.Init();
+        stageBar.Init(stageDB);
+        stageDescription.Init(stageDB);
 
         state = State.Music;
 
@@ -59,7 +62,7 @@ public class StageSelectManager : MonoBehaviour
                 {
                     if (up) stageBar.Up();
                     else if (down) stageBar.Down();
-                    scroll.UpdateArea(stageBar.currentStage, GManager.Control.SDB.stages.Count);
+                    scroll.UpdateArea(stageBar.currentStage, SDB.stages.Count);
                     break;
                 }
             case State.Difficulty:

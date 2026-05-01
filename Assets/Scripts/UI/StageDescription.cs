@@ -5,6 +5,8 @@ using System;
 
 public class StageDescription : MonoBehaviour
 {
+    private IStageDB<IStageData> SDB;
+
     private RectTransform rect;
     private RectTransform backRect;
     [SerializeField] private TransformData BackData;
@@ -25,8 +27,10 @@ public class StageDescription : MonoBehaviour
         public float dHeight;
     }
 
-    public void Init()
+    public void Init(IStageDB<IStageData> stageDB)
     {
+        SDB = stageDB;
+
         rect = GetComponent<RectTransform>();
         backRect = transform.Find("Back").GetComponent<RectTransform>();
         videoRect = transform.Find("Video").GetComponent<RectTransform>();
@@ -38,7 +42,7 @@ public class StageDescription : MonoBehaviour
 
     public void Set(int index)
     {
-        StageData data = GManager.Control.SDB.GetStage(index);
+        IStageData data = SDB.GetStage(index);
         videoPlayer.clip = data.videoClip;
         stageName.text = data.stageName;
     }

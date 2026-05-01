@@ -33,7 +33,7 @@ public class Enemy : MonoBehaviour
         trans = transform;
         trans.localScale = new Vector3(spawner.orbit.size, spawner.orbit.size, 1);
         SR = GetComponent<SpriteRenderer>();
-        SR.sprite = GManager.Control.EDB.GetSprite(spawner.id);
+        SR.sprite = GManager.Control.DBService.EDB.GetSprite(spawner.id);
 
         isActive = true;
     }

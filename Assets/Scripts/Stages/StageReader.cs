@@ -8,7 +8,7 @@ using System;
 public class StageReader : MonoBehaviour
 {
     private const double BgmLeadTime = 0.2d;
-    [SerializeField] private StageData stageData;
+    [SerializeField] private IStageData stageData;
     [SerializeField] private List<BulletSpawnEvent> spawnEvents = new List<BulletSpawnEvent>();
     [SerializeField] private float time = 0f;
     private int enemyCount = 0;
@@ -24,7 +24,7 @@ public class StageReader : MonoBehaviour
         public int index;
     }
 
-    public async Task<bool> Init(StageData data)
+    public async Task<bool> Init(IStageData data)
     {
         stageData = data;
         time = 0f;

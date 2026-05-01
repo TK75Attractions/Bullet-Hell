@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class StageBar : MonoBehaviour
 {
+    private IStageDB<IStageData> SDB;
+
     [SerializeField] private GameObject stageBoxPrefab;
     private Transform parent;
     private CanvasGroup canvasGroup;
@@ -14,8 +16,10 @@ public class StageBar : MonoBehaviour
     private bool isTransitioning = false;
     static private readonly float duration = 0.15f;
 
-    public void Init()
+    public void Init(IStageDB<IStageData> stageDB)
     {
+        SDB = stageDB;
+
         parent = transform.Find("List");
         canvasGroup = GetComponent<CanvasGroup>();
         whiteBar = transform.Find("White").GetComponent<CanvasGroup>();
@@ -37,7 +41,7 @@ public class StageBar : MonoBehaviour
             isTransitioning = true;
             float d = duration;
 
-            int length = GManager.Control.SDB.stages.Count;
+            int length = SDB.stages.Count;
             if (currentStage >= length - 1)
             {
                 isTransitioning = false;
@@ -88,7 +92,7 @@ public class StageBar : MonoBehaviour
             isTransitioning = true;
             float d = duration;
 
-            int length = GManager.Control.SDB.stages.Count;
+            int length = SDB.stages.Count;
             if (currentStage <= 0)
             {
                 isTransitioning = false;

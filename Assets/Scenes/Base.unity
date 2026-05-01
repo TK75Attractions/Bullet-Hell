@@ -303,8 +303,8 @@ Transform:
   m_GameObject: {fileID: 47708256}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -13.442575, z: 0}
-  m_LocalScale: {x: 17.206497, y: 17.206497, z: 0}
+  m_LocalPosition: {x: 0, y: -25, z: 0}
+  m_LocalScale: {x: 32, y: 32, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -433,8 +433,8 @@ Transform:
   m_GameObject: {fileID: 62090605}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 13.442575, z: 0}
-  m_LocalScale: {x: 17.206497, y: 17.206497, z: 0}
+  m_LocalPosition: {x: 0, y: 25, z: 0}
+  m_LocalScale: {x: 32, y: 32, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -2683,8 +2683,8 @@ Transform:
   m_GameObject: {fileID: 1068602616}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 13.442575, y: 0, z: 0}
-  m_LocalScale: {x: 9.678655, y: 9.678655, z: 0}
+  m_LocalPosition: {x: 25, y: 0, z: 0}
+  m_LocalScale: {x: 18, y: 18, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -3378,10 +3378,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0
-    y: 0.23114848
-    width: 1
-    height: 0.53770304
+    x: 0.053814888
+    y: 0
+    width: 0.8923702
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -3570,6 +3570,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61384de606062884781dda1a49df1b9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VolumeManager
+  volume: {fileID: 0}
+  defaultWeight: 1
 --- !u!1 &1389258996
 GameObject:
   m_ObjectHideFlags: 0
@@ -5221,10 +5223,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0
-    y: 0.23114848
-    width: 1
-    height: 0.53770304
+    x: 0.053814888
+    y: 0
+    width: 0.8923702
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -5352,10 +5354,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0
-    y: 0.23114848
-    width: 1
-    height: 0.53770304
+    x: 0.053814888
+    y: 0
+    width: 0.8923702
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -5592,7 +5594,6 @@ MonoBehaviour:
   AManager: {fileID: 0}
   BManager: {fileID: 0}
   SSManager: {fileID: 0}
-  QOrder: {fileID: 1890939114}
   BTDB: {fileID: 11400000, guid: 18e0dba5990fed9468c060d0a18757eb, type: 2}
   SDB: {fileID: 11400000, guid: 196f8cc18dbd6c643a72049b9d4c923b, type: 2}
   SEDB: {fileID: 0}
@@ -5796,8 +5797,8 @@ Transform:
   m_GameObject: {fileID: 1928468751}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -13.442575, y: 0, z: 0}
-  m_LocalScale: {x: 9.678655, y: 9.678655, z: 0}
+  m_LocalPosition: {x: -25, y: 0, z: 0}
+  m_LocalScale: {x: 18, y: 18, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -6115,10 +6116,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0
-    y: 0.23114848
-    width: 1
-    height: 0.53770304
+    x: 0.053814888
+    y: 0
+    width: 0.8923702
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60

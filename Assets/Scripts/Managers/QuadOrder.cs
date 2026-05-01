@@ -7,7 +7,7 @@ using Unity.Mathematics;
 using UnityEngine;
 
 [Serializable]
-public class QuadOrder : MonoBehaviour
+public class QuadOrder : MonoBehaviour, IQuadOrderDirty
 {
     #region//CellManagers
     [NonSerialized] private QuadCell[] cells = Array.Empty<QuadCell>();
@@ -207,7 +207,7 @@ public class QuadOrder : MonoBehaviour
         if (collisionVerts.IsCreated) collisionVerts.Dispose();
         if (collisionVertRanges.IsCreated) collisionVertRanges.Dispose();
 
-        var bulletTypeDB = GManager.Control.BTDB;
+        var bulletTypeDB = GManager.Control.DBService.BTDB;
         if (bulletTypeDB == null || bulletTypeDB.types == null)
         {
             collisionVerts = new NativeArray<float2>(0, Allocator.Persistent);
@@ -858,7 +858,7 @@ public class QuadOrder : MonoBehaviour
             {
                 await Task.Yield();
                 t += Time.deltaTime;
-                if (GManager.Control.state != GManager.GameState.Playing) return;
+                if (GManager.Control.state != GameState.Playing) return;
             }
 
             Enemy enemy = Instantiate(GManager.Control.EnemyObj).GetComponent<Enemy>();

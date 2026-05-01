@@ -43,14 +43,14 @@ public class AudioManager : MonoBehaviour
     {
         if (!isready) return -1;
 
-        int index = GManager.Control.SEDB.GetSEData(seName);
+        int index = GManager.Control.DBService.SEDB.GetSEData(seName);
         if (index == -1)
         {
             Debug.LogError($"SE '{seName}' not found in SEDataBase.");
             return -1;
         }
 
-        SEData seData = GManager.Control.SEDB.GetSEData(index);
+        ISEData seData = GManager.Control.DBService.SEDB.GetSEData(index);
         AudioSource source = GetAvailableAudioSource();
         if (source != null)
         {

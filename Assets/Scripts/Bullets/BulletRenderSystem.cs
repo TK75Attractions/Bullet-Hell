@@ -35,7 +35,7 @@ public class BulletRenderSystem : MonoBehaviour
     }
     private void InitTextureArray()
     {
-        Texture2D[] textures = GManager.Control.BTDB.GetBaseTextures();
+        Texture2D[] textures = GManager.Control.DBService.BTDB.GetBaseTextures();
         if (textures == null || textures.Length == 0)
         {
             Debug.LogWarning("BaseTextures is null or empty! Textures will not work.");
@@ -67,7 +67,7 @@ public class BulletRenderSystem : MonoBehaviour
     }
     private void InitMaskArray()
     {
-        Texture2D[] maskTextures = GManager.Control.BTDB.GetMaskTextures();
+        Texture2D[] maskTextures = GManager.Control.DBService.BTDB.GetMaskTextures();
         if (maskTextures == null || maskTextures.Length == 0)
         {
             Debug.LogWarning("MaskTextures is null or empty! Mask will not work.");
@@ -243,7 +243,7 @@ public class BulletRenderSystem : MonoBehaviour
             var b = bullets[i];
             if (!b.isActive) continue;
 
-            var type = GManager.Control.BTDB.types[b.typeId];
+            var type = GManager.Control.DBService.BTDB.types[b.typeId];
 
             renderArray[writeIndex] = new BulletRenderData
             {

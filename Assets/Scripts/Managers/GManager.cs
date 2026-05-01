@@ -3,17 +3,10 @@ using UnityEngine;
 using Unity.Mathematics;
 using UnityEngine.InputSystem;
 
-public class GManager : MonoBehaviour
+public class GManager : MonoBehaviour, IGManagerQuad
 {
     static public GManager Control;
-
-    public enum GameState
-    {
-        Title,
-        ChoosingStage,
-        Playing,
-        Result
-    }
+    public IDBService DBService;
 
     public GameState state = GameState.Title;
 
@@ -21,19 +14,19 @@ public class GManager : MonoBehaviour
     public GameObject EnemyObj;
     public PlayerController PController;
 
-    public InputManager IManager;
+    public InputService IManager;
     public StageReader SReader;
     public AudioManager AManager;
     public BeatManager BManager;
     public PerlinRandom PRandom;
     public StageSelectManager SSManager;
-    public BulletClipManager BClipManager;
-    public QuadOrder QOrder;
-    public BulletTypeDataBase BTDB;
+    public BulletBufferManager BClipManager;
+    public QuadOrder QOrder { get; set; }
 
-    public StageDataBase SDB;
-    public SEDataBase SEDB;
-    public EnemyDataBase EDB;
+    public IQuadOrderDirty QOrderDirty => QOrder;
+
+    
+
     public BulletRenderSystem BRS;
 
     public float gameTime;
@@ -120,7 +113,7 @@ public class GManager : MonoBehaviour
             return;
         }
 
-        IManager = GetComponent<InputManager>();
+        IManager = GetComponent<InputService>();
         IManager.Init();
 
         AManager = transform.parent.Find("AManager").GetComponent<AudioManager>();
@@ -128,18 +121,14 @@ public class GManager : MonoBehaviour
 
         BManager = transform.parent.Find("BManager").GetComponent<BeatManager>();
 
-        BTDB.Init();
-        SDB.Init();
         BClipManager = new();
         BClipManager.Init();
 
         BRS = GetComponent<BulletRenderSystem>();
         BRS.Init();
 
-        EDB.Init();
-
         SSManager = transform.parent.Find("Canvases").Find("StageCanvas").Find("StageBoxParent").GetComponent<StageSelectManager>();
-        SSManager.Init();
+        SSManager.Init(DBService.SDB);
 
         QOrder = GetComponent<QuadOrder>();
         QOrder.AwakeSetting();
@@ -243,7 +232,7 @@ public class GManager : MonoBehaviour
 
     public async void GoGame(int index)
     {
-        StageData stage = SDB.GetStage(index);
+        IStageData stage = DBService.SDB.GetStage(index);
         if (stage != null)
         {
             await SReader.Init(stage);
