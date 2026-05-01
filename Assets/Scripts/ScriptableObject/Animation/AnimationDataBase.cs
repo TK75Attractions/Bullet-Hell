@@ -12,7 +12,4 @@ public class AnimationDataBase : ScriptableObject
     public PlayerAnimationData playerAnimationData;
 
     public AnimationClip[] enemyClips;
-
-
-
 }

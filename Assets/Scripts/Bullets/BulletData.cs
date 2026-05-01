@@ -16,6 +16,8 @@ public struct BulletData
     public float gravity;//弾丸にかかる重力加速度
     public float angleSpeed;//弾丸の速度
 
+    
+
 
     public float2 polarForm;//原点中心に回転させる虚数(r,t);
     public float radiusVlc;//r の速さ
@@ -70,32 +72,17 @@ public struct BulletData
         polynomial = _poly;
         nowCalculateX = _start;
         random = _random;
-
         time = 0;
         typeId = type;
         areaNum = 0;
         size = _size;
         isActive = true;
         color = _color;
+        startX = _start;
+        nowCalculateVlc = new float2(0, 0);
+        startPos = new float2(0, 0);
 
-        float x = _start;
-        startX = x;
-        float y = 0;
-        y += polynomial.x * x;
-        y += polynomial.y * x * x;
-        y += polynomial.z * x * x * x;
-        y += polynomial.w * x * x * x * x;
-        startPos = new float2(x, y);
-
-        float tan = 0;
-        tan += 1 * polynomial.x;
-        tan += 2 * polynomial.y * x;
-        tan += 3 * polynomial.z * x * x;
-        tan += 4 * polynomial.w * x * x * x;
-
-        float2 vec = new float2(1, tan);
-        float magnitude = math.sqrt(1 + tan * tan);
-        nowCalculateVlc = vec / magnitude * speed;
+        Initialize();
     }
 
     public BulletData(BulletData data, float2 _pos, float2 _vlc, float _theta, float4 _color = new float4())
@@ -112,35 +99,20 @@ public struct BulletData
         polarForm = new float2(data.polarForm.x, data.polarForm.y + _theta);
         radiusVlc = data.radiusVlc;
         thetaVlc = data.thetaVlc;
-        nowCalculateX = data.startX;
         polynomial = data.polynomial;
-        typeId = data.typeId;
-        size = data.size;
-        color = new float4(data.color.x * _color.x, data.color.y * _color.y, data.color.z * _color.z, data.color.w * _color.w);
-
-        areaNum = 0;
+        nowCalculateX = data.startX;
+        random = data.random;        
         time = 0;
+        typeId = data.typeId;
+        areaNum = 0;
+        size = data.size;
         isActive = data.isActive;
-        random = data.random;
-
+        color = new float4(data.color.x * _color.x, data.color.y * _color.y, data.color.z * _color.z, data.color.w * _color.w);
         startX = data.startX;
-        float x = data.startX;
-        float y = 0;
-        y += polynomial.x * x;
-        y += polynomial.y * x * x;
-        y += polynomial.z * x * x * x;
-        y += polynomial.w * x * x * x * x;
-        startPos = new float2(x, y);
+        nowCalculateVlc = new float2(0, 0);
+        startPos = new float2(0, 0);
 
-        float tan = 0;
-        tan += 1 * polynomial.x;
-        tan += 2 * polynomial.y * x;
-        tan += 3 * polynomial.z * x * x;
-        tan += 4 * polynomial.w * x * x * x;
-
-        float2 vec = new float2(1, tan);
-        float magnitude = math.sqrt(1 + tan * tan);
-        nowCalculateVlc = vec / magnitude * speed;
+        Initialize();
     }
 
     public void Init(float2 _pos)
@@ -152,6 +124,11 @@ public struct BulletData
         areaNum = 0;
         isActive = true;
 
+        Initialize();
+    }
+
+    public void Initialize()
+    {
         float x = startX;
         float y = 0;
         y += polynomial.x * x;

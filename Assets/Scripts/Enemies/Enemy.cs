@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-using System;
 
 public class Enemy : MonoBehaviour
 {
@@ -19,23 +18,7 @@ public class Enemy : MonoBehaviour
     public List<BulletChangeClip> bulletChangeClips = new List<BulletChangeClip>();
     private List<BulletChache> bulletChaches = new List<BulletChache>();
 
-    [Serializable]
-    private class BulletChache
-    {
-        public List<int> indexes = new List<int>();
-        public float time = 0;
-        public int clipCount;
-
-        public BulletChache(List<int> _ind, float _time, int _clipCount)
-        {
-            indexes = _ind;
-            time = _time;
-            clipCount = _clipCount;
-        }
-    }
-
     public float time = 0;
-
 
     public void Init(int index, EnemySpawner spawner)
     {
