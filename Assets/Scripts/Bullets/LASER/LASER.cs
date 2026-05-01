@@ -156,7 +156,7 @@ public class LASER : MonoBehaviour
             float2 dis = point - startPos;
             float2 laserP = new float2(originPos.x + (dis.x * math.cos(theta) - dis.y * math.sin(theta)), originPos.y + (dis.x * math.sin(theta) + dis.y * math.cos(theta)));
 
-            if (insertCount + 1 - i < nowCount) verts[insertCount - i].nutral = laserP - verts[insertCount + 1 - i].point;
+            if (insertCount + 1 - i < nowCount) verts[insertCount - i].neutral = laserP - verts[insertCount + 1 - i].point;
             verts[insertCount - 1 - i] = new LASERvertex(laserP, 0);
         }
     }
@@ -184,7 +184,7 @@ public class LASER : MonoBehaviour
             else if (i > nowCount - 7) scale *= (nowCount - i) / 6f;
 
             float2 dis = verts[i].point;// - startPos;
-            float2 widthVec = width * scale * new float2(-verts[i].nutral.y, verts[i].nutral.x) / verts[i].magnitude;
+            float2 widthVec = width * scale * new float2(-verts[i].neutral.y, verts[i].neutral.x) / verts[i].magnitude;
 
             vs[n + 1] = new Vector3(dis.x + widthVec.x, dis.y + widthVec.y, 0);
             vs[n] = new Vector3(dis.x - widthVec.x, dis.y - widthVec.y, 0);
