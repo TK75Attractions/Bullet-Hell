@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.Mathematics;
 using System.Collections.Generic;
 using Unity.Collections;
+using System;
 
 public class Boss : MonoBehaviour
 {
@@ -28,12 +29,12 @@ public class Boss : MonoBehaviour
     [SerializeField] private int repeat;
     [SerializeField] private List<BulletPatternReference> bulletPatterns = new List<BulletPatternReference>();
 
-    [System.Serializable]
+    [Serializable]
     private class BulletPatternReference
     {
         public string clipName;
         public float spawnInterval;
-        [System.NonSerialized] public int clipIndex = -1;
+        [NonSerialized] public int clipIndex = -1;
     }
 
     public void Init()

@@ -1,8 +1,9 @@
+using System;
 using UnityEngine;
 using Unity.Mathematics;
 using Unity.Collections;
 
-[System.Serializable]
+[Serializable]
 public class PlayerController
 {
     public float2 pos;
