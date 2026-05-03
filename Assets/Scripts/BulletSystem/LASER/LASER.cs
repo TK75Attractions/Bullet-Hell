@@ -3,13 +3,12 @@ using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 
-using BulletHell.App;
-
 namespace BulletHell.Bullets
 {
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
     public class LASER : MonoBehaviour
     {
+        private IQuadOrder QOrder;
         private float2 originPos;
         private float2 vlc = new float2();
         private float radius = 1;
@@ -124,7 +123,7 @@ namespace BulletHell.Bullets
             GetVerts();
             life -= deltaT;
 
-            GManager.Control.QOrder.UpdateLASERVerts(vertsSet, ref quadVerts);
+            QOrder.UpdateLASERVerts(vertsSet, ref quadVerts);
             return life < 0;
         }
 

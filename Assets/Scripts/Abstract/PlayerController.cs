@@ -5,7 +5,6 @@ using Unity.Collections;
 
 using BulletHell.Bullets;
 using BulletHell.Core.Services;
-using BulletHell.App;
 
 namespace BulletHell.Player
 {
@@ -13,14 +12,16 @@ namespace BulletHell.Player
     public class PlayerController
     {
         private readonly IInputService InputService;
+        private readonly IQuadBulletStore QBulletStore;
         public float2 pos;
         [SerializeField] private float moveSpeed = 5f;
         private Transform playerTransform;
         [SerializeField] private SpriteRenderer SR;
 
-        public PlayerController(IInputService inputService)
+        public PlayerController(IInputService inputService, IQuadBulletStore qBulletStore)
         {
             InputService = inputService;
+            QBulletStore = qBulletStore;
         }
 
         public void Init(GameObject playerObj)
@@ -61,7 +62,7 @@ namespace BulletHell.Player
         public void UpShot()
         {
             NativeArray<BulletData> bullets = GetListOfUpBullets(pos);
-            GManager.Control.QOrder.AddPlayerBullets(bullets);
+            QBulletStore.AddPlayerBullets(bullets);
             bullets.Dispose();
         }
 

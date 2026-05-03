@@ -57,15 +57,17 @@ namespace BulletHell.App
 
             InputService = new InputService();
 
-            PController = new PlayerController(InputService);
-            GameObject ptemp = Instantiate(PlayerObj);
-            PController.Init(ptemp);
+            
             
             QuadGrid = new QuadGrid();
             QuadGrid.Init();
 
             QuadBulletStore = new QuadBulletStore();
             QuadBulletStore.Init();
+
+            PController = new PlayerController(InputService,QuadBulletStore);
+            GameObject ptemp = Instantiate(PlayerObj);
+            PController.Init(ptemp);
 
             LaserEmitter = transform.parent.Find("GManager").GetComponent<LaserEmitter>();
             LaserEmitter.Init(PController,QuadGrid);

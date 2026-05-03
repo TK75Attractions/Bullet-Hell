@@ -4,13 +4,19 @@ using System.Collections.Generic;
 using Unity.Collections;
 using System;
 
-using BulletHell.App;
+using BulletHell.Core.Math;
+
 using BulletHell.Bullets;
 
 namespace BulletHell.Enemies
     {
     public class Boss : MonoBehaviour
     {
+
+        private IQuadBulletStore QOrder;
+        private BulletBufferManager BClipManager;
+        private PerlinRandom PRandom;
+
         public int bossId;
         public string bossName;
         public Sprite bossImage;
@@ -74,7 +80,7 @@ namespace BulletHell.Enemies
             {
                 time -= pattern.spawnInterval;
 
-                if (GManager.Control.BClipManager == null)
+                if (BClipManager == null)
                 {
                     Debug.LogError("BulletClipManager is not available.");
                     return;
@@ -82,7 +88,7 @@ namespace BulletHell.Enemies
 
                 if (pattern.clipIndex == -1)
                 {
-                    if (!GManager.Control.BClipManager.TryGetBulletClipIndex(pattern.clipName, out pattern.clipIndex))
+                    if (!BClipManager.TryGetBulletClipIndex(pattern.clipName, out pattern.clipIndex))
                     {
                         Debug.LogError($"Bullet clip not found: {pattern.clipName}");
                         return;
@@ -90,16 +96,17 @@ namespace BulletHell.Enemies
                 }
 
 
-                List<BulletData> bullets = GManager.Control.BClipManager.GetBulletClip(pattern.clipIndex, new float2(0, 0), new float2(0, 0), 0, out bool isLaser);
+                List<BulletData> bullets = BClipManager.GetBulletClip(pattern.clipIndex, new float2(0, 0), new float2(0, 0), 0, out bool isLaser);
                 NativeArray<BulletData> bulletsArray = new NativeArray<BulletData>(bullets.ToArray(), Allocator.Temp);
-                GManager.Control.QOrder.AddEnemyHomingBullets(bulletsArray, pos);
+                QOrder.AddEnemyHomingBullets(bulletsArray, pos, new float2(0, 0)); //修正対象
+
                 bulletsArray.Dispose();
                 count++;
 
                 if (count % repeat == 0)
                 {
                     state = BossState.Move;
-                    double t = GManager.Control.PRandom.Noise(count);
+                    double t = PRandom.Noise(count);
                     float2 d = new float2(math.cos((float)t * 2 * math.PI), math.sin((float)t * 2 * math.PI)) * move;
                     distination = pos + d;
                     state = BossState.Move;

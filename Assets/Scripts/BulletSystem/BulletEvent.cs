@@ -2,13 +2,12 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-using BulletHell.App;
-
 namespace BulletHell.Bullets
 {
     [Serializable]
     public class BulletEvent
     {
+        private IQuadBulletStore QOrder;
         public List<int> bullets = new();
         [SerializeField] private List<Transition> transitions = new();
 
@@ -52,15 +51,15 @@ namespace BulletHell.Bullets
                 for (int i = 0; i < bullets.Count; i++)
                 {
                     int index = bullets[i];
-                    if (index < 0 || index >= GManager.Control.QOrder.GetEnemyBulletCount())
+                    if (index < 0 || index >= QOrder.GetEnemyBulletCount())
                     {
                         Debug.LogError($"Bullet index {index} is out of range.");
                         continue;
                     }
 
-                    BulletData bulletData = GManager.Control.QOrder.GetEnemyBulletData(index);
+                    BulletData bulletData = QOrder.GetEnemyBulletData(index);
                     BulletData newBulletData = transitions[0].bulletData;
-                    //child.AddRange(GManager.Control.QOrder.AddEnemyBullets(newBulletData, bulletData));
+                    //child.AddRange(QOrder.AddEnemyBullets(newBulletData, bulletData));
                 }
             }
 

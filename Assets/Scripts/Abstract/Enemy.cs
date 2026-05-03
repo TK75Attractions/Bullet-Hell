@@ -1,12 +1,12 @@
 using UnityEngine;
 using System.Collections.Generic;
 using BulletHell.Bullets;
-using BulletHell.App;
 
 namespace BulletHell.Enemies
 {
     public class Enemy : MonoBehaviour, IEnemy<IEnemyDB>
     {
+        private IQuadBulletStore QOrder;
         private IEnemyDB EDB;
         public readonly static float startInterval = 1.6f;
         public int id { get; set; } = 0;
@@ -73,7 +73,8 @@ namespace BulletHell.Enemies
                     time = 0;
                     if (count < BulletCount)
                     {
-                        BulletChache chache = new BulletChache(GManager.Control.QOrder.EmitEnemyBullet(bulletClip, arrayIndex), bulletChangeClips[0].time, 0);
+                        //修正対象
+                        BulletChache chache = new BulletChache(QOrder.EmitEnemyBullet(bulletClip, arrayIndex,new Unity.Mathematics.float2()), bulletChangeClips[0].time, 0);
                         bulletChaches.Add(chache);
                         count++;
                     }
@@ -89,7 +90,8 @@ namespace BulletHell.Enemies
                 chache.time -= dt;
                 if (chache.time <= 0)
                 {
-                    GManager.Control.QOrder.UpdateBulletData(chache.indexes, bulletChangeClips[chache.clipCount].clip);
+                    //修正対象
+                    QOrder.UpdateBulletData(chache.indexes, bulletChangeClips[chache.clipCount].clip,new Unity.Mathematics.float2());
                     bulletChaches.RemoveAt(i);
                 }
             }

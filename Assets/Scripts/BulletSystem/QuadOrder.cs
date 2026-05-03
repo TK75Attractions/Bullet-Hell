@@ -10,7 +10,6 @@ using BulletHell.Enemies;
 using BulletHell.Player;
 using BulletHell.Data;
 using BulletHell.Core;
-using BulletHell.App;
 
 namespace BulletHell.Bullets
 {
@@ -22,6 +21,11 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
     private PlayerController PController;
     private IQuadGrid quadGrid;
     private IQuadBulletStore quadBulletStore;
+    private GameState state; //修正対象
+    private BulletBufferManager BClipManager;
+
+    private GameObject EnemyObj; 
+    
 
     #region//CellManagers
     private QuadCell[] cells => quadGrid.cells;
@@ -333,7 +337,7 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
     public void AddEnemyBullets(BulletSpawner spawner)
     {
         
-        List<BulletData> bullets = GManager.Control.BClipManager.GetBulletClip(spawner.index, spawner.pos, spawner.originVlc, spawner.angle, out bool isLaser);
+        List<BulletData> bullets = BClipManager.GetBulletClip(spawner.index, spawner.pos, spawner.originVlc, spawner.angle, out bool isLaser);
         
 
         if (isLaser)
@@ -639,10 +643,10 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
             {
                 await Task.Yield();
                 t += Time.deltaTime;
-                if (GManager.Control.state != GameState.Playing) return;
+                if (state != GameState.Playing) return;
             }
 
-            Enemy enemy = Instantiate(GManager.Control.EnemyObj).GetComponent<Enemy>();
+            Enemy enemy = Instantiate(EnemyObj).GetComponent<Enemy>();
             enemy.Init(enemies.Count, spawner,DBService.EDB);
             enemies.Add(enemy);
             //Debug.Log($"Spawned enemy: {spawner.orbit.speed}");
