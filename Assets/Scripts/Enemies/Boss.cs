@@ -10,13 +10,6 @@ public class Boss : MonoBehaviour
     public string bossName;
     public Sprite bossImage;
 
-    private enum BossState
-    {
-        Idle,
-        Attack,
-        Move
-    }
-
     [SerializeField] private BossState state;
 
     public float2 pos;

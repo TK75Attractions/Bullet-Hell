@@ -6,10 +6,16 @@ using Unity.Collections;
 [Serializable]
 public class PlayerController
 {
+    private readonly IInputService InputService;
     public float2 pos;
     [SerializeField] private float moveSpeed = 5f;
     private Transform playerTransform;
     [SerializeField] private SpriteRenderer SR;
+
+    public PlayerController(IInputService inputService)
+    {
+        InputService = inputService;
+    }
 
     public void Init(GameObject playerObj)
     {
@@ -33,10 +39,10 @@ public class PlayerController
     private void Move(float dt)
     {
         float2 inputVector = new float2(0, 0);
-        if (GManager.Control.IManager.upPressed) inputVector.y += 1;
-        if (GManager.Control.IManager.downPressed) inputVector.y -= 1;
-        if (GManager.Control.IManager.leftPressed) inputVector.x -= 1;
-        if (GManager.Control.IManager.rightPressed) inputVector.x += 1;
+        if (InputService.upPressed) inputVector.y += 1;
+        if (InputService.downPressed) inputVector.y -= 1;
+        if (InputService.leftPressed) inputVector.x -= 1;
+        if (InputService.rightPressed) inputVector.x += 1;
 
         if (math.length(inputVector) > 0)
         {

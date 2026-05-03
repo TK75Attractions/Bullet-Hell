@@ -1,25 +1,25 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-public class Enemy : MonoBehaviour
+public class Enemy : MonoBehaviour, IEnemy<IEnemyDB>
 {
     private IEnemyDB EDB;
     public readonly static float startInterval = 1.6f;
-    public int id = 0;
-    public int arrayIndex = 0;
-    public Transform trans;
+    public int id { get; set; } = 0;
+    public int arrayIndex { get; set; } = 0;
+    public Transform trans { get; set; }
     private SpriteRenderer SR = null;
     private float interval = 0;
     private int BulletCount = 0;
-    public bool isActive = false;
+    public bool isActive { get; set; } = false;
     private bool isReady = false;
     private int count = 0;
 
-    public BulletClip bulletClip = new BulletClip();
-    public List<IBulletChangeClip> bulletChangeClips = new List<IBulletChangeClip>();
+    public BulletClip bulletClip { get; set; } = new BulletClip();
+    public List<IBulletChangeClip> bulletChangeClips { get; set; } = new List<IBulletChangeClip>();
     private List<BulletChache> bulletChaches = new List<BulletChache>();
 
-    public float time = 0;
+    public float time { get; set; } = 0;
 
     public void Init(int index, IEnemySpawner spawner, IEnemyDB enemyDB)
     {

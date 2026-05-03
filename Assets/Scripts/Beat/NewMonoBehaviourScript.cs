@@ -14,6 +14,8 @@ public class NewMonoBehaviourScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        Debug.Log(GManager.Control);
+        if (true) return;
 
         transform.localScale = Vector3.one * (1 + GManager.Control.BManager.beatValueSin);
         spriteRenderer.color = new Color(1, 1 - GManager.Control.BManager.beatValueSin, 1 - GManager.Control.BManager.beatValueSin, 1);

@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class StageSelectManager : MonoBehaviour
 {
+    private IGameStarter starter;
     private IStageDB<IStageData> SDB;
     private CanvasGroup variableCG;
     private CanvasGroup staticCG;
@@ -23,8 +24,9 @@ public class StageSelectManager : MonoBehaviour
 
     private bool isTransitioning = false;
 
-    public void Init(IStageDB<IStageData> stageDB)
+    public void Init(IStageDB<IStageData> stageDB, IGameStarter gameStarter)
     {
+        starter = gameStarter;
         SDB = stageDB;
 
         variableCG = GetComponent<CanvasGroup>();
@@ -68,7 +70,7 @@ public class StageSelectManager : MonoBehaviour
             case State.Difficulty:
                 if (button)
                 {
-                    GManager.Control.GoGame(stageBar.currentStage);
+                    starter.GoGame(stageBar.currentStage);
                     state = State.InGame;
                     variableCG.alpha = 0;
                     staticCG.alpha = 0;

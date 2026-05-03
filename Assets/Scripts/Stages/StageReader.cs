@@ -7,6 +7,7 @@ using System;
 
 public class StageReader : MonoBehaviour
 {
+    private AudioManager AManager;
     private const double BgmLeadTime = 0.2d;
     [SerializeField] private IStageData stageData;
     [SerializeField] private List<BulletSpawnEvent> spawnEvents = new List<BulletSpawnEvent>();
@@ -24,15 +25,20 @@ public class StageReader : MonoBehaviour
         public int index;
     }
 
+    public void Initialize(AudioManager audioManager)
+    {
+        AManager = audioManager;
+    }
+
     public async Task<bool> Init(IStageData data)
     {
         stageData = data;
         time = 0f;
         enemyCount = 0;
         bulletCount = 0;
-        if (GManager.Control.AManager != null && GManager.Control.BManager != null)
+        if (AManager != null && GManager.Control.BManager != null)
         {
-            AudioSource bgmSource = await GManager.Control.AManager.PlayBGM(stageData.audioClip);
+            AudioSource bgmSource = await AManager.PlayBGM(stageData.audioClip);
             double scheduledDspTime = AudioSettings.dspTime + BgmLeadTime;
             bgmSource.PlayScheduled(scheduledDspTime);
             GManager.Control.BManager.SetBeat(stageData.audioClip, stageData.MusicEvents, scheduledDspTime, stageData.delayTime);

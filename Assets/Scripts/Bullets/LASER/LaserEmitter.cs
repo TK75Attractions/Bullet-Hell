@@ -5,6 +5,12 @@ using UnityEngine;
 public class LaserEmitter : MonoBehaviour
 {
     public GameObject LASEROrigin;
+    private PlayerController PController;
+
+    public void Init(PlayerController playerController)
+    {
+        PController = playerController;
+    }
 
     public List<LASER> EmitLASER(List<BulletData> data, float2 pPos)
     {
@@ -23,7 +29,7 @@ public class LaserEmitter : MonoBehaviour
     public List<LASER> EmitLASER(BulletClip clip, float2 pPos)
     {
         List<LASER> laS = new();
-        float2 dis = new float2(GManager.Control.PController.pos.x, GManager.Control.PController.pos.y) - pPos;
+        float2 dis = new float2(PController.pos.x,PController.pos.y) - pPos;
         float rad = math.atan2(dis.y, dis.x);
         float4 p = clip.data.polynomial;
         float[] poly = new float[4] { p.x, p.y, p.z, p.w };

@@ -3,13 +3,13 @@ using UnityEngine;
 using Unity.Mathematics;
 using UnityEngine.InputSystem;
 
-public class GManager : MonoBehaviour, IGManagerQuad
+public class GManager : MonoBehaviour, IGManagerQuad, IGameStateService,IGameStarter
 {
     static public GManager Control;
 
     public IDBService DBService { get; private set; }
 
-    public GameState state = GameState.Title;
+    public GameState state { get; set; } = GameState.Title;
 
     public GameObject PlayerObj;
     public GameObject EnemyObj;
@@ -17,7 +17,7 @@ public class GManager : MonoBehaviour, IGManagerQuad
 
     public InputService IManager;
     public StageReader SReader;
-    public AudioManager AManager;
+
     public BeatManager BManager;
     public PerlinRandom PRandom;
     public StageSelectManager SSManager;
@@ -39,11 +39,18 @@ public class GManager : MonoBehaviour, IGManagerQuad
     private readonly BulletData[] spawnBuffer = new BulletData[6];
 
     public BulletEvent testEvent = new BulletEvent();
-    public void Construct(IDBService dbService, AudioManager audioManager,PlayerController playerController)
+    public void Construct(IDBService dbService, PlayerController playerController, StageReader stageReader, StageSelectManager stageSelectManager,QuadOrder quadOrder)
     {
         DBService = dbService;
-        AManager = audioManager;
         PController = playerController;
+        SReader = stageReader;
+        SSManager = stageSelectManager;
+        QOrder = quadOrder;
+
+        BRS = GetComponent<BulletRenderSystem>();
+        BRS.Init(DBService.BTDB);
+
+        ready = true;
     }
 
     public void Awake()
@@ -63,25 +70,10 @@ public class GManager : MonoBehaviour, IGManagerQuad
         BClipManager = new();
         BClipManager.Init();
 
-        BRS = GetComponent<BulletRenderSystem>();
-        BRS.Init(DBService.BTDB);
-
-        SSManager = transform.parent.Find("Canvases").Find("StageCanvas").Find("StageBoxParent").GetComponent<StageSelectManager>();
-        SSManager.Init(DBService.SDB);
-
-        QOrder = GetComponent<QuadOrder>();
-        QOrder.Init(DBService,PController);
-        QOrder.AwakeSetting();
-        
-
         PRandom = new PerlinRandom();
-
-        SReader = GetComponent<StageReader>();
 
         InitSpawnBuffer();
         state = GameState.Title;
-
-        ready = true;
     }
 
     private void InitSpawnBuffer()
@@ -143,6 +135,7 @@ public class GManager : MonoBehaviour, IGManagerQuad
 
     public void LateUpdate()
     {
+        if (!ready) return;
         int enemyCount = QOrder.GetEnemyBulletCount();
         int playerCount = QOrder.GetPlayerBulletCount();
         //Debug.Log($"Enemy Bullet Count: {enemyCount}, Player Bullet Count: {playerCount}");

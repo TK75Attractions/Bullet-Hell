@@ -11,12 +11,14 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
 {
     private IDBService DBService;
     private PlayerController PController;
+    private IQuadGrid quadGrid;
+    private IQuadBulletStore quadBulletStore;
 
     #region//CellManagers
-    [NonSerialized] private QuadCell[] cells = Array.Empty<QuadCell>();
-    [SerializeField] private float cellSize;
-    [SerializeField] private int separateLevel;
-    [SerializeField] public int cellCount;
+    private QuadCell[] cells => quadGrid.cells;
+    private float cellSize => quadGrid.cellSize;
+    private int separateLevel => quadGrid.separateLevel;
+    public int cellCount => quadGrid.cellCount;
     private List<Vector2Int> cellOffsets = new List<Vector2Int>()
     {
         new Vector2Int(0, 0),
@@ -29,40 +31,17 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
         new Vector2Int(1, -1),
         new Vector2Int(-1, 1)
     };
-
-    [Serializable]
-    private class QuadCell
-    {
-        public List<Enemy> enemies = new List<Enemy>();
-        public List<BulletData> enemyBullets = new List<BulletData>();
-        public List<BulletData> playerBullets = new List<BulletData>();
-        public void AddEnemy(Enemy enemy) => enemies.Add(enemy);
-        public void ClearEnemies() => enemies.Clear();
-
-        public void ClearAllBullets()
-        {
-            enemyBullets.Clear();
-            playerBullets.Clear();
-        }
-
-        public void AddEnemyBullet(BulletData bullet) => enemyBullets.Add(bullet);
-        public void ClearEnemyBullets() => enemyBullets.Clear();
-        public int GetEnemyBulletCount() => enemyBullets.Count;
-        public List<BulletData> GetEnemyBullets() => enemyBullets;
-        public void AddPlayerBullet(BulletData bullet) => playerBullets.Add(bullet);
-        public void ClearPlayerBullets() => playerBullets.Clear();
-        public int GetPlayerBulletCount() => playerBullets.Count;
-        public List<BulletData> GetPlayerBullets() => playerBullets;
-    }
     #endregion
 
     #region //Arrays
     [SerializeField] private List<Boss> bosses = new List<Boss>();
-    private NativeList<BulletData> playerBullets;
-    private NativeList<BulletData> enemyBullets;
+
+    private NativeArray<BulletData> playerBullets => quadBulletStore.playerBullets;
+    private NativeArray<BulletData> enemyBullets => quadBulletStore.enemyBullets;
+    private NativeArray<BulletData> enemiesOrbitBullets => quadBulletStore.enemiesOrbitBullets
+    ;
     [SerializeField]
-    private List<Enemy> enemies = new List<Enemy>();
-    private NativeList<BulletData> enemiesOrbitBullets;
+    private List<IEnemy<IEnemyDB>> enemies = new();
     private NativeArray<float2> collisionVerts;
     private NativeArray<int2> collisionVertRanges;
     private NativeArray<int> collisionHitFlag;
@@ -95,21 +74,24 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
 
     public List<List<int>> laserVertsIndex = new List<List<int>>();
 
-    public void Init(IDBService dbService, PlayerController playerController)
+    public void Init
+    (
+        IDBService dbService,
+        PlayerController playerController,
+        IQuadGrid quadGrid,
+        IQuadBulletStore quadBulletStore,
+        LaserEmitter laserEmitter
+    )
     {
         DBService = dbService;
         PController = playerController;
+        this.quadGrid = quadGrid;
+        this.quadBulletStore = quadBulletStore;
+        this.laserEmitter = laserEmitter;
     }
 
     public void AwakeSetting()
     {
-        int n = 1;
-        for (int i = 0; i < separateLevel; i++) n *= 2;
-        n = n * n;
-        cellCount = n;
-        QuadCell[] t = new QuadCell[n];
-        for (int i = 0; i < n; i++) t[i] = new();
-        cells = t;
 
         BuildCollisionData();
         if (!collisionHitFlag.IsCreated)
@@ -123,18 +105,6 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
         if (!laserVertCellIndices.IsCreated)
         {
             laserVertCellIndices = new NativeList<int>(256, Allocator.Persistent);
-        }
-        if (!enemyBullets.IsCreated)
-        {
-            enemyBullets = new NativeList<BulletData>(256, Allocator.Persistent);
-        }
-        if (!playerBullets.IsCreated)
-        {
-            playerBullets = new NativeList<BulletData>(256, Allocator.Persistent);
-        }
-        if (!enemiesOrbitBullets.IsCreated)
-        {
-            enemiesOrbitBullets = new NativeList<BulletData>(256, Allocator.Persistent);
         }
 
         List<BulletClip> clips = new List<BulletClip>() {
@@ -172,9 +142,8 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
 
     private void OnDestroy()
     {
-        if (playerBullets.IsCreated) playerBullets.Dispose();
-        if (enemyBullets.IsCreated) enemyBullets.Dispose();
-        if (enemiesOrbitBullets.IsCreated) enemiesOrbitBullets.Dispose();
+        quadBulletStore.Dispose();
+
         if (collisionVerts.IsCreated) collisionVerts.Dispose();
         if (collisionVertRanges.IsCreated) collisionVertRanges.Dispose();
         if (collisionHitFlag.IsCreated) collisionHitFlag.Dispose();
@@ -290,7 +259,7 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
         //プレーヤーの弾の更新
         if (hasPlayerBullets)
         {
-            NativeArray<BulletData> playerBulletsArray = playerBullets.AsArray();
+            NativeArray<BulletData> playerBulletsArray = playerBullets;
             BulletDataUpdateJob job0 = new()
             {
                 bullets = playerBulletsArray,
@@ -305,7 +274,7 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
         //敵の弾の更新
         if (hasEnemyBullets)
         {
-            NativeArray<BulletData> bullets = enemyBullets.AsArray();
+            NativeArray<BulletData> bullets = enemyBullets;
             BulletDataUpdateJob job1 = new()
             {
                 bullets = bullets,
@@ -319,7 +288,7 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
 
         if (hasEnemiesOrbitBullets)
         {
-            NativeArray<BulletData> bullets = enemiesOrbitBullets.AsArray();
+            NativeArray<BulletData> bullets = enemiesOrbitBullets;
             //Debug.Log($"Updating {bullets.Length} orbit bullets");
             BulletDataUpdateJob job2 = new()
             {
@@ -340,122 +309,23 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
     private void RemoveInactiveBullets()
     {
         if (!enemyBullets.IsCreated || enemyBullets.Length == 0) return;
-
-
     }
 
-    private void ClearAllCells()
-    {
-        for (int i = 0; i < cells.Length; i++)
-        {
-            cells[i].ClearAllBullets();
-        }
-    }
+    private void ClearAllCells() => quadGrid.ClearAllCells();
 
-    private void RebuildCellsFromBullets()
-    {
-        ClearAllCells();
-
-        if (enemyBullets.IsCreated)
-        {
-            for (int i = 0; i < enemyBullets.Length; i++)
-            {
-                BulletData bullet = enemyBullets[i];
-                if (!bullet.isActive) continue;
-                int areaNum = bullet.areaNum;
-                if (areaNum < 0 || areaNum >= cells.Length) continue;
-                cells[areaNum].enemyBullets.Add(bullet);
-            }
-        }
-
-        if (playerBullets.IsCreated)
-        {
-            for (int i = 0; i < playerBullets.Length; i++)
-            {
-                BulletData bullet = playerBullets[i];
-                if (!bullet.isActive) continue;
-                int areaNum = bullet.areaNum;
-                if (areaNum < 0 || areaNum >= cells.Length) continue;
-                cells[areaNum].playerBullets.Add(bullet);
-            }
-        }
-
-        if (enemiesOrbitBullets.IsCreated)
-        {
-            for (int i = 0; i < enemiesOrbitBullets.Length; i++)
-            {
-                BulletData bullet = enemiesOrbitBullets[i];
-                if (!bullet.isActive) continue;
-                int areaNum = bullet.areaNum;
-                if (areaNum < 0 || areaNum >= cells.Length) continue;
-                cells[areaNum].enemies.Add(enemies[i]);
-            }
-        }
-    }
+    private void RebuildCellsFromBullets() => quadGrid.RebuildCellsFromBullets(playerBullets, enemyBullets, enemiesOrbitBullets, enemies);
 
     public List<int> AddEnemyHomingBullets(NativeArray<BulletData> newBullets, float2 fromPos)
-    {
-        NativeArray<BulletData> tempBullets = newBullets;
-        float2 toPlayer = PController.pos - fromPos;
-        float angleToPlayer = math.atan2(toPlayer.y, toPlayer.x);
-        for (int i = 0; i < newBullets.Length; i++)
-        {
-            BulletData bullet = newBullets[i];
-            bullet.Init(fromPos);
-            bullet.originPos = fromPos;
-            bullet.polarForm = new float2(bullet.polarForm.x, bullet.polarForm.y + angleToPlayer);
-            tempBullets[i] = bullet;
-        }
-
-        List<int> indexes = AddEnemyBullets(tempBullets);
-        newBullets.Dispose();
-        return indexes;
-    }
+    => quadBulletStore.AddEnemyHomingBullets(newBullets, fromPos, new float2(PController.pos.x, PController.pos.y));
 
     public List<int> AddEnemyBullets(NativeArray<BulletData> newBullets, float2 fromPos = new float2())
-    {
-        if (newBullets.Length == 0) return null;
-
-        if (!enemyBullets.IsCreated)
-        {
-            enemyBullets = new NativeList<BulletData>(math.max(256, newBullets.Length), Allocator.Persistent);
-        }
-
-        int oldLength = enemyBullets.Length;
-        int newLength = oldLength + newBullets.Length;
-
-        if (enemyBullets.Capacity < newLength)
-        {
-            int nextCapacity = math.max(newLength, math.max(256, enemyBullets.Capacity * 2));
-            enemyBullets.Capacity = nextCapacity;
-        }
-
-        enemyBullets.ResizeUninitialized(newLength);
-        List<int> indexes = new List<int>(newBullets.Length);
-
-        // 新しい弾をコピー
-        for (int i = 0; i < newBullets.Length; i++)
-        {
-            enemyBullets[oldLength + i] = newBullets[i];
-            indexes.Add(oldLength + i);
-        }
-        return indexes;
-    }
+    => quadBulletStore.AddEnemyBullets(newBullets, fromPos);
 
     public void AddEnemyBullets(BulletSpawner spawner)
     {
-        if (!enemyBullets.IsCreated)
-        {
-            enemyBullets = new NativeList<BulletData>(256, Allocator.Persistent);
-        }
-
-        if (enemyBullets.Length >= enemyBullets.Capacity)
-        {
-            int nextCapacity = math.max(enemyBullets.Length + 1, math.max(256, enemyBullets.Capacity * 2));
-            enemyBullets.Capacity = nextCapacity;
-        }
-
+        
         List<BulletData> bullets = GManager.Control.BClipManager.GetBulletClip(spawner.index, spawner.pos, spawner.originVlc, spawner.angle, out bool isLaser);
+        
 
         if (isLaser)
         {
@@ -463,11 +333,8 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
             return;
         }
 
-        NativeArray<BulletData> newBullets = new NativeArray<BulletData>(bullets.ToArray(), Allocator.Temp);
-        int oldLength = enemyBullets.Length;
-        int newLength = oldLength + newBullets.Length;
-        enemyBullets.ResizeUninitialized(newLength);
-        for (int i = 0; i < newBullets.Length; i++) enemyBullets[oldLength + i] = newBullets[i];
+        NativeArray<BulletData> newBullets = new (bullets.ToArray(), Allocator.Temp);
+        quadBulletStore.AddEnemyBulletsBySpawner(newBullets);
         newBullets.Dispose();
     }
 
@@ -478,49 +345,7 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
 
     public List<int> EmitEnemyBullet(BulletClip clip, float2 pPos)
     {
-        if (!enemyBullets.IsCreated)
-        {
-            enemyBullets = new NativeList<BulletData>(256, Allocator.Persistent);
-        }
-
-        if (enemyBullets.Length >= enemyBullets.Capacity)
-        {
-            int nextCapacity = math.max(enemyBullets.Length + 1, math.max(256, enemyBullets.Capacity * 2));
-            enemyBullets.Capacity = nextCapacity;
-        }
-
-        NativeArray<BulletData> newBullets = new NativeArray<BulletData>(clip.number, Allocator.Temp);
-
-        float2 dis = new float2(PController.pos.x, PController.pos.y) - pPos;
-        float range = (clip.number - 1) * clip.disRad;
-        if (clip.homing)
-        {
-            float baseAngle = math.atan2(dis.y, dis.x);
-
-            for (int i = 0; i < clip.number; i++)
-            {
-                BulletData bullet = clip.data;
-                bullet.Init(pPos);
-                float angle = baseAngle + math.radians(-range / 2 + clip.disRad * i);
-                bullet.polarForm = new float2(bullet.polarForm.x, angle);
-                newBullets[i] = bullet;
-            }
-        }
-        else
-        {
-            for (int i = 0; i < clip.number; i++)
-            {
-                BulletData bullet = clip.data;
-                bullet.Init(pPos);
-                float angle = math.radians(range * i);
-                bullet.polarForm = new float2(bullet.polarForm.x, angle);
-                newBullets[i] = bullet;
-            }
-        }
-
-        List<int> indexes = AddEnemyBullets(newBullets);
-        newBullets.Dispose();
-        return indexes;
+        return quadBulletStore.EmitEnemyBullet(clip, pPos, PController.pos);
     }
 
     public void StartBulletEvent(BulletEvent bulletEvent)
@@ -531,51 +356,18 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
         else bulletEvents.Add(bulletEvent);
     }
 
-    public NativeArray<BulletData> GetEnemyBullets() => enemyBullets.IsCreated ? enemyBullets.AsArray() : default;
+    public BulletData GetEnemyBulletData(int index) => quadBulletStore.GetEnemyBulletData(index);
 
-    public int GetEnemyBulletCount() => CountActiveBullets(enemyBullets);
+    public void AddPlayerBullets(NativeArray<BulletData> newBullets) => quadBulletStore.AddPlayerBullets(newBullets);
 
-    public BulletData GetEnemyBulletData(int index)
-    {
-        if (!enemyBullets.IsCreated || index < 0 || index >= enemyBullets.Length)
-        {
-            throw new IndexOutOfRangeException($"Bullet index {index} is out of range.");
-        }
-        return enemyBullets[index];
-    }
+    public NativeArray<BulletData> GetPlayerBullets() => quadBulletStore.GetPlayerBullets();
+    public NativeArray<BulletData> GetEnemyBullets() => quadBulletStore.GetEnemyBullets();
 
-    public void AddPlayerBullets(NativeArray<BulletData> newBullets)
-    {
-        if (newBullets.Length == 0) return;
+    public int GetPlayerBulletCount() => quadBulletStore.GetPlayerBulletCount();
+    public int GetEnemyBulletCount() => quadBulletStore.GetEnemyBulletCount();
+    public int GetEnemiesOrbitBulletCount() => quadBulletStore.GetEnemiesOrbitBulletCount();
 
-        if (!playerBullets.IsCreated)
-        {
-            playerBullets = new NativeList<BulletData>(math.max(256, newBullets.Length), Allocator.Persistent);
-        }
-
-        int oldLength = playerBullets.Length;
-        int newLength = oldLength + newBullets.Length;
-
-        if (playerBullets.Capacity < newLength)
-        {
-            int nextCapacity = math.max(newLength, math.max(256, playerBullets.Capacity * 2));
-            playerBullets.Capacity = nextCapacity;
-        }
-
-        playerBullets.ResizeUninitialized(newLength);
-
-        // 新しい弾をコピー
-        for (int i = 0; i < newBullets.Length; i++)
-        {
-            playerBullets[oldLength + i] = newBullets[i];
-        }
-    }
-
-    public NativeArray<BulletData> GetPlayerBullets() => playerBullets.IsCreated ? playerBullets.AsArray() : default;
-
-    public int GetPlayerBulletCount() => CountActiveBullets(playerBullets);
-
-    private int CountActiveBullets(NativeList<BulletData> bullets)
+    private int CountActiveBullets(NativeArray<BulletData> bullets)
     {
         if (!bullets.IsCreated || bullets.Length == 0) return 0;
 
@@ -614,7 +406,7 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
     }
 
     private void SyncNativeBulletDebugView(
-        NativeList<BulletData> bullets,
+        NativeArray<BulletData> bullets,
         ref int slotCount,
         ref int activeCount,
         List<NativeBulletDebugEntry> debugEntries,
@@ -845,7 +637,7 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
             enemy.Init(enemies.Count, spawner,DBService.EDB);
             enemies.Add(enemy);
             //Debug.Log($"Spawned enemy: {spawner.orbit.speed}");
-            enemiesOrbitBullets.Add(spawner.orbit);
+            quadBulletStore.AddEnemiesOrbitBullet(spawner.orbit);
         }
     }
 
@@ -863,80 +655,18 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
     #region //GenerateMethods
     public List<int> UpdateBulletData(List<int> indexes, BulletClip clip)
     {
-        if (indexes == null || indexes.Count == 0) return new();
-
-        if (indexes.Count == 1 && clip.number == 1)
-        {
-            if (indexes[0] >= 0 && indexes[0] < enemyBullets.Length)
-            {
-                BulletData data = new BulletData(clip.data, new float2(0, 0), enemyBullets[indexes[0]].position, 0);
-                enemyBullets[indexes[0]] = data;
-                return new List<int>() { indexes[0] };
-            }
-        }
-        else
-        {
-            List<int> temp = new();
-            for (int i = 0; i < indexes.Count; i++)
-            {
-                int index = indexes[i];
-                if (index < 0 || index >= enemyBullets.Length) continue;
-                temp.Add(EmitEnemyBullet(clip, enemyBullets[index].position)[0]);
-                BulletData data = enemyBullets[index];
-                data.isActive = false;
-                enemyBullets[index] = data;
-            }
-            return temp;
-
-        }
-        return new();
+        return quadBulletStore.UpdateBulletData(indexes, clip, new float2(PController.pos.x, PController.pos.y));
     }
 
     #endregion
 
     #region//CellsMethods
-    public int GetTreeNum(float2 pos)
-    {
-        if (pos.x < 0 || pos.y < 0) return -1;
-        int nx = Mathf.FloorToInt(pos.x / cellSize);
-        int ny = Mathf.FloorToInt(pos.y / cellSize);
+    public int GetTreeNum(float2 pos) => quadGrid.GetTreeNum(pos);
 
-        int result = BitSeparate32(nx) | (BitSeparate32(ny) << 1);
-        if (result >= 0 && result < cells.Length) return result;
-        return -1;
-    }
+    public int BitSeparate32(int n) => quadGrid.BitSeparate32(n);
 
-    public int BitSeparate32(int n)
-    {
-        n = (n | n << 8) & 0x00ff00ff;
-        n = (n | n << 4) & 0x0f0f0f0f;
-        n = (n | n << 2) & 0x33333333;
-        return (n | n << 1) & 0x55555555;
-    }
-
-    public int GetTreeNum(int x, int y)
-    {
-        if (x < 0 || y < 0) return -1;
-        return BitSeparate32(x) | (BitSeparate32(y) << 1);
-    }
-    public Vector2Int BitCompact32(int n)
-    {
-        int y = (n >> 1);
-        n = (n & 0x55555555);               // 1ビットおきに残す
-        n = (n | n >> 1) & 0x33333333;      // 2ビットおきに集約
-        n = (n | n >> 2) & 0x0f0f0f0f;      // 4ビットおきに集約
-        n = (n | n >> 4) & 0x00ff00ff;      // 8ビットおきに集約
-        n = (n | n >> 8) & 0x0000ffff;      // 16ビットおきに集約
-
-
-        y = (y & 0x55555555);               // 1ビットおきに残す
-        y = (y | y >> 1) & 0x33333333;      // 2ビットおきに集約
-        y = (y | y >> 2) & 0x0f0f0f0f;      // 4ビットおきに集約
-        y = (y | y >> 4) & 0x00ff00ff;      // 8ビットおきに集約
-        y = (y | y >> 8) & 0x0000ffff;      // 16ビットおきに集約
-
-        return new Vector2Int(n, y);
-    }
+    public int GetTreeNum(int x, int y) => quadGrid.GetTreeNum(x, y);
+    public Vector2Int BitCompact32(int n) => quadGrid.BitCompact32(n);
 
     #endregion
 }
