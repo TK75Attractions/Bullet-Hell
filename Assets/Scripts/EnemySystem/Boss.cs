@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using Unity.Collections;
 using System;
 
+using BulletHell.App;
+using BulletHell.Bullets;
+
 namespace BulletHell.Enemies
     {
     public class Boss : MonoBehaviour

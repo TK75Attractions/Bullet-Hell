@@ -1,5 +1,8 @@
 using System.Threading.Tasks;
 using UnityEngine;
+
+using BulletHell.App;
+using BulletHell.Stages;
 using BulletHell.UI.Core;
 
 namespace BulletHell.UI.StageSelect

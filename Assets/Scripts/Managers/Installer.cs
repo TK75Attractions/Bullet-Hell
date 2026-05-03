@@ -1,4 +1,13 @@
 using UnityEngine;
+using BulletHell.Core;
+using BulletHell.Audio;
+using BulletHell.Bullets;
+using BulletHell.Enemies;
+using BulletHell.Stages;
+using BulletHell.Data;
+using BulletHell.Player;
+using BulletHell.UI.StageSelect;
+using BulletHell.Core.Services;
 
 namespace BulletHell.App
 {

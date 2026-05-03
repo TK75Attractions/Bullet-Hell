@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 
+namespace BulletHell.Bullets
+{
 [Serializable]
 public class NativeBulletDebugEntry
 {
@@ -16,4 +18,5 @@ public class NativeBulletDebugEntry
     public Vector2 originPos;
     public Vector2 originVlc;
     public Vector2 polarForm;
+}
 }

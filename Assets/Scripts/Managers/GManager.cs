@@ -3,9 +3,20 @@ using UnityEngine;
 using Unity.Mathematics;
 using UnityEngine.InputSystem;
 
+using BulletHell.Bullets;
+using BulletHell.Enemies;
+using BulletHell.Player;
+using BulletHell.Data;
+using BulletHell.Core;
+using BulletHell.Core.Services;
+using BulletHell.Core.Math;
+using BulletHell.Audio;
+using BulletHell.Stages;
+using BulletHell.UI.StageSelect;
+
 namespace BulletHell.App
 {
-    public class GManager : MonoBehaviour, IGManagerQuad, IGameStateService,IGameStarter
+    public class GManager : MonoBehaviour,IGameStarter
     {
         static public GManager Control;
 

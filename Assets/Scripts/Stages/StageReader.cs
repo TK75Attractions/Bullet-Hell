@@ -5,6 +5,12 @@ using System.Collections.Generic;
 using Unity.Mathematics;
 using System;
 
+using BulletHell.Audio;
+using BulletHell.App;
+using BulletHell.Bullets;
+using BulletHell.Enemies;
+
+
 namespace BulletHell.Stages
 {
     public class StageReader : MonoBehaviour

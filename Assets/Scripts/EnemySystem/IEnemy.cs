@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using BulletHell.Bullets;
+
 namespace BulletHell.Enemies
 {
     public interface IEnemy<T>

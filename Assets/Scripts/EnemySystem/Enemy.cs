@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
+using BulletHell.Bullets;
+using BulletHell.App;
 
 namespace BulletHell.Enemies
 {

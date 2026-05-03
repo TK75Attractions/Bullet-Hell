@@ -1,5 +1,7 @@
 using Unity.Mathematics;
 
+namespace BulletHell.Bullets
+{
 public struct LASERvertex
 {
     public float2 point;
@@ -18,4 +20,5 @@ public struct LASERvertex
         point = _p;
         neutral = _n;
     }
+}
 }

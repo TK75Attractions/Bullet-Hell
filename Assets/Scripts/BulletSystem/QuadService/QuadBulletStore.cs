@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Mathematics;
 using System;
+
+namespace BulletHell.Bullets
+{
 public class QuadBulletStore : IQuadBulletStore
 {
     private NativeList<BulletData> _playerBullets;
@@ -231,4 +234,5 @@ public class QuadBulletStore : IQuadBulletStore
         if (_enemyBullets.IsCreated) _enemyBullets.Dispose();
         if (_enemiesOrbitBullets.IsCreated) _enemiesOrbitBullets.Dispose();
     }
+}
 }

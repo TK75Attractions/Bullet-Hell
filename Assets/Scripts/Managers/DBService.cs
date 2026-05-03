@@ -1,3 +1,9 @@
+using BulletHell.Data;
+using BulletHell.Enemies;
+using BulletHell.Stages;
+using BulletHell.Audio;
+using BulletHell.Bullets;
+
 namespace BulletHell.Data
 {
     public class DBService : IDBService

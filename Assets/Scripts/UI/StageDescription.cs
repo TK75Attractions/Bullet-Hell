@@ -3,6 +3,8 @@ using TMPro;
 using UnityEngine.Video;
 using System;
 
+using BulletHell.Stages;
+
 namespace BulletHell.UI.StageSelect
 {
     public class StageDescription : MonoBehaviour

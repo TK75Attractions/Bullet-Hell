@@ -1,4 +1,7 @@
-public interface IQuadOrderDirty
+namespace BulletHell.Bullets
 {
-    public void MarkCollisionDataDirty();
+    public interface IQuadOrderDirty
+    {
+        void MarkCollisionDataDirty();
+    }
 }

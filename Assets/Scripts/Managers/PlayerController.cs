@@ -3,6 +3,10 @@ using UnityEngine;
 using Unity.Mathematics;
 using Unity.Collections;
 
+using BulletHell.Bullets;
+using BulletHell.Core.Services;
+using BulletHell.App;
+
 namespace BulletHell.Player
 {
     [Serializable]

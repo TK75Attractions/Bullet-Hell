@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
 
+using BulletHell.Enemies;
+
+namespace BulletHell.Bullets
+{
 [Serializable]
 public class QuadCell
 {
@@ -24,4 +28,5 @@ public class QuadCell
     public void ClearPlayerBullets() => playerBullets.Clear();
     public int GetPlayerBulletCount() => playerBullets.Count;
     public List<BulletData> GetPlayerBullets() => playerBullets;
+}
 }

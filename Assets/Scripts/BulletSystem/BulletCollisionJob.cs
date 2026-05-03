@@ -2,50 +2,53 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 
-public struct BulletCollisionJob : IJobParallelFor
+namespace BulletHell.Bullets
 {
-    private const float CrossEpsilon = 1e-5f;
-
-    [ReadOnly]
-    public NativeArray<BulletData> bullets;
-    [ReadOnly]
-    public NativeArray<float2> bVerts;
-    [ReadOnly]
-    public NativeArray<int2> bVertRanges;
-    public float2 pPos;
-
-    [NativeDisableParallelForRestriction]
-    public NativeArray<int> isCollided;
-
-    public void Execute(int index)
+    public struct BulletCollisionJob : IJobParallelFor
     {
-        BulletData bullet = bullets[index];
-        if (!bullet.isActive) return;
-        if (isCollided[0] != 0) return;
-        if (bullet.typeId < 0 || bullet.typeId >= bVertRanges.Length) return;
+        private const float CrossEpsilon = 1e-5f;
 
-        int2 range = bVertRanges[bullet.typeId];
-        if (range.x < 0 || range.y < 3) return;
-        if (range.x >= bVerts.Length) return;
-        if (range.x + range.y > bVerts.Length) return;
+        [ReadOnly]
+        public NativeArray<BulletData> bullets;
+        [ReadOnly]
+        public NativeArray<float2> bVerts;
+        [ReadOnly]
+        public NativeArray<int2> bVertRanges;
+        public float2 pPos;
 
-        float2 v = new float2(math.cos(bullet.angle), math.sin(bullet.angle));
-        float2 n = new float2(-v.y, v.x);
-        float2 dis = pPos - bullet.position;
+        [NativeDisableParallelForRestriction]
+        public NativeArray<int> isCollided;
 
-        float px = math.dot(dis, v);
-        float py = math.dot(dis, n);
-
-        // 衝突判定のロジックをここに追加
-        for (int i = 0; i < range.y; i++)
+        public void Execute(int index)
         {
-            float2 vert0 = bVerts[range.x + i] * bullet.size;
-            float2 vert1 = bVerts[range.x + ((i + 1) % range.y)] * bullet.size;
+            BulletData bullet = bullets[index];
+            if (!bullet.isActive) return;
+            if (isCollided[0] != 0) return;
+            if (bullet.typeId < 0 || bullet.typeId >= bVertRanges.Length) return;
 
-            float d = (py - vert0.y) * (vert1.x - vert0.x) - (px - vert0.x) * (vert1.y - vert0.y);
-            if (d < -CrossEpsilon) return; // 衝突していない
+            int2 range = bVertRanges[bullet.typeId];
+            if (range.x < 0 || range.y < 3) return;
+            if (range.x >= bVerts.Length) return;
+            if (range.x + range.y > bVerts.Length) return;
+
+            float2 v = new float2(math.cos(bullet.angle), math.sin(bullet.angle));
+            float2 n = new float2(-v.y, v.x);
+            float2 dis = pPos - bullet.position;
+
+            float px = math.dot(dis, v);
+            float py = math.dot(dis, n);
+
+            // 衝突判定のロジックをここに追加
+            for (int i = 0; i < range.y; i++)
+            {
+                float2 vert0 = bVerts[range.x + i] * bullet.size;
+                float2 vert1 = bVerts[range.x + ((i + 1) % range.y)] * bullet.size;
+
+                float d = (py - vert0.y) * (vert1.x - vert0.x) - (px - vert0.x) * (vert1.y - vert0.y);
+                if (d < -CrossEpsilon) return; // 衝突していない
+            }
+
+            isCollided[0] = 1; // 衝突した
         }
-
-        isCollided[0] = 1; // 衝突した
     }
 }

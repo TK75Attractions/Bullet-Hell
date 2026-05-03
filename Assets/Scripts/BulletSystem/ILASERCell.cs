@@ -1,9 +1,11 @@
 using Unity.Mathematics;
 
-
-public interface ILASERCell
+namespace BulletHell.Bullets
 {
-    float2 vert0 { get; }
-    float2 vert1 { get; }
-    float2 vert2 { get; }
+    public interface ILASERCell
+    {
+        float2 vert0 { get; }
+        float2 vert1 { get; }
+        float2 vert2 { get; }
+    }
 }

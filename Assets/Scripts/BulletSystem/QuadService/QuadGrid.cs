@@ -3,6 +3,11 @@ using UnityEngine;
 using Unity.Mathematics;
 using Unity.Collections;
 using System.Collections.Generic;
+
+using BulletHell.Enemies;
+
+namespace BulletHell.Bullets
+{
 public class QuadGrid : IQuadGrid
 {
     public QuadCell[] cells { get; set; } = Array.Empty<QuadCell>();
@@ -122,4 +127,5 @@ public class QuadGrid : IQuadGrid
             }
         }
     }
+}
 }

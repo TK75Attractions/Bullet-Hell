@@ -2,6 +2,9 @@ using UnityEngine;
 using UnityEngine.Video;
 using System.Collections.Generic;
 
+using BulletHell.Audio;
+using BulletHell.Enemies;
+using BulletHell.Bullets;
 namespace BulletHell.Stages
 {
     public interface IStageData

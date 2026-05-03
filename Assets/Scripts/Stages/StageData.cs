@@ -2,6 +2,10 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Video;
 
+using BulletHell.Audio;
+using BulletHell.Enemies;
+using BulletHell.Bullets;
+
 namespace BulletHell.Stages
 {
     [CreateAssetMenu(fileName = "StageData", menuName = "Stage/StageData")]

@@ -1,3 +1,8 @@
+using BulletHell.Audio;
+using BulletHell.Bullets;
+using BulletHell.Enemies;
+using BulletHell.Stages;
+
 namespace BulletHell.Data
 {
     public interface IDBService

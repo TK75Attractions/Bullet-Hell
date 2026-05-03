@@ -1,6 +1,9 @@
-public interface IBulletChangeClip
+namespace BulletHell.Bullets
 {
-    BulletClip clip { get; }
-    float time { get; }
-    float interval { get; }
+    public interface IBulletChangeClip
+    {
+        BulletClip clip { get; }
+        float time { get; }
+        float interval { get; }
+    }
 }

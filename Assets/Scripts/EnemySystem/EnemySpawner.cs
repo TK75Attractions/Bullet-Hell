@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System;
 
+using BulletHell.Bullets;
+
 namespace BulletHell.Enemies
 {
     [Serializable]

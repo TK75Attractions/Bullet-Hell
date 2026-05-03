@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 
+using BulletHell.Bullets;
+
 namespace BulletHell.Enemies
 {
     public interface IEnemySpawner

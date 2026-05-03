@@ -45,8 +45,8 @@ namespace BulletHell.Core.Math
 
         public double Noise(double x)
         {
-            int xi = (int)Math.Floor(x) & 255;
-            double xf = x - Math.Floor(x);
+            int xi = (int)System.Math.Floor(x) & 255;
+            double xf = x - System.Math.Floor(x);
 
             double u = Fade(xf);
 

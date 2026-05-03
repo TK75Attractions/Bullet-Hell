@@ -1,6 +1,8 @@
 using UnityEngine;
 using Unity.Mathematics;
 
+using BulletHell.App;
+
 public class NewMonoBehaviourScript : MonoBehaviour
 {
     private SpriteRenderer spriteRenderer;

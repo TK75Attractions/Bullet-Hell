@@ -1,8 +1,11 @@
 using UnityEngine;
 
-public class BulletInstanceRenderer : MonoBehaviour
+namespace BulletHell.Bullets
 {
-    [Header("References")]
-    public int i;
+    public class BulletInstanceRenderer : MonoBehaviour
+    {
+        [Header("References")]
+        public int i;
 
+    }
 }

@@ -2,35 +2,38 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 
-public struct LASERQuadJob : IJobParallelFor
+namespace BulletHell.Bullets
 {
-    [ReadOnly] public NativeArray<float2> vertsSet;
-    [WriteOnly] public NativeArray<int> vertCellIndices;
-    public float cellSize;
-    public int cellCount;
-
-    public void Execute(int index)
+    public struct LASERQuadJob : IJobParallelFor
     {
-        float2 pos = vertsSet[index];
-        vertCellIndices[index] = GetTreeNum(pos);
-    }
+        [ReadOnly] public NativeArray<float2> vertsSet;
+        [WriteOnly] public NativeArray<int> vertCellIndices;
+        public float cellSize;
+        public int cellCount;
 
-    private int GetTreeNum(float2 pos)
-    {
-        if (pos.x < 0f || pos.y < 0f) return -1;
-        int nx = (int)math.floor(pos.x / cellSize);
-        int ny = (int)math.floor(pos.y / cellSize);
+        public void Execute(int index)
+        {
+            float2 pos = vertsSet[index];
+            vertCellIndices[index] = GetTreeNum(pos);
+        }
 
-        int result = BitSeparate32(nx) | (BitSeparate32(ny) << 1);
-        if (result >= 0 && result < cellCount) return result;
-        return -1;
-    }
+        private int GetTreeNum(float2 pos)
+        {
+            if (pos.x < 0f || pos.y < 0f) return -1;
+            int nx = (int)math.floor(pos.x / cellSize);
+            int ny = (int)math.floor(pos.y / cellSize);
 
-    private int BitSeparate32(int n)
-    {
-        n = (n | n << 8) & 0x00ff00ff;
-        n = (n | n << 4) & 0x0f0f0f0f;
-        n = (n | n << 2) & 0x33333333;
-        return (n | n << 1) & 0x55555555;
+            int result = BitSeparate32(nx) | (BitSeparate32(ny) << 1);
+            if (result >= 0 && result < cellCount) return result;
+            return -1;
+        }
+
+        private int BitSeparate32(int n)
+        {
+            n = (n | n << 8) & 0x00ff00ff;
+            n = (n | n << 4) & 0x0f0f0f0f;
+            n = (n | n << 2) & 0x33333333;
+            return (n | n << 1) & 0x55555555;
+        }
     }
 }

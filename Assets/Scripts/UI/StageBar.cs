@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
+using BulletHell.Stages;
+
 namespace BulletHell.UI.StageSelect
 {
     public class StageBar : MonoBehaviour

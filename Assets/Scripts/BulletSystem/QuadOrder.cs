@@ -6,6 +6,15 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 
+using BulletHell.Enemies;
+using BulletHell.Player;
+using BulletHell.Data;
+using BulletHell.Core;
+using BulletHell.App;
+
+namespace BulletHell.Bullets
+{
+
 [Serializable]
 public class QuadOrder : MonoBehaviour, IQuadOrderDirty
 {
@@ -669,4 +678,5 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty
     public Vector2Int BitCompact32(int n) => quadGrid.BitCompact32(n);
 
     #endregion
+}
 }
