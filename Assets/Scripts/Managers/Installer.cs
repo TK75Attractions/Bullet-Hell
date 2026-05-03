@@ -1,73 +1,84 @@
 using UnityEngine;
-using Unity.Collections;
 
-public class Installer : MonoBehaviour
+namespace BulletHell.App
 {
-    IDBService DBService;
-    AudioManager AManager;
-    PlayerController PController;
-
-    StageSelectManager SSManager;
-
-    StageReader SReader;
-
-    IGameStarter Starter;
-
-    IInputService InputService;
-
-    IQuadGrid QuadGrid;
-
-    IQuadBulletStore QuadBulletStore;
-
-    QuadOrder QuadOrder;
-
-    public GameObject PlayerObj;
-
-    public LaserEmitter LaserEmitter;
-
-    public void Awake()
+    public class Installer : MonoBehaviour
     {
+        IDBService DBService;
+        AudioManager AManager;
+        PlayerController PController;
 
-        var bulletTypeDB = ScriptableObject.CreateInstance<BulletTypeDataBase>();
-        var stageDB = ScriptableObject.CreateInstance<StageDataBase>();
-        var seDB = ScriptableObject.CreateInstance<SEDataBase>();
-        var enemyDB = ScriptableObject.CreateInstance<EnemyDataBase>();
+        StageSelectManager SSManager;
 
-        DBService = new DBService(bulletTypeDB, stageDB, seDB, enemyDB);
+        StageReader SReader;
 
-        AManager = transform.parent.Find("AManager").GetComponent<AudioManager>();
-        AManager.Init(seDB);
+        IGameStarter Starter;
 
-        InputService = new InputService();
+        IInputService InputService;
 
-        PController = new PlayerController(InputService);
-        GameObject ptemp = Instantiate(PlayerObj);
-        PController.Init(ptemp);
-        
-        QuadGrid = new QuadGrid();
-        QuadGrid.Init();
+        IQuadGrid QuadGrid;
 
-        QuadBulletStore = new QuadBulletStore();
-        QuadBulletStore.Init();
+        IQuadBulletStore QuadBulletStore;
 
-        
+        QuadOrder QuadOrder;
 
-        LaserEmitter = transform.parent.Find("GManager").GetComponent<LaserEmitter>();
-        LaserEmitter.Init(PController);
+        GManager GManager;
 
-        QuadOrder = transform.parent.Find("GManager").GetComponent<QuadOrder>();
-        QuadOrder.Init(DBService,PController, QuadGrid,QuadBulletStore, LaserEmitter);
-        QuadOrder.AwakeSetting();
+        public GameObject PlayerObj;
 
-        SReader = transform.parent.Find("GManager").GetComponent<StageReader>();
-        SReader.Initialize(AManager);
+        public LaserEmitter LaserEmitter;
+
+        [SerializeField] BulletTypeDataBase bulletTypeDB;
+        [SerializeField] StageDataBase stageDB;
+        [SerializeField] SEDataBase seDB;
+        [SerializeField] EnemyDataBase enemyDB;
+
+        public void Awake()
+        {
+
+            bulletTypeDB.Init();
+            stageDB.Init();
+            seDB.Init();
+            enemyDB.Init();
+
+            DBService = new DBService(bulletTypeDB, stageDB, seDB, enemyDB);
+
+            AManager = transform.parent.Find("AManager").GetComponent<AudioManager>();
+            AManager.Init(seDB);
+
+            InputService = new InputService();
+
+            PController = new PlayerController(InputService);
+            GameObject ptemp = Instantiate(PlayerObj);
+            PController.Init(ptemp);
+            
+            QuadGrid = new QuadGrid();
+            QuadGrid.Init();
+
+            QuadBulletStore = new QuadBulletStore();
+            QuadBulletStore.Init();
+
+            LaserEmitter = transform.parent.Find("GManager").GetComponent<LaserEmitter>();
+            LaserEmitter.Init(PController,QuadGrid);
+
+            QuadOrder = transform.parent.Find("GManager").GetComponent<QuadOrder>();
+            QuadOrder.Init(DBService,PController, QuadGrid,QuadBulletStore, LaserEmitter);
+            
+            
+            QuadOrder.AwakeSetting();
+
+            
+
+            SReader = transform.parent.Find("GManager").GetComponent<StageReader>();
+            SReader.Initialize(AManager);
 
 
-        SSManager = transform.parent.Find("Canvases").Find("StageCanvas").Find("StageBoxParent").GetComponent<StageSelectManager>();
-        Starter = GManager.Control.GetComponent<GManager>();
-        SSManager.Init(DBService.SDB, Starter);
-        
-        GManager.Control.Construct(DBService,PController,SReader,SSManager, QuadOrder);
+            SSManager = transform.parent.Find("Canvases").Find("StageCanvas").Find("StageBoxParent").GetComponent<StageSelectManager>();
+            GManager = transform.parent.Find("GManager").GetComponent<GManager>();
+            Starter = transform.parent.Find("GManager").GetComponent<GManager>();
+            SSManager.Init(DBService.SDB, Starter);
+            
+            GManager.Construct(DBService,PController,SReader,SSManager, QuadOrder);
+        }
     }
 }
-    
