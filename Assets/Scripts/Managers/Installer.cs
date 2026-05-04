@@ -4,7 +4,7 @@ using BulletHell.Audio;
 using BulletHell.Bullets;
 using BulletHell.Enemies;
 using BulletHell.Stages;
-using BulletHell.Data;
+using BulletHell.Database;
 using BulletHell.Player;
 using BulletHell.UI.StageSelect;
 using BulletHell.Core.Services;
@@ -39,15 +39,15 @@ namespace BulletHell.App
         public GameObject PlayerObj;
 
         LaserEmitter LaserEmitter;
+        BulletTypeDataBase bulletTypeDB;
 
-        [SerializeField] BulletTypeDataBase bulletTypeDB;
         [SerializeField] StageDataBase stageDB;
         [SerializeField] SEDataBase seDB;
         [SerializeField] EnemyDataBase enemyDB;
 
         public void Awake()
         {
-
+            bulletTypeDB = new BulletTypeDataBase(new BulletTypeLoader());
             bulletTypeDB.Init();
             stageDB.Init();
             if (seDB != null)seDB.Init();

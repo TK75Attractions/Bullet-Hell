@@ -1,17 +1,17 @@
 using UnityEngine;
 using Unity.Mathematics;
 using System.Collections.Generic;
+using BulletHell.Bullets;
 
-namespace BulletHell.Bullets
+namespace BulletHell.Database
 {
-    [CreateAssetMenu(menuName = "Bullet/BulletTypeDataBase", fileName = "BulletTypeDataBase")]
-    public class BulletTypeDataBase : ScriptableObject, IBulletTypeDB
+    public class BulletTypeDataBase : IBulletTypeDB
     {
         public BulletType[] types = new BulletType[0];
         public List<float2[]> bVerts { get; private set; } = new List<float2[]>();
 
         public BulletType[] GetTypes() => types;   
-
+        /*
         BulletTypeDataBase(IQuadOrderDirty _qOrder)
         {
             if (_qOrder != null)
@@ -19,9 +19,16 @@ namespace BulletHell.Bullets
                 _qOrder.MarkCollisionDataDirty();
             }
         }
+        */
+
+        public BulletTypeDataBase(BulletTypeLoader loader)
+        {
+            types = loader.LoadBulletTypes();
+        }
 
         public void Init()
         {
+
             int max = 0;
 
             for (int i = 0; i < types.Length; i++)

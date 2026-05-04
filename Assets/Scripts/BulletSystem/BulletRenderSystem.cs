@@ -3,6 +3,8 @@ using Unity.Collections;
 using Unity.Mathematics;
 using System.Runtime.InteropServices;
 
+using BulletHell.Database;
+
 namespace BulletHell.Bullets
 {
     public class BulletRenderSystem : MonoBehaviour

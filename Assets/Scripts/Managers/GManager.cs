@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 using BulletHell.Bullets;
 using BulletHell.Enemies;
 using BulletHell.Player;
-using BulletHell.Data;
+using BulletHell.Database;
 using BulletHell.Core;
 using BulletHell.Core.Services;
 using BulletHell.Core.Math;

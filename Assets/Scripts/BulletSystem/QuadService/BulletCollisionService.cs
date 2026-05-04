@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using Unity.Mathematics;
 using System;
 
-using BulletHell.Data;
+using BulletHell.Database;
 
 namespace BulletHell.Bullets
 {

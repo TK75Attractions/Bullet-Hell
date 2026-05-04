@@ -8,7 +8,7 @@ using UnityEngine;
 
 using BulletHell.Enemies;
 using BulletHell.Player;
-using BulletHell.Data;
+using BulletHell.Database;
 using BulletHell.Core;
 using BulletHell.Core.Math;
 

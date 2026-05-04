@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using BulletHell.Core;
 using BulletHell.Bullets;
-using BulletHell.Data;
+using BulletHell.Database;
 
 
 namespace BulletHell.Enemies

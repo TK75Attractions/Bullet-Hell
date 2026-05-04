@@ -3,7 +3,7 @@ using BulletHell.Bullets;
 using BulletHell.Enemies;
 using BulletHell.Stages;
 
-namespace BulletHell.Data
+namespace BulletHell.Database
 {
     public interface IDBService
     {
