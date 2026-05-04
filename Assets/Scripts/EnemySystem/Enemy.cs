@@ -25,11 +25,12 @@ namespace BulletHell.Enemies
 
         public float time { get; set; } = 0;
 
-        public void Init(int index, IQuadOrder quadOrder, IEnemySpawner spawner, IEnemyDB enemyDB)
+        public void Init(int index, IQuadOrder quadOrder, IEnemySpawner spawner, IEnemyDB enemyDB,Transform enemyTransform)
         {
             QOrder = quadOrder;
             EDB = enemyDB;
-            
+
+            trans = enemyTransform;
             id = spawner.id;
             arrayIndex = index;
 

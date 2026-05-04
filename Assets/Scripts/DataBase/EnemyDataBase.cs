@@ -1,13 +1,19 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace BulletHell.Enemies
+using BulletHell.Enemies;
+
+namespace BulletHell.Database
 {
-    [CreateAssetMenu(menuName = "Enemy/EnemyDataBase", fileName = "EnemyDataBase")]
-    public class EnemyDataBase : ScriptableObject, IEnemyDB
+    public class EnemyDataBase : IEnemyDB
     {
         public List<EnemyData> enemyDataList = new List<EnemyData>();
-        
+
+        public EnemyDataBase(EnemyDataLoader loader)
+        {
+            enemyDataList = loader.LoadEnemyData();
+        }
+
         public void Init()
         {
             // Here you can add any initialization logic if needed in the future.

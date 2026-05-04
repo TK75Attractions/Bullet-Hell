@@ -15,19 +15,20 @@ namespace BulletHell.Player
         private readonly IQuadBulletStore QBulletStore;
         public float2 pos { get; private set; }
         [SerializeField] private float moveSpeed = 5f;
-        private Transform playerTransform;
+        private GameObject playerObj;
         [SerializeField] private SpriteRenderer SR;
 
-        public PlayerController(IInputService inputService, IQuadBulletStore qBulletStore)
+        public PlayerController(IInputService inputService, IQuadBulletStore qBulletStore, GameObject playerObj)
         {
             InputService = inputService;
             QBulletStore = qBulletStore;
+            this.playerObj = playerObj;
+            SR = playerObj.GetComponent<SpriteRenderer>();
         }
 
         public void Init(GameObject playerObj)
         {
-            playerTransform = playerObj.transform;
-            SR = playerObj.GetComponent<SpriteRenderer>();
+            
         }
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -39,20 +40,24 @@ namespace BulletHell.Player
         public void UpdatePos(float dt)
         {
             Move(dt);
-            playerTransform.position = new Vector3(pos.x, pos.y, 0);
+            playerObj.transform.position = new Vector3(pos.x, pos.y, 0);
 
         }
 
         private void Move(float dt)
         {
+            
             float2 inputVector = new float2(0, 0);
             if (InputService.upPressed) inputVector.y += 1;
             if (InputService.downPressed) inputVector.y -= 1;
             if (InputService.leftPressed) inputVector.x -= 1;
             if (InputService.rightPressed) inputVector.x += 1;
+            Debug.Log($"Input Vector: {inputVector}");
+            Debug.Log($"{InputService.upPressed}, {InputService.downPressed}, {InputService.leftPressed}, {InputService.rightPressed}");
 
             if (math.length(inputVector) > 0)
             {
+                Debug.Log("Move");
                 inputVector = math.normalize(inputVector);
                 pos += inputVector * moveSpeed * dt;
             }

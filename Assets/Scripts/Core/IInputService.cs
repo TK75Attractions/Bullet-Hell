@@ -13,5 +13,8 @@ namespace BulletHell.Core.Services
         public bool downPressedThisFrame { get; }
         public bool leftPressedThisFrame { get; }
         public bool rightPressedThisFrame { get; }
+
+        public void Init();
+        public void UpdateInput();
     }
 }

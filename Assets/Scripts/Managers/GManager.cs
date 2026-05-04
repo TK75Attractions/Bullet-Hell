@@ -23,12 +23,11 @@ namespace BulletHell.App
         public IDBService DBService { get; private set; }
 
         public GameState state { get; set; } = GameState.Title;
-
-        public GameObject PlayerObj;
+        
         public GameObject EnemyObj;
         public IPlayerController PController;
 
-        public InputService IManager;
+        public IInputService IManager;
         public StageReader SReader;
         private IEnemyService enemyService;
 
@@ -50,7 +49,16 @@ namespace BulletHell.App
         private readonly BulletData[] spawnBuffer = new BulletData[6];
 
         public BulletEvent testEvent = new BulletEvent();
-        public void Construct(IDBService dbService, IPlayerController playerController, StageReader stageReader, StageSelectManager stageSelectManager,IQuadOrder quadOrder, IQuadBulletStore quadBulletStore, IEnemyService enemyService)
+        public void Construct(
+            IDBService dbService,
+            IPlayerController playerController,
+            StageReader stageReader,
+            StageSelectManager stageSelectManager,
+            IQuadOrder quadOrder,
+            IQuadBulletStore quadBulletStore,
+            IEnemyService enemyService,
+            IInputService inputService
+            )
         {
             DBService = dbService;
             PController = playerController;
@@ -59,6 +67,7 @@ namespace BulletHell.App
             this.enemyService = enemyService;
             QOrder = quadOrder;
             QBulletStore = quadBulletStore;
+            IManager = inputService;
 
             BRS = GetComponent<BulletRenderSystem>();
             BRS.Init(DBService.BTDB);
@@ -74,10 +83,7 @@ namespace BulletHell.App
                 Destroy(this.gameObject);
                 return;
             }
-
-            IManager = new();
-            IManager.Init();
-
+            
             BManager = transform.parent.Find("BManager").GetComponent<BeatManager>();
 
             BClipManager = new();
@@ -140,6 +146,11 @@ namespace BulletHell.App
             if (Keyboard.current != null && Keyboard.current.sKey.wasPressedThisFrame)
             {
                 Debug.Log($"{beatTime}");
+            }
+
+            if (state == GameState.Playing)
+            {
+                Debug.Log("Update During Playing");
             }
 
             if (PController != null) PController.UpdatePos(t);

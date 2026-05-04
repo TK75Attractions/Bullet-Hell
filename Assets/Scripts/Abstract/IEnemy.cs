@@ -17,7 +17,7 @@ namespace BulletHell.Enemies
 
         public float time { get; set; }
 
-        public void Init(int index, IQuadOrder quadOrder, IEnemySpawner spawner, IEnemyDB enemyDB);
+        public void Init(int index, IQuadOrder quadOrder, IEnemySpawner spawner, IEnemyDB enemyDB,Transform enemyTransform);
 
         public void UpdateEnemy(float dt);
 

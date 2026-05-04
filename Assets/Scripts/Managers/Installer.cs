@@ -43,14 +43,17 @@ namespace BulletHell.App
 
         [SerializeField] StageDataBase stageDB;
         [SerializeField] SEDataBase seDB;
-        [SerializeField] EnemyDataBase enemyDB;
+        EnemyDataBase enemyDB;
 
         public void Awake()
         {
             bulletTypeDB = new BulletTypeDataBase(new BulletTypeLoader());
             bulletTypeDB.Init();
+
             stageDB.Init();
             if (seDB != null)seDB.Init();
+
+            enemyDB = new EnemyDataBase(new EnemyDataLoader());
             enemyDB.Init();
 
             DBService = new DBService(bulletTypeDB, stageDB, seDB, enemyDB);
@@ -62,6 +65,7 @@ namespace BulletHell.App
             bulletPaternProvider.Init();
 
             InputService = new InputService();
+            InputService.Init();
 
             GameStateService = transform.parent.Find("GManager").GetComponent<GManager>();
             
@@ -71,9 +75,9 @@ namespace BulletHell.App
             QuadBulletStore = new QuadBulletStore();
             QuadBulletStore.Init();
 
-            PController = new PlayerController(InputService,QuadBulletStore);
-            GameObject ptemp = Instantiate(PlayerObj);
-            PController.Init(ptemp);
+
+            GameObject temp = Instantiate(PlayerObj);
+            PController = new PlayerController(InputService,QuadBulletStore,temp);
 
             LaserEmitter = transform.parent.Find("GManager").GetComponent<LaserEmitter>();
             LaserEmitter.Init(PController,QuadGrid);
@@ -99,7 +103,7 @@ namespace BulletHell.App
             Starter = transform.parent.Find("GManager").GetComponent<GManager>();
             SSManager.Init(DBService.SDB, Starter);
             
-            GManager.Construct(DBService,PController,SReader,SSManager, QuadOrder,QuadBulletStore,EService);
+            GManager.Construct(DBService,PController,SReader,SSManager, QuadOrder,QuadBulletStore,EService,InputService);
         }
     }
 }

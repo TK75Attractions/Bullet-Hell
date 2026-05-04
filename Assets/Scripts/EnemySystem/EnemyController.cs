@@ -47,7 +47,7 @@ namespace BulletHell.Enemies
                 }
 
                 Enemy enemy = Instantiate(EnemyObj).GetComponent<Enemy>();
-                enemy.Init(enemies.Count, quadOrder, spawner, DBService.EDB);
+                enemy.Init(enemies.Count, quadOrder, spawner, DBService.EDB,enemy.transform);
                 enemies.Add(enemy);
                 //Debug.Log($"Spawned enemy: {spawner.orbit.speed}");
                 quadBulletStore.AddEnemiesOrbitBullet(spawner.orbit);
