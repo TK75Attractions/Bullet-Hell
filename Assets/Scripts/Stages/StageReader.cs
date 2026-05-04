@@ -103,9 +103,9 @@ namespace BulletHell.Stages
             {
                 if (stageData.enemySpawners[enemyCount].time <= time)
                 {
-                    IEnemySpawner spawner = stageData.enemySpawners[enemyCount];
+                    IEnemySpawner spawner = stageData.GetEnemySpawners()[enemyCount];
                     EController.AddEnemy(spawner);
-                    Debug.Log($"Spawned enemy: {spawner.orbit.speed}");
+                    Debug.Log($"Spawned enemy: {spawner.GetOrbit().speed}");
                     enemyCount++;
                 }
             }

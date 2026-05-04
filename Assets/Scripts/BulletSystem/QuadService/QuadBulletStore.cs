@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Mathematics;
 using System;
+using UnityEngine;
 
 namespace BulletHell.Bullets
 {
@@ -95,6 +96,8 @@ public class QuadBulletStore : IQuadBulletStore
 
     public List<int> AddEnemyBullets(NativeArray<BulletData> newBullets, float2 fromPos = new float2())
     {
+        Debug.Log($"Length: {newBullets.Length}");
+
         if (newBullets.Length == 0) return null;
 
         if (!_enemyBullets.IsCreated)
@@ -191,7 +194,10 @@ public class QuadBulletStore : IQuadBulletStore
             }
         }
 
+        Debug.Log(newBullets);
         List<int> indexes = AddEnemyBullets(newBullets);
+        Debug.Log($"indexs: {indexes}");
+
         newBullets.Dispose();
         return indexes;
     }
@@ -217,7 +223,11 @@ public class QuadBulletStore : IQuadBulletStore
             {
                 int index = indexes[i];
                 if (index < 0 || index >= _enemyBullets.Length) continue;
-                temp.AddRange(EmitEnemyBullet(clip, _enemyBullets[index].position, playerPos));
+
+
+                var tmp = EmitEnemyBullet(clip, _enemyBullets[index].position, playerPos);
+
+                temp.AddRange(tmp);
                 BulletData data = _enemyBullets[index];
                 data.isActive = false;
                 _enemyBullets[index] = data;

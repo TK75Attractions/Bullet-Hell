@@ -5,6 +5,7 @@ namespace BulletHell.Audio
 {
     public class BeatManager : MonoBehaviour
     {
+        
         [SerializeField] private readonly List<int> beatSamples = new();
         public float beatValueSin;
         public float beatValuePoly;

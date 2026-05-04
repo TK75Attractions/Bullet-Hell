@@ -5,11 +5,15 @@ namespace BulletHell.Bullets
     [Serializable]
     public class BulletChangeClip : IBulletChangeClip
     {
-        public BulletClip clip { get; private set; }
+        public BulletClip clip;
 
-        public float time { get; private set; } = 0;
+        public float time = 0;
 
-        public float interval { get; private set; } = 0;
+        public float interval = 0;
+
+        public BulletClip GetClip() => clip;
+        public float GetTime() => time;
+        public float GetInterval() => interval;
 
         public BulletChangeClip(float _t, float _interval)
         {

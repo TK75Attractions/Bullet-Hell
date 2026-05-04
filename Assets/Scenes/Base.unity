@@ -2336,7 +2336,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: aaaaaaaaaaaaaaaaaa
+  m_text: 'Tsukukoma Attraction
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -4381,10 +4383,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Installer
   PlayerObj: {fileID: 3602127599334733260, guid: 79cef28de94e46342ace55bfe592f674, type: 3}
-  bulletTypeDB: {fileID: 11400000, guid: 18e0dba5990fed9468c060d0a18757eb, type: 2}
   stageDB: {fileID: 11400000, guid: 196f8cc18dbd6c643a72049b9d4c923b, type: 2}
   seDB: {fileID: 0}
-  enemyDB: {fileID: 11400000, guid: 8df51ad6b15942041bbc8e71d4685d05, type: 2}
 --- !u!4 &1630495905
 Transform:
   m_ObjectHideFlags: 0
@@ -5487,7 +5487,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84217eca9edf94a4a9bcdade4a345201, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GManager
-  PlayerObj: {fileID: 3602127599334733260, guid: 79cef28de94e46342ace55bfe592f674, type: 3}
   EnemyObj: {fileID: 3602127599334733260, guid: 4feb5d1ec2b44f94c8ddc31c3594024a, type: 3}
   SReader: {fileID: 0}
   BManager: {fileID: 0}
@@ -5526,6 +5525,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 47cd45980466607448fc3d54baa4c447, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageReader
+  stageData: {fileID: 0}
   spawnEvents: []
   time: 0
 --- !u!114 &1890939118

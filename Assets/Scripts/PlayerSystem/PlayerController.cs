@@ -52,9 +52,7 @@ namespace BulletHell.Player
             if (InputService.downPressed) inputVector.y -= 1;
             if (InputService.leftPressed) inputVector.x -= 1;
             if (InputService.rightPressed) inputVector.x += 1;
-            Debug.Log($"Input Vector: {inputVector}");
-            Debug.Log($"{InputService.upPressed}, {InputService.downPressed}, {InputService.leftPressed}, {InputService.rightPressed}");
-
+            
             if (math.length(inputVector) > 0)
             {
                 Debug.Log("Move");

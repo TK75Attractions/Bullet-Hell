@@ -26,8 +26,11 @@ namespace BulletHell.Stages
         [TextArea]
         public string stageDescription;
 
-        public List<EnemySpawner> enemySpawners = new List<EnemySpawner>();
+        public List<EnemySpawner> enemySpawners;
+        public List<IEnemySpawner> GetEnemySpawners() => enemySpawners.Cast<IEnemySpawner>().ToList();
 
-        public List<BulletSpawner> bulletSpawners = new List<BulletSpawner>();
+
+        public List<BulletSpawner> bulletSpawners;
+
     }
 }

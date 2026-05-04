@@ -15,13 +15,17 @@ MonoBehaviour:
   stageId: 1
   difficulty: 0
   stageName: DemoStage1
-  StageImage: {fileID: 0}
+  videoClip: {fileID: 0}
+  audioClip: {fileID: 0}
+  MusicEvents: []
+  delayTime: 0
   stageDescription: 111
   enemySpawners:
   - id: 0
     count: 10
     interval: 0.3
-    next: 5
+    time: 0
+    bulletCount: 0
     orbit:
       position:
         x: 0
@@ -67,6 +71,7 @@ MonoBehaviour:
         w: 255
       areaNum: 0
       time: 0
+      random: 0
       isActive: 1
     bulletClip:
       data:
@@ -84,7 +89,7 @@ MonoBehaviour:
           x: 0
           y: 0
         startX: 0
-        speed: 5
+        speed: 0
         acccel: 0
         gravity: 0
         angleSpeed: 0
@@ -114,10 +119,9 @@ MonoBehaviour:
           w: 1
         areaNum: 0
         time: 0
+        random: 0
         isActive: 1
       number: 3
-      interval: 0.3
-      count: 8
       disRad: 30
       homing: 1
       generateType: 0
@@ -125,7 +129,8 @@ MonoBehaviour:
   - id: 0
     count: 0
     interval: 0
-    next: 0
+    time: 0
+    bulletCount: 0
     orbit:
       position:
         x: 0
@@ -171,6 +176,7 @@ MonoBehaviour:
         w: 0
       areaNum: 0
       time: 0
+      random: 0
       isActive: 0
     bulletClip:
       data:
@@ -218,11 +224,11 @@ MonoBehaviour:
           w: 0
         areaNum: 0
         time: 0
+        random: 0
         isActive: 0
       number: 0
-      interval: 0
-      count: 0
       disRad: 0
       homing: 0
       generateType: 0
     bulletChangeClips: []
+  bulletSpawners: []

@@ -31,18 +31,18 @@ namespace BulletHell.Enemies
             EDB = enemyDB;
 
             trans = enemyTransform;
-            id = spawner.id;
+            id = spawner.Getid();
             arrayIndex = index;
 
-            interval = spawner.interval;
-            BulletCount = spawner.bulletCount;
-            bulletClip = spawner.bulletClip;
-            bulletChangeClips = spawner.bulletChangeClips;
+            interval = spawner.GetInterval();
+            BulletCount = spawner.GetBulletCount();
+            bulletClip = spawner.GetBulletClip();
+            bulletChangeClips = spawner.GetBulletChangeClips();
 
             trans = transform;
-            trans.localScale = new Vector3(spawner.orbit.size, spawner.orbit.size, 1);
+            trans.localScale = new Vector3(spawner.GetOrbit().size, spawner.GetOrbit().size, 1);
             SR = GetComponent<SpriteRenderer>();
-            SR.sprite = EDB.GetSprite(spawner.id);
+            SR.sprite = EDB.GetSprite(spawner.Getid());
 
             isActive = true;
         }
@@ -75,7 +75,7 @@ namespace BulletHell.Enemies
                     time = 0;
                     if (count < BulletCount)
                     {
-                        BulletChache chache = new BulletChache(QOrder.EmitEnemyBullet(bulletClip, arrayIndex), bulletChangeClips[0].time, 0);
+                        BulletChache chache = new BulletChache(QOrder.EmitEnemyBullet(bulletClip, arrayIndex), bulletChangeClips[0].GetTime(), 0);
                         bulletChaches.Add(chache);
                         count++;
                     }
@@ -91,7 +91,7 @@ namespace BulletHell.Enemies
                 chache.time -= dt;
                 if (chache.time <= 0)
                 {
-                    QOrder.UpdateBulletData(chache.indexes, bulletChangeClips[chache.clipCount].clip);
+                    QOrder.UpdateBulletData(chache.indexes, bulletChangeClips[chache.clipCount].GetClip());
                     bulletChaches.RemoveAt(i);
                 }
             }

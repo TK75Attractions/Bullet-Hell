@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 namespace BulletHell.Audio
-    {
+{
     [Serializable]
     public class MusicEvent : IMusicEvent
     {

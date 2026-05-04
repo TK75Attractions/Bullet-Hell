@@ -37,9 +37,9 @@ namespace BulletHell.Enemies
         {
             float t = 0;
 
-            for (int i = 0; i < spawner.count; i++)
+            for (int i = 0; i < spawner.Getcount(); i++)
             {
-                while (t < spawner.interval * i)
+                while (t < spawner.GetInterval() * i)
                 {
                     await Task.Yield();
                     t += Time.deltaTime;
@@ -50,7 +50,7 @@ namespace BulletHell.Enemies
                 enemy.Init(enemies.Count, quadOrder, spawner, DBService.EDB,enemy.transform);
                 enemies.Add(enemy);
                 //Debug.Log($"Spawned enemy: {spawner.orbit.speed}");
-                quadBulletStore.AddEnemiesOrbitBullet(spawner.orbit);
+                quadBulletStore.AddEnemiesOrbitBullet(spawner.GetOrbit());
             }
         }
 
