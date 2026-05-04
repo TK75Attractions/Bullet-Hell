@@ -164,7 +164,7 @@ public class QuadBulletStore : IQuadBulletStore
 
     public List<int> EmitEnemyBullet(BulletClip clip, float2 pPos, float2 playerPos)
     {
-         NativeArray<BulletData> newBullets = new NativeArray<BulletData>(clip.number, Allocator.Temp);
+        NativeArray<BulletData> newBullets = new NativeArray<BulletData>(clip.number, Allocator.Temp);
 
         float2 dis = new float2(playerPos) - pPos;
         float range = (clip.number - 1) * clip.disRad;
