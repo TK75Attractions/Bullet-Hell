@@ -9,7 +9,7 @@ namespace BulletHell.UI.StageSelect
 {
     public class StageDescription : MonoBehaviour
     {
-        private IStageDB<IStageData> SDB;
+        private IStageDB SDB;
 
         private RectTransform rect;
         private RectTransform backRect;
@@ -31,7 +31,7 @@ namespace BulletHell.UI.StageSelect
             public float dHeight;
         }
 
-        public void Init(IStageDB<IStageData> stageDB)
+        public void Init(IStageDB stageDB)
         {
             SDB = stageDB;
 
@@ -46,7 +46,7 @@ namespace BulletHell.UI.StageSelect
 
         public void Set(int index)
         {
-            IStageData data = SDB.GetStage(index);
+            StageData data = SDB.GetStage(index);
             videoPlayer.clip = data.videoClip;
             stageName.text = data.stageName;
         }

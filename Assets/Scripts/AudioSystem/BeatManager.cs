@@ -38,22 +38,22 @@ namespace BulletHell.Audio
 
             for (int i = 0; i < musicEvents.Count; i++)
             {
-                if (musicEvents[i].beatTimings.Count == 0) continue;
+                if (musicEvents[i].GetbeatTimings().Count == 0) continue;
 
-                float beatInterval = 60f / musicEvents[i].BPM;
+                float beatInterval = 60f / musicEvents[i].GetBPM();
                 List<float> temp = new List<float>();
-                for (int k = 0; k < musicEvents[i].beatTimings.Count; k++)
+                for (int k = 0; k < musicEvents[i].GetbeatTimings().Count; k++)
                 {
-                    int beatTiming = musicEvents[i].beatTimings[k];
+                    int beatTiming = musicEvents[i].GetbeatTimings()[k];
                     float beatTime = beatTiming * beatInterval;
                     temp.Add(beatTime);
                 }
 
-                for (int k = 0; k < musicEvents[i].barCount; k++)
+                for (int k = 0; k < musicEvents[i].GetbarCount(); k++)
                 {
                     for (int j = 0; j < temp.Count; j++)
                     {
-                        float beatTime = temp[j] + k * musicEvents[i].measure * beatInterval;
+                        float beatTime = temp[j] + k * musicEvents[i].Getmeasure() * beatInterval;
                         int beatSample = Mathf.RoundToInt(beatTime * musicClip.frequency) - offsetSamples;
                         beatSamples.Add(beatSample);
                     }

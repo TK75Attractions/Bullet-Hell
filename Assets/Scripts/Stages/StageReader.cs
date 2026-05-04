@@ -19,7 +19,7 @@ namespace BulletHell.Stages
         private IQuadOrder QOrder;
         private IBulletPaternProvider bulletPaternProvider;
         private const double BgmLeadTime = 0.2d;
-        [SerializeField] private IStageData stageData;
+        [SerializeField] private StageData stageData;
         [SerializeField] private List<BulletSpawnEvent> spawnEvents = new List<BulletSpawnEvent>();
         [SerializeField] private float time = 0f;
         private int enemyCount = 0;
@@ -43,7 +43,7 @@ namespace BulletHell.Stages
             this.bulletPaternProvider = bulletPaternProvider;
         }
 
-        public async Task<bool> Init(IStageData data)
+        public async Task<bool> Init(StageData data)
         {
             stageData = data;
             time = 0f;
@@ -54,7 +54,7 @@ namespace BulletHell.Stages
                 AudioSource bgmSource = await AManager.PlayBGM(stageData.audioClip);
                 double scheduledDspTime = AudioSettings.dspTime + BgmLeadTime;
                 bgmSource.PlayScheduled(scheduledDspTime);
-                GManager.Control.BManager.SetBeat(stageData.audioClip, stageData.MusicEvents, scheduledDspTime, stageData.delayTime);
+                GManager.Control.BManager.SetBeat(stageData.audioClip, stageData.GetMusicEvents(), scheduledDspTime, stageData.delayTime);
                 GManager.Control.musicOn = true;
             }
 

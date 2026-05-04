@@ -10,11 +10,11 @@ namespace BulletHell.Data
     {
         public IBulletTypeDB BTDB { get; }
 
-        public IStageDB<IStageData> SDB { get; }
+        public IStageDB SDB { get; }
         public ISoundEffectDB<ISEData> SEDB { get; }
         public IEnemyDB EDB { get; }
 
-        public DBService(IBulletTypeDB bulletTypeDB, IStageDB<IStageData> stageDB, ISoundEffectDB<ISEData> seDB, IEnemyDB enemyDB)
+        public DBService(IBulletTypeDB bulletTypeDB, IStageDB stageDB, ISoundEffectDB<ISEData> seDB, IEnemyDB enemyDB)
         {
             BTDB = bulletTypeDB;
             SDB = stageDB;

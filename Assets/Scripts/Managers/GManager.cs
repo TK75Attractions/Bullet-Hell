@@ -179,7 +179,7 @@ namespace BulletHell.App
 
         public async void GoGame(int index)
         {
-            IStageData stage = DBService.SDB.GetStage(index);
+            StageData stage = DBService.SDB.GetStage(index);
             if (stage != null)
             {
                 await SReader.Init(stage);

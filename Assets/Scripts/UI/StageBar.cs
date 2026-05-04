@@ -8,7 +8,7 @@ namespace BulletHell.UI.StageSelect
 {
     public class StageBar : MonoBehaviour
     {
-        private IStageDB<IStageData> SDB;
+        private IStageDB SDB;
 
         [SerializeField] private GameObject stageBoxPrefab;
         private Transform parent;
@@ -19,7 +19,7 @@ namespace BulletHell.UI.StageSelect
         private bool isTransitioning = false;
         static private readonly float duration = 0.15f;
 
-        public void Init(IStageDB<IStageData> stageDB)
+        public void Init(IStageDB stageDB)
         {
             SDB = stageDB;
 
@@ -44,7 +44,7 @@ namespace BulletHell.UI.StageSelect
                 isTransitioning = true;
                 float d = duration;
 
-                int length = SDB.stages.Count;
+                int length = SDB.GetStages().Count;
                 if (currentStage >= length - 1)
                 {
                     isTransitioning = false;
@@ -95,7 +95,7 @@ namespace BulletHell.UI.StageSelect
                 isTransitioning = true;
                 float d = duration;
 
-                int length = SDB.stages.Count;
+                int length = SDB.GetStages().Count;
                 if (currentStage <= 0)
                 {
                     isTransitioning = false;

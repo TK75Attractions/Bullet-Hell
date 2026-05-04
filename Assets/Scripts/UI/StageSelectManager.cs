@@ -10,7 +10,7 @@ namespace BulletHell.UI.StageSelect
     public class StageSelectManager : MonoBehaviour
     {
         private IGameStarter starter;
-        private IStageDB<IStageData> SDB;
+        private IStageDB SDB;
         private CanvasGroup variableCG;
         private CanvasGroup staticCG;
         private DifficultyBar difficultyBar;
@@ -30,7 +30,7 @@ namespace BulletHell.UI.StageSelect
 
         private bool isTransitioning = false;
 
-        public void Init(IStageDB<IStageData> stageDB, IGameStarter gameStarter)
+        public void Init(IStageDB stageDB, IGameStarter gameStarter)
         {
             starter = gameStarter;
             SDB = stageDB;
@@ -70,7 +70,7 @@ namespace BulletHell.UI.StageSelect
                     {
                         if (up) stageBar.Up();
                         else if (down) stageBar.Down();
-                        scroll.UpdateArea(stageBar.currentStage, SDB.stages.Count);
+                        scroll.UpdateArea(stageBar.currentStage, SDB.GetStages().Count);
                         break;
                     }
                 case State.Difficulty:

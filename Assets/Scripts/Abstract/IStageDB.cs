@@ -2,10 +2,10 @@ using System.Collections.Generic;
 
 namespace BulletHell.Stages
 {
-    public interface IStageDB<T>
+    public interface IStageDB
     {
-        public List<T> stages { get; }
+        public List<StageData> GetStages();
         public void Init();
-        public T GetStage(int index);
+        public StageData GetStage(int index);
     }
 }

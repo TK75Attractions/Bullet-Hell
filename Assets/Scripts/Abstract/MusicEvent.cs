@@ -6,10 +6,15 @@ namespace BulletHell.Audio
     [Serializable]
     public class MusicEvent : IMusicEvent
     {
-        public int barCount { get; set; }
-        public float BPM { get; set; }
-        public List<int> beatTimings { get; set; }
-        public int measure { get; set; }
+        public int barCount;
+        public float BPM;
+        public List<int> beatTimings;
+        public int measure;
+
+        public int GetbarCount() => barCount;
+        public float GetBPM() => BPM;
+        public List<int> GetbeatTimings() => beatTimings;
+        public int Getmeasure() => measure;
 
         public void Refresh()
         {

@@ -4,16 +4,17 @@ using System.Collections.Generic;
 namespace BulletHell.Stages
 {
     [CreateAssetMenu(menuName = "Stage/StageDataBase", fileName = "StageDataBase")]
-    public class StageDataBase : ScriptableObject, IStageDB<IStageData>
+    public class StageDataBase : ScriptableObject, IStageDB
     {
-        public List<IStageData> stages {get; private set;} = new List<IStageData>();
+        public List<StageData> stages = new List<StageData>();
 
+        public List<StageData> GetStages() => stages;
         public void Init()
         {
             
         }
 
-        public IStageData GetStage(int index)
+        public StageData GetStage(int index)
         {
             if (stages == null || index < 0 || index >= stages.Count)
             {

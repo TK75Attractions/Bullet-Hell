@@ -5,7 +5,7 @@ namespace BulletHell.Core.Services
 {
     public class InputService : IInputService
     {
-        public bool isDebugMode { get; private set;} = false;
+        public bool isDebugMode { get; private set;} = true;
         public bool buttonPressed { get; private set;}
         public bool buttonPressedThisFrame { get; private set;}
         public bool upPressed { get; private set;}
