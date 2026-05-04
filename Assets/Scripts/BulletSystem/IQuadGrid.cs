@@ -32,7 +32,7 @@ namespace BulletHell.Bullets
             NativeArray<BulletData> playerBullets,
             NativeArray<BulletData> enemyBullets,
             NativeArray<BulletData> enemiesOrbitBullets,
-            List<IEnemy<IEnemyDB>> enemies
+            List<IEnemy> enemies
         );
     }
 }

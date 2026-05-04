@@ -9,11 +9,11 @@ using BulletHell.Core.Services;
 namespace BulletHell.Player
 {
     [Serializable]
-    public class PlayerController
+    public class PlayerController : IPlayerController
     {
         private readonly IInputService InputService;
         private readonly IQuadBulletStore QBulletStore;
-        public float2 pos;
+        public float2 pos { get; private set; }
         [SerializeField] private float moveSpeed = 5f;
         private Transform playerTransform;
         [SerializeField] private SpriteRenderer SR;
@@ -31,7 +31,7 @@ namespace BulletHell.Player
         }
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start()
+        public void Start()
         {
         }
 

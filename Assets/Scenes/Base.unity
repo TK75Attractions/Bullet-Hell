@@ -3379,9 +3379,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.06954533
+    x: 0.07333335
     y: 0
-    width: 0.86090934
+    width: 0.8533333
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -4381,7 +4381,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Installer
   PlayerObj: {fileID: 3602127599334733260, guid: 79cef28de94e46342ace55bfe592f674, type: 3}
-  LaserEmitter: {fileID: 0}
+  bulletTypeDB: {fileID: 11400000, guid: 18e0dba5990fed9468c060d0a18757eb, type: 2}
+  stageDB: {fileID: 11400000, guid: 196f8cc18dbd6c643a72049b9d4c923b, type: 2}
+  seDB: {fileID: 0}
+  enemyDB: {fileID: 11400000, guid: 8df51ad6b15942041bbc8e71d4685d05, type: 2}
 --- !u!4 &1630495905
 Transform:
   m_ObjectHideFlags: 0
@@ -4599,11 +4602,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 808c849f6b796db46aa315ad7fad6a78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy
-  id: 0
-  arrayIndex: 1
-  trans: {fileID: 1678331243}
-  isActive: 1
-  time: 0
 --- !u!212 &1678331242
 SpriteRenderer:
   serializedVersion: 2
@@ -5163,9 +5161,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.06954533
+    x: 0.07333335
     y: 0
-    width: 0.86090934
+    width: 0.8533333
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -5294,9 +5292,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.06954533
+    x: 0.07333335
     y: 0
-    width: 0.86090934
+    width: 0.8533333
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -5416,6 +5414,7 @@ GameObject:
   - component: {fileID: 1890939112}
   - component: {fileID: 1890939116}
   - component: {fileID: 1890939117}
+  - component: {fileID: 1890939118}
   m_Layer: 0
   m_Name: GManager
   m_TagString: Untagged
@@ -5464,16 +5463,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fb6985e78f0dfb478f33293c83e171d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QuadOrder
-  cellSize: 0.8
-  separateLevel: 6
-  cellCount: 0
   bosses: []
-  enemies: []
   bulletEvents: []
   inactiveCleanupInterval: 6
-  drawLaserCollisionGizmos: 0
-  laserCollisionGizmoColor: {r: 1, g: 0.2, b: 0.2, a: 0.9}
-  laserCollisionGizmoZ: 100
   debugSyncNativeBulletListsToInspector: 0
   debugNativeBulletDisplayLimit: 128
   debugEnemyBulletSlotCount: 0
@@ -5483,7 +5475,6 @@ MonoBehaviour:
   debugEnemiesOrbitBulletActiveCount: 0
   debugEnemiesOrbitBulletEntries: []
   laserEmitter: {fileID: 1890939116}
-  allLASERs: []
 --- !u!114 &1890939115
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5496,15 +5487,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84217eca9edf94a4a9bcdade4a345201, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GManager
-  state: 0
   PlayerObj: {fileID: 3602127599334733260, guid: 79cef28de94e46342ace55bfe592f674, type: 3}
   EnemyObj: {fileID: 3602127599334733260, guid: 4feb5d1ec2b44f94c8ddc31c3594024a, type: 3}
-  PController:
-    pos:
-      x: 0
-      y: 0
-    moveSpeed: 5
-    SR: {fileID: 0}
   SReader: {fileID: 0}
   BManager: {fileID: 0}
   SSManager: {fileID: 0}
@@ -5544,6 +5528,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StageReader
   spawnEvents: []
   time: 0
+--- !u!114 &1890939118
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1890939110}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3093575ddf38a6e438bb5f3ddfa32ac3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BulletHell.Enemies.EnemyService
 --- !u!1 &1893457097
 GameObject:
   m_ObjectHideFlags: 0
@@ -5978,9 +5974,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.06954533
+    x: 0.07333335
     y: 0
-    width: 0.86090934
+    width: 0.8533333
     height: 1
   near clip plane: 0.3
   far clip plane: 1000

@@ -7,7 +7,7 @@ namespace BulletHell.Bullets
     {
         public void Init();
 
-        public IBulletType[] types { get; }
+        public BulletType[] GetTypes();
 
         public List<float2[]> bVerts { get; }
 

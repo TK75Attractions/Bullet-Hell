@@ -16,7 +16,7 @@ using BulletHell.UI.StageSelect;
 
 namespace BulletHell.App
 {
-    public class GManager : MonoBehaviour,IGameStarter
+    public class GManager : MonoBehaviour,IGameStarter,IGameStateService
     {
         static public GManager Control;
 
@@ -26,20 +26,18 @@ namespace BulletHell.App
 
         public GameObject PlayerObj;
         public GameObject EnemyObj;
-        public PlayerController PController;
+        public IPlayerController PController;
 
         public InputService IManager;
         public StageReader SReader;
+        private IEnemyService enemyService;
 
         public BeatManager BManager;
         public PerlinRandom PRandom;
         public StageSelectManager SSManager;
         public BulletBufferManager BClipManager;
-        public QuadOrder QOrder { get; set; }
-
-        public IQuadOrderDirty QOrderDirty => QOrder;
-
-        
+        private IQuadOrder QOrder;
+        private IQuadBulletStore QBulletStore;
 
         public BulletRenderSystem BRS;
 
@@ -52,13 +50,15 @@ namespace BulletHell.App
         private readonly BulletData[] spawnBuffer = new BulletData[6];
 
         public BulletEvent testEvent = new BulletEvent();
-        public void Construct(IDBService dbService, PlayerController playerController, StageReader stageReader, StageSelectManager stageSelectManager,QuadOrder quadOrder)
+        public void Construct(IDBService dbService, IPlayerController playerController, StageReader stageReader, StageSelectManager stageSelectManager,IQuadOrder quadOrder, IQuadBulletStore quadBulletStore, IEnemyService enemyService)
         {
             DBService = dbService;
             PController = playerController;
             SReader = stageReader;
             SSManager = stageSelectManager;
+            this.enemyService = enemyService;
             QOrder = quadOrder;
+            QBulletStore = quadBulletStore;
 
             BRS = GetComponent<BulletRenderSystem>();
             BRS.Init(DBService.BTDB);
@@ -106,6 +106,8 @@ namespace BulletHell.App
             gameTime += t;
             QOrder.QuadUpdate(t);
             IManager.UpdateInput();
+            enemyService.UpdateEnemy(t);
+
             if (musicOn)
             {
                 BManager.UpdateBeat();
@@ -149,16 +151,16 @@ namespace BulletHell.App
         public void LateUpdate()
         {
             if (!ready) return;
-            int enemyCount = QOrder.GetEnemyBulletCount();
-            int playerCount = QOrder.GetPlayerBulletCount();
+            int enemyCount = QBulletStore.GetEnemyBulletCount();
+            int playerCount = QBulletStore.GetPlayerBulletCount();
             //Debug.Log($"Enemy Bullet Count: {enemyCount}, Player Bullet Count: {playerCount}");
 
             if (enemyCount > 0 || playerCount > 0)
             {
                 BRS.BuildRenderData(
-                    QOrder.GetEnemyBullets(),
+                    QBulletStore.GetEnemyBullets(),
                     enemyCount,
-                    QOrder.GetPlayerBullets(),
+                    QBulletStore.GetPlayerBullets(),
                     playerCount
                 );
                 BRS.Draw();

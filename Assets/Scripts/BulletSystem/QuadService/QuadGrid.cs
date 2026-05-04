@@ -86,7 +86,7 @@ public class QuadGrid : IQuadGrid
         NativeArray<BulletData> playerBullets,
         NativeArray<BulletData> enemyBullets,
         NativeArray<BulletData> enemiesOrbitBullets,
-        List<IEnemy<IEnemyDB>> enemies
+        List<IEnemy> enemies
     )
     {
         ClearAllCells();
@@ -123,6 +123,7 @@ public class QuadGrid : IQuadGrid
                 if (!bullet.isActive) continue;
                 int areaNum = bullet.areaNum;
                 if (areaNum < 0 || areaNum >= cells.Length) continue;
+                if (i < 0 || i >= enemies.Count) continue;
                 cells[areaNum].enemies.Add(enemies[i]);
             }
         }

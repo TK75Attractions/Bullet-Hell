@@ -248,7 +248,7 @@ namespace BulletHell.Bullets
                 var b = bullets[i];
                 if (!b.isActive) continue;
 
-                var type = BTDB.types[b.typeId];
+                var type = BTDB.GetTypes()[b.typeId];
 
                 renderArray[writeIndex] = new BulletRenderData
                 {

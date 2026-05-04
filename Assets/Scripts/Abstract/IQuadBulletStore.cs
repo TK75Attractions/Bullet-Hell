@@ -26,6 +26,7 @@ namespace BulletHell.Bullets
 
         #region Bullet Return Methods
         BulletData GetEnemyBulletData(int index);
+        (float2 position, float angle) GetEnemyOrbitsBulletData(int index);
         #endregion
 
 

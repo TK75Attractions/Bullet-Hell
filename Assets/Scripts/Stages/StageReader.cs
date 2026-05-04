@@ -15,6 +15,9 @@ namespace BulletHell.Stages
     public class StageReader : MonoBehaviour
     {
         private AudioManager AManager;
+        private IEnemyService EController;
+        private IQuadOrder QOrder;
+        private IBulletPaternProvider bulletPaternProvider;
         private const double BgmLeadTime = 0.2d;
         [SerializeField] private IStageData stageData;
         [SerializeField] private List<BulletSpawnEvent> spawnEvents = new List<BulletSpawnEvent>();
@@ -32,9 +35,12 @@ namespace BulletHell.Stages
             public int index;
         }
 
-        public void Initialize(AudioManager audioManager)
+        public void Initialize(AudioManager audioManager, IEnemyService enemyController, IQuadOrder quadOrder, IBulletPaternProvider bulletPaternProvider)
         {
             AManager = audioManager;
+            EController = enemyController;
+            QOrder = quadOrder;
+            this.bulletPaternProvider = bulletPaternProvider;
         }
 
         public async Task<bool> Init(IStageData data)
@@ -58,7 +64,7 @@ namespace BulletHell.Stages
             {
                 BulletSpawner spawner = stageData.bulletSpawners[i];
 
-                if (GManager.Control.BClipManager.TryGetBulletClipIndex(spawner.clipName, out int clipIndex))
+                if (bulletPaternProvider.TryGetBulletClipIndex(spawner.clipName, out int clipIndex))
                 {
                     spawner.index = clipIndex;
                     stageData.bulletSpawners[i] = spawner; // Update the spawner with the correct index
@@ -98,7 +104,7 @@ namespace BulletHell.Stages
                 if (stageData.enemySpawners[enemyCount].time <= time)
                 {
                     IEnemySpawner spawner = stageData.enemySpawners[enemyCount];
-                    GManager.Control.QOrder.AddEnemy(spawner);
+                    EController.AddEnemy(spawner);
                     Debug.Log($"Spawned enemy: {spawner.orbit.speed}");
                     enemyCount++;
                 }
@@ -109,7 +115,7 @@ namespace BulletHell.Stages
                 if (stageData.bulletSpawners[bulletCount].time <= time)
                 {
                     BulletSpawner spawner = stageData.bulletSpawners[bulletCount];
-                    GManager.Control.QOrder.AddEnemyBullets(spawner);
+                    QOrder.AddEnemyBullets(spawner);
                     Debug.Log($"Spawned bullet: {spawner.clipName}");
                     bulletCount++;
                 }

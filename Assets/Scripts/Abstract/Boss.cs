@@ -13,8 +13,8 @@ namespace BulletHell.Enemies
     public class Boss : MonoBehaviour
     {
 
-        private IQuadBulletStore QOrder;
-        private BulletBufferManager BClipManager;
+        private IQuadOrder QOrder;
+        private IBulletPaternProvider BClipManager;
         private PerlinRandom PRandom;
 
         public int bossId;
@@ -41,8 +41,14 @@ namespace BulletHell.Enemies
             [NonSerialized] public int clipIndex = -1;
         }
 
-        public void Init()
+        public void Init(IQuadOrder quadOrder, IBulletPaternProvider bClipManager, PerlinRandom pRandom)
         {
+            QOrder = quadOrder;
+            BClipManager = bClipManager;
+
+            time = 0;
+            move = 2.5f;
+            count = 0;
             time = 0;
             count = 0;
             ready = false;
@@ -98,7 +104,7 @@ namespace BulletHell.Enemies
 
                 List<BulletData> bullets = BClipManager.GetBulletClip(pattern.clipIndex, new float2(0, 0), new float2(0, 0), 0, out bool isLaser);
                 NativeArray<BulletData> bulletsArray = new NativeArray<BulletData>(bullets.ToArray(), Allocator.Temp);
-                QOrder.AddEnemyHomingBullets(bulletsArray, pos, new float2(0, 0)); //修正対象
+                QOrder.AddEnemyHomingBullets(bulletsArray, pos); //修正対象
 
                 bulletsArray.Dispose();
                 count++;

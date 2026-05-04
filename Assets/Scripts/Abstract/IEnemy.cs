@@ -5,9 +5,8 @@ using BulletHell.Bullets;
 
 namespace BulletHell.Enemies
 {
-    public interface IEnemy<T>
+    public interface IEnemy
     {
-        public readonly static float startInterval = 1.6f;
         public int id { get; set; }
         public int arrayIndex { get; set; }
         public Transform trans { get; set; }
@@ -18,7 +17,7 @@ namespace BulletHell.Enemies
 
         public float time { get; set; }
 
-        public void Init(int index, IEnemySpawner spawner, T enemyDB);
+        public void Init(int index, IQuadOrder quadOrder, IEnemySpawner spawner, IEnemyDB enemyDB);
 
         public void UpdateEnemy(float dt);
 

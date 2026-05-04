@@ -8,7 +8,7 @@ namespace BulletHell.Bullets
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
     public class LASER : MonoBehaviour
     {
-        private IQuadOrder QOrder;
+        private LaserCollisionService QOrder;
         private float2 originPos;
         private float2 vlc = new float2();
         private float radius = 1;
@@ -41,6 +41,11 @@ namespace BulletHell.Bullets
         private Mesh mesh = null;
 
         private List<List<int>> quadVerts = new List<List<int>>();
+
+        public void SetCollisionService(LaserCollisionService collisionService)
+        {
+            QOrder = collisionService;
+        }
 
         public void AwakeSetting(float2 _pos, float2 _vlc, float _t, float _s, float _acc, float2 _polar, float _start, float[] _poly, float _len, float _w, float2 _xy, int cellCount)
         {

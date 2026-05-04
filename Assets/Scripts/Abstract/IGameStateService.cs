@@ -1,6 +1,6 @@
 using BulletHell.Core;
 
-namespace BulletHell.App
+namespace BulletHell.Core
 {
     public interface IGameStateService
     {

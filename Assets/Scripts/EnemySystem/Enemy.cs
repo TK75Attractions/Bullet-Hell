@@ -4,9 +4,9 @@ using BulletHell.Bullets;
 
 namespace BulletHell.Enemies
 {
-    public class Enemy : MonoBehaviour, IEnemy<IEnemyDB>
+    public class Enemy : MonoBehaviour, IEnemy
     {
-        private IQuadBulletStore QOrder;
+        private IQuadOrder QOrder;
         private IEnemyDB EDB;
         public readonly static float startInterval = 1.6f;
         public int id { get; set; } = 0;
@@ -25,8 +25,9 @@ namespace BulletHell.Enemies
 
         public float time { get; set; } = 0;
 
-        public void Init(int index, IEnemySpawner spawner, IEnemyDB enemyDB)
+        public void Init(int index, IQuadOrder quadOrder, IEnemySpawner spawner, IEnemyDB enemyDB)
         {
+            QOrder = quadOrder;
             EDB = enemyDB;
             
             id = spawner.id;
@@ -73,8 +74,7 @@ namespace BulletHell.Enemies
                     time = 0;
                     if (count < BulletCount)
                     {
-                        //修正対象
-                        BulletChache chache = new BulletChache(QOrder.EmitEnemyBullet(bulletClip, arrayIndex,new Unity.Mathematics.float2()), bulletChangeClips[0].time, 0);
+                        BulletChache chache = new BulletChache(QOrder.EmitEnemyBullet(bulletClip, arrayIndex), bulletChangeClips[0].time, 0);
                         bulletChaches.Add(chache);
                         count++;
                     }
@@ -90,8 +90,7 @@ namespace BulletHell.Enemies
                 chache.time -= dt;
                 if (chache.time <= 0)
                 {
-                    //修正対象
-                    QOrder.UpdateBulletData(chache.indexes, bulletChangeClips[chache.clipCount].clip,new Unity.Mathematics.float2());
+                    QOrder.UpdateBulletData(chache.indexes, bulletChangeClips[chache.clipCount].clip);
                     bulletChaches.RemoveAt(i);
                 }
             }

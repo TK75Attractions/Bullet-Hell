@@ -10,10 +10,10 @@ namespace BulletHell.Bullets
     {
         public GameObject LASEROrigin;
         private IQuadGrid QGrid;
-        private PlayerController PController;
+        private IPlayerController PController;
 
         public void Init(
-            PlayerController pController,
+            IPlayerController pController,
             IQuadGrid quadGrid
         )
         {

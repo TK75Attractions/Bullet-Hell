@@ -228,6 +228,15 @@ public class QuadBulletStore : IQuadBulletStore
         return new();
     }
 
+    public (float2 position, float angle) GetEnemyOrbitsBulletData(int index)
+    {
+        if (!_enemiesOrbitBullets.IsCreated || index < 0 || index >= _enemiesOrbitBullets.Length)
+        {
+            throw new IndexOutOfRangeException($"Bullet index {index} is out of range.");
+        }
+        return (_enemiesOrbitBullets[index].position, _enemiesOrbitBullets[index].angle);
+    }
+
     public void Dispose()
     {
         if (_playerBullets.IsCreated) _playerBullets.Dispose();

@@ -7,9 +7,10 @@ namespace BulletHell.Bullets
     [CreateAssetMenu(menuName = "Bullet/BulletTypeDataBase", fileName = "BulletTypeDataBase")]
     public class BulletTypeDataBase : ScriptableObject, IBulletTypeDB
     {
-        public IBulletType[] types { get; private set; } = new IBulletType[0];
+        public BulletType[] types = new BulletType[0];
         public List<float2[]> bVerts { get; private set; } = new List<float2[]>();
 
+        public BulletType[] GetTypes() => types;   
 
         BulletTypeDataBase(IQuadOrderDirty _qOrder)
         {
@@ -32,7 +33,7 @@ namespace BulletHell.Bullets
                 }
                 if (max < types[i].typeId) max = types[i].typeId;
             }
-            IBulletType[] temp = new IBulletType[max + 1];
+            BulletType[] temp = new BulletType[max + 1];
 
             List<float2[]> tempVerts = new List<float2[]>(max + 1);
             for (int i = 0; i < max + 1; i++) tempVerts.Add(null);

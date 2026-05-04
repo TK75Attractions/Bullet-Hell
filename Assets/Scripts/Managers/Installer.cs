@@ -15,6 +15,7 @@ namespace BulletHell.App
     {
         IDBService DBService;
         AudioManager AManager;
+        IBulletPaternProvider bulletPaternProvider;
         PlayerController PController;
 
         StageSelectManager SSManager;
@@ -24,6 +25,8 @@ namespace BulletHell.App
         IGameStarter Starter;
 
         IInputService InputService;
+
+        IGameStateService GameStateService;
 
         IQuadGrid QuadGrid;
 
@@ -35,7 +38,7 @@ namespace BulletHell.App
 
         public GameObject PlayerObj;
 
-        public LaserEmitter LaserEmitter;
+        LaserEmitter LaserEmitter;
 
         [SerializeField] BulletTypeDataBase bulletTypeDB;
         [SerializeField] StageDataBase stageDB;
@@ -47,7 +50,7 @@ namespace BulletHell.App
 
             bulletTypeDB.Init();
             stageDB.Init();
-            seDB.Init();
+            if (seDB != null)seDB.Init();
             enemyDB.Init();
 
             DBService = new DBService(bulletTypeDB, stageDB, seDB, enemyDB);
@@ -55,9 +58,12 @@ namespace BulletHell.App
             AManager = transform.parent.Find("AManager").GetComponent<AudioManager>();
             AManager.Init(seDB);
 
+            bulletPaternProvider = new BulletBufferManager();
+            bulletPaternProvider.Init();
+
             InputService = new InputService();
 
-            
+            GameStateService = transform.parent.Find("GManager").GetComponent<GManager>();
             
             QuadGrid = new QuadGrid();
             QuadGrid.Init();
@@ -72,24 +78,28 @@ namespace BulletHell.App
             LaserEmitter = transform.parent.Find("GManager").GetComponent<LaserEmitter>();
             LaserEmitter.Init(PController,QuadGrid);
 
+            BulletCollisionService bulletCollisionService = new BulletCollisionService(DBService, QuadGrid);
+            LaserCollisionService laserCollisionService = new LaserCollisionService(LaserEmitter,QuadGrid);
+
             QuadOrder = transform.parent.Find("GManager").GetComponent<QuadOrder>();
-            QuadOrder.Init(DBService,PController, QuadGrid,QuadBulletStore, LaserEmitter);
+            QuadOrder.Init(DBService,PController, QuadGrid,QuadBulletStore, LaserEmitter, bulletPaternProvider, bulletCollisionService, laserCollisionService, GameStateService);
             
             
             QuadOrder.AwakeSetting();
 
-            
+            GManager = transform.parent.Find("GManager").GetComponent<GManager>();
+            EnemyService EService = transform.parent.Find("GManager").GetComponent<EnemyService>();
+            EService.Init(GManager.EnemyObj, QuadBulletStore, QuadOrder, DBService,  GameStateService);
 
             SReader = transform.parent.Find("GManager").GetComponent<StageReader>();
-            SReader.Initialize(AManager);
+            SReader.Initialize(AManager,EService,QuadOrder,bulletPaternProvider);
 
 
             SSManager = transform.parent.Find("Canvases").Find("StageCanvas").Find("StageBoxParent").GetComponent<StageSelectManager>();
-            GManager = transform.parent.Find("GManager").GetComponent<GManager>();
             Starter = transform.parent.Find("GManager").GetComponent<GManager>();
             SSManager.Init(DBService.SDB, Starter);
             
-            GManager.Construct(DBService,PController,SReader,SSManager, QuadOrder);
+            GManager.Construct(DBService,PController,SReader,SSManager, QuadOrder,QuadBulletStore,EService);
         }
     }
 }

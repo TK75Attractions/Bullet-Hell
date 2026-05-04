@@ -8,10 +8,10 @@ namespace BulletHell.Bullets
 [Serializable]
 public class QuadCell
 {
-    public List<IEnemy<IEnemyDB>> enemies = new List<IEnemy<IEnemyDB>>();
+    public List<IEnemy> enemies = new List<IEnemy>();
     public List<BulletData> enemyBullets = new List<BulletData>();
     public List<BulletData> playerBullets = new List<BulletData>();
-    public void AddEnemy(IEnemy<IEnemyDB> enemy) => enemies.Add(enemy);
+    public void AddEnemy(IEnemy enemy) => enemies.Add(enemy);
     public void ClearEnemies() => enemies.Clear();
 
     public void ClearAllBullets()
