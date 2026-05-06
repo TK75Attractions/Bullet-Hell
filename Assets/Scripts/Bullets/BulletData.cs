@@ -15,7 +15,7 @@ public struct BulletData
 
     public float startX;
     public float speed; //弾丸の速度
-    public float acccel;//弾丸の加速度(今は使ってない)
+    public float accel;//弾丸の加速度
     public float gravity;//弾丸にかかる重力加速度
     public float angleSpeed;//弾丸の角速度
 
@@ -63,7 +63,7 @@ public struct BulletData
         originPos = position;
         originVlc = _vlc;
         speed = _s;
-        acccel = _acc;
+        accel = _acc;
         gravity = _g;
         angleSpeed = _as;
         polarForm = _polar;
@@ -108,7 +108,7 @@ public struct BulletData
         originPos = _pos;
         originVlc = _vlc;
         speed = data.speed;
-        acccel = data.acccel;
+        accel = data.accel;
         gravity = data.gravity;
         angleSpeed = data.angleSpeed;
         polarForm = new float2(data.polarForm.x, data.polarForm.y + _theta);

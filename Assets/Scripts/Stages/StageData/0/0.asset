@@ -46,7 +46,7 @@ MonoBehaviour:
         y: 0
       startX: 3
       speed: 0
-      acccel: 0
+      accel: 0
       gravity: 0
       angleSpeed: 0
       polarForm:
@@ -94,7 +94,7 @@ MonoBehaviour:
           y: 0
         startX: 0
         speed: 5
-        acccel: 0
+        accel: 0
         gravity: 0
         angleSpeed: 0
         polarForm:
@@ -146,7 +146,7 @@ MonoBehaviour:
             y: 0
           startX: 0
           speed: 5
-          acccel: 0
+          accel: 0
           gravity: 0
           angleSpeed: 0
           polarForm:
@@ -166,7 +166,7 @@ MonoBehaviour:
             y: 0
             z: 0
             w: 0
-          typeId: 1
+          typeId: 0
           size: 1
           color:
             x: 0
@@ -183,15 +183,15 @@ MonoBehaviour:
       time: 1
       interval: 0
   bulletSpawners:
-  - index: 2
+  - index: 6
     count: 1
     interval: 0
     time: 4
     pos:
-      x: 5
+      x: 10
       y: 5
     originVlc:
-      x: 1
+      x: 0
       y: 0
     angle: 0
     color:
@@ -199,7 +199,7 @@ MonoBehaviour:
       y: 0
       z: 0
       w: 1
-    clipName: Line
+    clipName: Laser_Wave_Fast
   - index: 2
     count: 1
     interval: 0

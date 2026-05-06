@@ -7,8 +7,17 @@ public class PlayerController
 {
     public float2 pos;
     [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private float dashSpeed = 20f;
     private Transform playerTransform;
-    [SerializeField] private SpriteRenderer SR;
+    private SpriteRenderer SR;
+    public bool invincible
+    {
+        get => dash > 0;
+        private set { }
+    }
+    private float dash = 0;
+    private readonly float dashCooldown = 0.36f;
+
 
     public void Init(GameObject playerObj)
     {
@@ -25,6 +34,7 @@ public class PlayerController
     public void UpdatePos(float dt)
     {
         Move(dt);
+        Dash(dt);
         playerTransform.position = new Vector3(pos.x, pos.y, 0);
 
     }
@@ -40,60 +50,20 @@ public class PlayerController
         if (math.length(inputVector) > 0)
         {
             inputVector = math.normalize(inputVector);
-            pos += inputVector * moveSpeed * dt;
+            pos += inputVector * dt * (dash > 0 ? dashSpeed : moveSpeed);
         }
     }
 
+    private void Dash(float dt)
+    {
+        if (dash <= -dashCooldown * 1.4f && GManager.Control.IManager.buttonPressed)
+        {
+            dash = dashCooldown;
+        }
+
+        dash -= dt;
+    }
+
     #region Collision
-    public void UpShot()
-    {
-        NativeArray<BulletData> bullets = GetListOfUpBullets(pos);
-        GManager.Control.QOrder.AddPlayerBullets(bullets);
-        bullets.Dispose();
-    }
-
-    private NativeArray<BulletData> GetListOfUpBullets(float2 _pos)
-    {
-        NativeArray<BulletData> bullets = new NativeArray<BulletData>(6, Allocator.Temp);
-        BulletData b0 = CreatePlayerBullet(_pos + new float2(0.2f, 0.5f), new float4(0, 0, 0, 0));
-        BulletData b1 = CreatePlayerBullet(_pos + new float2(0.3f, 0.4f), new float4(0, 0, 0, 0));
-        BulletData b2 = CreatePlayerBullet(_pos + new float2(0.4f, 0.3f), new float4(-0.4f, 0, 0, 0));
-        BulletData b3 = CreatePlayerBullet(_pos + new float2(-0.2f, 0.5f), new float4(0, 0, 0, 0));
-        BulletData b4 = CreatePlayerBullet(_pos + new float2(-0.3f, 0.4f), new float4(0, 0, 0, 0));
-        BulletData b5 = CreatePlayerBullet(_pos + new float2(-0.4f, 0.3f), new float4(0.4f, 0, 0, 0));
-
-        bullets[0] = b0;
-        bullets[1] = b1;
-        bullets[2] = b2;
-        bullets[3] = b3;
-        bullets[4] = b4;
-        bullets[5] = b5;
-        return bullets;
-    }
-
-    private BulletData CreatePlayerBullet(float2 position, float4 polynomial)
-    {
-        return new BulletData(
-            position,
-            new float2(0, 0),
-            3f,
-            0f,
-            0f,
-            0,
-            new float2(1, math.PI / 2),
-            0f,
-            0f,
-            0f,
-            polynomial,
-            2,
-            new float4(1, 1, 1, 1)
-        );
-    }
-
-    public void DownShot()
-    {
-
-    }
-
     #endregion
 }

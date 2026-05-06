@@ -179,6 +179,12 @@ public class GManager : MonoBehaviour
         if (!ready) return;
         float t = Time.deltaTime;
         gameTime += t;
+
+        if (PController != null)
+        {
+            if (state == GameState.Playing) PController.UpdatePos(t);
+        }
+
         QOrder.QuadUpdate(t);
         IManager.UpdateInput();
         if (musicOn)
@@ -215,7 +221,7 @@ public class GManager : MonoBehaviour
             Debug.Log($"{beatTime}");
         }
 
-        if (PController != null) PController.UpdatePos(t);
+
         SReader.UpdateStage(t);
 
         SSManager.UpdateSelect(IManager.upPressedThisFrame, IManager.downPressedThisFrame, t, IManager.buttonPressedThisFrame);
