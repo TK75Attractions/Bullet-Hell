@@ -2,10 +2,20 @@ using UnityEngine;
 using Unity.Collections;
 using Unity.Mathematics;
 using System.Collections.Generic;
+using System;
+using System.IO;
 
 public class BulletClipManager
 {
-    private List<BulletBuffer> bulletBuffers = new List<BulletBuffer>();
+    [SerializeField] private List<BulletBuffer> bulletBuffers = new List<BulletBuffer>();
+
+    [Serializable]
+    private class BulletBufferJson
+    {
+        public string name;
+        public List<BulletData> bullets;
+        public bool isLaser;
+    }
 
     private class BulletBuffer
     {
@@ -28,7 +38,93 @@ public class BulletClipManager
         bulletBuffers.Add(Line());
         bulletBuffers.Add(LineLaser());
         bulletBuffers.Add(Circle());
+
+        ReadBulletBufferFromDirectory();
     }
+
+    public void ReadBulletBufferFromDirectory()
+    {
+        string directoryPath = Path.Combine(Application.dataPath, "BulletBuffers");
+        if (!Directory.Exists(directoryPath))
+        {
+            Debug.LogWarning($"Bullet buffer directory not found: {directoryPath}");
+            return;
+        }
+
+        string[] jsonFiles = Directory.GetFiles(directoryPath, "*.json", SearchOption.TopDirectoryOnly);
+        int loadedCount = 0;
+
+        for (int i = 0; i < jsonFiles.Length; i++)
+        {
+            BulletBuffer buffer = ReadBulletBufferFromFile(jsonFiles[i]);
+            if (buffer == null)
+            {
+                continue;
+            }
+
+            if (TryGetBulletClipIndex(buffer.name, out int existingIndex))
+            {
+                bulletBuffers[existingIndex] = buffer;
+            }
+            else
+            {
+                bulletBuffers.Add(buffer);
+            }
+
+            loadedCount++;
+        }
+
+        Debug.Log($"Loaded {loadedCount}/{jsonFiles.Length} bullet buffer json files from {directoryPath}");
+    }
+
+    private BulletBuffer ReadBulletBufferFromFile(string fileName)
+    {
+        string filePath = Path.IsPathRooted(fileName)
+            ? fileName
+            : Path.Combine(Application.dataPath, "BulletBuffers", fileName);
+
+        if (!File.Exists(filePath))
+        {
+            Debug.LogWarning($"Bullet buffer file not found: {filePath}");
+            return null;
+        }
+
+        try
+        {
+            string json = File.ReadAllText(filePath);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                Debug.LogWarning($"Bullet buffer json is empty: {filePath}");
+                return null;
+            }
+
+            BulletBufferJson data = JsonUtility.FromJson<BulletBufferJson>(json);
+            if (data == null)
+            {
+                Debug.LogWarning($"Failed to parse bullet buffer json: {filePath}");
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(data.name))
+            {
+                data.name = Path.GetFileNameWithoutExtension(filePath);
+            }
+
+            if (data.bullets == null)
+            {
+                Debug.LogWarning($"Bullet list is missing in json: {filePath}");
+                return null;
+            }
+
+            return new BulletBuffer(data.name, data.bullets, data.isLaser);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"Exception while reading bullet buffer file {filePath}: {ex.Message}");
+            return null;
+        }
+    }
+
 
     #region Bullet Clips
     private List<BulletBuffer> Rumia()
@@ -123,7 +219,7 @@ public class BulletClipManager
         BulletData b = new BulletData(
             new float2(0, 0),
             new float2(0, 0),
-            3,
+            20,
             0,
             0,
             0,
@@ -133,7 +229,8 @@ public class BulletClipManager
             0,
             new float4(0, 0, 0, 0),
             2,
-            new float4(1, 0.5f, 0, 1)
+            new float4(1, 0.5f, 0, 1),
+            10
         );
 
         return new BulletBuffer("LineLaser", new List<BulletData> { b }, true);

@@ -731,6 +731,11 @@ public class QuadOrder : MonoBehaviour
 
         JobHandle handle = collisionJob.Schedule(checkBullets.Length, 64);
         handle.Complete();
+
+        if (collisionHitFlag[0] != 0)
+        {
+            Debug.Log("Enemy bullet collision detected.");
+        }
     }
 
     public void UpdateLASERVerts(NativeList<float2> vertsSet, ref List<List<int>> quadVerts)
