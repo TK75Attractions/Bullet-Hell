@@ -478,11 +478,24 @@ public class QuadOrder : MonoBehaviour
             enemyBullets.Capacity = nextCapacity;
         }
 
-        List<BulletData> bullets = GManager.Control.BClipManager.GetBulletClip(spawner.index, spawner.pos, spawner.originVlc, spawner.angle, out bool isLaser);
+        List<BulletData> bullets = GManager.Control.BClipManager.GetBulletClip(
+            spawner.index,
+            spawner.pos,
+            spawner.originVlc,
+            spawner.angle,
+            out bool isLaser,
+            spawner.color,
+            spawner.speed,
+            spawner.size,
+            spawner.laserCount,
+            spawner.laserSpacing,
+            spawner.laserLength
+        );
 
         if (isLaser)
         {
-            allLASERs.AddRange(laserEmitter.EmitLASER(bullets, spawner.pos));
+            float laserWidth = spawner.laserWidth > 0f ? spawner.laserWidth : LaserEmitter.DefaultLaserWidth;
+            allLASERs.AddRange(laserEmitter.EmitLASER(bullets, spawner.pos, laserWidth));
             return;
         }
 

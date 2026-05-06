@@ -181,7 +181,18 @@ public class BulletClipManager
         return false;
     }
 
-    public List<BulletData> GetBulletClip(int index, float2 pPos, float2 _vlc, float angle, out bool isLaser)
+    public List<BulletData> GetBulletClip(
+        int index,
+        float2 pPos,
+        float2 _vlc,
+        float angle,
+        out bool isLaser,
+        float4 color = new float4(),
+        float speedOverride = 0f,
+        float sizeOverride = 0f,
+        int laserCount = 1,
+        float laserSpacing = 0f,
+        float laserLengthOverride = 0f)
     {
         isLaser = false;
         if (bulletBuffers.Count == 0)
@@ -193,15 +204,34 @@ public class BulletClipManager
         if (index >= 0 && index < bulletBuffers.Count)
         {
             isLaser = bulletBuffers[index].isLaser;
-            List<BulletData> bullets = bulletBuffers[index].bullets;
+            List<BulletData> templateBullets = bulletBuffers[index].bullets;
+            float angleRad = angle / 180f * math.PI;
+            float4 tint = NormalizeColor(color);
+            int parallelCount = isLaser ? math.max(1, laserCount) : 1;
+            float2 parallelNormal = new float2(-math.sin(angleRad), math.cos(angleRad));
+            float parallelCenter = (parallelCount - 1) * 0.5f;
+            List<BulletData> bullets = new List<BulletData>(templateBullets.Count * parallelCount);
 
-            for (int i = 0; i < bullets.Count; i++)
+            for (int parallelIndex = 0; parallelIndex < parallelCount; parallelIndex++)
             {
-                BulletData b = bullets[i];
-                float2 dis = -b.startPos;
-                b = new BulletData(b, pPos, _vlc, angle / 180 * math.PI + b.polarForm.y, b.color);
-                b.startPos -= dis;
-                bullets[i] = b;
+                float2 spawnPos = pPos;
+                if (isLaser && laserSpacing != 0f)
+                {
+                    spawnPos += parallelNormal * ((parallelIndex - parallelCenter) * laserSpacing);
+                }
+
+                for (int i = 0; i < templateBullets.Count; i++)
+                {
+                    BulletData source = ApplyOverrides(
+                        templateBullets[i],
+                        speedOverride,
+                        sizeOverride,
+                        isLaser ? laserLengthOverride : 0f
+                    );
+                    BulletData bullet = new BulletData(source, spawnPos, _vlc, angleRad + source.polarForm.y, tint);
+                    bullet.startPos = source.startPos;
+                    bullets.Add(bullet);
+                }
             }
 
             return bullets;
@@ -211,5 +241,22 @@ public class BulletClipManager
             Debug.LogError($"Bullet clip index out of range: {index}");
             return default;
         }
+    }
+
+    private static BulletData ApplyOverrides(BulletData source, float speedOverride, float sizeOverride, float laserLengthOverride)
+    {
+        if (speedOverride > 0f) source.speed = speedOverride;
+        if (laserLengthOverride > 0f) source.size = laserLengthOverride;
+        else if (sizeOverride > 0f) source.size = sizeOverride;
+        return source;
+    }
+
+    private static float4 NormalizeColor(float4 color)
+    {
+        if (color.x == 0f && color.y == 0f && color.z == 0f && color.w == 0f)
+        {
+            return new float4(1f, 1f, 1f, 1f);
+        }
+        return color;
     }
 }

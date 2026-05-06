@@ -19,9 +19,7 @@ public class StageReader : MonoBehaviour
     private struct BulletSpawnEvent
     {
         public float time;
-        public float2 pos;
-        public float angle;
-        public int index;
+        public BulletSpawner spawner;
     }
 
     public async Task<bool> Init(StageData data)
@@ -30,6 +28,7 @@ public class StageReader : MonoBehaviour
         time = 0f;
         enemyCount = 0;
         bulletCount = 0;
+        spawnEvents.Clear();
         if (GManager.Control.AManager != null && GManager.Control.BManager != null)
         {
             AudioSource bgmSource = await GManager.Control.AManager.PlayBGM(stageData.audioClip);
@@ -59,12 +58,12 @@ public class StageReader : MonoBehaviour
 
             for (int k = 0; k < spawner.count; k++)
             {
+                BulletSpawner eventSpawner = spawner;
+                eventSpawner.time = spawner.time + k * spawner.interval;
                 BulletSpawnEvent spawnEvent = new BulletSpawnEvent
                 {
-                    time = spawner.time + k * spawner.interval,
-                    pos = spawner.pos,
-                    angle = spawner.angle,
-                    index = spawner.index
+                    time = eventSpawner.time,
+                    spawner = eventSpawner
                 };
                 spawnEvents.Add(spawnEvent);
             }
@@ -91,15 +90,14 @@ public class StageReader : MonoBehaviour
             }
         }
 
-        if (stageData.bulletSpawners.Count > bulletCount)
+        while (spawnEvents.Count > bulletCount)
         {
-            if (stageData.bulletSpawners[bulletCount].time <= time)
-            {
-                BulletSpawner spawner = stageData.bulletSpawners[bulletCount];
-                GManager.Control.QOrder.AddEnemyBullets(spawner);
-                Debug.Log($"Spawned bullet: {spawner.clipName}");
-                bulletCount++;
-            }
+            if (spawnEvents[bulletCount].time > time) break;
+
+            BulletSpawner spawner = spawnEvents[bulletCount].spawner;
+            GManager.Control.QOrder.AddEnemyBullets(spawner);
+            Debug.Log($"Spawned bullet: {spawner.clipName}");
+            bulletCount++;
         }
 
     }
