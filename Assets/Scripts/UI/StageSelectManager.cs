@@ -4,13 +4,16 @@ using UnityEngine;
 using BulletHell.App;
 using BulletHell.Stages;
 using BulletHell.UI.Core;
+using BulletHell.Core.Services;
+using BulletHell.Core;
 
 namespace BulletHell.UI.StageSelect
     {
-    public class StageSelectManager : MonoBehaviour
+    public class StageSelectManager : MonoBehaviour,IUpdatable
     {
         private IGameStarter starter;
         private IStageDB SDB;
+        private IInputService IManager;
         private CanvasGroup variableCG;
         private CanvasGroup staticCG;
         private DifficultyBar difficultyBar;
@@ -30,10 +33,11 @@ namespace BulletHell.UI.StageSelect
 
         private bool isTransitioning = false;
 
-        public void Init(IStageDB stageDB, IGameStarter gameStarter)
+        public void Init(IStageDB stageDB, IGameStarter gameStarter, IInputService IManager)
         {
             starter = gameStarter;
             SDB = stageDB;
+            this.IManager = IManager;
 
             variableCG = GetComponent<CanvasGroup>();
             staticCG = transform.parent.parent.Find("StaticCanvas").Find("StageBoxParent").GetComponent<CanvasGroup>();
@@ -53,8 +57,12 @@ namespace BulletHell.UI.StageSelect
 
         }
 
-        public void UpdateSelect(bool up, bool down, float dt, bool button)
+        public void Tick(float dt)
         {
+            bool up = IManager.upPressedThisFrame;
+            bool down = IManager.downPressedThisFrame;
+            bool button = IManager.buttonPressedThisFrame;
+
             scroll.UpdateScroll(dt);
 
             switch (state)

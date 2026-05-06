@@ -3381,9 +3381,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.07333335
+    x: 0.06809816
     y: 0
-    width: 0.8533333
+    width: 0.8638037
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -4382,6 +4382,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5e8329688eb15a4da48185a562da64d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Installer
+  EnemyObj: {fileID: 3602127599334733260, guid: 4feb5d1ec2b44f94c8ddc31c3594024a, type: 3}
   PlayerObj: {fileID: 3602127599334733260, guid: 79cef28de94e46342ace55bfe592f674, type: 3}
   stageDB: {fileID: 11400000, guid: 196f8cc18dbd6c643a72049b9d4c923b, type: 2}
   seDB: {fileID: 0}
@@ -5161,9 +5162,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.07333335
+    x: 0.06809816
     y: 0
-    width: 0.8533333
+    width: 0.8638037
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -5292,9 +5293,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.07333335
+    x: 0.06809816
     y: 0
-    width: 0.8533333
+    width: 0.8638037
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -5415,6 +5416,7 @@ GameObject:
   - component: {fileID: 1890939116}
   - component: {fileID: 1890939117}
   - component: {fileID: 1890939118}
+  - component: {fileID: 1890939119}
   m_Layer: 0
   m_Name: GManager
   m_TagString: Untagged
@@ -5487,19 +5489,62 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84217eca9edf94a4a9bcdade4a345201, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GManager
-  EnemyObj: {fileID: 3602127599334733260, guid: 4feb5d1ec2b44f94c8ddc31c3594024a, type: 3}
   SReader: {fileID: 0}
-  BManager: {fileID: 0}
   SSManager: {fileID: 0}
-  BRS: {fileID: 1890939112}
-  gameTime: 0
   beatTime: 0
   ready: 0
   musicOn: 0
   testEvent:
     bullets: 
     transitions:
-    - time: 0
+    - bulletData:
+        position:
+          x: 0
+          y: 0
+        velocity:
+          x: 0
+          y: 0
+        angle: 0
+        originPos:
+          x: 0
+          y: 0
+        originVlc:
+          x: 0
+          y: 0
+        startX: 0
+        speed: 0
+        acccel: 0
+        gravity: 0
+        angleSpeed: 0
+        polarForm:
+          x: 0
+          y: 0
+        radiusVlc: 0
+        thetaVlc: 0
+        startPos:
+          x: 0
+          y: 0
+        nowCalculateVlc:
+          x: 0
+          y: 0
+        nowCalculateX: 0
+        polynomial:
+          x: 0
+          y: 0
+          z: 0
+          w: 0
+        typeId: 0
+        size: 0
+        color:
+          x: 0
+          y: 0
+          z: 0
+          w: 0
+        areaNum: 0
+        time: 0
+        random: 0
+        isActive: 0
+      time: 0
 --- !u!114 &1890939116
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5540,6 +5585,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3093575ddf38a6e438bb5f3ddfa32ac3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletHell.Enemies.EnemyService
+--- !u!114 &1890939119
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1890939110}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2ed47862bcc8546b3366cdc648497f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BulletHell.App.UpdateService
+  gameTime: 0
 --- !u!1 &1893457097
 GameObject:
   m_ObjectHideFlags: 0
@@ -5974,9 +6032,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.07333335
+    x: 0.06809816
     y: 0
-    width: 0.8533333
+    width: 0.8638037
     height: 1
   near clip plane: 0.3
   far clip plane: 1000

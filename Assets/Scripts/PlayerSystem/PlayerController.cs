@@ -5,11 +5,12 @@ using Unity.Collections;
 
 using BulletHell.Bullets;
 using BulletHell.Core.Services;
+using BulletHell.Core;
 
 namespace BulletHell.Player
 {
     [Serializable]
-    public class PlayerController : IPlayerController
+    public class PlayerController : IPlayerController, IUpdatable
     {
         private readonly IInputService InputService;
         private readonly IQuadBulletStore QBulletStore;
@@ -37,7 +38,7 @@ namespace BulletHell.Player
         }
 
         // Update is called once per frame
-        public void UpdatePos(float dt)
+        public void Tick(float dt)
         {
             Move(dt);
             playerObj.transform.position = new Vector3(pos.x, pos.y, 0);

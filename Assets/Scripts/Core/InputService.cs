@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using BulletHell.Core;
 
 namespace BulletHell.Core.Services
 {
@@ -25,7 +26,7 @@ namespace BulletHell.Core.Services
             }
         }
 
-        public void UpdateInput()
+        public void Tick(float dt)
         {
             if (isDebugMode)
             {

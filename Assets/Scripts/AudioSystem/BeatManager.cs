@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
+using BulletHell.Core;
 
 namespace BulletHell.Audio
 {
-    public class BeatManager : MonoBehaviour
+    public class BeatManager : MonoBehaviour, IUpdatable
     {
+        private IUserSettingService userSetting;
         
         [SerializeField] private readonly List<int> beatSamples = new();
         public float beatValueSin;
@@ -17,6 +19,11 @@ namespace BulletHell.Audio
         [SerializeField] private int offsetSamples = 0;
         [SerializeField] private float debug;
         [SerializeField] private float toleranceTime = 0.5f; // Time window for beat detection
+
+        public void Init(IUserSettingService userSetting)
+        {
+            this.userSetting = userSetting;
+        }
 
         public void SetBeat(AudioClip clip, List<IMusicEvent> musicEvents, double scheduledDspTime, float delayTime)
         {
@@ -67,9 +74,9 @@ namespace BulletHell.Audio
             if (ready) nextBeatSample = beatSamples[0];
         }
 
-        public void UpdateBeat()
+        public void Tick(float dt)
         {
-            if (!ready) return;
+            if (!ready || !userSetting.GetMusicOn()) return;
 
             int currentSample = GetCurrentSample();
 

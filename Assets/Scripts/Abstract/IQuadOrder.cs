@@ -12,7 +12,6 @@ namespace BulletHell.Bullets
     public void AwakeSetting();
 
     public void MarkCollisionDataDirty();
-    public void QuadUpdate(float _dt);
 
     public List<int> AddEnemyHomingBullets(NativeArray<BulletData> newBullets, float2 fromPos);
     public List<int> AddEnemyBullets(NativeArray<BulletData> newBullets, float2 fromPos = new float2());

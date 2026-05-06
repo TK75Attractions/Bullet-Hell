@@ -8,16 +8,20 @@ using BulletHell.Audio;
 using BulletHell.App;
 using BulletHell.Bullets;
 using BulletHell.Enemies;
+using BulletHell.Core;
 
 
 namespace BulletHell.Stages
 {
-    public class StageReader : MonoBehaviour
+    public class StageReader : MonoBehaviour, IUpdatable
     {
         private AudioManager AManager;
         private IEnemyService EController;
         private IQuadOrder QOrder;
         private IBulletPaternProvider bulletPaternProvider;
+        private BeatManager BManager;
+        private IUserSettingService userSetting;
+
         private const double BgmLeadTime = 0.2d;
         [SerializeField] private StageData stageData;
         [SerializeField] private List<BulletSpawnEvent> spawnEvents = new List<BulletSpawnEvent>();
@@ -35,12 +39,21 @@ namespace BulletHell.Stages
             public int index;
         }
 
-        public void Initialize(AudioManager audioManager, IEnemyService enemyController, IQuadOrder quadOrder, IBulletPaternProvider bulletPaternProvider)
+        public void Initialize(
+            AudioManager audioManager,
+            IEnemyService enemyController,
+            IQuadOrder quadOrder,
+            IBulletPaternProvider bulletPaternProvider,
+            BeatManager BManager  ,
+            IUserSettingService userSetting  
+        )
         {
             AManager = audioManager;
             EController = enemyController;
             QOrder = quadOrder;
             this.bulletPaternProvider = bulletPaternProvider;
+            this.BManager = BManager;
+            this.userSetting = userSetting;
         }
 
         public async Task<bool> Init(StageData data)
@@ -49,13 +62,13 @@ namespace BulletHell.Stages
             time = 0f;
             enemyCount = 0;
             bulletCount = 0;
-            if (AManager != null && GManager.Control.BManager != null)
+            if (AManager != null && BManager != null)
             {
                 AudioSource bgmSource = await AManager.PlayBGM(stageData.audioClip);
                 double scheduledDspTime = AudioSettings.dspTime + BgmLeadTime;
                 bgmSource.PlayScheduled(scheduledDspTime);
-                GManager.Control.BManager.SetBeat(stageData.audioClip, stageData.GetMusicEvents(), scheduledDspTime, stageData.delayTime);
-                GManager.Control.musicOn = true;
+                BManager.SetBeat(stageData.audioClip, stageData.GetMusicEvents(), scheduledDspTime, stageData.delayTime);
+                userSetting.TurnMusic(true);
             }
 
             stageData.enemySpawners.Sort((a, b) => a.time.CompareTo(b.time));
@@ -75,7 +88,7 @@ namespace BulletHell.Stages
                     Debug.LogError($"Bullet clip not found: {spawner.clipName}");
                     continue;
                 }
-
+                spawnEvents.Clear();
                 for (int k = 0; k < spawner.count; k++)
                 {
                     BulletSpawnEvent spawnEvent = new BulletSpawnEvent
@@ -94,7 +107,7 @@ namespace BulletHell.Stages
             return true;
         }
 
-        public void UpdateStage(float dt)
+        public void Tick(float dt)
         {
             if (stageData == null || !isReady) return;
             time += dt;

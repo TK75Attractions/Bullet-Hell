@@ -4,12 +4,15 @@ using Unity.Mathematics;
 using System.Runtime.InteropServices;
 
 using BulletHell.Database;
+using BulletHell.Core;
 
 namespace BulletHell.Bullets
 {
-    public class BulletRenderSystem : MonoBehaviour
+    public class BulletRenderSystem : MonoBehaviour,ILateUpdatable
     {
         private IBulletTypeDB BTDB;
+        private IQuadBulletStore quadBulletStore;
+
         public Mesh quadMesh;
         public Material material;
 
@@ -26,9 +29,10 @@ namespace BulletHell.Bullets
 
 
         #region //BulletRenderData Struct
-        public void Init(IBulletTypeDB bulletTypeDB)
+        public void Init(IBulletTypeDB bulletTypeDB,IQuadBulletStore quadBulletStore)
         {
             BTDB = bulletTypeDB;
+            this.quadBulletStore = quadBulletStore;
 
             Debug.Log("Initializing BulletRenderSystem...");
             InitTextureArray();
@@ -40,6 +44,25 @@ namespace BulletHell.Bullets
                 Allocator.Persistent
             );
         }
+
+        public void LateTick()
+        {
+            int enemyCount = quadBulletStore.GetEnemyBulletCount();
+            int playerCount = quadBulletStore.GetPlayerBulletCount();
+            //Debug.Log($"Enemy Bullet Count: {enemyCount}, Player Bullet Count: {playerCount}");
+
+            if (enemyCount > 0 || playerCount > 0)
+            {
+                BuildRenderData(
+                    quadBulletStore.GetEnemyBullets(),
+                    enemyCount,
+                    quadBulletStore.GetPlayerBullets(),
+                    playerCount
+                );
+                Draw();
+            }
+        }
+
         private void InitTextureArray()
         {
             Texture2D[] textures = BTDB.GetBaseTextures();

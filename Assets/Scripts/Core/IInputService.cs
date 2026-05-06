@@ -1,6 +1,6 @@
 namespace BulletHell.Core.Services
 {
-    public interface IInputService
+    public interface IInputService : IUpdatable
     {
         public bool isDebugMode { get; }
         public bool buttonPressed { get; }
@@ -15,6 +15,5 @@ namespace BulletHell.Core.Services
         public bool rightPressedThisFrame { get; }
 
         public void Init();
-        public void UpdateInput();
     }
 }

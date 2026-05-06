@@ -8,7 +8,7 @@ using BulletHell.Database;
 
 namespace BulletHell.Enemies
 {
-    public class EnemyService : MonoBehaviour, IEnemyService
+    public class EnemyService : MonoBehaviour, IEnemyService,IUpdatable
     {
         private GameObject EnemyObj; 
         private IGameStateService state; //修正対象
@@ -54,7 +54,7 @@ namespace BulletHell.Enemies
             }
         }
 
-        public void UpdateEnemy(float dt)
+        public void Tick(float dt)
         {
             if (state.state != GameState.Playing) return;
             

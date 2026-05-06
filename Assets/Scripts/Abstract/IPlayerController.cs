@@ -8,7 +8,6 @@ namespace BulletHell.Player
 
         void Init(GameObject playerObj);
         void Start();
-        void UpdatePos(float dt);
         void UpShot();
         void DownShot();
     }

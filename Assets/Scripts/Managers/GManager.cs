@@ -4,93 +4,48 @@ using Unity.Mathematics;
 using UnityEngine.InputSystem;
 
 using BulletHell.Bullets;
-using BulletHell.Enemies;
-using BulletHell.Player;
 using BulletHell.Database;
 using BulletHell.Core;
 using BulletHell.Core.Services;
-using BulletHell.Core.Math;
-using BulletHell.Audio;
 using BulletHell.Stages;
-using BulletHell.UI.StageSelect;
 
 namespace BulletHell.App
 {
-    public class GManager : MonoBehaviour,IGameStarter,IGameStateService
+    public class GManager : MonoBehaviour,IGameStarter,IGameStateService,IUpdatable
     {
-        static public GManager Control;
 
         public IDBService DBService { get; private set; }
 
         public GameState state { get; set; } = GameState.Title;
-        
-        public GameObject EnemyObj;
-        public IPlayerController PController;
 
-        public IInputService IManager;
-        public StageReader SReader;
-        private IEnemyService enemyService;
-
-        public BeatManager BManager;
-        public PerlinRandom PRandom;
-        public StageSelectManager SSManager;
-        public BulletBufferManager BClipManager;
+        private IInputService IManager;
+        private StageReader SReader;
         private IQuadOrder QOrder;
-        private IQuadBulletStore QBulletStore;
 
-        public BulletRenderSystem BRS;
-
-        public float gameTime;
-        public float beatTime;
+        private float beatTime;
         public bool ready = false;
-
-        public bool musicOn = false;
 
         private readonly BulletData[] spawnBuffer = new BulletData[6];
 
         public BulletEvent testEvent = new BulletEvent();
+
         public void Construct(
             IDBService dbService,
-            IPlayerController playerController,
             StageReader stageReader,
-            StageSelectManager stageSelectManager,
             IQuadOrder quadOrder,
-            IQuadBulletStore quadBulletStore,
-            IEnemyService enemyService,
             IInputService inputService
             )
         {
             DBService = dbService;
-            PController = playerController;
             SReader = stageReader;
-            SSManager = stageSelectManager;
-            this.enemyService = enemyService;
             QOrder = quadOrder;
-            QBulletStore = quadBulletStore;
             IManager = inputService;
-
-            BRS = GetComponent<BulletRenderSystem>();
-            BRS.Init(DBService.BTDB);
 
             ready = true;
         }
 
         public void Awake()
-        {
-            if (Control == null) Control = this;
-            else
-            {
-                Destroy(this.gameObject);
-                return;
-            }
-            
-            BManager = transform.parent.Find("BManager").GetComponent<BeatManager>();
-
-            BClipManager = new();
-            BClipManager.Init();
-
-            PRandom = new PerlinRandom();
-
+        {   
             InitSpawnBuffer();
             state = GameState.Title;
         }
@@ -105,19 +60,8 @@ namespace BulletHell.App
             spawnBuffer[5] = new BulletData(new float2(5, 5), new float2(1, 0), 2f, 0, 0, 0, new float2(1, 5 * math.PI / 3), 0, 2, 0, new float4(1, 0, 0, 0), 0, new float4(1, 0, 0, 1));
         }
 
-        public void Update()
+        public void Tick(float dt)
         {
-            if (!ready) return;
-            float t = Time.deltaTime;
-            gameTime += t;
-            QOrder.QuadUpdate(t);
-            IManager.UpdateInput();
-            enemyService.UpdateEnemy(t);
-
-            if (musicOn)
-            {
-                BManager.UpdateBeat();
-            }
 
             if (Keyboard.current != null && Keyboard.current.aKey.wasPressedThisFrame)
             {
@@ -147,39 +91,10 @@ namespace BulletHell.App
             {
                 Debug.Log($"{beatTime}");
             }
-
-            if (state == GameState.Playing)
-            {
-                Debug.Log("Update During Playing");
-            }
-
-            if (PController != null) PController.UpdatePos(t);
-            SReader.UpdateStage(t);
-
-            SSManager.UpdateSelect(IManager.upPressedThisFrame, IManager.downPressedThisFrame, t, IManager.buttonPressedThisFrame);
-        }
-
-        public void LateUpdate()
-        {
-            if (!ready) return;
-            int enemyCount = QBulletStore.GetEnemyBulletCount();
-            int playerCount = QBulletStore.GetPlayerBulletCount();
-            //Debug.Log($"Enemy Bullet Count: {enemyCount}, Player Bullet Count: {playerCount}");
-
-            if (enemyCount > 0 || playerCount > 0)
-            {
-                BRS.BuildRenderData(
-                    QBulletStore.GetEnemyBullets(),
-                    enemyCount,
-                    QBulletStore.GetPlayerBullets(),
-                    playerCount
-                );
-                BRS.Draw();
-            }
         }
 
 
-        public float GetAngleDeg(float x, float y)
+        float GetAngleDeg(float x, float y)
         {
             double rad = Math.Atan2(y, x);
             double deg = rad * 180.0 / Math.PI;

@@ -16,7 +16,7 @@ namespace BulletHell.Bullets
 {
 
 [Serializable]
-public class QuadOrder : MonoBehaviour, IQuadOrderDirty, IQuadOrder
+public class QuadOrder : MonoBehaviour, IQuadOrderDirty, IQuadOrder,IUpdatable
 {
     private IDBService DBService;
     private IPlayerController PController;
@@ -24,7 +24,7 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty, IQuadOrder
     private IQuadBulletStore quadBulletStore;
     private IGameStateService state; //修正対象
     private IBulletPaternProvider BClipManager;
-    private BulletUpdateService bulletUpdateService = new BulletUpdateService();
+    private BulletUpdateService bulletUpdateService;
     private BulletCollisionService bulletCollisionService;
     private LaserCollisionService laserCollisionService;
 
@@ -72,7 +72,8 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty, IQuadOrder
         IBulletPaternProvider bulletPaternProvider,
         BulletCollisionService bulletCollisionService,
         LaserCollisionService laserCollisionService,
-        IGameStateService state
+        IGameStateService state,
+        BulletUpdateService bulletUpdateService
     )
     {
         DBService = dbService;
@@ -83,6 +84,7 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty, IQuadOrder
         this.BClipManager = bulletPaternProvider;
         this.bulletCollisionService = bulletCollisionService;
         this.laserCollisionService = laserCollisionService;
+        this.bulletUpdateService = bulletUpdateService;
         this.state = state;
     }
 
@@ -140,7 +142,7 @@ public class QuadOrder : MonoBehaviour, IQuadOrderDirty, IQuadOrder
         public int Compare(BulletData x, BulletData y) => x.areaNum.CompareTo(y.areaNum);
     }
 
-    public void QuadUpdate(float _dt)
+    public void Tick(float _dt)
     {
         bool hasEnemyBullets = enemyBullets.IsCreated && enemyBullets.Length > 0;
         bool hasPlayerBullets = playerBullets.IsCreated && playerBullets.Length > 0;
