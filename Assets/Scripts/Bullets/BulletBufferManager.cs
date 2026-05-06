@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System;
 using System.IO;
 
-public class BulletClipManager
+public class BulletBufferManager
 {
     [SerializeField] private List<BulletBuffer> bulletBuffers = new List<BulletBuffer>();
 
@@ -196,7 +196,7 @@ public class BulletClipManager
             BulletData b = new BulletData(
                 new float2(0, 0),
                 new float2(0, 0),
-                3 + 0.1f * i,
+                3,
                 0,
                 0,
                 0,

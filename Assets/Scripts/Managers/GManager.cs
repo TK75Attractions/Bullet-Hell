@@ -35,7 +35,7 @@ public class GManager : MonoBehaviour
     public BeatManager BManager;
     public PerlinRandom PRandom;
     public StageSelectManager SSManager;
-    public BulletClipManager BClipManager;
+    public BulletBufferManager BClipManager;
     public QuadOrder QOrder;
     public BulletTypeDataBase BTDB;
 
@@ -124,7 +124,7 @@ public class GManager : MonoBehaviour
         if (Control == null) Control = this;
         else
         {
-            Destroy(this.gameObject);
+            Destroy(this.transform.parent.gameObject);
             return;
         }
 

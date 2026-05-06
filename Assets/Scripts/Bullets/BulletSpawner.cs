@@ -10,8 +10,8 @@ public struct BulletSpawner
     public int count;
     public float interval;
     public float time;
-    public float2 pos;
-    public float2 originVlc;
+    public float2 pos;//まじでたくさんつかう
+    public float2 originVlc;// あんまつかわないで
     public float angle;
     public float4 color;
     public string clipName;
