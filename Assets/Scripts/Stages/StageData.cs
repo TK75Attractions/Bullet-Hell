@@ -21,6 +21,7 @@ public class StageData : ScriptableObject
         public float BPM;
         public List<int> beatTimings;
         public int measure;
+        public int barStartOffsetBeats = 0;
 
         public void Refresh()
         {

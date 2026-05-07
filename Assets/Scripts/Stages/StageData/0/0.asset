@@ -18,18 +18,34 @@ MonoBehaviour:
   videoClip: {fileID: 0}
   audioClip: {fileID: 8300000, guid: 3b5a4854b36da314cb4813d08d86f39d, type: 3}
   MusicEvents:
-  - barCount: 16
-    BPM: 194
-    beatTimings: 0000000003000000
+  - barCount: 8
+    BPM: 195
+    beatTimings: 000000000000000000000000
     measure: 5
-  delayTime: 0
+    barStartOffsetBeats: 2
+  - barCount: 32
+    BPM: 195
+    beatTimings: 000000000000000000000000
+    measure: 3
+    barStartOffsetBeats: 2
+  - barCount: 16
+    BPM: 195
+    beatTimings: 000000000100000002000000
+    measure: 3
+    barStartOffsetBeats: 2
+  - barCount: 16
+    BPM: 195
+    beatTimings: 00000000020000000400000006000000
+    measure: 8
+    barStartOffsetBeats: 2
+  delayTime: -0.1
   stageDescription: 000
   enemySpawners:
   - id: 0
-    count: 1
+    count: 5
     interval: 0.7
     time: 0
-    bulletCount: 1
+    bulletCount: 6
     orbit:
       position:
         x: 0
@@ -166,7 +182,7 @@ MonoBehaviour:
             y: 0
             z: 0
             w: 0
-          typeId: 0
+          typeId: 3
           size: 1
           color:
             x: 0

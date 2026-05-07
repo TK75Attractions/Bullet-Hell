@@ -50,7 +50,7 @@ public class BulletRenderSystem : MonoBehaviour
             TextureFormat.RGBA32,
             false
         );
-        textureArray.filterMode = FilterMode.Bilinear;
+        textureArray.filterMode = FilterMode.Point;
         textureArray.wrapMode = TextureWrapMode.Clamp;
 
         for (int i = 0; i < textures.Length; i++)
@@ -84,7 +84,7 @@ public class BulletRenderSystem : MonoBehaviour
             TextureFormat.RGBA32,
             false
         );
-        maskArray.filterMode = FilterMode.Bilinear;
+        maskArray.filterMode = FilterMode.Point;
         maskArray.wrapMode = TextureWrapMode.Clamp;
 
         for (int i = 0; i < maskTextures.Length; i++)

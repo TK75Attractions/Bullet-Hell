@@ -45,10 +45,16 @@ public class GManager : MonoBehaviour
     public BulletRenderSystem BRS;
 
     public float gameTime;
-    public float beatTime;
     public bool ready = false;
 
     public bool musicOn = false;
+    //
+
+    [SerializeField] private bool enableBeatDiagnostics = false;
+    [SerializeField] private float diagnosticUpdateInterval = 0.5f;
+    private float diagnosticTimer = 0f;
+
+    //
 
     private readonly BulletData[] spawnBuffer = new BulletData[6];
 
@@ -190,6 +196,17 @@ public class GManager : MonoBehaviour
         if (musicOn)
         {
             BManager.UpdateBeat();
+
+            // Update diagnostics
+            if (enableBeatDiagnostics)
+            {
+                diagnosticTimer += t;
+                if (diagnosticTimer >= diagnosticUpdateInterval)
+                {
+                    Debug.Log(BManager.GetDiagnosticInfo());
+                    diagnosticTimer = 0f;
+                }
+            }
         }
 
         if (Keyboard.current != null && Keyboard.current.aKey.wasPressedThisFrame)
@@ -214,11 +231,6 @@ public class GManager : MonoBehaviour
         {
             state = GameState.ChoosingStage;
             // Transition to stage selection screen here
-        }
-
-        if (Keyboard.current != null && Keyboard.current.sKey.wasPressedThisFrame)
-        {
-            Debug.Log($"{beatTime}");
         }
 
 

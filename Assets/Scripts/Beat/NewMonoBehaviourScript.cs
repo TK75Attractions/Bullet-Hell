@@ -1,5 +1,4 @@
 using UnityEngine;
-using Unity.Mathematics;
 
 public class NewMonoBehaviourScript : MonoBehaviour
 {
@@ -14,8 +13,13 @@ public class NewMonoBehaviourScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (GManager.Control == null || GManager.Control.BManager == null)
+        {
+            return;
+        }
 
-        transform.localScale = Vector3.one * (1 + GManager.Control.BManager.beatValueSin);
-        spriteRenderer.color = new Color(1, 1 - GManager.Control.BManager.beatValueSin, 1 - GManager.Control.BManager.beatValueSin, 1);
+        float beat = GManager.Control.BManager.BeatValueSin;
+        transform.localScale = Vector3.one * (1 + beat);
+        spriteRenderer.color = new Color(1, 1 - beat, 1 - beat, 1);
     }
 }
