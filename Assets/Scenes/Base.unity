@@ -303,8 +303,8 @@ Transform:
   m_GameObject: {fileID: 47708256}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -12.202725, z: 0}
-  m_LocalScale: {x: 15.619489, y: 15.619489, z: 0}
+  m_LocalPosition: {x: 0, y: -25, z: 0}
+  m_LocalScale: {x: 32, y: 32, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -433,8 +433,8 @@ Transform:
   m_GameObject: {fileID: 62090605}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 12.202725, z: 0}
-  m_LocalScale: {x: 15.619489, y: 15.619489, z: 0}
+  m_LocalPosition: {x: 0, y: 25, z: 0}
+  m_LocalScale: {x: 32, y: 32, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -2335,10 +2335,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Tsukukoma Atraction
+  m_text: "\u3042\u3068\u3089\u304F\n"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 5302535af1044152a457ed104f1f4b91, type: 2}
-  m_sharedMaterial: {fileID: 2164040, guid: 5302535af1044152a457ed104f1f4b91, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 375bfb4552cf4bc46bcde72de423e07a, type: 2}
+  m_sharedMaterial: {fileID: -2749320357896708796, guid: 375bfb4552cf4bc46bcde72de423e07a, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -2683,8 +2683,8 @@ Transform:
   m_GameObject: {fileID: 1068602616}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 12.202725, y: 0, z: 0}
-  m_LocalScale: {x: 8.785962, y: 8.785962, z: 0}
+  m_LocalPosition: {x: 25, y: 0, z: 0}
+  m_LocalScale: {x: 18, y: 18, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -3379,9 +3379,9 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
-    y: 0.2559455
+    y: 0
     width: 1
-    height: 0.48810902
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -5222,9 +5222,9 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
-    y: 0.2559455
+    y: 0
     width: 1
-    height: 0.48810902
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -5353,9 +5353,9 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
-    y: 0.2559455
+    y: 0
     width: 1
-    height: 0.48810902
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -5797,8 +5797,8 @@ Transform:
   m_GameObject: {fileID: 1928468751}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -12.202725, y: 0, z: 0}
-  m_LocalScale: {x: 8.785962, y: 8.785962, z: 0}
+  m_LocalPosition: {x: -25, y: 0, z: 0}
+  m_LocalScale: {x: 18, y: 18, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -6117,9 +6117,9 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
-    y: 0.2559455
+    y: 0
     width: 1
-    height: 0.48810902
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
