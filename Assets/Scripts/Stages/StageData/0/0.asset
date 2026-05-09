@@ -33,7 +33,7 @@ MonoBehaviour:
     beatTimings: 000000000100000002000000
     measure: 3
     barStartOffsetBeats: 2
-  - barCount: 16
+  - barCount: 17
     BPM: 195
     beatTimings: 00000000020000000400000006000000
     measure: 8
@@ -42,10 +42,10 @@ MonoBehaviour:
   stageDescription: 000
   enemySpawners:
   - id: 0
-    count: 5
+    count: 1
     interval: 0.7
     time: 0
-    bulletCount: 6
+    bulletCount: 1
     orbit:
       position:
         x: 0
@@ -91,6 +91,8 @@ MonoBehaviour:
         w: 1
       areaNum: 0
       time: 0
+      appearTime: 0
+      life: 0
       random: 0
       isActive: 1
     bulletClip:
@@ -139,6 +141,8 @@ MonoBehaviour:
           w: 1
         areaNum: 0
         time: 0
+        appearTime: 0.4
+        life: 0
         random: 0
         isActive: 1
       number: 5
@@ -191,6 +195,8 @@ MonoBehaviour:
             w: 1
           areaNum: 0
           time: 0
+          appearTime: 1
+          life: 0
           random: 0
           isActive: 1
         number: 3
@@ -199,6 +205,23 @@ MonoBehaviour:
       time: 1
       interval: 0
   bulletSpawners:
+  - index: 8
+    count: 3
+    interval: 0.2
+    time: 10
+    pos:
+      x: 0
+      y: 0
+    originVlc:
+      x: 0
+      y: 0
+    angle: 0
+    color:
+      x: 1
+      y: 0
+      z: 0
+      w: 1
+    clipName: WorldLine_ToRight
   - index: 6
     count: 1
     interval: 0
@@ -216,20 +239,3 @@ MonoBehaviour:
       z: 0
       w: 1
     clipName: Laser_Wave_Fast
-  - index: 2
-    count: 1
-    interval: 0
-    time: 4
-    pos:
-      x: 5
-      y: 7
-    originVlc:
-      x: 1
-      y: 0
-    angle: 30
-    color:
-      x: 1
-      y: 0
-      z: 0
-      w: 1
-    clipName: Line

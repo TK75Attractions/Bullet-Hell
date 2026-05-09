@@ -233,6 +233,7 @@ public class BulletBufferManager
             10
         );
 
+
         return new BulletBuffer("LineLaser", new List<BulletData> { b }, true);
     }
 

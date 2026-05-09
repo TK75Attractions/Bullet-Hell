@@ -34,6 +34,8 @@ public struct BulletData
 
     public int areaNum;
     public float time;
+    public float appearTime;//弾幕を表示する時間、レーザーでは太さを指定
+    public float life;
     public float random;
     public bool isActive;
 
@@ -55,7 +57,8 @@ public struct BulletData
     /// <param name="_size">弾のサイズ size</param>
     /// <param name="_color">弾の色 color</param>
     /// <param name="_random">ランダム値 random</param>
-    public BulletData(float2 _pos, float2 _vlc, float _s, float _acc, float _g, float _as, float2 _polar, float _absV, float _theV, float _start, float4 _poly, int type, float4 _color, float _size = 1, float _random = 0)
+    /// <param name="_life">弾の寿命 life</param>
+    public BulletData(float2 _pos, float2 _vlc, float _s, float _acc, float _g, float _as, float2 _polar, float _absV, float _theV, float _start, float4 _poly, int type, float4 _color, float _size = 1, float _random = 0, float _appear = 0, float _life = 255)
     {
         position = _pos;
         velocity = new(0, 0);
@@ -72,6 +75,8 @@ public struct BulletData
         polynomial = _poly;
         nowCalculateX = _start;
         random = _random;
+        appearTime = _appear;
+        life = _life;
 
         time = 0;
         typeId = type;
@@ -105,7 +110,7 @@ public struct BulletData
         position = _pos;
         velocity = data.velocity;
         angle = data.angle;
-        originPos = _pos;
+        originPos = _pos + data.originPos;
         originVlc = _vlc;
         speed = data.speed;
         accel = data.accel;
@@ -119,6 +124,8 @@ public struct BulletData
         typeId = data.typeId;
         size = data.size;
         color = new float4(data.color.x * _color.x, data.color.y * _color.y, data.color.z * _color.z, data.color.w * _color.w);
+        appearTime = data.appearTime;
+        life = data.life;
 
         areaNum = 0;
         time = 0;
@@ -147,7 +154,7 @@ public struct BulletData
 
     public void Init(float2 _pos)
     {
-        originPos = _pos;
+        originPos = _pos + originPos;
         velocity = new(0, 0);
         angle = 0;
         time = 0;

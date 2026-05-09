@@ -45,6 +45,7 @@ Shader "Custom/BulletIndirectURP"
                 float size;
                 float texIndex;
                 float maskIndex;
+                float appear;
                 float4 color;
             };
 
@@ -62,7 +63,8 @@ Shader "Custom/BulletIndirectURP"
                 float2 uv : TEXCOORD0;
                 float texIndex : TEXCOORD1;
                 float maskIndex : TEXCOORD2;
-                float4 color : TEXCOORD3;
+                float appear : TEXCOORD3;
+                float4 color : TEXCOORD4;
             };
 
             Varyings vert(Attributes input, uint instanceID : SV_InstanceID)
@@ -91,6 +93,7 @@ Shader "Custom/BulletIndirectURP"
                 output.uv = input.uv;
                 output.texIndex = b.texIndex;
                 output.maskIndex = b.maskIndex;
+                output.appear = b.appear;
                 output.color = b.color;
 
                 return output;
@@ -104,11 +107,12 @@ Shader "Custom/BulletIndirectURP"
 
                 half mask = SAMPLE_TEXTURE2D_ARRAY(_MaskArray, sampler_MaskArray, 
                     input.uv, input.maskIndex).r;
+                half appear = saturate(input.appear);
                 half tintStrength = saturate(mask * input.color.a);
 
                 // マスク値に color.a を掛けて色の掛かり方を 0-1 で制御する
                 baseCol.rgb = lerp(baseCol.rgb, input.color.rgb, tintStrength);
-                baseCol.a = max(baseCol.a, tintStrength);
+                baseCol.a = max(baseCol.a, tintStrength) * appear;
 
                 return baseCol;
             }

@@ -9,5 +9,6 @@ public struct BulletRenderData
     public float size;
     public float texIndex;
     public float maskIndex;
+    public float appear;
     public float4 color;
 }

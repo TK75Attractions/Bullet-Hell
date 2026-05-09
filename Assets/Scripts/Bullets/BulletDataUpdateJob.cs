@@ -21,6 +21,14 @@ public struct BulletDataUpdateJob : IJobParallelFor
         if (bullet.isActive == false) return;
         bullet.time += dt;
 
+        // life を超えた弾は更新と描画対象から外す
+        if (bullet.life > 0f && bullet.time >= bullet.life)
+        {
+            bullet.isActive = false;
+            bullets[index] = bullet;
+            return;
+        }
+
         //ベースの座標を更新
         bullet.originPos += bullet.originVlc * dt;
 

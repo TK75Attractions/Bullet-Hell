@@ -14,7 +14,7 @@ public class LaserEmitter : MonoBehaviour
             BulletData d = data[i];
             LASER laser = Instantiate(LASEROrigin).GetComponent<LASER>();
             laser.transform.position = Vector3.zero;
-            laser.AwakeSetting(pPos, d.originVlc, d.angleSpeed, d.speed, d.accel, new float2(1, d.polarForm.y), -2, new float[4] { d.polynomial.x, d.polynomial.y, d.polynomial.z, d.polynomial.w }, d.size, 0.13f, new float2(1, 1), GManager.Control.QOrder.cellCount);
+            laser.AwakeSetting(pPos, d.originVlc, d.angleSpeed, d.speed, d.accel, new float2(1, d.polarForm.y), -2, new float[4] { d.polynomial.x, d.polynomial.y, d.polynomial.z, d.polynomial.w }, d.size, d.appearTime, new float2(1, 1), GManager.Control.QOrder.cellCount);
             laS.Add(laser);
         }
         return laS;
@@ -36,7 +36,7 @@ public class LaserEmitter : MonoBehaviour
             {
                 LASER laser = Instantiate(LASEROrigin).GetComponent<LASER>();
                 laser.transform.position = Vector3.zero;
-                laser.AwakeSetting(pPos, clip.data.originVlc, clip.data.angleSpeed, clip.data.speed, clip.data.accel, new float2(1, rad - range + clip.disRad * i), -2, poly, 4, 0.13f, new float2(1, 1), GManager.Control.QOrder.cellCount);
+                laser.AwakeSetting(pPos, clip.data.originVlc, clip.data.angleSpeed, clip.data.speed, clip.data.accel, new float2(1, rad - range + clip.disRad * i), -2, poly, 4, clip.data.appearTime, new float2(1, 1), GManager.Control.QOrder.cellCount);
                 laS.Add(laser);
             }
         }
@@ -48,7 +48,7 @@ public class LaserEmitter : MonoBehaviour
             {
                 LASER laser = Instantiate(LASEROrigin).GetComponent<LASER>();
                 laser.transform.position = Vector3.zero;
-                laser.AwakeSetting(pPos, clip.data.originVlc, clip.data.angleSpeed, clip.data.speed, clip.data.accel, new float2(1, range * i), -2, poly, 4, 0.13f, new float2(1, 1), GManager.Control.QOrder.cellCount);
+                laser.AwakeSetting(pPos, clip.data.originVlc, clip.data.angleSpeed, clip.data.speed, clip.data.accel, new float2(1, range * i), -2, poly, 4, clip.data.appearTime, new float2(1, 1), GManager.Control.QOrder.cellCount);
                 laS.Add(laser);
             }
         }
