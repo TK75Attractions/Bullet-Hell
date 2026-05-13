@@ -146,7 +146,7 @@ public class BeatManager : MonoBehaviour
     {
         BeatTriggered?.Invoke(beatCount);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        Debug.Log($"Beat! {beatCount}");
+        //Debug.Log($"Beat! {beatCount}");
 #endif
     }
 

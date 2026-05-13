@@ -29,6 +29,13 @@ public struct BulletDataUpdateJob : IJobParallelFor
             return;
         }
 
+        if (bullet.appearTime > bullet.time)
+        {
+            // 弾が完全に表示される前は、原点の移動のみ計算して位置は更新しない
+            bullet.originPos += bullet.originVlc * dt;
+            bullets[index] = bullet;
+            return;
+        }
         //ベースの座標を更新
         bullet.originPos += bullet.originVlc * dt;
 

@@ -20,7 +20,7 @@ public class BulletTypeDataBase : ScriptableObject
                 Debug.LogWarning($"BulletType at index {i} is null! This may cause issues.");
                 continue;
             }
-            if (max < types[i].typeId) max = types[i].typeId;
+            if (max < i) max = i;
         }
         BulletType[] temp = new BulletType[max + 1];
 
@@ -33,7 +33,7 @@ public class BulletTypeDataBase : ScriptableObject
                 continue;
             }
 
-            int k = types[i].typeId;
+            int k = i; // ここで i を k に代入しておくことで、後のコードで i を変更しても問題なくアクセスできるようにする
             if (k < 0)
             {
                 Debug.LogWarning($"BulletType at index {i} has a negative typeId ({k}). This may cause issues.");
@@ -63,5 +63,15 @@ public class BulletTypeDataBase : ScriptableObject
         Texture2D[] textures = new Texture2D[types.Length];
         for (int i = 0; i < types.Length; i++) textures[i] = types[i].maskSprite;
         return textures;
+    }
+
+    public int GetTypeId(string typeName)
+    {
+        for (int i = 0; i < types.Length; i++)
+        {
+            if (types[i] != null && types[i].typeName == typeName) return i;
+        }
+        Debug.LogWarning($"BulletType with name '{typeName}' not found! Returning -1.");
+        return -1;
     }
 }

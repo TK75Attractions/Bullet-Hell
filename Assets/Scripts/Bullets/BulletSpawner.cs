@@ -13,6 +13,7 @@ public struct BulletSpawner
     public float2 pos;//まじでたくさんつかう
     public float2 originVlc;// あんまつかわないで
     public float angle;
+    public float angleInterval;
     public float4 color;
     public string clipName;
 }

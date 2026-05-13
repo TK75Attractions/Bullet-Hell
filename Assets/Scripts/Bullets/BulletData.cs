@@ -111,7 +111,7 @@ public struct BulletData
         velocity = data.velocity;
         angle = data.angle;
         originPos = _pos + data.originPos;
-        originVlc = _vlc;
+        originVlc = _vlc + data.originVlc;
         speed = data.speed;
         accel = data.accel;
         gravity = data.gravity;

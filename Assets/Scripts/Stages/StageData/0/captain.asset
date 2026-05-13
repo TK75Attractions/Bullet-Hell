@@ -10,11 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6aba377c37e68164b855733210beea9e, type: 3}
-  m_Name: 0
+  m_Name: captain
   m_EditorClassIdentifier: Assembly-CSharp::StageData
-  stageId: 0
-  difficulty: 0
-  stageName: DemoStage0
+  stageName: Captain
   videoClip: {fileID: 0}
   audioClip: {fileID: 8300000, guid: 3b5a4854b36da314cb4813d08d86f39d, type: 3}
   MusicEvents:
@@ -42,10 +40,12 @@ MonoBehaviour:
   stageDescription: 000
   enemySpawners:
   - id: 0
-    count: 1
-    interval: 0.7
-    time: 0
+    count: 0
+    enemyInterval: 0
+    enemyAppearTime: 0
+    bulletEmitTime: 0
     bulletCount: 1
+    bulletInterval: 0
     orbit:
       position:
         x: 0
@@ -55,12 +55,12 @@ MonoBehaviour:
         y: 0
       angle: 0
       originPos:
-        x: 5
-        y: 14
+        x: 4
+        y: 4
       originVlc:
-        x: 2
-        y: 0
-      startX: 3
+        x: 3
+        y: 3
+      startX: 0
       speed: 0
       accel: 0
       gravity: 0
@@ -71,7 +71,7 @@ MonoBehaviour:
       radiusVlc: 0
       thetaVlc: 5
       startPos:
-        x: -1
+        x: 0
         y: 0
       nowCalculateVlc:
         x: 0
@@ -92,7 +92,7 @@ MonoBehaviour:
       areaNum: 0
       time: 0
       appearTime: 0
-      life: 0
+      life: 2
       random: 0
       isActive: 1
     bulletClip:
@@ -141,13 +141,13 @@ MonoBehaviour:
           w: 1
         areaNum: 0
         time: 0
-        appearTime: 0.4
-        life: 0
+        appearTime: 0.2
+        life: 10
         random: 0
         isActive: 1
-      number: 5
-      disRad: 60
-      homing: 1
+      number: 1
+      disRad: 0
+      homing: 0
     bulletChangeClips:
     - clip:
         data:
@@ -195,47 +195,48 @@ MonoBehaviour:
             w: 1
           areaNum: 0
           time: 0
-          appearTime: 1
+          appearTime: 0.3
           life: 0
           random: 0
           isActive: 1
         number: 3
         disRad: 30
-        homing: 1
-      time: 1
-      interval: 0
+        homing: 0
+      time: 2
   bulletSpawners:
-  - index: 8
-    count: 3
-    interval: 0.2
-    time: 10
-    pos:
-      x: 0
-      y: 0
-    originVlc:
-      x: 0
-      y: 0
-    angle: 0
-    color:
-      x: 1
-      y: 0
-      z: 0
-      w: 1
-    clipName: WorldLine_ToRight
-  - index: 6
-    count: 1
+  - index: 5
+    count: 0
     interval: 0
-    time: 4
+    time: 3
     pos:
-      x: 10
-      y: 5
+      x: 8
+      y: 9
     originVlc:
       x: 0
       y: 0
     angle: 0
+    angleInterval: 60
     color:
-      x: 1
+      x: 0
       y: 0
-      z: 0
+      z: 1
       w: 1
-    clipName: Laser_Wave_Fast
+    clipName: Cyclone
+  - index: 5
+    count: 0
+    interval: 0
+    time: 3
+    pos:
+      x: 24
+      y: 9
+    originVlc:
+      x: 0
+      y: 0
+    angle: 0
+    angleInterval: 60
+    color:
+      x: 0
+      y: 0
+      z: 1
+      w: 1
+    clipName: Cyclone
