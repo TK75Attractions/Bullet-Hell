@@ -41,6 +41,7 @@ Shader "Custom/BulletIndirectMasked"
 
                 float texIndex;
                 float maskIndex;
+                float appear;
 
                 float4 color;
             };
@@ -66,7 +67,8 @@ Shader "Custom/BulletIndirectMasked"
 
                 float texIndex : TEXCOORD1;
                 float maskIndex : TEXCOORD2;
-                float4 color    : TEXCOORD3;
+                float appear : TEXCOORD3;
+                float4 color    : TEXCOORD4;
             };
 
             //========================
@@ -98,6 +100,7 @@ Shader "Custom/BulletIndirectMasked"
 
                 o.texIndex = b.texIndex;
                 o.maskIndex = b.maskIndex;
+                o.appear = b.appear;
                 o.color = b.color;
 
                 return o;
@@ -113,6 +116,7 @@ Shader "Custom/BulletIndirectMasked"
 
                 float mask =
                     UNITY_SAMPLE_TEX2DARRAY(_MaskArray, float3(i.uv, i.maskIndex)).r;
+                float appear = saturate(i.appear);
                 float tintStrength = saturate(mask * i.color.a);
 
                 // デバッグ: マスク値を可視化（一時的）
@@ -120,7 +124,7 @@ Shader "Custom/BulletIndirectMasked"
                 
                 // マスク値に color.a を掛けて色の掛かり方を 0-1 で制御する
                 baseCol.rgb = lerp(baseCol.rgb, i.color.rgb, tintStrength);
-                baseCol.a = max(baseCol.a, tintStrength);
+                baseCol.a = max(baseCol.a, tintStrength) * appear;
 
                 return baseCol;
             }

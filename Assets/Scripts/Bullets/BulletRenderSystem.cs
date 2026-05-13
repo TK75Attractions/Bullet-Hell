@@ -8,7 +8,9 @@ public class BulletRenderSystem : MonoBehaviour
     public Mesh quadMesh;
     public Material material;
 
-    const int MaxBullets = 65536;
+    private const int MaxBullets = 65536;
+    private const float appearDuration = 0.6f; // 弾が完全に表示されるまでの時間（秒）
+    private const float disappearDuration = 0.1f; // 弾が完全に消えるまでの時間（秒）
 
     private ComputeBuffer bulletBuffer;
     private ComputeBuffer argsBuffer;
@@ -50,7 +52,7 @@ public class BulletRenderSystem : MonoBehaviour
             TextureFormat.RGBA32,
             false
         );
-        textureArray.filterMode = FilterMode.Bilinear;
+        textureArray.filterMode = FilterMode.Point;
         textureArray.wrapMode = TextureWrapMode.Clamp;
 
         for (int i = 0; i < textures.Length; i++)
@@ -84,7 +86,7 @@ public class BulletRenderSystem : MonoBehaviour
             TextureFormat.RGBA32,
             false
         );
-        maskArray.filterMode = FilterMode.Bilinear;
+        maskArray.filterMode = FilterMode.Point;
         maskArray.wrapMode = TextureWrapMode.Clamp;
 
         for (int i = 0; i < maskTextures.Length; i++)
@@ -244,6 +246,38 @@ public class BulletRenderSystem : MonoBehaviour
             if (!b.isActive) continue;
 
             var type = GManager.Control.BTDB.types[b.typeId];
+            float appear = 1f;
+            float fadeIn = 1f;
+            float fadeOut = 1f;
+
+            if (appearDuration > 0f)
+            {
+                float fadeInStart = b.appearTime - appearDuration;
+                fadeIn = math.saturate((b.time - fadeInStart) / appearDuration);
+            }
+
+            if (b.life > 0f)
+            {
+                if (disappearDuration > 0f)
+                {
+                    float fadeOutStart = b.life - disappearDuration;
+                    fadeOut = math.saturate((b.time - fadeOutStart) / disappearDuration);
+                    fadeOut = 1f - fadeOut;
+                }
+                else
+                {
+                    fadeOut = b.time < b.life ? 1f : 0f;
+                }
+            }
+
+            appear = fadeIn * fadeOut;
+
+            if (appear <= 0f)
+            {
+                activeCount++;
+                if (activeCount >= count) break;
+                continue;
+            }
 
             renderArray[writeIndex] = new BulletRenderData
             {
@@ -253,6 +287,7 @@ public class BulletRenderSystem : MonoBehaviour
                 size = b.size * type.baseSize,
                 texIndex = b.typeId,
                 maskIndex = b.typeId,
+                appear = appear,
                 color = b.color,
             };
             writeIndex++;

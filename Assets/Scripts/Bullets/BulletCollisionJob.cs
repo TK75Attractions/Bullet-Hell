@@ -23,9 +23,11 @@ public struct BulletCollisionJob : IJobParallelFor
     public void Execute(int index)
     {
         BulletData bullet = bullets[index];
-        if (!bullet.isActive) return;
         if (isCollided[0] != 0) return;
+        if (!bullet.isActive) return;
+        if (bullet.appearTime < bullet.time) return; // 弾が完全に表示される前は衝突判定を行わない
         if (bullet.typeId < 0 || bullet.typeId >= bVertRanges.Length) return;
+
 
         int2 range = bVertRanges[bullet.typeId];
         if (range.x < 0 || range.y < 3) return;

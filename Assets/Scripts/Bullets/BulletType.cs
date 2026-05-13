@@ -2,10 +2,10 @@ using UnityEngine;
 using Unity.Collections;
 using Unity.Mathematics;
 
-[CreateAssetMenu(fileName ="BulletType",menuName ="Bullet/BulletType")]
+[CreateAssetMenu(fileName = "BulletType", menuName = "Bullet/BulletType")]
 public class BulletType : ScriptableObject
 {
-    public int typeId;
+    public string typeName;
 
     [Header("Rendering")]
     public Texture2D baseSprite;
@@ -13,7 +13,7 @@ public class BulletType : ScriptableObject
     public Color baseColor = Color.white;
     public float baseSize;
 
-    
+
     [Header("Collider")]
     public float2[] verts = new float2[0];
 }

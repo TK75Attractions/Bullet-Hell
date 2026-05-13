@@ -7,10 +7,22 @@ using System.Collections.Generic;
 public class EnemyDataBase : ScriptableObject
 {
     public List<EnemyData> enemyDataList = new List<EnemyData>();
-    
+
     public void Init()
     {
         // Here you can add any initialization logic if needed in the future.
+    }
+
+    public int GetEnemyId(string name)
+    {
+        for (int i = 0; i < enemyDataList.Count; i++)
+        {
+            if (enemyDataList[i] != null && enemyDataList[i].enemyName == name)
+            {
+                return i;
+            }
+        }
+        return -1;
     }
 
     public Sprite GetSprite(int index)

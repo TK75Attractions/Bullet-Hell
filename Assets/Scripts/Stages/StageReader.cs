@@ -7,21 +7,23 @@ using System;
 
 public class StageReader : MonoBehaviour
 {
-    private const double BgmLeadTime = 0.2d;
+    private const double BgmLeadTime = 2d;
     [SerializeField] private StageData stageData;
     [SerializeField] private List<BulletSpawnEvent> spawnEvents = new List<BulletSpawnEvent>();
     [SerializeField] private float time = 0f;
-    private int enemyCount = 0;
-    private int bulletCount = 0;
-    private bool isReady = false;
+    [SerializeField] private int enemyCount = 0;
+    [SerializeField] private int bulletCount = 0;
+    [SerializeField] private bool isReady = false;
 
     [Serializable]
     private struct BulletSpawnEvent
     {
         public float time;
         public float2 pos;
+        public float2 originVlc;
         public float angle;
         public int index;
+        public float4 color;
     }
 
     public async Task<bool> Init(StageData data)
@@ -35,11 +37,11 @@ public class StageReader : MonoBehaviour
             AudioSource bgmSource = await GManager.Control.AManager.PlayBGM(stageData.audioClip);
             double scheduledDspTime = AudioSettings.dspTime + BgmLeadTime;
             bgmSource.PlayScheduled(scheduledDspTime);
-            GManager.Control.BManager.SetBeat(stageData.audioClip, stageData.MusicEvents, scheduledDspTime, stageData.delayTime);
+            GManager.Control.BManager.SetBeat(bgmSource, stageData.audioClip, stageData.MusicEvents, scheduledDspTime, stageData.delayTime);
             GManager.Control.musicOn = true;
         }
 
-        stageData.enemySpawners.Sort((a, b) => a.time.CompareTo(b.time));
+        stageData.enemySpawners.Sort((a, b) => a.enemyAppearTime.CompareTo(b.enemyAppearTime));
 
         for (int i = 0; i < stageData.bulletSpawners.Count; i++)
         {
@@ -63,9 +65,12 @@ public class StageReader : MonoBehaviour
                 {
                     time = spawner.time + k * spawner.interval,
                     pos = spawner.pos,
-                    angle = spawner.angle,
-                    index = spawner.index
+                    angle = spawner.angle + k * spawner.angleInterval,
+                    index = spawner.index,
+                    originVlc = spawner.originVlc,
+                    color = spawner.color
                 };
+                Debug.Log($"Scheduled bullet spawn: time={spawnEvent.time}, pos={spawnEvent.pos}, angle={spawnEvent.angle}, index={spawnEvent.index}");
                 spawnEvents.Add(spawnEvent);
             }
         }
@@ -82,7 +87,7 @@ public class StageReader : MonoBehaviour
 
         if (stageData.enemySpawners.Count > enemyCount)
         {
-            if (stageData.enemySpawners[enemyCount].time <= time)
+            if (stageData.enemySpawners[enemyCount].enemyAppearTime <= time)
             {
                 EnemySpawner spawner = stageData.enemySpawners[enemyCount];
                 GManager.Control.QOrder.AddEnemy(spawner);
@@ -91,13 +96,13 @@ public class StageReader : MonoBehaviour
             }
         }
 
-        if (stageData.bulletSpawners.Count > bulletCount)
+        if (spawnEvents.Count > bulletCount)
         {
-            if (stageData.bulletSpawners[bulletCount].time <= time)
+            if (spawnEvents[bulletCount].time <= time)
             {
-                BulletSpawner spawner = stageData.bulletSpawners[bulletCount];
-                GManager.Control.QOrder.AddEnemyBullets(spawner);
-                Debug.Log($"Spawned bullet: {spawner.clipName}");
+                BulletSpawnEvent spawner = spawnEvents[bulletCount];
+                GManager.Control.QOrder.AddEnemyBullets(spawner.index, spawner.pos, spawner.originVlc, spawner.angle, spawner.color);
+                Debug.Log($"Spawned bullet: {spawner.index}");
                 bulletCount++;
             }
         }

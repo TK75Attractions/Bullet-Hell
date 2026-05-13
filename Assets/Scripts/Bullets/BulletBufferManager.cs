@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System;
 using System.IO;
 
+[Serializable]
 public class BulletBufferManager
 {
     [SerializeField] private List<BulletBuffer> bulletBuffers = new List<BulletBuffer>();
@@ -13,20 +14,24 @@ public class BulletBufferManager
     private class BulletBufferJson
     {
         public string name;
-        public List<BulletData> bullets;
+        public List<BulletDataJson> bullets;
+        public bool homing;
         public bool isLaser;
     }
 
+    [Serializable]
     private class BulletBuffer
     {
         public string name;
         public List<BulletData> bullets;
+        public bool homing;
         public bool isLaser;
 
-        public BulletBuffer(string name, List<BulletData> bullets, bool isLaser = false)
+        public BulletBuffer(string name, List<BulletData> bullets, bool homing = false, bool isLaser = false)
         {
             this.name = name;
             this.bullets = bullets;
+            this.homing = homing;
             this.isLaser = isLaser;
         }
     }
@@ -116,7 +121,7 @@ public class BulletBufferManager
                 return null;
             }
 
-            return new BulletBuffer(data.name, data.bullets, data.isLaser);
+            return new BulletBuffer(data.name, data.bullets.ConvertAll(b => b.ToBulletData()), data.homing, data.isLaser);
         }
         catch (Exception ex)
         {
@@ -233,7 +238,8 @@ public class BulletBufferManager
             10
         );
 
-        return new BulletBuffer("LineLaser", new List<BulletData> { b }, true);
+
+        return new BulletBuffer("LineLaser", new List<BulletData> { b }, false, true);
     }
 
     private BulletBuffer Circle()
@@ -278,7 +284,7 @@ public class BulletBufferManager
         return false;
     }
 
-    public List<BulletData> GetBulletClip(int index, float2 pPos, float2 _vlc, float angle, out bool isLaser)
+    public List<BulletData> GetBulletClip(int index, float2 pPos, float2 emitPos, float2 _vlc, float angle, float4 _color, out bool isLaser)
     {
         isLaser = false;
         if (bulletBuffers.Count == 0)
@@ -290,18 +296,40 @@ public class BulletBufferManager
         if (index >= 0 && index < bulletBuffers.Count)
         {
             isLaser = bulletBuffers[index].isLaser;
-            List<BulletData> bullets = bulletBuffers[index].bullets;
+            List<BulletData> templateBullets = bulletBuffers[index].bullets;
+            List<BulletData> spawnedBullets = new List<BulletData>(templateBullets.Count);
 
-            for (int i = 0; i < bullets.Count; i++)
+
+            if (bulletBuffers[index].homing)
             {
-                BulletData b = bullets[i];
-                float2 dis = -b.startPos;
-                b = new BulletData(b, pPos, _vlc, angle / 180 * math.PI + b.polarForm.y, b.color);
-                b.startPos -= dis;
-                bullets[i] = b;
+                for (int i = 0; i < templateBullets.Count; i++)
+                {
+                    angle = math.atan2(pPos.y - emitPos.y, pPos.x - emitPos.x);
+                    BulletData template = templateBullets[i];
+                    float2 dis = -template.startPos;
+                    BulletData spawned = new BulletData(template, emitPos, _vlc, angle + template.polarForm.y, _color);
+                    spawned.startPos -= dis;
+                    spawnedBullets.Add(spawned);
+                }
+
+                return spawnedBullets;
+
+            }
+            else
+            {
+                for (int i = 0; i < templateBullets.Count; i++)
+                {
+                    BulletData template = templateBullets[i];
+                    float2 dis = -template.startPos;
+                    BulletData spawned = new BulletData(template, emitPos, _vlc, angle / 180 * math.PI + template.polarForm.y, _color);
+                    spawned.startPos -= dis;
+                    spawnedBullets.Add(spawned);
+                }
+
+                return spawnedBullets;
             }
 
-            return bullets;
+
         }
         else
         {

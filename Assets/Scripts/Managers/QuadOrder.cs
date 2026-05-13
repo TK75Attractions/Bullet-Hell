@@ -465,7 +465,7 @@ public class QuadOrder : MonoBehaviour
         return indexes;
     }
 
-    public void AddEnemyBullets(BulletSpawner spawner)
+    public void AddEnemyBullets(int index, float2 pos, float2 originVlc, float angle, float4 color)
     {
         if (!enemyBullets.IsCreated)
         {
@@ -478,11 +478,11 @@ public class QuadOrder : MonoBehaviour
             enemyBullets.Capacity = nextCapacity;
         }
 
-        List<BulletData> bullets = GManager.Control.BClipManager.GetBulletClip(spawner.index, spawner.pos, spawner.originVlc, spawner.angle, out bool isLaser);
+        List<BulletData> bullets = GManager.Control.BClipManager.GetBulletClip(index, GManager.Control.PController.pos, pos, originVlc, angle, color, out bool isLaser);
 
         if (isLaser)
         {
-            allLASERs.AddRange(laserEmitter.EmitLASER(bullets, spawner.pos));
+            allLASERs.AddRange(laserEmitter.EmitLASER(bullets, pos));
             return;
         }
 
@@ -496,9 +496,43 @@ public class QuadOrder : MonoBehaviour
 
     public List<int> EmitEnemyBullet(BulletClip clip, int EnemyIndex)
     {
-        return EmitEnemyBullet(clip, enemiesOrbitBullets[EnemyIndex].position);
+        BulletData data = enemiesOrbitBullets[EnemyIndex];
+        float2 vlc = data.velocity;
+        float angle = math.atan2(vlc.y, vlc.x);
+        return EmitEnemyBullet(clip, enemiesOrbitBullets[EnemyIndex].position, angle);
     }
 
+    public List<int> EmitEnemyBullet(BulletClip clip, float2 pPos, float d)
+    {
+        if (clip.homing) return EmitEnemyBullet(clip, pPos);
+
+        if (!enemyBullets.IsCreated)
+        {
+            enemyBullets = new NativeList<BulletData>(256, Allocator.Persistent);
+        }
+
+        if (enemyBullets.Length >= enemyBullets.Capacity)
+        {
+            int nextCapacity = math.max(enemyBullets.Length + 1, math.max(256, enemyBullets.Capacity * 2));
+            enemyBullets.Capacity = nextCapacity;
+        }
+
+        NativeArray<BulletData> newBullets = new NativeArray<BulletData>(clip.number, Allocator.Temp);
+
+        float range = (clip.number - 1) * clip.disRad;
+        for (int i = 0; i < clip.number; i++)
+        {
+            BulletData bullet = clip.data;
+            bullet.Init(pPos);
+            float angle = d + math.radians(-range / 2 + clip.disRad * i);
+            bullet.polarForm = new float2(bullet.polarForm.x, angle);
+            newBullets[i] = bullet;
+        }
+
+        List<int> indexes = AddEnemyBullets(newBullets);
+        newBullets.Dispose();
+        return indexes;
+    }
     public List<int> EmitEnemyBullet(BulletClip clip, float2 pPos)
     {
         if (!enemyBullets.IsCreated)
@@ -535,7 +569,7 @@ public class QuadOrder : MonoBehaviour
             {
                 BulletData bullet = clip.data;
                 bullet.Init(pPos);
-                float angle = math.radians(range * i);
+                float angle = math.radians(-range / 2 + clip.disRad * i);
                 bullet.polarForm = new float2(bullet.polarForm.x, angle);
                 newBullets[i] = bullet;
             }
@@ -862,7 +896,7 @@ public class QuadOrder : MonoBehaviour
 
         for (int i = 0; i < spawner.count; i++)
         {
-            while (t < spawner.interval * i)
+            while (t < spawner.enemyInterval * i)
             {
                 await Task.Yield();
                 t += Time.deltaTime;
@@ -909,7 +943,8 @@ public class QuadOrder : MonoBehaviour
             {
                 int index = indexes[i];
                 if (index < 0 || index >= enemyBullets.Length) continue;
-                temp.Add(EmitEnemyBullet(clip, enemyBullets[index].position)[0]);
+                float angle = enemyBullets[index].angle;
+                temp.Add(EmitEnemyBullet(clip, enemyBullets[index].position, angle)[0]);
                 BulletData data = enemyBullets[index];
                 data.isActive = false;
                 enemyBullets[index] = data;

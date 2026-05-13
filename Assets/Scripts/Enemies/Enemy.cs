@@ -5,13 +5,13 @@ using System;
 
 public class Enemy : MonoBehaviour
 {
-    public readonly static float startInterval = 1.6f;
     public int id = 0;
     public int arrayIndex = 0;
     public Transform trans;
     private SpriteRenderer SR = null;
     private float interval = 0;
-    private int BulletCount = 0;
+    private float startInterval = 1.6f;
+    private int bulletCount = 0;
     public bool isActive = false;
     private bool isReady = false;
     private int count = 0;
@@ -43,8 +43,8 @@ public class Enemy : MonoBehaviour
         id = spawner.id;
         arrayIndex = index;
 
-        interval = spawner.interval;
-        BulletCount = spawner.bulletCount;
+        interval = spawner.bulletInterval;
+        bulletCount = spawner.bulletCount;
         bulletClip = spawner.bulletClip;
         bulletChangeClips = spawner.bulletChangeClips;
 
@@ -52,6 +52,7 @@ public class Enemy : MonoBehaviour
         trans.localScale = new Vector3(spawner.orbit.size, spawner.orbit.size, 1);
         SR = GetComponent<SpriteRenderer>();
         SR.sprite = GManager.Control.EDB.GetSprite(spawner.id);
+        startInterval = spawner.bulletEmitTime;
 
         isActive = true;
     }
@@ -82,10 +83,14 @@ public class Enemy : MonoBehaviour
             if (time > interval)
             {
                 time = 0;
-                if (count < BulletCount)
+                if (count < bulletCount)
                 {
-                    BulletChache chache = new BulletChache(GManager.Control.QOrder.EmitEnemyBullet(bulletClip, arrayIndex), bulletChangeClips[0].time, 0);
-                    bulletChaches.Add(chache);
+                    List<int> emitted = GManager.Control.QOrder.EmitEnemyBullet(bulletClip, arrayIndex);
+                    if (bulletChangeClips != null && bulletChangeClips.Count > 0)
+                    {
+                        BulletChache chache = new BulletChache(emitted, bulletChangeClips[0].time, 0);
+                        bulletChaches.Add(chache);
+                    }
                     count++;
                 }
             }
@@ -100,7 +105,26 @@ public class Enemy : MonoBehaviour
             chache.time -= dt;
             if (chache.time <= 0)
             {
-                GManager.Control.QOrder.UpdateBulletData(chache.indexes, bulletChangeClips[chache.clipCount].clip);
+                if (bulletChangeClips != null && chache.clipCount >= 0 && chache.clipCount < bulletChangeClips.Count)
+                {
+                    List<int> updatedIndexes = GManager.Control.QOrder.UpdateBulletData(chache.indexes, bulletChangeClips[chache.clipCount].clip);
+                    int nextClip = chache.clipCount + 1;
+
+                    if (updatedIndexes != null && updatedIndexes.Count > 0 && nextClip < bulletChangeClips.Count)
+                    {
+                        float nextTime = bulletChangeClips[chache.clipCount].time;
+                        if (nextTime <= 0)
+                        {
+                            nextTime = bulletChangeClips[nextClip].time;
+                        }
+
+                        if (nextTime > 0)
+                        {
+                            BulletChache nextChache = new BulletChache(updatedIndexes, nextTime, nextClip);
+                            bulletChaches.Add(nextChache);
+                        }
+                    }
+                }
                 bulletChaches.RemoveAt(i);
             }
         }

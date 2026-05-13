@@ -91,7 +91,7 @@ public class Boss : MonoBehaviour
             }
 
 
-            List<BulletData> bullets = GManager.Control.BClipManager.GetBulletClip(pattern.clipIndex, new float2(0, 0), new float2(0, 0), 0, out bool isLaser);
+            List<BulletData> bullets = GManager.Control.BClipManager.GetBulletClip(pattern.clipIndex, GManager.Control.PController.pos, new float2(0, 0), new float2(0, 0), 0, new float4(1, 1, 1, 1), out bool isLaser);
             NativeArray<BulletData> bulletsArray = new NativeArray<BulletData>(bullets.ToArray(), Allocator.Temp);
             GManager.Control.QOrder.AddEnemyHomingBullets(bulletsArray, pos);
             bulletsArray.Dispose();
@@ -100,10 +100,10 @@ public class Boss : MonoBehaviour
             if (count % repeat == 0)
             {
                 state = BossState.Move;
-                double t = GManager.Control.PRandom.Noise(count);
-                float2 d = new float2(math.cos((float)t * 2 * math.PI), math.sin((float)t * 2 * math.PI)) * move;
-                distination = pos + d;
-                state = BossState.Move;
+                //double t = GManager.Control.PRandom.Noise(count);
+                //float2 d = new float2(math.cos((float)t * 2 * math.PI), math.sin((float)t * 2 * math.PI)) * move;
+                //distination = pos + d;
+                //state = BossState.Move;
             }
             return;
         }

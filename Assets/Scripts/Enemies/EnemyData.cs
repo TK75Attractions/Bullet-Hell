@@ -1,9 +1,9 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName ="EnemyData",menuName ="Enemy/EnemyData")]
+[CreateAssetMenu(fileName = "EnemyData", menuName = "Enemy/EnemyData")]
 public class EnemyData : ScriptableObject
 {
-    public int enemyId;
+    public string enemyName;
 
     [Header("Rendering")]
     public Sprite sprite;

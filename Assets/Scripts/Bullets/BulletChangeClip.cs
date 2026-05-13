@@ -9,12 +9,4 @@ public class BulletChangeClip
     public BulletClip clip;
 
     public float time = 0;
-
-    public float interval = 0;
-
-    public BulletChangeClip(float _t, float _interval)
-    {
-        time = _t;
-        interval = _interval;
-    }
 }
