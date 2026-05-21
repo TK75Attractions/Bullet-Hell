@@ -31,6 +31,17 @@ public class AudioManager : MonoBehaviour
     public async Task<AudioSource> PlayBGM(AudioClip clip, float volume = 1.0f)
     {
         if (!isready) return null;
+        if (BGMSource == null)
+        {
+            Debug.LogError("BGM AudioSource not found. Ensure a child named 'BGM' with AudioSource exists.");
+            return null;
+        }
+        if (clip == null)
+        {
+            Debug.LogError("BGM clip is null. Stage audio may have failed to load (unsupported format/import settings).", this);
+            return null;
+        }
+
         BGMSource.clip = clip;
         BGMSource.volume = volume;
         clip.LoadAudioData();

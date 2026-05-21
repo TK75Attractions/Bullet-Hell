@@ -56,7 +56,7 @@ public class BulletBufferManager
             return;
         }
 
-        string[] jsonFiles = Directory.GetFiles(directoryPath, "*.json", SearchOption.TopDirectoryOnly);
+        string[] jsonFiles = Directory.GetFiles(directoryPath, "*.json", SearchOption.AllDirectories);
         int loadedCount = 0;
 
         for (int i = 0; i < jsonFiles.Length; i++)
@@ -333,6 +333,7 @@ public class BulletBufferManager
         }
         else
         {
+            if (index == -3) return default; // "Clear" という特別なインデックスは、空の弾リストを返す
             Debug.LogError($"Bullet clip index out of range: {index}");
             return default;
         }

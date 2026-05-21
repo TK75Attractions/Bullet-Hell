@@ -201,12 +201,12 @@ public class BulletRenderSystem : MonoBehaviour
     public void BuildRenderData(
         NativeArray<BulletData> enemyBullets,
         int enemyCount,
-        NativeArray<BulletData> playerBullets,
-        int playerCount)
+        NativeArray<CounterBullet> counterBullets,
+        int counterCount)
     {
         int safeEnemyCount = math.max(0, enemyCount);
-        int safePlayerCount = math.max(0, playerCount);
-        int totalCount = safeEnemyCount + safePlayerCount;
+        int safeCounterCount = math.max(0, counterCount);
+        int totalCount = safeEnemyCount + safeCounterCount * (CounterBullet.TrailCapacity + 1);
 
         if (totalCount == 0)
         {
@@ -226,9 +226,9 @@ public class BulletRenderSystem : MonoBehaviour
             writeIndex = AppendRenderData(enemyBullets, safeEnemyCount, writeIndex, totalCount);
         }
 
-        if (safePlayerCount > 0 && playerBullets.IsCreated && writeIndex < totalCount)
+        if (safeCounterCount > 0 && counterBullets.IsCreated && writeIndex < totalCount)
         {
-            writeIndex = AppendRenderData(playerBullets, safePlayerCount, writeIndex, totalCount);
+            writeIndex = AppendRenderData(counterBullets, writeIndex, totalCount);
         }
 
         bulletBuffer.SetData(renderArray, 0, 0, writeIndex);
@@ -243,12 +243,13 @@ public class BulletRenderSystem : MonoBehaviour
         for (int i = 0; i < bullets.Length && writeIndex < maxCount; i++)
         {
             var b = bullets[i];
-            if (!b.isActive) continue;
+            if (!b.isActive && !b.isClearing) continue;
 
             var type = GManager.Control.BTDB.types[b.typeId];
             float appear = 1f;
             float fadeIn = 1f;
             float fadeOut = 1f;
+            float clearFade = b.isClearing ? b.GetClearFadeFactor() : 1f;
 
             if (appearDuration > 0f)
             {
@@ -264,13 +265,9 @@ public class BulletRenderSystem : MonoBehaviour
                     fadeOut = math.saturate((b.time - fadeOutStart) / disappearDuration);
                     fadeOut = 1f - fadeOut;
                 }
-                else
-                {
-                    fadeOut = b.time < b.life ? 1f : 0f;
-                }
             }
 
-            appear = fadeIn * fadeOut;
+            appear = fadeIn * fadeOut * clearFade;
 
             if (appear <= 0f)
             {
@@ -288,11 +285,69 @@ public class BulletRenderSystem : MonoBehaviour
                 texIndex = b.typeId,
                 maskIndex = b.typeId,
                 appear = appear,
-                color = b.color,
+                color = new float4(b.color.x, b.color.y, b.color.z, b.color.w * clearFade),
             };
             writeIndex++;
             activeCount++;
             if (activeCount >= count) break;
+        }
+
+        return writeIndex;
+    }
+
+    private int AppendRenderData(NativeArray<CounterBullet> bullets, int startIndex, int maxCount)
+    {
+        int writeIndex = startIndex;
+
+        for (int i = 0; i < bullets.Length && writeIndex < maxCount; i++)
+        {
+            var b = bullets[i];
+            if (!b.isActive) continue;
+
+            float headSize = CounterBullet.GetSize(b.damage);
+            float appear = 1f;
+            renderArray[writeIndex] = new BulletRenderData
+            {
+                pos = b.position,
+                angle = math.atan2(b.velocity.y, b.velocity.x),
+                size = headSize,
+                texIndex = CounterBullet.TypeId,
+                maskIndex = CounterBullet.TypeId,
+                appear = appear,
+                color = CounterBullet.Color,
+            };
+            writeIndex++;
+
+            float2 previousPoint = b.position;
+            for (int trailIndex = 0; trailIndex < b.trailCount && writeIndex < maxCount; trailIndex++)
+            {
+                if (!b.TryGetTrailPoint(trailIndex, out float2 currentPoint)) break;
+
+                float2 segment = previousPoint - currentPoint;
+                float segmentLength = math.length(segment);
+                if (segmentLength <= 1e-4f)
+                {
+                    previousPoint = currentPoint;
+                    continue;
+                }
+
+                float tNorm = (trailIndex + 1f) / (b.trailCount + 1f);
+                float taper = math.pow(1f - tNorm, 0.45f);
+                float fade = math.pow(1f - tNorm, 1.8f);
+                float segmentSize = math.max(headSize * (0.85f * taper + 0.08f), segmentLength * 1.4f);
+                renderArray[writeIndex] = new BulletRenderData
+                {
+                    pos = (previousPoint + currentPoint) * 0.5f,
+                    angle = math.atan2(segment.y, segment.x),
+                    size = segmentSize,
+                    texIndex = CounterBullet.TypeId,
+                    maskIndex = CounterBullet.TypeId,
+                    appear = fade,
+                    color = new float4(CounterBullet.Color.x, CounterBullet.Color.y, CounterBullet.Color.z, CounterBullet.Color.w * fade),
+                };
+                writeIndex++;
+                previousPoint = currentPoint;
+            }
         }
 
         return writeIndex;

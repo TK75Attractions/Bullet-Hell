@@ -18,11 +18,15 @@ public struct BulletDataUpdateJob : IJobParallelFor
     public void Execute(int index)
     {
         BulletData bullet = bullets[index];
-        if (bullet.isActive == false) return;
+        if (!bullet.isActive && !bullet.isClearing) return;
         bullet.time += dt;
+        if (bullet.isClearing)
+        {
+            bullet.clearTime += dt;
+        }
 
         // life を超えた弾は更新と描画対象から外す
-        if (bullet.life > 0f && bullet.time >= bullet.life)
+        if (!bullet.isClearing && bullet.life > 0f && bullet.time >= bullet.life)
         {
             bullet.isActive = false;
             bullets[index] = bullet;
@@ -33,6 +37,11 @@ public struct BulletDataUpdateJob : IJobParallelFor
         {
             // 弾が完全に表示される前は、原点の移動のみ計算して位置は更新しない
             bullet.originPos += bullet.originVlc * dt;
+            if (bullet.isClearing && (bullet.clearDuration <= 0f || bullet.clearTime >= bullet.clearDuration))
+            {
+                bullet.isClearing = false;
+                bullet.isActive = false;
+            }
             bullets[index] = bullet;
             return;
         }
@@ -102,6 +111,11 @@ public struct BulletDataUpdateJob : IJobParallelFor
 
         //範囲外の弾を非アクティブに設定
         if (n == -1) bullet.isActive = false;
+        if (bullet.isClearing && (bullet.clearDuration <= 0f || bullet.clearTime >= bullet.clearDuration))
+        {
+            bullet.isClearing = false;
+            bullet.isActive = false;
+        }
         bullets[index] = bullet;
     }
 

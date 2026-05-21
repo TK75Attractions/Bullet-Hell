@@ -1,0 +1,49 @@
+{
+  "name": "ボム破裂弾_Bomb",
+  "bullets": [
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 11.82518,
+      "accel": 0,
+      "gravity": 0,
+      "angleSpeed": -6.28319,
+      "polarForm": {
+        "x": 1,
+        "y": -0.50876
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "knife",
+      "size": 1.22927,
+      "color": {
+        "x": 1,
+        "y": 0.81961,
+        "z": 0.4,
+        "w": 1
+      },
+      "appearTime": 0,
+      "life": 1,
+      "random": 0
+    }
+  ],
+  "homing": false,
+  "isLaser": false
+}

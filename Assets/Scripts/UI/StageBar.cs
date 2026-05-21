@@ -37,7 +37,7 @@ public class StageBar : MonoBehaviour
             isTransitioning = true;
             float d = duration;
 
-            int length = GManager.Control.SDB.stages.Count;
+            int length = GManager.Control.SDB.GetStageCount();
             if (currentStage >= length - 1)
             {
                 isTransitioning = false;
@@ -88,7 +88,7 @@ public class StageBar : MonoBehaviour
             isTransitioning = true;
             float d = duration;
 
-            int length = GManager.Control.SDB.stages.Count;
+            int length = GManager.Control.SDB.GetStageCount();
             if (currentStage <= 0)
             {
                 isTransitioning = false;

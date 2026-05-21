@@ -62,7 +62,7 @@ public class StageSelectManager : MonoBehaviour
                 {
                     if (up) stageBar.Up();
                     else if (down) stageBar.Down();
-                    scroll.UpdateArea(stageBar.currentStage, GManager.Control.SDB.stages.Count);
+                    scroll.UpdateArea(stageBar.currentStage, GManager.Control.SDB.GetStageCount());
                     break;
                 }
             case State.Difficulty:

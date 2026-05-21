@@ -38,6 +38,9 @@ public struct BulletData
     public float life;
     public float random;
     public bool isActive;
+    public bool isClearing;
+    public float clearTime;
+    public float clearDuration;
 
     /// <summary>
     /// 弾幕のデータ
@@ -83,6 +86,9 @@ public struct BulletData
         areaNum = 0;
         size = _size;
         isActive = true;
+        isClearing = false;
+        clearTime = 0f;
+        clearDuration = 0f;
         color = _color;
 
         float x = _start;
@@ -130,6 +136,9 @@ public struct BulletData
         areaNum = 0;
         time = 0;
         isActive = data.isActive;
+        isClearing = false;
+        clearTime = 0f;
+        clearDuration = 0f;
         random = data.random;
 
         startX = data.startX;
@@ -160,6 +169,9 @@ public struct BulletData
         time = 0;
         areaNum = 0;
         isActive = true;
+        isClearing = false;
+        clearTime = 0f;
+        clearDuration = 0f;
 
         float x = startX;
         float y = 0;
@@ -178,5 +190,18 @@ public struct BulletData
         float2 vec = new float2(1, tan);
         float magnitude = math.sqrt(1 + tan * tan);
         nowCalculateVlc = vec / magnitude * speed;
+    }
+
+    public void BeginClearFade(float duration)
+    {
+        isClearing = true;
+        clearTime = 0f;
+        clearDuration = duration > 0f ? duration : 0.0001f;
+    }
+
+    public float GetClearFadeFactor()
+    {
+        if (!isClearing || clearDuration <= 0f) return 1f;
+        return math.saturate(1f - clearTime / clearDuration);
     }
 }

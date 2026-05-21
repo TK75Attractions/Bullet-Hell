@@ -66,6 +66,7 @@ public class GManager : MonoBehaviour
         BManager = transform.parent.Find("BManager").GetComponent<BeatManager>();
 
         BTDB.Init();
+        SDB = new();
         SDB.Init();
         BClipManager = new();
         BClipManager.Init();
@@ -126,16 +127,16 @@ public class GManager : MonoBehaviour
     public void LateUpdate()
     {
         int enemyCount = QOrder.GetEnemyBulletCount();
-        int playerCount = QOrder.GetPlayerBulletCount();
-        //Debug.Log($"Enemy Bullet Count: {enemyCount}, Player Bullet Count: {playerCount}");
+        int counterCount = QOrder.GetCounterBulletCount();
+        //Debug.Log($"Enemy Bullet Count: {enemyCount}, Counter Bullet Count: {counterCount}");
 
-        if (enemyCount > 0 || playerCount > 0)
+        if (enemyCount > 0 || counterCount > 0)
         {
             BRS.BuildRenderData(
                 QOrder.GetEnemyBullets(),
                 enemyCount,
-                QOrder.GetPlayerBullets(),
-                playerCount
+                QOrder.GetCounterBullets(),
+                counterCount
             );
             BRS.Draw();
         }

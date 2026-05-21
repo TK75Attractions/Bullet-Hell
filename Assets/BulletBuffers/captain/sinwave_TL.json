@@ -1,0 +1,49 @@
+{
+  "name": "sinwave_TL",
+  "bullets": [
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": -5,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 0,
+      "accel": 0,
+      "gravity": 0,
+      "angleSpeed": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 0
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 3,
+      "startPos": {
+        "x": -1,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "size": 5,
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 0.2,
+      "life": 30,
+      "random": 0
+    }
+  ],
+  "homing": false,
+  "isLaser": true
+}

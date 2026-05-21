@@ -9,12 +9,19 @@ public class PlayerController
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float dashSpeed = 20f;
     private Transform playerTransform;
-    private SpriteRenderer SR;
+    private SpriteRenderer main;
+    private SpriteRenderer spell;
+    private Transform spellTransform;
+    private readonly float margin = 0.3f;
+    private float2 xRange = new float2(0, 0);
+    private float2 yRange = new float2(0, 0);
+
     public bool invincible
     {
         get => dash > 0;
         private set { }
     }
+    [SerializeField]
     private float dash = 0;
     private readonly float dashCooldown = 0.36f;
 
@@ -22,7 +29,14 @@ public class PlayerController
     public void Init(GameObject playerObj)
     {
         playerTransform = playerObj.transform;
-        SR = playerObj.GetComponent<SpriteRenderer>();
+        main = playerObj.GetComponent<SpriteRenderer>();
+        spellTransform = playerTransform.Find("Spell");
+        if (spellTransform != null)
+        {
+            spell = spellTransform.GetComponent<SpriteRenderer>();
+        }
+        xRange = new float2(margin, 32 - margin);
+        yRange = new float2(margin, 18 - margin);
     }
 
     // Update is called once per frame
@@ -46,6 +60,8 @@ public class PlayerController
         {
             inputVector = math.normalize(inputVector);
             pos += inputVector * dt * (dash > 0 ? dashSpeed : moveSpeed);
+            pos.x = math.clamp(pos.x, xRange.x, xRange.y);
+            pos.y = math.clamp(pos.y, yRange.x, yRange.y);
         }
     }
 
@@ -56,9 +72,25 @@ public class PlayerController
             dash = dashCooldown;
         }
 
+        if (dash > 0)
+        {
+            float alpha = GetAlpha(dash);
+            if (spell != null) spell.color = new Color(1, 1, 1, alpha);
+        }
+        else
+        {
+            if (spell != null) spell.color = new Color(1, 1, 1, 0);
+        }
+
+        if (spellTransform != null) spellTransform.rotation = Quaternion.Euler(0, 0, Time.time * 720);
         dash -= dt;
     }
 
-    #region Collision
-    #endregion
+    private float GetAlpha(float t)
+    {
+        if (t > dashCooldown - 0.1f) return (dashCooldown - t) / 0.1f;
+        else if (t < 0.1f && t >= 0) return t / 0.1f;
+        else if (t < 0) return 0;
+        else return 1;
+    }
 }

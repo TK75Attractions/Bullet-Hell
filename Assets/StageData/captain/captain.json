@@ -1,0 +1,1767 @@
+{
+  "stageName": "Captain",
+  "MusicEvents": [
+    {
+      "barCount": 20,
+      "BPM": 110,
+      "beatTimings": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "measure": 6,
+      "barStartOffsetBeats": 0
+    }
+  ],
+  "delayTime": 3,
+  "stageDescription": "Stage Description Here",
+  "enemySpawners": [
+    {
+      "enemyName": "demo",
+      "count": 1,
+      "enemyInterval": 0,
+      "enemyAppearTime": 22.09091,
+      "bulletEmitTime": 0.03,
+      "bulletCount": 1,
+      "bulletInterval": 0,
+      "life": 10,
+      "orbit": {
+        "originPos": {
+          "x": 16,
+          "y": 16
+        },
+        "originVlc": {
+          "x": 0,
+          "y": 0
+        },
+        "startX": 0,
+        "speed": 0,
+        "accel": 0,
+        "gravity": 0,
+        "angleSpeed": 0,
+        "polarForm": {
+          "x": 0,
+          "y": 0
+        },
+        "radiusVlc": 0,
+        "thetaVlc": 0,
+        "startPos": {
+          "x": 0,
+          "y": 0
+        },
+        "polynomial": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 0
+        },
+        "typeName": null,
+        "size": 0,
+        "color": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 0
+        },
+        "appearTime": 0,
+        "life": 0,
+        "random": 0
+      },
+      "bulletClip": {
+        "data": {
+          "originPos": {
+            "x": 0,
+            "y": 0
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "startX": 0,
+          "speed": 5,
+          "accel": 0,
+          "gravity": 0,
+          "angleSpeed": 0,
+          "polarForm": {
+            "x": 1,
+            "y": 0
+          },
+          "radiusVlc": 0,
+          "thetaVlc": 0,
+          "startPos": {
+            "x": 0,
+            "y": 0
+          },
+          "polynomial": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 0
+          },
+          "typeName": "normal",
+          "size": 1,
+          "color": {
+            "x": 1,
+            "y": 0,
+            "z": 0.3,
+            "w": 1
+          },
+          "appearTime": 0.05,
+          "life": 4,
+          "random": 0
+        },
+        "number": 5,
+        "disRad": 60,
+        "homing": true
+      },
+      "bulletChangeClips": [
+        {
+          "clip": {
+            "data": {
+              "originPos": {
+                "x": 0,
+                "y": 0
+              },
+              "originVlc": {
+                "x": 0,
+                "y": 0
+              },
+              "startX": 0,
+              "speed": 3,
+              "accel": 0,
+              "gravity": 1,
+              "angleSpeed": 0,
+              "polarForm": {
+                "x": 1,
+                "y": 0
+              },
+              "radiusVlc": 0,
+              "thetaVlc": 0,
+              "startPos": {
+                "x": 0,
+                "y": 0
+              },
+              "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+              },
+              "typeName": "tear",
+              "size": 1,
+              "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+              },
+              "appearTime": 0.05,
+              "life": 12,
+              "random": 0
+            },
+            "number": 5,
+            "disRad": 60,
+            "homing": true
+          },
+          "time": 0.6
+        }
+      ]
+    },
+    {
+      "enemyName": "demo",
+      "count": 1,
+      "enemyInterval": 0,
+      "enemyAppearTime": 24.272728,
+      "bulletEmitTime": 0.03,
+      "bulletCount": 1,
+      "bulletInterval": 0,
+      "life": 10,
+      "orbit": {
+        "originPos": {
+          "x": 16,
+          "y": 16
+        },
+        "originVlc": {
+          "x": 0,
+          "y": 0
+        },
+        "startX": 0,
+        "speed": 0,
+        "accel": 0,
+        "gravity": 0,
+        "angleSpeed": 0,
+        "polarForm": {
+          "x": 0,
+          "y": 0
+        },
+        "radiusVlc": 0,
+        "thetaVlc": 0,
+        "startPos": {
+          "x": 0,
+          "y": 0
+        },
+        "polynomial": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 0
+        },
+        "typeName": null,
+        "size": 0,
+        "color": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 0
+        },
+        "appearTime": 0,
+        "life": 0,
+        "random": 0
+      },
+      "bulletClip": {
+        "data": {
+          "originPos": {
+            "x": 0,
+            "y": 0
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "startX": 0,
+          "speed": 5,
+          "accel": 0,
+          "gravity": 0,
+          "angleSpeed": 0,
+          "polarForm": {
+            "x": 1,
+            "y": 0
+          },
+          "radiusVlc": 0,
+          "thetaVlc": 0,
+          "startPos": {
+            "x": 0,
+            "y": 0
+          },
+          "polynomial": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 0
+          },
+          "typeName": "normal",
+          "size": 1,
+          "color": {
+            "x": 1,
+            "y": 0,
+            "z": 0.3,
+            "w": 1
+          },
+          "appearTime": 0.05,
+          "life": 4,
+          "random": 0
+        },
+        "number": 5,
+        "disRad": 60,
+        "homing": true
+      },
+      "bulletChangeClips": [
+        {
+          "clip": {
+            "data": {
+              "originPos": {
+                "x": 0,
+                "y": 0
+              },
+              "originVlc": {
+                "x": 0,
+                "y": 0
+              },
+              "startX": 0,
+              "speed": 3,
+              "accel": 0,
+              "gravity": 1,
+              "angleSpeed": 0,
+              "polarForm": {
+                "x": 1,
+                "y": 0
+              },
+              "radiusVlc": 0,
+              "thetaVlc": 0,
+              "startPos": {
+                "x": 0,
+                "y": 0
+              },
+              "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+              },
+              "typeName": "tear",
+              "size": 1,
+              "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+              },
+              "appearTime": 0.05,
+              "life": 12,
+              "random": 0
+            },
+            "number": 5,
+            "disRad": 60,
+            "homing": true
+          },
+          "time": 0.6
+        }
+      ]
+    },
+    {
+      "enemyName": "demo",
+      "count": 1,
+      "enemyInterval": 0,
+      "enemyAppearTime": 26.454546,
+      "bulletEmitTime": 0.03,
+      "bulletCount": 1,
+      "bulletInterval": 0,
+      "life": 10,
+      "orbit": {
+        "originPos": {
+          "x": 16,
+          "y": 16
+        },
+        "originVlc": {
+          "x": 0,
+          "y": 0
+        },
+        "startX": 0,
+        "speed": 0,
+        "accel": 0,
+        "gravity": 0,
+        "angleSpeed": 0,
+        "polarForm": {
+          "x": 0,
+          "y": 0
+        },
+        "radiusVlc": 0,
+        "thetaVlc": 0,
+        "startPos": {
+          "x": 0,
+          "y": 0
+        },
+        "polynomial": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 0
+        },
+        "typeName": null,
+        "size": 0,
+        "color": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 0
+        },
+        "appearTime": 0,
+        "life": 0,
+        "random": 0
+      },
+      "bulletClip": {
+        "data": {
+          "originPos": {
+            "x": 0,
+            "y": 0
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "startX": 0,
+          "speed": 5,
+          "accel": 0,
+          "gravity": 0,
+          "angleSpeed": 0,
+          "polarForm": {
+            "x": 1,
+            "y": 0
+          },
+          "radiusVlc": 0,
+          "thetaVlc": 0,
+          "startPos": {
+            "x": 0,
+            "y": 0
+          },
+          "polynomial": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 0
+          },
+          "typeName": "normal",
+          "size": 1,
+          "color": {
+            "x": 1,
+            "y": 0,
+            "z": 0.3,
+            "w": 1
+          },
+          "appearTime": 0.05,
+          "life": 4,
+          "random": 0
+        },
+        "number": 5,
+        "disRad": 60,
+        "homing": true
+      },
+      "bulletChangeClips": [
+        {
+          "clip": {
+            "data": {
+              "originPos": {
+                "x": 0,
+                "y": 0
+              },
+              "originVlc": {
+                "x": 0,
+                "y": 0
+              },
+              "startX": 0,
+              "speed": 3,
+              "accel": 0,
+              "gravity": 1,
+              "angleSpeed": 0,
+              "polarForm": {
+                "x": 1,
+                "y": 0
+              },
+              "radiusVlc": 0,
+              "thetaVlc": 0,
+              "startPos": {
+                "x": 0,
+                "y": 0
+              },
+              "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+              },
+              "typeName": "tear",
+              "size": 1,
+              "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+              },
+              "appearTime": 0.05,
+              "life": 12,
+              "random": 0
+            },
+            "number": 5,
+            "disRad": 60,
+            "homing": true
+          },
+          "time": 0.6
+        }
+      ]
+    },
+    {
+      "enemyName": "demo",
+      "count": 1,
+      "enemyInterval": 0,
+      "enemyAppearTime": 28.636364,
+      "bulletEmitTime": 0.03,
+      "bulletCount": 1,
+      "bulletInterval": 0,
+      "life": 10,
+      "orbit": {
+        "originPos": {
+          "x": 16,
+          "y": 16
+        },
+        "originVlc": {
+          "x": 0,
+          "y": 0
+        },
+        "startX": 0,
+        "speed": 0,
+        "accel": 0,
+        "gravity": 0,
+        "angleSpeed": 0,
+        "polarForm": {
+          "x": 0,
+          "y": 0
+        },
+        "radiusVlc": 0,
+        "thetaVlc": 0,
+        "startPos": {
+          "x": 0,
+          "y": 0
+        },
+        "polynomial": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 0
+        },
+        "typeName": null,
+        "size": 0,
+        "color": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 0
+        },
+        "appearTime": 0,
+        "life": 0,
+        "random": 0
+      },
+      "bulletClip": {
+        "data": {
+          "originPos": {
+            "x": 0,
+            "y": 0
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "startX": 0,
+          "speed": 5,
+          "accel": 0,
+          "gravity": 0,
+          "angleSpeed": 0,
+          "polarForm": {
+            "x": 1,
+            "y": 0
+          },
+          "radiusVlc": 0,
+          "thetaVlc": 0,
+          "startPos": {
+            "x": 0,
+            "y": 0
+          },
+          "polynomial": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 0
+          },
+          "typeName": "normal",
+          "size": 1,
+          "color": {
+            "x": 1,
+            "y": 0,
+            "z": 0.3,
+            "w": 1
+          },
+          "appearTime": 0.05,
+          "life": 4,
+          "random": 0
+        },
+        "number": 5,
+        "disRad": 60,
+        "homing": true
+      },
+      "bulletChangeClips": [
+        {
+          "clip": {
+            "data": {
+              "originPos": {
+                "x": 0,
+                "y": 0
+              },
+              "originVlc": {
+                "x": 0,
+                "y": 0
+              },
+              "startX": 0,
+              "speed": 3,
+              "accel": 0,
+              "gravity": 1,
+              "angleSpeed": 0,
+              "polarForm": {
+                "x": 1,
+                "y": 0
+              },
+              "radiusVlc": 0,
+              "thetaVlc": 0,
+              "startPos": {
+                "x": 0,
+                "y": 0
+              },
+              "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+              },
+              "typeName": "tear",
+              "size": 1,
+              "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+              },
+              "appearTime": 0.05,
+              "life": 12,
+              "random": 0
+            },
+            "number": 5,
+            "disRad": 60,
+            "homing": true
+          },
+          "time": 0.6
+        }
+      ]
+    },
+    {
+      "enemyName": "demo",
+      "count": 1,
+      "enemyInterval": 0,
+      "enemyAppearTime": 30.818182,
+      "bulletEmitTime": 0.03,
+      "bulletCount": 1,
+      "bulletInterval": 0,
+      "life": 10,
+      "orbit": {
+        "originPos": {
+          "x": 16,
+          "y": 16
+        },
+        "originVlc": {
+          "x": 0,
+          "y": 0
+        },
+        "startX": 0,
+        "speed": 0,
+        "accel": 0,
+        "gravity": 0,
+        "angleSpeed": 0,
+        "polarForm": {
+          "x": 0,
+          "y": 0
+        },
+        "radiusVlc": 0,
+        "thetaVlc": 0,
+        "startPos": {
+          "x": 0,
+          "y": 0
+        },
+        "polynomial": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 0
+        },
+        "typeName": null,
+        "size": 0,
+        "color": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 0
+        },
+        "appearTime": 0,
+        "life": 0,
+        "random": 0
+      },
+      "bulletClip": {
+        "data": {
+          "originPos": {
+            "x": 0,
+            "y": 0
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "startX": 0,
+          "speed": 5,
+          "accel": 0,
+          "gravity": 0,
+          "angleSpeed": 0,
+          "polarForm": {
+            "x": 1,
+            "y": 0
+          },
+          "radiusVlc": 0,
+          "thetaVlc": 0,
+          "startPos": {
+            "x": 0,
+            "y": 0
+          },
+          "polynomial": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 0
+          },
+          "typeName": "normal",
+          "size": 1,
+          "color": {
+            "x": 1,
+            "y": 0,
+            "z": 0.3,
+            "w": 1
+          },
+          "appearTime": 0.05,
+          "life": 4,
+          "random": 0
+        },
+        "number": 5,
+        "disRad": 60,
+        "homing": true
+      },
+      "bulletChangeClips": [
+        {
+          "clip": {
+            "data": {
+              "originPos": {
+                "x": 0,
+                "y": 0
+              },
+              "originVlc": {
+                "x": 0,
+                "y": 0
+              },
+              "startX": 0,
+              "speed": 3,
+              "accel": 0,
+              "gravity": 1,
+              "angleSpeed": 0,
+              "polarForm": {
+                "x": 1,
+                "y": 0
+              },
+              "radiusVlc": 0,
+              "thetaVlc": 0,
+              "startPos": {
+                "x": 0,
+                "y": 0
+              },
+              "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+              },
+              "typeName": "tear",
+              "size": 1,
+              "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+              },
+              "appearTime": 0.05,
+              "life": 12,
+              "random": 0
+            },
+            "number": 5,
+            "disRad": 60,
+            "homing": true
+          },
+          "time": 0.6
+        }
+      ]
+    },
+    {
+      "enemyName": "demo",
+      "count": 1,
+      "enemyInterval": 0,
+      "enemyAppearTime": 33,
+      "bulletEmitTime": 0.03,
+      "bulletCount": 1,
+      "bulletInterval": 0,
+      "life": 10,
+      "orbit": {
+        "originPos": {
+          "x": 16,
+          "y": 16
+        },
+        "originVlc": {
+          "x": 0,
+          "y": 0
+        },
+        "startX": 0,
+        "speed": 0,
+        "accel": 0,
+        "gravity": 0,
+        "angleSpeed": 0,
+        "polarForm": {
+          "x": 0,
+          "y": 0
+        },
+        "radiusVlc": 0,
+        "thetaVlc": 0,
+        "startPos": {
+          "x": 0,
+          "y": 0
+        },
+        "polynomial": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 0
+        },
+        "typeName": null,
+        "size": 0,
+        "color": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 0
+        },
+        "appearTime": 0,
+        "life": 0,
+        "random": 0
+      },
+      "bulletClip": {
+        "data": {
+          "originPos": {
+            "x": 0,
+            "y": 0
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "startX": 0,
+          "speed": 5,
+          "accel": 0,
+          "gravity": 0,
+          "angleSpeed": 0,
+          "polarForm": {
+            "x": 1,
+            "y": 0
+          },
+          "radiusVlc": 0,
+          "thetaVlc": 0,
+          "startPos": {
+            "x": 0,
+            "y": 0
+          },
+          "polynomial": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 0
+          },
+          "typeName": "normal",
+          "size": 1,
+          "color": {
+            "x": 1,
+            "y": 0,
+            "z": 0.3,
+            "w": 1
+          },
+          "appearTime": 0.05,
+          "life": 4,
+          "random": 0
+        },
+        "number": 5,
+        "disRad": 60,
+        "homing": true
+      },
+      "bulletChangeClips": [
+        {
+          "clip": {
+            "data": {
+              "originPos": {
+                "x": 0,
+                "y": 0
+              },
+              "originVlc": {
+                "x": 0,
+                "y": 0
+              },
+              "startX": 0,
+              "speed": 3,
+              "accel": 0,
+              "gravity": 1,
+              "angleSpeed": 0,
+              "polarForm": {
+                "x": 1,
+                "y": 0
+              },
+              "radiusVlc": 0,
+              "thetaVlc": 0,
+              "startPos": {
+                "x": 0,
+                "y": 0
+              },
+              "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+              },
+              "typeName": "tear",
+              "size": 1,
+              "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+              },
+              "appearTime": 0.05,
+              "life": 12,
+              "random": 0
+            },
+            "number": 5,
+            "disRad": 60,
+            "homing": true
+          },
+          "time": 0.6
+        }
+      ]
+    }
+  ],
+  "bulletSpawners": [
+    {
+      "clipName": "seawave_CW",
+      "count": 1,
+      "interval": 0.2,
+      "time": 9,
+      "pos": {
+        "x": 4,
+        "y": 16
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 30,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "seawave_CW",
+      "count": 1,
+      "interval": 0.2,
+      "time": 9.545455,
+      "pos": {
+        "x": 28,
+        "y": 12
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 30,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "seawave_CW",
+      "count": 1,
+      "interval": 0.2,
+      "time": 10.090909,
+      "pos": {
+        "x": 18,
+        "y": 14
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 30,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "seawave_CW",
+      "count": 1,
+      "interval": 0.2,
+      "time": 12.272728,
+      "pos": {
+        "x": 4,
+        "y": 16
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 30,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "seawave_CW",
+      "count": 1,
+      "interval": 0.2,
+      "time": 12.818183,
+      "pos": {
+        "x": 28,
+        "y": 12
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 30,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "seawave_CW",
+      "count": 1,
+      "interval": 0.2,
+      "time": 13.363637,
+      "pos": {
+        "x": 18,
+        "y": 14
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 30,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "seawave_CW",
+      "count": 1,
+      "interval": 0.2,
+      "time": 15.545455,
+      "pos": {
+        "x": 4,
+        "y": 16
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 30,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "seawave_CW",
+      "count": 1,
+      "interval": 0.2,
+      "time": 16.09091,
+      "pos": {
+        "x": 28,
+        "y": 12
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 30,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "seawave_CW",
+      "count": 1,
+      "interval": 0.2,
+      "time": 16.636364,
+      "pos": {
+        "x": 18,
+        "y": 14
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 30,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "seawave_CW",
+      "count": 1,
+      "interval": 0.2,
+      "time": 18.818182,
+      "pos": {
+        "x": 4,
+        "y": 16
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 30,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "seawave_CW",
+      "count": 1,
+      "interval": 0.2,
+      "time": 19.363636,
+      "pos": {
+        "x": 28,
+        "y": 12
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 30,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "seawave_CW",
+      "count": 1,
+      "interval": 0.2,
+      "time": 19.909092,
+      "pos": {
+        "x": 18,
+        "y": 14
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 30,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "Clear",
+      "count": 1,
+      "interval": 0,
+      "time": 22.09091,
+      "pos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      }
+    },
+    {
+      "clipName": "sinwave_TR",
+      "count": 1,
+      "interval": 0,
+      "time": 22.09091,
+      "pos": {
+        "x": 1,
+        "y": 2
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TL",
+      "count": 1,
+      "interval": 0,
+      "time": 23.727272,
+      "pos": {
+        "x": 31,
+        "y": 4
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TR",
+      "count": 1,
+      "interval": 0,
+      "time": 22.09091,
+      "pos": {
+        "x": 1,
+        "y": 6
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TL",
+      "count": 1,
+      "interval": 0,
+      "time": 23.727272,
+      "pos": {
+        "x": 31,
+        "y": 8
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TR",
+      "count": 1,
+      "interval": 0,
+      "time": 22.09091,
+      "pos": {
+        "x": 1,
+        "y": 10
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TL",
+      "count": 1,
+      "interval": 0,
+      "time": 23.727272,
+      "pos": {
+        "x": 31,
+        "y": 12
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TR",
+      "count": 1,
+      "interval": 0,
+      "time": 25.363636,
+      "pos": {
+        "x": 1,
+        "y": 2
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TL",
+      "count": 1,
+      "interval": 0,
+      "time": 27,
+      "pos": {
+        "x": 31,
+        "y": 4
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TR",
+      "count": 1,
+      "interval": 0,
+      "time": 25.363636,
+      "pos": {
+        "x": 1,
+        "y": 6
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TL",
+      "count": 1,
+      "interval": 0,
+      "time": 27,
+      "pos": {
+        "x": 31,
+        "y": 8
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TR",
+      "count": 1,
+      "interval": 0,
+      "time": 25.363636,
+      "pos": {
+        "x": 1,
+        "y": 10
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TL",
+      "count": 1,
+      "interval": 0,
+      "time": 27,
+      "pos": {
+        "x": 31,
+        "y": 12
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TR",
+      "count": 1,
+      "interval": 0,
+      "time": 28.636364,
+      "pos": {
+        "x": 1,
+        "y": 2
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TL",
+      "count": 1,
+      "interval": 0,
+      "time": 30.272728,
+      "pos": {
+        "x": 31,
+        "y": 4
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TR",
+      "count": 1,
+      "interval": 0,
+      "time": 28.636364,
+      "pos": {
+        "x": 1,
+        "y": 6
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TL",
+      "count": 1,
+      "interval": 0,
+      "time": 30.272728,
+      "pos": {
+        "x": 31,
+        "y": 8
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TR",
+      "count": 1,
+      "interval": 0,
+      "time": 28.636364,
+      "pos": {
+        "x": 1,
+        "y": 10
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TL",
+      "count": 1,
+      "interval": 0,
+      "time": 30.272728,
+      "pos": {
+        "x": 31,
+        "y": 12
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TR",
+      "count": 1,
+      "interval": 0,
+      "time": 31.909092,
+      "pos": {
+        "x": 1,
+        "y": 2
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TL",
+      "count": 1,
+      "interval": 0,
+      "time": 33.545456,
+      "pos": {
+        "x": 31,
+        "y": 4
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TR",
+      "count": 1,
+      "interval": 0,
+      "time": 31.909092,
+      "pos": {
+        "x": 1,
+        "y": 6
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TL",
+      "count": 1,
+      "interval": 0,
+      "time": 33.545456,
+      "pos": {
+        "x": 31,
+        "y": 8
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TR",
+      "count": 1,
+      "interval": 0,
+      "time": 31.909092,
+      "pos": {
+        "x": 1,
+        "y": 10
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "sinwave_TL",
+      "count": 1,
+      "interval": 0,
+      "time": 33.545456,
+      "pos": {
+        "x": 31,
+        "y": 12
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "Clear",
+      "count": 1,
+      "interval": 0,
+      "time": 35.18182,
+      "pos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      }
+    }
+  ]
+}
