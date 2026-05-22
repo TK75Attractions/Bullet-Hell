@@ -12,9 +12,9 @@
       },
       "startX": 0,
       "speed": 0,
-      "accel": 0,
       "gravity": 0,
       "angleSpeed": 0,
+      "initialAngle": 0,
       "polarForm": {
         "x": 1,
         "y": 0
@@ -32,7 +32,10 @@
         "w": 0
       },
       "typeName": "tear",
-      "size": 5,
+      "scale": {
+        "x": 5,
+        "y": 5
+      },
       "color": {
         "x": 1,
         "y": 1,
@@ -40,8 +43,10 @@
         "w": 1
       },
       "appearTime": 0.2,
-      "life": 30,
-      "random": 0
+      "appearDuration": 0,
+      "life": 12,
+      "random": 0,
+      "unCounterable": false
     }
   ],
   "homing": false,

@@ -37,11 +37,13 @@ public struct BulletCollisionJob : IJobParallelFor
 
         if (isPlayerDash)
         {
+            if (bullet.unCounterable) return; // カウンター不可の弾はダッシュで消せない
             float2 dis = pPos - bullet.position;
             float distSq = math.dot(dis, dis);
             if (grazeRange > distSq)
             {
-                attackPower[0] += bPowers[bullet.typeId] * bullet.size;
+                float uniformScale = math.cmax(math.abs(bullet.scale));
+                attackPower[0] += bPowers[bullet.typeId] * uniformScale;
                 bullet.isActive = false; // 弾を消す
                 bullets[index] = bullet; // 変更を反映
             }
@@ -62,8 +64,9 @@ public struct BulletCollisionJob : IJobParallelFor
 
             for (int i = 0; i < range.y; i++)
             {
-                float2 vert0 = bVerts[range.x + i] * bullet.size;
-                float2 vert1 = bVerts[range.x + ((i + 1) % range.y)] * bullet.size;
+                float2 absScale = math.abs(bullet.scale);
+                float2 vert0 = bVerts[range.x + i] * absScale;
+                float2 vert1 = bVerts[range.x + ((i + 1) % range.y)] * absScale;
 
                 float d = (py - vert0.y) * (vert1.x - vert0.x) - (px - vert0.x) * (vert1.y - vert0.y);
                 if (d < -CrossEpsilon) return; // 衝突していない

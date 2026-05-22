@@ -3319,9 +3319,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0
+    x: 0.011224806
     y: 0
-    width: 1
+    width: 0.9775504
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -5090,9 +5090,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0
+    x: 0.011224806
     y: 0
-    width: 1
+    width: 0.9775504
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -5221,9 +5221,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0
+    x: 0.011224806
     y: 0
-    width: 1
+    width: 0.9775504
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -5458,6 +5458,7 @@ MonoBehaviour:
       y: 0
     moveSpeed: 5
     dashSpeed: 20
+    hitInvincibleDuration: 0.2
     dash: 0
   IManager: {fileID: 1890939113}
   SReader: {fileID: 0}
@@ -6040,9 +6041,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0
+    x: 0.011224806
     y: 0
-    width: 1
+    width: 0.9775504
     height: 1
   near clip plane: 0.3
   far clip plane: 1000

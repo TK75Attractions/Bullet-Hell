@@ -1,0 +1,68 @@
+{
+  "stageName": "debug",
+  "MusicEvents": [
+    {
+      "barCount": 20,
+      "BPM": 110,
+      "beatTimings": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "measure": 6,
+      "barStartOffsetBeats": 0
+    }
+  ],
+  "delayTime": 3,
+  "stageDescription": "Stage Description Here",
+  "enemySpawners": [],
+  "bulletSpawners": [
+    {
+      "clipName": "wavecyclone_ACW",
+      "count": 2,
+      "interval": 6.545455,
+      "time": 9,
+      "pos": {
+        "x": 4,
+        "y": 13.5
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "wavecyclone_CW",
+      "count": 2,
+      "interval": 6.545455,
+      "time": 9,
+      "pos": {
+        "x": 32,
+        "y": 13.5
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    }
+  ]
+}

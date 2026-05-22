@@ -16,8 +16,8 @@ public class StageDataManager
         public Vector2 originVlc;
         public float startX;
         public float speed;
-        public float accel;
         public float gravity;
+        public float initialAngle;
         public float angleSpeed;
         public Vector2 polarForm;
         public float radiusVlc;
@@ -25,34 +25,47 @@ public class StageDataManager
         public Vector2 startPos;
         public Vector4 polynomial;
         public string typeName;
+        public Vector2 scale;
         public float size;
         public Vector4 color;
         public float appearTime;
+        public float appearDuration;
         public float life;
         public float random;
+        public bool unCounterable;
 
         public BulletDataJson ToBulletDataJson()
         {
+            float2 resolvedScale = new float2(scale.x, scale.y);
+            if (resolvedScale.x == 0f && resolvedScale.y == 0f)
+            {
+                float legacy = size > 0f ? size : 1f;
+                resolvedScale = new float2(legacy, legacy);
+            }
+
             return new BulletDataJson
             {
-                originPos = new float2(originPos.x, originPos.y),
-                originVlc = new float2(originVlc.x, originVlc.y),
+                originPos = new Vector2(originPos.x, originPos.y),
+                originVlc = new Vector2(originVlc.x, originVlc.y),
                 startX = startX,
                 speed = speed,
-                accel = accel,
                 gravity = gravity,
+                initialAngle = initialAngle,
                 angleSpeed = angleSpeed,
-                polarForm = new float2(polarForm.x, polarForm.y),
+                polarForm = new Vector2(polarForm.x, polarForm.y),
                 radiusVlc = radiusVlc,
                 thetaVlc = thetaVlc,
-                startPos = new float2(startPos.x, startPos.y),
+                startPos = new Vector2(startPos.x, startPos.y),
                 polynomial = new float4(polynomial.x, polynomial.y, polynomial.z, polynomial.w),
                 typeName = typeName,
+                scale = new Vector2(resolvedScale.x, resolvedScale.y),
                 size = size,
                 color = new float4(color.x, color.y, color.z, color.w),
                 appearTime = appearTime,
+                appearDuration = appearDuration,
                 life = life,
-                random = random
+                random = random,
+                unCounterable = unCounterable
             };
         }
     }

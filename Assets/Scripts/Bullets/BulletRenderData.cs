@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 public struct BulletRenderData
 {
     public float2 pos;
+    public float2 scale;
     public float angle;
-    public float size;
     public float texIndex;
     public float maskIndex;
     public float appear;

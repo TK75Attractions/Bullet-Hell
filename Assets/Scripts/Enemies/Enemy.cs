@@ -49,7 +49,7 @@ public class Enemy : MonoBehaviour
         bulletChangeClips = spawner.bulletChangeClips;
 
         trans = transform;
-        trans.localScale = new Vector3(spawner.orbit.size, spawner.orbit.size, 1);
+        trans.localScale = new Vector3(spawner.orbit.scale.x, spawner.orbit.scale.y, 1);
         SR = GetComponent<SpriteRenderer>();
         SR.sprite = GManager.Control.EDB.GetSprite(spawner.id);
         startInterval = spawner.bulletEmitTime;

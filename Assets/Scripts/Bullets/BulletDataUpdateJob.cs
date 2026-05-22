@@ -36,7 +36,7 @@ public struct BulletDataUpdateJob : IJobParallelFor
         if (bullet.appearTime > bullet.time)
         {
             // 弾が完全に表示される前は、原点の移動のみ計算して位置は更新しない
-            bullet.originPos += bullet.originVlc * dt;
+            bullet = Update(bullet, index, dt * 0.001f);
             if (bullet.isClearing && (bullet.clearDuration <= 0f || bullet.clearTime >= bullet.clearDuration))
             {
                 bullet.isClearing = false;
@@ -45,10 +45,28 @@ public struct BulletDataUpdateJob : IJobParallelFor
             bullets[index] = bullet;
             return;
         }
+
+        bullet = Update(bullet, index, dt);
+
+        //四分木秩序に変換
+        int n = GetTreeNum(new float2(bullet.position.x, bullet.position.y));
+        bullet.areaNum = n;
+
+        //範囲外の弾を非アクティブに設定
+        if (n == -1) bullet.isActive = false;
+        if (bullet.isClearing && (bullet.clearDuration <= 0f || bullet.clearTime >= bullet.clearDuration))
+        {
+            bullet.isClearing = false;
+            bullet.isActive = false;
+        }
+        bullets[index] = bullet;
+    }
+
+    public BulletData Update(BulletData bullet, int index, float dt)
+    {
         //ベースの座標を更新
         bullet.originPos += bullet.originVlc * dt;
 
-        //random を揺らぎ量として、線形補間したスムーズノイズを原点に加える
         float2 noisyOriginPos = bullet.originPos;
         if (bullet.random > 0f)
         {
@@ -57,7 +75,6 @@ public struct BulletDataUpdateJob : IJobParallelFor
             noisyOriginPos += noise;
         }
 
-        //弾の見かけの原点からのベクトルを計算
         float2 delta = bullet.nowCalculateVlc * dt;
         float x = bullet.nowCalculateX + delta.x;
         bullet.nowCalculateX = x;
@@ -105,20 +122,8 @@ public struct BulletDataUpdateJob : IJobParallelFor
         float a = GetAngleRad(bullet.velocity.x, bullet.velocity.y);
         bullet.angle = a + bullet.angleSpeed * bullet.time;
 
-        //四分木秩序に変換
-        int n = GetTreeNum(new float2(bullet.position.x, bullet.position.y));
-        bullet.areaNum = n;
-
-        //範囲外の弾を非アクティブに設定
-        if (n == -1) bullet.isActive = false;
-        if (bullet.isClearing && (bullet.clearDuration <= 0f || bullet.clearTime >= bullet.clearDuration))
-        {
-            bullet.isClearing = false;
-            bullet.isActive = false;
-        }
-        bullets[index] = bullet;
+        return bullet;
     }
-
     public int GetTreeNum(float2 pos)
     {
         if (pos.x < 0 || pos.y < 0) return -1;

@@ -98,7 +98,7 @@ public class QuadOrder : MonoBehaviour
         public int typeId;
         public float time;
         public float angle;
-        public float size;
+        public Vector2 scale;
         public Vector2 position;
         public Vector2 velocity;
         public Vector2 originPos;
@@ -630,7 +630,7 @@ public class QuadOrder : MonoBehaviour
             position = sourceBullet.position,
             velocity = sourceBullet.velocity * invDt,
             damage = bulletPowers.IsCreated && sourceBullet.typeId >= 0 && sourceBullet.typeId < bulletPowers.Length
-                ? bulletPowers[sourceBullet.typeId] * sourceBullet.size
+                ? bulletPowers[sourceBullet.typeId] * math.cmax(math.abs(sourceBullet.scale))
                 : 0f,
             isActive = true,
             homingElapsed = 0f,
@@ -642,6 +642,7 @@ public class QuadOrder : MonoBehaviour
     private void UpdateCounterBullets(float dt)
     {
         if (!counterBullets.IsCreated || counterBullets.Length == 0) return;
+        int activeBeforeUpdate = CountActiveCounterBullets(counterBullets);
 
         float2 bossPos = boss != null
             ? new float2(boss.transform.position.x, boss.transform.position.y)
@@ -656,6 +657,16 @@ public class QuadOrder : MonoBehaviour
 
         JobHandle handle = job.Schedule(counterBullets.Length, 64);
         handle.Complete();
+
+        if (boss != null)
+        {
+            int activeAfterUpdate = CountActiveCounterBullets(counterBullets);
+            int hitCount = activeBeforeUpdate - activeAfterUpdate;
+            if (hitCount > 0)
+            {
+                GManager.Control?.AddCounterHitBossCount(hitCount);
+            }
+        }
     }
 
     [ContextMenu("Refresh Native Bullet Debug Views")]
@@ -717,7 +728,7 @@ public class QuadOrder : MonoBehaviour
                 typeId = bullet.typeId,
                 time = bullet.time,
                 angle = bullet.angle,
-                size = bullet.size,
+                scale = new Vector2(bullet.scale.x, bullet.scale.y),
                 position = new Vector2(bullet.position.x, bullet.position.y),
                 velocity = new Vector2(bullet.velocity.x, bullet.velocity.y),
                 originPos = new Vector2(bullet.originPos.x, bullet.originPos.y),
@@ -729,6 +740,17 @@ public class QuadOrder : MonoBehaviour
     #endregion
 
     #region //collisionMethods
+    private void NotifyPlayerHit(string source)
+    {
+        PlayerController player = GManager.Control?.PController;
+        if (player == null) return;
+        if (!player.TryHit()) return;
+
+        GManager.Control?.AddPlayerHitCount();
+
+        Debug.Log($"{source} collision detected.");
+    }
+
     public void CheckCollisionWithEnemy(float2 pPos, float dt)
     {
         if (collisionDataDirty || !collisionVerts.IsCreated || !collisionVertRanges.IsCreated || !bulletPowers.IsCreated) BuildCollisionData();
@@ -827,7 +849,7 @@ public class QuadOrder : MonoBehaviour
 
         if (collisionHitFlag[0] != 0)
         {
-            Debug.Log("Enemy bullet collision detected.");
+            NotifyPlayerHit("Enemy bullet");
         }
 
         if (grazePower[0] > 0f)
@@ -872,6 +894,9 @@ public class QuadOrder : MonoBehaviour
 
     public void CheckCollisionWithLASER(float2 pPos)
     {
+        PlayerController player = GManager.Control?.PController;
+        if (player == null || player.invincible) return;
+
         int pCell = GetTreeNum(pPos);
         if (pCell == -1) return;
 
@@ -900,6 +925,7 @@ public class QuadOrder : MonoBehaviour
             float2sets.Dispose();
             if (collisionHitFlag[0] != 0)
             {
+                NotifyPlayerHit("Laser");
                 break;
             }
         }

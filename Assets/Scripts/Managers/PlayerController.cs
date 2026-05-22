@@ -8,6 +8,7 @@ public class PlayerController
     public float2 pos;
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float dashSpeed = 20f;
+    [SerializeField] private float hitInvincibleDuration = 0.2f;
     private Transform playerTransform;
     private SpriteRenderer main;
     private SpriteRenderer spell;
@@ -15,10 +16,11 @@ public class PlayerController
     private readonly float margin = 0.3f;
     private float2 xRange = new float2(0, 0);
     private float2 yRange = new float2(0, 0);
+    private float hitInvincibleTimer = 0f;
 
     public bool invincible
     {
-        get => dash > 0;
+        get => dash > 0 || hitInvincibleTimer > 0f;
         private set { }
     }
     [SerializeField]
@@ -44,8 +46,22 @@ public class PlayerController
     {
         Move(dt);
         Dash(dt);
+        UpdateHitState(dt);
         playerTransform.position = new Vector3(pos.x, pos.y, 0);
 
+    }
+
+    public bool TryHit()
+    {
+        if (invincible) return false;
+
+        hitInvincibleTimer = hitInvincibleDuration;
+        if (main != null)
+        {
+            main.color = new Color(1f, 0.35f, 0.35f, 1f);
+        }
+
+        return true;
     }
 
     private void Move(float dt)
@@ -84,6 +100,21 @@ public class PlayerController
 
         if (spellTransform != null) spellTransform.rotation = Quaternion.Euler(0, 0, Time.time * 720);
         dash -= dt;
+    }
+
+    private void UpdateHitState(float dt)
+    {
+        if (hitInvincibleTimer <= 0f)
+        {
+            if (main != null) main.color = Color.white;
+            return;
+        }
+
+        hitInvincibleTimer = math.max(0f, hitInvincibleTimer - dt);
+        if (hitInvincibleTimer <= 0f && main != null)
+        {
+            main.color = Color.white;
+        }
     }
 
     private float GetAlpha(float t)

@@ -9,8 +9,9 @@ public class BulletRenderSystem : MonoBehaviour
     public Material material;
 
     private const int MaxBullets = 65536;
-    private const float appearDuration = 0.6f; // 弾が完全に表示されるまでの時間（秒）
     private const float disappearDuration = 0.1f; // 弾が完全に消えるまでの時間（秒）
+    private const float appearBeatBaseAlpha = 0.2f; // a
+    private const float appearBeatSinCoeff = 0.3f; // k
 
     private ComputeBuffer bulletBuffer;
     private ComputeBuffer argsBuffer;
@@ -239,6 +240,7 @@ public class BulletRenderSystem : MonoBehaviour
     {
         int writeIndex = startIndex;
         int activeCount = 0;
+        float beatValueSin = GetBeatValueSin();
 
         for (int i = 0; i < bullets.Length && writeIndex < maxCount; i++)
         {
@@ -246,15 +248,28 @@ public class BulletRenderSystem : MonoBehaviour
             if (!b.isActive && !b.isClearing) continue;
 
             var type = GManager.Control.BTDB.types[b.typeId];
+
             float appear = 1f;
             float fadeIn = 1f;
             float fadeOut = 1f;
             float clearFade = b.isClearing ? b.GetClearFadeFactor() : 1f;
 
-            if (appearDuration > 0f)
+            // AppearDuration 区間だけ、ビートに同期したアルファ変動を適用する。
+            if (b.appearDuration > 0f)
             {
-                float fadeInStart = b.appearTime - appearDuration;
-                fadeIn = math.saturate((b.time - fadeInStart) / appearDuration);
+                float appearStart = b.appearTime - b.appearDuration;
+                if (b.time < appearStart)
+                {
+                    fadeIn = 0f;
+                }
+                else if (b.time < b.appearTime)
+                {
+                    fadeIn = math.saturate(appearBeatBaseAlpha + appearBeatSinCoeff * beatValueSin);
+                }
+                else
+                {
+                    fadeIn = 1f;
+                }
             }
 
             if (b.life > 0f)
@@ -269,19 +284,15 @@ public class BulletRenderSystem : MonoBehaviour
 
             appear = fadeIn * fadeOut * clearFade;
 
-            if (appear <= 0f)
-            {
-                activeCount++;
-                if (activeCount >= count) break;
-                continue;
-            }
+
+            // appear <= 0f でもisActiveなら必ず描画配列に入れる（透明度0で描画し、徐々に現れる）
 
             renderArray[writeIndex] = new BulletRenderData
             {
                 // position は BulletDataUpdateJob でノイズ込みに更新済みの値を使う
                 pos = b.position,
-                angle = b.angle,
-                size = b.size * type.baseSize,
+                angle = b.angle + b.initialAngle,
+                scale = b.scale * type.baseSize,
                 texIndex = b.typeId,
                 maskIndex = b.typeId,
                 appear = appear,
@@ -293,6 +304,16 @@ public class BulletRenderSystem : MonoBehaviour
         }
 
         return writeIndex;
+    }
+
+    private float GetBeatValueSin()
+    {
+        if (GManager.Control == null || GManager.Control.BManager == null)
+        {
+            return 0f;
+        }
+
+        return math.saturate(GManager.Control.BManager.BeatValueSin);
     }
 
     private int AppendRenderData(NativeArray<CounterBullet> bullets, int startIndex, int maxCount)
@@ -310,7 +331,7 @@ public class BulletRenderSystem : MonoBehaviour
             {
                 pos = b.position,
                 angle = math.atan2(b.velocity.y, b.velocity.x),
-                size = headSize,
+                scale = new float2(headSize, headSize),
                 texIndex = CounterBullet.TypeId,
                 maskIndex = CounterBullet.TypeId,
                 appear = appear,
@@ -339,7 +360,7 @@ public class BulletRenderSystem : MonoBehaviour
                 {
                     pos = (previousPoint + currentPoint) * 0.5f,
                     angle = math.atan2(segment.y, segment.x),
-                    size = segmentSize,
+                    scale = new float2(segmentSize, segmentSize),
                     texIndex = CounterBullet.TypeId,
                     maskIndex = CounterBullet.TypeId,
                     appear = fade,

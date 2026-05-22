@@ -39,9 +39,9 @@
         },
         "startX": 0,
         "speed": 0,
-        "accel": 0,
         "gravity": 0,
         "angleSpeed": 0,
+        "initialAngle": 0,
         "polarForm": {
           "x": 0,
           "y": 0
@@ -59,7 +59,10 @@
           "w": 0
         },
         "typeName": null,
-        "size": 0,
+        "scale": {
+          "x": 0,
+          "y": 0
+        },
         "color": {
           "x": 0,
           "y": 0,
@@ -67,8 +70,10 @@
           "w": 0
         },
         "appearTime": 0,
+        "appearDuration": 0,
         "life": 0,
-        "random": 0
+        "random": 0,
+        "unCounterable": false
       },
       "bulletClip": {
         "data": {
@@ -82,9 +87,9 @@
           },
           "startX": 0,
           "speed": 5,
-          "accel": 0,
           "gravity": 0,
           "angleSpeed": 0,
+          "initialAngle": 0,
           "polarForm": {
             "x": 1,
             "y": 0
@@ -102,7 +107,10 @@
             "w": 0
           },
           "typeName": "normal",
-          "size": 1,
+          "scale": {
+            "x": 1,
+            "y": 1
+          },
           "color": {
             "x": 1,
             "y": 0,
@@ -110,8 +118,10 @@
             "w": 1
           },
           "appearTime": 0.05,
+          "appearDuration": 0,
           "life": 4,
-          "random": 0
+          "random": 0,
+          "unCounterable": false
         },
         "number": 5,
         "disRad": 60,
@@ -131,9 +141,9 @@
               },
               "startX": 0,
               "speed": 3,
-              "accel": 0,
-              "gravity": 1,
+              "gravity": 2,
               "angleSpeed": 0,
+              "initialAngle": 0,
               "polarForm": {
                 "x": 1,
                 "y": 0
@@ -151,7 +161,10 @@
                 "w": 0
               },
               "typeName": "tear",
-              "size": 1,
+              "scale": {
+                "x": 1,
+                "y": 1
+              },
               "color": {
                 "x": 1,
                 "y": 0,
@@ -159,8 +172,10 @@
                 "w": 1
               },
               "appearTime": 0.05,
+              "appearDuration": 0,
               "life": 12,
-              "random": 0
+              "random": 0,
+              "unCounterable": false
             },
             "number": 5,
             "disRad": 60,
@@ -190,9 +205,9 @@
         },
         "startX": 0,
         "speed": 0,
-        "accel": 0,
         "gravity": 0,
         "angleSpeed": 0,
+        "initialAngle": 0,
         "polarForm": {
           "x": 0,
           "y": 0
@@ -210,7 +225,10 @@
           "w": 0
         },
         "typeName": null,
-        "size": 0,
+        "scale": {
+          "x": 0,
+          "y": 0
+        },
         "color": {
           "x": 0,
           "y": 0,
@@ -218,8 +236,10 @@
           "w": 0
         },
         "appearTime": 0,
+        "appearDuration": 0,
         "life": 0,
-        "random": 0
+        "random": 0,
+        "unCounterable": false
       },
       "bulletClip": {
         "data": {
@@ -233,9 +253,9 @@
           },
           "startX": 0,
           "speed": 5,
-          "accel": 0,
           "gravity": 0,
           "angleSpeed": 0,
+          "initialAngle": 0,
           "polarForm": {
             "x": 1,
             "y": 0
@@ -253,7 +273,10 @@
             "w": 0
           },
           "typeName": "normal",
-          "size": 1,
+          "scale": {
+            "x": 1,
+            "y": 1
+          },
           "color": {
             "x": 1,
             "y": 0,
@@ -261,8 +284,10 @@
             "w": 1
           },
           "appearTime": 0.05,
+          "appearDuration": 0,
           "life": 4,
-          "random": 0
+          "random": 0,
+          "unCounterable": false
         },
         "number": 5,
         "disRad": 60,
@@ -282,9 +307,9 @@
               },
               "startX": 0,
               "speed": 3,
-              "accel": 0,
-              "gravity": 1,
+              "gravity": 2,
               "angleSpeed": 0,
+              "initialAngle": 0,
               "polarForm": {
                 "x": 1,
                 "y": 0
@@ -302,7 +327,10 @@
                 "w": 0
               },
               "typeName": "tear",
-              "size": 1,
+              "scale": {
+                "x": 1,
+                "y": 1
+              },
               "color": {
                 "x": 1,
                 "y": 0,
@@ -310,8 +338,10 @@
                 "w": 1
               },
               "appearTime": 0.05,
+              "appearDuration": 0,
               "life": 12,
-              "random": 0
+              "random": 0,
+              "unCounterable": false
             },
             "number": 5,
             "disRad": 60,
@@ -341,9 +371,9 @@
         },
         "startX": 0,
         "speed": 0,
-        "accel": 0,
         "gravity": 0,
         "angleSpeed": 0,
+        "initialAngle": 0,
         "polarForm": {
           "x": 0,
           "y": 0
@@ -361,7 +391,10 @@
           "w": 0
         },
         "typeName": null,
-        "size": 0,
+        "scale": {
+          "x": 0,
+          "y": 0
+        },
         "color": {
           "x": 0,
           "y": 0,
@@ -369,8 +402,10 @@
           "w": 0
         },
         "appearTime": 0,
+        "appearDuration": 0,
         "life": 0,
-        "random": 0
+        "random": 0,
+        "unCounterable": false
       },
       "bulletClip": {
         "data": {
@@ -384,9 +419,9 @@
           },
           "startX": 0,
           "speed": 5,
-          "accel": 0,
           "gravity": 0,
           "angleSpeed": 0,
+          "initialAngle": 0,
           "polarForm": {
             "x": 1,
             "y": 0
@@ -404,7 +439,10 @@
             "w": 0
           },
           "typeName": "normal",
-          "size": 1,
+          "scale": {
+            "x": 1,
+            "y": 1
+          },
           "color": {
             "x": 1,
             "y": 0,
@@ -412,8 +450,10 @@
             "w": 1
           },
           "appearTime": 0.05,
+          "appearDuration": 0,
           "life": 4,
-          "random": 0
+          "random": 0,
+          "unCounterable": false
         },
         "number": 5,
         "disRad": 60,
@@ -433,9 +473,9 @@
               },
               "startX": 0,
               "speed": 3,
-              "accel": 0,
-              "gravity": 1,
+              "gravity": 2,
               "angleSpeed": 0,
+              "initialAngle": 0,
               "polarForm": {
                 "x": 1,
                 "y": 0
@@ -453,7 +493,10 @@
                 "w": 0
               },
               "typeName": "tear",
-              "size": 1,
+              "scale": {
+                "x": 1,
+                "y": 1
+              },
               "color": {
                 "x": 1,
                 "y": 0,
@@ -461,8 +504,10 @@
                 "w": 1
               },
               "appearTime": 0.05,
+              "appearDuration": 0,
               "life": 12,
-              "random": 0
+              "random": 0,
+              "unCounterable": false
             },
             "number": 5,
             "disRad": 60,
@@ -492,9 +537,9 @@
         },
         "startX": 0,
         "speed": 0,
-        "accel": 0,
         "gravity": 0,
         "angleSpeed": 0,
+        "initialAngle": 0,
         "polarForm": {
           "x": 0,
           "y": 0
@@ -512,7 +557,10 @@
           "w": 0
         },
         "typeName": null,
-        "size": 0,
+        "scale": {
+          "x": 0,
+          "y": 0
+        },
         "color": {
           "x": 0,
           "y": 0,
@@ -520,8 +568,10 @@
           "w": 0
         },
         "appearTime": 0,
+        "appearDuration": 0,
         "life": 0,
-        "random": 0
+        "random": 0,
+        "unCounterable": false
       },
       "bulletClip": {
         "data": {
@@ -535,9 +585,9 @@
           },
           "startX": 0,
           "speed": 5,
-          "accel": 0,
           "gravity": 0,
           "angleSpeed": 0,
+          "initialAngle": 0,
           "polarForm": {
             "x": 1,
             "y": 0
@@ -555,7 +605,10 @@
             "w": 0
           },
           "typeName": "normal",
-          "size": 1,
+          "scale": {
+            "x": 1,
+            "y": 1
+          },
           "color": {
             "x": 1,
             "y": 0,
@@ -563,8 +616,10 @@
             "w": 1
           },
           "appearTime": 0.05,
+          "appearDuration": 0,
           "life": 4,
-          "random": 0
+          "random": 0,
+          "unCounterable": false
         },
         "number": 5,
         "disRad": 60,
@@ -584,9 +639,9 @@
               },
               "startX": 0,
               "speed": 3,
-              "accel": 0,
-              "gravity": 1,
+              "gravity": 2,
               "angleSpeed": 0,
+              "initialAngle": 0,
               "polarForm": {
                 "x": 1,
                 "y": 0
@@ -604,7 +659,10 @@
                 "w": 0
               },
               "typeName": "tear",
-              "size": 1,
+              "scale": {
+                "x": 1,
+                "y": 1
+              },
               "color": {
                 "x": 1,
                 "y": 0,
@@ -612,8 +670,10 @@
                 "w": 1
               },
               "appearTime": 0.05,
+              "appearDuration": 0,
               "life": 12,
-              "random": 0
+              "random": 0,
+              "unCounterable": false
             },
             "number": 5,
             "disRad": 60,
@@ -643,9 +703,9 @@
         },
         "startX": 0,
         "speed": 0,
-        "accel": 0,
         "gravity": 0,
         "angleSpeed": 0,
+        "initialAngle": 0,
         "polarForm": {
           "x": 0,
           "y": 0
@@ -663,7 +723,10 @@
           "w": 0
         },
         "typeName": null,
-        "size": 0,
+        "scale": {
+          "x": 0,
+          "y": 0
+        },
         "color": {
           "x": 0,
           "y": 0,
@@ -671,8 +734,10 @@
           "w": 0
         },
         "appearTime": 0,
+        "appearDuration": 0,
         "life": 0,
-        "random": 0
+        "random": 0,
+        "unCounterable": false
       },
       "bulletClip": {
         "data": {
@@ -686,9 +751,9 @@
           },
           "startX": 0,
           "speed": 5,
-          "accel": 0,
           "gravity": 0,
           "angleSpeed": 0,
+          "initialAngle": 0,
           "polarForm": {
             "x": 1,
             "y": 0
@@ -706,7 +771,10 @@
             "w": 0
           },
           "typeName": "normal",
-          "size": 1,
+          "scale": {
+            "x": 1,
+            "y": 1
+          },
           "color": {
             "x": 1,
             "y": 0,
@@ -714,8 +782,10 @@
             "w": 1
           },
           "appearTime": 0.05,
+          "appearDuration": 0,
           "life": 4,
-          "random": 0
+          "random": 0,
+          "unCounterable": false
         },
         "number": 5,
         "disRad": 60,
@@ -735,9 +805,9 @@
               },
               "startX": 0,
               "speed": 3,
-              "accel": 0,
-              "gravity": 1,
+              "gravity": 2,
               "angleSpeed": 0,
+              "initialAngle": 0,
               "polarForm": {
                 "x": 1,
                 "y": 0
@@ -755,7 +825,10 @@
                 "w": 0
               },
               "typeName": "tear",
-              "size": 1,
+              "scale": {
+                "x": 1,
+                "y": 1
+              },
               "color": {
                 "x": 1,
                 "y": 0,
@@ -763,8 +836,10 @@
                 "w": 1
               },
               "appearTime": 0.05,
+              "appearDuration": 0,
               "life": 12,
-              "random": 0
+              "random": 0,
+              "unCounterable": false
             },
             "number": 5,
             "disRad": 60,
@@ -794,9 +869,9 @@
         },
         "startX": 0,
         "speed": 0,
-        "accel": 0,
         "gravity": 0,
         "angleSpeed": 0,
+        "initialAngle": 0,
         "polarForm": {
           "x": 0,
           "y": 0
@@ -814,7 +889,10 @@
           "w": 0
         },
         "typeName": null,
-        "size": 0,
+        "scale": {
+          "x": 0,
+          "y": 0
+        },
         "color": {
           "x": 0,
           "y": 0,
@@ -822,8 +900,10 @@
           "w": 0
         },
         "appearTime": 0,
+        "appearDuration": 0,
         "life": 0,
-        "random": 0
+        "random": 0,
+        "unCounterable": false
       },
       "bulletClip": {
         "data": {
@@ -837,9 +917,9 @@
           },
           "startX": 0,
           "speed": 5,
-          "accel": 0,
           "gravity": 0,
           "angleSpeed": 0,
+          "initialAngle": 0,
           "polarForm": {
             "x": 1,
             "y": 0
@@ -857,7 +937,10 @@
             "w": 0
           },
           "typeName": "normal",
-          "size": 1,
+          "scale": {
+            "x": 1,
+            "y": 1
+          },
           "color": {
             "x": 1,
             "y": 0,
@@ -865,8 +948,10 @@
             "w": 1
           },
           "appearTime": 0.05,
+          "appearDuration": 0,
           "life": 4,
-          "random": 0
+          "random": 0,
+          "unCounterable": false
         },
         "number": 5,
         "disRad": 60,
@@ -886,9 +971,9 @@
               },
               "startX": 0,
               "speed": 3,
-              "accel": 0,
-              "gravity": 1,
+              "gravity": 2,
               "angleSpeed": 0,
+              "initialAngle": 0,
               "polarForm": {
                 "x": 1,
                 "y": 0
@@ -906,7 +991,10 @@
                 "w": 0
               },
               "typeName": "tear",
-              "size": 1,
+              "scale": {
+                "x": 1,
+                "y": 1
+              },
               "color": {
                 "x": 1,
                 "y": 0,
@@ -914,8 +1002,10 @@
                 "w": 1
               },
               "appearTime": 0.05,
+              "appearDuration": 0,
               "life": 12,
-              "random": 0
+              "random": 0,
+              "unCounterable": false
             },
             "number": 5,
             "disRad": 60,
@@ -928,7 +1018,7 @@
   ],
   "bulletSpawners": [
     {
-      "clipName": "seawave_CW",
+      "clipName": "seawave",
       "count": 1,
       "interval": 0.2,
       "time": 9,
@@ -950,7 +1040,7 @@
       }
     },
     {
-      "clipName": "seawave_CW",
+      "clipName": "seawave",
       "count": 1,
       "interval": 0.2,
       "time": 9.545455,
@@ -972,7 +1062,7 @@
       }
     },
     {
-      "clipName": "seawave_CW",
+      "clipName": "seawave",
       "count": 1,
       "interval": 0.2,
       "time": 10.090909,
@@ -994,7 +1084,29 @@
       }
     },
     {
-      "clipName": "seawave_CW",
+      "clipName": "worldline_L",
+      "count": 1,
+      "interval": 0,
+      "time": 9,
+      "pos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "seawave",
       "count": 1,
       "interval": 0.2,
       "time": 12.272728,
@@ -1016,7 +1128,7 @@
       }
     },
     {
-      "clipName": "seawave_CW",
+      "clipName": "seawave",
       "count": 1,
       "interval": 0.2,
       "time": 12.818183,
@@ -1038,7 +1150,7 @@
       }
     },
     {
-      "clipName": "seawave_CW",
+      "clipName": "seawave",
       "count": 1,
       "interval": 0.2,
       "time": 13.363637,
@@ -1060,7 +1172,29 @@
       }
     },
     {
-      "clipName": "seawave_CW",
+      "clipName": "worldline_R",
+      "count": 1,
+      "interval": 0,
+      "time": 12.272728,
+      "pos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "seawave",
       "count": 1,
       "interval": 0.2,
       "time": 15.545455,
@@ -1082,7 +1216,7 @@
       }
     },
     {
-      "clipName": "seawave_CW",
+      "clipName": "seawave",
       "count": 1,
       "interval": 0.2,
       "time": 16.09091,
@@ -1104,7 +1238,7 @@
       }
     },
     {
-      "clipName": "seawave_CW",
+      "clipName": "seawave",
       "count": 1,
       "interval": 0.2,
       "time": 16.636364,
@@ -1126,7 +1260,29 @@
       }
     },
     {
-      "clipName": "seawave_CW",
+      "clipName": "worldline_L",
+      "count": 1,
+      "interval": 0,
+      "time": 15.545455,
+      "pos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "seawave",
       "count": 1,
       "interval": 0.2,
       "time": 18.818182,
@@ -1148,7 +1304,7 @@
       }
     },
     {
-      "clipName": "seawave_CW",
+      "clipName": "seawave",
       "count": 1,
       "interval": 0.2,
       "time": 19.363636,
@@ -1170,7 +1326,7 @@
       }
     },
     {
-      "clipName": "seawave_CW",
+      "clipName": "seawave",
       "count": 1,
       "interval": 0.2,
       "time": 19.909092,
@@ -1192,10 +1348,32 @@
       }
     },
     {
+      "clipName": "worldline_R",
+      "count": 1,
+      "interval": 0,
+      "time": 18.818182,
+      "pos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
       "clipName": "Clear",
       "count": 1,
       "interval": 0,
-      "time": 22.09091,
+      "time": 21.79091,
       "pos": {
         "x": 0,
         "y": 0
@@ -1253,7 +1431,7 @@
       "color": {
         "x": 0,
         "y": 1,
-        "z": 0,
+        "z": 0.3,
         "w": 1
       }
     },
@@ -1297,7 +1475,7 @@
       "color": {
         "x": 0,
         "y": 1,
-        "z": 0,
+        "z": 0.3,
         "w": 1
       }
     },
@@ -1341,7 +1519,7 @@
       "color": {
         "x": 0,
         "y": 1,
-        "z": 0,
+        "z": 0.3,
         "w": 1
       }
     },
@@ -1385,7 +1563,7 @@
       "color": {
         "x": 0,
         "y": 1,
-        "z": 0,
+        "z": 0.3,
         "w": 1
       }
     },
@@ -1429,7 +1607,7 @@
       "color": {
         "x": 0,
         "y": 1,
-        "z": 0,
+        "z": 0.3,
         "w": 1
       }
     },
@@ -1473,7 +1651,7 @@
       "color": {
         "x": 0,
         "y": 1,
-        "z": 0,
+        "z": 0.3,
         "w": 1
       }
     },
@@ -1517,7 +1695,7 @@
       "color": {
         "x": 0,
         "y": 1,
-        "z": 0,
+        "z": 0.3,
         "w": 1
       }
     },
@@ -1561,7 +1739,7 @@
       "color": {
         "x": 0,
         "y": 1,
-        "z": 0,
+        "z": 0.3,
         "w": 1
       }
     },
@@ -1605,7 +1783,7 @@
       "color": {
         "x": 0,
         "y": 1,
-        "z": 0,
+        "z": 0.3,
         "w": 1
       }
     },
@@ -1649,7 +1827,7 @@
       "color": {
         "x": 0,
         "y": 1,
-        "z": 0,
+        "z": 0.3,
         "w": 1
       }
     },
@@ -1693,7 +1871,7 @@
       "color": {
         "x": 0,
         "y": 1,
-        "z": 0,
+        "z": 0.3,
         "w": 1
       }
     },
@@ -1737,16 +1915,324 @@
       "color": {
         "x": 0,
         "y": 1,
-        "z": 0,
+        "z": 0.3,
         "w": 1
       }
     },
     {
       "clipName": "Clear",
+      "count": 1,
+      "interval": 0,
+      "time": 34.88182,
+      "pos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      }
+    },
+    {
+      "clipName": "U_line_V",
       "count": 1,
       "interval": 0,
       "time": 35.18182,
       "pos": {
+        "x": 10.666667,
+        "y": 9
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "U_line_V",
+      "count": 1,
+      "interval": 0,
+      "time": 35.18182,
+      "pos": {
+        "x": 21.333332,
+        "y": 9
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "captain_bomb",
+      "count": 7,
+      "interval": 1.6363637,
+      "time": 37.36364,
+      "pos": {
+        "x": 10.666667,
+        "y": 16
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 15,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "captain_bomb",
+      "count": 7,
+      "interval": 1.6363637,
+      "time": 37.36364,
+      "pos": {
+        "x": 21.333332,
+        "y": 16
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 15,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "captain_bomb",
+      "count": 7,
+      "interval": 1.6363637,
+      "time": 37.36364,
+      "pos": {
+        "x": 10.666667,
+        "y": 2
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 15,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "captain_bomb",
+      "count": 7,
+      "interval": 1.6363637,
+      "time": 37.36364,
+      "pos": {
+        "x": 21.333332,
+        "y": 2
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 15,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "anchor_Down",
+      "count": 1,
+      "interval": 0,
+      "time": 35.18182,
+      "pos": {
+        "x": 16,
+        "y": 14
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "anchor_Down",
+      "count": 1,
+      "interval": 0,
+      "time": 38.454544,
+      "pos": {
+        "x": 5.3333335,
+        "y": 14
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "anchor_Down",
+      "count": 1,
+      "interval": 0,
+      "time": 38.454544,
+      "pos": {
+        "x": 26.666666,
+        "y": 14
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "anchor_Down",
+      "count": 1,
+      "interval": 0,
+      "time": 41.727272,
+      "pos": {
+        "x": 16,
+        "y": 14
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "anchor_Down",
+      "count": 1,
+      "interval": 0,
+      "time": 41.727272,
+      "pos": {
+        "x": 26.666666,
+        "y": 14
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "anchor_Down",
+      "count": 1,
+      "interval": 0,
+      "time": 45,
+      "pos": {
+        "x": 16,
+        "y": 14
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "anchor_Down",
+      "count": 1,
+      "interval": 0,
+      "time": 45,
+      "pos": {
+        "x": 5.3333335,
+        "y": 14
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "Clear",
+      "count": 1,
+      "interval": 0,
+      "time": 47.97273,
+      "pos": {
         "x": 0,
         "y": 0
       },
@@ -1761,6 +2247,248 @@
         "y": 0,
         "z": 0,
         "w": 0
+      }
+    },
+    {
+      "clipName": "cross_4",
+      "count": 1,
+      "interval": 0,
+      "time": 48.272728,
+      "pos": {
+        "x": 4,
+        "y": 4.5
+      },
+      "originVlc": {
+        "x": 4,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "cross_4",
+      "count": 1,
+      "interval": 0,
+      "time": 48.272728,
+      "pos": {
+        "x": 32,
+        "y": 4.5
+      },
+      "originVlc": {
+        "x": -4,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "cross_4",
+      "count": 1,
+      "interval": 0,
+      "time": 54.818184,
+      "pos": {
+        "x": 4,
+        "y": 4.5
+      },
+      "originVlc": {
+        "x": 4,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "cross_4",
+      "count": 1,
+      "interval": 0,
+      "time": 54.818184,
+      "pos": {
+        "x": 32,
+        "y": 4.5
+      },
+      "originVlc": {
+        "x": -4,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 1,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "wavecyclone_ACW",
+      "count": 2,
+      "interval": 3.2727275,
+      "time": 48.272728,
+      "pos": {
+        "x": 4,
+        "y": 13.5
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      }
+    },
+    {
+      "clipName": "wavecyclone_CW",
+      "count": 2,
+      "interval": 3.2727275,
+      "time": 48.272728,
+      "pos": {
+        "x": 32,
+        "y": 13.5
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      }
+    },
+    {
+      "clipName": "Clear",
+      "count": 1,
+      "interval": 0,
+      "time": 61.06364,
+      "pos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      }
+    },
+    {
+      "clipName": "seawave",
+      "count": 1,
+      "interval": 0.2,
+      "time": 61.36364,
+      "pos": {
+        "x": 16,
+        "y": 9
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 30,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "seawave",
+      "count": 1,
+      "interval": 0.2,
+      "time": 64.63637,
+      "pos": {
+        "x": 16,
+        "y": 9
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 30,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "seawave",
+      "count": 1,
+      "interval": 0.2,
+      "time": 67.90909,
+      "pos": {
+        "x": 16,
+        "y": 9
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 30,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "seawave",
+      "count": 1,
+      "interval": 0.2,
+      "time": 71.18182,
+      "pos": {
+        "x": 16,
+        "y": 9
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 30,
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
       }
     }
   ]

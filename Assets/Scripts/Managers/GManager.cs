@@ -47,6 +47,8 @@ public class GManager : MonoBehaviour
     public bool ready = false;
 
     public bool musicOn = false;
+    public int playerHitCount = 0;
+    public int counterHitBossCount = 0;
 
     public void Awake()
     {
@@ -105,6 +107,8 @@ public class GManager : MonoBehaviour
             if (state == GameState.Playing) PController.UpdatePos(t);
         }
 
+        SReader.UpdateStage(t);
+
         QOrder.QuadUpdate(t);
         IManager.UpdateInput();
         if (musicOn)
@@ -117,9 +121,6 @@ public class GManager : MonoBehaviour
             state = GameState.ChoosingStage;
             // Transition to stage selection screen here
         }
-
-
-        SReader.UpdateStage(t);
 
         SSManager.UpdateSelect(IManager.upPressedThisFrame, IManager.downPressedThisFrame, t, IManager.buttonPressedThisFrame);
     }
@@ -157,6 +158,8 @@ public class GManager : MonoBehaviour
         StageData stage = SDB.GetStage(index);
         if (stage != null)
         {
+            playerHitCount = 0;
+            counterHitBossCount = 0;
             await SReader.Init(stage);
             state = GameState.Playing;
             Debug.Log($"Started Stage: {stage.stageName}");
@@ -165,6 +168,18 @@ public class GManager : MonoBehaviour
         {
             Debug.LogError($"Stage with index {index} not found!");
         }
+    }
+
+    public void AddPlayerHitCount(int value = 1)
+    {
+        if (value <= 0) return;
+        playerHitCount += value;
+    }
+
+    public void AddCounterHitBossCount(int value = 1)
+    {
+        if (value <= 0) return;
+        counterHitBossCount += value;
     }
 }
 
