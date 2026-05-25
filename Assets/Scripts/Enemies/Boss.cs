@@ -38,6 +38,7 @@ public class Boss : MonoBehaviour
 
     public void Init()
     {
+        return;
         time = 0;
         count = 0;
         ready = false;
@@ -57,6 +58,8 @@ public class Boss : MonoBehaviour
 
     public void UpdateBoss(float dt)
     {
+        pos = new float2(transform.position.x, transform.position.y);
+        return;
         time += dt;
 
         if (ready == false && time > 3)

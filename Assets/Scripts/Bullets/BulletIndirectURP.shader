@@ -41,8 +41,8 @@ Shader "Custom/BulletIndirectURP"
             struct BulletData
             {
                 float2 pos;
+                float2 scale;
                 float angle;
-                float size;
                 float texIndex;
                 float maskIndex;
                 float appear;
@@ -72,8 +72,8 @@ Shader "Custom/BulletIndirectURP"
                 BulletData b = _BulletBuffer[instanceID];
                 Varyings output;
 
-                // サイズ適用
-                float2 p = input.positionOS.xy * b.size;
+                // 非等方スケール適用
+                float2 p = input.positionOS.xy * b.scale;
 
                 // 回転
                 float s = sin(b.angle);

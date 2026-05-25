@@ -4,8 +4,8 @@ using Unity.Mathematics;
 using System.Collections.Generic;
 using UnityEngine.Video;
 
-[CreateAssetMenu(fileName = "StageData", menuName = "Stage/StageData")]
-public class StageData : ScriptableObject
+[System.Serializable]
+public class StageData
 {
     public string stageName;
     public VideoClip videoClip;

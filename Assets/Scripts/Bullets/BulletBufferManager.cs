@@ -56,7 +56,7 @@ public class BulletBufferManager
             return;
         }
 
-        string[] jsonFiles = Directory.GetFiles(directoryPath, "*.json", SearchOption.TopDirectoryOnly);
+        string[] jsonFiles = Directory.GetFiles(directoryPath, "*.json", SearchOption.AllDirectories);
         int loadedCount = 0;
 
         for (int i = 0; i < jsonFiles.Length; i++)
@@ -235,7 +235,7 @@ public class BulletBufferManager
             new float4(0, 0, 0, 0),
             2,
             new float4(1, 0.5f, 0, 1),
-            10
+            new float2(10, 10)
         );
 
 
@@ -295,6 +295,7 @@ public class BulletBufferManager
 
         if (index >= 0 && index < bulletBuffers.Count)
         {
+            string clipName = bulletBuffers[index].name;
             isLaser = bulletBuffers[index].isLaser;
             List<BulletData> templateBullets = bulletBuffers[index].bullets;
             List<BulletData> spawnedBullets = new List<BulletData>(templateBullets.Count);
@@ -307,7 +308,7 @@ public class BulletBufferManager
                     angle = math.atan2(pPos.y - emitPos.y, pPos.x - emitPos.x);
                     BulletData template = templateBullets[i];
                     float2 dis = -template.startPos;
-                    BulletData spawned = new BulletData(template, emitPos, _vlc, angle + template.polarForm.y, _color);
+                    BulletData spawned = new BulletData(template, emitPos, _vlc, angle, _color);
                     spawned.startPos -= dis;
                     spawnedBullets.Add(spawned);
                 }
@@ -321,7 +322,7 @@ public class BulletBufferManager
                 {
                     BulletData template = templateBullets[i];
                     float2 dis = -template.startPos;
-                    BulletData spawned = new BulletData(template, emitPos, _vlc, angle / 180 * math.PI + template.polarForm.y, _color);
+                    BulletData spawned = new BulletData(template, emitPos, _vlc, angle / 180 * math.PI, _color);
                     spawned.startPos -= dis;
                     spawnedBullets.Add(spawned);
                 }
@@ -333,8 +334,10 @@ public class BulletBufferManager
         }
         else
         {
+            if (index == -3) return default; // "Clear" という特別なインデックスは、空の弾リストを返す
             Debug.LogError($"Bullet clip index out of range: {index}");
             return default;
         }
     }
+
 }

@@ -6,8 +6,71 @@ using UnityEngine;
 using UnityEngine.Video;
 using Unity.Mathematics;
 
-public class StageDataManager : MonoBehaviour
+[Serializable]
+public class StageDataManager
 {
+    [Serializable]
+    private struct BulletDataJsonDeserializer
+    {
+        public Vector2 originPos;
+        public Vector2 originVlc;
+        public float startX;
+        public float speed;
+        public float gravity;
+        public float initialAngle;
+        public float angleSpeed;
+        public Vector2 polarForm;
+        public float radiusVlc;
+        public float thetaVlc;
+        public Vector2 startPos;
+        public Vector4 polynomial;
+        public string typeName;
+        public Vector2 scale;
+        public float size;
+        public Vector4 color;
+        public float appearTime;
+        public float appearDuration;
+        public float life;
+        public float random;
+        public bool unCounterable;
+
+        public BulletDataJson ToBulletDataJson()
+        {
+            float2 resolvedScale = new float2(scale.x, scale.y);
+            if (resolvedScale.x == 0f && resolvedScale.y == 0f)
+            {
+                float legacy = size > 0f ? size : 1f;
+                resolvedScale = new float2(legacy, legacy);
+            }
+
+            return new BulletDataJson
+            {
+                originPos = new Vector2(originPos.x, originPos.y),
+                originVlc = new Vector2(originVlc.x, originVlc.y),
+                startX = startX,
+                speed = speed,
+                gravity = gravity,
+                initialAngle = initialAngle,
+                angleSpeed = angleSpeed,
+                polarForm = new Vector2(polarForm.x, polarForm.y),
+                radiusVlc = radiusVlc,
+                thetaVlc = thetaVlc,
+                startPos = new Vector2(startPos.x, startPos.y),
+                polynomial = new float4(polynomial.x, polynomial.y, polynomial.z, polynomial.w),
+                typeName = typeName,
+                scale = new Vector2(resolvedScale.x, resolvedScale.y),
+                size = size,
+                color = new float4(color.x, color.y, color.z, color.w),
+                appearTime = appearTime,
+                appearDuration = appearDuration,
+                life = life,
+                random = random,
+                unCounterable = unCounterable
+            };
+        }
+    }
+
+    [Serializable]
     private class StageDataJson
     {
         public string stageName = "";
@@ -18,6 +81,7 @@ public class StageDataManager : MonoBehaviour
         public List<BulletSpawnerJson> bulletSpawners = new();
     }
 
+    [Serializable]
     private class MusicEventJson
     {
         public int barCount;
@@ -41,6 +105,7 @@ public class StageDataManager : MonoBehaviour
         }
     }
 
+    [Serializable]
     private class EnemySpawnerJson
     {
         public string enemyName = ""; //描画するエネミー(弾源)の名前, Unity 側で一致するエネミーを見つけたら、そのスプライトを描画する
@@ -50,7 +115,7 @@ public class StageDataManager : MonoBehaviour
         public float bulletEmitTime; //エネミーがスポーンしてから弾を飛ばすまでの時間
         public int bulletCount; //弾を飛ばす回数
         public float life;
-        public BulletDataJson orbit;
+        public BulletDataJsonDeserializer orbit;
         public BulletClipJson bulletClip;
         public List<BulletChangeClipJson> bulletChangeClips = new List<BulletChangeClipJson>();
 
@@ -70,13 +135,14 @@ public class StageDataManager : MonoBehaviour
                 bulletEmitTime = bulletEmitTime,
                 bulletCount = bulletCount,
                 bulletInterval = bulletEmitTime / bulletCount,
-                orbit = orbit.ToBulletData(),
+                orbit = orbit.ToBulletDataJson().ToBulletData(),
                 bulletClip = bulletClip.ToBulletClip(),
                 bulletChangeClips = changeClips
             };
         }
     }
 
+    [Serializable]
     private struct BulletChangeClipJson
     {
         public BulletClipJson clip;
@@ -92,9 +158,10 @@ public class StageDataManager : MonoBehaviour
         }
     }
 
+    [Serializable]
     private struct BulletClipJson
     {
-        public BulletDataJson data;//弾の軌道
+        public BulletDataJsonDeserializer data;//弾の軌道
         public int number;//弾の数
         public float disRad;//弾の同士のなす角
         public bool homing;//true なら Homing する
@@ -103,7 +170,7 @@ public class StageDataManager : MonoBehaviour
         {
             return new BulletClip
             {
-                data = data.ToBulletData(),
+                data = data.ToBulletDataJson().ToBulletData(),
                 number = number,
                 disRad = disRad,
                 homing = homing
@@ -111,17 +178,18 @@ public class StageDataManager : MonoBehaviour
         }
     }
 
+    [Serializable]
     private struct BulletSpawnerJson
     {
         public string clipName; // 呼び出すクリップの名前
         public int count;//飛ばす Bullet Buffer の数
         public float interval; // 飛ばす時間間隔
         public float time; // 飛ばす時刻
-        public float2 pos; //どこから飛ばすかの座標
-        public float2 originVlc; // originVlc を上書き出来ます(時間進展と共に平衡移動可能)
+        public Vector2 pos; //どこから飛ばすかの座標
+        public Vector2 originVlc; // originVlc を上書き出来ます(時間進展と共に平衡移動可能)
         public float angle; // 飛ばす角度 (オイラー角 0 <= 角度 < 360)
         public float angleInterval; //Buffer 毎に角度をずらす (1発目を 0, 2発目を 30°, 3発目を 60°... みたいな事が出来る)
-        public float4 color; // 色(和訳)
+        public Vector4 color; // 色(和訳)
 
         public BulletSpawner ToBulletSpawner()
         {
@@ -131,19 +199,42 @@ public class StageDataManager : MonoBehaviour
                 count = count,
                 interval = interval,
                 time = time,
-                pos = pos,
-                originVlc = originVlc,
+                pos = (float2)pos,
+                originVlc = (float2)originVlc,
                 angle = angle,
                 angleInterval = angleInterval,
-                color = color
+                color = (float4)color
             };
         }
+    }
+
+    public List<StageData> GetAllStageData()
+    {
+        List<StageData> stageDataList = new List<StageData>();
+        string stageDataPath = Path.Combine(Application.dataPath, "StageData");
+
+        if (!Directory.Exists(stageDataPath))
+        {
+            Debug.LogError($"StageData directory not found: {stageDataPath}");
+            return stageDataList;
+        }
+
+        string[] stageDirectories = Directory.GetDirectories(stageDataPath);
+        foreach (string dir in stageDirectories)
+        {
+            string stageName = Path.GetFileName(dir);
+            StageData data = ReadStageDataFromDirectory(stageName);
+            stageDataList.Add(data);
+            Debug.Log($"Loaded stage data: {stageName}");
+        }
+
+        return stageDataList;
     }
 
     private StageData ReadStageDataFromDirectory(string name)
     {
         string directoryPath = Path.Combine(Application.dataPath, "StageData", name);
-        StageData data = ScriptableObject.CreateInstance<StageData>();
+        StageData data = new StageData();
 
         if (!Directory.Exists(directoryPath))
         {
@@ -197,7 +288,7 @@ public class StageDataManager : MonoBehaviour
         }
 
         // 音源ファイル読み込み
-        string[] audioExtensions = { ".wav", ".mp3", ".ogg" };
+        string[] audioExtensions = { ".wav", ".mp3", ".ogg", ".m4a" };
         foreach (var ext in audioExtensions)
         {
             string audioPath = Path.Combine(directoryPath, name + ext);
@@ -212,10 +303,14 @@ public class StageDataManager : MonoBehaviour
                     }
                     else
                     {
-                        // MP3/OGG はエディタ時 AssetDatabase、実行時は UnityWebRequest で別途読み込み
+                        // MP3/OGG/M4A はエディタ時 AssetDatabase、実行時は UnityWebRequest で別途読み込み
 #if UNITY_EDITOR
                         string relativePath = "Assets" + audioPath.Substring(Application.dataPath.Length);
                         data.audioClip = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>(relativePath);
+                        if (data.audioClip == null)
+                        {
+                            Debug.LogWarning($"Audio file exists but was not imported as AudioClip: {relativePath}. If this is .m4a, convert to .mp3/.ogg or check import support.");
+                        }
 #endif
                         if (data.audioClip != null)
                             break;

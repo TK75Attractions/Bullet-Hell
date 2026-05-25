@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbd360919789aba45b7e5b8e684967f4, type: 3}
+  m_Name: splash_1
+  m_EditorClassIdentifier: Assembly-CSharp::BulletType
+  typeName: splash_1
+  baseSprite: {fileID: 2800000, guid: 86848c38bac31c84f80337faa7fbfe6b, type: 3}
+  maskSprite: {fileID: 2800000, guid: 1a497d8a0a4ee6e409a15802d313a672, type: 3}
+  baseColor: {r: 1, g: 1, b: 1, a: 1}
+  baseSize: 1
+  counterPower: 0
+  verts: []

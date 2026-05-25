@@ -36,8 +36,8 @@ Shader "Custom/BulletIndirectMasked"
             struct BulletData
             {
                 float2 pos;
+                float2 scale;
                 float angle;
-                float size;
 
                 float texIndex;
                 float maskIndex;
@@ -80,8 +80,8 @@ Shader "Custom/BulletIndirectMasked"
 
                 v2f o;
 
-                // �T�C�Y�K�p
-                float2 p = v.vertex.xy * b.size;
+                // スケール適用
+                float2 p = v.vertex.xy * b.scale;
 
                 // ��]
                 float s = sin(b.angle);

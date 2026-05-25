@@ -18,11 +18,15 @@ public struct BulletDataUpdateJob : IJobParallelFor
     public void Execute(int index)
     {
         BulletData bullet = bullets[index];
-        if (bullet.isActive == false) return;
+        if (!bullet.isActive && !bullet.isClearing) return;
         bullet.time += dt;
+        if (bullet.isClearing)
+        {
+            bullet.clearTime += dt;
+        }
 
         // life を超えた弾は更新と描画対象から外す
-        if (bullet.life > 0f && bullet.time >= bullet.life)
+        if (!bullet.isClearing && bullet.life > 0f && bullet.time >= bullet.life)
         {
             bullet.isActive = false;
             bullets[index] = bullet;
@@ -31,15 +35,43 @@ public struct BulletDataUpdateJob : IJobParallelFor
 
         if (bullet.appearTime > bullet.time)
         {
-            // 弾が完全に表示される前は、原点の移動のみ計算して位置は更新しない
-            bullet.originPos += bullet.originVlc * dt;
+            // appearDuration > 0 の場合のみ原点追従の微小更新を行う
+            // appearDuration == 0 の場合は time が appearTime に達するまで位置を更新しない
+            if (bullet.appearDuration >= 0f)
+            {
+                bullet = Update(bullet, index, dt * 0.00001f);
+            }
+            if (bullet.isClearing && (bullet.clearDuration <= 0f || bullet.clearTime >= bullet.clearDuration))
+            {
+                bullet.isClearing = false;
+                bullet.isActive = false;
+            }
             bullets[index] = bullet;
             return;
         }
+
+        bullet = Update(bullet, index, dt);
+
+        //四分木秩序に変換
+        int n = GetTreeNum(new float2(bullet.position.x, bullet.position.y));
+        bullet.areaNum = n;
+
+        //範囲外の弾を非アクティブに設定
+        if (n == -1) bullet.isActive = false;
+        if (bullet.isClearing && (bullet.clearDuration <= 0f || bullet.clearTime >= bullet.clearDuration))
+        {
+            bullet.isClearing = false;
+            bullet.isActive = false;
+        }
+        bullets[index] = bullet;
+    }
+
+    public BulletData Update(BulletData bullet, int index, float dt)
+    {
         //ベースの座標を更新
         bullet.originPos += bullet.originVlc * dt;
+        float lapse = bullet.time - bullet.appearTime;
 
-        //random を揺らぎ量として、線形補間したスムーズノイズを原点に加える
         float2 noisyOriginPos = bullet.originPos;
         if (bullet.random > 0f)
         {
@@ -48,7 +80,6 @@ public struct BulletDataUpdateJob : IJobParallelFor
             noisyOriginPos += noise;
         }
 
-        //弾の見かけの原点からのベクトルを計算
         float2 delta = bullet.nowCalculateVlc * dt;
         float x = bullet.nowCalculateX + delta.x;
         bullet.nowCalculateX = x;
@@ -79,9 +110,9 @@ public struct BulletDataUpdateJob : IJobParallelFor
         float2 unGravitatedPos = rotatedVector + noisyOriginPos;
 
         //重力の影響を加算
-        if (bullet.gravity != 0)
+        if (bullet.gravity != 0 && lapse > 0)
         {
-            float h = bullet.gravity * bullet.time * bullet.time / 2;
+            float h = bullet.gravity * lapse * lapse / 2;
             float2 gravitatedPos = unGravitatedPos - new float2(0, h);
             bullet.velocity = gravitatedPos - bullet.position;
             bullet.position = gravitatedPos;
@@ -94,17 +125,10 @@ public struct BulletDataUpdateJob : IJobParallelFor
 
         //角度を計算
         float a = GetAngleRad(bullet.velocity.x, bullet.velocity.y);
-        bullet.angle = a + bullet.angleSpeed * bullet.time;
+        bullet.angle = a + bullet.angleSpeed * lapse;
 
-        //四分木秩序に変換
-        int n = GetTreeNum(new float2(bullet.position.x, bullet.position.y));
-        bullet.areaNum = n;
-
-        //範囲外の弾を非アクティブに設定
-        if (n == -1) bullet.isActive = false;
-        bullets[index] = bullet;
+        return bullet;
     }
-
     public int GetTreeNum(float2 pos)
     {
         if (pos.x < 0 || pos.y < 0) return -1;

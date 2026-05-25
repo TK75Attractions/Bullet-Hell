@@ -14,6 +14,7 @@ using UnityEngine.InputSystem;
 public class GManager : MonoBehaviour
 {
     static public GManager Control;
+    public bool isRaymeeDebug = false; // デバッグ用のフラグ。これが true のとき、特定のデバッグコードが有効になる。
 
     public enum GameState
     {
@@ -47,6 +48,8 @@ public class GManager : MonoBehaviour
     public bool ready = false;
 
     public bool musicOn = false;
+    public int playerHitCount = 0;
+    public int counterHitBossCount = 0;
 
     public void Awake()
     {
@@ -66,6 +69,7 @@ public class GManager : MonoBehaviour
         BManager = transform.parent.Find("BManager").GetComponent<BeatManager>();
 
         BTDB.Init();
+        SDB = new();
         SDB.Init();
         BClipManager = new();
         BClipManager.Init();
@@ -104,6 +108,8 @@ public class GManager : MonoBehaviour
             if (state == GameState.Playing) PController.UpdatePos(t);
         }
 
+        SReader.UpdateStage(t);
+
         QOrder.QuadUpdate(t);
         IManager.UpdateInput();
         if (musicOn)
@@ -117,25 +123,22 @@ public class GManager : MonoBehaviour
             // Transition to stage selection screen here
         }
 
-
-        SReader.UpdateStage(t);
-
         SSManager.UpdateSelect(IManager.upPressedThisFrame, IManager.downPressedThisFrame, t, IManager.buttonPressedThisFrame);
     }
 
     public void LateUpdate()
     {
         int enemyCount = QOrder.GetEnemyBulletCount();
-        int playerCount = QOrder.GetPlayerBulletCount();
-        //Debug.Log($"Enemy Bullet Count: {enemyCount}, Player Bullet Count: {playerCount}");
+        int counterCount = QOrder.GetCounterBulletCount();
+        //Debug.Log($"Enemy Bullet Count: {enemyCount}, Counter Bullet Count: {counterCount}");
 
-        if (enemyCount > 0 || playerCount > 0)
+        if (enemyCount > 0 || counterCount > 0)
         {
             BRS.BuildRenderData(
                 QOrder.GetEnemyBullets(),
                 enemyCount,
-                QOrder.GetPlayerBullets(),
-                playerCount
+                QOrder.GetCounterBullets(),
+                counterCount
             );
             BRS.Draw();
         }
@@ -156,6 +159,8 @@ public class GManager : MonoBehaviour
         StageData stage = SDB.GetStage(index);
         if (stage != null)
         {
+            playerHitCount = 0;
+            counterHitBossCount = 0;
             await SReader.Init(stage);
             state = GameState.Playing;
             Debug.Log($"Started Stage: {stage.stageName}");
@@ -164,6 +169,18 @@ public class GManager : MonoBehaviour
         {
             Debug.LogError($"Stage with index {index} not found!");
         }
+    }
+
+    public void AddPlayerHitCount(int value = 1)
+    {
+        if (value <= 0) return;
+        playerHitCount += value;
+    }
+
+    public void AddCounterHitBossCount(int value = 1)
+    {
+        if (value <= 0) return;
+        counterHitBossCount += value;
     }
 }
 

@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbd360919789aba45b7e5b8e684967f4, type: 3}
+  m_Name: simpleline
+  m_EditorClassIdentifier: Assembly-CSharp::BulletType
+  typeName: simpleline
+  baseSprite: {fileID: 2800000, guid: 35ecb59fbe9150043ae61fbbb62aa328, type: 3}
+  maskSprite: {fileID: 2800000, guid: 3ff230a52ea07e346b53b561ecab2d7c, type: 3}
+  baseColor: {r: 1, g: 1, b: 1, a: 1}
+  baseSize: 20
+  counterPower: 0.0512
+  verts:
+  - x: 0.02
+    y: 0.64
+  - x: -0.02
+    y: 0.64
+  - x: -0.02
+    y: -0.64
+  - x: 0.02
+    y: -0.64
