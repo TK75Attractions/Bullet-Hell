@@ -1,16 +1,16 @@
 fileFormatVersion: 2
-guid: dd23aac6eb741f44d82ded2ecf906c70
+guid: 1c42c2189d390444bb076fb8c3d5defc
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4250240542740113009
-    second: Spell_0
+      213: -6227461877384988853
+    second: spell (2)_0
   - first:
-      213: -7484302314374466399
-    second: Spell_1
+      213: 1765096413063480362
+    second: spell (2)_1
   - first:
-      213: -3687921769399457772
-    second: Spell_2
+      213: 6960312864546906427
+    second: spell (2)_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -119,7 +119,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Spell_0
+      name: spell (2)_0
       rect:
         serializedVersion: 2
         x: 2
@@ -127,59 +127,15 @@ TextureImporter:
         width: 507
         height: 507
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 176ecff3143ebfa30800000000000000
-      internalID: 4250240542740113009
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Spell_1
-      rect:
-        serializedVersion: 2
-        x: 313
-        y: 346
-        width: 199
-        height: 166
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 1a47318d2ba622890800000000000000
-      internalID: -7484302314374466399
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Spell_2
-      rect:
-        serializedVersion: 2
-        x: 428
-        y: 15
-        width: 83
-        height: 183
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 418e38fa0bed1dcc0800000000000000
-      internalID: -3687921769399457772
+      spriteID: b473e22ca6c9399a0800000000000000
+      internalID: -6227461877384988853
       vertices: []
       indices: 
       edges: []
@@ -188,7 +144,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 08cce0fa4781cdc48976551d79378050
     internalID: 0
     vertices: []
     indices: 
@@ -198,9 +154,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Spell_0: 4250240542740113009
-      Spell_1: -7484302314374466399
-      Spell_2: -3687921769399457772
+      spell (2)_0: -6227461877384988853
+      spell (2)_1: 1765096413063480362
+      spell (2)_2: 6960312864546906427
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -27,7 +27,6 @@ public class PlayerController
     private float dash = 0;
     private readonly float dashCooldown = 0.36f;
 
-
     public void Init(GameObject playerObj)
     {
         playerTransform = playerObj.transform;
@@ -91,14 +90,14 @@ public class PlayerController
         if (dash > 0)
         {
             float alpha = GetAlpha(dash);
-            if (spell != null) spell.color = new Color(1, 1, 1, alpha);
+            if (spell != null) spell.color = new Color(0.6f, 1, 0.6f, alpha);
         }
         else
         {
-            if (spell != null) spell.color = new Color(1, 1, 1, 0);
+            if (spell != null) spell.color = new Color(0.6f, 1, 0.6f, 0);
         }
 
-        if (spellTransform != null) spellTransform.rotation = Quaternion.Euler(0, 0, Time.time * 720);
+        if (spellTransform != null) spellTransform.rotation = Quaternion.Euler(0, 0, Time.time * 30);
         dash -= dt;
     }
 

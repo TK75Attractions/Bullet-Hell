@@ -253,8 +253,6 @@ public class BulletRenderSystem : MonoBehaviour
             float fadeIn = 1f;
             float fadeOut = 1f;
             float clearFade = b.isClearing ? b.GetClearFadeFactor() : 1f;
-
-            // AppearDuration 区間だけ、ビートに同期したアルファ変動を適用する。
             if (b.appearDuration > 0f)
             {
                 float appearStart = b.appearTime - b.appearDuration;
@@ -270,6 +268,10 @@ public class BulletRenderSystem : MonoBehaviour
                 {
                     fadeIn = 1f;
                 }
+            }
+            else if (b.time < b.appearTime)
+            {
+                fadeIn = 0f;
             }
 
             if (b.life > 0f)

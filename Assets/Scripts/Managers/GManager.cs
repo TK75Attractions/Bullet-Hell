@@ -14,6 +14,7 @@ using UnityEngine.InputSystem;
 public class GManager : MonoBehaviour
 {
     static public GManager Control;
+    public bool isRaymeeDebug = false; // デバッグ用のフラグ。これが true のとき、特定のデバッグコードが有効になる。
 
     public enum GameState
     {

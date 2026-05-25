@@ -58,7 +58,7 @@ public struct BulletDataJson
             scale = resolvedScale,
             color = new float4(this.color.x, this.color.y, this.color.z, this.color.w),
             appearTime = this.appearTime,
-            appearDuration = this.appearDuration > 0f ? this.appearDuration : BulletData.DefaultAppearDuration,
+            appearDuration = this.appearDuration >= 0f ? this.appearDuration : BulletData.DefaultAppearDuration,
             life = this.life,
             random = this.random,
             unCounterable = this.unCounterable,

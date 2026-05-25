@@ -84,7 +84,7 @@ public struct BulletData
         nowCalculateX = _start;
         random = _random;
         appearTime = _appear;
-        appearDuration = _appearDuration > 0f ? _appearDuration : DefaultAppearDuration;
+        appearDuration = _appearDuration >= 0f ? _appearDuration : DefaultAppearDuration;
         life = _life;
 
         time = 0;
@@ -138,7 +138,7 @@ public struct BulletData
         scale = data.scale;
         color = new float4(data.color.x * _color.x, data.color.y * _color.y, data.color.z * _color.z, data.color.w * _color.w);
         appearTime = data.appearTime;
-        appearDuration = data.appearDuration > 0f ? data.appearDuration : DefaultAppearDuration;
+        appearDuration = data.appearDuration >= 0f ? data.appearDuration : DefaultAppearDuration;
         life = data.life;
         // Keep source flag when cloning; optional arg can force uncounterable.
         unCounterable = data.unCounterable || _unCounterable;

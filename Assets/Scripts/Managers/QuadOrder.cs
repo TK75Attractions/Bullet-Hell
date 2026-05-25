@@ -17,6 +17,7 @@ public class QuadOrder : MonoBehaviour
     [SerializeField] private float cellSize;
     [SerializeField] private int separateLevel;
     [SerializeField] public int cellCount;
+    [NonSerialized] private int gridResolution;
     private List<Vector2Int> cellOffsets = new List<Vector2Int>()
     {
         new Vector2Int(0, 0),
@@ -124,10 +125,11 @@ public class QuadOrder : MonoBehaviour
 
     public void AwakeSetting()
     {
-        int n = 1;
-        for (int i = 0; i < separateLevel; i++) n *= 2;
-        n = n * n;
+        int side = 1;
+        for (int i = 0; i < separateLevel; i++) side *= 2;
+        int n = side * side;
         cellCount = n;
+        gridResolution = side;
         QuadCell[] t = new QuadCell[n];
         for (int i = 0; i < n; i++) t[i] = new();
         cells = t;
@@ -376,9 +378,7 @@ public class QuadOrder : MonoBehaviour
             {
                 BulletData bullet = enemyBullets[i];
                 if (!bullet.isActive || bullet.isClearing) continue;
-                int areaNum = bullet.areaNum;
-                if (areaNum < 0 || areaNum >= cells.Length) continue;
-                cells[areaNum].enemyBullets.Add(bullet);
+                RegisterBulletToCollisionCells(bullet);
             }
         }
 
@@ -393,6 +393,82 @@ public class QuadOrder : MonoBehaviour
                 cells[areaNum].enemies.Add(enemies[i]);
             }
         }
+    }
+
+    private void RegisterBulletToCollisionCells(BulletData bullet)
+    {
+        if (gridResolution <= 0 || cellSize <= 0f)
+        {
+            int fallbackCell = bullet.areaNum;
+            if (fallbackCell >= 0 && fallbackCell < cells.Length)
+            {
+                cells[fallbackCell].enemyBullets.Add(bullet);
+            }
+            return;
+        }
+
+        float radius = GetCollisionBroadphaseRadius(bullet);
+        if (radius <= 0f)
+        {
+            int fallbackCell = bullet.areaNum;
+            if (fallbackCell >= 0 && fallbackCell < cells.Length)
+            {
+                cells[fallbackCell].enemyBullets.Add(bullet);
+            }
+            return;
+        }
+
+        int minX = Mathf.FloorToInt((bullet.position.x - radius) / cellSize);
+        int maxX = Mathf.FloorToInt((bullet.position.x + radius) / cellSize);
+        int minY = Mathf.FloorToInt((bullet.position.y - radius) / cellSize);
+        int maxY = Mathf.FloorToInt((bullet.position.y + radius) / cellSize);
+
+        if (maxX < 0 || maxY < 0 || minX >= gridResolution || minY >= gridResolution) return;
+
+        minX = Mathf.Clamp(minX, 0, gridResolution - 1);
+        maxX = Mathf.Clamp(maxX, 0, gridResolution - 1);
+        minY = Mathf.Clamp(minY, 0, gridResolution - 1);
+        maxY = Mathf.Clamp(maxY, 0, gridResolution - 1);
+
+        for (int y = minY; y <= maxY; y++)
+        {
+            for (int x = minX; x <= maxX; x++)
+            {
+                int areaNum = GetTreeNum(x, y);
+                if (areaNum < 0 || areaNum >= cells.Length) continue;
+                cells[areaNum].enemyBullets.Add(bullet);
+            }
+        }
+    }
+
+    private float GetCollisionBroadphaseRadius(BulletData bullet)
+    {
+        float uniformScale = math.cmax(math.abs(bullet.scale));
+        if (!collisionVertRanges.IsCreated || !collisionVerts.IsCreated)
+        {
+            return uniformScale;
+        }
+
+        if (bullet.typeId < 0 || bullet.typeId >= collisionVertRanges.Length)
+        {
+            return uniformScale;
+        }
+
+        int2 range = collisionVertRanges[bullet.typeId];
+        if (range.x < 0 || range.y <= 0 || range.x + range.y > collisionVerts.Length)
+        {
+            return uniformScale;
+        }
+
+        float2 absScale = math.abs(bullet.scale);
+        float maxLenSq = 0f;
+        for (int i = 0; i < range.y; i++)
+        {
+            float2 scaled = collisionVerts[range.x + i] * absScale;
+            maxLenSq = math.max(maxLenSq, math.lengthsq(scaled));
+        }
+
+        return maxLenSq > 0f ? math.sqrt(maxLenSq) : uniformScale;
     }
 
     public List<int> AddEnemyHomingBullets(NativeArray<BulletData> newBullets, float2 fromPos)

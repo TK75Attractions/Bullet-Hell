@@ -1,0 +1,1370 @@
+{
+  "name": "shellsplash",
+  "bullets": [
+    {
+      "originPos": {
+        "x": 0,
+        "y": 1.4
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 0.1,
+      "gravity": 0,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 0
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "attention",
+      "scale": {
+        "x": 3,
+        "y": 3
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 1,
+      "appearDuration": 1,
+      "life": 1,
+      "random": 0,
+      "unCounterable": true
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 4
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 0.0001,
+      "gravity": 0,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 0
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "splash_0",
+      "scale": {
+        "x": 12,
+        "y": 12
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 1,
+      "appearDuration": 0,
+      "life": 1.4,
+      "random": 0,
+      "unCounterable": true
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 4
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 0.0001,
+      "gravity": 0,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 0
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "splash_1",
+      "scale": {
+        "x": 12,
+        "y": 12
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 1.2,
+      "appearDuration": 0,
+      "life": 1.6,
+      "random": 0,
+      "unCounterable": true
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 4
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 0.0001,
+      "gravity": 0,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 0
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "splash_2",
+      "scale": {
+        "x": 12,
+        "y": 12
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 1.4,
+      "appearDuration": 0,
+      "life": 1.8,
+      "random": 0,
+      "unCounterable": true
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 1
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 30
+      },
+      "startX": 0,
+      "speed": 0,
+      "gravity": 32,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 0
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "normal",
+      "scale": {
+        "x": 2.4,
+        "y": 2.4
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 1,
+      "appearDuration": 0,
+      "life": 2,
+      "random": 0,
+      "unCounterable": true
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 0
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.2,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 0.2617994
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.2833333,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 0.5235988
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.3666668,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 0.7853982
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.45,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 1.0471976
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.5333333,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 1.3089969
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.6166668,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 1.5707964
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.2,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 1.8325957
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.2833333,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 2.0943952
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.3666668,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 2.3561945
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.45,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 2.617994
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.5333333,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 2.8797932
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.6166668,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 3.1415927
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.2,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 3.4033923
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.2833333,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 3.6651914
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.3666668,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 3.926991
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.45,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 4.1887903
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.5333333,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 4.4505897
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.6166668,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 4.712389
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.2,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 4.974189
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.2833333,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 5.2359877
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.3666668,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 5.4977875
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.45,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 5.759587
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.5333333,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 15
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4,
+      "gravity": 6,
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 6.021386
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "tear",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 0,
+        "z": 0.3,
+        "w": 1
+      },
+      "appearTime": 2.6166668,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "unCounterable": false
+    }
+  ],
+  "homing": false,
+  "isLaser": false
+}

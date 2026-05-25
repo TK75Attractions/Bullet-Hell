@@ -35,8 +35,12 @@ public struct BulletDataUpdateJob : IJobParallelFor
 
         if (bullet.appearTime > bullet.time)
         {
-            // 弾が完全に表示される前は、原点の移動のみ計算して位置は更新しない
-            bullet = Update(bullet, index, dt * 0.001f);
+            // appearDuration > 0 の場合のみ原点追従の微小更新を行う
+            // appearDuration == 0 の場合は time が appearTime に達するまで位置を更新しない
+            if (bullet.appearDuration >= 0f)
+            {
+                bullet = Update(bullet, index, dt * 0.00001f);
+            }
             if (bullet.isClearing && (bullet.clearDuration <= 0f || bullet.clearTime >= bullet.clearDuration))
             {
                 bullet.isClearing = false;
@@ -66,6 +70,7 @@ public struct BulletDataUpdateJob : IJobParallelFor
     {
         //ベースの座標を更新
         bullet.originPos += bullet.originVlc * dt;
+        float lapse = bullet.time - bullet.appearTime;
 
         float2 noisyOriginPos = bullet.originPos;
         if (bullet.random > 0f)
@@ -105,9 +110,9 @@ public struct BulletDataUpdateJob : IJobParallelFor
         float2 unGravitatedPos = rotatedVector + noisyOriginPos;
 
         //重力の影響を加算
-        if (bullet.gravity != 0)
+        if (bullet.gravity != 0 && lapse > 0)
         {
-            float h = bullet.gravity * bullet.time * bullet.time / 2;
+            float h = bullet.gravity * lapse * lapse / 2;
             float2 gravitatedPos = unGravitatedPos - new float2(0, h);
             bullet.velocity = gravitatedPos - bullet.position;
             bullet.position = gravitatedPos;
@@ -120,7 +125,7 @@ public struct BulletDataUpdateJob : IJobParallelFor
 
         //角度を計算
         float a = GetAngleRad(bullet.velocity.x, bullet.velocity.y);
-        bullet.angle = a + bullet.angleSpeed * bullet.time;
+        bullet.angle = a + bullet.angleSpeed * lapse;
 
         return bullet;
     }

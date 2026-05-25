@@ -7,6 +7,13 @@ public class BulletType : ScriptableObject
 {
     public string typeName;
 
+    public struct TextureBuffer
+    {
+        public Texture2D baseSprite;
+        public Texture2D maskSprite;
+        public float time;
+    }
+
     [Header("Rendering")]
     public Texture2D baseSprite;
     public Texture2D maskSprite;
