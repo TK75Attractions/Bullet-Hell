@@ -12,7 +12,7 @@ public class StageBar : MonoBehaviour
     private List<StageBox> stageBoxes = new List<StageBox>();
     public int currentStage = 0;
     private bool isTransitioning = false;
-    static private readonly float duration = 0.15f;
+    static private readonly float duration = 0.2f;
 
     public void Init()
     {
@@ -24,10 +24,10 @@ public class StageBar : MonoBehaviour
         {
             stageBoxes.Add(Instantiate(stageBoxPrefab, parent).GetComponent<StageBox>());
             stageBoxes[i].Init();
-            stageBoxes[i].SetStageName("None");
             stageBoxes[i].SetPosition(i);
             stageBoxes[i].gameObject.name = "StageBox" + i;
         }
+        RefreshStageNames();
     }
 
     public async void Down()
@@ -45,19 +45,13 @@ public class StageBar : MonoBehaviour
             }
 
             currentStage++;
-            if (0 <= currentStage - 2) stageBoxes[1].SetStageName("Stage " + (currentStage - 2));
-            if (0 <= currentStage - 1) stageBoxes[2].SetStageName("Stage " + (currentStage - 1));
-            if (currentStage < length) stageBoxes[3].SetStageName("Stage " + (currentStage));
-            if (currentStage + 1 < length) stageBoxes[4].SetStageName("Stage " + (currentStage + 1));
-            if (currentStage + 2 < length) stageBoxes[5].SetStageName("Stage " + (currentStage + 2));
-            if (currentStage - 3 >= 0) stageBoxes[0].SetStageName("Stage " + (currentStage - 3));
+            RefreshStageNames();
 
             while (d > 0)
             {
                 d -= Time.unscaledDeltaTime;
                 float t = Mathf.Clamp01(d / duration);
-                float progress = -t * (t - 2);
-                if (progress > 1) progress = 1;
+                float progress = EaseOutCubic(t);
 
                 for (int i = 0; i < stageBoxes.Count; i++)
                 {
@@ -66,7 +60,7 @@ public class StageBar : MonoBehaviour
                     else stageBoxes[i].SetPosition(0);
                 }
 
-                SetWhiteAlpha(t * t * t);
+                SetWhiteAlpha(progress);
                 await Task.Yield();
             }
 
@@ -96,18 +90,13 @@ public class StageBar : MonoBehaviour
             }
 
             currentStage--;
-            if (0 <= currentStage - 2) stageBoxes[1].SetStageName("Stage " + (currentStage - 2));
-            if (0 <= currentStage - 1) stageBoxes[2].SetStageName("Stage " + (currentStage - 1));
-            if (currentStage < length) stageBoxes[3].SetStageName("Stage " + (currentStage));
-            if (currentStage + 1 < length) stageBoxes[4].SetStageName("Stage " + (currentStage + 1));
-            if (currentStage + 2 < length) stageBoxes[5].SetStageName("Stage " + (currentStage + 2));
-            if (currentStage + 3 < length) stageBoxes[0].SetStageName("Stage " + (currentStage + 3));
+            RefreshStageNames();
 
             while (d > 0)
             {
                 d -= Time.unscaledDeltaTime;
                 float t = Mathf.Clamp01(d / duration);
-                float progress = -t * (t - 2);
+                float progress = EaseOutCubic(t);
 
                 for (int i = 0; i < stageBoxes.Count; i++)
                 {
@@ -118,7 +107,7 @@ public class StageBar : MonoBehaviour
                     if (0 <= p && p < length) stageBoxes[i].SetPosition(k + 1 - progress);
                     else stageBoxes[i].SetPosition(0);
                 }
-                SetWhiteAlpha(t * t * t);
+                SetWhiteAlpha(progress);
                 await Task.Yield();
             }
 
@@ -137,11 +126,37 @@ public class StageBar : MonoBehaviour
     public void SetAlpha(float alpha)
     {
         canvasGroup.alpha = alpha;
+        canvasGroup.blocksRaycasts = alpha > 0.01f;
     }
 
     private void SetWhiteAlpha(float progress)
     {
         if (progress < 0.5f) whiteBar.alpha = (0.5f - progress) * 2;
         else whiteBar.alpha = (progress - 0.5f) * 2;
+    }
+
+    private void RefreshStageNames()
+    {
+        int length = GManager.Control.SDB.GetStageCount();
+        for (int i = 0; i < stageBoxes.Count; i++)
+        {
+            int stageIndex = currentStage - 3 + i;
+            if (0 <= stageIndex && stageIndex < length)
+            {
+                StageData stage = GManager.Control.SDB.GetStage(stageIndex);
+                stageBoxes[i].SetStageName(string.IsNullOrEmpty(stage.stageName) ? $"Stage {stageIndex + 1}" : stage.stageName);
+            }
+            else
+            {
+                stageBoxes[i].SetStageName("");
+            }
+        }
+    }
+
+    private static float EaseOutCubic(float t)
+    {
+        t = Mathf.Clamp01(t);
+        float oneMinus = 1f - t;
+        return 1f - oneMinus * oneMinus * oneMinus;
     }
 }
