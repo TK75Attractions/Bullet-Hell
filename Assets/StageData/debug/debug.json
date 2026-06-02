@@ -21,79 +21,13 @@
   "enemySpawners": [],
   "bulletSpawners": [
     {
-      "clipName": "worldline_wave_TR",
-      "count": 1,
-      "interval": 6.545455,
-      "time": 22.09091,
-      "pos": {
-        "x": 0,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 0.9
-      }
-    },
-    {
-      "clipName": "worldline_wave_TL",
-      "count": 1,
-      "interval": 6.545455,
-      "time": 28.636364,
-      "pos": {
-        "x": 0,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 0.9
-      }
-    },
-    {
-      "clipName": "Clear",
-      "count": 1,
-      "interval": 6.545455,
-      "time": 21.79091,
-      "pos": {
-        "x": 0,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "shellsplash",
-      "count": 1,
-      "interval": 6.545455,
+      "clipName": "captainwave_L",
+      "count": 4,
+      "interval": 3.2727275,
       "time": 9,
       "pos": {
-        "x": 3.2,
-        "y": 0
+        "x": 6,
+        "y": 14
       },
       "originVlc": {
         "x": 0,
@@ -104,18 +38,18 @@
       "color": {
         "x": 0.05,
         "y": 0.05,
-        "z": 0.8,
+        "z": 0.9,
         "w": 1
       }
     },
     {
-      "clipName": "shellsplash",
-      "count": 1,
-      "interval": 6.545455,
+      "clipName": "captainwave_R",
+      "count": 4,
+      "interval": 3.2727275,
       "time": 9,
       "pos": {
-        "x": 28.8,
-        "y": 0
+        "x": 26,
+        "y": 14
       },
       "originVlc": {
         "x": 0,
@@ -126,73 +60,7 @@
       "color": {
         "x": 0.05,
         "y": 0.05,
-        "z": 0.8,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "shellsplash",
-      "count": 1,
-      "interval": 6.545455,
-      "time": 12.272728,
-      "pos": {
-        "x": 9.6,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.8,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "shellsplash",
-      "count": 1,
-      "interval": 6.545455,
-      "time": 12.272728,
-      "pos": {
-        "x": 22.4,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.8,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "shellsplash",
-      "count": 1,
-      "interval": 6.545455,
-      "time": 15.545455,
-      "pos": {
-        "x": 16,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.8,
+        "z": 0.9,
         "w": 1
       }
     }

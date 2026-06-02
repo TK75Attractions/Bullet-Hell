@@ -123,8 +123,8 @@
           "random": 0,
           "unCounterable": false
         },
-        "number": 5,
-        "disRad": 60,
+        "number": 8,
+        "disRad": 40,
         "homing": true
       },
       "bulletChangeClips": [
@@ -289,8 +289,8 @@
           "random": 0,
           "unCounterable": false
         },
-        "number": 5,
-        "disRad": 60,
+        "number": 8,
+        "disRad": 40,
         "homing": true
       },
       "bulletChangeClips": [
@@ -455,8 +455,8 @@
           "random": 0,
           "unCounterable": false
         },
-        "number": 5,
-        "disRad": 60,
+        "number": 8,
+        "disRad": 40,
         "homing": true
       },
       "bulletChangeClips": [
@@ -621,8 +621,8 @@
           "random": 0,
           "unCounterable": false
         },
-        "number": 5,
-        "disRad": 60,
+        "number": 8,
+        "disRad": 40,
         "homing": true
       },
       "bulletChangeClips": [
@@ -787,8 +787,8 @@
           "random": 0,
           "unCounterable": false
         },
-        "number": 5,
-        "disRad": 60,
+        "number": 8,
+        "disRad": 40,
         "homing": true
       },
       "bulletChangeClips": [
@@ -953,8 +953,8 @@
           "random": 0,
           "unCounterable": false
         },
-        "number": 5,
-        "disRad": 60,
+        "number": 8,
+        "disRad": 40,
         "homing": true
       },
       "bulletChangeClips": [
@@ -1018,78 +1018,34 @@
   ],
   "bulletSpawners": [
     {
-      "clipName": "seawave",
+      "clipName": "shellsplash",
       "count": 1,
-      "interval": 0.2,
+      "interval": 6.545455,
       "time": 9,
       "pos": {
-        "x": 4,
-        "y": 16
+        "x": 3.2,
+        "y": 0
       },
       "originVlc": {
         "x": 0,
         "y": 0
       },
       "angle": 0,
-      "angleInterval": 30,
+      "angleInterval": 0,
       "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
+        "x": 0.05,
+        "y": 0.05,
+        "z": 0.9,
         "w": 1
       }
     },
     {
-      "clipName": "seawave",
+      "clipName": "shellsplash",
       "count": 1,
-      "interval": 0.2,
-      "time": 9.545455,
-      "pos": {
-        "x": 28,
-        "y": 12
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 30,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "seawave",
-      "count": 1,
-      "interval": 0.2,
-      "time": 10.090909,
-      "pos": {
-        "x": 18,
-        "y": 14
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 30,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "worldline_L",
-      "count": 1,
-      "interval": 0,
+      "interval": 6.545455,
       "time": 9,
       "pos": {
-        "x": 0,
+        "x": 28.8,
         "y": 0
       },
       "originVlc": {
@@ -1099,85 +1055,41 @@
       "angle": 0,
       "angleInterval": 0,
       "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
+        "x": 0.05,
+        "y": 0.05,
+        "z": 0.9,
         "w": 1
       }
     },
     {
-      "clipName": "seawave",
+      "clipName": "shellsplash",
       "count": 1,
-      "interval": 0.2,
+      "interval": 6.545455,
       "time": 12.272728,
       "pos": {
-        "x": 4,
-        "y": 16
+        "x": 9.6,
+        "y": 0
       },
       "originVlc": {
         "x": 0,
         "y": 0
       },
       "angle": 0,
-      "angleInterval": 30,
+      "angleInterval": 0,
       "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
+        "x": 0.05,
+        "y": 0.05,
+        "z": 0.9,
         "w": 1
       }
     },
     {
-      "clipName": "seawave",
+      "clipName": "shellsplash",
       "count": 1,
-      "interval": 0.2,
-      "time": 12.818183,
-      "pos": {
-        "x": 28,
-        "y": 12
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 30,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "seawave",
-      "count": 1,
-      "interval": 0.2,
-      "time": 13.363637,
-      "pos": {
-        "x": 18,
-        "y": 14
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 30,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "worldline_R",
-      "count": 1,
-      "interval": 0,
+      "interval": 6.545455,
       "time": 12.272728,
       "pos": {
-        "x": 0,
+        "x": 22.4,
         "y": 0
       },
       "originVlc": {
@@ -1187,85 +1099,19 @@
       "angle": 0,
       "angleInterval": 0,
       "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
+        "x": 0.05,
+        "y": 0.05,
+        "z": 0.9,
         "w": 1
       }
     },
     {
-      "clipName": "seawave",
+      "clipName": "shellsplash",
       "count": 1,
-      "interval": 0.2,
+      "interval": 6.545455,
       "time": 15.545455,
       "pos": {
-        "x": 4,
-        "y": 16
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 30,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "seawave",
-      "count": 1,
-      "interval": 0.2,
-      "time": 16.09091,
-      "pos": {
-        "x": 28,
-        "y": 12
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 30,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "seawave",
-      "count": 1,
-      "interval": 0.2,
-      "time": 16.636364,
-      "pos": {
-        "x": 18,
-        "y": 14
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 30,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "worldline_L",
-      "count": 1,
-      "interval": 0,
-      "time": 15.545455,
-      "pos": {
-        "x": 0,
+        "x": 16,
         "y": 0
       },
       "originVlc": {
@@ -1275,97 +1121,9 @@
       "angle": 0,
       "angleInterval": 0,
       "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "seawave",
-      "count": 1,
-      "interval": 0.2,
-      "time": 18.818182,
-      "pos": {
-        "x": 4,
-        "y": 16
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 30,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "seawave",
-      "count": 1,
-      "interval": 0.2,
-      "time": 19.363636,
-      "pos": {
-        "x": 28,
-        "y": 12
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 30,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "seawave",
-      "count": 1,
-      "interval": 0.2,
-      "time": 19.909092,
-      "pos": {
-        "x": 18,
-        "y": 14
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 30,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "worldline_R",
-      "count": 1,
-      "interval": 0,
-      "time": 18.818182,
-      "pos": {
-        "x": 0,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
+        "x": 0.05,
+        "y": 0.05,
+        "z": 0.9,
         "w": 1
       }
     },
@@ -1987,8 +1745,8 @@
     },
     {
       "clipName": "captain_bomb",
-      "count": 7,
-      "interval": 1.6363637,
+      "count": 4,
+      "interval": 3.2727275,
       "time": 37.36364,
       "pos": {
         "x": 10.666667,
@@ -2009,8 +1767,8 @@
     },
     {
       "clipName": "captain_bomb",
-      "count": 7,
-      "interval": 1.6363637,
+      "count": 4,
+      "interval": 3.2727275,
       "time": 37.36364,
       "pos": {
         "x": 21.333332,
@@ -2031,8 +1789,8 @@
     },
     {
       "clipName": "captain_bomb",
-      "count": 7,
-      "interval": 1.6363637,
+      "count": 4,
+      "interval": 3.2727275,
       "time": 37.36364,
       "pos": {
         "x": 10.666667,
@@ -2053,8 +1811,8 @@
     },
     {
       "clipName": "captain_bomb",
-      "count": 7,
-      "interval": 1.6363637,
+      "count": 4,
+      "interval": 3.2727275,
       "time": 37.36364,
       "pos": {
         "x": 21.333332,
@@ -2250,101 +2008,145 @@
       }
     },
     {
-      "clipName": "cross_4",
+      "clipName": "chainanchor_TR",
       "count": 1,
       "interval": 0,
       "time": 48.272728,
       "pos": {
-        "x": 4,
-        "y": 4.5
+        "x": 16,
+        "y": 14
       },
       "originVlc": {
-        "x": 4,
+        "x": 0,
         "y": 0
       },
       "angle": 0,
       "angleInterval": 0,
       "color": {
-        "x": 0,
+        "x": 1,
         "y": 1,
-        "z": 0.3,
+        "z": 1,
         "w": 1
       }
     },
     {
-      "clipName": "cross_4",
+      "clipName": "anchorbomb",
       "count": 1,
       "interval": 0,
-      "time": 48.272728,
+      "time": 51.545456,
       "pos": {
-        "x": 32,
-        "y": 4.5
+        "x": 30,
+        "y": 2
       },
       "originVlc": {
-        "x": -4,
+        "x": 0,
         "y": 0
       },
       "angle": 0,
       "angleInterval": 0,
       "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
+        "x": 0.05,
+        "y": 0.05,
+        "z": 0.9,
         "w": 1
       }
     },
     {
-      "clipName": "cross_4",
+      "clipName": "anchorbomb",
+      "count": 1,
+      "interval": 0,
+      "time": 52.09091,
+      "pos": {
+        "x": 29,
+        "y": 9
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0.05,
+        "y": 0.05,
+        "z": 0.9,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "anchorbomb",
+      "count": 1,
+      "interval": 0,
+      "time": 52.636364,
+      "pos": {
+        "x": 26,
+        "y": 16
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 0.05,
+        "y": 0.05,
+        "z": 0.9,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "chainanchor_TL",
       "count": 1,
       "interval": 0,
       "time": 54.818184,
       "pos": {
-        "x": 4,
-        "y": 4.5
+        "x": 16,
+        "y": 14
       },
       "originVlc": {
-        "x": 4,
+        "x": 0,
         "y": 0
       },
       "angle": 0,
       "angleInterval": 0,
       "color": {
-        "x": 0,
+        "x": 1,
         "y": 1,
-        "z": 0.3,
+        "z": 1,
         "w": 1
       }
     },
     {
-      "clipName": "cross_4",
+      "clipName": "anchorbomb",
       "count": 1,
       "interval": 0,
-      "time": 54.818184,
+      "time": 58.09091,
       "pos": {
-        "x": 32,
-        "y": 4.5
+        "x": 2,
+        "y": 2
       },
       "originVlc": {
-        "x": -4,
+        "x": 0,
         "y": 0
       },
       "angle": 0,
       "angleInterval": 0,
       "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
+        "x": 0.05,
+        "y": 0.05,
+        "z": 0.9,
         "w": 1
       }
     },
     {
-      "clipName": "wavecyclone_ACW",
-      "count": 2,
-      "interval": 3.2727275,
-      "time": 48.272728,
+      "clipName": "anchorbomb",
+      "count": 1,
+      "interval": 0,
+      "time": 58.636368,
       "pos": {
-        "x": 4,
-        "y": 13.5
+        "x": 3,
+        "y": 9
       },
       "originVlc": {
         "x": 0,
@@ -2353,20 +2155,20 @@
       "angle": 0,
       "angleInterval": 0,
       "color": {
-        "x": 0,
-        "y": 0,
-        "z": 0,
-        "w": 0
+        "x": 0.05,
+        "y": 0.05,
+        "z": 0.9,
+        "w": 1
       }
     },
     {
-      "clipName": "wavecyclone_CW",
-      "count": 2,
-      "interval": 3.2727275,
-      "time": 48.272728,
+      "clipName": "anchorbomb",
+      "count": 1,
+      "interval": 0,
+      "time": 59.18182,
       "pos": {
-        "x": 32,
-        "y": 13.5
+        "x": 6,
+        "y": 16
       },
       "originVlc": {
         "x": 0,
@@ -2375,10 +2177,10 @@
       "angle": 0,
       "angleInterval": 0,
       "color": {
-        "x": 0,
-        "y": 0,
-        "z": 0,
-        "w": 0
+        "x": 0.05,
+        "y": 0.05,
+        "z": 0.9,
+        "w": 1
       }
     },
     {

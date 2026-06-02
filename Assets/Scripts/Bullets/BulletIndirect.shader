@@ -44,6 +44,7 @@ Shader "Custom/BulletIndirectMasked"
                 float appear;
 
                 float4 color;
+                int renderPriority;
             };
 
             StructuredBuffer<BulletData> _BulletBuffer;

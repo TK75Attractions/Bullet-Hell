@@ -1,6 +1,7 @@
 using UnityEngine;
 using Unity.Collections;
 using Unity.Mathematics;
+using System;
 using System.Runtime.InteropServices;
 
 public class BulletRenderSystem : MonoBehaviour
@@ -20,7 +21,9 @@ public class BulletRenderSystem : MonoBehaviour
 
     Texture2DArray textureArray;
     Texture2DArray maskArray;
-    NativeArray<BulletRenderData> renderArray;
+    BulletRenderData[] renderArray;
+    BulletRenderData[] sortedRenderArray;
+    int[] uniqueRenderPriorities;
 
 
     #region //BulletRenderData Struct
@@ -31,10 +34,9 @@ public class BulletRenderSystem : MonoBehaviour
         InitMaskArray();
         InitBuffers();
 
-        renderArray = new NativeArray<BulletRenderData>(
-            MaxBullets,
-            Allocator.Persistent
-        );
+        renderArray = new BulletRenderData[MaxBullets];
+        sortedRenderArray = new BulletRenderData[MaxBullets];
+        uniqueRenderPriorities = new int[MaxBullets];
     }
     private void InitTextureArray()
     {
@@ -195,6 +197,7 @@ public class BulletRenderSystem : MonoBehaviour
         }
 
         int writeIndex = AppendRenderData(bullets, count, 0, count);
+        SortRenderData(writeIndex);
         bulletBuffer.SetData(renderArray, 0, 0, writeIndex);
         UpdateInstanceCount(writeIndex);
     }
@@ -232,6 +235,7 @@ public class BulletRenderSystem : MonoBehaviour
             writeIndex = AppendRenderData(counterBullets, writeIndex, totalCount);
         }
 
+        SortRenderData(writeIndex);
         bulletBuffer.SetData(renderArray, 0, 0, writeIndex);
         UpdateInstanceCount(writeIndex);
     }
@@ -299,6 +303,7 @@ public class BulletRenderSystem : MonoBehaviour
                 maskIndex = b.typeId,
                 appear = appear,
                 color = new float4(b.color.x, b.color.y, b.color.z, b.color.w * clearFade),
+                renderPriority = type.renderPriority,
             };
             writeIndex++;
             activeCount++;
@@ -329,6 +334,7 @@ public class BulletRenderSystem : MonoBehaviour
 
             float headSize = CounterBullet.GetSize(b.damage);
             float appear = 1f;
+            int renderPriority = GetRenderPriority(CounterBullet.TypeId);
             renderArray[writeIndex] = new BulletRenderData
             {
                 pos = b.position,
@@ -338,6 +344,7 @@ public class BulletRenderSystem : MonoBehaviour
                 maskIndex = CounterBullet.TypeId,
                 appear = appear,
                 color = CounterBullet.Color,
+                renderPriority = renderPriority,
             };
             writeIndex++;
 
@@ -367,6 +374,7 @@ public class BulletRenderSystem : MonoBehaviour
                     maskIndex = CounterBullet.TypeId,
                     appear = fade,
                     color = new float4(CounterBullet.Color.x, CounterBullet.Color.y, CounterBullet.Color.z, CounterBullet.Color.w * fade),
+                    renderPriority = renderPriority,
                 };
                 writeIndex++;
                 previousPoint = currentPoint;
@@ -374,6 +382,60 @@ public class BulletRenderSystem : MonoBehaviour
         }
 
         return writeIndex;
+    }
+
+    private void SortRenderData(int count)
+    {
+        if (count <= 1) return;
+
+        int priorityCount = 0;
+        for (int i = 0; i < count; i++)
+        {
+            int priority = renderArray[i].renderPriority;
+            int insertIndex = 0;
+            while (insertIndex < priorityCount && uniqueRenderPriorities[insertIndex] < priority)
+            {
+                insertIndex++;
+            }
+
+            if (insertIndex < priorityCount && uniqueRenderPriorities[insertIndex] == priority)
+            {
+                continue;
+            }
+
+            for (int j = priorityCount; j > insertIndex; j--)
+            {
+                uniqueRenderPriorities[j] = uniqueRenderPriorities[j - 1];
+            }
+            uniqueRenderPriorities[insertIndex] = priority;
+            priorityCount++;
+        }
+
+        if (priorityCount <= 1) return;
+
+        int writeIndex = 0;
+        for (int priorityIndex = 0; priorityIndex < priorityCount; priorityIndex++)
+        {
+            int priority = uniqueRenderPriorities[priorityIndex];
+            for (int i = 0; i < count; i++)
+            {
+                if (renderArray[i].renderPriority != priority) continue;
+                sortedRenderArray[writeIndex] = renderArray[i];
+                writeIndex++;
+            }
+        }
+
+        Array.Copy(sortedRenderArray, renderArray, count);
+    }
+
+    private int GetRenderPriority(int typeId)
+    {
+        BulletTypeDataBase typeDataBase = GManager.Control != null ? GManager.Control.BTDB : null;
+        if (typeDataBase == null || typeDataBase.types == null) return 0;
+        if (typeId < 0 || typeId >= typeDataBase.types.Length) return 0;
+
+        BulletType type = typeDataBase.types[typeId];
+        return type != null ? type.renderPriority : 0;
     }
 
     private void UpdateInstanceCount(int count)
@@ -424,6 +486,5 @@ public class BulletRenderSystem : MonoBehaviour
     {
         bulletBuffer?.Release();
         argsBuffer?.Release();
-        if (renderArray.IsCreated) renderArray.Dispose();
     }
 }

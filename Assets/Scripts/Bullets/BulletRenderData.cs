@@ -11,4 +11,5 @@ public struct BulletRenderData
     public float maskIndex;
     public float appear;
     public float4 color;
+    public int renderPriority;
 }

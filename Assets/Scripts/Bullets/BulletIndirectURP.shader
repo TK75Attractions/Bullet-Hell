@@ -47,6 +47,7 @@ Shader "Custom/BulletIndirectURP"
                 float maskIndex;
                 float appear;
                 float4 color;
+                int renderPriority;
             };
 
             StructuredBuffer<BulletData> _BulletBuffer;

@@ -295,7 +295,6 @@ public class BulletBufferManager
 
         if (index >= 0 && index < bulletBuffers.Count)
         {
-            string clipName = bulletBuffers[index].name;
             isLaser = bulletBuffers[index].isLaser;
             List<BulletData> templateBullets = bulletBuffers[index].bullets;
             List<BulletData> spawnedBullets = new List<BulletData>(templateBullets.Count);

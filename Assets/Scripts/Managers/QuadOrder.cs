@@ -1011,7 +1011,6 @@ public class QuadOrder : MonoBehaviour
     {
         // Invalidate currently running async enemy spawns.
         enemySpawnGeneration++;
-
         bulletEvents.Clear();
 
         const float fadeDuration = 0.15f;

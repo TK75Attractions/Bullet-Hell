@@ -99,32 +99,26 @@ public class StageReader : MonoBehaviour
         if (stageData == null || !isReady) return;
         time += dt;
 
-        if (stageData.enemySpawners.Count > enemyCount)
+        while (stageData.enemySpawners.Count > enemyCount && stageData.enemySpawners[enemyCount].enemyAppearTime <= time)
         {
-            if (stageData.enemySpawners[enemyCount].enemyAppearTime <= time)
-            {
-                EnemySpawner spawner = stageData.enemySpawners[enemyCount];
-                GManager.Control.QOrder.AddEnemy(spawner);
-                Debug.Log($"Spawned enemy: {spawner.orbit.speed}");
-                enemyCount++;
-            }
+            EnemySpawner spawner = stageData.enemySpawners[enemyCount];
+            GManager.Control.QOrder.AddEnemy(spawner);
+            Debug.Log($"Spawned enemy: {spawner.orbit.speed}");
+            enemyCount++;
         }
 
-        if (spawnEvents.Count > bulletCount)
+        while (spawnEvents.Count > bulletCount && spawnEvents[bulletCount].time <= time)
         {
-            if (spawnEvents[bulletCount].time <= time)
+            BulletSpawnEvent spawner = spawnEvents[bulletCount];
+            bulletCount++;
+            if (spawner.index == -3)
             {
-                BulletSpawnEvent spawner = spawnEvents[bulletCount];
-                bulletCount++;
-                if (spawner.index == -3)
-                {
-                    GManager.Control.QOrder.ClearManagedEnemyDanmaku();
-                    Debug.Log($"Cleared enemy bullets");
-                }
-
-                GManager.Control.QOrder.AddEnemyBullets(spawner.index, spawner.pos, spawner.originVlc, spawner.angle, spawner.color);
-                //Debug.Log($"Spawned bullet: {spawner.index}");
+                GManager.Control.QOrder.ClearManagedEnemyDanmaku();
+                Debug.Log($"Cleared enemy bullets");
             }
+
+            GManager.Control.QOrder.AddEnemyBullets(spawner.index, spawner.pos, spawner.originVlc, spawner.angle, spawner.color);
+            //Debug.Log($"Spawned bullet: {spawner.index}");
         }
 
     }

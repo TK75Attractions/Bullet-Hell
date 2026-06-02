@@ -19,6 +19,7 @@ public class BulletType : ScriptableObject
     public Texture2D maskSprite;
     public Color baseColor = Color.white;
     public float baseSize;
+    public int renderPriority;
     public float counterPower;
 
     [Header("Collider")]
