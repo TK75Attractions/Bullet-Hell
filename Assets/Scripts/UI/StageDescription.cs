@@ -2,7 +2,6 @@ using UnityEngine;
 using Unity.Mathematics;
 using TMPro;
 using UnityEngine.Video;
-using System.Data;
 using System;
 
 public class StageDescription : MonoBehaviour
@@ -41,7 +40,26 @@ public class StageDescription : MonoBehaviour
     public void Set(int index)
     {
         StageData data = GManager.Control.SDB.GetStage(index);
-        videoPlayer.clip = data.videoClip;
+        if (data == null)
+        {
+            return;
+        }
+
+        videoPlayer.Stop();
+        videoPlayer.clip = null;
+        videoPlayer.url = string.Empty;
+
+        if (data.videoClip != null)
+        {
+            videoPlayer.source = VideoSource.VideoClip;
+            videoPlayer.clip = data.videoClip;
+        }
+        else if (!string.IsNullOrWhiteSpace(data.videoPath))
+        {
+            videoPlayer.source = VideoSource.Url;
+            videoPlayer.url = new Uri(System.IO.Path.GetFullPath(data.videoPath)).AbsoluteUri;
+        }
+
         stageName.text = data.stageName;
     }
 

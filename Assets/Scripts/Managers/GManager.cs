@@ -51,7 +51,7 @@ public class GManager : MonoBehaviour
     public int playerHitCount = 0;
     public int counterHitBossCount = 0;
 
-    public void Awake()
+    public async void Awake()
     {
         if (Control == null) Control = this;
         else
@@ -59,6 +59,8 @@ public class GManager : MonoBehaviour
             Destroy(this.transform.parent.gameObject);
             return;
         }
+
+        ready = false;
 
         IManager = GetComponent<InputManager>();
         IManager.Init();
@@ -70,9 +72,9 @@ public class GManager : MonoBehaviour
 
         BTDB.Init();
         SDB = new();
-        SDB.Init();
+        await SDB.InitAsync();
         BClipManager = new();
-        BClipManager.Init();
+        await BClipManager.InitAsync();
 
         BRS = GetComponent<BulletRenderSystem>();
         BRS.Init();
@@ -128,6 +130,8 @@ public class GManager : MonoBehaviour
 
     public void LateUpdate()
     {
+        if (!ready) return;
+
         int enemyCount = QOrder.GetEnemyBulletCount();
         int counterCount = QOrder.GetCounterBulletCount();
         //Debug.Log($"Enemy Bullet Count: {enemyCount}, Counter Bullet Count: {counterCount}");

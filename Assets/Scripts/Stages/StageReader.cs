@@ -1,4 +1,3 @@
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -8,6 +7,7 @@ using System;
 public class StageReader : MonoBehaviour
 {
     private const double BgmLeadTime = 2d;
+    private const bool LogStageSchedule = false;
     [SerializeField] private StageData stageData;
     [SerializeField] private List<BulletSpawnEvent> spawnEvents = new List<BulletSpawnEvent>();
     [SerializeField] private float time = 0f;
@@ -32,6 +32,29 @@ public class StageReader : MonoBehaviour
         time = 0f;
         enemyCount = 0;
         bulletCount = 0;
+        spawnEvents.Clear();
+        isReady = false;
+
+        if (GManager.Control.SDB != null)
+        {
+            await GManager.Control.SDB.EnsureRuntimeMediaLoadedAsync(stageData);
+        }
+
+        if (GManager.Control.BClipManager != null)
+        {
+            if (stageData.source == StageData.StageSource.Mod)
+            {
+                GManager.Control.BClipManager.LoadModStageBulletBuffers(stageData);
+            }
+            else
+            {
+                string bulletBufferDirectory = string.IsNullOrWhiteSpace(stageData.stageDirectoryName)
+                    ? stageData.stageName
+                    : stageData.stageDirectoryName;
+                await GManager.Control.BClipManager.LoadStageBulletBuffersAsync(bulletBufferDirectory);
+            }
+        }
+
         if (GManager.Control.AManager != null && GManager.Control.BManager != null)
         {
             AudioSource bgmSource = await GManager.Control.AManager.PlayBGM(stageData.audioClip);
@@ -59,13 +82,13 @@ public class StageReader : MonoBehaviour
             {
                 spawner.index = clipIndex;
                 stageData.bulletSpawners[i] = spawner; // Update the spawner with the correct index
-                Debug.Log($"Bullet clip found: {spawner.clipName} at index {clipIndex}");
+                if (LogStageSchedule) Debug.Log($"Bullet clip found: {spawner.clipName} at index {clipIndex}");
             }
             else if (spawner.clipName == "Clear") // "Clear" という名前のクリップは存在しないが、特別な意味を持つと仮定
             {
                 spawner.index = -3; // No bullet clip, set index to -3
                 stageData.bulletSpawners[i] = spawner; // Update the spawner with the correct index
-                Debug.Log($"No bullet clip for spawner at time {spawner.time}, using index -3 for 'Clear'");
+                if (LogStageSchedule) Debug.Log($"No bullet clip for spawner at time {spawner.time}, using index -3 for 'Clear'");
             }
             else
             {
@@ -84,7 +107,7 @@ public class StageReader : MonoBehaviour
                     originVlc = spawner.originVlc,
                     color = spawner.color
                 };
-                Debug.Log($"Scheduled bullet spawn: time={spawnEvent.time}, pos={spawnEvent.pos}, angle={spawnEvent.angle}, index={spawnEvent.index}");
+                if (LogStageSchedule) Debug.Log($"Scheduled bullet spawn: time={spawnEvent.time}, pos={spawnEvent.pos}, angle={spawnEvent.angle}, index={spawnEvent.index}");
                 spawnEvents.Add(spawnEvent);
             }
         }
@@ -103,7 +126,7 @@ public class StageReader : MonoBehaviour
         {
             EnemySpawner spawner = stageData.enemySpawners[enemyCount];
             GManager.Control.QOrder.AddEnemy(spawner);
-            Debug.Log($"Spawned enemy: {spawner.orbit.speed}");
+            if (LogStageSchedule) Debug.Log($"Spawned enemy: {spawner.orbit.speed}");
             enemyCount++;
         }
 
@@ -114,7 +137,7 @@ public class StageReader : MonoBehaviour
             if (spawner.index == -3)
             {
                 GManager.Control.QOrder.ClearManagedEnemyDanmaku();
-                Debug.Log($"Cleared enemy bullets");
+                if (LogStageSchedule) Debug.Log($"Cleared enemy bullets");
             }
 
             GManager.Control.QOrder.AddEnemyBullets(spawner.index, spawner.pos, spawner.originVlc, spawner.angle, spawner.color);

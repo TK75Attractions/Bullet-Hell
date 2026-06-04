@@ -7,6 +7,19 @@ using UnityEngine.Video;
 [System.Serializable]
 public class StageData
 {
+    public enum StageSource
+    {
+        Official,
+        Mod
+    }
+
+    public string stageDirectoryName;
+    public StageSource source = StageSource.Official;
+    public string modId;
+    public string baseDirectory;
+    public string audioPath;
+    public string videoPath;
+    public string bulletBufferDirectory;
     public string stageName;
     public VideoClip videoClip;
     public AudioClip audioClip;

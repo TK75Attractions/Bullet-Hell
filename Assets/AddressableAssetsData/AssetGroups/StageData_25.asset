@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: StageData_25
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: StageData_25
+  m_GUID: 5ed0c567fde4f7647a0c674de468a0b3
+  m_SerializeEntries:
+  - m_GUID: 58d57e7bb777add4bbf59edb062654ef
+    m_Address: Assets/StageData/25/25.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-25
+    - stage-data-media
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: aa252da7ebbaca2418371bb3f5509541
+    m_Address: Assets/StageData/25/25.mp4
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-25
+    - stage-data-media
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c9a811ccc2a5227448a21df152869845
+    m_Address: Assets/StageData/25/25.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-25
+    - stage-data-json
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 74e727200a544ea48b7e5cf70ac7590c, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 045ea95870973ec4f84fd4a5cb1dcc26, type: 2}
+    - {fileID: 11400000, guid: 28e4ab44ea508044094b7604b0829d48, type: 2}
