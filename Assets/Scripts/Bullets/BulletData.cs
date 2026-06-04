@@ -14,6 +14,7 @@ public struct BulletData
 
     public float2 originPos; //原点位置
     public float2 originVlc; //原点の移動速度
+    public float2 playerInfluence;
 
     public float startX;
     public float speed; //弾丸の速度
@@ -66,13 +67,14 @@ public struct BulletData
     /// <param name="_random">ランダム値 random</param>
     /// <param name="_life">弾の寿命 life</param>
     /// <param name="_unCounterable">カウンター不可かどうか unCounterable</param>
-    public BulletData(float2 _pos, float2 _vlc, float _s, float _g, float _as, float _initialAngle, float2 _polar, float _absV, float _theV, float _start, float4 _poly, int type, float4 _color, float2 _scale = default, float _random = 0, float _appear = 0, float _appearDuration = DefaultAppearDuration, float _life = 255, bool _unCounterable = false)
+    public BulletData(float2 _pos, float2 _vlc, float _s, float _g, float _as, float _initialAngle, float2 _polar, float _absV, float _theV, float _start, float4 _poly, int type, float4 _color, float2 _scale = default, float _random = 0, float _appear = 0, float _appearDuration = DefaultAppearDuration, float _life = 255, bool _unCounterable = false, float2 _playerInfluence = default)
     {
         position = _pos;
         velocity = new(0, 0);
         angle = 0;
         originPos = position;
         originVlc = _vlc;
+        playerInfluence = _playerInfluence;
         speed = _s;
         gravity = _g;
         angleSpeed = _as;
@@ -125,6 +127,7 @@ public struct BulletData
         angle = data.angle;
         originPos = _pos + data.originPos;
         originVlc = _vlc + data.originVlc;
+        playerInfluence = data.playerInfluence;
         speed = data.speed;
         gravity = data.gravity;
         angleSpeed = data.angleSpeed;

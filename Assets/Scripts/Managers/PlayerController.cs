@@ -6,6 +6,7 @@ using Unity.Collections;
 public class PlayerController
 {
     public float2 pos;
+    public float2 velocity;
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float dashSpeed = 20f;
     [SerializeField] private float hitInvincibleDuration = 0.2f;
@@ -65,6 +66,7 @@ public class PlayerController
 
     private void Move(float dt)
     {
+        float2 previousPos = pos;
         float2 inputVector = new float2(0, 0);
         if (GManager.Control.IManager.upPressed) inputVector.y += 1;
         if (GManager.Control.IManager.downPressed) inputVector.y -= 1;
@@ -78,6 +80,8 @@ public class PlayerController
             pos.x = math.clamp(pos.x, xRange.x, xRange.y);
             pos.y = math.clamp(pos.y, yRange.x, yRange.y);
         }
+
+        velocity = dt > 0f ? (pos - previousPos) / dt : new float2(0, 0);
     }
 
     private void Dash(float dt)

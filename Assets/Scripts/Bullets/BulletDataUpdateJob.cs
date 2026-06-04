@@ -14,6 +14,7 @@ public struct BulletDataUpdateJob : IJobParallelFor
     public float cellSize;
     public int cellCount;
     public int totalCellCount;
+    public float2 playerVelocity;
 
     public void Execute(int index)
     {
@@ -70,6 +71,7 @@ public struct BulletDataUpdateJob : IJobParallelFor
     {
         //ベースの座標を更新
         bullet.originPos += bullet.originVlc * dt;
+        bullet.originPos += playerVelocity * bullet.playerInfluence * dt;
         float lapse = bullet.time - bullet.appearTime;
 
         float2 noisyOriginPos = bullet.originPos;
