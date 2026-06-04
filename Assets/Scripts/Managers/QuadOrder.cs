@@ -318,6 +318,7 @@ public class QuadOrder : MonoBehaviour
         }
 
         //敵の弾の更新
+        float2 playerVelocity = GManager.Control.PController != null ? GManager.Control.PController.velocity : new float2(0, 0);
         if (hasEnemyBullets)
         {
             NativeArray<BulletData> bullets = enemyBullets.AsArray();
@@ -326,7 +327,8 @@ public class QuadOrder : MonoBehaviour
                 bullets = bullets,
                 dt = _dt,
                 cellSize = cellSize,
-                totalCellCount = cells.Length
+                totalCellCount = cells.Length,
+                playerVelocity = playerVelocity
             };
             JobHandle handle1 = job1.Schedule(bullets.Length, 64);
             handle1.Complete();
@@ -341,7 +343,8 @@ public class QuadOrder : MonoBehaviour
                 bullets = bullets,
                 dt = _dt,
                 cellSize = cellSize,
-                totalCellCount = cells.Length
+                totalCellCount = cells.Length,
+                playerVelocity = playerVelocity
             };
             JobHandle handle2 = job2.Schedule(bullets.Length, 64);
             handle2.Complete();

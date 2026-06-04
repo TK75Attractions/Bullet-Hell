@@ -7,6 +7,7 @@ public struct BulletDataJson
 {
     public Vector2 originPos; //原点位置
     public Vector2 originVlc; //原点の移動速度
+    public Vector2 playerInfluence;
 
     public float startX;
     public float speed; //弾丸の速度
@@ -44,6 +45,7 @@ public struct BulletDataJson
         {
             originPos = new float2(this.originPos.x, this.originPos.y),
             originVlc = new float2(this.originVlc.x, this.originVlc.y),
+            playerInfluence = new float2(this.playerInfluence.x, this.playerInfluence.y),
             startX = this.startX,
             speed = this.speed,
             gravity = this.gravity,

@@ -46,6 +46,7 @@ BulletDataJson shape:
 {
   "originPos": { "x": 0, "y": 0 },
   "originVlc": { "x": 0, "y": 0 },
+  "playerInfluence": { "x": 0, "y": 0 },
   "startX": 0,
   "speed": 4,
   "gravity": 0,
@@ -129,6 +130,7 @@ Lifetime:
 
 - `time += dt`
 - `originPos += originVlc * dt`
+- `originPos += playerVelocity * playerInfluence * dt`
 - `lapse = time - appearTime`
 - If `appearTime > time`, the bullet receives only `dt * 0.00001` trajectory progress and returns.
 - If `life > 0 && time >= life`, the bullet becomes inactive.
@@ -147,6 +149,12 @@ Polar transform:
 - `polarForm.y += thetaVlc * dt`
 - `rotatedVector = polarForm.x * rotate(disVector, polarForm.y)`
 - `position = rotatedVector + originPos + smoothNoise`
+
+Player influence:
+
+- `playerInfluence.x` scales how much the bullet origin follows the player's x velocity.
+- `playerInfluence.y` scales how much the bullet origin follows the player's y velocity.
+- `{ "x": 1, "y": 0 }` makes the pattern drift horizontally with the player; `{ "x": 0, "y": 1 }` makes it drift vertically; omitted values default to `{0,0}`.
 
 Gravity:
 
