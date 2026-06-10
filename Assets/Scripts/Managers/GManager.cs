@@ -34,6 +34,7 @@ public class GManager : MonoBehaviour
     public StageReader SReader;
     public AudioManager AManager;
     public BeatManager BManager;
+    public CManager CManager;
     public StageSelectManager SSManager;
     public BulletBufferManager BClipManager;
     public QuadOrder QOrder;
@@ -69,6 +70,9 @@ public class GManager : MonoBehaviour
         AManager.Init();
 
         BManager = transform.parent.Find("BManager").GetComponent<BeatManager>();
+        CManager = GetComponent<CManager>();
+        if (CManager == null) CManager = FindObjectOfType<CManager>();
+        if (CManager == null) CManager = gameObject.AddComponent<CManager>();
 
         BTDB.Init();
         SDB = new();
@@ -133,14 +137,17 @@ public class GManager : MonoBehaviour
         if (!ready) return;
 
         int enemyCount = QOrder.GetEnemyBulletCount();
+        int warpZoneCount = QOrder.GetWarpZoneCount();
         int counterCount = QOrder.GetCounterBulletCount();
         //Debug.Log($"Enemy Bullet Count: {enemyCount}, Counter Bullet Count: {counterCount}");
 
-        if (enemyCount > 0 || counterCount > 0)
+        if (enemyCount > 0 || warpZoneCount > 0 || counterCount > 0)
         {
             BRS.BuildRenderData(
                 QOrder.GetEnemyBullets(),
                 enemyCount,
+                QOrder.GetWarpZones(),
+                warpZoneCount,
                 QOrder.GetCounterBullets(),
                 counterCount
             );

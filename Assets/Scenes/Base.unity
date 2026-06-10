@@ -2663,6 +2663,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1034609573}
+  - component: {fileID: 1034609574}
   m_Layer: 0
   m_Name: CManager
   m_TagString: Untagged
@@ -2689,6 +2690,24 @@ Transform:
   - {fileID: 1877450294}
   m_Father: {fileID: 60840120}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1034609574
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1034609572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04b2de4dfe176fd43a93a166db8e36d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CManager
+  noiseFrequency: 30
+  blurPixelsPerScaleUnit: 6
+  debugScheduledNoiseCount: 0
+  debugActiveNoiseCount: 0
+  debugCurrentBlurPixels: {x: 0, y: 0}
+  debugCurrentJitterPixels: {x: 0, y: 0}
 --- !u!1 &1068602616
 GameObject:
   m_ObjectHideFlags: 0
@@ -3319,9 +3338,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.011224806
+    x: 0.032716066
     y: 0
-    width: 0.9775504
+    width: 0.93456787
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -5090,9 +5109,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.011224806
+    x: 0.032716066
     y: 0
-    width: 0.9775504
+    width: 0.93456787
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -5221,9 +5240,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.011224806
+    x: 0.032716066
     y: 0
-    width: 0.9775504
+    width: 0.93456787
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -5427,6 +5446,9 @@ MonoBehaviour:
   drawLaserCollisionGizmos: 0
   laserCollisionGizmoColor: {r: 1, g: 0.2, b: 0.2, a: 0.9}
   laserCollisionGizmoZ: 100
+  warpZoneTypeId: -1
+  warpZoneTypeName: warp_zone
+  defaultWarpCooldown: 3
   debugSyncNativeBulletListsToInspector: 0
   debugNativeBulletDisplayLimit: 128
   debugEnemyBulletSlotCount: 0
@@ -5457,6 +5479,9 @@ MonoBehaviour:
     pos:
       x: 0
       y: 0
+    velocity:
+      x: 0
+      y: 0
     moveSpeed: 5
     dashSpeed: 20
     hitInvincibleDuration: 0.2
@@ -5465,6 +5490,7 @@ MonoBehaviour:
   SReader: {fileID: 0}
   AManager: {fileID: 0}
   BManager: {fileID: 0}
+  CManager: {fileID: 0}
   SSManager: {fileID: 0}
   BClipManager:
     bulletBuffers: []
@@ -5506,6 +5532,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StageReader
   stageData:
+    stageDirectoryName: 
+    source: 0
+    modId: 
+    baseDirectory: 
+    audioPath: 
+    videoPath: 
+    bulletBufferDirectory: 
     stageName: 
     videoClip: {fileID: 0}
     audioClip: {fileID: 0}
@@ -6044,9 +6077,9 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.011224806
+    x: 0.032716066
     y: 0
-    width: 0.9775504
+    width: 0.93456787
     height: 1
   near clip plane: 0.3
   far clip plane: 1000

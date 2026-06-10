@@ -55,17 +55,19 @@ public class BulletBufferManager
 
     public async Task InitAsync()
     {
-        ResetBuffers();
+        await LoadBaseBulletBuffersAsync();
+    }
 
-        int addressableLoadCount = ShouldUseAddressables()
-            ? await ReadBulletBuffersFromAddressablesAsync(CommonBulletBufferLabel)
-            : 0;
-        if (addressableLoadCount == 0)
-        {
-            ReadCommonBulletBuffersFromDirectory();
-        }
+    public async Task ReloadForStageBulletBuffersAsync(string stageDirectoryName)
+    {
+        await LoadBaseBulletBuffersAsync();
+        await LoadStageBulletBuffersAsync(stageDirectoryName);
+    }
 
-        ReadCommonModBulletBuffersFromDirectories();
+    public async Task ReloadForModStageBulletBuffersAsync(StageData stageData)
+    {
+        await LoadBaseBulletBuffersAsync();
+        LoadModStageBulletBuffers(stageData);
     }
 
     public void ReadBulletBufferFromDirectory()
@@ -156,6 +158,21 @@ public class BulletBufferManager
         bulletBuffers.Add(Line());
         bulletBuffers.Add(LineLaser());
         bulletBuffers.Add(Circle());
+    }
+
+    private async Task LoadBaseBulletBuffersAsync()
+    {
+        ResetBuffers();
+
+        int addressableLoadCount = ShouldUseAddressables()
+            ? await ReadBulletBuffersFromAddressablesAsync(CommonBulletBufferLabel)
+            : 0;
+        if (addressableLoadCount == 0)
+        {
+            ReadCommonBulletBuffersFromDirectory();
+        }
+
+        ReadCommonModBulletBuffersFromDirectories();
     }
 
     private void EnsureLoadedDirectorySet()

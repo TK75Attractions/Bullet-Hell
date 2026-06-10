@@ -30,6 +30,7 @@ public struct BulletDataJson
     public float appearDuration;//appearTime直前に演出を適用する時間
     public float life;
     public float random;
+    public float warpCooldown;
     public bool unCounterable;
 
     public BulletData ToBulletData()
@@ -56,13 +57,14 @@ public struct BulletDataJson
             thetaVlc = this.thetaVlc,
             startPos = new float2(this.startPos.x, this.startPos.y),
             polynomial = new float4(this.polynomial.x, this.polynomial.y, this.polynomial.z, this.polynomial.w),
-            typeId = GManager.Control.BTDB.GetTypeId(this.typeName),
+            typeId = BulletData.ResolveTypeId(this.typeName, GManager.Control.BTDB),
             scale = resolvedScale,
             color = new float4(this.color.x, this.color.y, this.color.z, this.color.w),
             appearTime = this.appearTime,
             appearDuration = this.appearDuration >= 0f ? this.appearDuration : BulletData.DefaultAppearDuration,
             life = this.life,
             random = this.random,
+            warpCooldown = this.warpCooldown,
             unCounterable = this.unCounterable,
             isActive = true
         };

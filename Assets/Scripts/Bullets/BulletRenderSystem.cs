@@ -205,12 +205,15 @@ public class BulletRenderSystem : MonoBehaviour
     public void BuildRenderData(
         NativeArray<BulletData> enemyBullets,
         int enemyCount,
+        NativeArray<BulletData> warpZones,
+        int warpZoneCount,
         NativeArray<CounterBullet> counterBullets,
         int counterCount)
     {
         int safeEnemyCount = math.max(0, enemyCount);
+        int safeWarpZoneCount = math.max(0, warpZoneCount);
         int safeCounterCount = math.max(0, counterCount);
-        int totalCount = safeEnemyCount + safeCounterCount * (CounterBullet.TrailCapacity + 1);
+        int totalCount = safeEnemyCount + safeWarpZoneCount + safeCounterCount * (CounterBullet.TrailCapacity + 1);
 
         if (totalCount == 0)
         {
@@ -228,6 +231,11 @@ public class BulletRenderSystem : MonoBehaviour
         if (safeEnemyCount > 0 && enemyBullets.IsCreated)
         {
             writeIndex = AppendRenderData(enemyBullets, safeEnemyCount, writeIndex, totalCount);
+        }
+
+        if (safeWarpZoneCount > 0 && warpZones.IsCreated && writeIndex < totalCount)
+        {
+            writeIndex = AppendRenderData(warpZones, safeWarpZoneCount, writeIndex, totalCount);
         }
 
         if (safeCounterCount > 0 && counterBullets.IsCreated && writeIndex < totalCount)

@@ -44,14 +44,14 @@ public class StageReader : MonoBehaviour
         {
             if (stageData.source == StageData.StageSource.Mod)
             {
-                GManager.Control.BClipManager.LoadModStageBulletBuffers(stageData);
+                await GManager.Control.BClipManager.ReloadForModStageBulletBuffersAsync(stageData);
             }
             else
             {
                 string bulletBufferDirectory = string.IsNullOrWhiteSpace(stageData.stageDirectoryName)
                     ? stageData.stageName
                     : stageData.stageDirectoryName;
-                await GManager.Control.BClipManager.LoadStageBulletBuffersAsync(bulletBufferDirectory);
+                await GManager.Control.BClipManager.ReloadForStageBulletBuffersAsync(bulletBufferDirectory);
             }
         }
 

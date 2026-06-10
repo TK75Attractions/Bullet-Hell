@@ -21,6 +21,10 @@ public struct BulletDataUpdateJob : IJobParallelFor
         BulletData bullet = bullets[index];
         if (!bullet.isActive && !bullet.isClearing) return;
         bullet.time += dt;
+        if (bullet.warpCooldown > 0f)
+        {
+            bullet.warpCooldown = math.max(0f, bullet.warpCooldown - dt);
+        }
         if (bullet.isClearing)
         {
             bullet.clearTime += dt;
