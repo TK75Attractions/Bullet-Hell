@@ -20,6 +20,8 @@ public class InputManager : MonoBehaviour
     public bool isDebugMode = false;
     public bool buttonPressed;
     public bool buttonPressedThisFrame;
+    public bool backPressed;
+    public bool backPressedThisFrame;
     public bool upPressed;
     public bool downPressed;
     public bool leftPressed;
@@ -69,19 +71,25 @@ public class InputManager : MonoBehaviour
 
     public void UpdateInput()
     {
+        Keyboard keyboard = Keyboard.current;
+        bool keyboardBackPressed = keyboard != null && keyboard.escapeKey.isPressed;
+        bool keyboardBackPressedThisFrame = keyboard != null && keyboard.escapeKey.wasPressedThisFrame;
+
         if (isDebugMode)
         {
-            buttonPressed = Keyboard.current.spaceKey.isPressed;
-            buttonPressedThisFrame = Keyboard.current.spaceKey.wasPressedThisFrame;
-            upPressed = Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed;
-            downPressed = Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed;
-            leftPressed = Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed;
-            rightPressed = Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed;
+            buttonPressed = keyboard != null && keyboard.spaceKey.isPressed;
+            buttonPressedThisFrame = keyboard != null && keyboard.spaceKey.wasPressedThisFrame;
+            backPressed = keyboardBackPressed;
+            backPressedThisFrame = keyboardBackPressedThisFrame;
+            upPressed = keyboard != null && (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed);
+            downPressed = keyboard != null && (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed);
+            leftPressed = keyboard != null && (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed);
+            rightPressed = keyboard != null && (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed);
 
-            upPressedThisFrame = Keyboard.current.wKey.wasPressedThisFrame || Keyboard.current.upArrowKey.wasPressedThisFrame;
-            downPressedThisFrame = Keyboard.current.sKey.wasPressedThisFrame || Keyboard.current.downArrowKey.wasPressedThisFrame;
-            leftPressedThisFrame = Keyboard.current.aKey.wasPressedThisFrame || Keyboard.current.leftArrowKey.wasPressedThisFrame;
-            rightPressedThisFrame = Keyboard.current.dKey.wasPressedThisFrame || Keyboard.current.rightArrowKey.wasPressedThisFrame;
+            upPressedThisFrame = keyboard != null && (keyboard.wKey.wasPressedThisFrame || keyboard.upArrowKey.wasPressedThisFrame);
+            downPressedThisFrame = keyboard != null && (keyboard.sKey.wasPressedThisFrame || keyboard.downArrowKey.wasPressedThisFrame);
+            leftPressedThisFrame = keyboard != null && (keyboard.aKey.wasPressedThisFrame || keyboard.leftArrowKey.wasPressedThisFrame);
+            rightPressedThisFrame = keyboard != null && (keyboard.dKey.wasPressedThisFrame || keyboard.rightArrowKey.wasPressedThisFrame);
             return;
         }
 
@@ -92,6 +100,8 @@ public class InputManager : MonoBehaviour
         bool prevRightPressed = rightPressed;
 
         buttonPressedThisFrame = false;
+        backPressed = keyboardBackPressed;
+        backPressedThisFrame = keyboardBackPressedThisFrame;
         upPressed = false;
         downPressed = false;
         leftPressed = false;

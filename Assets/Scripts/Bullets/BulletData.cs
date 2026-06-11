@@ -161,7 +161,7 @@ public struct BulletData
     {
         position = _pos;
         velocity = data.velocity;
-        angle = data.angle;
+        angle = data.angle + _theta;
         originPos = _pos + Rotate(data.originPos, _theta);
         originVlc = _vlc + Rotate(data.originVlc, _theta);
         playerInfluence = data.playerInfluence;

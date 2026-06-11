@@ -123,13 +123,15 @@ public class GManager : MonoBehaviour
             BManager.UpdateBeat();
         }
 
+        bool stageSelectButton = IManager.buttonPressedThisFrame;
+
         if (IManager.buttonPressed && state == GameState.Title)
         {
             state = GameState.ChoosingStage;
-            // Transition to stage selection screen here
+            stageSelectButton = false;
         }
 
-        SSManager.UpdateSelect(IManager.upPressedThisFrame, IManager.downPressedThisFrame, t, IManager.buttonPressedThisFrame);
+        SSManager.UpdateSelect(IManager.upPressedThisFrame, IManager.downPressedThisFrame, t, stageSelectButton, IManager.backPressedThisFrame);
     }
 
     public void LateUpdate()

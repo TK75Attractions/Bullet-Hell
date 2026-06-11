@@ -8,6 +8,7 @@ using UnityEngine;
 public struct BulletDataUpdateJob : IJobParallelFor
 {
     private const float NoiseFrequency = 1f;
+    private const float AngleVelocityEpsilonSq = 1e-10f;
 
     public NativeArray<BulletData> bullets;
     public float dt;
@@ -130,8 +131,11 @@ public struct BulletDataUpdateJob : IJobParallelFor
         }
 
         //角度を計算
-        float a = GetAngleRad(bullet.velocity.x, bullet.velocity.y);
-        bullet.angle = a + bullet.angleSpeed * lapse;
+        if (math.lengthsq(bullet.velocity) > AngleVelocityEpsilonSq)
+        {
+            float a = GetAngleRad(bullet.velocity.x, bullet.velocity.y);
+            bullet.angle = a + bullet.angleSpeed * lapse;
+        }
 
         return bullet;
     }
