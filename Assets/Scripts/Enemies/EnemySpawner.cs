@@ -5,6 +5,9 @@ using System;
 public class EnemySpawner
 {
     public int id;
+    public string enemyName = "";
+    public string visualId = "";
+    public EnemyAnimationPlan animation = new EnemyAnimationPlan();
     public int count;
     public float enemyInterval;
     public float enemyAppearTime;

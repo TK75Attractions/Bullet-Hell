@@ -14,6 +14,7 @@ public class StageReader : MonoBehaviour
     [SerializeField] private int enemyCount = 0;
     [SerializeField] private int bulletCount = 0;
     [SerializeField] private bool isReady = false;
+    private EnemyVisualCatalog enemyVisualCatalog;
 
     [Serializable]
     private struct BulletSpawnEvent
@@ -39,6 +40,10 @@ public class StageReader : MonoBehaviour
         {
             await GManager.Control.SDB.EnsureRuntimeMediaLoadedAsync(stageData);
         }
+
+        enemyVisualCatalog?.Release();
+        enemyVisualCatalog = await EnemyVisualLoader.LoadCatalogAsync(stageData);
+        stageData.enemyVisualCatalog = enemyVisualCatalog;
 
         if (GManager.Control.BClipManager != null)
         {
@@ -117,6 +122,11 @@ public class StageReader : MonoBehaviour
         return true;
     }
 
+    public EnemyVisualSetRuntime GetEnemyVisual(string visualId)
+    {
+        return enemyVisualCatalog?.GetVisual(visualId);
+    }
+
     public void UpdateStage(float dt)
     {
         if (stageData == null || !isReady) return;
@@ -125,7 +135,7 @@ public class StageReader : MonoBehaviour
         while (stageData.enemySpawners.Count > enemyCount && stageData.enemySpawners[enemyCount].enemyAppearTime <= time)
         {
             EnemySpawner spawner = stageData.enemySpawners[enemyCount];
-            GManager.Control.QOrder.AddEnemy(spawner);
+            GManager.Control.QOrder.AddMultiBullet(spawner);
             if (LogStageSchedule) Debug.Log($"Spawned enemy: {spawner.orbit.speed}");
             enemyCount++;
         }
@@ -144,5 +154,11 @@ public class StageReader : MonoBehaviour
             //Debug.Log($"Spawned bullet: {spawner.index}");
         }
 
+    }
+
+    private void OnDestroy()
+    {
+        enemyVisualCatalog?.Release();
+        enemyVisualCatalog = null;
     }
 }

@@ -90,6 +90,7 @@ public class StageDataManager
         public List<MusicEventJson> MusicEvents = new();
         public float delayTime;
         public string stageDescription = "";
+        public List<EnemyVisualDefinition> enemyVisuals = new();
         public List<EnemySpawnerJson> enemySpawners = new();
         public List<BulletSpawnerJson> bulletSpawners = new();
     }
@@ -142,6 +143,8 @@ public class StageDataManager
     private class EnemySpawnerJson
     {
         public string enemyName = ""; //描画するエネミー(弾源)の名前, Unity 側で一致するエネミーを見つけたら、そのスプライトを描画する
+        public string visualId = "";
+        public EnemyAnimationPlan animation = new EnemyAnimationPlan();
         public int count; //飛ばすエネミーの数
         public float enemyInterval; //飛ばす時間間隔(0 なら同時)
         public float enemyAppearTime; //エネミーの出現時刻
@@ -155,6 +158,11 @@ public class StageDataManager
         public EnemySpawner ToEnemySpawner()
         {
             List<BulletChangeClip> changeClips = new List<BulletChangeClip>();
+            if (bulletChangeClips == null)
+            {
+                bulletChangeClips = new List<BulletChangeClipJson>();
+            }
+
             for (int i = 0; i < bulletChangeClips.Count; i++)
             {
                 changeClips.Add(bulletChangeClips[i].ToBulletChangeClip());
@@ -162,12 +170,15 @@ public class StageDataManager
             return new EnemySpawner
             {
                 id = GManager.Control.EDB.GetEnemyId(enemyName),
+                enemyName = enemyName,
+                visualId = visualId,
+                animation = NormalizeAnimationPlan(animation),
                 count = count,
                 enemyInterval = enemyInterval,
                 enemyAppearTime = enemyAppearTime,
                 bulletEmitTime = bulletEmitTime,
                 bulletCount = bulletCount,
-                bulletInterval = bulletEmitTime / bulletCount,
+                bulletInterval = bulletCount > 0 ? bulletEmitTime / bulletCount : 0f,
                 orbit = orbit.ToBulletDataJson().ToBulletData(),
                 bulletClip = bulletClip.ToBulletClip(),
                 bulletChangeClips = changeClips
@@ -572,6 +583,7 @@ public class StageDataManager
                 data.stageName = jsonData.stageName;
                 data.delayTime = jsonData.delayTime;
                 data.stageDescription = jsonData.stageDescription;
+                data.enemyVisuals = NormalizeEnemyVisualDefinitions(jsonData.enemyVisuals);
 
                 // MusicEvents を変換
                 data.MusicEvents = new List<StageData.MusicEvent>(jsonData.MusicEvents.Count);
@@ -690,6 +702,7 @@ public class StageDataManager
         data.stageName = string.IsNullOrWhiteSpace(jsonData.stageName) ? directoryName : jsonData.stageName;
         data.delayTime = jsonData.delayTime;
         data.stageDescription = jsonData.stageDescription;
+        data.enemyVisuals = NormalizeEnemyVisualDefinitions(jsonData.enemyVisuals);
 
         if (jsonData.MusicEvents != null)
         {
@@ -719,6 +732,63 @@ public class StageDataManager
         }
 
         return data;
+    }
+
+    private static List<EnemyVisualDefinition> NormalizeEnemyVisualDefinitions(List<EnemyVisualDefinition> definitions)
+    {
+        List<EnemyVisualDefinition> normalized = new List<EnemyVisualDefinition>();
+        if (definitions == null)
+        {
+            return normalized;
+        }
+
+        for (int i = 0; i < definitions.Count; i++)
+        {
+            EnemyVisualDefinition definition = definitions[i];
+            if (definition == null)
+            {
+                continue;
+            }
+
+            if (definition.clips == null)
+            {
+                definition.clips = new List<EnemyVisualClipDefinition>();
+            }
+
+            if (definition.pixelsPerUnit <= 0f)
+            {
+                definition.pixelsPerUnit = 100f;
+            }
+
+            normalized.Add(definition);
+        }
+
+        return normalized;
+    }
+
+    private static EnemyAnimationPlan NormalizeAnimationPlan(EnemyAnimationPlan animation)
+    {
+        if (animation == null)
+        {
+            animation = new EnemyAnimationPlan();
+        }
+
+        if (animation.events == null)
+        {
+            animation.events = new List<EnemyAnimationEventData>();
+        }
+
+        if (animation.triggers == null)
+        {
+            animation.triggers = new List<EnemyAnimationTriggerData>();
+        }
+
+        if (string.IsNullOrWhiteSpace(animation.initialClip))
+        {
+            animation.initialClip = "idle";
+        }
+
+        return animation;
     }
 
     private async Task LoadStageMediaFromAddressablesAsync(StageData data, string directoryName)

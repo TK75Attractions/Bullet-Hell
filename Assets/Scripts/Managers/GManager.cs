@@ -10,6 +10,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 public class GManager : MonoBehaviour
 {
@@ -27,7 +28,8 @@ public class GManager : MonoBehaviour
     public GameState state = GameState.Title;
 
     public GameObject PlayerObj;
-    public GameObject EnemyObj;
+    [FormerlySerializedAs("EnemyObj")]
+    public GameObject MultiBulletObj;
     public PlayerController PController;
 
     public InputManager IManager;

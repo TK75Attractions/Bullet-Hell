@@ -18,9 +18,28 @@
   ],
   "delayTime": 3,
   "stageDescription": "Stage Description Here",
+  "enemyVisuals": [
+    {
+      "id": "captain",
+      "source": "addressable",
+      "address": "enemy/captain",
+      "fallbackSpriteEnemyName": "demo"
+    }
+  ],
   "enemySpawners": [
     {
       "enemyName": "demo",
+      "visualId": "captain",
+      "animation": {
+        "initialClip": "idle",
+        "triggers": [
+          {
+            "trigger": "shot",
+            "clip": "attack",
+            "next": "idle"
+          }
+        ]
+      },
       "count": 1,
       "enemyInterval": 0,
       "enemyAppearTime": 22.09091,
@@ -187,6 +206,17 @@
     },
     {
       "enemyName": "demo",
+      "visualId": "captain",
+      "animation": {
+        "initialClip": "idle",
+        "triggers": [
+          {
+            "trigger": "shot",
+            "clip": "attack",
+            "next": "idle"
+          }
+        ]
+      },
       "count": 1,
       "enemyInterval": 0,
       "enemyAppearTime": 24.272728,
@@ -353,6 +383,17 @@
     },
     {
       "enemyName": "demo",
+      "visualId": "captain",
+      "animation": {
+        "initialClip": "idle",
+        "triggers": [
+          {
+            "trigger": "shot",
+            "clip": "attack",
+            "next": "idle"
+          }
+        ]
+      },
       "count": 1,
       "enemyInterval": 0,
       "enemyAppearTime": 26.454546,
@@ -519,6 +560,17 @@
     },
     {
       "enemyName": "demo",
+      "visualId": "captain",
+      "animation": {
+        "initialClip": "idle",
+        "triggers": [
+          {
+            "trigger": "shot",
+            "clip": "attack",
+            "next": "idle"
+          }
+        ]
+      },
       "count": 1,
       "enemyInterval": 0,
       "enemyAppearTime": 28.636364,
@@ -685,6 +737,17 @@
     },
     {
       "enemyName": "demo",
+      "visualId": "captain",
+      "animation": {
+        "initialClip": "idle",
+        "triggers": [
+          {
+            "trigger": "shot",
+            "clip": "attack",
+            "next": "idle"
+          }
+        ]
+      },
       "count": 1,
       "enemyInterval": 0,
       "enemyAppearTime": 30.818182,
@@ -851,6 +914,17 @@
     },
     {
       "enemyName": "demo",
+      "visualId": "captain",
+      "animation": {
+        "initialClip": "idle",
+        "triggers": [
+          {
+            "trigger": "shot",
+            "clip": "attack",
+            "next": "idle"
+          }
+        ]
+      },
       "count": 1,
       "enemyInterval": 0,
       "enemyAppearTime": 33,

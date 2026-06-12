@@ -55,7 +55,11 @@ public class StageData
     [TextArea]
     public string stageDescription;
 
+    public List<EnemyVisualDefinition> enemyVisuals = new List<EnemyVisualDefinition>();
+
     public List<EnemySpawner> enemySpawners = new List<EnemySpawner>();
 
     public List<BulletSpawner> bulletSpawners = new List<BulletSpawner>();
+
+    [System.NonSerialized] public EnemyVisualCatalog enemyVisualCatalog;
 }

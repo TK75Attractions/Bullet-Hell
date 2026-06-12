@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DefaultGroup: 42355b39098b5274c97318cc032f7581
   m_currentHash:
     serializedVersion: 2
-    Hash: f811d463c108d88bbbc0d89ee9801fb0
+    Hash: 00000000000000000000000000000000
   m_DisableWriteTypeTree: 0
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 0
@@ -66,6 +66,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 366e56bde5535034384cee3559978e81, type: 2}
   - {fileID: 11400000, guid: 67455f47bb9b9aa4a90f6c5dd283ee3a, type: 2}
   - {fileID: 11400000, guid: 1b440a35dc847354da631f9154caa571, type: 2}
+  - {fileID: 11400000, guid: f0565efb7e7ead14f8250d00e4254189, type: 2}
   - {fileID: 11400000, guid: 2d0c8df6c3c87814eafd6ed2cd43d8d2, type: 2}
   - {fileID: 11400000, guid: e9ad23ad3505eec499bb4f9dcbeebac9, type: 2}
   - {fileID: 11400000, guid: 53cff559c62c8014286536f8b2e11d1a, type: 2}
@@ -124,6 +125,7 @@ MonoBehaviour:
     - bullet-buffer-stage-captain
     - bullet-buffer-common
     - bullet-buffer-stage-stone
+    - enemy-visual-captain
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: 394339812ac94da4886828069f8aa12f, type: 2}
