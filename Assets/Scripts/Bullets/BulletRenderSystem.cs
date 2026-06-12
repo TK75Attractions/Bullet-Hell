@@ -312,6 +312,9 @@ public class BulletRenderSystem : MonoBehaviour
                 appear = appear,
                 color = new float4(b.color.x, b.color.y, b.color.z, b.color.w * clearFade),
                 renderPriority = type.renderPriority,
+                renderMode = BulletData.IsWarpZoneTypeName(type.typeName)
+                    ? BulletRenderData.WarpZoneRenderMode
+                    : BulletRenderData.DefaultRenderMode,
             };
             writeIndex++;
             activeCount++;
@@ -353,6 +356,7 @@ public class BulletRenderSystem : MonoBehaviour
                 appear = appear,
                 color = CounterBullet.Color,
                 renderPriority = renderPriority,
+                renderMode = BulletRenderData.DefaultRenderMode,
             };
             writeIndex++;
 
@@ -383,6 +387,7 @@ public class BulletRenderSystem : MonoBehaviour
                     appear = fade,
                     color = new float4(CounterBullet.Color.x, CounterBullet.Color.y, CounterBullet.Color.z, CounterBullet.Color.w * fade),
                     renderPriority = renderPriority,
+                    renderMode = BulletRenderData.DefaultRenderMode,
                 };
                 writeIndex++;
                 previousPoint = currentPoint;

@@ -16,6 +16,8 @@ public struct WarpBulletJob : IJobParallelFor
     public float warpCooldown;
     public float cellSize;
     public int totalCellCount;
+    public int reflectXTypeId;
+    public int reflectYTypeId;
 
     public void Execute(int index)
     {
@@ -46,6 +48,7 @@ public struct WarpBulletJob : IJobParallelFor
         float2 local = bullet.position - sourceZone.position;
         float2 exitPosition = targetZone.position + local;
         float2 exitVelocity = dt > 1e-5f ? bullet.velocity / dt : new float2(0f, 0f);
+        exitVelocity = TransformVelocity(exitVelocity, sourceZone);
 
         bullet.position = exitPosition;
         bullet.velocity = exitVelocity * dt;
@@ -79,12 +82,32 @@ public struct WarpBulletJob : IJobParallelFor
     private bool Contains(BulletData zone, float2 position)
     {
         float2 halfSize = math.abs(zone.scale) * 0.5f;
-        float2 min = zone.position - halfSize;
-        float2 max = zone.position + halfSize;
-        return position.x >= min.x
-            && position.x <= max.x
-            && position.y >= min.y
-            && position.y <= max.y;
+        float angle = zone.angle + zone.initialAngle;
+        float cos = math.cos(angle);
+        float sin = math.sin(angle);
+        float2 delta = position - zone.position;
+        float2 local = new float2(
+            delta.x * cos + delta.y * sin,
+            -delta.x * sin + delta.y * cos
+        );
+
+        return math.abs(local.x) <= halfSize.x
+            && math.abs(local.y) <= halfSize.y;
+    }
+
+    private float2 TransformVelocity(float2 velocity, BulletData sourceZone)
+    {
+        if (reflectXTypeId >= 0 && sourceZone.typeId == reflectXTypeId)
+        {
+            velocity.x = -velocity.x;
+        }
+
+        if (reflectYTypeId >= 0 && sourceZone.typeId == reflectYTypeId)
+        {
+            velocity.y = -velocity.y;
+        }
+
+        return velocity;
     }
 
     private int GetTreeNum(float2 pos)

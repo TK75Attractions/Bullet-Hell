@@ -8,6 +8,8 @@ public struct BulletData
 {
     public const float DefaultAppearDuration = 1.2f;
     public const string WarpZoneTypeName = "warp_zone";
+    public const string WarpZoneReflectXTypeName = "warp_zone_reflect_x";
+    public const string WarpZoneReflectYTypeName = "warp_zone_reflect_y";
     public const string ScreenNoiseTypeName = "ScreenNoise";
     public const int ScreenNoiseTypeId = -1000;
 
@@ -20,7 +22,9 @@ public struct BulletData
 
     public static bool IsWarpZoneTypeName(string typeName)
     {
-        return string.Equals(typeName, WarpZoneTypeName, StringComparison.Ordinal);
+        return string.Equals(typeName, WarpZoneTypeName, StringComparison.Ordinal)
+            || string.Equals(typeName, WarpZoneReflectXTypeName, StringComparison.Ordinal)
+            || string.Equals(typeName, WarpZoneReflectYTypeName, StringComparison.Ordinal);
     }
 
     public static bool IsScreenNoiseTypeName(string typeName)
@@ -145,6 +149,8 @@ public struct BulletData
         float2 vec = new float2(1, tan);
         float magnitude = math.sqrt(1 + tan * tan);
         nowCalculateVlc = vec / magnitude * speed;
+        position = GetInitialPosition();
+        velocity = new float2(0f, 0f);
     }
 
     private static float2 Rotate(float2 value, float theta)
@@ -155,6 +161,40 @@ public struct BulletData
             value.x * cos - value.y * sin,
             value.x * sin + value.y * cos
         );
+    }
+
+    public void ResetTrajectoryState(bool syncPosition)
+    {
+        float x = startX;
+        nowCalculateX = x;
+
+        float tan = 0;
+        tan += 1 * polynomial.x;
+        tan += 2 * polynomial.y * x;
+        tan += 3 * polynomial.z * x * x;
+        tan += 4 * polynomial.w * x * x * x;
+
+        float2 vec = new float2(1, tan);
+        float magnitude = math.sqrt(1 + tan * tan);
+        nowCalculateVlc = vec / magnitude * speed;
+
+        if (syncPosition)
+        {
+            position = GetInitialPosition();
+            velocity = new float2(0f, 0f);
+        }
+    }
+
+    public float2 GetInitialPosition()
+    {
+        float x = startX;
+        float y = 0;
+        y += polynomial.x * x;
+        y += polynomial.y * x * x;
+        y += polynomial.z * x * x * x;
+        y += polynomial.w * x * x * x * x;
+        float2 disVector = new float2(x, y) - startPos;
+        return originPos + polarForm.x * Rotate(disVector, polarForm.y);
     }
 
     public BulletData(BulletData data, float2 _pos, float2 _vlc, float _theta, float4 _color = new float4(), bool _unCounterable = false)
@@ -210,6 +250,8 @@ public struct BulletData
         float2 vec = new float2(1, tan);
         float magnitude = math.sqrt(1 + tan * tan);
         nowCalculateVlc = vec / magnitude * speed;
+        position = GetInitialPosition();
+        velocity = new float2(0f, 0f);
     }
 
     public void Init(float2 _pos)
@@ -242,6 +284,8 @@ public struct BulletData
         float2 vec = new float2(1, tan);
         float magnitude = math.sqrt(1 + tan * tan);
         nowCalculateVlc = vec / magnitude * speed;
+        position = GetInitialPosition();
+        velocity = new float2(0f, 0f);
     }
 
     public void BeginClearFade(float duration)
