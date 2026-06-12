@@ -84,6 +84,10 @@ public class QuadOrder : MonoBehaviour
     [Header("Warp Zones")]
     [SerializeField] private int warpZoneTypeId = -1;
     [SerializeField] private string warpZoneTypeName = BulletData.WarpZoneTypeName;
+    [SerializeField] private int warpZoneReflectXTypeId = -1;
+    [SerializeField] private string warpZoneReflectXTypeName = BulletData.WarpZoneReflectXTypeName;
+    [SerializeField] private int warpZoneReflectYTypeId = -1;
+    [SerializeField] private string warpZoneReflectYTypeName = BulletData.WarpZoneReflectYTypeName;
     [SerializeField] private float defaultWarpCooldown = 2f;
     private bool warpZoneTypeResolutionAttempted;
     [Header("Debug")]
@@ -284,22 +288,30 @@ public class QuadOrder : MonoBehaviour
 
     private void ResolveWarpZoneTypeId()
     {
-        if (warpZoneTypeId >= 0) return;
+        if (warpZoneTypeId >= 0 && warpZoneReflectXTypeId >= 0 && warpZoneReflectYTypeId >= 0) return;
         if (warpZoneTypeResolutionAttempted) return;
-        if (string.IsNullOrWhiteSpace(warpZoneTypeName)) return;
         if (GManager.Control == null || GManager.Control.BTDB == null) return;
 
         warpZoneTypeResolutionAttempted = true;
-        int resolvedTypeId = BulletData.ResolveTypeId(warpZoneTypeName, GManager.Control.BTDB);
-        if (resolvedTypeId >= 0)
-        {
-            warpZoneTypeId = resolvedTypeId;
-        }
+        TryResolveWarpZoneTypeId(warpZoneTypeName, ref warpZoneTypeId);
+        TryResolveWarpZoneTypeId(warpZoneReflectXTypeName, ref warpZoneReflectXTypeId);
+        TryResolveWarpZoneTypeId(warpZoneReflectYTypeName, ref warpZoneReflectYTypeId);
+    }
+
+    private void TryResolveWarpZoneTypeId(string typeName, ref int typeId)
+    {
+        if (typeId >= 0) return;
+        if (string.IsNullOrWhiteSpace(typeName)) return;
+
+        int resolvedTypeId = BulletData.ResolveTypeId(typeName, GManager.Control.BTDB);
+        if (resolvedTypeId >= 0) typeId = resolvedTypeId;
     }
 
     private bool IsWarpZone(BulletData bullet)
     {
-        return warpZoneTypeId >= 0 && bullet.typeId == warpZoneTypeId;
+        return (warpZoneTypeId >= 0 && bullet.typeId == warpZoneTypeId)
+            || (warpZoneReflectXTypeId >= 0 && bullet.typeId == warpZoneReflectXTypeId)
+            || (warpZoneReflectYTypeId >= 0 && bullet.typeId == warpZoneReflectYTypeId);
     }
 
     private bool IsScreenNoise(BulletData bullet)
@@ -431,7 +443,9 @@ public class QuadOrder : MonoBehaviour
             dt = dt,
             warpCooldown = defaultWarpCooldown,
             cellSize = cellSize,
-            totalCellCount = cells.Length
+            totalCellCount = cells.Length,
+            reflectXTypeId = warpZoneReflectXTypeId,
+            reflectYTypeId = warpZoneReflectYTypeId
         };
 
         JobHandle handle = job.Schedule(enemyBullets.Length, 64);

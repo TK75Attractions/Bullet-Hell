@@ -68,6 +68,7 @@ public struct BulletDataJson
             unCounterable = this.unCounterable,
             isActive = true
         };
+        b.ResetTrajectoryState(syncPosition: true);
         return b;
     }
 }

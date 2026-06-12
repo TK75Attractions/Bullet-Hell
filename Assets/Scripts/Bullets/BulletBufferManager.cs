@@ -605,6 +605,8 @@ public class BulletBufferManager
                     float2 dis = -template.startPos;
                     BulletData spawned = new BulletData(template, emitPos, _vlc, angle, _color);
                     spawned.startPos -= dis;
+                    spawned.position = spawned.GetInitialPosition();
+                    spawned.velocity = new float2(0f, 0f);
                     spawnedBullets.Add(spawned);
                 }
 
@@ -619,6 +621,8 @@ public class BulletBufferManager
                     float2 dis = -template.startPos;
                     BulletData spawned = new BulletData(template, emitPos, _vlc, angle / 180 * math.PI, _color);
                     spawned.startPos -= dis;
+                    spawned.position = spawned.GetInitialPosition();
+                    spawned.velocity = new float2(0f, 0f);
                     spawnedBullets.Add(spawned);
                 }
 
