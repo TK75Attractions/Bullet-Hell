@@ -7,6 +7,31 @@ using UnityEngine.UIElements;
 public struct BulletData
 {
     public const float DefaultAppearDuration = 1.2f;
+    public const string WarpZoneTypeName = "warp_zone";
+    public const string ScreenNoiseTypeName = "ScreenNoise";
+    public const int ScreenNoiseTypeId = -1000;
+
+    public static int ResolveTypeId(string typeName, BulletTypeDataBase typeDataBase)
+    {
+        if (IsScreenNoiseTypeName(typeName)) return ScreenNoiseTypeId;
+        if (typeDataBase == null) return -1;
+        return typeDataBase.GetTypeId(typeName);
+    }
+
+    public static bool IsWarpZoneTypeName(string typeName)
+    {
+        return string.Equals(typeName, WarpZoneTypeName, StringComparison.Ordinal);
+    }
+
+    public static bool IsScreenNoiseTypeName(string typeName)
+    {
+        return string.Equals(typeName, ScreenNoiseTypeName, StringComparison.Ordinal);
+    }
+
+    public static bool IsScreenNoise(BulletData bullet)
+    {
+        return bullet.typeId == ScreenNoiseTypeId;
+    }
 
     public float2 position;//弾の位置
     public float2 velocity;//弾の変位
@@ -41,6 +66,7 @@ public struct BulletData
     public float appearDuration;//appearTime直前に演出を適用する時間
     public float life;
     public float random;
+    public float warpCooldown;
     public bool isActive;
     public bool isClearing;
     public float clearTime;
@@ -85,6 +111,7 @@ public struct BulletData
         polynomial = _poly;
         nowCalculateX = _start;
         random = _random;
+        warpCooldown = 0f;
         appearTime = _appear;
         appearDuration = _appearDuration >= 0f ? _appearDuration : DefaultAppearDuration;
         life = _life;
@@ -120,13 +147,23 @@ public struct BulletData
         nowCalculateVlc = vec / magnitude * speed;
     }
 
+    private static float2 Rotate(float2 value, float theta)
+    {
+        float cos = math.cos(theta);
+        float sin = math.sin(theta);
+        return new float2(
+            value.x * cos - value.y * sin,
+            value.x * sin + value.y * cos
+        );
+    }
+
     public BulletData(BulletData data, float2 _pos, float2 _vlc, float _theta, float4 _color = new float4(), bool _unCounterable = false)
     {
         position = _pos;
         velocity = data.velocity;
-        angle = data.angle;
-        originPos = _pos + data.originPos;
-        originVlc = _vlc + data.originVlc;
+        angle = data.angle + _theta;
+        originPos = _pos + Rotate(data.originPos, _theta);
+        originVlc = _vlc + Rotate(data.originVlc, _theta);
         playerInfluence = data.playerInfluence;
         speed = data.speed;
         gravity = data.gravity;
@@ -153,6 +190,7 @@ public struct BulletData
         clearTime = 0f;
         clearDuration = 0f;
         random = data.random;
+        warpCooldown = data.warpCooldown;
 
         startX = data.startX;
         float x = data.startX;
@@ -185,6 +223,7 @@ public struct BulletData
         isClearing = false;
         clearTime = 0f;
         clearDuration = 0f;
+        warpCooldown = 0f;
 
         float x = startX;
         float y = 0;

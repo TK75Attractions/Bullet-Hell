@@ -24,10 +24,12 @@ public class StageBar : MonoBehaviour
         {
             stageBoxes.Add(Instantiate(stageBoxPrefab, parent).GetComponent<StageBox>());
             stageBoxes[i].Init();
-            stageBoxes[i].SetStageName("None");
-            stageBoxes[i].SetPosition(i);
             stageBoxes[i].gameObject.name = "StageBox" + i;
         }
+
+        int length = GManager.Control.SDB.GetStageCount();
+        RefreshStageNames(length);
+        SetStageBoxPositions(length);
     }
 
     public async void Down()
@@ -45,12 +47,7 @@ public class StageBar : MonoBehaviour
             }
 
             currentStage++;
-            if (0 <= currentStage - 2) stageBoxes[1].SetStageName("Stage " + (currentStage - 2));
-            if (0 <= currentStage - 1) stageBoxes[2].SetStageName("Stage " + (currentStage - 1));
-            if (currentStage < length) stageBoxes[3].SetStageName("Stage " + (currentStage));
-            if (currentStage + 1 < length) stageBoxes[4].SetStageName("Stage " + (currentStage + 1));
-            if (currentStage + 2 < length) stageBoxes[5].SetStageName("Stage " + (currentStage + 2));
-            if (currentStage - 3 >= 0) stageBoxes[0].SetStageName("Stage " + (currentStage - 3));
+            RefreshStageNames(length);
 
             while (d > 0)
             {
@@ -70,12 +67,7 @@ public class StageBar : MonoBehaviour
                 await Task.Yield();
             }
 
-            for (int i = 0; i < stageBoxes.Count; i++)
-            {
-                int p = currentStage - 3 + i;
-                if (0 <= p && p < length) stageBoxes[i].SetPosition(i);
-                else stageBoxes[i].SetPosition(0);
-            }
+            SetStageBoxPositions(length);
             SetWhiteAlpha(1);
             isTransitioning = false;
         }
@@ -96,12 +88,7 @@ public class StageBar : MonoBehaviour
             }
 
             currentStage--;
-            if (0 <= currentStage - 2) stageBoxes[1].SetStageName("Stage " + (currentStage - 2));
-            if (0 <= currentStage - 1) stageBoxes[2].SetStageName("Stage " + (currentStage - 1));
-            if (currentStage < length) stageBoxes[3].SetStageName("Stage " + (currentStage));
-            if (currentStage + 1 < length) stageBoxes[4].SetStageName("Stage " + (currentStage + 1));
-            if (currentStage + 2 < length) stageBoxes[5].SetStageName("Stage " + (currentStage + 2));
-            if (currentStage + 3 < length) stageBoxes[0].SetStageName("Stage " + (currentStage + 3));
+            RefreshStageNames(length);
 
             while (d > 0)
             {
@@ -122,12 +109,7 @@ public class StageBar : MonoBehaviour
                 await Task.Yield();
             }
 
-            for (int i = 0; i < stageBoxes.Count; i++)
-            {
-                int p = currentStage - 3 + i;
-                if (0 <= p && p < length) stageBoxes[i].SetPosition(i);
-                else stageBoxes[i].SetPosition(0);
-            }
+            SetStageBoxPositions(length);
             SetWhiteAlpha(1);
 
             isTransitioning = false;
@@ -143,5 +125,33 @@ public class StageBar : MonoBehaviour
     {
         if (progress < 0.5f) whiteBar.alpha = (0.5f - progress) * 2;
         else whiteBar.alpha = (progress - 0.5f) * 2;
+    }
+
+    private void RefreshStageNames(int length)
+    {
+        for (int i = 0; i < stageBoxes.Count; i++)
+        {
+            int stageIndex = currentStage - 3 + i;
+            stageBoxes[i].SetStageName(GetStageName(stageIndex, length));
+        }
+    }
+
+    private void SetStageBoxPositions(int length)
+    {
+        for (int i = 0; i < stageBoxes.Count; i++)
+        {
+            int stageIndex = currentStage - 3 + i;
+            if (0 <= stageIndex && stageIndex < length) stageBoxes[i].SetPosition(i);
+            else stageBoxes[i].SetPosition(0);
+        }
+    }
+
+    private string GetStageName(int index, int length)
+    {
+        if (index < 0 || index >= length) return string.Empty;
+
+        StageData stage = GManager.Control.SDB.GetStage(index);
+        if (stage == null || string.IsNullOrWhiteSpace(stage.stageName)) return "Stage " + index;
+        return stage.stageName;
     }
 }

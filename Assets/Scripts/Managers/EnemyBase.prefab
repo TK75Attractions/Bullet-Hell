@@ -102,6 +102,7 @@ GameObject:
   - component: {fileID: 8039747008316708331}
   - component: {fileID: 1838458896457373193}
   - component: {fileID: -4762392826317493561}
+  - component: {fileID: 4840491219453734730}
   m_Layer: 0
   m_Name: EnemyBase
   m_TagString: Untagged
@@ -195,8 +196,26 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 808c849f6b796db46aa315ad7fad6a78, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Enemy
+  m_EditorClassIdentifier: Assembly-CSharp::MultiBullet
   id: 0
   arrayIndex: 0
   trans: {fileID: 0}
   time: 0
+--- !u!114 &4840491219453734730
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3602127599334733260}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b351146cb41590488be85d06279f653, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Boss
+  bossId: 0
+  bossName: 
+  bossImage: {fileID: 0}
+  pos:
+    x: 0
+    y: 0

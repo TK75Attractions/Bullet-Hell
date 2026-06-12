@@ -8,6 +8,7 @@ using UnityEngine;
 public struct BulletDataUpdateJob : IJobParallelFor
 {
     private const float NoiseFrequency = 1f;
+    private const float AngleVelocityEpsilonSq = 1e-10f;
 
     public NativeArray<BulletData> bullets;
     public float dt;
@@ -21,6 +22,10 @@ public struct BulletDataUpdateJob : IJobParallelFor
         BulletData bullet = bullets[index];
         if (!bullet.isActive && !bullet.isClearing) return;
         bullet.time += dt;
+        if (bullet.warpCooldown > 0f)
+        {
+            bullet.warpCooldown = math.max(0f, bullet.warpCooldown - dt);
+        }
         if (bullet.isClearing)
         {
             bullet.clearTime += dt;
@@ -40,7 +45,7 @@ public struct BulletDataUpdateJob : IJobParallelFor
             // appearDuration == 0 の場合は time が appearTime に達するまで位置を更新しない
             if (bullet.appearDuration >= 0f)
             {
-                bullet = Update(bullet, index, dt * 0.00001f);
+                bullet = Update(bullet, index, dt * 0.0001f);
             }
             if (bullet.isClearing && (bullet.clearDuration <= 0f || bullet.clearTime >= bullet.clearDuration))
             {
@@ -126,8 +131,11 @@ public struct BulletDataUpdateJob : IJobParallelFor
         }
 
         //角度を計算
-        float a = GetAngleRad(bullet.velocity.x, bullet.velocity.y);
-        bullet.angle = a + bullet.angleSpeed * lapse;
+        if (math.lengthsq(bullet.velocity) > AngleVelocityEpsilonSq)
+        {
+            float a = GetAngleRad(bullet.velocity.x, bullet.velocity.y);
+            bullet.angle = a + bullet.angleSpeed * lapse;
+        }
 
         return bullet;
     }

@@ -10,6 +10,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 public class GManager : MonoBehaviour
 {
@@ -27,13 +28,15 @@ public class GManager : MonoBehaviour
     public GameState state = GameState.Title;
 
     public GameObject PlayerObj;
-    public GameObject EnemyObj;
+    [FormerlySerializedAs("EnemyObj")]
+    public GameObject MultiBulletObj;
     public PlayerController PController;
 
     public InputManager IManager;
     public StageReader SReader;
     public AudioManager AManager;
     public BeatManager BManager;
+    public CManager CManager;
     public StageSelectManager SSManager;
     public BulletBufferManager BClipManager;
     public QuadOrder QOrder;
@@ -51,7 +54,7 @@ public class GManager : MonoBehaviour
     public int playerHitCount = 0;
     public int counterHitBossCount = 0;
 
-    public void Awake()
+    public async void Awake()
     {
         if (Control == null) Control = this;
         else
@@ -60,6 +63,8 @@ public class GManager : MonoBehaviour
             return;
         }
 
+        ready = false;
+
         IManager = GetComponent<InputManager>();
         IManager.Init();
 
@@ -67,12 +72,15 @@ public class GManager : MonoBehaviour
         AManager.Init();
 
         BManager = transform.parent.Find("BManager").GetComponent<BeatManager>();
+        CManager = GetComponent<CManager>();
+        if (CManager == null) CManager = FindObjectOfType<CManager>();
+        if (CManager == null) CManager = gameObject.AddComponent<CManager>();
 
         BTDB.Init();
         SDB = new();
-        SDB.Init();
+        await SDB.InitAsync();
         BClipManager = new();
-        BClipManager.Init();
+        await BClipManager.InitAsync();
 
         BRS = GetComponent<BulletRenderSystem>();
         BRS.Init();
@@ -117,26 +125,33 @@ public class GManager : MonoBehaviour
             BManager.UpdateBeat();
         }
 
+        bool stageSelectButton = IManager.buttonPressedThisFrame;
+
         if (IManager.buttonPressed && state == GameState.Title)
         {
             state = GameState.ChoosingStage;
-            // Transition to stage selection screen here
+            stageSelectButton = false;
         }
 
-        SSManager.UpdateSelect(IManager.upPressedThisFrame, IManager.downPressedThisFrame, t, IManager.buttonPressedThisFrame);
+        SSManager.UpdateSelect(IManager.upPressedThisFrame, IManager.downPressedThisFrame, t, stageSelectButton, IManager.backPressedThisFrame);
     }
 
     public void LateUpdate()
     {
+        if (!ready) return;
+
         int enemyCount = QOrder.GetEnemyBulletCount();
+        int warpZoneCount = QOrder.GetWarpZoneCount();
         int counterCount = QOrder.GetCounterBulletCount();
         //Debug.Log($"Enemy Bullet Count: {enemyCount}, Counter Bullet Count: {counterCount}");
 
-        if (enemyCount > 0 || counterCount > 0)
+        if (enemyCount > 0 || warpZoneCount > 0 || counterCount > 0)
         {
             BRS.BuildRenderData(
                 QOrder.GetEnemyBullets(),
                 enemyCount,
+                QOrder.GetWarpZones(),
+                warpZoneCount,
                 QOrder.GetCounterBullets(),
                 counterCount
             );

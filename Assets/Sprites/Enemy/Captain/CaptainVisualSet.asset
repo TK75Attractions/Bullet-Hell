@@ -1,0 +1,161 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03c85d5478bf4707910cc774c0c5edcc, type: 3}
+  m_Name: CaptainVisualSet
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyVisualSetAsset
+  visualId: captain
+  fallbackSprite: {fileID: 21300000, guid: cbe8f07bb6c20274cbd6bc3763bfe5f2, type: 3}
+  clips:
+  - name: idle
+    frames:
+    - {fileID: 21300000, guid: cbe8f07bb6c20274cbd6bc3763bfe5f2, type: 3}
+    - {fileID: 21300000, guid: bc7f024f405570d459cd9cc0cce85710, type: 3}
+    - {fileID: 21300000, guid: e4566a54ac85a4742890c201c5d82eee, type: 3}
+    - {fileID: 21300000, guid: 030d1647d4f540349bdd41fd8db1c5dd, type: 3}
+    frameDurations:
+    - 0.5
+    - 0.29999998
+    - 0.29999998
+    - 0.29999998
+    loop: 1
+    next: 
+  - name: windup
+    frames:
+    - {fileID: 21300000, guid: 2e604975babea594b99b771c3d21c681, type: 3}
+    - {fileID: 21300000, guid: 855c8a7a284f7054bb80df0c1e83abe7, type: 3}
+    - {fileID: 21300000, guid: e9ae3c9fbe83bf84180c75af1638e89c, type: 3}
+    - {fileID: 21300000, guid: c72e7b3b5efc28140a869515553611e1, type: 3}
+    - {fileID: 21300000, guid: ebe189b507e1ff04ea72593b52f3deee, type: 3}
+    - {fileID: 21300000, guid: 35844465b1557434d937462c33d753b9, type: 3}
+    - {fileID: 21300000, guid: 3c7d168da4ba07f41814cfe65da5b729, type: 3}
+    - {fileID: 21300000, guid: 8a6bc052d2ce63a45a9dca1bc4d70dcb, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 0
+    next: charge
+  - name: charge
+    frames:
+    - {fileID: 21300000, guid: 725a316f530817941a1457a4dac2e01c, type: 3}
+    - {fileID: 21300000, guid: a39469e11950e9c4bbcedafe45c66807, type: 3}
+    - {fileID: 21300000, guid: d7f52428f49acc144b43845342b45abf, type: 3}
+    - {fileID: 21300000, guid: 851f1e628671d6f499798a8b42798d0c, type: 3}
+    - {fileID: 21300000, guid: 936f5ef500af89547ab0be732a6c0118, type: 3}
+    - {fileID: 21300000, guid: 008cc8c43e5c6dc48abddad7e85bd9dc, type: 3}
+    - {fileID: 21300000, guid: a587ca188107fe14daa97f87a2f25de5, type: 3}
+    - {fileID: 21300000, guid: 362d2ec0fca4eb844b5fa1e9aecd1dee, type: 3}
+    - {fileID: 21300000, guid: 06fb800a856585a47869378639dba89b, type: 3}
+    - {fileID: 21300000, guid: a515c858916a58d4c8e81da4e169ceb0, type: 3}
+    - {fileID: 21300000, guid: 8728434c4ed9a9c43aed7838f742f3fe, type: 3}
+    - {fileID: 21300000, guid: 495e637a1239b5c4cbccc91642508ab4, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 1
+    next: 
+  - name: attack
+    frames:
+    - {fileID: 21300000, guid: 11d2debb1f46bb1469f9206fe135efb7, type: 3}
+    - {fileID: 21300000, guid: 6b58626414f33384d8f6d40d8dfb5625, type: 3}
+    - {fileID: 21300000, guid: 99ee8a737af3d4a4bac639d55b67a9a9, type: 3}
+    - {fileID: 21300000, guid: 8499e18f68877b14f8014f2b47834f12, type: 3}
+    - {fileID: 21300000, guid: a82502f1b2accff44a1bd0726a758270, type: 3}
+    - {fileID: 21300000, guid: 2c3b82fc4589659458150bc9fc02bf8e, type: 3}
+    - {fileID: 21300000, guid: b8f85fcec517f9b4c8030ca1e90e6b2a, type: 3}
+    - {fileID: 21300000, guid: ab861b3862d56eb469aa99a3a61a7498, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 0
+    next: idle
+  - name: attackHold1
+    frames:
+    - {fileID: 21300000, guid: 6a596328d79a2c44db4e89b90df68e10, type: 3}
+    frameDurations:
+    - 0.1
+    loop: 0
+    next: idle
+  - name: attack2
+    frames:
+    - {fileID: 21300000, guid: 000bd9e939cde4a458d0b464bd48ac10, type: 3}
+    - {fileID: 21300000, guid: 6a62fc9aa6ba0384eb6d4f9832fcbe75, type: 3}
+    - {fileID: 21300000, guid: 2d61837349421294398fff77fb439479, type: 3}
+    - {fileID: 21300000, guid: 21440ab959cc5f744b0922060a6bdb80, type: 3}
+    - {fileID: 21300000, guid: 5e8d29f60ded5ea42aac8f80039e3aee, type: 3}
+    - {fileID: 21300000, guid: 9b9286211617a3d4196c6588203d9af4, type: 3}
+    - {fileID: 21300000, guid: b456e183146a4d845b804c7bcf214a02, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 0
+    next: idle
+  - name: attackHold2
+    frames:
+    - {fileID: 21300000, guid: daeea4fc22366db41b9dcacc034125ab, type: 3}
+    frameDurations:
+    - 0.1
+    loop: 0
+    next: idle
+  - name: attack3
+    frames:
+    - {fileID: 21300000, guid: c6f9584bd040ff74a8319f005c20ffca, type: 3}
+    - {fileID: 21300000, guid: 5b9076de50bb6404cac110b938b2fbe9, type: 3}
+    - {fileID: 21300000, guid: a47005c37ef5fcb45890d4e3bac63108, type: 3}
+    - {fileID: 21300000, guid: a97f7e7d2921775489d417db81b21bc3, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 0
+    next: idle
+  - name: defeat
+    frames:
+    - {fileID: 21300000, guid: 72f9de65eb4ecc3448d1a44928aeb962, type: 3}
+    frameDurations:
+    - 0.1
+    loop: 0
+    next: 
+  - name: portrait
+    frames:
+    - {fileID: 21300000, guid: daa12a1ae0376a0479828187bf1ba8ea, type: 3}
+    frameDurations:
+    - 0.1
+    loop: 0
+    next: 

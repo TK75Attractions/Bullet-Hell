@@ -4,11 +4,22 @@ using Unity.Mathematics;
 using System.Collections.Generic;
 using System;
 using System.IO;
+using System.Threading.Tasks;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.ResourceManagement.ResourceLocations;
 
 [Serializable]
 public class BulletBufferManager
 {
+    private const string BulletBufferDirectoryName = "BulletBuffers";
+    private const string CommonBulletBufferLabel = "bullet-buffer-common";
+    private const string StageBulletBufferLabelPrefix = "bullet-buffer-stage-";
+    private const bool UseAddressablesInEditor = false;
+    private static readonly HashSet<string> CommonDirectoryNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "common", "debug" };
+
     [SerializeField] private List<BulletBuffer> bulletBuffers = new List<BulletBuffer>();
+    [NonSerialized] private HashSet<string> loadedDirectoryNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
     [Serializable]
     private class BulletBufferJson
@@ -38,18 +49,30 @@ public class BulletBufferManager
 
     public void Init()
     {
-        bulletBuffers.Clear();
-        bulletBuffers.AddRange(Rumia());
-        bulletBuffers.Add(Line());
-        bulletBuffers.Add(LineLaser());
-        bulletBuffers.Add(Circle());
+        ResetBuffers();
+        ReadCommonBulletBuffersFromDirectory();
+    }
 
-        ReadBulletBufferFromDirectory();
+    public async Task InitAsync()
+    {
+        await LoadBaseBulletBuffersAsync();
+    }
+
+    public async Task ReloadForStageBulletBuffersAsync(string stageDirectoryName)
+    {
+        await LoadBaseBulletBuffersAsync();
+        await LoadStageBulletBuffersAsync(stageDirectoryName);
+    }
+
+    public async Task ReloadForModStageBulletBuffersAsync(StageData stageData)
+    {
+        await LoadBaseBulletBuffersAsync();
+        LoadModStageBulletBuffers(stageData);
     }
 
     public void ReadBulletBufferFromDirectory()
     {
-        string directoryPath = Path.Combine(Application.dataPath, "BulletBuffers");
+        string directoryPath = Path.Combine(Application.dataPath, BulletBufferDirectoryName);
         if (!Directory.Exists(directoryPath))
         {
             Debug.LogWarning($"Bullet buffer directory not found: {directoryPath}");
@@ -67,14 +90,7 @@ public class BulletBufferManager
                 continue;
             }
 
-            if (TryGetBulletClipIndex(buffer.name, out int existingIndex))
-            {
-                bulletBuffers[existingIndex] = buffer;
-            }
-            else
-            {
-                bulletBuffers.Add(buffer);
-            }
+            AddOrReplaceBulletBuffer(buffer);
 
             loadedCount++;
         }
@@ -82,11 +98,266 @@ public class BulletBufferManager
         Debug.Log($"Loaded {loadedCount}/{jsonFiles.Length} bullet buffer json files from {directoryPath}");
     }
 
+    public async Task LoadStageBulletBuffersAsync(string stageDirectoryName)
+    {
+        if (string.IsNullOrWhiteSpace(stageDirectoryName) || CommonDirectoryNames.Contains(stageDirectoryName))
+        {
+            return;
+        }
+
+        EnsureLoadedDirectorySet();
+        if (loadedDirectoryNames.Contains(stageDirectoryName))
+        {
+            return;
+        }
+
+        int loadedCount = ShouldUseAddressables()
+            ? await ReadBulletBuffersFromAddressablesAsync(StageBulletBufferLabelPrefix + stageDirectoryName)
+            : 0;
+        if (loadedCount == 0)
+        {
+            loadedCount = ReadBulletBuffersFromDirectory(stageDirectoryName);
+        }
+
+        loadedDirectoryNames.Add(stageDirectoryName);
+        Debug.Log($"Loaded {loadedCount} stage bullet buffers for '{stageDirectoryName}'");
+    }
+
+    public void LoadModStageBulletBuffers(StageData stageData)
+    {
+        if (stageData == null || stageData.source != StageData.StageSource.Mod)
+        {
+            return;
+        }
+
+        string directoryPath = stageData.bulletBufferDirectory;
+        if (string.IsNullOrWhiteSpace(directoryPath) || !Directory.Exists(directoryPath))
+        {
+            return;
+        }
+
+        EnsureLoadedDirectorySet();
+        string key = Path.GetFullPath(directoryPath);
+        if (loadedDirectoryNames.Contains(key))
+        {
+            return;
+        }
+
+        int loadedCount = ReadBulletBuffersFromAbsoluteDirectory(directoryPath);
+        loadedDirectoryNames.Add(key);
+        Debug.Log($"Loaded {loadedCount} mod bullet buffers for '{stageData.stageName}' from {directoryPath}");
+    }
+
+    private void ResetBuffers()
+    {
+        bulletBuffers.Clear();
+        EnsureLoadedDirectorySet();
+        loadedDirectoryNames.Clear();
+
+        bulletBuffers.AddRange(Rumia());
+        bulletBuffers.Add(Line());
+        bulletBuffers.Add(LineLaser());
+        bulletBuffers.Add(Circle());
+    }
+
+    private async Task LoadBaseBulletBuffersAsync()
+    {
+        ResetBuffers();
+
+        int addressableLoadCount = ShouldUseAddressables()
+            ? await ReadBulletBuffersFromAddressablesAsync(CommonBulletBufferLabel)
+            : 0;
+        if (addressableLoadCount == 0)
+        {
+            ReadCommonBulletBuffersFromDirectory();
+        }
+
+        ReadCommonModBulletBuffersFromDirectories();
+    }
+
+    private void EnsureLoadedDirectorySet()
+    {
+        if (loadedDirectoryNames == null)
+        {
+            loadedDirectoryNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        }
+    }
+
+    private void ReadCommonBulletBuffersFromDirectory()
+    {
+        foreach (string directoryName in CommonDirectoryNames)
+        {
+            ReadBulletBuffersFromDirectory(directoryName);
+            loadedDirectoryNames.Add(directoryName);
+        }
+    }
+
+    private void ReadCommonModBulletBuffersFromDirectories()
+    {
+        foreach (string modsRoot in GetModRootDirectories())
+        {
+            if (!Directory.Exists(modsRoot))
+            {
+                continue;
+            }
+
+            foreach (string modDirectory in Directory.GetDirectories(modsRoot))
+            {
+                foreach (string commonDirectoryName in CommonDirectoryNames)
+                {
+                    string commonDirectory = Path.Combine(modDirectory, BulletBufferDirectoryName, commonDirectoryName);
+                    if (!Directory.Exists(commonDirectory))
+                    {
+                        continue;
+                    }
+
+                    string key = Path.GetFullPath(commonDirectory);
+                    if (loadedDirectoryNames.Contains(key))
+                    {
+                        continue;
+                    }
+
+                    int loadedCount = ReadBulletBuffersFromAbsoluteDirectory(commonDirectory);
+                    loadedDirectoryNames.Add(key);
+                    Debug.Log($"Loaded {loadedCount} mod common bullet buffers from {commonDirectory}");
+                }
+            }
+        }
+    }
+
+    private IEnumerable<string> GetModRootDirectories()
+    {
+        HashSet<string> directories = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        directories.Add(Path.GetFullPath(Path.Combine(Application.persistentDataPath, "Mods")));
+        directories.Add(Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Mods")));
+        return directories;
+    }
+
+    private int ReadBulletBuffersFromDirectory(string directoryName)
+    {
+        string directoryPath = Path.Combine(Application.dataPath, BulletBufferDirectoryName, directoryName);
+        if (!Directory.Exists(directoryPath))
+        {
+            Debug.LogWarning($"Bullet buffer directory not found: {directoryPath}");
+            return 0;
+        }
+
+        string[] jsonFiles = Directory.GetFiles(directoryPath, "*.json", SearchOption.AllDirectories);
+        int loadedCount = 0;
+
+        for (int i = 0; i < jsonFiles.Length; i++)
+        {
+            BulletBuffer buffer = ReadBulletBufferFromFile(jsonFiles[i]);
+            if (buffer == null)
+            {
+                continue;
+            }
+
+            AddOrReplaceBulletBuffer(buffer);
+            loadedCount++;
+        }
+
+        Debug.Log($"Loaded {loadedCount}/{jsonFiles.Length} bullet buffer json files from {directoryPath}");
+        return loadedCount;
+    }
+
+    private int ReadBulletBuffersFromAbsoluteDirectory(string directoryPath)
+    {
+        if (!Directory.Exists(directoryPath))
+        {
+            Debug.LogWarning($"Bullet buffer directory not found: {directoryPath}");
+            return 0;
+        }
+
+        string[] jsonFiles = Directory.GetFiles(directoryPath, "*.json", SearchOption.AllDirectories);
+        int loadedCount = 0;
+
+        for (int i = 0; i < jsonFiles.Length; i++)
+        {
+            BulletBuffer buffer = ReadBulletBufferFromFile(jsonFiles[i]);
+            if (buffer == null)
+            {
+                continue;
+            }
+
+            AddOrReplaceBulletBuffer(buffer);
+            loadedCount++;
+        }
+
+        return loadedCount;
+    }
+
+    private async Task<int> ReadBulletBuffersFromAddressablesAsync(string label)
+    {
+        AsyncOperationHandle<IList<IResourceLocation>> locationsHandle = default;
+        int loadedCount = 0;
+
+        try
+        {
+            locationsHandle = Addressables.LoadResourceLocationsAsync(label, typeof(TextAsset));
+            await WaitForAddressable(locationsHandle);
+
+            if (locationsHandle.Status != AsyncOperationStatus.Succeeded ||
+                locationsHandle.Result == null ||
+                locationsHandle.Result.Count == 0)
+            {
+                return 0;
+            }
+
+            foreach (IResourceLocation location in locationsHandle.Result)
+            {
+                AsyncOperationHandle<TextAsset> jsonHandle = Addressables.LoadAssetAsync<TextAsset>(location);
+                await WaitForAddressable(jsonHandle);
+
+                if (jsonHandle.Status != AsyncOperationStatus.Succeeded || jsonHandle.Result == null)
+                {
+                    Debug.LogWarning($"Failed to load addressable bullet buffer json: {location.PrimaryKey}");
+                    if (jsonHandle.IsValid()) Addressables.Release(jsonHandle);
+                    continue;
+                }
+
+                BulletBuffer buffer = ReadBulletBufferFromJson(location.PrimaryKey, jsonHandle.Result.text);
+                if (jsonHandle.IsValid()) Addressables.Release(jsonHandle);
+
+                if (buffer == null)
+                {
+                    continue;
+                }
+
+                AddOrReplaceBulletBuffer(buffer);
+                loadedCount++;
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"Addressable bullet buffer load failed for label '{label}'. {ex.Message}");
+            return 0;
+        }
+        finally
+        {
+            if (locationsHandle.IsValid())
+            {
+                Addressables.Release(locationsHandle);
+            }
+        }
+
+        return loadedCount;
+    }
+
+    private bool ShouldUseAddressables()
+    {
+#if UNITY_EDITOR
+        return UseAddressablesInEditor;
+#else
+        return true;
+#endif
+    }
+
     private BulletBuffer ReadBulletBufferFromFile(string fileName)
     {
         string filePath = Path.IsPathRooted(fileName)
             ? fileName
-            : Path.Combine(Application.dataPath, "BulletBuffers", fileName);
+            : Path.Combine(Application.dataPath, BulletBufferDirectoryName, fileName);
 
         if (!File.Exists(filePath))
         {
@@ -97,36 +368,61 @@ public class BulletBufferManager
         try
         {
             string json = File.ReadAllText(filePath);
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                Debug.LogWarning($"Bullet buffer json is empty: {filePath}");
-                return null;
-            }
-
-            BulletBufferJson data = JsonUtility.FromJson<BulletBufferJson>(json);
-            if (data == null)
-            {
-                Debug.LogWarning($"Failed to parse bullet buffer json: {filePath}");
-                return null;
-            }
-
-            if (string.IsNullOrWhiteSpace(data.name))
-            {
-                data.name = Path.GetFileNameWithoutExtension(filePath);
-            }
-
-            if (data.bullets == null)
-            {
-                Debug.LogWarning($"Bullet list is missing in json: {filePath}");
-                return null;
-            }
-
-            return new BulletBuffer(data.name, data.bullets.ConvertAll(b => b.ToBulletData()), data.homing, data.isLaser);
+            return ReadBulletBufferFromJson(filePath, json);
         }
         catch (Exception ex)
         {
             Debug.LogWarning($"Exception while reading bullet buffer file {filePath}: {ex.Message}");
             return null;
+        }
+    }
+
+    private BulletBuffer ReadBulletBufferFromJson(string sourceName, string json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            Debug.LogWarning($"Bullet buffer json is empty: {sourceName}");
+            return null;
+        }
+
+        BulletBufferJson data = JsonUtility.FromJson<BulletBufferJson>(json);
+        if (data == null)
+        {
+            Debug.LogWarning($"Failed to parse bullet buffer json: {sourceName}");
+            return null;
+        }
+
+        if (string.IsNullOrWhiteSpace(data.name))
+        {
+            data.name = Path.GetFileNameWithoutExtension(sourceName);
+        }
+
+        if (data.bullets == null)
+        {
+            Debug.LogWarning($"Bullet list is missing in json: {sourceName}");
+            return null;
+        }
+
+        return new BulletBuffer(data.name, data.bullets.ConvertAll(b => b.ToBulletData()), data.homing, data.isLaser);
+    }
+
+    private void AddOrReplaceBulletBuffer(BulletBuffer buffer)
+    {
+        if (TryGetBulletClipIndex(buffer.name, out int existingIndex))
+        {
+            bulletBuffers[existingIndex] = buffer;
+        }
+        else
+        {
+            bulletBuffers.Add(buffer);
+        }
+    }
+
+    private async Task WaitForAddressable<T>(AsyncOperationHandle<T> handle)
+    {
+        while (!handle.IsDone)
+        {
+            await Task.Yield();
         }
     }
 

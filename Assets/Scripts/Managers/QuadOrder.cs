@@ -34,10 +34,10 @@ public class QuadOrder : MonoBehaviour
     [Serializable]
     private class QuadCell
     {
-        public List<Enemy> enemies = new List<Enemy>();
+        public List<MultiBullet> multiBullets = new List<MultiBullet>();
         public List<BulletData> enemyBullets = new List<BulletData>();
-        public void AddEnemy(Enemy enemy) => enemies.Add(enemy);
-        public void ClearEnemies() => enemies.Clear();
+        public void AddMultiBullet(MultiBullet multiBullet) => multiBullets.Add(multiBullet);
+        public void ClearMultiBullets() => multiBullets.Clear();
 
         public void ClearAllBullets()
         {
@@ -56,8 +56,11 @@ public class QuadOrder : MonoBehaviour
     private NativeList<BulletData> enemyBullets;
     private NativeList<CounterBullet> counterBullets;
     [SerializeField]
-    private List<Enemy> enemies = new List<Enemy>();
-    private NativeList<BulletData> enemiesOrbitBullets;
+    private List<MultiBullet> multiBullets = new List<MultiBullet>();
+    [SerializeField]
+    private List<Boss> bossDisplays = new List<Boss>();
+    private NativeList<BulletData> multiBulletOrbitBullets;
+    private NativeList<BulletData> warpZones;
     private NativeArray<float2> collisionVerts;
     private NativeArray<int2> collisionVertRanges;
     private NativeArray<float> bulletPowers;
@@ -78,15 +81,20 @@ public class QuadOrder : MonoBehaviour
     [SerializeField] private bool drawLaserCollisionGizmos = true;
     [SerializeField] private Color laserCollisionGizmoColor = new Color(1f, 0.2f, 0.2f, 0.9f);
     [SerializeField] private float laserCollisionGizmoZ = 0f;
+    [Header("Warp Zones")]
+    [SerializeField] private int warpZoneTypeId = -1;
+    [SerializeField] private string warpZoneTypeName = BulletData.WarpZoneTypeName;
+    [SerializeField] private float defaultWarpCooldown = 2f;
+    private bool warpZoneTypeResolutionAttempted;
     [Header("Debug")]
     [SerializeField] private bool debugSyncNativeBulletListsToInspector;
     [SerializeField] private int debugNativeBulletDisplayLimit = 128;
     [SerializeField] private int debugEnemyBulletSlotCount;
     [SerializeField] private int debugEnemyBulletActiveCount;
     [SerializeField] private List<NativeBulletDebugEntry> debugEnemyBulletEntries = new List<NativeBulletDebugEntry>();
-    [SerializeField] private int debugEnemiesOrbitBulletSlotCount;
-    [SerializeField] private int debugEnemiesOrbitBulletActiveCount;
-    [SerializeField] private List<NativeBulletDebugEntry> debugEnemiesOrbitBulletEntries = new List<NativeBulletDebugEntry>();
+    [SerializeField] private int debugMultiBulletOrbitSlotCount;
+    [SerializeField] private int debugMultiBulletOrbitActiveCount;
+    [SerializeField] private List<NativeBulletDebugEntry> debugMultiBulletOrbitEntries = new List<NativeBulletDebugEntry>();
 
     public LaserEmitter laserEmitter;
 
@@ -159,14 +167,19 @@ public class QuadOrder : MonoBehaviour
         {
             counterBullets = new NativeList<CounterBullet>(256, Allocator.Persistent);
         }
-        if (!enemiesOrbitBullets.IsCreated)
+        if (!multiBulletOrbitBullets.IsCreated)
         {
-            enemiesOrbitBullets = new NativeList<BulletData>(256, Allocator.Persistent);
+            multiBulletOrbitBullets = new NativeList<BulletData>(256, Allocator.Persistent);
+        }
+        if (!warpZones.IsCreated)
+        {
+            warpZones = new NativeList<BulletData>(16, Allocator.Persistent);
         }
         if (!dashCollisionActiveFlags.IsCreated)
         {
             dashCollisionActiveFlags = new NativeList<byte>(256, Allocator.Persistent);
         }
+        ResolveWarpZoneTypeId();
 
         List<BulletClip> clips = new List<BulletClip>() {
                 new BulletClip()
@@ -200,7 +213,8 @@ public class QuadOrder : MonoBehaviour
     {
         if (enemyBullets.IsCreated) enemyBullets.Dispose();
         if (counterBullets.IsCreated) counterBullets.Dispose();
-        if (enemiesOrbitBullets.IsCreated) enemiesOrbitBullets.Dispose();
+        if (multiBulletOrbitBullets.IsCreated) multiBulletOrbitBullets.Dispose();
+        if (warpZones.IsCreated) warpZones.Dispose();
         if (collisionVerts.IsCreated) collisionVerts.Dispose();
         if (collisionVertRanges.IsCreated) collisionVertRanges.Dispose();
         if (bulletPowers.IsCreated) bulletPowers.Dispose();
@@ -268,6 +282,31 @@ public class QuadOrder : MonoBehaviour
         collisionDataDirty = true;
     }
 
+    private void ResolveWarpZoneTypeId()
+    {
+        if (warpZoneTypeId >= 0) return;
+        if (warpZoneTypeResolutionAttempted) return;
+        if (string.IsNullOrWhiteSpace(warpZoneTypeName)) return;
+        if (GManager.Control == null || GManager.Control.BTDB == null) return;
+
+        warpZoneTypeResolutionAttempted = true;
+        int resolvedTypeId = BulletData.ResolveTypeId(warpZoneTypeName, GManager.Control.BTDB);
+        if (resolvedTypeId >= 0)
+        {
+            warpZoneTypeId = resolvedTypeId;
+        }
+    }
+
+    private bool IsWarpZone(BulletData bullet)
+    {
+        return warpZoneTypeId >= 0 && bullet.typeId == warpZoneTypeId;
+    }
+
+    private bool IsScreenNoise(BulletData bullet)
+    {
+        return BulletData.IsScreenNoise(bullet);
+    }
+
     private struct BulletComperer : IComparer<BulletData>
     {
         public int Compare(BulletData x, BulletData y) => x.areaNum.CompareTo(y.areaNum);
@@ -288,7 +327,7 @@ public class QuadOrder : MonoBehaviour
         }
         CheckCollisionWithLASER(GManager.Control.PController.pos);
 
-        UpdateEnemyPos(_dt);
+        UpdateMultiBulletPos(_dt);
 
         //UpdateChangeClip();
         if (boss != null) boss.UpdateBoss(_dt);
@@ -299,8 +338,9 @@ public class QuadOrder : MonoBehaviour
     public void BulletUpdate(float _dt)
     {
         bool hasEnemyBullets = enemyBullets.IsCreated && enemyBullets.Length > 0;
-        bool hasEnemiesOrbitBullets = enemiesOrbitBullets.IsCreated && enemiesOrbitBullets.Length > 0;
-        if (!hasEnemyBullets && !hasEnemiesOrbitBullets)
+        bool hasMultiBulletOrbitBullets = multiBulletOrbitBullets.IsCreated && multiBulletOrbitBullets.Length > 0;
+        bool hasWarpZones = warpZones.IsCreated && warpZones.Length > 0;
+        if (!hasEnemyBullets && !hasMultiBulletOrbitBullets && !hasWarpZones)
         {
             ClearAllCells();
             SyncNativeBulletDebugViews();
@@ -334,9 +374,9 @@ public class QuadOrder : MonoBehaviour
             handle1.Complete();
         }
 
-        if (hasEnemiesOrbitBullets)
+        if (hasMultiBulletOrbitBullets)
         {
-            NativeArray<BulletData> bullets = enemiesOrbitBullets.AsArray();
+            NativeArray<BulletData> bullets = multiBulletOrbitBullets.AsArray();
             //Debug.Log($"Updating {bullets.Length} orbit bullets");
             BulletDataUpdateJob job2 = new()
             {
@@ -351,6 +391,23 @@ public class QuadOrder : MonoBehaviour
         }
 
         // areaNum を使ってセルを再構築
+        if (hasWarpZones)
+        {
+            NativeArray<BulletData> bullets = warpZones.AsArray();
+            BulletDataUpdateJob job3 = new()
+            {
+                bullets = bullets,
+                dt = _dt,
+                cellSize = cellSize,
+                totalCellCount = cells.Length,
+                playerVelocity = playerVelocity
+            };
+            JobHandle handle3 = job3.Schedule(bullets.Length, 64);
+            handle3.Complete();
+        }
+
+        ApplyWarpZones(_dt);
+
         RebuildCellsFromBullets();
         SyncNativeBulletDebugViews();
     }
@@ -362,11 +419,30 @@ public class QuadOrder : MonoBehaviour
 
     }
 
+    private void ApplyWarpZones(float dt)
+    {
+        if (!enemyBullets.IsCreated || enemyBullets.Length == 0) return;
+        if (!warpZones.IsCreated || warpZones.Length < 2) return;
+
+        WarpBulletJob job = new WarpBulletJob
+        {
+            bullets = enemyBullets.AsArray(),
+            warpZones = warpZones.AsArray(),
+            dt = dt,
+            warpCooldown = defaultWarpCooldown,
+            cellSize = cellSize,
+            totalCellCount = cells.Length
+        };
+
+        JobHandle handle = job.Schedule(enemyBullets.Length, 64);
+        handle.Complete();
+    }
+
     private void ClearAllCells()
     {
         for (int i = 0; i < cells.Length; i++)
         {
-            cells[i].ClearEnemies();
+            cells[i].ClearMultiBullets();
             cells[i].ClearAllBullets();
         }
     }
@@ -385,15 +461,16 @@ public class QuadOrder : MonoBehaviour
             }
         }
 
-        if (enemiesOrbitBullets.IsCreated)
+        if (multiBulletOrbitBullets.IsCreated)
         {
-            for (int i = 0; i < enemiesOrbitBullets.Length; i++)
+            for (int i = 0; i < multiBulletOrbitBullets.Length; i++)
             {
-                BulletData bullet = enemiesOrbitBullets[i];
+                BulletData bullet = multiBulletOrbitBullets[i];
                 if (!bullet.isActive) continue;
                 int areaNum = bullet.areaNum;
                 if (areaNum < 0 || areaNum >= cells.Length) continue;
-                cells[areaNum].enemies.Add(enemies[i]);
+                if (i >= multiBullets.Count) continue;
+                cells[areaNum].multiBullets.Add(multiBullets[i]);
             }
         }
     }
@@ -493,49 +570,87 @@ public class QuadOrder : MonoBehaviour
         return indexes;
     }
 
-    public List<int> AddEnemyBullets(NativeArray<BulletData> newBullets, float2 fromPos = new float2())
+    private void EnsureEnemyBulletList(int capacity = 256)
     {
-        if (newBullets.Length == 0) return null;
-
         if (!enemyBullets.IsCreated)
         {
-            enemyBullets = new NativeList<BulletData>(math.max(256, newBullets.Length), Allocator.Persistent);
+            enemyBullets = new NativeList<BulletData>(capacity, Allocator.Persistent);
         }
-
-        int oldLength = enemyBullets.Length;
-        int newLength = oldLength + newBullets.Length;
-
-        if (enemyBullets.Capacity < newLength)
-        {
-            int nextCapacity = math.max(newLength, math.max(256, enemyBullets.Capacity * 2));
-            enemyBullets.Capacity = nextCapacity;
-        }
-
-        enemyBullets.ResizeUninitialized(newLength);
-        List<int> indexes = new List<int>(newBullets.Length);
-
-        // 新しい弾をコピー
-        for (int i = 0; i < newBullets.Length; i++)
-        {
-            enemyBullets[oldLength + i] = newBullets[i];
-            indexes.Add(oldLength + i);
-        }
-        return indexes;
     }
 
-    public void AddEnemyBullets(int index, float2 pos, float2 originVlc, float angle, float4 color)
+    private void EnsureWarpZoneList(int capacity = 16)
     {
-        if (!enemyBullets.IsCreated)
+        if (!warpZones.IsCreated)
         {
-            enemyBullets = new NativeList<BulletData>(256, Allocator.Persistent);
+            warpZones = new NativeList<BulletData>(capacity, Allocator.Persistent);
         }
+    }
 
+    private void AddWarpZone(BulletData bullet)
+    {
+        EnsureWarpZoneList();
+        if (warpZones.Length >= warpZones.Capacity)
+        {
+            int nextCapacity = math.max(warpZones.Length + 1, math.max(16, warpZones.Capacity * 2));
+            warpZones.Capacity = nextCapacity;
+        }
+        warpZones.Add(bullet);
+    }
+
+    private int AddEnemyBulletSlot(BulletData bullet)
+    {
+        EnsureEnemyBulletList();
         if (enemyBullets.Length >= enemyBullets.Capacity)
         {
             int nextCapacity = math.max(enemyBullets.Length + 1, math.max(256, enemyBullets.Capacity * 2));
             enemyBullets.Capacity = nextCapacity;
         }
 
+        int bulletIndex = enemyBullets.Length;
+        enemyBullets.Add(bullet);
+        return bulletIndex;
+    }
+
+    private bool TryAddGeneratedBullet(BulletData bullet, out int enemyBulletIndex)
+    {
+        if (IsScreenNoise(bullet))
+        {
+            GManager.Control.CManager?.StartScreenNoise(bullet);
+            enemyBulletIndex = -1;
+            return false;
+        }
+
+        ResolveWarpZoneTypeId();
+        if (IsWarpZone(bullet))
+        {
+            AddWarpZone(bullet);
+            enemyBulletIndex = -1;
+            return false;
+        }
+
+        enemyBulletIndex = AddEnemyBulletSlot(bullet);
+        return true;
+    }
+
+    public List<int> AddEnemyBullets(NativeArray<BulletData> newBullets, float2 fromPos = new float2())
+    {
+        if (newBullets.Length == 0) return null;
+
+        List<int> indexes = new List<int>(newBullets.Length);
+
+        // 新しい弾をコピー
+        for (int i = 0; i < newBullets.Length; i++)
+        {
+            if (TryAddGeneratedBullet(newBullets[i], out int enemyBulletIndex))
+            {
+                indexes.Add(enemyBulletIndex);
+            }
+        }
+        return indexes;
+    }
+
+    public void AddEnemyBullets(int index, float2 pos, float2 originVlc, float angle, float4 color)
+    {
         List<BulletData> bullets = GManager.Control.BClipManager.GetBulletClip(index, GManager.Control.PController.pos, pos, originVlc, angle, color, out bool isLaser);
 
         if (bullets == null || bullets.Count == 0)
@@ -551,19 +666,16 @@ public class QuadOrder : MonoBehaviour
         }
 
         NativeArray<BulletData> newBullets = new NativeArray<BulletData>(bullets.ToArray(), Allocator.Temp);
-        int oldLength = enemyBullets.Length;
-        int newLength = oldLength + newBullets.Length;
-        enemyBullets.ResizeUninitialized(newLength);
-        for (int i = 0; i < newBullets.Length; i++) enemyBullets[oldLength + i] = newBullets[i];
+        AddEnemyBullets(newBullets);
         newBullets.Dispose();
     }
 
     public List<int> EmitEnemyBullet(BulletClip clip, int EnemyIndex)
     {
-        BulletData data = enemiesOrbitBullets[EnemyIndex];
+        BulletData data = multiBulletOrbitBullets[EnemyIndex];
         float2 vlc = data.velocity;
         float angle = math.atan2(vlc.y, vlc.x);
-        return EmitEnemyBullet(clip, enemiesOrbitBullets[EnemyIndex].position, angle);
+        return EmitEnemyBullet(clip, multiBulletOrbitBullets[EnemyIndex].position, angle);
     }
 
     public List<int> EmitEnemyBullet(BulletClip clip, float2 pPos, float d)
@@ -655,6 +767,10 @@ public class QuadOrder : MonoBehaviour
     public NativeArray<BulletData> GetEnemyBullets() => enemyBullets.IsCreated ? enemyBullets.AsArray() : default;
 
     public int GetEnemyBulletCount() => CountActiveBullets(enemyBullets);
+
+    public NativeArray<BulletData> GetWarpZones() => warpZones.IsCreated ? warpZones.AsArray() : default;
+
+    public int GetWarpZoneCount() => CountActiveBullets(warpZones);
 
     public BulletData GetEnemyBulletData(int index)
     {
@@ -765,10 +881,10 @@ public class QuadOrder : MonoBehaviour
         );
 
         SyncNativeBulletDebugView(
-            enemiesOrbitBullets,
-            ref debugEnemiesOrbitBulletSlotCount,
-            ref debugEnemiesOrbitBulletActiveCount,
-            debugEnemiesOrbitBulletEntries,
+            multiBulletOrbitBullets,
+            ref debugMultiBulletOrbitSlotCount,
+            ref debugMultiBulletOrbitActiveCount,
+            debugMultiBulletOrbitEntries,
             forceRefresh
         );
     }
@@ -1035,17 +1151,20 @@ public class QuadOrder : MonoBehaviour
             allLASERs[i].BeginFadeOut(fadeDuration);
         }
 
-        for (int i = enemies.Count - 1; i >= 0; i--)
+        for (int i = multiBullets.Count - 1; i >= 0; i--)
         {
-            Enemy enemy = enemies[i];
-            if (enemy == null) continue;
-            enemy.isActive = false;
-            UnityEngine.Object.Destroy(enemy.gameObject);
+            MultiBullet multiBullet = multiBullets[i];
+            if (multiBullet == null) continue;
+            multiBullet.isActive = false;
+            UnityEngine.Object.Destroy(multiBullet.gameObject);
         }
-        enemies.Clear();
+        multiBullets.Clear();
+        bossDisplays.Clear();
 
-        if (enemiesOrbitBullets.IsCreated) enemiesOrbitBullets.Clear();
+        if (multiBulletOrbitBullets.IsCreated) multiBulletOrbitBullets.Clear();
+        if (warpZones.IsCreated) warpZones.Clear();
         if (collisionCheckBullets.IsCreated) collisionCheckBullets.Clear();
+        GManager.Control.CManager?.StopScreenNoise();
 
         ClearAllCells();
 
@@ -1101,8 +1220,8 @@ public class QuadOrder : MonoBehaviour
     }
     #endregion
 
-    #region //EnemyMethods
-    public async void AddEnemy(EnemySpawner spawner)
+    #region //MultiBulletMethods
+    public async void AddMultiBullet(EnemySpawner spawner)
     {
         float t = 0;
         int spawnGeneration = enemySpawnGeneration;
@@ -1119,21 +1238,48 @@ public class QuadOrder : MonoBehaviour
 
             if (spawnGeneration != enemySpawnGeneration) return;
 
-            Enemy enemy = Instantiate(GManager.Control.EnemyObj).GetComponent<Enemy>();
-            enemy.Init(enemies.Count, spawner);
-            enemies.Add(enemy);
-            //Debug.Log($"Spawned enemy: {spawner.orbit.speed}");
-            enemiesOrbitBullets.Add(spawner.orbit);
+            GameObject multiBulletObject = Instantiate(GManager.Control.MultiBulletObj);
+            MultiBullet multiBullet = multiBulletObject.GetComponent<MultiBullet>();
+            if (multiBullet == null)
+            {
+                Debug.LogError("MultiBulletObj is missing a MultiBullet component.");
+                UnityEngine.Object.Destroy(multiBulletObject);
+                return;
+            }
+
+            int multiBulletIndex = multiBullets.Count;
+            multiBullet.Init(multiBulletIndex, spawner);
+            multiBullets.Add(multiBullet);
+
+            Boss bossDisplay = multiBulletObject.GetComponent<Boss>();
+            if (bossDisplay != null)
+            {
+                bossDisplay.Init(spawner);
+            }
+            bossDisplays.Add(bossDisplay);
+
+            //Debug.Log($"Spawned multi bullet: {spawner.orbit.speed}");
+            multiBulletOrbitBullets.Add(spawner.orbit);
         }
     }
 
-    private void UpdateEnemyPos(float dt)
+    private void UpdateMultiBulletPos(float dt)
     {
-        for (int i = 0; i < enemies.Count; i++)
+        for (int i = 0; i < multiBullets.Count; i++)
         {
-            enemies[i].trans.position = new Vector3(enemiesOrbitBullets[i].position.x, enemiesOrbitBullets[i].position.y, 0);
-            enemies[i].trans.rotation = Quaternion.Euler(0, 0, enemiesOrbitBullets[i].angle * Mathf.Rad2Deg);
-            enemies[i].UpdateEnemy(dt);
+            MultiBullet multiBullet = multiBullets[i];
+            if (multiBullet == null) continue;
+            if (i >= multiBulletOrbitBullets.Length) continue;
+
+            BulletData orbit = multiBulletOrbitBullets[i];
+            multiBullet.trans.position = new Vector3(orbit.position.x, orbit.position.y, 0);
+            multiBullet.trans.rotation = Quaternion.Euler(0, 0, orbit.angle * Mathf.Rad2Deg);
+            multiBullet.UpdateMultiBullet(dt);
+
+            if (i < bossDisplays.Count && bossDisplays[i] != null)
+            {
+                bossDisplays[i].UpdateBoss(dt);
+            }
         }
     }
     #endregion

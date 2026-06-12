@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using System.Threading.Tasks;
 
 [Serializable]
 public class StageDataBase
@@ -15,6 +16,16 @@ public class StageDataBase
             stageDataManager = new StageDataManager();
             stages = stageDataManager.GetAllStageData();
             Debug.Log($"Loaded {stages.Count} stages from JSON");
+        }
+    }
+
+    public async Task InitAsync()
+    {
+        if (stages == null)
+        {
+            stageDataManager = new StageDataManager();
+            stages = await stageDataManager.GetAllStageDataAsync();
+            Debug.Log($"Loaded {stages.Count} stages");
         }
     }
 
@@ -38,5 +49,15 @@ public class StageDataBase
     {
         if (stages == null) return new List<StageData>();
         return stages;
+    }
+
+    public async Task EnsureRuntimeMediaLoadedAsync(StageData data)
+    {
+        if (stageDataManager == null)
+        {
+            stageDataManager = new StageDataManager();
+        }
+
+        await stageDataManager.EnsureRuntimeMediaLoadedAsync(data);
     }
 }

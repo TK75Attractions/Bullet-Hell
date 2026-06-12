@@ -1,122 +1,106 @@
 using UnityEngine;
 using Unity.Mathematics;
-using System.Collections.Generic;
-using Unity.Collections;
 
 public class Boss : MonoBehaviour
 {
     public int bossId;
     public string bossName;
     public Sprite bossImage;
-
-    private enum BossState
-    {
-        Idle,
-        Attack,
-        Move
-    }
-
-    [SerializeField] private BossState state;
-
     public float2 pos;
-    public float2 distination;
 
-    private bool ready = false;
-    private float time;
-    private float move;
-    private int count;
-    [SerializeField] private int repeat;
-    [SerializeField] private List<BulletPatternReference> bulletPatterns = new List<BulletPatternReference>();
-
-    [System.Serializable]
-    private class BulletPatternReference
-    {
-        public string clipName;
-        public float spawnInterval;
-        [System.NonSerialized] public int clipIndex = -1;
-    }
+    private SpriteRenderer spriteRenderer;
+    private EnemyVisualPlayer visualPlayer = new EnemyVisualPlayer();
+    private float visualTime;
+    private bool initialized;
 
     public void Init()
     {
-        return;
-        time = 0;
-        count = 0;
-        ready = false;
-        state = BossState.Attack;
+        initialized = true;
+        visualTime = 0f;
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        UpdatePosition();
+        UpdateBossImage();
+    }
 
-        if (bulletPatterns.Count == 0)
+    public void Init(EnemySpawner spawner)
+    {
+        initialized = true;
+        bossId = spawner != null ? spawner.id : -1;
+        bossName = spawner != null ? spawner.enemyName : "";
+        visualTime = 0f;
+
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        Sprite fallbackSprite = GetFallbackSprite(spawner);
+        EnemyVisualSetRuntime visualSet = ResolveVisualSet(spawner);
+
+        visualPlayer = new EnemyVisualPlayer();
+        visualPlayer.Init(spriteRenderer, visualSet, spawner != null ? spawner.animation : null, fallbackSprite);
+        UpdatePosition();
+        UpdateBossImage(fallbackSprite);
+    }
+
+    private Sprite GetFallbackSprite(EnemySpawner spawner)
+    {
+        if (spawner == null || spawner.id < 0 || GManager.Control == null || GManager.Control.EDB == null)
         {
-            bulletPatterns.Add(new BulletPatternReference { clipName = "Rumia_0", spawnInterval = 0.6f, clipIndex = -1 });
-            bulletPatterns.Add(new BulletPatternReference { clipName = "Rumia_1", spawnInterval = 0.6f, clipIndex = -1 });
+            return bossImage;
         }
 
-        for (int i = 0; i < bulletPatterns.Count; i++)
+        Sprite fallbackSprite = GManager.Control.EDB.GetSprite(spawner.id);
+        return fallbackSprite != null ? fallbackSprite : bossImage;
+    }
+
+    private EnemyVisualSetRuntime ResolveVisualSet(EnemySpawner spawner)
+    {
+        if (spawner == null || GManager.Control == null || GManager.Control.SReader == null)
         {
-            bulletPatterns[i].clipIndex = -1;
+            return null;
         }
+
+        if (!string.IsNullOrWhiteSpace(spawner.visualId))
+        {
+            EnemyVisualSetRuntime visualSet = GManager.Control.SReader.GetEnemyVisual(spawner.visualId);
+            if (visualSet != null)
+            {
+                return visualSet;
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(spawner.enemyName))
+        {
+            return GManager.Control.SReader.GetEnemyVisual(spawner.enemyName);
+        }
+
+        return null;
     }
 
     public void UpdateBoss(float dt)
     {
-        pos = new float2(transform.position.x, transform.position.y);
-        return;
-        time += dt;
-
-        if (ready == false && time > 3)
+        UpdatePosition();
+        if (!initialized)
         {
-            ready = true;
-            time = 0;
-        }
-        if (!ready) return;
-
-        //Attack
-        if (bulletPatterns.Count == 0) return;
-
-        int patternIndex = count % bulletPatterns.Count;
-        BulletPatternReference pattern = bulletPatterns[patternIndex];
-        if (time > pattern.spawnInterval && state == BossState.Attack)
-        {
-            time -= pattern.spawnInterval;
-
-            if (GManager.Control.BClipManager == null)
-            {
-                Debug.LogError("BulletClipManager is not available.");
-                return;
-            }
-
-            if (pattern.clipIndex == -1)
-            {
-                if (!GManager.Control.BClipManager.TryGetBulletClipIndex(pattern.clipName, out pattern.clipIndex))
-                {
-                    Debug.LogError($"Bullet clip not found: {pattern.clipName}");
-                    return;
-                }
-            }
-
-
-            List<BulletData> bullets = GManager.Control.BClipManager.GetBulletClip(pattern.clipIndex, GManager.Control.PController.pos, new float2(0, 0), new float2(0, 0), 0, new float4(1, 1, 1, 1), out bool isLaser);
-            NativeArray<BulletData> bulletsArray = new NativeArray<BulletData>(bullets.ToArray(), Allocator.Temp);
-            GManager.Control.QOrder.AddEnemyHomingBullets(bulletsArray, pos);
-            bulletsArray.Dispose();
-            count++;
-
-            if (count % repeat == 0)
-            {
-                state = BossState.Move;
-                //double t = GManager.Control.PRandom.Noise(count);
-                //float2 d = new float2(math.cos((float)t * 2 * math.PI), math.sin((float)t * 2 * math.PI)) * move;
-                //distination = pos + d;
-                //state = BossState.Move;
-            }
             return;
         }
 
-        /*
-        if (time < 1 && state == BossState.Move)
-            pos = distination;
-            time = 0;
-            state = BossState.Attack;
+        visualTime += dt;
+        visualPlayer?.Update(dt, visualTime);
+        UpdateBossImage();
+    }
+
+    private void UpdatePosition()
+    {
+        pos = new float2(transform.position.x, transform.position.y);
+    }
+
+    private void UpdateBossImage(Sprite fallbackSprite = null)
+    {
+        if (spriteRenderer != null && spriteRenderer.sprite != null)
+        {
+            bossImage = spriteRenderer.sprite;
         }
-        */
+        else if (fallbackSprite != null)
+        {
+            bossImage = fallbackSprite;
+        }
     }
 }

@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: StageData_debug
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: StageData_debug
+  m_GUID: cf763face5f8cb946838439c26decaf4
+  m_SerializeEntries:
+  - m_GUID: 1eab95d397a20b745af2624f776a67b3
+    m_Address: Assets/StageData/debug/debug.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-media
+    - stage-debug
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5d441df906056c14084f77e202ce303f
+    m_Address: Assets/StageData/debug/debug.mp4
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-media
+    - stage-debug
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7cf4fc8b8263b5841be1df760150c03e
+    m_Address: Assets/StageData/debug/debug_Ray.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-media
+    - stage-debug
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 74e727200a544ea48b7e5cf70ac7590c, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 8542754c6ebeefc499f3eb64aa50eef3, type: 2}
+    - {fileID: 11400000, guid: be82cd33b89881e49be9d2e9f376b4d7, type: 2}

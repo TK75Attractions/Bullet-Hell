@@ -26,7 +26,6 @@ public class LASER : MonoBehaviour
     public float initialCalculateX;
 
     [SerializeField] private float[] poly = new float[0];
-    private float[] differed = new float[0];
 
     public float2 xyScale;
     public float timeCarry;
@@ -81,15 +80,7 @@ public class LASER : MonoBehaviour
         ApplyColor();
 
         float x = _startX;
-        float y = GetValue(poly, x);
-
-        float[] temp = new float[Mathf.Max(poly.Length - 1, 0)];
-        for (int i = 1; i < poly.Length; i++) temp[i - 1] = i * poly[i];
-        differed = temp;
-
-        float tan = GetValue(differed, x);
-        float magnitude = math.sqrt(1 + tan * tan);
-        lastTan = tan / magnitude * speed;
+        lastTan = GetPolynomialSlope(poly, x);
 
         float f = math.sqrt(speed * speed + (startPos.y * startPos.y + startPos.x * startPos.x) * thetaVlc * thetaVlc);
         maxCount = f > 0f ? System.Convert.ToInt32(length / (f * dt)) : 0;
@@ -189,11 +180,29 @@ public class LASER : MonoBehaviour
         return life < 0;
     }
 
-    private float GetValue(float[] p, float x)
+    private float GetPolynomialValue(float[] p, float x)
     {
         float y = 0f;
-        for (int i = p.Length - 1; i >= 0; i--) y = y * x + p[i];
+        float xPower = x;
+        for (int i = 0; i < p.Length; i++)
+        {
+            y += p[i] * xPower;
+            xPower *= x;
+        }
         return y;
+    }
+
+    private float GetPolynomialSlope(float[] p, float x)
+    {
+        float slope = 0f;
+        float xPower = 1f;
+        for (int i = 0; i < p.Length; i++)
+        {
+            int power = i + 1;
+            slope += power * p[i] * xPower;
+            xPower *= x;
+        }
+        return slope;
     }
 
     private void Procede(int proc)
@@ -216,8 +225,8 @@ public class LASER : MonoBehaviour
             float mag = math.sqrt(1 + lastTan * lastTan);
             float x = initialCalculateX + speed * dt / mag;
             initialCalculateX = x;
-            lastTan = GetValue(differed, x);
-            float2 point = new float2(x, GetValue(poly, x));
+            lastTan = GetPolynomialSlope(poly, x);
+            float2 point = new float2(x, GetPolynomialValue(poly, x));
             float2 dis = point - startPos;
             float2 laserP = new float2(originPos.x + (dis.x * math.cos(theta) - dis.y * math.sin(theta)), originPos.y + (dis.x * math.sin(theta) + dis.y * math.cos(theta)));
 

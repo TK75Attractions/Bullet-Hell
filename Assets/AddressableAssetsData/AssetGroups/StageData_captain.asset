@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: StageData_captain
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: StageData_captain
+  m_GUID: b756ebd14069589448baaa0f159757d9
+  m_SerializeEntries:
+  - m_GUID: 63ec78f353da8644b95ea4d57e90f9fe
+    m_Address: Assets/StageData/captain/captain.mp4
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-captain
+    - stage-data-media
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fc69074d978d6e2428ed7d8bebdba561
+    m_Address: Assets/StageData/captain/captain.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-captain
+    - stage-data-media
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 74e727200a544ea48b7e5cf70ac7590c, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: f0428f001a0a9c84db947226ab596020, type: 2}
+    - {fileID: 11400000, guid: b822a2f146508904cb9487a0011a94b0, type: 2}

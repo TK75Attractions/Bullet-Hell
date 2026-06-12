@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: EnemyVisuals_Captain
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: EnemyVisuals_Captain
+  m_GUID: 349245c5413affa499cbee120ceca287
+  m_SerializeEntries:
+  - m_GUID: c09e04f0634ef9d4b87e33f176b42bd3
+    m_Address: enemy/captain
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - enemy-visual-captain
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 74e727200a544ea48b7e5cf70ac7590c, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 78a27c5f63ed6514ca2775fb4962960a, type: 2}
+    - {fileID: 11400000, guid: e715a82ca9f2d844ab0051a4612d1448, type: 2}

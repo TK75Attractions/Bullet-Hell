@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: StageData_stone
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: StageData_stone
+  m_GUID: 171d6234650501441ae80d1be2fce3e4
+  m_SerializeEntries:
+  - m_GUID: 05e2758330c694d439ad96c69985b7a6
+    m_Address: Assets/StageData/stone/stone.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-media
+    - stage-stone
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2211f4bde7898914cbece619749ab307
+    m_Address: Assets/StageData/stone/stone.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-json
+    - stage-stone
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: dfbf3984a40333e4da237871e7d1b2ef
+    m_Address: Assets/StageData/stone/stone.mp4
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-media
+    - stage-stone
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 74e727200a544ea48b7e5cf70ac7590c, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 07b501e78e0716c4cbb87c2a2b0cf0c0, type: 2}
+    - {fileID: 11400000, guid: 6f984025486df6940b15c369363ccdba, type: 2}
