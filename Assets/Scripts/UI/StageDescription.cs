@@ -15,6 +15,8 @@ public class StageDescription : MonoBehaviour
     private RectTransform LineDownRight;
 
     private TMP_Text stageName = null;
+    private TMP_Text creatorText = null;
+    private TMP_Text metaText = null;
     private VideoPlayer videoPlayer = null;
 
     [Serializable]
@@ -35,6 +37,10 @@ public class StageDescription : MonoBehaviour
         LineDownRight = transform.Find("DownRight").GetComponent<RectTransform>();
         stageName = transform.Find("StageName").GetComponent<TMP_Text>();
         videoPlayer = transform.Find("VideoPlayer").GetComponent<VideoPlayer>();
+        Transform creator = transform.Find("Creator");
+        if (creator != null) creatorText = creator.GetComponent<TMP_Text>();
+        Transform meta = transform.Find("Meta");
+        if (meta != null) metaText = meta.GetComponent<TMP_Text>();
     }
 
     public void Set(int index)
@@ -61,6 +67,24 @@ public class StageDescription : MonoBehaviour
         }
 
         stageName.text = data.stageName;
+
+        if (creatorText != null)
+        {
+            creatorText.text = string.IsNullOrWhiteSpace(data.stageDescription) ? string.Empty : data.stageDescription;
+        }
+
+        if (metaText != null)
+        {
+            if (data.audioClip != null)
+            {
+                int len = (int)data.audioClip.length;
+                metaText.text = $"プレイ時間  {len / 60}:{len % 60:00}";
+            }
+            else
+            {
+                metaText.text = string.Empty;
+            }
+        }
     }
 
     public void Transition(float progress)
@@ -70,5 +94,9 @@ public class StageDescription : MonoBehaviour
         videoRect.sizeDelta = new Vector2(Mathf.Lerp(VideoData.mWidth, VideoData.dWidth, progress), Mathf.Lerp(VideoData.mHeight, VideoData.dHeight, progress));
         LineUpLeft.anchoredPosition = new Vector2(-Mathf.Lerp(BackData.mWidth, BackData.dWidth, progress) / 2, Mathf.Lerp(BackData.mHeight, BackData.dHeight, progress) / 2);
         LineDownRight.anchoredPosition = new Vector2(Mathf.Lerp(BackData.mWidth, BackData.dWidth, progress) / 2, -Mathf.Lerp(BackData.mHeight, BackData.dHeight, progress) / 2);
+
+        // The play-time row only fits the compact music-select layout; fade it out
+        // while the card expands for difficulty select.
+        if (metaText != null) metaText.alpha = 1f - progress;
     }
 }

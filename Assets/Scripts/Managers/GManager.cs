@@ -38,6 +38,8 @@ public class GManager : MonoBehaviour
     public BeatManager BManager;
     public CManager CManager;
     public StageSelectManager SSManager;
+    public TitleManager TManager;
+    public int selectedDifficulty = 1;
     public BulletBufferManager BClipManager;
     public QuadOrder QOrder;
     public BulletTypeDataBase BTDB;
@@ -90,6 +92,13 @@ public class GManager : MonoBehaviour
         SSManager = transform.parent.Find("Canvases").Find("StageCanvas").Find("StageBoxParent").GetComponent<StageSelectManager>();
         SSManager.Init();
 
+        Transform titleTrans = transform.parent.Find("Canvases").Find("StageCanvas").Find("Title");
+        if (titleTrans != null)
+        {
+            TManager = titleTrans.GetComponent<TitleManager>();
+            TManager?.Init();
+        }
+
         QOrder = GetComponent<QuadOrder>();
         QOrder.AwakeSetting();
         PController = new PlayerController();
@@ -127,10 +136,16 @@ public class GManager : MonoBehaviour
 
         bool stageSelectButton = IManager.buttonPressedThisFrame;
 
-        if (IManager.buttonPressed && state == GameState.Title)
+        if (state == GameState.Title)
         {
-            state = GameState.ChoosingStage;
-            stageSelectButton = false;
+            TManager?.UpdateTitle(t);
+            if (IManager.buttonPressed)
+            {
+                state = GameState.ChoosingStage;
+                stageSelectButton = false;
+                TManager?.Dismiss();
+                SSManager.ResetTimer();
+            }
         }
 
         SSManager.UpdateSelect(IManager.upPressedThisFrame, IManager.downPressedThisFrame, t, stageSelectButton, IManager.backPressedThisFrame);
