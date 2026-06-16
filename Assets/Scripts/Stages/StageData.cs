@@ -59,6 +59,8 @@ public class StageData
 
     public List<EnemySpawner> enemySpawners = new List<EnemySpawner>();
 
+    public List<BossSpawner> bossSpawners = new List<BossSpawner>();
+
     public List<BulletSpawner> bulletSpawners = new List<BulletSpawner>();
 
     [System.NonSerialized] public EnemyVisualCatalog enemyVisualCatalog;

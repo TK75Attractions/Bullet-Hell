@@ -92,6 +92,7 @@ public class StageDataManager
         public string stageDescription = "";
         public List<EnemyVisualDefinition> enemyVisuals = new();
         public List<EnemySpawnerJson> enemySpawners = new();
+        public List<BossSpawnerJson> bossSpawners = new();
         public List<BulletSpawnerJson> bulletSpawners = new();
     }
 
@@ -142,9 +143,6 @@ public class StageDataManager
     [Serializable]
     private class EnemySpawnerJson
     {
-        public string enemyName = ""; //描画するエネミー(弾源)の名前, Unity 側で一致するエネミーを見つけたら、そのスプライトを描画する
-        public string visualId = "";
-        public EnemyAnimationPlan animation = new EnemyAnimationPlan();
         public int count; //飛ばすエネミーの数
         public float enemyInterval; //飛ばす時間間隔(0 なら同時)
         public float enemyAppearTime; //エネミーの出現時刻
@@ -169,10 +167,6 @@ public class StageDataManager
             }
             return new EnemySpawner
             {
-                id = GManager.Control.EDB.GetEnemyId(enemyName),
-                enemyName = enemyName,
-                visualId = visualId,
-                animation = NormalizeAnimationPlan(animation),
                 count = count,
                 enemyInterval = enemyInterval,
                 enemyAppearTime = enemyAppearTime,
@@ -183,6 +177,106 @@ public class StageDataManager
                 bulletClip = bulletClip.ToBulletClip(),
                 bulletChangeClips = changeClips
             };
+        }
+    }
+
+    [Serializable]
+    private class BossSpawnerJson
+    {
+        public string bossId = "";
+        public string bossName = "";
+        public string visualId = "";
+        public float appearTime;
+        public float lifeTime = -1f;
+        public Vector2 startPos;
+        public Vector2 scale = Vector2.one;
+        public float angle;
+        public BossAnimationPlan animation = new BossAnimationPlan();
+        public List<BossMoveEventJson> moves = new List<BossMoveEventJson>();
+
+        public BossSpawner ToBossSpawner()
+        {
+            List<BossMoveEvent> moveEvents = new List<BossMoveEvent>();
+            if (moves != null)
+            {
+                for (int i = 0; i < moves.Count; i++)
+                {
+                    moveEvents.Add(moves[i].ToBossMoveEvent());
+                }
+            }
+
+            Vector2 resolvedScale = scale;
+            if (resolvedScale.x == 0f && resolvedScale.y == 0f)
+            {
+                resolvedScale = Vector2.one;
+            }
+
+            return new BossSpawner
+            {
+                bossId = bossId,
+                bossName = bossName,
+                visualId = visualId,
+                appearTime = appearTime,
+                lifeTime = lifeTime,
+                startPos = startPos,
+                scale = resolvedScale,
+                angle = angle,
+                animation = BossAnimationPlan.Normalize(animation),
+                moves = moveEvents
+            };
+        }
+    }
+
+    [Serializable]
+    private struct BossMoveEventJson
+    {
+        public float time;
+        public float duration;
+        public string type;
+        public Vector2 to;
+        public Vector2 control;
+        public string easing;
+        public bool relative;
+
+        public BossMoveEvent ToBossMoveEvent()
+        {
+            return new BossMoveEvent
+            {
+                time = time,
+                duration = duration,
+                type = ParseBossMoveType(type),
+                to = to,
+                control = control,
+                easing = string.IsNullOrWhiteSpace(easing) ? "linear" : easing,
+                relative = relative
+            };
+        }
+
+        private static BossMoveType ParseBossMoveType(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return BossMoveType.MoveTo;
+            }
+
+            switch (value.Trim().ToLowerInvariant())
+            {
+                case "setposition":
+                case "set":
+                    return BossMoveType.SetPosition;
+                case "bezierto":
+                case "bezier":
+                    return BossMoveType.BezierTo;
+                case "addvelocity":
+                case "velocity":
+                    return BossMoveType.AddVelocity;
+                case "stop":
+                    return BossMoveType.Stop;
+                case "moveto":
+                case "move":
+                default:
+                    return BossMoveType.MoveTo;
+            }
         }
     }
 
@@ -599,6 +693,8 @@ public class StageDataManager
                     data.enemySpawners.Add(spawner.ToEnemySpawner());
                 }
 
+                data.bossSpawners = ConvertBossSpawners(jsonData.bossSpawners);
+
                 // bulletSpawners を変換
                 data.bulletSpawners = new List<BulletSpawner>(jsonData.bulletSpawners.Count);
                 foreach (var spawner in jsonData.bulletSpawners)
@@ -689,6 +785,7 @@ public class StageDataManager
             stageName = directoryName,
             MusicEvents = new List<StageData.MusicEvent>(),
             enemySpawners = new List<EnemySpawner>(),
+            bossSpawners = new List<BossSpawner>(),
             bulletSpawners = new List<BulletSpawner>()
         };
 
@@ -722,6 +819,8 @@ public class StageDataManager
             }
         }
 
+        data.bossSpawners = ConvertBossSpawners(jsonData.bossSpawners);
+
         if (jsonData.bulletSpawners != null)
         {
             data.bulletSpawners = new List<BulletSpawner>(jsonData.bulletSpawners.Count);
@@ -732,6 +831,26 @@ public class StageDataManager
         }
 
         return data;
+    }
+
+    private static List<BossSpawner> ConvertBossSpawners(List<BossSpawnerJson> source)
+    {
+        List<BossSpawner> bossSpawners = new List<BossSpawner>();
+        if (source == null)
+        {
+            return bossSpawners;
+        }
+
+        for (int i = 0; i < source.Count; i++)
+        {
+            BossSpawnerJson spawner = source[i];
+            if (spawner != null)
+            {
+                bossSpawners.Add(spawner.ToBossSpawner());
+            }
+        }
+
+        return bossSpawners;
     }
 
     private static List<EnemyVisualDefinition> NormalizeEnemyVisualDefinitions(List<EnemyVisualDefinition> definitions)
@@ -764,31 +883,6 @@ public class StageDataManager
         }
 
         return normalized;
-    }
-
-    private static EnemyAnimationPlan NormalizeAnimationPlan(EnemyAnimationPlan animation)
-    {
-        if (animation == null)
-        {
-            animation = new EnemyAnimationPlan();
-        }
-
-        if (animation.events == null)
-        {
-            animation.events = new List<EnemyAnimationEventData>();
-        }
-
-        if (animation.triggers == null)
-        {
-            animation.triggers = new List<EnemyAnimationTriggerData>();
-        }
-
-        if (string.IsNullOrWhiteSpace(animation.initialClip))
-        {
-            animation.initialClip = "idle";
-        }
-
-        return animation;
     }
 
     private async Task LoadStageMediaFromAddressablesAsync(StageData data, string directoryName)

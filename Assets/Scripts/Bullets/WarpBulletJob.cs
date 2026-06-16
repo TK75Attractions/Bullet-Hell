@@ -131,7 +131,7 @@ public struct WarpBulletJob : IJobParallelFor
 
     private float GetAngleRad(float x, float y)
     {
-        double rad = math.atan2(y, x);
+        float rad = math.atan2(y, x);
         if (rad < 0) rad += 2 * math.PI;
         return (float)rad;
     }
