@@ -1,15 +1,23 @@
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 
 public class TitleManager : MonoBehaviour
 {
+    [SerializeField] private float bpm = 128f;
+
     private CanvasGroup group;
     private TMP_Text promptText;
     private RectTransform logoRect;
     private float logoBaseY;
     private float animTime;
     private bool dismissed;
+
+    private float beatTimer;
+    private float beatPulse;
+    private Graphic[] shapeGraphics = new Graphic[0];
+    private float[] shapeBaseAlphas = new float[0];
 
     // Big flat shapes drifting slowly behind the logo (Just Shapes & Beats vibe).
     private struct ShapeAnim
@@ -42,9 +50,13 @@ public class TitleManager : MonoBehaviour
         if (shapesRoot != null)
         {
             shapes = new ShapeAnim[shapesRoot.childCount];
+            shapeGraphics = new Graphic[shapesRoot.childCount];
+            shapeBaseAlphas = new float[shapesRoot.childCount];
             for (int i = 0; i < shapesRoot.childCount; i++)
             {
                 RectTransform rect = shapesRoot.GetChild(i) as RectTransform;
+                shapeGraphics[i] = rect.GetComponent<Graphic>();
+                shapeBaseAlphas[i] = shapeGraphics[i] != null ? shapeGraphics[i].color.a : 1f;
                 shapes[i] = new ShapeAnim
                 {
                     rect = rect,
@@ -60,15 +72,27 @@ public class TitleManager : MonoBehaviour
         }
 
         group.alpha = 1f;
+        transform.localScale = Vector3.one;
         dismissed = false;
         gameObject.SetActive(true);
     }
 
-    // Idle animation: prompt blinks, logo floats, background shapes drift and spin slowly.
+    // Idle animation: prompt blinks, logo floats and bounces on the beat,
+    // background shapes drift, spin and flash slightly in time with the BPM.
     public void UpdateTitle(float dt)
     {
         if (dismissed) return;
         animTime += dt;
+
+        beatTimer += dt;
+        float beatInterval = 60f / Mathf.Max(1f, bpm);
+        if (beatTimer >= beatInterval)
+        {
+            beatTimer -= beatInterval;
+            beatPulse = 1f;
+        }
+        beatPulse = Mathf.Max(0f, beatPulse - dt * 5f);
+
         if (promptText != null)
         {
             promptText.alpha = 0.35f + 0.55f * (0.5f + 0.5f * Mathf.Sin(animTime * 3.5f));
@@ -76,6 +100,14 @@ public class TitleManager : MonoBehaviour
         if (logoRect != null)
         {
             logoRect.anchoredPosition = new Vector2(logoRect.anchoredPosition.x, logoBaseY + Mathf.Sin(animTime * 1.2f) * 10f);
+            logoRect.localScale = Vector3.one * (1f + 0.035f * beatPulse);
+        }
+        for (int i = 0; i < shapeGraphics.Length; i++)
+        {
+            if (shapeGraphics[i] == null) continue;
+            Color c = shapeGraphics[i].color;
+            c.a = Mathf.Min(1f, shapeBaseAlphas[i] * (1f + 0.65f * beatPulse));
+            shapeGraphics[i].color = c;
         }
         for (int i = 0; i < shapes.Length; i++)
         {
@@ -88,17 +120,22 @@ public class TitleManager : MonoBehaviour
         }
     }
 
-    // Fade out and disable when the player presses the button.
+    // Dive "through" the title when the player presses the button: the camera
+    // rushes in (cubic ease-in zoom) and the screen blows past the viewer,
+    // fading only near the end so the acceleration reads clearly.
     public async void Dismiss()
     {
         if (dismissed) return;
         dismissed = true;
-        float d = 0.4f;
+        const float duration = 0.38f;
+        float d = duration;
         while (d > 0f)
         {
             d -= Time.deltaTime;
-            float p = Mathf.Clamp01(d / 0.4f);
-            group.alpha = p * p;
+            float t = 1f - Mathf.Clamp01(d / duration);
+            transform.localScale = Vector3.one * (1f + 2.2f * t * t * t);
+            float fade = Mathf.Clamp01((t - 0.4f) / 0.45f);
+            group.alpha = 1f - fade * fade;
             await Task.Yield();
             if (this == null || group == null) return;
         }

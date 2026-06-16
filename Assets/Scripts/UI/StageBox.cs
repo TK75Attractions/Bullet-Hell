@@ -35,10 +35,14 @@ public class StageBox : MonoBehaviour
 
     public void SetPosition(float progress)
     {
-        float a = 0.3f;
-        if (2 < progress && progress < 3) a += (progress - 2) * 0.7f;
-        else if (3 <= progress && progress < 4) a += (4 - progress) * 0.7f;
-        if (Mathf.Approximately(progress, 0f) || Mathf.Approximately(progress, 6f)) a = 0;
+        // Selection ramps 0->1 as a box approaches the center slot (progress 3).
+        float selection = Mathf.Clamp01(1f - Mathf.Abs(progress - 3f));
+        // Fade to zero toward the list edges so recycled boxes never pop in/out
+        // at the top or bottom of the (enlarged) mask area.
+        float a;
+        if (progress < 1f) a = 0.3f * Mathf.Clamp01(progress);
+        else if (progress > 5f) a = 0.3f * Mathf.Clamp01(6f - progress);
+        else a = 0.3f + 0.7f * selection;
 
         CG.alpha = a;
         baseScale = miniScale + (normalScale - miniScale) * a;
@@ -46,7 +50,6 @@ public class StageBox : MonoBehaviour
         float y = Mathf.Round((3f - progress) * interval);
         rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, y);
 
-        float selection = Mathf.Clamp01((a - 0.3f) / 0.7f);
         if (backImage != null) backImage.color = Color.Lerp(barDimColor, Color.white, selection);
         stageNameText.color = Color.Lerp(textDimColor, Color.white, selection);
     }

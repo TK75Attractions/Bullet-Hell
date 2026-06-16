@@ -11,6 +11,8 @@ public class DefficultyBar : MonoBehaviour
     private TMP_Text descText;
     private RectTransform descRect;
     private TMP_Text promptText;
+    private TMP_Text promptRubyO;
+    private TMP_Text promptRubyK;
     private float descBaseX;
     private float descAnimT = 1f;
     private float animTime;
@@ -19,7 +21,7 @@ public class DefficultyBar : MonoBehaviour
     {
         "イージー / EASY - 気軽に遊べる難易度です",
         "ノーマル / NORMAL - 標準的な難易度です",
-        "ハードコア / HARDCORE - 上級者向けの高難易度です",
+        "ルナティック / LUNATIC - 上級者向けの高難易度です",
     };
 
     private DefficultyBox[] boxes = new DefficultyBox[3];
@@ -33,6 +35,7 @@ public class DefficultyBar : MonoBehaviour
     {
         public CanvasGroup CG;
         public RectTransform rectTransform;
+        public float baseX;
         private TMP_Text nameText;
         private Color baseTextColor;
 
@@ -44,6 +47,7 @@ public class DefficultyBar : MonoBehaviour
             nameText = trans.Find("StageName").GetComponent<TMP_Text>();
             nameText.text = name;
             baseTextColor = textColor;
+            baseX = rectTransform.anchoredPosition.x;
         }
 
         public void SetPosition(float progress)
@@ -59,7 +63,7 @@ public class DefficultyBar : MonoBehaviour
         Transform trans = transform.Find("List");
         boxes[0] = new DefficultyBox(trans.Find("Easy"), "EASY", new Color(0.086f, 0.227f, 0.373f), new Color(0.56f, 0.72f, 0.91f));
         boxes[1] = new DefficultyBox(trans.Find("Normal"), "NORMAL", new Color(0.055f, 0.525f, 0.91f), new Color(0.85f, 0.93f, 1f));
-        boxes[2] = new DefficultyBox(trans.Find("Lunatic"), "HARDCORE", new Color(0.36f, 0.078f, 0.188f), new Color(0.91f, 0.6f, 0.69f));
+        boxes[2] = new DefficultyBox(trans.Find("Lunatic"), "LUNATIC", new Color(0.36f, 0.078f, 0.188f), new Color(0.91f, 0.6f, 0.69f));
         CG = GetComponent<CanvasGroup>();
         CG.alpha = 0;
 
@@ -76,6 +80,10 @@ public class DefficultyBar : MonoBehaviour
         }
         Transform prompt = transform.Find("Prompt");
         if (prompt != null) promptText = prompt.GetComponent<TMP_Text>();
+        Transform rubyO = transform.Find("PromptRubyO");
+        if (rubyO != null) promptRubyO = rubyO.GetComponent<TMP_Text>();
+        Transform rubyK = transform.Find("PromptRubyK");
+        if (rubyK != null) promptRubyK = rubyK.GetComponent<TMP_Text>();
 
         ResetSelection(1);
     }
@@ -114,12 +122,12 @@ public class DefficultyBar : MonoBehaviour
         float targetY = TargetWhiteY();
         whiteY = Mathf.Abs(targetY - whiteY) < 0.5f ? targetY : Mathf.Lerp(whiteY, targetY, 1f - Mathf.Exp(-16f * dt));
         whiteBar.anchoredPosition = new Vector2(0, whiteY);
-        // Brackets fade while travelling, re-appear as they settle on the new row.
-        whiteCG.alpha = 1f - Mathf.Clamp01(Mathf.Abs(targetY - whiteY) / 60f);
 
         if (promptText != null)
         {
             promptText.alpha = 0.45f + 0.4f * Mathf.Sin(animTime * 4f);
+            if (promptRubyO != null) promptRubyO.alpha = promptText.alpha;
+            if (promptRubyK != null) promptRubyK.alpha = promptText.alpha;
         }
         if (descText != null && descAnimT < 1f)
         {
@@ -127,6 +135,19 @@ public class DefficultyBar : MonoBehaviour
             float p = -descAnimT * (descAnimT - 2);
             descText.alpha = p;
             descRect.anchoredPosition = new Vector2(descBaseX + 30f * (1f - p), descRect.anchoredPosition.y);
+        }
+    }
+
+    // Staggered slide-in during the screen transition: lower rows arrive a beat
+    // later. Only the X offset is written here; alpha/scale stay owned by Tick.
+    public void SetEntranceProgress(float p)
+    {
+        for (int i = 0; i < boxes.Length; i++)
+        {
+            float local = Mathf.Clamp01((p - i * 0.12f) / 0.76f);
+            float ease = 1f - (1f - local) * (1f - local) * (1f - local);
+            RectTransform rect = boxes[i].rectTransform;
+            rect.anchoredPosition = new Vector2(boxes[i].baseX + 140f * (1f - ease), rect.anchoredPosition.y);
         }
     }
 
@@ -149,9 +170,11 @@ public class DefficultyBar : MonoBehaviour
         CG.alpha = alpha;
     }
 
+    // The brackets follow the selected box's actual scene position, so the row
+    // spacing can be tuned in the scene without touching code.
     private float TargetWhiteY()
     {
-        return 200f - index * 200f;
+        return boxes[index].rectTransform.anchoredPosition.y;
     }
 
     private void RefreshDescription()

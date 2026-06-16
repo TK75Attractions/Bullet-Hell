@@ -28,6 +28,7 @@ public class StageBar : MonoBehaviour
         parent = transform.Find("List");
         canvasGroup = GetComponent<CanvasGroup>();
         whiteBar = transform.Find("White").GetComponent<CanvasGroup>();
+        whiteBar.alpha = 1f;
         isTransitioning = false;
         for (int i = 0; i < 6; i++)
         {
@@ -115,12 +116,10 @@ public class StageBar : MonoBehaviour
                     else stageBoxes[i].SetPosition(0);
                 }
 
-                SetWhiteAlpha(t * t * t);
                 await Task.Yield();
             }
 
             SetStageBoxPositions(length);
-            SetWhiteAlpha(1);
             isTransitioning = false;
         }
     }
@@ -157,12 +156,10 @@ public class StageBar : MonoBehaviour
                     if (0 <= p && p < length) stageBoxes[i].SetPosition(k + 1 - progress);
                     else stageBoxes[i].SetPosition(0);
                 }
-                SetWhiteAlpha(t * t * t);
                 await Task.Yield();
             }
 
             SetStageBoxPositions(length);
-            SetWhiteAlpha(1);
 
             isTransitioning = false;
         }
@@ -171,12 +168,6 @@ public class StageBar : MonoBehaviour
     public void SetAlpha(float alpha)
     {
         canvasGroup.alpha = alpha;
-    }
-
-    private void SetWhiteAlpha(float progress)
-    {
-        if (progress < 0.5f) whiteBar.alpha = (0.5f - progress) * 2;
-        else whiteBar.alpha = (progress - 0.5f) * 2;
     }
 
     private void RefreshStageNames(int length)
