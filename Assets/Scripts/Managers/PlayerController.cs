@@ -94,11 +94,11 @@ public class PlayerController
         if (dash > 0)
         {
             float alpha = GetAlpha(dash);
-            if (spell != null) spell.color = new Color(0.6f, 1, 0.6f, alpha);
+            if (spell != null) spell.color = new Color(1f, 1f, 0.6f, alpha);
         }
         else
         {
-            if (spell != null) spell.color = new Color(0.6f, 1, 0.6f, 0);
+            if (spell != null) spell.color = new Color(1f, 1f, 0.6f, 0);
         }
 
         if (spellTransform != null) spellTransform.rotation = Quaternion.Euler(0, 0, Time.time * 30);
@@ -109,14 +109,14 @@ public class PlayerController
     {
         if (hitInvincibleTimer <= 0f)
         {
-            if (main != null) main.color = Color.white;
+            if (main != null) main.color = new Color(1f, 1f, 0.6f, 1);
             return;
         }
 
         hitInvincibleTimer = math.max(0f, hitInvincibleTimer - dt);
         if (hitInvincibleTimer <= 0f && main != null)
         {
-            main.color = Color.white;
+            main.color = new Color(1f, 1f, 0.6f, 1);
         }
     }
 

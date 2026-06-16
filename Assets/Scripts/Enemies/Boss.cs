@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 public class Boss : MonoBehaviour
 {
-    public int bossId;
+    public string bossId;
     public string bossName;
     public Sprite bossImage;
     public float2 pos;
@@ -22,56 +22,23 @@ public class Boss : MonoBehaviour
         UpdateBossImage();
     }
 
-    public void Init(EnemySpawner spawner)
+    public void Init(
+        EnemyVisualSetRuntime visualSet,
+        EnemyAnimationPlan animationPlan = null,
+        Sprite fallbackSprite = null,
+        string bossId = "",
+        string bossName = "")
     {
         initialized = true;
-        bossId = spawner != null ? spawner.id : -1;
-        bossName = spawner != null ? spawner.enemyName : "";
+        this.bossId = bossId;
+        this.bossName = bossName;
         visualTime = 0f;
 
         spriteRenderer = GetComponent<SpriteRenderer>();
-        Sprite fallbackSprite = GetFallbackSprite(spawner);
-        EnemyVisualSetRuntime visualSet = ResolveVisualSet(spawner);
-
         visualPlayer = new EnemyVisualPlayer();
-        visualPlayer.Init(spriteRenderer, visualSet, spawner != null ? spawner.animation : null, fallbackSprite);
+        visualPlayer.Init(spriteRenderer, visualSet, animationPlan, fallbackSprite);
         UpdatePosition();
         UpdateBossImage(fallbackSprite);
-    }
-
-    private Sprite GetFallbackSprite(EnemySpawner spawner)
-    {
-        if (spawner == null || spawner.id < 0 || GManager.Control == null || GManager.Control.EDB == null)
-        {
-            return bossImage;
-        }
-
-        Sprite fallbackSprite = GManager.Control.EDB.GetSprite(spawner.id);
-        return fallbackSprite != null ? fallbackSprite : bossImage;
-    }
-
-    private EnemyVisualSetRuntime ResolveVisualSet(EnemySpawner spawner)
-    {
-        if (spawner == null || GManager.Control == null || GManager.Control.SReader == null)
-        {
-            return null;
-        }
-
-        if (!string.IsNullOrWhiteSpace(spawner.visualId))
-        {
-            EnemyVisualSetRuntime visualSet = GManager.Control.SReader.GetEnemyVisual(spawner.visualId);
-            if (visualSet != null)
-            {
-                return visualSet;
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(spawner.enemyName))
-        {
-            return GManager.Control.SReader.GetEnemyVisual(spawner.enemyName);
-        }
-
-        return null;
     }
 
     public void UpdateBoss(float dt)

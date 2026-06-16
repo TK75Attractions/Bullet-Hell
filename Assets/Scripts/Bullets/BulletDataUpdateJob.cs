@@ -45,7 +45,7 @@ public struct BulletDataUpdateJob : IJobParallelFor
             // appearDuration == 0 の場合は time が appearTime に達するまで位置を更新しない
             if (bullet.appearDuration >= 0f)
             {
-                bullet = Update(bullet, index, dt * 0.0001f);
+                bullet = Update(bullet, index, dt * 0.008f);
             }
             if (bullet.isClearing && (bullet.clearDuration <= 0f || bullet.clearTime >= bullet.clearDuration))
             {
@@ -109,9 +109,9 @@ public struct BulletDataUpdateJob : IJobParallelFor
 
         //算出したベクトルの回転計算
         bullet.polarForm = new float2(bullet.radiusVlc * dt, bullet.thetaVlc * dt) + bullet.polarForm;
-        float cos = math.cos(bullet.polarForm.y);
-        float sin = math.sin(bullet.polarForm.y);
-        float2 rotatedVector = bullet.polarForm.x * new float2(disVector.x * cos - disVector.y * sin, disVector.x * sin + disVector.y * cos);
+        double cos = math.cos(bullet.polarForm.y);
+        double sin = math.sin(bullet.polarForm.y);
+        float2 rotatedVector = bullet.polarForm.x * new float2((float)(disVector.x * cos - disVector.y * sin), (float)(disVector.x * sin + disVector.y * cos));
 
         //位置を計算
         float2 unGravitatedPos = rotatedVector + noisyOriginPos;
@@ -161,7 +161,7 @@ public struct BulletDataUpdateJob : IJobParallelFor
 
     public float GetAngleRad(float x, float y)
     {
-        double rad = math.atan2(y, x);
+        float rad = math.atan2(y, x);
         if (rad < 0) rad += 2 * math.PI;
         return (float)rad;
     }

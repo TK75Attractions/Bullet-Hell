@@ -1,9 +1,9 @@
 {
-  "name": "mirror_LASER_SUB",
+  "name": "mirror_Bomb",
   "bullets": [
     {
       "originPos": {
-        "x": 10,
+        "x": 0,
         "y": 0
       },
       "originVlc": {
@@ -31,10 +31,10 @@
         "z": 0,
         "w": 0
       },
-      "typeName": "box",
+      "typeName": "normal",
       "scale": {
-        "x": 20,
-        "y": 0.2
+        "x": 4,
+        "y": 4
       },
       "color": {
         "x": 0.8,
@@ -42,9 +42,9 @@
         "z": 0.8,
         "w": 0.8
       },
-      "appearTime": 3,
-      "appearDuration": 3,
-      "life": 3,
+      "appearTime": 0.2,
+      "appearDuration": 0.2,
+      "life": 0.3,
       "random": 0,
       "unCounterable": false
     },
@@ -64,12 +64,12 @@
       "initialAngle": 0,
       "polarForm": {
         "x": 1,
-        "y": -1.0471976
+        "y": 0.3926991
       },
       "radiusVlc": 0,
       "thetaVlc": 0,
       "startPos": {
-        "x": 0,
+        "x": -3,
         "y": 0
       },
       "polynomial": {
@@ -80,8 +80,8 @@
       },
       "typeName": "normal",
       "scale": {
-        "x": 1,
-        "y": 1
+        "x": 4,
+        "y": 4
       },
       "color": {
         "x": 1,
@@ -89,9 +89,9 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 0.85,
+      "appearTime": 0.3,
       "appearDuration": 0,
-      "life": 10,
+      "life": 5,
       "random": 0,
       "unCounterable": false
     },
@@ -111,12 +111,12 @@
       "initialAngle": 0,
       "polarForm": {
         "x": 1,
-        "y": -1.0471976
+        "y": 0.3926991
       },
       "radiusVlc": 0,
       "thetaVlc": 0,
       "startPos": {
-        "x": 0,
+        "x": -3,
         "y": 0
       },
       "polynomial": {
@@ -127,8 +127,8 @@
       },
       "typeName": "normal",
       "scale": {
-        "x": 1,
-        "y": 1
+        "x": 4,
+        "y": 4
       },
       "color": {
         "x": 1,
@@ -136,9 +136,9 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 0.97,
+      "appearTime": 0.3,
       "appearDuration": 0,
-      "life": 10,
+      "life": 5,
       "random": 0,
       "unCounterable": false
     },
@@ -158,12 +158,12 @@
       "initialAngle": 0,
       "polarForm": {
         "x": 1,
-        "y": -1.0471976
+        "y": 0.3926991
       },
       "radiusVlc": 0,
       "thetaVlc": 0,
       "startPos": {
-        "x": 0,
+        "x": -3,
         "y": 0
       },
       "polynomial": {
@@ -174,8 +174,8 @@
       },
       "typeName": "normal",
       "scale": {
-        "x": 1,
-        "y": 1
+        "x": 4,
+        "y": 4
       },
       "color": {
         "x": 1,
@@ -183,9 +183,9 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 1.09,
+      "appearTime": 0.3,
       "appearDuration": 0,
-      "life": 10,
+      "life": 5,
       "random": 0,
       "unCounterable": false
     },
@@ -205,12 +205,12 @@
       "initialAngle": 0,
       "polarForm": {
         "x": 1,
-        "y": -0.6981317
+        "y": 0.3926991
       },
       "radiusVlc": 0,
       "thetaVlc": 0,
       "startPos": {
-        "x": 0,
+        "x": -3,
         "y": 0
       },
       "polynomial": {
@@ -221,8 +221,8 @@
       },
       "typeName": "normal",
       "scale": {
-        "x": 1,
-        "y": 1
+        "x": 4,
+        "y": 4
       },
       "color": {
         "x": 1,
@@ -230,9 +230,9 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 0.85,
+      "appearTime": 0.3,
       "appearDuration": 0,
-      "life": 10,
+      "life": 5,
       "random": 0,
       "unCounterable": false
     },
@@ -252,12 +252,12 @@
       "initialAngle": 0,
       "polarForm": {
         "x": 1,
-        "y": -0.6981317
+        "y": 0.3926991
       },
       "radiusVlc": 0,
       "thetaVlc": 0,
       "startPos": {
-        "x": 0,
+        "x": -3,
         "y": 0
       },
       "polynomial": {
@@ -268,8 +268,8 @@
       },
       "typeName": "normal",
       "scale": {
-        "x": 1,
-        "y": 1
+        "x": 4,
+        "y": 4
       },
       "color": {
         "x": 1,
@@ -277,9 +277,9 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 0.97,
+      "appearTime": 0.3,
       "appearDuration": 0,
-      "life": 10,
+      "life": 5,
       "random": 0,
       "unCounterable": false
     },
@@ -299,12 +299,12 @@
       "initialAngle": 0,
       "polarForm": {
         "x": 1,
-        "y": -0.6981317
+        "y": 0.3926991
       },
       "radiusVlc": 0,
       "thetaVlc": 0,
       "startPos": {
-        "x": 0,
+        "x": -3,
         "y": 0
       },
       "polynomial": {
@@ -315,8 +315,8 @@
       },
       "typeName": "normal",
       "scale": {
-        "x": 1,
-        "y": 1
+        "x": 4,
+        "y": 4
       },
       "color": {
         "x": 1,
@@ -324,9 +324,9 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 1.09,
+      "appearTime": 0.3,
       "appearDuration": 0,
-      "life": 10,
+      "life": 5,
       "random": 0,
       "unCounterable": false
     },
@@ -346,12 +346,12 @@
       "initialAngle": 0,
       "polarForm": {
         "x": 1,
-        "y": -0.34906584
+        "y": 0.3926991
       },
       "radiusVlc": 0,
       "thetaVlc": 0,
       "startPos": {
-        "x": 0,
+        "x": -3,
         "y": 0
       },
       "polynomial": {
@@ -362,8 +362,8 @@
       },
       "typeName": "normal",
       "scale": {
-        "x": 1,
-        "y": 1
+        "x": 4,
+        "y": 4
       },
       "color": {
         "x": 1,
@@ -371,9 +371,9 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 0.85,
+      "appearTime": 0.3,
       "appearDuration": 0,
-      "life": 10,
+      "life": 5,
       "random": 0,
       "unCounterable": false
     },
@@ -393,12 +393,12 @@
       "initialAngle": 0,
       "polarForm": {
         "x": 1,
-        "y": -0.34906584
+        "y": 0.3926991
       },
       "radiusVlc": 0,
       "thetaVlc": 0,
       "startPos": {
-        "x": 0,
+        "x": -3,
         "y": 0
       },
       "polynomial": {
@@ -409,8 +409,8 @@
       },
       "typeName": "normal",
       "scale": {
-        "x": 1,
-        "y": 1
+        "x": 4,
+        "y": 4
       },
       "color": {
         "x": 1,
@@ -418,9 +418,9 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 0.97,
+      "appearTime": 0.3,
       "appearDuration": 0,
-      "life": 10,
+      "life": 5,
       "random": 0,
       "unCounterable": false
     },
@@ -440,12 +440,12 @@
       "initialAngle": 0,
       "polarForm": {
         "x": 1,
-        "y": -0.34906584
+        "y": 0.3926991
       },
       "radiusVlc": 0,
       "thetaVlc": 0,
       "startPos": {
-        "x": 0,
+        "x": -3,
         "y": 0
       },
       "polynomial": {
@@ -456,8 +456,8 @@
       },
       "typeName": "normal",
       "scale": {
-        "x": 1,
-        "y": 1
+        "x": 4,
+        "y": 4
       },
       "color": {
         "x": 1,
@@ -465,9 +465,9 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 1.09,
+      "appearTime": 0.3,
       "appearDuration": 0,
-      "life": 10,
+      "life": 5,
       "random": 0,
       "unCounterable": false
     },
@@ -487,12 +487,12 @@
       "initialAngle": 0,
       "polarForm": {
         "x": 1,
-        "y": 0
+        "y": 0.3926991
       },
       "radiusVlc": 0,
       "thetaVlc": 0,
       "startPos": {
-        "x": 0,
+        "x": -3,
         "y": 0
       },
       "polynomial": {
@@ -503,8 +503,8 @@
       },
       "typeName": "normal",
       "scale": {
-        "x": 1,
-        "y": 1
+        "x": 4,
+        "y": 4
       },
       "color": {
         "x": 1,
@@ -512,9 +512,9 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 0.85,
+      "appearTime": 0.3,
       "appearDuration": 0,
-      "life": 10,
+      "life": 5,
       "random": 0,
       "unCounterable": false
     },
@@ -534,12 +534,12 @@
       "initialAngle": 0,
       "polarForm": {
         "x": 1,
-        "y": 0
+        "y": 0.3926991
       },
       "radiusVlc": 0,
       "thetaVlc": 0,
       "startPos": {
-        "x": 0,
+        "x": -3,
         "y": 0
       },
       "polynomial": {
@@ -550,8 +550,8 @@
       },
       "typeName": "normal",
       "scale": {
-        "x": 1,
-        "y": 1
+        "x": 4,
+        "y": 4
       },
       "color": {
         "x": 1,
@@ -559,9 +559,9 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 0.97,
+      "appearTime": 0.3,
       "appearDuration": 0,
-      "life": 10,
+      "life": 5,
       "random": 0,
       "unCounterable": false
     },
@@ -581,12 +581,12 @@
       "initialAngle": 0,
       "polarForm": {
         "x": 1,
-        "y": 0
+        "y": 0.3926991
       },
       "radiusVlc": 0,
       "thetaVlc": 0,
       "startPos": {
-        "x": 0,
+        "x": -3,
         "y": 0
       },
       "polynomial": {
@@ -597,8 +597,8 @@
       },
       "typeName": "normal",
       "scale": {
-        "x": 1,
-        "y": 1
+        "x": 4,
+        "y": 4
       },
       "color": {
         "x": 1,
@@ -606,9 +606,9 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 1.09,
+      "appearTime": 0.3,
       "appearDuration": 0,
-      "life": 10,
+      "life": 5,
       "random": 0,
       "unCounterable": false
     },
@@ -628,12 +628,12 @@
       "initialAngle": 0,
       "polarForm": {
         "x": 1,
-        "y": 0.34906584
+        "y": 0.3926991
       },
       "radiusVlc": 0,
       "thetaVlc": 0,
       "startPos": {
-        "x": 0,
+        "x": -3,
         "y": 0
       },
       "polynomial": {
@@ -644,8 +644,8 @@
       },
       "typeName": "normal",
       "scale": {
-        "x": 1,
-        "y": 1
+        "x": 4,
+        "y": 4
       },
       "color": {
         "x": 1,
@@ -653,9 +653,9 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 0.85,
+      "appearTime": 0.3,
       "appearDuration": 0,
-      "life": 10,
+      "life": 5,
       "random": 0,
       "unCounterable": false
     },
@@ -675,12 +675,12 @@
       "initialAngle": 0,
       "polarForm": {
         "x": 1,
-        "y": 0.34906584
+        "y": 0.3926991
       },
       "radiusVlc": 0,
       "thetaVlc": 0,
       "startPos": {
-        "x": 0,
+        "x": -3,
         "y": 0
       },
       "polynomial": {
@@ -691,8 +691,8 @@
       },
       "typeName": "normal",
       "scale": {
-        "x": 1,
-        "y": 1
+        "x": 4,
+        "y": 4
       },
       "color": {
         "x": 1,
@@ -700,9 +700,9 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 0.97,
+      "appearTime": 0.3,
       "appearDuration": 0,
-      "life": 10,
+      "life": 5,
       "random": 0,
       "unCounterable": false
     },
@@ -722,12 +722,12 @@
       "initialAngle": 0,
       "polarForm": {
         "x": 1,
-        "y": 0.34906584
+        "y": 0.3926991
       },
       "radiusVlc": 0,
       "thetaVlc": 0,
       "startPos": {
-        "x": 0,
+        "x": -3,
         "y": 0
       },
       "polynomial": {
@@ -738,8 +738,8 @@
       },
       "typeName": "normal",
       "scale": {
-        "x": 1,
-        "y": 1
+        "x": 4,
+        "y": 4
       },
       "color": {
         "x": 1,
@@ -747,9 +747,9 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 1.09,
+      "appearTime": 0.3,
       "appearDuration": 0,
-      "life": 10,
+      "life": 5,
       "random": 0,
       "unCounterable": false
     },
@@ -769,12 +769,12 @@
       "initialAngle": 0,
       "polarForm": {
         "x": 1,
-        "y": 0.6981317
+        "y": 0.3926991
       },
       "radiusVlc": 0,
       "thetaVlc": 0,
       "startPos": {
-        "x": 0,
+        "x": -3,
         "y": 0
       },
       "polynomial": {
@@ -785,8 +785,8 @@
       },
       "typeName": "normal",
       "scale": {
-        "x": 1,
-        "y": 1
+        "x": 4,
+        "y": 4
       },
       "color": {
         "x": 1,
@@ -794,103 +794,9 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 0.85,
+      "appearTime": 0.3,
       "appearDuration": 0,
-      "life": 10,
-      "random": 0,
-      "unCounterable": false
-    },
-    {
-      "originPos": {
-        "x": 0,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "startX": 0,
-      "speed": 6,
-      "gravity": 0,
-      "angleSpeed": 0,
-      "initialAngle": 0,
-      "polarForm": {
-        "x": 1,
-        "y": 0.6981317
-      },
-      "radiusVlc": 0,
-      "thetaVlc": 0,
-      "startPos": {
-        "x": 0,
-        "y": 0
-      },
-      "polynomial": {
-        "x": 0,
-        "y": 0,
-        "z": 0,
-        "w": 0
-      },
-      "typeName": "normal",
-      "scale": {
-        "x": 1,
-        "y": 1
-      },
-      "color": {
-        "x": 1,
-        "y": 1,
-        "z": 1,
-        "w": 1
-      },
-      "appearTime": 0.97,
-      "appearDuration": 0,
-      "life": 10,
-      "random": 0,
-      "unCounterable": false
-    },
-    {
-      "originPos": {
-        "x": 0,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "startX": 0,
-      "speed": 6,
-      "gravity": 0,
-      "angleSpeed": 0,
-      "initialAngle": 0,
-      "polarForm": {
-        "x": 1,
-        "y": 0.6981317
-      },
-      "radiusVlc": 0,
-      "thetaVlc": 0,
-      "startPos": {
-        "x": 0,
-        "y": 0
-      },
-      "polynomial": {
-        "x": 0,
-        "y": 0,
-        "z": 0,
-        "w": 0
-      },
-      "typeName": "normal",
-      "scale": {
-        "x": 1,
-        "y": 1
-      },
-      "color": {
-        "x": 1,
-        "y": 1,
-        "z": 1,
-        "w": 1
-      },
-      "appearTime": 1.09,
-      "appearDuration": 0,
-      "life": 10,
+      "life": 5,
       "random": 0,
       "unCounterable": false
     }

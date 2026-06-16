@@ -15,6 +15,7 @@ public class StageReader : MonoBehaviour
     [SerializeField] private int bulletCount = 0;
     [SerializeField] private bool isReady = false;
     private EnemyVisualCatalog enemyVisualCatalog;
+    private BossManager bossManager;
 
     [Serializable]
     private struct BulletSpawnEvent
@@ -44,6 +45,13 @@ public class StageReader : MonoBehaviour
         enemyVisualCatalog?.Release();
         enemyVisualCatalog = await EnemyVisualLoader.LoadCatalogAsync(stageData);
         stageData.enemyVisualCatalog = enemyVisualCatalog;
+
+        bossManager = GetComponent<BossManager>();
+        if (bossManager == null)
+        {
+            bossManager = gameObject.AddComponent<BossManager>();
+        }
+        bossManager.Init(stageData, this);
 
         if (GManager.Control.BClipManager != null)
         {
@@ -131,6 +139,7 @@ public class StageReader : MonoBehaviour
     {
         if (stageData == null || !isReady) return;
         time += dt;
+        bossManager?.UpdateBosses(dt, time);
 
         while (stageData.enemySpawners.Count > enemyCount && stageData.enemySpawners[enemyCount].enemyAppearTime <= time)
         {
@@ -158,6 +167,7 @@ public class StageReader : MonoBehaviour
 
     private void OnDestroy()
     {
+        bossManager?.Clear();
         enemyVisualCatalog?.Release();
         enemyVisualCatalog = null;
     }

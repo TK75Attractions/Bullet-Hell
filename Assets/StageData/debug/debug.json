@@ -18,7 +18,9 @@
   ],
   "delayTime": 3,
   "stageDescription": "Stage Description Here",
+  "enemyVisuals": [],
   "enemySpawners": [],
+  "bossSpawners": [],
   "bulletSpawners": [
     {
       "clipName": "reflectX",
@@ -65,12 +67,12 @@
       }
     },
     {
-      "clipName": "captainwave_L",
-      "count": 4,
-      "interval": 3.2727275,
+      "clipName": "mirror_press_TR",
+      "count": 1,
+      "interval": 0,
       "time": 9,
       "pos": {
-        "x": 16,
+        "x": 0,
         "y": 9
       },
       "originVlc": {
@@ -81,8 +83,30 @@
       "angleInterval": 0,
       "color": {
         "x": 1,
-        "y": 0,
-        "z": 0.3,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      }
+    },
+    {
+      "clipName": "mirror_Bomb",
+      "count": 3,
+      "interval": 0,
+      "time": 9,
+      "pos": {
+        "x": 22,
+        "y": 12
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "angle": 0,
+      "angleInterval": 0,
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
         "w": 1
       }
     }

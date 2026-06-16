@@ -5,7 +5,6 @@ using System;
 
 public class MultiBullet : MonoBehaviour
 {
-    public int id = 0;
     public int arrayIndex = 0;
     public Transform trans;
     private float interval = 0;
@@ -39,7 +38,6 @@ public class MultiBullet : MonoBehaviour
 
     public void Init(int index, EnemySpawner spawner)
     {
-        id = spawner.id;
         arrayIndex = index;
         time = 0f;
         count = 0;
