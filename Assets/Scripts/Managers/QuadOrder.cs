@@ -667,7 +667,7 @@ public class QuadOrder : MonoBehaviour
 
     public List<int> AddEnemyBullets(NativeArray<BulletData> newBullets, float2 fromPos = new float2())
     {
-        if (newBullets.Length == 0) return null;
+        if (newBullets.Length == 0) return new List<int>();
 
         List<int> indexes = new List<int>(newBullets.Length);
 
@@ -682,25 +682,53 @@ public class QuadOrder : MonoBehaviour
         return indexes;
     }
 
-    public void AddEnemyBullets(int index, float2 pos, float2 originVlc, float angle, float4 color)
+    public List<int> AddEnemyBullets(int index, float2 pos, float2 originVlc, float angle, float4 color)
+    {
+        return EmitBulletBuffer(index, pos, originVlc, angle, color);
+    }
+
+    public List<int> EmitBulletBuffer(int index, float2 pos, float2 originVlc, float angle, float4 color)
     {
         List<BulletData> bullets = GManager.Control.BClipManager.GetBulletClip(index, GManager.Control.PController.pos, pos, originVlc, angle, color, out bool isLaser);
 
         if (bullets == null || bullets.Count == 0)
         {
-            return;
+            return new List<int>();
         }
 
         if (isLaser)
         {
             //Debug.Log($"Emitting LASER with index {index} at pos {pos} with angle {angle}");
             allLASERs.AddRange(laserEmitter.EmitLASER(bullets, pos));
-            return;
+            return new List<int>();
         }
 
         NativeArray<BulletData> newBullets = new NativeArray<BulletData>(bullets.ToArray(), Allocator.Temp);
-        AddEnemyBullets(newBullets);
+        List<int> indexes = AddEnemyBullets(newBullets);
         newBullets.Dispose();
+        return indexes;
+    }
+
+    public List<int> EmitBulletBuffer(BulletBufferEmission emission, BulletData source, float dt)
+    {
+        if (emission == null || !emission.HasResolvedClip) return new List<int>();
+
+        if (emission.index == -3)
+        {
+            ClearManagedEnemyDanmaku();
+            return new List<int>();
+        }
+
+        float angle = emission.inheritSourceAngle
+            ? source.angle * Mathf.Rad2Deg + emission.angleOffset
+            : emission.angleOffset;
+        float2 originVlc = emission.originVlc;
+        if (emission.inheritSourceVelocity && dt > 1e-5f)
+        {
+            originVlc += source.velocity / dt;
+        }
+
+        return EmitBulletBuffer(emission.index, source.position, originVlc, angle, emission.color);
     }
 
     public List<int> EmitEnemyBullet(BulletClip clip, int EnemyIndex)
@@ -805,6 +833,18 @@ public class QuadOrder : MonoBehaviour
 
     public int GetWarpZoneCount() => CountActiveBullets(warpZones);
 
+    public bool TryGetEnemyBulletData(int index, out BulletData bullet)
+    {
+        if (!enemyBullets.IsCreated || index < 0 || index >= enemyBullets.Length)
+        {
+            bullet = default;
+            return false;
+        }
+
+        bullet = enemyBullets[index];
+        return true;
+    }
+
     public BulletData GetEnemyBulletData(int index)
     {
         if (!enemyBullets.IsCreated || index < 0 || index >= enemyBullets.Length)
@@ -812,6 +852,27 @@ public class QuadOrder : MonoBehaviour
             throw new IndexOutOfRangeException($"Bullet index {index} is out of range.");
         }
         return enemyBullets[index];
+    }
+
+    public bool TryGetMultiBulletOrbitData(int index, out BulletData bullet)
+    {
+        if (!multiBulletOrbitBullets.IsCreated || index < 0 || index >= multiBulletOrbitBullets.Length)
+        {
+            bullet = default;
+            return false;
+        }
+
+        bullet = multiBulletOrbitBullets[index];
+        return true;
+    }
+
+    public void SetEnemyBulletActive(int index, bool active)
+    {
+        if (!enemyBullets.IsCreated || index < 0 || index >= enemyBullets.Length) return;
+
+        BulletData bullet = enemyBullets[index];
+        bullet.isActive = active;
+        enemyBullets[index] = bullet;
     }
 
     public NativeArray<CounterBullet> GetCounterBullets() => counterBullets.IsCreated ? counterBullets.AsArray() : default;
@@ -1409,7 +1470,7 @@ public class QuadOrder : MonoBehaviour
     #endregion
 
     #region //MultiBulletMethods
-    public async void AddMultiBullet(EnemySpawner spawner)
+    public async void AddMultiBullet(MultiBulletSpawner spawner)
     {
         float t = 0;
         int spawnGeneration = enemySpawnGeneration;

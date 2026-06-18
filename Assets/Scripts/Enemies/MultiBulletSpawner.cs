@@ -1,8 +1,8 @@
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 
 [Serializable]
-public class EnemySpawner
+public class MultiBulletSpawner
 {
     public int count;
     public float enemyInterval;
@@ -11,6 +11,11 @@ public class EnemySpawner
     public int bulletCount;
     public float bulletInterval;
     public BulletData orbit;
+
+    public BulletBufferEmission bulletEmission = new BulletBufferEmission();
+    public List<BulletBufferEmission> bulletBufferTriggers = new List<BulletBufferEmission>();
+
     public BulletClip bulletClip;
+
     public List<BulletChangeClip> bulletChangeClips = new List<BulletChangeClip>();
 }

@@ -385,6 +385,7 @@ public class BulletBufferManager
             return null;
         }
 
+        json = BulletDataJson.NormalizeLegacyGravityJson(json);
         BulletBufferJson data = JsonUtility.FromJson<BulletBufferJson>(json);
         if (data == null)
         {

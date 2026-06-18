@@ -303,8 +303,8 @@ Transform:
   m_GameObject: {fileID: 47708256}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -22.07201, z: 0}
-  m_LocalScale: {x: 28.252174, y: 28.252174, z: 0}
+  m_LocalPosition: {x: 0, y: -11.708559, z: 0}
+  m_LocalScale: {x: 14.986956, y: 14.986956, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -433,8 +433,8 @@ Transform:
   m_GameObject: {fileID: 62090605}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 22.07201, z: 0}
-  m_LocalScale: {x: 28.252174, y: 28.252174, z: 0}
+  m_LocalPosition: {x: 0, y: 11.708559, z: 0}
+  m_LocalScale: {x: 14.986956, y: 14.986956, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -1493,22 +1493,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b351146cb41590488be85d06279f653, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Boss
-  bossId: 0
+  bossId: 
   bossName: 
   bossImage: {fileID: 0}
-  state: 0
   pos:
     x: 10
     y: 13
-  distination:
-    x: 0
-    y: 0
-  repeat: 100
-  bulletPatterns:
-  - clipName: Rumia_0
-    spawnInterval: 0.8
-  - clipName: Rumia_1
-    spawnInterval: 0.8
 --- !u!212 &495541750
 SpriteRenderer:
   serializedVersion: 2
@@ -2734,8 +2724,8 @@ Transform:
   m_GameObject: {fileID: 1068602616}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 22.07201, y: 0, z: 0}
-  m_LocalScale: {x: 15.891848, y: 15.891848, z: 0}
+  m_LocalPosition: {x: 11.708559, y: 0, z: 0}
+  m_LocalScale: {x: 8.430162, y: 8.430162, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -2881,18 +2871,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b351146cb41590488be85d06279f653, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Boss
-  bossId: 0
+  bossId: 
   bossName: 
   bossImage: {fileID: 0}
-  state: 0
   pos:
     x: 5
     y: 13
-  distination:
-    x: 0
-    y: 0
-  repeat: 100
-  bulletPatterns: []
 --- !u!4 &1103050640
 Transform:
   m_ObjectHideFlags: 0
@@ -3339,9 +3323,9 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
-    y: 0.058559775
+    y: 0.26582882
     width: 1
-    height: 0.88288045
+    height: 0.46834236
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -5110,9 +5094,9 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
-    y: 0.058559775
+    y: 0.26582882
     width: 1
-    height: 0.88288045
+    height: 0.46834236
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -5241,9 +5225,9 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
-    y: 0.058559775
+    y: 0.26582882
     width: 1
-    height: 0.88288045
+    height: 0.46834236
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -5442,23 +5426,30 @@ MonoBehaviour:
   separateLevel: 6
   cellCount: 0
   boss: {fileID: 2046423800}
-  enemies: []
+  multiBullets: []
   bulletEvents: []
   inactiveCleanupInterval: 6
+  drawEnemyBulletCollisionGizmos: 1
+  enemyBulletCollisionGizmoColor: {r: 0.1, g: 1, b: 0.3, a: 0.9}
+  enemyBulletCollisionGizmoZ: 0
   drawLaserCollisionGizmos: 0
   laserCollisionGizmoColor: {r: 1, g: 0.2, b: 0.2, a: 0.9}
   laserCollisionGizmoZ: 100
   warpZoneTypeId: -1
   warpZoneTypeName: warp_zone
+  warpZoneReflectXTypeId: -1
+  warpZoneReflectXTypeName: warp_zone_reflect_x
+  warpZoneReflectYTypeId: -1
+  warpZoneReflectYTypeName: warp_zone_reflect_y
   defaultWarpCooldown: 3
   debugSyncNativeBulletListsToInspector: 0
   debugNativeBulletDisplayLimit: 128
   debugEnemyBulletSlotCount: 0
   debugEnemyBulletActiveCount: 0
   debugEnemyBulletEntries: []
-  debugEnemiesOrbitBulletSlotCount: 0
-  debugEnemiesOrbitBulletActiveCount: 0
-  debugEnemiesOrbitBulletEntries: []
+  debugMultiBulletOrbitSlotCount: 0
+  debugMultiBulletOrbitActiveCount: 0
+  debugMultiBulletOrbitEntries: []
   laserEmitter: {fileID: 1890939116}
   allLASERs: []
 --- !u!114 &1890939115
@@ -5476,7 +5467,7 @@ MonoBehaviour:
   isRaymeeDebug: 1
   state: 1
   PlayerObj: {fileID: 3602127599334733260, guid: 79cef28de94e46342ace55bfe592f674, type: 3}
-  EnemyObj: {fileID: 3602127599334733260, guid: 4feb5d1ec2b44f94c8ddc31c3594024a, type: 3}
+  MultiBulletObj: {fileID: 3602127599334733260, guid: 4feb5d1ec2b44f94c8ddc31c3594024a, type: 3}
   PController:
     pos:
       x: 0
@@ -5489,11 +5480,11 @@ MonoBehaviour:
     hitInvincibleDuration: 0.2
     dash: 0
   IManager: {fileID: 1890939113}
-  SReader: {fileID: 0}
-  AManager: {fileID: 0}
-  BManager: {fileID: 0}
-  CManager: {fileID: 0}
-  SSManager: {fileID: 0}
+  SReader: {fileID: 1890939117}
+  AManager: {fileID: 81251790}
+  BManager: {fileID: 336723600}
+  CManager: {fileID: 1034609574}
+  SSManager: {fileID: 1761555820}
   BClipManager:
     bulletBuffers: []
   QOrder: {fileID: 1890939114}
@@ -5503,8 +5494,6 @@ MonoBehaviour:
   SEDB: {fileID: 0}
   EDB: {fileID: 11400000, guid: 8df51ad6b15942041bbc8e71d4685d05, type: 2}
   BRS: {fileID: 1890939112}
-  gameTime: 0
-  ready: 0
   musicOn: 0
   playerHitCount: 0
   counterHitBossCount: 0
@@ -5547,11 +5536,13 @@ MonoBehaviour:
     MusicEvents: []
     delayTime: 0
     stageDescription: 
-    enemySpawners: []
+    enemyVisuals: []
+    multiBulletSpawners: []
+    bossSpawners: []
     bulletSpawners: []
   spawnEvents: []
   time: 0
-  enemyCount: 0
+  multiBulletSpawnerCount: 0
   bulletCount: 0
   isReady: 0
 --- !u!1 &1893457097
@@ -5669,8 +5660,8 @@ Transform:
   m_GameObject: {fileID: 1928468751}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -22.07201, y: 0, z: 0}
-  m_LocalScale: {x: 15.891848, y: 15.891848, z: 0}
+  m_LocalPosition: {x: -11.708559, y: 0, z: 0}
+  m_LocalScale: {x: 8.430162, y: 8.430162, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -6080,9 +6071,9 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
-    y: 0.058559775
+    y: 0.26582882
     width: 1
-    height: 0.88288045
+    height: 0.46834236
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -6362,18 +6353,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b351146cb41590488be85d06279f653, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Boss
-  bossId: 0
+  bossId: 
   bossName: 
   bossImage: {fileID: 0}
-  state: 0
   pos:
     x: 10
     y: 10
-  distination:
-    x: 0
-    y: 0
-  repeat: 0
-  bulletPatterns: []
 --- !u!4 &2046423801
 Transform:
   m_ObjectHideFlags: 0

@@ -26,7 +26,6 @@ public class GManager : MonoBehaviour
     }
 
     public GameState state = GameState.Title;
-
     public GameObject PlayerObj;
     [FormerlySerializedAs("EnemyObj")]
     public GameObject MultiBulletObj;
@@ -47,12 +46,16 @@ public class GManager : MonoBehaviour
     public EnemyDataBase EDB;
     public BulletRenderSystem BRS;
 
-    public float gameTime;
-    public bool ready = false;
+    public float gameTime { get; private set; } = 0f;
+    public bool ready { get; private set; } = false;
 
     public bool musicOn = false;
     public int playerHitCount = 0;
     public int counterHitBossCount = 0;
+
+    public Difficulty CurrentDifficulty { get; private set; } = Difficulty.Easy;
+    public int CurrentStageIndex { get; private set; } = -1;
+    public StageData CurrentStageData { get; private set; }
 
     public async void Awake()
     {
@@ -169,21 +172,24 @@ public class GManager : MonoBehaviour
         return (float)deg;
     }
 
-    public async void GoGame(int index)
+    public async void GoGame(int index, Difficulty difficulty)
     {
         StageData stage = SDB.GetStage(index);
-        if (stage != null)
-        {
-            playerHitCount = 0;
-            counterHitBossCount = 0;
-            await SReader.Init(stage);
-            state = GameState.Playing;
-            Debug.Log($"Started Stage: {stage.stageName}");
-        }
-        else
+        if (stage == null)
         {
             Debug.LogError($"Stage with index {index} not found!");
+            return;
         }
+
+        CurrentStageIndex = index;
+        CurrentStageData = stage;
+        CurrentDifficulty = difficulty;
+
+        playerHitCount = 0;
+        counterHitBossCount = 0;
+        await SReader.Init(stage);
+        state = GameState.Playing;
+        Debug.Log($"Started Stage: {stage.stageName}, Difficulty: {difficulty}");
     }
 
     public void AddPlayerHitCount(int value = 1)

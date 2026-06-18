@@ -13,6 +13,7 @@ public class DefficultyBar : MonoBehaviour
 
     private DefficultyBox[] boxes = new DefficultyBox[3];
     public int index = 0;
+    public Difficulty SelectedDifficulty => (Difficulty)Mathf.Clamp(index, 0, boxes.Length - 1);
     private readonly float duration = 0.15f;
     private bool isTransitioning = false;
 

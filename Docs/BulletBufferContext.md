@@ -109,11 +109,14 @@ Stage bullet spawners:
 
 Enemy bullet emission:
 
-1. `StageReader` passes enemy spawners to `QuadOrder.AddEnemy()`.
-2. Enemy `orbit` is added to `enemiesOrbitBullets` and updated by `BulletDataUpdateJob`.
-3. `Enemy.Shot()` passes `bulletClip` to `QuadOrder.EmitEnemyBullet()`.
-4. `bulletClip.number` and `disRad` create a fan. `disRad` is treated as degrees and converted with `math.radians()`.
-5. `bulletChangeClips` can later call `QuadOrder.UpdateBulletData()` to replace a single bullet or deactivate old bullets and emit a new clip.
+1. `StageReader` passes enemy spawners to `QuadOrder.AddMultiBullet()`.
+2. Enemy `orbit` is added to `multiBulletOrbitBullets` and updated by `BulletDataUpdateJob`.
+3. `StageReader.Init()` resolves `multiBulletSpawners[].bulletEmission.clipName` and every `bulletBufferTriggers[].clipName`.
+4. `MultiBullet.Shot()` emits the initial `bulletEmission` through `QuadOrder.EmitBulletBuffer()`.
+5. The emitted normal bullet indexes are cached. After each trigger `time`, `MultiBullet` uses each source bullet's current position as the next BulletBuffer origin.
+6. Trigger angle defaults to the source bullet angle plus `angleOffset` degrees. Set `angleMode` to `absolute` or `fixed` to use `angleOffset` as an absolute degree angle.
+7. `inheritSourceVelocity` adds the source bullet's per-second velocity to trigger `originVlc`; `deactivateSource` disables the source bullet after the trigger emits.
+8. Legacy `bulletClip` and `bulletChangeClips` are still read as a fallback for old StageData, but new data should use BulletBuffer names.
 
 Angle conventions:
 

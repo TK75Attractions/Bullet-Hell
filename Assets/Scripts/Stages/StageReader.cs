@@ -11,7 +11,7 @@ public class StageReader : MonoBehaviour
     [SerializeField] private StageData stageData;
     [SerializeField] private List<BulletSpawnEvent> spawnEvents = new List<BulletSpawnEvent>();
     [SerializeField] private float time = 0f;
-    [SerializeField] private int enemyCount = 0;
+    [SerializeField] private int multiBulletSpawnerCount = 0;
     [SerializeField] private int bulletCount = 0;
     [SerializeField] private bool isReady = false;
     private EnemyVisualCatalog enemyVisualCatalog;
@@ -32,7 +32,7 @@ public class StageReader : MonoBehaviour
     {
         stageData = data;
         time = 0f;
-        enemyCount = 0;
+        multiBulletSpawnerCount = 0;
         bulletCount = 0;
         spawnEvents.Clear();
         isReady = false;
@@ -85,7 +85,8 @@ public class StageReader : MonoBehaviour
             }
         }
 
-        stageData.enemySpawners.Sort((a, b) => a.enemyAppearTime.CompareTo(b.enemyAppearTime));
+        stageData.multiBulletSpawners.Sort((a, b) => a.enemyAppearTime.CompareTo(b.enemyAppearTime));
+        ResolveMultiBulletSpawnerBulletBuffers();
 
         for (int i = 0; i < stageData.bulletSpawners.Count; i++)
         {
@@ -130,6 +131,57 @@ public class StageReader : MonoBehaviour
         return true;
     }
 
+    private void ResolveMultiBulletSpawnerBulletBuffers()
+    {
+        if (stageData == null || stageData.multiBulletSpawners == null) return;
+        if (GManager.Control.BClipManager == null) return;
+
+        for (int i = 0; i < stageData.multiBulletSpawners.Count; i++)
+        {
+            MultiBulletSpawner spawner = stageData.multiBulletSpawners[i];
+            if (spawner == null) continue;
+
+            if (spawner.bulletEmission == null)
+            {
+                spawner.bulletEmission = new BulletBufferEmission();
+            }
+
+            if (spawner.bulletBufferTriggers == null)
+            {
+                spawner.bulletBufferTriggers = new List<BulletBufferEmission>();
+            }
+
+            ResolveBulletBufferEmission(spawner.bulletEmission, $"multiBulletSpawners[{i}].bulletEmission");
+
+            for (int triggerIndex = 0; triggerIndex < spawner.bulletBufferTriggers.Count; triggerIndex++)
+            {
+                ResolveBulletBufferEmission(
+                    spawner.bulletBufferTriggers[triggerIndex],
+                    $"multiBulletSpawners[{i}].bulletBufferTriggers[{triggerIndex}]");
+            }
+        }
+    }
+
+    private void ResolveBulletBufferEmission(BulletBufferEmission emission, string context)
+    {
+        if (emission == null || string.IsNullOrWhiteSpace(emission.clipName)) return;
+
+        if (GManager.Control.BClipManager.TryGetBulletClipIndex(emission.clipName, out int clipIndex))
+        {
+            emission.index = clipIndex;
+            if (LogStageSchedule) Debug.Log($"Bullet buffer found: {emission.clipName} at index {clipIndex} for {context}");
+            return;
+        }
+
+        if (string.Equals(emission.clipName, "Clear", StringComparison.Ordinal))
+        {
+            emission.index = -3;
+            return;
+        }
+
+        Debug.LogError($"Bullet buffer not found: {emission.clipName} for {context}");
+    }
+
     public EnemyVisualSetRuntime GetEnemyVisual(string visualId)
     {
         return enemyVisualCatalog?.GetVisual(visualId);
@@ -141,12 +193,12 @@ public class StageReader : MonoBehaviour
         time += dt;
         bossManager?.UpdateBosses(dt, time);
 
-        while (stageData.enemySpawners.Count > enemyCount && stageData.enemySpawners[enemyCount].enemyAppearTime <= time)
+        while (stageData.multiBulletSpawners.Count > multiBulletSpawnerCount && stageData.multiBulletSpawners[multiBulletSpawnerCount].enemyAppearTime <= time)
         {
-            EnemySpawner spawner = stageData.enemySpawners[enemyCount];
+            MultiBulletSpawner spawner = stageData.multiBulletSpawners[multiBulletSpawnerCount];
             GManager.Control.QOrder.AddMultiBullet(spawner);
-            if (LogStageSchedule) Debug.Log($"Spawned enemy: {spawner.orbit.speed}");
-            enemyCount++;
+            if (LogStageSchedule) Debug.Log($"Spawned multi bullet: {spawner.orbit.speed}");
+            multiBulletSpawnerCount++;
         }
 
         while (spawnEvents.Count > bulletCount && spawnEvents[bulletCount].time <= time)

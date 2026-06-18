@@ -56,9 +56,11 @@ public struct WarpBulletJob : IJobParallelFor
         bullet.originVlc = exitVelocity;
 
         bullet.speed = 0f;
-        bullet.gravity = 0f;
+        bullet.gravity = new float2(0f, 0f);
         bullet.radiusVlc = 0f;
         bullet.thetaVlc = 0f;
+        bullet.radiusAccel = 0f;
+        bullet.thetaAccel = 0f;
         bullet.playerInfluence = new float2(0f, 0f);
         bullet.random = 0f;
 

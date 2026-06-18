@@ -19,83 +19,17 @@
   "delayTime": 3,
   "stageDescription": "Stage Description Here",
   "enemyVisuals": [],
-  "enemySpawners": [],
+  "multiBulletSpawners": [],
   "bossSpawners": [],
   "bulletSpawners": [
     {
-      "clipName": "reflectX",
+      "clipName": "magic_0",
       "count": 1,
       "interval": 0,
       "time": 9,
       "pos": {
-        "x": 0,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.9,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "reflectY",
-      "count": 1,
-      "interval": 0,
-      "time": 9,
-      "pos": {
-        "x": 0,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.9,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "mirror_press_TR",
-      "count": 1,
-      "interval": 0,
-      "time": 9,
-      "pos": {
-        "x": 0,
+        "x": 16,
         "y": 9
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 1,
-        "z": 1,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "mirror_Bomb",
-      "count": 3,
-      "interval": 0,
-      "time": 9,
-      "pos": {
-        "x": 22,
-        "y": 12
       },
       "originVlc": {
         "x": 0,

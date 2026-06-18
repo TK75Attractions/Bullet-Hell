@@ -74,7 +74,7 @@ public class StageSelectManager : MonoBehaviour
                 }
                 else if (button)
                 {
-                    GManager.Control.GoGame(stageBar.currentStage);
+                    GManager.Control.GoGame(stageBar.currentStage, defficultyBar.SelectedDifficulty);
                     state = State.InGame;
                     variableCG.alpha = 0;
                     staticCG.alpha = 0;

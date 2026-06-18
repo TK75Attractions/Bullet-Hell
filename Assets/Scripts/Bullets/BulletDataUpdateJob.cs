@@ -108,7 +108,11 @@ public struct BulletDataUpdateJob : IJobParallelFor
         bullet.nowCalculateVlc = vec / magnitude * bullet.speed;
 
         //算出したベクトルの回転計算
-        bullet.polarForm = new float2(bullet.radiusVlc * dt, bullet.thetaVlc * dt) + bullet.polarForm;
+        float2 polarVelocity = new float2(bullet.radiusVlc, bullet.thetaVlc);
+        float2 polarAccel = new float2(bullet.radiusAccel, bullet.thetaAccel);
+        bullet.polarForm += polarVelocity * dt + 0.5f * polarAccel * dt * dt;
+        bullet.radiusVlc += bullet.radiusAccel * dt;
+        bullet.thetaVlc += bullet.thetaAccel * dt;
         double cos = math.cos(bullet.polarForm.y);
         double sin = math.sin(bullet.polarForm.y);
         float2 rotatedVector = bullet.polarForm.x * new float2((float)(disVector.x * cos - disVector.y * sin), (float)(disVector.x * sin + disVector.y * cos));
@@ -117,10 +121,11 @@ public struct BulletDataUpdateJob : IJobParallelFor
         float2 unGravitatedPos = rotatedVector + noisyOriginPos;
 
         //重力の影響を加算
-        if (bullet.gravity != 0 && lapse > 0)
+        if (bullet.gravity.x != 0f && lapse > 0f)
         {
-            float h = bullet.gravity * lapse * lapse / 2;
-            float2 gravitatedPos = unGravitatedPos - new float2(0, h);
+            float h = bullet.gravity.x * lapse * lapse / 2f;
+            float2 gravityDirection = new float2(math.cos(bullet.gravity.y), math.sin(bullet.gravity.y));
+            float2 gravitatedPos = unGravitatedPos + gravityDirection * h;
             bullet.velocity = gravitatedPos - bullet.position;
             bullet.position = gravitatedPos;
         }
