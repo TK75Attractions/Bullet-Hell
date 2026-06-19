@@ -3,21 +3,14 @@ using Unity.Mathematics;
 using System.Collections.Generic;
 using System;
 
-public class MultiBullet : MonoBehaviour
+public class MultiBullet
 {
     public int arrayIndex = 0;
-    public Transform trans;
-    private float interval = 0;
-    private float startInterval = 1.6f;
-    private int bulletCount = 0;
     public bool isActive = false;
     private bool isReady = false;
-    private int count = 0;
 
     public BulletBufferEmission bulletEmission = new BulletBufferEmission();
     public List<BulletBufferEmission> bulletBufferTriggers = new List<BulletBufferEmission>();
-    public BulletClip bulletClip = new BulletClip();
-    public List<BulletChangeClip> bulletChangeClips = new List<BulletChangeClip>();
     private List<BulletChache> bulletChaches = new List<BulletChache>();
 
     [Serializable]
@@ -42,20 +35,11 @@ public class MultiBullet : MonoBehaviour
     {
         arrayIndex = index;
         time = 0f;
-        count = 0;
         isReady = false;
 
-        interval = spawner.bulletInterval;
-        bulletCount = spawner.bulletCount;
         bulletEmission = spawner.bulletEmission ?? new BulletBufferEmission();
         bulletBufferTriggers = spawner.bulletBufferTriggers ?? new List<BulletBufferEmission>();
-        bulletClip = spawner.bulletClip;
-        bulletChangeClips = spawner.bulletChangeClips;
         bulletChaches.Clear();
-
-        trans = transform;
-        trans.localScale = new Vector3(spawner.orbit.scale.x, spawner.orbit.scale.y, 1);
-        startInterval = spawner.bulletEmitTime;
 
         isActive = true;
     }
@@ -75,31 +59,12 @@ public class MultiBullet : MonoBehaviour
     {
         if (!isReady)
         {
-            if (time > startInterval)
-            {
-                isReady = true;
-                time = 0;
-            }
+
         }
         else
         {
-            if (time > interval)
-            {
-                time = 0;
-                if (count < bulletCount)
-                {
-                    List<int> emitted = EmitInitialBullets(dt);
-                    if (UsesBulletBufferTriggers())
-                    {
-                        QueueNextBufferTrigger(emitted, 0);
-                    }
-                    else
-                    {
-                        QueueNextLegacyChangeClip(emitted, 0);
-                    }
-                    count++;
-                }
-            }
+            List<int> emitted = EmitInitialBullets(dt);
+            QueueNextBufferTrigger(emitted, 0);
         }
     }
 
@@ -107,17 +72,7 @@ public class MultiBullet : MonoBehaviour
     {
         if (bulletEmission != null && bulletEmission.HasResolvedClip)
         {
-            if (GManager.Control.QOrder.TryGetMultiBulletOrbitData(arrayIndex, out BulletData orbit))
-            {
-                return GManager.Control.QOrder.EmitBulletBuffer(bulletEmission, orbit, dt);
-            }
 
-            return new List<int>();
-        }
-
-        if (bulletClip.number > 0)
-        {
-            return GManager.Control.QOrder.EmitEnemyBullet(bulletClip, arrayIndex);
         }
 
         return new List<int>();
@@ -125,18 +80,7 @@ public class MultiBullet : MonoBehaviour
 
     private void UpdateChache(float dt)
     {
-        if (UsesBulletBufferTriggers())
-        {
-            UpdateBufferChache(dt);
-            return;
-        }
-
-        UpdateLegacyChache(dt);
-    }
-
-    private bool UsesBulletBufferTriggers()
-    {
-        return bulletBufferTriggers != null && bulletBufferTriggers.Count > 0;
+        UpdateBufferChache(dt);
     }
 
     private void UpdateBufferChache(float dt)
@@ -174,7 +118,7 @@ public class MultiBullet : MonoBehaviour
             if (!GManager.Control.QOrder.TryGetEnemyBulletData(index, out BulletData source)) continue;
             if (!source.isActive || source.isClearing) continue;
 
-            List<int> emitted = GManager.Control.QOrder.EmitBulletBuffer(trigger, source, dt);
+            List<int> emitted = GManager.Control.QOrder.EmitBulletBuffer(trigger, source);
             if (emitted != null && emitted.Count > 0)
             {
                 emittedIndexes.AddRange(emitted);
@@ -196,52 +140,5 @@ public class MultiBullet : MonoBehaviour
 
         BulletChache chache = new BulletChache(indexes, bulletBufferTriggers[triggerIndex].time, triggerIndex);
         bulletChaches.Add(chache);
-    }
-
-    private void QueueNextLegacyChangeClip(List<int> indexes, int clipIndex)
-    {
-        if (indexes == null || indexes.Count == 0) return;
-        if (bulletChangeClips == null || clipIndex < 0 || clipIndex >= bulletChangeClips.Count) return;
-
-        BulletChache chache = new BulletChache(indexes, bulletChangeClips[clipIndex].time, clipIndex);
-        bulletChaches.Add(chache);
-    }
-
-    private void UpdateLegacyChache(float dt)
-    {
-        for (int i = bulletChaches.Count - 1; i >= 0; i--)
-        {
-            BulletChache chache = bulletChaches[i];
-            chache.time -= dt;
-            if (chache.time <= 0)
-            {
-                if (bulletChangeClips != null && chache.clipCount >= 0 && chache.clipCount < bulletChangeClips.Count)
-                {
-                    List<int> updatedIndexes = GManager.Control.QOrder.UpdateBulletData(chache.indexes, bulletChangeClips[chache.clipCount].clip);
-                    int nextClip = chache.clipCount + 1;
-
-                    if (updatedIndexes != null && updatedIndexes.Count > 0 && nextClip < bulletChangeClips.Count)
-                    {
-                        float nextTime = bulletChangeClips[chache.clipCount].time;
-                        if (nextTime <= 0)
-                        {
-                            nextTime = bulletChangeClips[nextClip].time;
-                        }
-
-                        if (nextTime > 0)
-                        {
-                            BulletChache nextChache = new BulletChache(updatedIndexes, nextTime, nextClip);
-                            bulletChaches.Add(nextChache);
-                        }
-                    }
-                }
-                bulletChaches.RemoveAt(i);
-            }
-        }
-    }
-
-    public void Destroy()
-    {
-        Destroy(this.gameObject);
     }
 }

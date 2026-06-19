@@ -21,7 +21,6 @@ public class ScreenNoiseBlurFeature : ScriptableRendererFeature
 
     [SerializeField] private ScreenNoiseBlurSettings settings = new ScreenNoiseBlurSettings();
     [SerializeField] private int debugAddRenderPassCount;
-    [SerializeField] private int debugExecuteCount;
     [SerializeField] private int debugRecordRenderGraphCount;
     [SerializeField] private string debugLastCameraName;
     [SerializeField] private string debugLastSkipReason;
@@ -74,7 +73,6 @@ public class ScreenNoiseBlurFeature : ScriptableRendererFeature
             cameraManager.CurrentJitterPixels,
             cameraManager.CurrentStrength,
             settings.maxBlurPixels,
-            OnExecutePass,
             OnRecordRenderGraphPass
         );
         renderer.EnqueuePass(pass);
@@ -82,7 +80,6 @@ public class ScreenNoiseBlurFeature : ScriptableRendererFeature
 
     protected override void Dispose(bool disposing)
     {
-        pass?.Dispose();
         CoreUtils.Destroy(material);
         material = null;
     }
@@ -146,11 +143,6 @@ public class ScreenNoiseBlurFeature : ScriptableRendererFeature
         return true;
     }
 
-    private void OnExecutePass()
-    {
-        debugExecuteCount++;
-    }
-
     private void OnRecordRenderGraphPass()
     {
         debugRecordRenderGraphCount++;
@@ -164,72 +156,22 @@ public class ScreenNoiseBlurFeature : ScriptableRendererFeature
         private const string PassName = "Screen Noise Blur";
 
         private Material material;
-        private RTHandle tempTexture;
         private Vector2 blurPixels;
         private Vector2 jitterPixels;
         private float strength;
         private float maxBlurPixels;
-        private Action onExecutePass;
         private Action onRecordRenderGraphPass;
 
-        public void Setup(Material material, Vector2 blurPixels, Vector2 jitterPixels, float strength, float maxBlurPixels, Action onExecutePass, Action onRecordRenderGraphPass)
+        public void Setup(Material material, Vector2 blurPixels, Vector2 jitterPixels, float strength, float maxBlurPixels, Action onRecordRenderGraphPass)
         {
             this.material = material;
             this.blurPixels = blurPixels;
             this.jitterPixels = jitterPixels;
             this.strength = strength;
             this.maxBlurPixels = Mathf.Max(0f, maxBlurPixels);
-            this.onExecutePass = onExecutePass;
             this.onRecordRenderGraphPass = onRecordRenderGraphPass;
             requiresIntermediateTexture = true;
             ConfigureInput(ScriptableRenderPassInput.Color);
-        }
-
-        public void Dispose()
-        {
-            tempTexture?.Release();
-            tempTexture = null;
-        }
-
-        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        {
-            if (material == null || strength <= 0f || maxBlurPixels <= 0f)
-            {
-                return;
-            }
-
-            RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
-            descriptor.depthBufferBits = 0;
-            RenderingUtils.ReAllocateHandleIfNeeded(
-                ref tempTexture,
-                descriptor,
-                FilterMode.Bilinear,
-                TextureWrapMode.Clamp,
-                name: "_ScreenNoiseBlurTemp"
-            );
-        }
-
-        public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
-        {
-            if (material == null || tempTexture == null || strength <= 0f || maxBlurPixels <= 0f)
-            {
-                return;
-            }
-
-            RTHandle source = renderingData.cameraData.renderer.cameraColorTargetHandle;
-            if (source == null)
-            {
-                return;
-            }
-
-            ApplyMaterialParameters();
-
-            CommandBuffer cmd = CommandBufferPool.Get(PassName);
-            Blitter.BlitCameraTexture(cmd, source, tempTexture, material, 0);
-            Blitter.BlitCameraTexture(cmd, tempTexture, source);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-            onExecutePass?.Invoke();
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)

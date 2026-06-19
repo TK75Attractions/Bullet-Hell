@@ -3,7 +3,6 @@ using Unity.Collections;
 using Unity.Mathematics;
 using System.Collections.Generic;
 using UnityEngine.Video;
-using UnityEngine.Serialization;
 
 [System.Serializable]
 public class StageData
@@ -58,7 +57,6 @@ public class StageData
 
     public List<EnemyVisualDefinition> enemyVisuals = new List<EnemyVisualDefinition>();
 
-    [FormerlySerializedAs("enemySpawners")]
     public List<MultiBulletSpawner> multiBulletSpawners = new List<MultiBulletSpawner>();
 
     public List<BossSpawner> bossSpawners = new List<BossSpawner>();

@@ -1,14 +1,10 @@
 using System;
-using System.Text.RegularExpressions;
 using Unity.Mathematics;
 using UnityEngine;
 
 [Serializable]
 public struct BulletDataJson
 {
-    private const string LegacyGravityJsonPattern = "\"gravity\"\\s*:\\s*(-?\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?)";
-    private const string LegacyGravityJsonReplacement = "\"gravity\":{\"x\":$1,\"y\":-1.5707964}";
-
     public Vector2 originPos; //原点位置
     public Vector2 originVlc; //原点の移動速度
     public Vector2 playerInfluence;
@@ -30,7 +26,6 @@ public struct BulletDataJson
 
     public string typeName;
     public Vector2 scale;
-    public float size; // legacy fallback
     public Vector4 color;
     public float appearTime;//弾幕を表示する時間、レーザーでは太さを指定
     public float appearDuration;//appearTime直前に演出を適用する時間
@@ -39,19 +34,12 @@ public struct BulletDataJson
     public float warpCooldown;
     public bool unCounterable;
 
-    public static string NormalizeLegacyGravityJson(string json)
-    {
-        if (string.IsNullOrEmpty(json)) return json;
-        return Regex.Replace(json, LegacyGravityJsonPattern, LegacyGravityJsonReplacement);
-    }
-
     public BulletData ToBulletData()
     {
         float2 resolvedScale = new float2(scale.x, scale.y);
         if (resolvedScale.x == 0f && resolvedScale.y == 0f)
         {
-            float legacy = size > 0f ? size : 1f;
-            resolvedScale = new float2(legacy, legacy);
+            resolvedScale = new float2(1f, 1f);
         }
 
         BulletData b = new BulletData

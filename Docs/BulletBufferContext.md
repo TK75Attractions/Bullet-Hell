@@ -37,7 +37,7 @@ Top-level shape:
 Rules:
 
 - `bullets` is required.
-- `homing` makes `BulletBufferManager.GetBulletClip()` aim the whole buffer at the current player position from the spawn position.
+- `homing` makes `BulletBufferManager.CreateSpawnedBullets()` aim the whole buffer at the current player position from the spawn position.
 - `isLaser` routes the spawned data to `LaserEmitter.EmitLASER()` instead of appending normal bullets to `enemyBullets`.
 
 BulletDataJson shape:
@@ -91,7 +91,7 @@ Important load quirks:
 
 - `BulletDataJson.ToBulletData()` directly assigns fields and does not call the main `BulletData` constructor.
 - Because of that, JSON should explicitly set `startPos`. Usually set it to `{ "x": startX, "y": polynomial(startX) }`, or `{ "x": 0, "y": 0 }` when `startX` and polynomial are zero.
-- New assets should use `scale`. Legacy `size` is only used if `scale` is `{0,0}`.
+- `scale` is required for bullet size. If omitted or `{0,0}`, runtime falls back to `{1,1}`.
 - `appearDuration` defaults to `0` when omitted. During `appearTime`, the bullet receives almost-zero trajectory updates and then appears immediately.
 - `life <= 0` means no life timeout. Use positive life values for cleanup.
 - Spawn color is multiplied with JSON color. Keep either JSON color or spawner color at white `{1,1,1,1}` unless multiplication is intentional.
@@ -101,10 +101,10 @@ Important load quirks:
 Stage bullet spawners:
 
 1. `StageReader.Init()` scans `stageData.bulletSpawners`.
-2. It resolves `clipName` with `BulletBufferManager.TryGetBulletClipIndex()`.
+2. It resolves `clipName` with `BulletBufferManager.TryGetBulletBufferIndex()`.
 3. It expands `count`, `interval`, `time`, and `angleInterval` into scheduled `BulletSpawnEvent` entries.
 4. `StageReader.UpdateStage()` calls `QuadOrder.AddEnemyBullets(index, pos, originVlc, angle, color)` when an event reaches its time.
-5. `BulletBufferManager.GetBulletClip()` clones the template BulletData entries into spawned BulletData entries.
+5. `BulletBufferManager.CreateSpawnedBullets()` clones the template BulletData entries into spawned BulletData entries.
 6. Normal buffers append to `enemyBullets`; laser buffers go to `LaserEmitter`.
 
 Enemy bullet emission:
@@ -116,7 +116,7 @@ Enemy bullet emission:
 5. The emitted normal bullet indexes are cached. After each trigger `time`, `MultiBullet` uses each source bullet's current position as the next BulletBuffer origin.
 6. Trigger angle defaults to the source bullet angle plus `angleOffset` degrees. Set `angleMode` to `absolute` or `fixed` to use `angleOffset` as an absolute degree angle.
 7. `inheritSourceVelocity` adds the source bullet's per-second velocity to trigger `originVlc`; `deactivateSource` disables the source bullet after the trigger emits.
-8. Legacy `bulletClip` and `bulletChangeClips` are still read as a fallback for old StageData, but new data should use BulletBuffer names.
+8. MultiBullet patterns are defined by `bulletEmission` and `bulletBufferTriggers`.
 
 Angle conventions:
 
@@ -245,5 +245,5 @@ Snake or wave:
 - Normal bullet `startPos` matches `startX` and `polynomial`.
 - Spawn position and trajectory stay in the valid play area unless intentional.
 - Use positive `life` for cleanup.
-- Prefer `scale` over legacy `size`.
+- Set `scale` explicitly; `size` is not supported.
 - For lasers, use `isLaser: true`, `scale` as length, and `appearTime` as width.

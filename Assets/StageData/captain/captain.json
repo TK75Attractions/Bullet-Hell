@@ -40,8 +40,6 @@
       "enemyAppearTime": 22.09091,
       "bulletEmitTime": 0.03,
       "bulletCount": 1,
-      "bulletInterval": 0,
-      "life": 10,
       "orbit": {
         "originPos": {
           "x": 16,
@@ -53,7 +51,10 @@
         },
         "startX": 0,
         "speed": 0,
-        "gravity": 0,
+        "gravity": {
+          "x": 0,
+          "y": -1.5707964
+        },
         "angleSpeed": 0,
         "initialAngle": 0,
         "polarForm": {
@@ -89,113 +90,42 @@
         "random": 0,
         "unCounterable": false
       },
-      "bulletClip": {
-        "data": {
-          "originPos": {
-            "x": 0,
-            "y": 0
-          },
+      "bulletEmission": {
+        "clipName": "captain_normal_fan_8",
+        "time": 0,
+        "originVlc": {
+          "x": 0,
+          "y": 0
+        },
+        "angleOffset": 0,
+        "angleMode": "",
+        "inheritSourceVelocity": false,
+        "deactivateSource": false,
+        "color": {
+          "x": 1,
+          "y": 1,
+          "z": 1,
+          "w": 1
+        }
+      },
+      "bulletBufferTriggers": [
+        {
+          "clipName": "captain_tear_fan_5",
+          "time": 0.6,
           "originVlc": {
             "x": 0,
             "y": 0
           },
-          "startX": 0,
-          "speed": 5,
-          "gravity": 0,
-          "angleSpeed": 0,
-          "initialAngle": 0,
-          "polarForm": {
-            "x": 1,
-            "y": 0
-          },
-          "radiusVlc": 0,
-          "thetaVlc": 0,
-          "startPos": {
-            "x": 0,
-            "y": 0
-          },
-          "polynomial": {
-            "x": 0,
-            "y": 0,
-            "z": 0,
-            "w": 0
-          },
-          "typeName": "normal",
-          "scale": {
-            "x": 1,
-            "y": 1
-          },
+          "angleOffset": 0,
+          "angleMode": "",
+          "inheritSourceVelocity": false,
+          "deactivateSource": true,
           "color": {
             "x": 1,
-            "y": 0,
-            "z": 0.3,
+            "y": 1,
+            "z": 1,
             "w": 1
-          },
-          "appearTime": 0.05,
-          "appearDuration": 0,
-          "life": 4,
-          "random": 0,
-          "unCounterable": false
-        },
-        "number": 8,
-        "disRad": 40,
-        "homing": true
-      },
-      "bulletChangeClips": [
-        {
-          "clip": {
-            "data": {
-              "originPos": {
-                "x": 0,
-                "y": 0
-              },
-              "originVlc": {
-                "x": 0,
-                "y": 0
-              },
-              "startX": 0,
-              "speed": 3,
-              "gravity": 2,
-              "angleSpeed": 0,
-              "initialAngle": 0,
-              "polarForm": {
-                "x": 1,
-                "y": 0
-              },
-              "radiusVlc": 0,
-              "thetaVlc": 0,
-              "startPos": {
-                "x": 0,
-                "y": 0
-              },
-              "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-              },
-              "typeName": "tear",
-              "scale": {
-                "x": 1,
-                "y": 1
-              },
-              "color": {
-                "x": 1,
-                "y": 0,
-                "z": 0.3,
-                "w": 1
-              },
-              "appearTime": 0.05,
-              "appearDuration": 0,
-              "life": 12,
-              "random": 0,
-              "unCounterable": false
-            },
-            "number": 5,
-            "disRad": 60,
-            "homing": true
-          },
-          "time": 0.6
+          }
         }
       ]
     },
@@ -205,8 +135,6 @@
       "enemyAppearTime": 24.272728,
       "bulletEmitTime": 0.03,
       "bulletCount": 1,
-      "bulletInterval": 0,
-      "life": 10,
       "orbit": {
         "originPos": {
           "x": 16,
@@ -218,7 +146,10 @@
         },
         "startX": 0,
         "speed": 0,
-        "gravity": 0,
+        "gravity": {
+          "x": 0,
+          "y": -1.5707964
+        },
         "angleSpeed": 0,
         "initialAngle": 0,
         "polarForm": {
@@ -254,113 +185,42 @@
         "random": 0,
         "unCounterable": false
       },
-      "bulletClip": {
-        "data": {
-          "originPos": {
-            "x": 0,
-            "y": 0
-          },
+      "bulletEmission": {
+        "clipName": "captain_normal_fan_8",
+        "time": 0,
+        "originVlc": {
+          "x": 0,
+          "y": 0
+        },
+        "angleOffset": 0,
+        "angleMode": "",
+        "inheritSourceVelocity": false,
+        "deactivateSource": false,
+        "color": {
+          "x": 1,
+          "y": 1,
+          "z": 1,
+          "w": 1
+        }
+      },
+      "bulletBufferTriggers": [
+        {
+          "clipName": "captain_tear_fan_5",
+          "time": 0.6,
           "originVlc": {
             "x": 0,
             "y": 0
           },
-          "startX": 0,
-          "speed": 5,
-          "gravity": 0,
-          "angleSpeed": 0,
-          "initialAngle": 0,
-          "polarForm": {
-            "x": 1,
-            "y": 0
-          },
-          "radiusVlc": 0,
-          "thetaVlc": 0,
-          "startPos": {
-            "x": 0,
-            "y": 0
-          },
-          "polynomial": {
-            "x": 0,
-            "y": 0,
-            "z": 0,
-            "w": 0
-          },
-          "typeName": "normal",
-          "scale": {
-            "x": 1,
-            "y": 1
-          },
+          "angleOffset": 0,
+          "angleMode": "",
+          "inheritSourceVelocity": false,
+          "deactivateSource": true,
           "color": {
             "x": 1,
-            "y": 0,
-            "z": 0.3,
+            "y": 1,
+            "z": 1,
             "w": 1
-          },
-          "appearTime": 0.05,
-          "appearDuration": 0,
-          "life": 4,
-          "random": 0,
-          "unCounterable": false
-        },
-        "number": 8,
-        "disRad": 40,
-        "homing": true
-      },
-      "bulletChangeClips": [
-        {
-          "clip": {
-            "data": {
-              "originPos": {
-                "x": 0,
-                "y": 0
-              },
-              "originVlc": {
-                "x": 0,
-                "y": 0
-              },
-              "startX": 0,
-              "speed": 3,
-              "gravity": 2,
-              "angleSpeed": 0,
-              "initialAngle": 0,
-              "polarForm": {
-                "x": 1,
-                "y": 0
-              },
-              "radiusVlc": 0,
-              "thetaVlc": 0,
-              "startPos": {
-                "x": 0,
-                "y": 0
-              },
-              "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-              },
-              "typeName": "tear",
-              "scale": {
-                "x": 1,
-                "y": 1
-              },
-              "color": {
-                "x": 1,
-                "y": 0,
-                "z": 0.3,
-                "w": 1
-              },
-              "appearTime": 0.05,
-              "appearDuration": 0,
-              "life": 12,
-              "random": 0,
-              "unCounterable": false
-            },
-            "number": 5,
-            "disRad": 60,
-            "homing": true
-          },
-          "time": 0.6
+          }
         }
       ]
     },
@@ -370,8 +230,6 @@
       "enemyAppearTime": 26.454546,
       "bulletEmitTime": 0.03,
       "bulletCount": 1,
-      "bulletInterval": 0,
-      "life": 10,
       "orbit": {
         "originPos": {
           "x": 16,
@@ -383,7 +241,10 @@
         },
         "startX": 0,
         "speed": 0,
-        "gravity": 0,
+        "gravity": {
+          "x": 0,
+          "y": -1.5707964
+        },
         "angleSpeed": 0,
         "initialAngle": 0,
         "polarForm": {
@@ -419,113 +280,42 @@
         "random": 0,
         "unCounterable": false
       },
-      "bulletClip": {
-        "data": {
-          "originPos": {
-            "x": 0,
-            "y": 0
-          },
+      "bulletEmission": {
+        "clipName": "captain_normal_fan_8",
+        "time": 0,
+        "originVlc": {
+          "x": 0,
+          "y": 0
+        },
+        "angleOffset": 0,
+        "angleMode": "",
+        "inheritSourceVelocity": false,
+        "deactivateSource": false,
+        "color": {
+          "x": 1,
+          "y": 1,
+          "z": 1,
+          "w": 1
+        }
+      },
+      "bulletBufferTriggers": [
+        {
+          "clipName": "captain_tear_fan_5",
+          "time": 0.6,
           "originVlc": {
             "x": 0,
             "y": 0
           },
-          "startX": 0,
-          "speed": 5,
-          "gravity": 0,
-          "angleSpeed": 0,
-          "initialAngle": 0,
-          "polarForm": {
-            "x": 1,
-            "y": 0
-          },
-          "radiusVlc": 0,
-          "thetaVlc": 0,
-          "startPos": {
-            "x": 0,
-            "y": 0
-          },
-          "polynomial": {
-            "x": 0,
-            "y": 0,
-            "z": 0,
-            "w": 0
-          },
-          "typeName": "normal",
-          "scale": {
-            "x": 1,
-            "y": 1
-          },
+          "angleOffset": 0,
+          "angleMode": "",
+          "inheritSourceVelocity": false,
+          "deactivateSource": true,
           "color": {
             "x": 1,
-            "y": 0,
-            "z": 0.3,
+            "y": 1,
+            "z": 1,
             "w": 1
-          },
-          "appearTime": 0.05,
-          "appearDuration": 0,
-          "life": 4,
-          "random": 0,
-          "unCounterable": false
-        },
-        "number": 8,
-        "disRad": 40,
-        "homing": true
-      },
-      "bulletChangeClips": [
-        {
-          "clip": {
-            "data": {
-              "originPos": {
-                "x": 0,
-                "y": 0
-              },
-              "originVlc": {
-                "x": 0,
-                "y": 0
-              },
-              "startX": 0,
-              "speed": 3,
-              "gravity": 2,
-              "angleSpeed": 0,
-              "initialAngle": 0,
-              "polarForm": {
-                "x": 1,
-                "y": 0
-              },
-              "radiusVlc": 0,
-              "thetaVlc": 0,
-              "startPos": {
-                "x": 0,
-                "y": 0
-              },
-              "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-              },
-              "typeName": "tear",
-              "scale": {
-                "x": 1,
-                "y": 1
-              },
-              "color": {
-                "x": 1,
-                "y": 0,
-                "z": 0.3,
-                "w": 1
-              },
-              "appearTime": 0.05,
-              "appearDuration": 0,
-              "life": 12,
-              "random": 0,
-              "unCounterable": false
-            },
-            "number": 5,
-            "disRad": 60,
-            "homing": true
-          },
-          "time": 0.6
+          }
         }
       ]
     },
@@ -535,8 +325,6 @@
       "enemyAppearTime": 28.636364,
       "bulletEmitTime": 0.03,
       "bulletCount": 1,
-      "bulletInterval": 0,
-      "life": 10,
       "orbit": {
         "originPos": {
           "x": 16,
@@ -548,7 +336,10 @@
         },
         "startX": 0,
         "speed": 0,
-        "gravity": 0,
+        "gravity": {
+          "x": 0,
+          "y": -1.5707964
+        },
         "angleSpeed": 0,
         "initialAngle": 0,
         "polarForm": {
@@ -584,113 +375,42 @@
         "random": 0,
         "unCounterable": false
       },
-      "bulletClip": {
-        "data": {
-          "originPos": {
-            "x": 0,
-            "y": 0
-          },
+      "bulletEmission": {
+        "clipName": "captain_normal_fan_8",
+        "time": 0,
+        "originVlc": {
+          "x": 0,
+          "y": 0
+        },
+        "angleOffset": 0,
+        "angleMode": "",
+        "inheritSourceVelocity": false,
+        "deactivateSource": false,
+        "color": {
+          "x": 1,
+          "y": 1,
+          "z": 1,
+          "w": 1
+        }
+      },
+      "bulletBufferTriggers": [
+        {
+          "clipName": "captain_tear_fan_5",
+          "time": 0.6,
           "originVlc": {
             "x": 0,
             "y": 0
           },
-          "startX": 0,
-          "speed": 5,
-          "gravity": 0,
-          "angleSpeed": 0,
-          "initialAngle": 0,
-          "polarForm": {
-            "x": 1,
-            "y": 0
-          },
-          "radiusVlc": 0,
-          "thetaVlc": 0,
-          "startPos": {
-            "x": 0,
-            "y": 0
-          },
-          "polynomial": {
-            "x": 0,
-            "y": 0,
-            "z": 0,
-            "w": 0
-          },
-          "typeName": "normal",
-          "scale": {
-            "x": 1,
-            "y": 1
-          },
+          "angleOffset": 0,
+          "angleMode": "",
+          "inheritSourceVelocity": false,
+          "deactivateSource": true,
           "color": {
             "x": 1,
-            "y": 0,
-            "z": 0.3,
+            "y": 1,
+            "z": 1,
             "w": 1
-          },
-          "appearTime": 0.05,
-          "appearDuration": 0,
-          "life": 4,
-          "random": 0,
-          "unCounterable": false
-        },
-        "number": 8,
-        "disRad": 40,
-        "homing": true
-      },
-      "bulletChangeClips": [
-        {
-          "clip": {
-            "data": {
-              "originPos": {
-                "x": 0,
-                "y": 0
-              },
-              "originVlc": {
-                "x": 0,
-                "y": 0
-              },
-              "startX": 0,
-              "speed": 3,
-              "gravity": 2,
-              "angleSpeed": 0,
-              "initialAngle": 0,
-              "polarForm": {
-                "x": 1,
-                "y": 0
-              },
-              "radiusVlc": 0,
-              "thetaVlc": 0,
-              "startPos": {
-                "x": 0,
-                "y": 0
-              },
-              "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-              },
-              "typeName": "tear",
-              "scale": {
-                "x": 1,
-                "y": 1
-              },
-              "color": {
-                "x": 1,
-                "y": 0,
-                "z": 0.3,
-                "w": 1
-              },
-              "appearTime": 0.05,
-              "appearDuration": 0,
-              "life": 12,
-              "random": 0,
-              "unCounterable": false
-            },
-            "number": 5,
-            "disRad": 60,
-            "homing": true
-          },
-          "time": 0.6
+          }
         }
       ]
     },
@@ -700,8 +420,6 @@
       "enemyAppearTime": 30.818182,
       "bulletEmitTime": 0.03,
       "bulletCount": 1,
-      "bulletInterval": 0,
-      "life": 10,
       "orbit": {
         "originPos": {
           "x": 16,
@@ -713,7 +431,10 @@
         },
         "startX": 0,
         "speed": 0,
-        "gravity": 0,
+        "gravity": {
+          "x": 0,
+          "y": -1.5707964
+        },
         "angleSpeed": 0,
         "initialAngle": 0,
         "polarForm": {
@@ -749,113 +470,42 @@
         "random": 0,
         "unCounterable": false
       },
-      "bulletClip": {
-        "data": {
-          "originPos": {
-            "x": 0,
-            "y": 0
-          },
+      "bulletEmission": {
+        "clipName": "captain_normal_fan_8",
+        "time": 0,
+        "originVlc": {
+          "x": 0,
+          "y": 0
+        },
+        "angleOffset": 0,
+        "angleMode": "",
+        "inheritSourceVelocity": false,
+        "deactivateSource": false,
+        "color": {
+          "x": 1,
+          "y": 1,
+          "z": 1,
+          "w": 1
+        }
+      },
+      "bulletBufferTriggers": [
+        {
+          "clipName": "captain_tear_fan_5",
+          "time": 0.6,
           "originVlc": {
             "x": 0,
             "y": 0
           },
-          "startX": 0,
-          "speed": 5,
-          "gravity": 0,
-          "angleSpeed": 0,
-          "initialAngle": 0,
-          "polarForm": {
-            "x": 1,
-            "y": 0
-          },
-          "radiusVlc": 0,
-          "thetaVlc": 0,
-          "startPos": {
-            "x": 0,
-            "y": 0
-          },
-          "polynomial": {
-            "x": 0,
-            "y": 0,
-            "z": 0,
-            "w": 0
-          },
-          "typeName": "normal",
-          "scale": {
-            "x": 1,
-            "y": 1
-          },
+          "angleOffset": 0,
+          "angleMode": "",
+          "inheritSourceVelocity": false,
+          "deactivateSource": true,
           "color": {
             "x": 1,
-            "y": 0,
-            "z": 0.3,
+            "y": 1,
+            "z": 1,
             "w": 1
-          },
-          "appearTime": 0.05,
-          "appearDuration": 0,
-          "life": 4,
-          "random": 0,
-          "unCounterable": false
-        },
-        "number": 8,
-        "disRad": 40,
-        "homing": true
-      },
-      "bulletChangeClips": [
-        {
-          "clip": {
-            "data": {
-              "originPos": {
-                "x": 0,
-                "y": 0
-              },
-              "originVlc": {
-                "x": 0,
-                "y": 0
-              },
-              "startX": 0,
-              "speed": 3,
-              "gravity": 2,
-              "angleSpeed": 0,
-              "initialAngle": 0,
-              "polarForm": {
-                "x": 1,
-                "y": 0
-              },
-              "radiusVlc": 0,
-              "thetaVlc": 0,
-              "startPos": {
-                "x": 0,
-                "y": 0
-              },
-              "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-              },
-              "typeName": "tear",
-              "scale": {
-                "x": 1,
-                "y": 1
-              },
-              "color": {
-                "x": 1,
-                "y": 0,
-                "z": 0.3,
-                "w": 1
-              },
-              "appearTime": 0.05,
-              "appearDuration": 0,
-              "life": 12,
-              "random": 0,
-              "unCounterable": false
-            },
-            "number": 5,
-            "disRad": 60,
-            "homing": true
-          },
-          "time": 0.6
+          }
         }
       ]
     },
@@ -865,8 +515,6 @@
       "enemyAppearTime": 33,
       "bulletEmitTime": 0.03,
       "bulletCount": 1,
-      "bulletInterval": 0,
-      "life": 10,
       "orbit": {
         "originPos": {
           "x": 16,
@@ -878,7 +526,10 @@
         },
         "startX": 0,
         "speed": 0,
-        "gravity": 0,
+        "gravity": {
+          "x": 0,
+          "y": -1.5707964
+        },
         "angleSpeed": 0,
         "initialAngle": 0,
         "polarForm": {
@@ -914,113 +565,42 @@
         "random": 0,
         "unCounterable": false
       },
-      "bulletClip": {
-        "data": {
-          "originPos": {
-            "x": 0,
-            "y": 0
-          },
+      "bulletEmission": {
+        "clipName": "captain_normal_fan_8",
+        "time": 0,
+        "originVlc": {
+          "x": 0,
+          "y": 0
+        },
+        "angleOffset": 0,
+        "angleMode": "",
+        "inheritSourceVelocity": false,
+        "deactivateSource": false,
+        "color": {
+          "x": 1,
+          "y": 1,
+          "z": 1,
+          "w": 1
+        }
+      },
+      "bulletBufferTriggers": [
+        {
+          "clipName": "captain_tear_fan_5",
+          "time": 0.6,
           "originVlc": {
             "x": 0,
             "y": 0
           },
-          "startX": 0,
-          "speed": 5,
-          "gravity": 0,
-          "angleSpeed": 0,
-          "initialAngle": 0,
-          "polarForm": {
-            "x": 1,
-            "y": 0
-          },
-          "radiusVlc": 0,
-          "thetaVlc": 0,
-          "startPos": {
-            "x": 0,
-            "y": 0
-          },
-          "polynomial": {
-            "x": 0,
-            "y": 0,
-            "z": 0,
-            "w": 0
-          },
-          "typeName": "normal",
-          "scale": {
-            "x": 1,
-            "y": 1
-          },
+          "angleOffset": 0,
+          "angleMode": "",
+          "inheritSourceVelocity": false,
+          "deactivateSource": true,
           "color": {
             "x": 1,
-            "y": 0,
-            "z": 0.3,
+            "y": 1,
+            "z": 1,
             "w": 1
-          },
-          "appearTime": 0.05,
-          "appearDuration": 0,
-          "life": 4,
-          "random": 0,
-          "unCounterable": false
-        },
-        "number": 8,
-        "disRad": 40,
-        "homing": true
-      },
-      "bulletChangeClips": [
-        {
-          "clip": {
-            "data": {
-              "originPos": {
-                "x": 0,
-                "y": 0
-              },
-              "originVlc": {
-                "x": 0,
-                "y": 0
-              },
-              "startX": 0,
-              "speed": 3,
-              "gravity": 2,
-              "angleSpeed": 0,
-              "initialAngle": 0,
-              "polarForm": {
-                "x": 1,
-                "y": 0
-              },
-              "radiusVlc": 0,
-              "thetaVlc": 0,
-              "startPos": {
-                "x": 0,
-                "y": 0
-              },
-              "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-              },
-              "typeName": "tear",
-              "scale": {
-                "x": 1,
-                "y": 1
-              },
-              "color": {
-                "x": 1,
-                "y": 0,
-                "z": 0.3,
-                "w": 1
-              },
-              "appearTime": 0.05,
-              "appearDuration": 0,
-              "life": 12,
-              "random": 0,
-              "unCounterable": false
-            },
-            "number": 5,
-            "disRad": 60,
-            "homing": true
-          },
-          "time": 0.6
+          }
         }
       ]
     }

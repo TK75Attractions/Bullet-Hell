@@ -47,12 +47,6 @@ public class BulletBufferManager
         }
     }
 
-    public void Init()
-    {
-        ResetBuffers();
-        ReadCommonBulletBuffersFromDirectory();
-    }
-
     public async Task InitAsync()
     {
         await LoadBaseBulletBuffersAsync();
@@ -68,34 +62,6 @@ public class BulletBufferManager
     {
         await LoadBaseBulletBuffersAsync();
         LoadModStageBulletBuffers(stageData);
-    }
-
-    public void ReadBulletBufferFromDirectory()
-    {
-        string directoryPath = Path.Combine(Application.dataPath, BulletBufferDirectoryName);
-        if (!Directory.Exists(directoryPath))
-        {
-            Debug.LogWarning($"Bullet buffer directory not found: {directoryPath}");
-            return;
-        }
-
-        string[] jsonFiles = Directory.GetFiles(directoryPath, "*.json", SearchOption.AllDirectories);
-        int loadedCount = 0;
-
-        for (int i = 0; i < jsonFiles.Length; i++)
-        {
-            BulletBuffer buffer = ReadBulletBufferFromFile(jsonFiles[i]);
-            if (buffer == null)
-            {
-                continue;
-            }
-
-            AddOrReplaceBulletBuffer(buffer);
-
-            loadedCount++;
-        }
-
-        Debug.Log($"Loaded {loadedCount}/{jsonFiles.Length} bullet buffer json files from {directoryPath}");
     }
 
     public async Task LoadStageBulletBuffersAsync(string stageDirectoryName)
@@ -385,7 +351,6 @@ public class BulletBufferManager
             return null;
         }
 
-        json = BulletDataJson.NormalizeLegacyGravityJson(json);
         BulletBufferJson data = JsonUtility.FromJson<BulletBufferJson>(json);
         if (data == null)
         {
@@ -409,7 +374,7 @@ public class BulletBufferManager
 
     private void AddOrReplaceBulletBuffer(BulletBuffer buffer)
     {
-        if (TryGetBulletClipIndex(buffer.name, out int existingIndex))
+        if (TryGetBulletBufferIndex(buffer.name, out int existingIndex))
         {
             bulletBuffers[existingIndex] = buffer;
         }
@@ -567,7 +532,7 @@ public class BulletBufferManager
     }
     #endregion
 
-    public bool TryGetBulletClipIndex(string name, out int index)
+    public bool TryGetBulletBufferIndex(string name, out int index)
     {
         index = -1;
         for (int i = 0; i < bulletBuffers.Count; i++)
@@ -581,12 +546,12 @@ public class BulletBufferManager
         return false;
     }
 
-    public List<BulletData> GetBulletClip(int index, float2 pPos, float2 emitPos, float2 _vlc, float angle, float4 _color, out bool isLaser)
+    public List<BulletData> CreateSpawnedBullets(int index, float2 pPos, float2 emitPos, float2 _vlc, float angle, float4 _color, out bool isLaser)
     {
         isLaser = false;
         if (bulletBuffers.Count == 0)
         {
-            Debug.LogError("BulletClipManager is not initialized.");
+            Debug.LogError("BulletBufferManager is not initialized.");
             return default;
         }
 

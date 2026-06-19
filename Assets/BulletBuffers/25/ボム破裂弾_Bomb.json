@@ -12,7 +12,10 @@
       },
       "startX": 0,
       "speed": 11.82518,
-      "gravity": 0,
+      "gravity": {
+        "x": 0,
+        "y": -1.5707964
+      },
       "angleSpeed": -6.28319,
       "polarForm": {
         "x": 1,
@@ -31,7 +34,6 @@
         "w": 0
       },
       "typeName": "knife",
-      "size": 1.22927,
       "color": {
         "x": 1,
         "y": 0.81961,
@@ -40,7 +42,11 @@
       },
       "appearTime": 0,
       "life": 1,
-      "random": 0
+      "random": 0,
+      "scale": {
+        "x": 1.22927,
+        "y": 1.22927
+      }
     }
   ],
   "homing": false,

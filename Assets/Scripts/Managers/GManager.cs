@@ -10,7 +10,6 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
 
 public class GManager : MonoBehaviour
 {
@@ -27,7 +26,6 @@ public class GManager : MonoBehaviour
 
     public GameState state = GameState.Title;
     public GameObject PlayerObj;
-    [FormerlySerializedAs("EnemyObj")]
     public GameObject MultiBulletObj;
     public PlayerController PController;
 
@@ -37,7 +35,7 @@ public class GManager : MonoBehaviour
     public BeatManager BManager;
     public CManager CManager;
     public StageSelectManager SSManager;
-    public BulletBufferManager BClipManager;
+    public BulletBufferManager BulletBuffers;
     public QuadOrder QOrder;
     public BulletTypeDataBase BTDB;
 
@@ -76,14 +74,14 @@ public class GManager : MonoBehaviour
 
         BManager = transform.parent.Find("BManager").GetComponent<BeatManager>();
         CManager = GetComponent<CManager>();
-        if (CManager == null) CManager = FindObjectOfType<CManager>();
+        if (CManager == null) CManager = FindAnyObjectByType<CManager>();
         if (CManager == null) CManager = gameObject.AddComponent<CManager>();
 
         BTDB.Init();
         SDB = new();
         await SDB.InitAsync();
-        BClipManager = new();
-        await BClipManager.InitAsync();
+        BulletBuffers = new();
+        await BulletBuffers.InitAsync();
 
         BRS = GetComponent<BulletRenderSystem>();
         BRS.Init();
