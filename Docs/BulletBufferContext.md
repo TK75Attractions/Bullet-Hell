@@ -5,6 +5,13 @@ Read this file first when the user asks to create or reason about BulletBuffer d
 After creating a BulletBuffer asset, also edit `Assets/StageData/debug/debug.json` so the new buffer runs in Unity debug playback.
 The visible play area is from bottom-left `(0,0)` to top-right `(32,18)`. When editing debug spawners, choose `pos` with the BulletBuffer's internal offsets and trajectory bounds included; `(16,9)` is the safe center default.
 
+Generator project coupling:
+
+- Breaking changes to StageData or BulletBuffer JSON/runtime contracts must also be checked in:
+  - `C:\Users\tsuka\ドキュメント\GitHub\BulletBufferMaker`
+  - `C:\Users\tsuka\ドキュメント\GitHub\Bullet-Hell-StageDataMaker`
+- `BulletBufferMaker` emits BulletBuffer JSON. `Bullet-Hell-StageDataMaker` emits StageData JSON. Keep their DTOs and sample generators aligned with the Unity loaders before considering schema work complete.
+
 Relevant flow:
 
 - JSON load: `BulletBufferManager`
@@ -109,14 +116,14 @@ Stage bullet spawners:
 
 Enemy bullet emission:
 
-1. `StageReader` passes enemy spawners to `QuadOrder.AddMultiBullet()`.
-2. Enemy `orbit` is added to `multiBulletOrbitBullets` and updated by `BulletDataUpdateJob`.
-3. `StageReader.Init()` resolves `multiBulletSpawners[].bulletEmission.clipName` and every `bulletBufferTriggers[].clipName`.
-4. `MultiBullet.Shot()` emits the initial `bulletEmission` through `QuadOrder.EmitBulletBuffer()`.
-5. The emitted normal bullet indexes are cached. After each trigger `time`, `MultiBullet` uses each source bullet's current position as the next BulletBuffer origin.
+1. `StageReader.Init()` resolves `multiBulletSpawners[].bulletEmission.clipName` and every `bulletBufferTriggers[].clipName`.
+2. `StageReader.UpdateStage()` calls `QuadOrder.AddMultiBullet()` when the spawner reaches `time`.
+3. `MultiBullet` is a plain class for derived bullet drawing, not a `MonoBehaviour`.
+4. The initial `bulletEmission` is emitted once from `multiBulletSpawners[].pos`.
+5. The emitted normal bullet indexes are cached. After each trigger `time`, `MultiBullet` uses each live source bullet's current position as the next BulletBuffer origin.
 6. Trigger angle defaults to the source bullet angle plus `angleOffset` degrees. Set `angleMode` to `absolute` or `fixed` to use `angleOffset` as an absolute degree angle.
-7. `inheritSourceVelocity` adds the source bullet's per-second velocity to trigger `originVlc`; `deactivateSource` disables the source bullet after the trigger emits.
-8. MultiBullet patterns are defined by `bulletEmission` and `bulletBufferTriggers`.
+7. `inheritSourceVelocity` adds the source bullet's per-second velocity to trigger `originVlc`; `applyBulletOrbit` applies the referenced BulletBuffer orbit to the cached source bullets; `deactivateSource` disables the source bullet after the trigger emits.
+8. MultiBullet patterns are defined only by `pos`, `time`, `bulletEmission`, and `bulletBufferTriggers`. Legacy fields `count`, `enemyInterval`, `bulletEmitTime`, `bulletCount`, and `orbit` are removed.
 
 Angle conventions:
 

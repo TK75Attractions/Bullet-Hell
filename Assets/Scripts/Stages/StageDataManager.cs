@@ -269,17 +269,9 @@ public class StageDataManager
 
     {
 
-        public int count; // Multi bullet spawn count
+        public Vector2 pos;
 
-        public float enemyInterval; // Multi bullet spawn interval
-
-        public float enemyAppearTime; // Multi bullet appear time
-
-        public float bulletEmitTime; // Delay before the initial bullet emission
-
-        public int bulletCount; // Number of initial bullet emissions
-
-        public BulletDataJsonDeserializer orbit;
+        public float time;
 
         public BulletBufferEmissionJson bulletEmission;
 
@@ -317,17 +309,9 @@ public class StageDataManager
 
             {
 
-                count = count,
+                pos = (float2)pos,
 
-                enemyInterval = enemyInterval,
-
-                enemyAppearTime = enemyAppearTime,
-
-                bulletEmitTime = bulletEmitTime,
-
-                bulletCount = bulletCount,
-
-                orbit = orbit.ToBulletDataJson().ToBulletData(),
+                time = time,
 
                 bulletEmission = bulletEmission != null ? bulletEmission.ToBulletBufferEmission() : new BulletBufferEmission(),
 
@@ -558,6 +542,8 @@ public class StageDataManager
 
         public bool inheritSourceVelocity;
 
+        public bool applyBulletOrbit;
+
         public bool deactivateSource;
 
         public Vector4 color;
@@ -582,6 +568,8 @@ public class StageDataManager
                 inheritSourceAngle = !IsAbsoluteAngleMode(angleMode),
 
                 inheritSourceVelocity = inheritSourceVelocity,
+
+                applyBulletOrbit = applyBulletOrbit,
 
                 deactivateSource = deactivateSource,
 

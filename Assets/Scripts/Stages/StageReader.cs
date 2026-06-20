@@ -197,7 +197,7 @@ public class StageReader : MonoBehaviour
         {
             MultiBulletSpawner spawner = stageData.multiBulletSpawners[multiBulletSpawnerCount];
             GManager.Control.QOrder.AddMultiBullet(spawner);
-            //if (LogStageSchedule) Debug.Log($"Spawned multi bullet: {spawner.orbit.speed}");
+            //if (LogStageSchedule) Debug.Log($"Spawned multi bullet at {spawner.pos}");
             multiBulletSpawnerCount++;
         }
 

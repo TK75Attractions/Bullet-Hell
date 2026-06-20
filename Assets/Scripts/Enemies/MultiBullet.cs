@@ -7,7 +7,8 @@ public class MultiBullet
 {
     public int arrayIndex = 0;
     public bool isActive = false;
-    private bool isReady = false;
+    private bool hasEmittedInitial = false;
+    private float2 pos;
 
     public BulletBufferEmission bulletEmission = new BulletBufferEmission();
     public List<BulletBufferEmission> bulletBufferTriggers = new List<BulletBufferEmission>();
@@ -35,7 +36,8 @@ public class MultiBullet
     {
         arrayIndex = index;
         time = 0f;
-        isReady = false;
+        hasEmittedInitial = false;
+        pos = spawner.pos;
 
         bulletEmission = spawner.bulletEmission ?? new BulletBufferEmission();
         bulletBufferTriggers = spawner.bulletBufferTriggers ?? new List<BulletBufferEmission>();
@@ -48,31 +50,36 @@ public class MultiBullet
     {
         time += dt;
 
-        if (isActive)
+        if (!isActive) return;
+
+        Shot(dt);
+        UpdateChache(dt);
+
+        if (hasEmittedInitial && bulletChaches.Count == 0)
         {
-            Shot(dt);
-            UpdateChache(dt);
+            isActive = false;
         }
     }
 
     private void Shot(float dt)
     {
-        if (!isReady)
-        {
+        if (hasEmittedInitial) return;
 
-        }
-        else
-        {
-            List<int> emitted = EmitInitialBullets(dt);
-            QueueNextBufferTrigger(emitted, 0);
-        }
+        hasEmittedInitial = true;
+        List<int> emitted = EmitInitialBullets(dt);
+        QueueNextBufferTrigger(emitted, 0);
     }
 
     private List<int> EmitInitialBullets(float dt)
     {
         if (bulletEmission != null && bulletEmission.HasResolvedClip)
         {
-
+            BulletData source = default;
+            source.position = pos;
+            source.velocity = new float2(0f, 0f);
+            source.angle = 0f;
+            source.isActive = true;
+            return GManager.Control.QOrder.EmitBulletBuffer(bulletEmission, source, dt);
         }
 
         return new List<int>();
@@ -112,17 +119,20 @@ public class MultiBullet
         List<int> emittedIndexes = new List<int>();
         if (indexes == null || trigger == null || !trigger.HasResolvedClip) return emittedIndexes;
 
+        if (trigger.applyBulletOrbit)
+        {
+            GManager.Control.QOrder.ApplyBulletOrbit(indexes, trigger);
+            return indexes;
+        }
+
         for (int i = 0; i < indexes.Count; i++)
         {
             int index = indexes[i];
             if (!GManager.Control.QOrder.TryGetEnemyBulletData(index, out BulletData source)) continue;
             if (!source.isActive || source.isClearing) continue;
 
-            List<int> emitted = GManager.Control.QOrder.EmitBulletBuffer(trigger, source);
-            if (emitted != null && emitted.Count > 0)
-            {
-                emittedIndexes.AddRange(emitted);
-            }
+            List<int> emitted = GManager.Control.QOrder.EmitBulletBuffer(trigger, source, dt);
+            if (emitted != null && emitted.Count > 0) emittedIndexes.AddRange(emitted);
 
             if (trigger.deactivateSource)
             {

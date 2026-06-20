@@ -26,7 +26,6 @@ public class GManager : MonoBehaviour
 
     public GameState state = GameState.Title;
     public GameObject PlayerObj;
-    public GameObject MultiBulletObj;
     public PlayerController PController;
 
     public InputManager IManager;

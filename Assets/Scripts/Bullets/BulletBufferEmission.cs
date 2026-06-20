@@ -8,6 +8,7 @@ public class BulletBufferEmission
     public int index = -1;
     public float time = 0f;
     public float angleOffset = 0f;
+    public bool applyBulletOrbit = false;
     public bool inheritSourceAngle = true;
     public bool inheritSourceVelocity = false;
     public bool deactivateSource = false;

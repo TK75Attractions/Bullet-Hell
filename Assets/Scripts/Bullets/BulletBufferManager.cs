@@ -605,4 +605,14 @@ public class BulletBufferManager
         }
     }
 
+    public bool TryGetBulletBuffer(int index, out BulletData buffer)
+    {
+        buffer = new();
+        if (index >= 0 && index < bulletBuffers.Count && bulletBuffers[index].bullets != null && bulletBuffers[index].bullets.Count > 0)
+        {
+            buffer = bulletBuffers[index].bullets[0];
+            return true;
+        }
+        return false;
+    }
 }
