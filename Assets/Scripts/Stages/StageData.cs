@@ -57,7 +57,7 @@ public class StageData
 
     public List<EnemyVisualDefinition> enemyVisuals = new List<EnemyVisualDefinition>();
 
-    public List<EnemySpawner> enemySpawners = new List<EnemySpawner>();
+    public List<MultiBulletSpawner> multiBulletSpawners = new List<MultiBulletSpawner>();
 
     public List<BossSpawner> bossSpawners = new List<BossSpawner>();
 

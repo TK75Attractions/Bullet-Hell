@@ -5,6 +5,13 @@ Read this file first when the user asks to create or reason about BulletBuffer d
 After creating a BulletBuffer asset, also edit `Assets/StageData/debug/debug.json` so the new buffer runs in Unity debug playback.
 The visible play area is from bottom-left `(0,0)` to top-right `(32,18)`. When editing debug spawners, choose `pos` with the BulletBuffer's internal offsets and trajectory bounds included; `(16,9)` is the safe center default.
 
+Generator project coupling:
+
+- Breaking changes to StageData or BulletBuffer JSON/runtime contracts must also be checked in:
+  - `C:\Users\tsuka\ドキュメント\GitHub\BulletBufferMaker`
+  - `C:\Users\tsuka\ドキュメント\GitHub\Bullet-Hell-StageDataMaker`
+- `BulletBufferMaker` emits BulletBuffer JSON. `Bullet-Hell-StageDataMaker` emits StageData JSON. Keep their DTOs and sample generators aligned with the Unity loaders before considering schema work complete.
+
 Relevant flow:
 
 - JSON load: `BulletBufferManager`
@@ -37,7 +44,7 @@ Top-level shape:
 Rules:
 
 - `bullets` is required.
-- `homing` makes `BulletBufferManager.GetBulletClip()` aim the whole buffer at the current player position from the spawn position.
+- `homing` makes `BulletBufferManager.CreateSpawnedBullets()` aim the whole buffer at the current player position from the spawn position.
 - `isLaser` routes the spawned data to `LaserEmitter.EmitLASER()` instead of appending normal bullets to `enemyBullets`.
 
 BulletDataJson shape:
@@ -91,7 +98,7 @@ Important load quirks:
 
 - `BulletDataJson.ToBulletData()` directly assigns fields and does not call the main `BulletData` constructor.
 - Because of that, JSON should explicitly set `startPos`. Usually set it to `{ "x": startX, "y": polynomial(startX) }`, or `{ "x": 0, "y": 0 }` when `startX` and polynomial are zero.
-- New assets should use `scale`. Legacy `size` is only used if `scale` is `{0,0}`.
+- `scale` is required for bullet size. If omitted or `{0,0}`, runtime falls back to `{1,1}`.
 - `appearDuration` defaults to `0` when omitted. During `appearTime`, the bullet receives almost-zero trajectory updates and then appears immediately.
 - `life <= 0` means no life timeout. Use positive life values for cleanup.
 - Spawn color is multiplied with JSON color. Keep either JSON color or spawner color at white `{1,1,1,1}` unless multiplication is intentional.
@@ -101,19 +108,22 @@ Important load quirks:
 Stage bullet spawners:
 
 1. `StageReader.Init()` scans `stageData.bulletSpawners`.
-2. It resolves `clipName` with `BulletBufferManager.TryGetBulletClipIndex()`.
+2. It resolves `clipName` with `BulletBufferManager.TryGetBulletBufferIndex()`.
 3. It expands `count`, `interval`, `time`, and `angleInterval` into scheduled `BulletSpawnEvent` entries.
 4. `StageReader.UpdateStage()` calls `QuadOrder.AddEnemyBullets(index, pos, originVlc, angle, color)` when an event reaches its time.
-5. `BulletBufferManager.GetBulletClip()` clones the template BulletData entries into spawned BulletData entries.
+5. `BulletBufferManager.CreateSpawnedBullets()` clones the template BulletData entries into spawned BulletData entries.
 6. Normal buffers append to `enemyBullets`; laser buffers go to `LaserEmitter`.
 
 Enemy bullet emission:
 
-1. `StageReader` passes enemy spawners to `QuadOrder.AddEnemy()`.
-2. Enemy `orbit` is added to `enemiesOrbitBullets` and updated by `BulletDataUpdateJob`.
-3. `Enemy.Shot()` passes `bulletClip` to `QuadOrder.EmitEnemyBullet()`.
-4. `bulletClip.number` and `disRad` create a fan. `disRad` is treated as degrees and converted with `math.radians()`.
-5. `bulletChangeClips` can later call `QuadOrder.UpdateBulletData()` to replace a single bullet or deactivate old bullets and emit a new clip.
+1. `StageReader.Init()` resolves `multiBulletSpawners[].bulletEmission.clipName` and every `bulletBufferTriggers[].clipName`.
+2. `StageReader.UpdateStage()` calls `QuadOrder.AddMultiBullet()` when the spawner reaches `time`.
+3. `MultiBullet` is a plain class for derived bullet drawing, not a `MonoBehaviour`.
+4. The initial `bulletEmission` is emitted once from `multiBulletSpawners[].pos`.
+5. The emitted normal bullet indexes are cached. After each trigger `time`, `MultiBullet` uses each live source bullet's current position as the next BulletBuffer origin.
+6. Trigger angle defaults to the source bullet angle plus `angleOffset` degrees. Set `angleMode` to `absolute` or `fixed` to use `angleOffset` as an absolute degree angle.
+7. `inheritSourceVelocity` adds the source bullet's per-second velocity to trigger `originVlc`; `applyBulletOrbit` applies the referenced BulletBuffer orbit to the cached source bullets; `deactivateSource` disables the source bullet after the trigger emits.
+8. MultiBullet patterns are defined only by `pos`, `time`, `bulletEmission`, and `bulletBufferTriggers`. Legacy fields `count`, `enemyInterval`, `bulletEmitTime`, `bulletCount`, and `orbit` are removed.
 
 Angle conventions:
 
@@ -242,5 +252,5 @@ Snake or wave:
 - Normal bullet `startPos` matches `startX` and `polynomial`.
 - Spawn position and trajectory stay in the valid play area unless intentional.
 - Use positive `life` for cleanup.
-- Prefer `scale` over legacy `size`.
+- Set `scale` explicitly; `size` is not supported.
 - For lasers, use `isLaser: true`, `scale` as length, and `appearTime` as width.

@@ -2,7 +2,6 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine;
 
 [BurstCompile]
 public struct WarpBulletJob : IJobParallelFor
@@ -14,8 +13,7 @@ public struct WarpBulletJob : IJobParallelFor
 
     public float dt;
     public float warpCooldown;
-    public float cellSize;
-    public int totalCellCount;
+    public QuadGrid grid;
     public int reflectXTypeId;
     public int reflectYTypeId;
 
@@ -56,9 +54,11 @@ public struct WarpBulletJob : IJobParallelFor
         bullet.originVlc = exitVelocity;
 
         bullet.speed = 0f;
-        bullet.gravity = 0f;
+        bullet.gravity = new float2(0f, 0f);
         bullet.radiusVlc = 0f;
         bullet.thetaVlc = 0f;
+        bullet.radiusAccel = 0f;
+        bullet.thetaAccel = 0f;
         bullet.playerInfluence = new float2(0f, 0f);
         bullet.random = 0f;
 
@@ -71,7 +71,7 @@ public struct WarpBulletJob : IJobParallelFor
 
         bullet.warpCooldown = math.max(0f, warpCooldown);
         bullet.angle = GetAngleRad(exitVelocity.x, exitVelocity.y);
-        bullet.areaNum = GetTreeNum(exitPosition);
+        bullet.areaNum = grid.GetTreeNum(exitPosition);
 
         if (bullet.areaNum == -1)
         {
@@ -108,25 +108,6 @@ public struct WarpBulletJob : IJobParallelFor
         }
 
         return velocity;
-    }
-
-    private int GetTreeNum(float2 pos)
-    {
-        if (pos.x < 0 || pos.y < 0) return -1;
-        int nx = Mathf.FloorToInt(pos.x / cellSize);
-        int ny = Mathf.FloorToInt(pos.y / cellSize);
-
-        int result = BitSeparate32(nx) | (BitSeparate32(ny) << 1);
-        if (result >= 0 && result < totalCellCount) return result;
-        return -1;
-    }
-
-    private int BitSeparate32(int n)
-    {
-        n = (n | n << 8) & 0x00ff00ff;
-        n = (n | n << 4) & 0x0f0f0f0f;
-        n = (n | n << 2) & 0x33333333;
-        return (n | n << 1) & 0x55555555;
     }
 
     private float GetAngleRad(float x, float y)
