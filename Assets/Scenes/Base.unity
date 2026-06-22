@@ -303,8 +303,8 @@ Transform:
   m_GameObject: {fileID: 47708256}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -11.708559, z: 0}
-  m_LocalScale: {x: 14.986956, y: 14.986956, z: 0}
+  m_LocalPosition: {x: 0, y: -8.468071, z: 0}
+  m_LocalScale: {x: 10.83913, y: 10.83913, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -433,8 +433,8 @@ Transform:
   m_GameObject: {fileID: 62090605}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 11.708559, z: 0}
-  m_LocalScale: {x: 14.986956, y: 14.986956, z: 0}
+  m_LocalPosition: {x: 0, y: 8.468071, z: 0}
+  m_LocalScale: {x: 10.83913, y: 10.83913, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -2724,8 +2724,8 @@ Transform:
   m_GameObject: {fileID: 1068602616}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 11.708559, y: 0, z: 0}
-  m_LocalScale: {x: 8.430162, y: 8.430162, z: 0}
+  m_LocalPosition: {x: 8.468071, y: 0, z: 0}
+  m_LocalScale: {x: 6.0970106, y: 6.0970106, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -3323,9 +3323,9 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
-    y: 0.26582882
+    y: 0.3306386
     width: 1
-    height: 0.46834236
+    height: 0.33872283
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -5094,9 +5094,9 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
-    y: 0.26582882
+    y: 0.3306386
     width: 1
-    height: 0.46834236
+    height: 0.33872283
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -5225,9 +5225,9 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
-    y: 0.26582882
+    y: 0.3306386
     width: 1
-    height: 0.46834236
+    height: 0.33872283
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -5422,13 +5422,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fb6985e78f0dfb478f33293c83e171d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QuadOrder
-  cellSize: 0.5625
+  cellSize: 0.725
   separateLevel: 6
+  quadOrigin: {x: -2, y: -9}
   cellCount: 0
   boss: {fileID: 2046423800}
-  multiBullets: []
-  bulletEvents: []
-  inactiveCleanupInterval: 6
   drawEnemyBulletCollisionGizmos: 1
   enemyBulletCollisionGizmoColor: {r: 0.1, g: 1, b: 0.3, a: 0.9}
   enemyBulletCollisionGizmoZ: 0
@@ -5484,6 +5482,8 @@ MonoBehaviour:
   BManager: {fileID: 336723600}
   CManager: {fileID: 1034609574}
   SSManager: {fileID: 1761555820}
+  BulletBuffers:
+    bulletBuffers: []
   QOrder: {fileID: 1890939114}
   BTDB: {fileID: 11400000, guid: 18e0dba5990fed9468c060d0a18757eb, type: 2}
   SDB:
@@ -5657,8 +5657,8 @@ Transform:
   m_GameObject: {fileID: 1928468751}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -11.708559, y: 0, z: 0}
-  m_LocalScale: {x: 8.430162, y: 8.430162, z: 0}
+  m_LocalPosition: {x: -8.468071, y: 0, z: 0}
+  m_LocalScale: {x: 6.0970106, y: 6.0970106, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -6068,9 +6068,9 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
-    y: 0.26582882
+    y: 0.3306386
     width: 1
-    height: 0.46834236
+    height: 0.33872283
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60

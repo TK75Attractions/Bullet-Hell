@@ -68,6 +68,17 @@
         "*.slnx": "*.csproj"
     },
     "dotnet.defaultSolution": "Bullet-Hell.sln",
-    "dotnet.server.useOmnisharp": true,
-    "omnisharp.dotnetPath": "C:\\Program Files\\dotnet\\dotnet.exe"
+    "dotnet.server.useOmnisharp": false,
+    "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": false,
+    "dotnet.completion.showNameCompletionSuggestions": false,
+    "vstuc.enableCodeModel": true,
+    "vstuc.enableMessageCompletion": true,
+    "[csharp]": {
+        "editor.wordBasedSuggestions": "off",
+        "editor.suggest.showWords": false,
+        "editor.inlineSuggest.enabled": false,
+        "editor.acceptSuggestionOnCommitCharacter": false,
+        "editor.snippetSuggestions": "bottom",
+        "editor.suggest.localityBonus": true
+    }
 }

@@ -19,30 +19,57 @@
   "delayTime": 3,
   "stageDescription": "Stage Description Here",
   "enemyVisuals": [],
-  "multiBulletSpawners": [],
-  "bossSpawners": [],
-  "bulletSpawners": [
+  "multiBulletSpawners": [
     {
-      "clipName": "magic_0",
-      "count": 1,
-      "interval": 0,
-      "time": 9,
       "pos": {
         "x": 16,
         "y": 9
       },
-      "originVlc": {
-        "x": 0,
-        "y": 0
+      "time": 9,
+      "bulletEmission": {
+        "clipName": "magic_0",
+        "time": 0,
+        "originVlc": {
+          "x": 0,
+          "y": 0
+        },
+        "angleOffset": 0,
+        "angle": 0,
+        "angleMode": "",
+        "applyBulletOrbit": false,
+        "inheritSourceVelocity": false,
+        "deactivateSource": false,
+        "color": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 0
+        }
       },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 1,
-        "z": 1,
-        "w": 1
-      }
+      "bulletBufferTriggers": [
+        {
+          "clipName": "magic_1",
+          "time": 2,
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angleOffset": 0,
+          "angle": 0,
+          "angleMode": "",
+          "applyBulletOrbit": true,
+          "inheritSourceVelocity": false,
+          "deactivateSource": false,
+          "color": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 0
+          }
+        }
+      ]
     }
-  ]
+  ],
+  "bossSpawners": [],
+  "bulletSpawners": []
 }

@@ -12,6 +12,7 @@ public class QuadOrder : MonoBehaviour
     [NonSerialized] private QuadCell[] cells = Array.Empty<QuadCell>();
     [SerializeField] private float cellSize;
     [SerializeField] private int separateLevel;
+    [SerializeField] private Vector2 quadOrigin = new Vector2(-2f, -9f);
     [SerializeField] public int cellCount;
     [NonSerialized] private int gridResolution;
     private List<Vector2Int> cellOffsets = new List<Vector2Int>()
@@ -118,6 +119,12 @@ public class QuadOrder : MonoBehaviour
     private readonly List<int> laserBatchStarts = new List<int>(128);
     private readonly List<int> laserBatchCounts = new List<int>(128);
 
+    private QuadGrid CreateQuadGrid()
+    {
+        int count = cells != null && cells.Length > 0 ? cells.Length : cellCount;
+        return new QuadGrid(new float2(quadOrigin.x, quadOrigin.y), cellSize, gridResolution, count);
+    }
+
     public void AwakeSetting()
     {
         int side = 1;
@@ -125,6 +132,10 @@ public class QuadOrder : MonoBehaviour
         int n = side * side;
         cellCount = n;
         gridResolution = side;
+
+        float cL = cellSize * side;
+        quadOrigin = new(-(cL - 36) / 2, -(cL - 18) / 2);
+
         QuadCell[] t = new QuadCell[n];
         for (int i = 0; i < n; i++) t[i] = new();
         cells = t;
@@ -321,6 +332,7 @@ public class QuadOrder : MonoBehaviour
 
         //敵の弾の更新
         float2 playerVelocity = GManager.Control.PController != null ? GManager.Control.PController.velocity : new float2(0, 0);
+        QuadGrid grid = CreateQuadGrid();
         if (hasEnemyBullets)
         {
             NativeArray<BulletData> bullets = enemyBullets.AsArray();
@@ -328,8 +340,7 @@ public class QuadOrder : MonoBehaviour
             {
                 bullets = bullets,
                 dt = _dt,
-                cellSize = cellSize,
-                totalCellCount = cells.Length,
+                grid = grid,
                 playerVelocity = playerVelocity
             };
             JobHandle handle1 = job1.Schedule(bullets.Length, 64);
@@ -344,8 +355,7 @@ public class QuadOrder : MonoBehaviour
             {
                 bullets = bullets,
                 dt = _dt,
-                cellSize = cellSize,
-                totalCellCount = cells.Length,
+                grid = grid,
                 playerVelocity = playerVelocity
             };
             JobHandle handle3 = job3.Schedule(bullets.Length, 64);
@@ -369,8 +379,7 @@ public class QuadOrder : MonoBehaviour
             warpZones = warpZones.AsArray(),
             dt = dt,
             warpCooldown = defaultWarpCooldown,
-            cellSize = cellSize,
-            totalCellCount = cells.Length,
+            grid = CreateQuadGrid(),
             reflectXTypeId = warpZoneReflectXTypeId,
             reflectYTypeId = warpZoneReflectYTypeId
         };
@@ -405,7 +414,8 @@ public class QuadOrder : MonoBehaviour
 
     private void RegisterBulletToCollisionCells(BulletData bullet)
     {
-        if (gridResolution <= 0 || cellSize <= 0f)
+        QuadGrid grid = CreateQuadGrid();
+        if (!grid.IsValid)
         {
             int fallbackCell = bullet.areaNum;
             if (fallbackCell >= 0 && fallbackCell < cells.Length)
@@ -426,23 +436,13 @@ public class QuadOrder : MonoBehaviour
             return;
         }
 
-        int minX = Mathf.FloorToInt((bullet.position.x - radius) / cellSize);
-        int maxX = Mathf.FloorToInt((bullet.position.x + radius) / cellSize);
-        int minY = Mathf.FloorToInt((bullet.position.y - radius) / cellSize);
-        int maxY = Mathf.FloorToInt((bullet.position.y + radius) / cellSize);
+        if (!grid.TryGetCellRange(bullet.position, radius, out int2 minCell, out int2 maxCell)) return;
 
-        if (maxX < 0 || maxY < 0 || minX >= gridResolution || minY >= gridResolution) return;
-
-        minX = Mathf.Clamp(minX, 0, gridResolution - 1);
-        maxX = Mathf.Clamp(maxX, 0, gridResolution - 1);
-        minY = Mathf.Clamp(minY, 0, gridResolution - 1);
-        maxY = Mathf.Clamp(maxY, 0, gridResolution - 1);
-
-        for (int y = minY; y <= maxY; y++)
+        for (int y = minCell.y; y <= maxCell.y; y++)
         {
-            for (int x = minX; x <= maxX; x++)
+            for (int x = minCell.x; x <= maxCell.x; x++)
             {
-                int areaNum = GetTreeNum(x, y);
+                int areaNum = grid.GetTreeNum(x, y);
                 if (areaNum < 0 || areaNum >= cells.Length) continue;
                 cells[areaNum].enemyBullets.Add(bullet);
             }
@@ -625,13 +625,12 @@ public class QuadOrder : MonoBehaviour
                 bullet.gravity = bulletData.gravity;
                 bullet.angleSpeed = bulletData.angleSpeed;
                 bullet.initialAngle = bulletData.initialAngle;
-                bullet.polarForm = bulletData.polarForm;
+                bullet.polarForm = new float2(bulletData.polarForm.x, bulletData.polarForm.y + bullet.polarForm.y);
                 bullet.radiusVlc = bulletData.radiusVlc;
                 bullet.radiusAccel = bulletData.radiusAccel;
                 bullet.thetaVlc = bulletData.thetaVlc;
                 bullet.thetaAccel = bulletData.thetaAccel;
                 bullet.polynomial = bulletData.polynomial;
-                bullet.Init(new(0, 0));
 
                 enemyBullets[index] = bullet;
             }
@@ -902,13 +901,18 @@ public class QuadOrder : MonoBehaviour
         }
         else
         {
-            Vector2Int pCell = BitCompact32(GetTreeNum(pPos));
+            QuadGrid grid = CreateQuadGrid();
+            int pCellIndex = grid.GetTreeNum(pPos);
+            if (pCellIndex < 0) return;
+
+            int2 pCellCoords = QuadGrid.BitCompact32(pCellIndex);
+            Vector2Int pCell = new Vector2Int(pCellCoords.x, pCellCoords.y);
             collisionCheckCells.Clear();
             int bulletCount = 0;
             foreach (var cell in cellOffsets)
             {
                 Vector2Int checkCell = pCell + cell;
-                int treeNum = GetTreeNum(checkCell.x, checkCell.y);
+                int treeNum = grid.GetTreeNum(checkCell.x, checkCell.y);
                 if (treeNum < 0 || treeNum >= cells.Length) continue;
                 collisionCheckCells.Add(treeNum);
                 bulletCount += cells[treeNum].enemyBullets.Count;
@@ -1030,8 +1034,7 @@ public class QuadOrder : MonoBehaviour
         {
             vertsSet = batchVerts,
             vertCellIndices = laserBatchCellIndices.AsArray(),
-            cellSize = cellSize,
-            cellCount = cells.Length
+            grid = CreateQuadGrid()
         };
 
         JobHandle handle = job.Schedule(totalVertCount, 64);
@@ -1292,45 +1295,22 @@ public class QuadOrder : MonoBehaviour
     #region//CellsMethods
     public int GetTreeNum(float2 pos)
     {
-        if (pos.x < 0 || pos.y < 0) return -1;
-        int nx = Mathf.FloorToInt(pos.x / cellSize);
-        int ny = Mathf.FloorToInt(pos.y / cellSize);
-
-        int result = BitSeparate32(nx) | (BitSeparate32(ny) << 1);
-        if (result >= 0 && result < cells.Length) return result;
-        return -1;
+        return CreateQuadGrid().GetTreeNum(pos);
     }
 
     public int BitSeparate32(int n)
     {
-        n = (n | n << 8) & 0x00ff00ff;
-        n = (n | n << 4) & 0x0f0f0f0f;
-        n = (n | n << 2) & 0x33333333;
-        return (n | n << 1) & 0x55555555;
+        return QuadGrid.BitSeparate32(n);
     }
 
     public int GetTreeNum(int x, int y)
     {
-        if (x < 0 || y < 0) return -1;
-        return BitSeparate32(x) | (BitSeparate32(y) << 1);
+        return CreateQuadGrid().GetTreeNum(x, y);
     }
     public Vector2Int BitCompact32(int n)
     {
-        int y = (n >> 1);
-        n = (n & 0x55555555);               // 1ビットおきに残す
-        n = (n | n >> 1) & 0x33333333;      // 2ビットおきに集約
-        n = (n | n >> 2) & 0x0f0f0f0f;      // 4ビットおきに集約
-        n = (n | n >> 4) & 0x00ff00ff;      // 8ビットおきに集約
-        n = (n | n >> 8) & 0x0000ffff;      // 16ビットおきに集約
-
-
-        y = (y & 0x55555555);               // 1ビットおきに残す
-        y = (y | y >> 1) & 0x33333333;      // 2ビットおきに集約
-        y = (y | y >> 2) & 0x0f0f0f0f;      // 4ビットおきに集約
-        y = (y | y >> 4) & 0x00ff00ff;      // 8ビットおきに集約
-        y = (y | y >> 8) & 0x0000ffff;      // 16ビットおきに集約
-
-        return new Vector2Int(n, y);
+        int2 cell = QuadGrid.BitCompact32(n);
+        return new Vector2Int(cell.x, cell.y);
     }
 
     #endregion

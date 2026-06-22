@@ -2,7 +2,6 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine;
 
 [BurstCompile]
 public struct BulletDataUpdateJob : IJobParallelFor
@@ -12,9 +11,7 @@ public struct BulletDataUpdateJob : IJobParallelFor
 
     public NativeArray<BulletData> bullets;
     public float dt;
-    public float cellSize;
-    public int cellCount;
-    public int totalCellCount;
+    public QuadGrid grid;
     public float2 playerVelocity;
 
     public void Execute(int index)
@@ -59,7 +56,7 @@ public struct BulletDataUpdateJob : IJobParallelFor
         bullet = Update(bullet, index, dt);
 
         //四分木秩序に変換
-        int n = GetTreeNum(new float2(bullet.position.x, bullet.position.y));
+        int n = grid.GetTreeNum(bullet.position);
         bullet.areaNum = n;
 
         //範囲外の弾を非アクティブに設定
@@ -144,26 +141,6 @@ public struct BulletDataUpdateJob : IJobParallelFor
 
         return bullet;
     }
-    public int GetTreeNum(float2 pos)
-    {
-        if (pos.x < 0 || pos.y < 0) return -1;
-        int nx = Mathf.FloorToInt(pos.x / cellSize);
-        int ny = Mathf.FloorToInt(pos.y / cellSize);
-
-        int result = BitSeparate32(nx) | (BitSeparate32(ny) << 1);
-        int maxCellCount = totalCellCount > 0 ? totalCellCount : cellCount;
-        if (result >= 0 && result < maxCellCount) return result;
-        return -1;
-    }
-
-    public int BitSeparate32(int n)
-    {
-        n = (n | n << 8) & 0x00ff00ff;
-        n = (n | n << 4) & 0x0f0f0f0f;
-        n = (n | n << 2) & 0x33333333;
-        return (n | n << 1) & 0x55555555;
-    }
-
     public float GetAngleRad(float x, float y)
     {
         float rad = math.atan2(y, x);
