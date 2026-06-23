@@ -6,6 +6,28 @@ using Unity.Mathematics;
 using UnityEngine;
 
 [Serializable]
+public enum ManagedBulletKind
+{
+    EnemyBullet,
+    WarpZone
+}
+
+[Serializable]
+public struct ManagedBulletHandle
+{
+    public ManagedBulletKind kind;
+    public int index;
+
+    public ManagedBulletHandle(ManagedBulletKind kind, int index)
+    {
+        this.kind = kind;
+        this.index = index;
+    }
+
+    public bool IsValid => index >= 0;
+}
+
+[Serializable]
 public class QuadOrder : MonoBehaviour
 {
     #region//CellManagers
@@ -495,7 +517,7 @@ public class QuadOrder : MonoBehaviour
         }
     }
 
-    private void AddWarpZone(BulletData bullet)
+    private int AddWarpZone(BulletData bullet)
     {
         EnsureWarpZoneList();
         if (warpZones.Length >= warpZones.Capacity)
@@ -503,7 +525,9 @@ public class QuadOrder : MonoBehaviour
             int nextCapacity = math.max(warpZones.Length + 1, math.max(16, warpZones.Capacity * 2));
             warpZones.Capacity = nextCapacity;
         }
+        int warpZoneIndex = warpZones.Length;
         warpZones.Add(bullet);
+        return warpZoneIndex;
     }
 
     private int AddEnemyBulletSlot(BulletData bullet)
@@ -522,23 +546,15 @@ public class QuadOrder : MonoBehaviour
 
     private bool TryAddGeneratedBullet(BulletData bullet, out int enemyBulletIndex)
     {
-        if (IsScreenNoise(bullet))
+        if (TryAddGeneratedManagedBullet(bullet, out ManagedBulletHandle handle)
+            && handle.kind == ManagedBulletKind.EnemyBullet)
         {
-            GManager.Control.CManager?.StartScreenNoise(bullet);
-            enemyBulletIndex = -1;
-            return false;
+            enemyBulletIndex = handle.index;
+            return true;
         }
 
-        ResolveWarpZoneTypeId();
-        if (IsWarpZone(bullet))
-        {
-            AddWarpZone(bullet);
-            enemyBulletIndex = -1;
-            return false;
-        }
-
-        enemyBulletIndex = AddEnemyBulletSlot(bullet);
-        return true;
+        enemyBulletIndex = -1;
+        return false;
     }
 
     public List<int> AddEnemyBullets(NativeArray<BulletData> newBullets, float2 fromPos = new float2())
@@ -556,6 +572,44 @@ public class QuadOrder : MonoBehaviour
             }
         }
         return indexes;
+    }
+
+    private bool TryAddGeneratedManagedBullet(BulletData bullet, out ManagedBulletHandle handle)
+    {
+        if (IsScreenNoise(bullet))
+        {
+            GManager.Control.CManager?.StartScreenNoise(bullet);
+            handle = new ManagedBulletHandle(ManagedBulletKind.EnemyBullet, -1);
+            return false;
+        }
+
+        ResolveWarpZoneTypeId();
+        if (IsWarpZone(bullet))
+        {
+            int warpZoneIndex = AddWarpZone(bullet);
+            handle = new ManagedBulletHandle(ManagedBulletKind.WarpZone, warpZoneIndex);
+            return true;
+        }
+
+        int enemyBulletIndex = AddEnemyBulletSlot(bullet);
+        handle = new ManagedBulletHandle(ManagedBulletKind.EnemyBullet, enemyBulletIndex);
+        return true;
+    }
+
+    public List<ManagedBulletHandle> AddManagedBullets(NativeArray<BulletData> newBullets)
+    {
+        if (newBullets.Length == 0) return new List<ManagedBulletHandle>();
+
+        List<ManagedBulletHandle> handles = new List<ManagedBulletHandle>(newBullets.Length);
+        for (int i = 0; i < newBullets.Length; i++)
+        {
+            if (TryAddGeneratedManagedBullet(newBullets[i], out ManagedBulletHandle handle) && handle.IsValid)
+            {
+                handles.Add(handle);
+            }
+        }
+
+        return handles;
     }
 
     public List<int> AddEnemyBullets(int index, float2 pos, float2 originVlc, float angle, float4 color)
@@ -585,6 +639,27 @@ public class QuadOrder : MonoBehaviour
         return indexes;
     }
 
+    public List<ManagedBulletHandle> EmitManagedBulletBuffer(int index, float2 pos, float2 originVlc, float angle, float4 color)
+    {
+        List<BulletData> bullets = GManager.Control.BulletBuffers.CreateSpawnedBullets(index, GManager.Control.PController.pos, pos, originVlc, angle, color, out bool isLaser);
+
+        if (bullets == null || bullets.Count == 0)
+        {
+            return new List<ManagedBulletHandle>();
+        }
+
+        if (isLaser)
+        {
+            allLASERs.AddRange(laserEmitter.EmitLASER(bullets));
+            return new List<ManagedBulletHandle>();
+        }
+
+        NativeArray<BulletData> newBullets = new NativeArray<BulletData>(bullets.ToArray(), Allocator.Temp);
+        List<ManagedBulletHandle> handles = AddManagedBullets(newBullets);
+        newBullets.Dispose();
+        return handles;
+    }
+
     public List<int> EmitBulletBuffer(BulletBufferEmission emission, BulletData source, float dt = 0f)
     {
         if (emission == null || !emission.HasResolvedClip) return new List<int>();
@@ -607,6 +682,28 @@ public class QuadOrder : MonoBehaviour
         return EmitBulletBuffer(emission.index, source.position, originVlc, angle, emission.color);
     }
 
+    public List<ManagedBulletHandle> EmitManagedBulletBuffer(BulletBufferEmission emission, BulletData source, float dt = 0f)
+    {
+        if (emission == null || !emission.HasResolvedClip) return new List<ManagedBulletHandle>();
+
+        if (emission.index == -3)
+        {
+            ClearManagedEnemyDanmaku();
+            return new List<ManagedBulletHandle>();
+        }
+
+        float angle = emission.inheritSourceAngle
+            ? source.angle * Mathf.Rad2Deg + emission.angleOffset
+            : emission.angleOffset;
+        float2 originVlc = emission.originVlc;
+        if (emission.inheritSourceVelocity && dt > 1e-5f)
+        {
+            originVlc += source.velocity / dt;
+        }
+
+        return EmitManagedBulletBuffer(emission.index, source.position, originVlc, angle, emission.color);
+    }
+
     public void ApplyBulletOrbit(List<int> bulletIndexes, BulletBufferEmission emission)
     {
         if (bulletIndexes == null || bulletIndexes.Count == 0) return;
@@ -625,6 +722,7 @@ public class QuadOrder : MonoBehaviour
                 bullet.gravity = bulletData.gravity;
                 bullet.angleSpeed = bulletData.angleSpeed;
                 bullet.initialAngle = bulletData.initialAngle;
+                bullet.useVelocityAngle = bulletData.useVelocityAngle;
                 bullet.polarForm = new float2(bulletData.polarForm.x, bulletData.polarForm.y + bullet.polarForm.y);
                 bullet.radiusVlc = bulletData.radiusVlc;
                 bullet.radiusAccel = bulletData.radiusAccel;
@@ -635,6 +733,37 @@ public class QuadOrder : MonoBehaviour
                 enemyBullets[index] = bullet;
             }
         }
+    }
+
+    public void ApplyBulletOrbit(List<ManagedBulletHandle> bulletHandles, BulletBufferEmission emission)
+    {
+        if (bulletHandles == null || bulletHandles.Count == 0) return;
+        if (!GManager.Control.BulletBuffers.TryGetBulletBuffer(emission.index, out BulletData bulletData)) return;
+
+        for (int i = 0; i < bulletHandles.Count; i++)
+        {
+            ManagedBulletHandle handle = bulletHandles[i];
+            if (!TryGetManagedBulletData(handle, out BulletData bullet)) continue;
+            if (!bullet.isActive) continue;
+
+            ApplyBulletOrbitProperties(ref bullet, bulletData);
+            SetManagedBulletData(handle, bullet);
+        }
+    }
+
+    private static void ApplyBulletOrbitProperties(ref BulletData bullet, BulletData bulletData)
+    {
+        bullet.speed = bulletData.speed;
+        bullet.gravity = bulletData.gravity;
+        bullet.angleSpeed = bulletData.angleSpeed;
+        bullet.initialAngle = bulletData.initialAngle;
+        bullet.useVelocityAngle = bulletData.useVelocityAngle;
+        bullet.polarForm = new float2(bulletData.polarForm.x, bulletData.polarForm.y + bullet.polarForm.y);
+        bullet.radiusVlc = bulletData.radiusVlc;
+        bullet.radiusAccel = bulletData.radiusAccel;
+        bullet.thetaVlc = bulletData.thetaVlc;
+        bullet.thetaAccel = bulletData.thetaAccel;
+        bullet.polynomial = bulletData.polynomial;
     }
 
     public NativeArray<BulletData> GetEnemyBullets() => enemyBullets.IsCreated ? enemyBullets.AsArray() : default;
@@ -657,6 +786,33 @@ public class QuadOrder : MonoBehaviour
         return true;
     }
 
+    public bool TryGetManagedBulletData(ManagedBulletHandle handle, out BulletData bullet)
+    {
+        if (!handle.IsValid)
+        {
+            bullet = default;
+            return false;
+        }
+
+        switch (handle.kind)
+        {
+            case ManagedBulletKind.EnemyBullet:
+                return TryGetEnemyBulletData(handle.index, out bullet);
+            case ManagedBulletKind.WarpZone:
+                if (!warpZones.IsCreated || handle.index < 0 || handle.index >= warpZones.Length)
+                {
+                    bullet = default;
+                    return false;
+                }
+
+                bullet = warpZones[handle.index];
+                return true;
+            default:
+                bullet = default;
+                return false;
+        }
+    }
+
     public BulletData GetEnemyBulletData(int index)
     {
         if (!enemyBullets.IsCreated || index < 0 || index >= enemyBullets.Length)
@@ -673,6 +829,31 @@ public class QuadOrder : MonoBehaviour
         BulletData bullet = enemyBullets[index];
         bullet.isActive = active;
         enemyBullets[index] = bullet;
+    }
+
+    public void SetManagedBulletActive(ManagedBulletHandle handle, bool active)
+    {
+        if (!TryGetManagedBulletData(handle, out BulletData bullet)) return;
+
+        bullet.isActive = active;
+        SetManagedBulletData(handle, bullet);
+    }
+
+    private void SetManagedBulletData(ManagedBulletHandle handle, BulletData bullet)
+    {
+        if (!handle.IsValid) return;
+
+        switch (handle.kind)
+        {
+            case ManagedBulletKind.EnemyBullet:
+                if (!enemyBullets.IsCreated || handle.index < 0 || handle.index >= enemyBullets.Length) return;
+                enemyBullets[handle.index] = bullet;
+                break;
+            case ManagedBulletKind.WarpZone:
+                if (!warpZones.IsCreated || handle.index < 0 || handle.index >= warpZones.Length) return;
+                warpZones[handle.index] = bullet;
+                break;
+        }
     }
 
     public NativeArray<CounterBullet> GetCounterBullets() => counterBullets.IsCreated ? counterBullets.AsArray() : default;
@@ -1209,7 +1390,7 @@ public class QuadOrder : MonoBehaviour
     private Vector3 GetEnemyBulletCollisionGizmoVertex(BulletData bullet, float2 vertex)
     {
         float2 local = vertex * math.abs(bullet.scale);
-        float collisionAngle = bullet.angle + bullet.initialAngle;
+        float collisionAngle = bullet.GetRotationAngle();
         float cos = math.cos(collisionAngle);
         float sin = math.sin(collisionAngle);
         float2 world = bullet.position + new float2(

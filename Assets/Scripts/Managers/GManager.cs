@@ -178,15 +178,17 @@ public class GManager : MonoBehaviour
             return;
         }
 
+        StageData runtimeStage = stage.CreateRuntimeCopy(difficulty);
+
         CurrentStageIndex = index;
-        CurrentStageData = stage;
+        CurrentStageData = runtimeStage;
         CurrentDifficulty = difficulty;
 
         playerHitCount = 0;
         counterHitBossCount = 0;
-        await SReader.Init(stage);
+        await SReader.Init(runtimeStage);
         state = GameState.Playing;
-        Debug.Log($"Started Stage: {stage.stageName}, Difficulty: {difficulty}");
+        Debug.Log($"Started Stage: {runtimeStage.stageName}, Difficulty: {difficulty}");
     }
 
     public void AddPlayerHitCount(int value = 1)

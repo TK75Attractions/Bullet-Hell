@@ -3,7 +3,7 @@ using Unity.Mathematics;
 using UnityEngine;
 
 [Serializable]
-public struct BulletDataJson
+public class BulletDataJson
 {
     public Vector2 originPos; //原点位置
     public Vector2 originVlc; //原点の移動速度
@@ -14,6 +14,7 @@ public struct BulletDataJson
     public Vector2 gravity;//弾丸にかかる重力加速度
     public float initialAngle;//弾丸の初期角度
     public float angleSpeed;//弾丸の角速度
+    public bool useVelocityAngle = true;//描画/衝突判定の角度に velocity 由来の angle を使うか
 
     public Vector2 polarForm; //原点中心に回転させる虚数(r0,theta0);
     public float radiusVlc; //r の速さ R(t) = r0 + radiusVlc * t 
@@ -52,6 +53,7 @@ public struct BulletDataJson
             gravity = new float2(this.gravity.x, this.gravity.y),
             initialAngle = this.initialAngle,
             angleSpeed = this.angleSpeed,
+            useVelocityAngle = this.useVelocityAngle,
             polarForm = new float2(this.polarForm.x, this.polarForm.y),
             radiusVlc = this.radiusVlc,
             radiusAccel = this.radiusAccel,

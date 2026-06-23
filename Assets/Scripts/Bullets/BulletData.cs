@@ -41,6 +41,7 @@ public struct BulletData
     public float2 position;//弾の位置
     public float2 velocity;//弾の変位
     public float angle;//弾の角度
+    public bool useVelocityAngle;//描画/衝突判定の角度に velocity 由来の angle を使うか
 
     public float2 originPos; //原点位置
     public float2 originVlc; //原点の移動速度
@@ -115,6 +116,7 @@ public struct BulletData
         position = _pos;
         velocity = new(0, 0);
         angle = 0;
+        useVelocityAngle = true;
         originPos = position;
         originVlc = _vlc;
         playerInfluence = _playerInfluence;
@@ -217,6 +219,7 @@ public struct BulletData
         position = _pos;
         velocity = data.velocity;
         angle = data.angle + _theta;
+        useVelocityAngle = data.useVelocityAngle;
         originPos = _pos + Rotate(data.originPos, _theta);
         originVlc = _vlc + Rotate(data.originVlc, _theta);
         playerInfluence = data.playerInfluence;
@@ -303,6 +306,13 @@ public struct BulletData
         nowCalculateVlc = vec / magnitude * speed;
         position = GetInitialPosition();
         velocity = new float2(0f, 0f);
+    }
+
+    public float GetRotationAngle()
+    {
+        return useVelocityAngle
+            ? angle + initialAngle
+            : polarForm.y + initialAngle;
     }
 
     public void BeginClearFade(float duration)

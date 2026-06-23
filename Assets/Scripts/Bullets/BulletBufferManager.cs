@@ -357,6 +357,7 @@ public class BulletBufferManager
             Debug.LogWarning($"Failed to parse bullet buffer json: {sourceName}");
             return null;
         }
+        ApplyBulletDataJsonDefaults(data, json);
 
         if (string.IsNullOrWhiteSpace(data.name))
         {
@@ -370,6 +371,145 @@ public class BulletBufferManager
         }
 
         return new BulletBuffer(data.name, data.bullets.ConvertAll(b => b.ToBulletData()), data.homing, data.isLaser);
+    }
+
+    private static void ApplyBulletDataJsonDefaults(BulletBufferJson data, string json)
+    {
+        if (data == null || data.bullets == null || data.bullets.Count == 0) return;
+
+        List<string> bulletJsonObjects = ExtractJsonArrayObjects(json, "bullets");
+        if (bulletJsonObjects.Count != data.bullets.Count)
+        {
+            if (!ContainsJsonProperty(json, nameof(BulletDataJson.useVelocityAngle)))
+            {
+                SetDefaultUseVelocityAngle(data.bullets);
+            }
+            return;
+        }
+
+        for (int i = 0; i < data.bullets.Count; i++)
+        {
+            if (data.bullets[i] == null) continue;
+
+            if (!ContainsJsonProperty(bulletJsonObjects[i], nameof(BulletDataJson.useVelocityAngle)))
+            {
+                data.bullets[i].useVelocityAngle = true;
+            }
+        }
+    }
+
+    private static void SetDefaultUseVelocityAngle(List<BulletDataJson> bullets)
+    {
+        for (int i = 0; i < bullets.Count; i++)
+        {
+            if (bullets[i] == null) continue;
+            bullets[i].useVelocityAngle = true;
+        }
+    }
+
+    private static List<string> ExtractJsonArrayObjects(string json, string arrayPropertyName)
+    {
+        List<string> objects = new List<string>();
+        if (string.IsNullOrEmpty(json)) return objects;
+
+        int propertyIndex = FindJsonPropertyIndex(json, arrayPropertyName);
+        if (propertyIndex < 0) return objects;
+
+        int colonIndex = json.IndexOf(':', propertyIndex);
+        if (colonIndex < 0) return objects;
+
+        int arrayStart = json.IndexOf('[', colonIndex + 1);
+        if (arrayStart < 0) return objects;
+
+        bool inString = false;
+        bool escaped = false;
+        int objectDepth = 0;
+        int objectStart = -1;
+
+        for (int i = arrayStart + 1; i < json.Length; i++)
+        {
+            char c = json[i];
+            if (inString)
+            {
+                if (escaped)
+                {
+                    escaped = false;
+                }
+                else if (c == '\\')
+                {
+                    escaped = true;
+                }
+                else if (c == '"')
+                {
+                    inString = false;
+                }
+                continue;
+            }
+
+            if (c == '"')
+            {
+                inString = true;
+                continue;
+            }
+
+            if (c == '{')
+            {
+                if (objectDepth == 0) objectStart = i;
+                objectDepth++;
+                continue;
+            }
+
+            if (c == '}')
+            {
+                objectDepth--;
+                if (objectDepth == 0 && objectStart >= 0)
+                {
+                    objects.Add(json.Substring(objectStart, i - objectStart + 1));
+                    objectStart = -1;
+                }
+                continue;
+            }
+
+            if (c == ']' && objectDepth == 0)
+            {
+                break;
+            }
+        }
+
+        return objects;
+    }
+
+    private static bool ContainsJsonProperty(string json, string propertyName)
+    {
+        return FindJsonPropertyIndex(json, propertyName) >= 0;
+    }
+
+    private static int FindJsonPropertyIndex(string json, string propertyName)
+    {
+        if (string.IsNullOrEmpty(json) || string.IsNullOrEmpty(propertyName)) return -1;
+
+        string quotedPropertyName = $"\"{propertyName}\"";
+        int searchIndex = 0;
+        while (searchIndex < json.Length)
+        {
+            int propertyIndex = json.IndexOf(quotedPropertyName, searchIndex, StringComparison.Ordinal);
+            if (propertyIndex < 0) return -1;
+
+            int afterPropertyName = propertyIndex + quotedPropertyName.Length;
+            while (afterPropertyName < json.Length && char.IsWhiteSpace(json[afterPropertyName]))
+            {
+                afterPropertyName++;
+            }
+
+            if (afterPropertyName < json.Length && json[afterPropertyName] == ':')
+            {
+                return propertyIndex;
+            }
+
+            searchIndex = propertyIndex + quotedPropertyName.Length;
+        }
+
+        return -1;
     }
 
     private void AddOrReplaceBulletBuffer(BulletBuffer buffer)

@@ -55,7 +55,7 @@ public struct BulletCollisionJob : IJobParallelFor
             if (range.x >= bVerts.Length) return;
             if (range.x + range.y > bVerts.Length) return;
 
-            float collisionAngle = bullet.angle + bullet.initialAngle;
+            float collisionAngle = bullet.GetRotationAngle();
             float2 v = new float2(math.cos(collisionAngle), math.sin(collisionAngle));
             float2 n = new float2(-v.y, v.x);
             float2 dis = pPos - bullet.position;
