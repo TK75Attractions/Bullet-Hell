@@ -5,6 +5,8 @@ Read this file first when the user asks to create or reason about BulletBuffer d
 After creating a BulletBuffer asset, also edit `Assets/StageData/debug/debug.json` so the new buffer runs in Unity debug playback.
 The visible play area is from bottom-left `(0,0)` to top-right `(32,18)`. When editing debug spawners, choose `pos` with the BulletBuffer's internal offsets and trajectory bounds included; `(16,9)` is the safe center default.
 
+Encoding note: project JSON and Markdown files are authored in VS Code as UTF-8. When reading Japanese stage or BulletBuffer data from PowerShell, explicitly use UTF-8, for example `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8` and `Get-Content -Encoding UTF8`, before judging parse errors, mojibake, or `clipName` mismatches.
+
 Generator project coupling:
 
 - Breaking changes to StageData or BulletBuffer JSON/runtime contracts must also be checked in:
