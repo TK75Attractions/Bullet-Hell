@@ -11,6 +11,7 @@ public struct BulletData
     public const string WarpZoneTypeName = "warp_zone";
     public const string WarpZoneReflectXTypeName = "warp_zone_reflect_x";
     public const string WarpZoneReflectYTypeName = "warp_zone_reflect_y";
+    public const string AttentionTypeName = "attention";
     public const string ScreenNoiseTypeName = "ScreenNoise";
     public const int ScreenNoiseTypeId = -1000;
 
@@ -26,6 +27,11 @@ public struct BulletData
         return string.Equals(typeName, WarpZoneTypeName, StringComparison.Ordinal)
             || string.Equals(typeName, WarpZoneReflectXTypeName, StringComparison.Ordinal)
             || string.Equals(typeName, WarpZoneReflectYTypeName, StringComparison.Ordinal);
+    }
+
+    public static bool IsAttentionTypeName(string typeName)
+    {
+        return string.Equals(typeName, AttentionTypeName, StringComparison.Ordinal);
     }
 
     public static bool IsScreenNoiseTypeName(string typeName)

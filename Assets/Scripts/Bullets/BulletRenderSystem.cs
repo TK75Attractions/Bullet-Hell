@@ -312,9 +312,7 @@ public class BulletRenderSystem : MonoBehaviour
                 appear = appear,
                 color = new float4(b.color.x, b.color.y, b.color.z, b.color.w * clearFade),
                 renderPriority = type.renderPriority,
-                renderMode = BulletData.IsWarpZoneTypeName(type.typeName)
-                    ? BulletRenderData.WarpZoneRenderMode
-                    : BulletRenderData.DefaultRenderMode,
+                renderMode = GetRenderMode(type),
             };
             writeIndex++;
             activeCount++;
@@ -322,6 +320,14 @@ public class BulletRenderSystem : MonoBehaviour
         }
 
         return writeIndex;
+    }
+
+    private static float GetRenderMode(BulletType type)
+    {
+        if (type == null) return BulletRenderData.DefaultRenderMode;
+        if (BulletData.IsWarpZoneTypeName(type.typeName)) return BulletRenderData.WarpZoneRenderMode;
+        if (BulletData.IsAttentionTypeName(type.typeName)) return BulletRenderData.AttentionRenderMode;
+        return BulletRenderData.DefaultRenderMode;
     }
 
     private float GetBeatValueSin()

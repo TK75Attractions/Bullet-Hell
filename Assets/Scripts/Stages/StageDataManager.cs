@@ -188,6 +188,8 @@ public class StageDataManager
 
         public string difficulty = "";
 
+        public string displayName = "";
+
         public List<MultiBulletSpawnerJson> multiBulletSpawners = new();
 
         public List<BossSpawnerJson> bossSpawners = new();
@@ -1691,6 +1693,8 @@ public class StageDataManager
             data.difficulties.Add(new StageDifficultyData
             {
                 difficulty = Difficulty.Lunatic,
+                difficultyId = DifficultyUtility.GetId(Difficulty.Lunatic),
+                displayName = DifficultyUtility.GetDisplayName(Difficulty.Lunatic),
                 multiBulletSpawners = ConvertMultiBulletSpawners(jsonData.multiBulletSpawners),
                 bossSpawners = ConvertBossSpawners(jsonData.bossSpawners),
                 bulletSpawners = ConvertBulletSpawners(jsonData.bulletSpawners)
@@ -1726,9 +1730,20 @@ public class StageDataManager
             StageDifficultyDataJson difficultyJson = jsonData.difficulties[i];
             if (difficultyJson == null) continue;
 
+            Difficulty difficulty = ParseDifficulty(difficultyJson.difficulty, Difficulty.Normal);
+            string difficultyId = DifficultyUtility.NormalizeId(difficultyJson.difficulty);
+            if (string.IsNullOrWhiteSpace(difficultyId))
+            {
+                difficultyId = DifficultyUtility.GetId(difficulty);
+            }
+
             difficulties.Add(new StageDifficultyData
             {
-                difficulty = ParseDifficulty(difficultyJson.difficulty, Difficulty.Normal),
+                difficulty = difficulty,
+                difficultyId = difficultyId,
+                displayName = string.IsNullOrWhiteSpace(difficultyJson.displayName)
+                    ? DifficultyUtility.GetDisplayName(difficultyId)
+                    : difficultyJson.displayName.Trim(),
                 multiBulletSpawners = ConvertMultiBulletSpawners(difficultyJson.multiBulletSpawners),
                 bossSpawners = ConvertBossSpawners(difficultyJson.bossSpawners),
                 bulletSpawners = ConvertBulletSpawners(difficultyJson.bulletSpawners)
@@ -1740,20 +1755,11 @@ public class StageDataManager
 
     private static Difficulty ParseDifficulty(string value, Difficulty fallback)
     {
-        if (string.IsNullOrWhiteSpace(value)) return fallback;
-
-        if (Enum.TryParse(value.Trim(), true, out Difficulty parsedDifficulty))
+        if (DifficultyUtility.TryParseOfficial(value, out Difficulty parsedDifficulty))
         {
             return parsedDifficulty;
         }
 
-        if (int.TryParse(value.Trim(), out int difficultyValue)
-            && Enum.IsDefined(typeof(Difficulty), difficultyValue))
-        {
-            return (Difficulty)difficultyValue;
-        }
-
-        Debug.LogWarning($"Unknown difficulty '{value}'. Falling back to {fallback}.");
         return fallback;
     }
 

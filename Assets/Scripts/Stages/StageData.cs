@@ -64,11 +64,24 @@ public class StageData
 
     public List<BulletSpawner> bulletSpawners = new List<BulletSpawner>();
 
+    [NonSerialized] public DifficultySelection requestedDifficulty;
+    [NonSerialized] public DifficultySelection activeDifficulty;
+    [NonSerialized] public DifficultySelection resolvedDataDifficulty;
+
     [System.NonSerialized] public EnemyVisualCatalog enemyVisualCatalog;
 
     public StageData CreateRuntimeCopy(Difficulty difficulty)
     {
+        return CreateRuntimeCopy(DifficultySelection.FromOfficial(difficulty));
+    }
+
+    public StageData CreateRuntimeCopy(DifficultySelection difficulty)
+    {
         StageDifficultyData selectedDifficulty = ResolveDifficultyData(difficulty);
+        DifficultySelection normalizedDifficulty = NormalizeDifficultySelection(difficulty);
+        DifficultySelection dataSelection = selectedDifficulty != null
+            ? ToDifficultySelection(selectedDifficulty)
+            : normalizedDifficulty;
 
         StageData runtimeData = new StageData
         {
@@ -87,6 +100,9 @@ public class StageData
             stageDescription = stageDescription,
             enemyVisuals = CloneEnemyVisuals(enemyVisuals),
             difficulties = CloneDifficultyDataList(difficulties),
+            requestedDifficulty = normalizedDifficulty,
+            activeDifficulty = normalizedDifficulty,
+            resolvedDataDifficulty = dataSelection,
             multiBulletSpawners = selectedDifficulty != null
                 ? CloneMultiBulletSpawners(selectedDifficulty.multiBulletSpawners)
                 : CloneMultiBulletSpawners(multiBulletSpawners),
@@ -103,9 +119,17 @@ public class StageData
 
     public void SetActiveDifficultyForPreview(Difficulty difficulty)
     {
+        SetActiveDifficultyForPreview(DifficultySelection.FromOfficial(difficulty));
+    }
+
+    public void SetActiveDifficultyForPreview(DifficultySelection difficulty)
+    {
         StageDifficultyData selectedDifficulty = ResolveDifficultyData(difficulty);
         if (selectedDifficulty == null) return;
 
+        requestedDifficulty = NormalizeDifficultySelection(difficulty);
+        activeDifficulty = requestedDifficulty;
+        resolvedDataDifficulty = ToDifficultySelection(selectedDifficulty);
         multiBulletSpawners = CloneMultiBulletSpawners(selectedDifficulty.multiBulletSpawners);
         bossSpawners = CloneBossSpawners(selectedDifficulty.bossSpawners);
         bulletSpawners = CloneBulletSpawners(selectedDifficulty.bulletSpawners);
@@ -113,12 +137,25 @@ public class StageData
 
     public StageDifficultyData GetDifficultyData(Difficulty difficulty)
     {
+        return GetDifficultyData(DifficultyUtility.GetId(difficulty));
+    }
+
+    public StageDifficultyData GetDifficultyData(DifficultySelection difficulty)
+    {
+        return GetDifficultyData(difficulty.id);
+    }
+
+    public StageDifficultyData GetDifficultyData(string difficultyId)
+    {
         if (difficulties == null) return null;
+
+        string normalizedId = DifficultyUtility.NormalizeId(difficultyId);
+        if (string.IsNullOrWhiteSpace(normalizedId)) return null;
 
         for (int i = 0; i < difficulties.Count; i++)
         {
             StageDifficultyData difficultyData = difficulties[i];
-            if (difficultyData != null && difficultyData.difficulty == difficulty)
+            if (DifficultyDataMatchesId(difficultyData, normalizedId))
             {
                 return difficultyData;
             }
@@ -127,7 +164,42 @@ public class StageData
         return null;
     }
 
-    private StageDifficultyData ResolveDifficultyData(Difficulty difficulty)
+    public List<DifficultySelection> GetDifficultySelections()
+    {
+        List<DifficultySelection> selections = DifficultyUtility.GetOfficialSelections();
+        HashSet<string> usedIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        for (int i = 0; i < selections.Count; i++)
+        {
+            usedIds.Add(selections[i].id);
+        }
+
+        if (difficulties == null) return selections;
+
+        for (int i = 0; i < difficulties.Count; i++)
+        {
+            StageDifficultyData difficultyData = difficulties[i];
+            if (difficultyData == null) continue;
+
+            DifficultySelection selection = ToDifficultySelection(difficultyData);
+            if (!selection.IsValid() || usedIds.Contains(selection.id)) continue;
+
+            selections.Add(selection);
+            usedIds.Add(selection.id);
+        }
+
+        return selections;
+    }
+
+    public DifficultySelection ResolveDifficultySelection(DifficultySelection difficulty)
+    {
+        StageDifficultyData selectedDifficulty = ResolveDifficultyData(difficulty);
+        return selectedDifficulty != null
+            ? ToDifficultySelection(selectedDifficulty)
+            : NormalizeDifficultySelection(difficulty);
+    }
+
+    private StageDifficultyData ResolveDifficultyData(DifficultySelection difficulty)
     {
         return GetDifficultyData(difficulty)
             ?? GetDifficultyData(Difficulty.Normal)
@@ -149,6 +221,40 @@ public class StageData
         }
 
         return null;
+    }
+
+    private static DifficultySelection NormalizeDifficultySelection(DifficultySelection difficulty)
+    {
+        return difficulty.IsValid()
+            ? DifficultySelection.FromId(difficulty.id, difficulty.displayName)
+            : DifficultySelection.FromOfficial(Difficulty.Easy);
+    }
+
+    private static DifficultySelection ToDifficultySelection(StageDifficultyData difficultyData)
+    {
+        if (difficultyData == null) return DifficultySelection.FromOfficial(Difficulty.Easy);
+
+        string difficultyId = GetDifficultyId(difficultyData);
+        return DifficultySelection.FromId(difficultyId, difficultyData.displayName);
+    }
+
+    private static bool DifficultyDataMatchesId(StageDifficultyData difficultyData, string difficultyId)
+    {
+        if (difficultyData == null || string.IsNullOrWhiteSpace(difficultyId)) return false;
+
+        return string.Equals(
+            GetDifficultyId(difficultyData),
+            DifficultyUtility.NormalizeId(difficultyId),
+            StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string GetDifficultyId(StageDifficultyData difficultyData)
+    {
+        if (difficultyData == null) return string.Empty;
+
+        return string.IsNullOrWhiteSpace(difficultyData.difficultyId)
+            ? DifficultyUtility.GetId(difficultyData.difficulty)
+            : DifficultyUtility.NormalizeId(difficultyData.difficultyId);
     }
 
     private static List<MusicEvent> CloneMusicEvents(List<MusicEvent> source)
@@ -235,6 +341,8 @@ public class StageData
             result.Add(new StageDifficultyData
             {
                 difficulty = difficultyData.difficulty,
+                difficultyId = GetDifficultyId(difficultyData),
+                displayName = difficultyData.displayName,
                 multiBulletSpawners = CloneMultiBulletSpawners(difficultyData.multiBulletSpawners),
                 bossSpawners = CloneBossSpawners(difficultyData.bossSpawners),
                 bulletSpawners = CloneBulletSpawners(difficultyData.bulletSpawners)
@@ -404,6 +512,8 @@ public class StageData
 public class StageDifficultyData
 {
     public Difficulty difficulty = Difficulty.Normal;
+    public string difficultyId = "";
+    public string displayName = "";
     public List<MultiBulletSpawner> multiBulletSpawners = new List<MultiBulletSpawner>();
     public List<BossSpawner> bossSpawners = new List<BossSpawner>();
     public List<BulletSpawner> bulletSpawners = new List<BulletSpawner>();
