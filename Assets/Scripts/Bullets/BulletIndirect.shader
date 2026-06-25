@@ -4,6 +4,10 @@ Shader "Custom/BulletIndirectMasked"
     {
         _MainArray("Main Texture Array", 2DArray) = "" {}
         _MaskArray("Mask Texture Array", 2DArray) = "" {}
+        _AttentionBorderWidth("Attention Border Width", Float) = 0.08
+        _AttentionMarkScale("Attention Mark Scale", Range(0, 1)) = 1
+        _AttentionMarkSourceMin("Attention Mark Source Min", Vector) = (0.35, 0.2, 0, 0)
+        _AttentionMarkSourceMax("Attention Mark Source Max", Vector) = (0.65, 0.8, 0, 0)
     }
 
         SubShader
@@ -29,6 +33,11 @@ Shader "Custom/BulletIndirectMasked"
             //========================
             UNITY_DECLARE_TEX2DARRAY(_MainArray);
             UNITY_DECLARE_TEX2DARRAY(_MaskArray);
+
+            float _AttentionBorderWidth;
+            float _AttentionMarkScale;
+            float4 _AttentionMarkSourceMin;
+            float4 _AttentionMarkSourceMax;
 
             //========================
             // GPU �\���́iC# �ƈ�v�K�{�j
@@ -72,6 +81,7 @@ Shader "Custom/BulletIndirectMasked"
                 float appear : TEXCOORD3;
                 float4 color    : TEXCOORD4;
                 float renderMode : TEXCOORD5;
+                float2 scale : TEXCOORD6;
             };
 
             //========================
@@ -106,8 +116,49 @@ Shader "Custom/BulletIndirectMasked"
                 o.appear = b.appear;
                 o.color = b.color;
                 o.renderMode = b.renderMode;
+                o.scale = abs(b.scale);
 
                 return o;
+            }
+
+            fixed4 fragAttention(v2f i)
+            {
+                float appear = saturate(i.appear);
+                float2 size = max(i.scale, float2(1e-4, 1e-4));
+                float minSize = min(size.x, size.y);
+
+                float borderWidth = min(max(_AttentionBorderWidth, 0.0), minSize * 0.45);
+                float2 edgeDistances = min(i.uv, 1.0 - i.uv) * size;
+                float edgeDistance = min(edgeDistances.x, edgeDistances.y);
+                float aa = max(fwidth(edgeDistance), 1e-4);
+                float borderAlpha = (1.0 - smoothstep(borderWidth, borderWidth + aa, edgeDistance))
+                    * saturate(i.color.a)
+                    * appear;
+
+                float markSize = max(minSize * saturate(_AttentionMarkScale), 1e-4);
+                float2 markUv = ((i.uv - 0.5) * size) / markSize + 0.5;
+
+                float2 sourceMin = min(_AttentionMarkSourceMin.xy, _AttentionMarkSourceMax.xy);
+                float2 sourceMax = max(_AttentionMarkSourceMin.xy, _AttentionMarkSourceMax.xy);
+                float2 inSquare = step(float2(0.0, 0.0), markUv) * step(markUv, float2(1.0, 1.0));
+                float2 inSource = step(sourceMin, markUv) * step(markUv, sourceMax);
+                float sourceMask = inSquare.x * inSquare.y * inSource.x * inSource.y;
+
+                fixed4 markBase =
+                    UNITY_SAMPLE_TEX2DARRAY(_MainArray, float3(markUv, i.texIndex));
+                float markMask =
+                    UNITY_SAMPLE_TEX2DARRAY(_MaskArray, float3(markUv, i.maskIndex)).r * sourceMask;
+                float markTintStrength = saturate(markMask * i.color.a);
+                fixed3 markRgb = lerp(markBase.rgb, i.color.rgb, markTintStrength);
+                float markAlpha = max(markBase.a * sourceMask, markMask) * saturate(i.color.a) * appear;
+
+                fixed3 borderRgb = i.color.rgb;
+                float outAlpha = saturate(markAlpha + borderAlpha * (1.0 - markAlpha));
+                fixed3 outRgb = outAlpha > 1e-4
+                    ? (markRgb * markAlpha + borderRgb * borderAlpha * (1.0 - markAlpha)) / outAlpha
+                    : fixed3(0.0, 0.0, 0.0);
+
+                return fixed4(outRgb, outAlpha);
             }
 
             //========================
@@ -115,6 +166,11 @@ Shader "Custom/BulletIndirectMasked"
             //========================
             fixed4 frag(v2f i) : SV_Target
             {
+                if (i.renderMode > 1.5)
+                {
+                    return fragAttention(i);
+                }
+
                 fixed4 baseCol =
                     UNITY_SAMPLE_TEX2DARRAY(_MainArray, float3(i.uv, i.texIndex));
 

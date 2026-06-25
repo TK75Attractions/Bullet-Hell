@@ -4,6 +4,10 @@ Shader "Custom/BulletIndirectURP"
     {
         _MainArray("Main Texture Array", 2DArray) = "" {}
         _MaskArray("Mask Texture Array", 2DArray) = "" {}
+        _AttentionBorderWidth("Attention Border Width", Float) = 0.08
+        _AttentionMarkScale("Attention Mark Scale", Range(0, 1)) = 1
+        _AttentionMarkSourceMin("Attention Mark Source Min", Vector) = (0.35, 0.2, 0, 0)
+        _AttentionMarkSourceMax("Attention Mark Source Max", Vector) = (0.65, 0.8, 0, 0)
     }
 
     SubShader
@@ -38,6 +42,11 @@ Shader "Custom/BulletIndirectURP"
             TEXTURE2D_ARRAY(_MaskArray);
             SAMPLER(sampler_MaskArray);
 
+            float _AttentionBorderWidth;
+            float _AttentionMarkScale;
+            float4 _AttentionMarkSourceMin;
+            float4 _AttentionMarkSourceMax;
+
             struct BulletData
             {
                 float2 pos;
@@ -68,6 +77,7 @@ Shader "Custom/BulletIndirectURP"
                 float appear : TEXCOORD3;
                 float4 color : TEXCOORD4;
                 float renderMode : TEXCOORD5;
+                float2 scale : TEXCOORD6;
             };
 
             Varyings vert(Attributes input, uint instanceID : SV_InstanceID)
@@ -99,12 +109,58 @@ Shader "Custom/BulletIndirectURP"
                 output.appear = b.appear;
                 output.color = b.color;
                 output.renderMode = b.renderMode;
+                output.scale = abs(b.scale);
 
                 return output;
             }
 
+            half4 fragAttention(Varyings input)
+            {
+                float appear = saturate(input.appear);
+                float2 size = max(input.scale, float2(1e-4, 1e-4));
+                float minSize = min(size.x, size.y);
+
+                float borderWidth = min(max(_AttentionBorderWidth, 0.0), minSize * 0.45);
+                float2 edgeDistances = min(input.uv, 1.0 - input.uv) * size;
+                float edgeDistance = min(edgeDistances.x, edgeDistances.y);
+                float aa = max(fwidth(edgeDistance), 1e-4);
+                float borderAlpha = (1.0 - smoothstep(borderWidth, borderWidth + aa, edgeDistance))
+                    * saturate(input.color.a)
+                    * appear;
+
+                float markSize = max(minSize * saturate(_AttentionMarkScale), 1e-4);
+                float2 markUv = ((input.uv - 0.5) * size) / markSize + 0.5;
+
+                float2 sourceMin = min(_AttentionMarkSourceMin.xy, _AttentionMarkSourceMax.xy);
+                float2 sourceMax = max(_AttentionMarkSourceMin.xy, _AttentionMarkSourceMax.xy);
+                float2 inSquare = step(float2(0.0, 0.0), markUv) * step(markUv, float2(1.0, 1.0));
+                float2 inSource = step(sourceMin, markUv) * step(markUv, sourceMax);
+                float sourceMask = inSquare.x * inSquare.y * inSource.x * inSource.y;
+
+                half4 markBase = SAMPLE_TEXTURE2D_ARRAY(_MainArray, sampler_MainArray,
+                    markUv, input.texIndex);
+                half markMask = SAMPLE_TEXTURE2D_ARRAY(_MaskArray, sampler_MaskArray,
+                    markUv, input.maskIndex).r * sourceMask;
+                half markTintStrength = saturate(markMask * input.color.a);
+                half3 markRgb = lerp(markBase.rgb, input.color.rgb, markTintStrength);
+                half markAlpha = max(markBase.a * sourceMask, markMask) * saturate(input.color.a) * appear;
+
+                half3 borderRgb = input.color.rgb;
+                half outAlpha = saturate(markAlpha + borderAlpha * (1.0 - markAlpha));
+                half3 outRgb = outAlpha > 1e-4
+                    ? (markRgb * markAlpha + borderRgb * borderAlpha * (1.0 - markAlpha)) / outAlpha
+                    : half3(0.0, 0.0, 0.0);
+
+                return half4(outRgb, outAlpha);
+            }
+
             half4 frag(Varyings input) : SV_Target
             {
+                if (input.renderMode > 1.5)
+                {
+                    return fragAttention(input);
+                }
+
                 // テクスチャ配列からサンプリング
                 half4 baseCol = SAMPLE_TEXTURE2D_ARRAY(_MainArray, sampler_MainArray, 
                     input.uv, input.texIndex);

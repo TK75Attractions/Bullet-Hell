@@ -51,6 +51,9 @@ public class GManager : MonoBehaviour
     public int counterHitBossCount = 0;
 
     public Difficulty CurrentDifficulty { get; private set; } = Difficulty.Easy;
+    public DifficultySelection RequestedDifficultySelection { get; private set; } = DifficultySelection.FromOfficial(Difficulty.Easy);
+    public DifficultySelection CurrentDifficultySelection { get; private set; } = DifficultySelection.FromOfficial(Difficulty.Easy);
+    public DifficultySelection CurrentDataDifficultySelection { get; private set; } = DifficultySelection.FromOfficial(Difficulty.Easy);
     public int CurrentStageIndex { get; private set; } = -1;
     public StageData CurrentStageData { get; private set; }
 
@@ -169,7 +172,12 @@ public class GManager : MonoBehaviour
         return (float)deg;
     }
 
-    public async void GoGame(int index, Difficulty difficulty)
+    public void GoGame(int index, Difficulty difficulty)
+    {
+        GoGame(index, DifficultySelection.FromOfficial(difficulty));
+    }
+
+    public async void GoGame(int index, DifficultySelection difficulty)
     {
         StageData stage = SDB.GetStage(index);
         if (stage == null)
@@ -178,15 +186,22 @@ public class GManager : MonoBehaviour
             return;
         }
 
+        StageData runtimeStage = stage.CreateRuntimeCopy(difficulty);
+
         CurrentStageIndex = index;
-        CurrentStageData = stage;
-        CurrentDifficulty = difficulty;
+        CurrentStageData = runtimeStage;
+        RequestedDifficultySelection = runtimeStage.requestedDifficulty;
+        CurrentDifficultySelection = runtimeStage.activeDifficulty;
+        CurrentDataDifficultySelection = runtimeStage.resolvedDataDifficulty;
+        CurrentDifficulty = CurrentDifficultySelection.isOfficial
+            ? CurrentDifficultySelection.officialDifficulty
+            : Difficulty.Normal;
 
         playerHitCount = 0;
         counterHitBossCount = 0;
-        await SReader.Init(stage);
+        await SReader.Init(runtimeStage);
         state = GameState.Playing;
-        Debug.Log($"Started Stage: {stage.stageName}, Difficulty: {difficulty}");
+        Debug.Log($"Started Stage: {runtimeStage.stageName}, Difficulty: {CurrentDifficultySelection.displayName} (Data: {CurrentDataDifficultySelection.displayName})");
     }
 
     public void AddPlayerHitCount(int value = 1)

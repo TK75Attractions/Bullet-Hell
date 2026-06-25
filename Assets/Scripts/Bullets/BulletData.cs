@@ -11,6 +11,7 @@ public struct BulletData
     public const string WarpZoneTypeName = "warp_zone";
     public const string WarpZoneReflectXTypeName = "warp_zone_reflect_x";
     public const string WarpZoneReflectYTypeName = "warp_zone_reflect_y";
+    public const string AttentionTypeName = "attention";
     public const string ScreenNoiseTypeName = "ScreenNoise";
     public const int ScreenNoiseTypeId = -1000;
 
@@ -28,6 +29,11 @@ public struct BulletData
             || string.Equals(typeName, WarpZoneReflectYTypeName, StringComparison.Ordinal);
     }
 
+    public static bool IsAttentionTypeName(string typeName)
+    {
+        return string.Equals(typeName, AttentionTypeName, StringComparison.Ordinal);
+    }
+
     public static bool IsScreenNoiseTypeName(string typeName)
     {
         return string.Equals(typeName, ScreenNoiseTypeName, StringComparison.Ordinal);
@@ -41,6 +47,7 @@ public struct BulletData
     public float2 position;//弾の位置
     public float2 velocity;//弾の変位
     public float angle;//弾の角度
+    public bool useVelocityAngle;//描画/衝突判定の角度に velocity 由来の angle を使うか
 
     public float2 originPos; //原点位置
     public float2 originVlc; //原点の移動速度
@@ -115,6 +122,7 @@ public struct BulletData
         position = _pos;
         velocity = new(0, 0);
         angle = 0;
+        useVelocityAngle = true;
         originPos = position;
         originVlc = _vlc;
         playerInfluence = _playerInfluence;
@@ -217,6 +225,7 @@ public struct BulletData
         position = _pos;
         velocity = data.velocity;
         angle = data.angle + _theta;
+        useVelocityAngle = data.useVelocityAngle;
         originPos = _pos + Rotate(data.originPos, _theta);
         originVlc = _vlc + Rotate(data.originVlc, _theta);
         playerInfluence = data.playerInfluence;
@@ -303,6 +312,13 @@ public struct BulletData
         nowCalculateVlc = vec / magnitude * speed;
         position = GetInitialPosition();
         velocity = new float2(0f, 0f);
+    }
+
+    public float GetRotationAngle()
+    {
+        return useVelocityAngle
+            ? angle + initialAngle
+            : polarForm.y + initialAngle;
     }
 
     public void BeginClearFade(float duration)

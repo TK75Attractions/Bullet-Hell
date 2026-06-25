@@ -2,8 +2,10 @@
 
 This is the recall note for creating BulletBuffer JSON assets in this project.
 Read this file first when the user asks to create or reason about BulletBuffer danmaku assets.
-After creating a BulletBuffer asset, also edit `Assets/StageData/debug/debug.json` so the new buffer runs in Unity debug playback.
+After creating a BulletBuffer asset, also edit `Assets/StageData/debug/debug.json` under the `difficulties[]` entry whose `difficulty` is `Lunatic` so the new buffer runs in Unity debug playback.
 The visible play area is from bottom-left `(0,0)` to top-right `(32,18)`. When editing debug spawners, choose `pos` with the BulletBuffer's internal offsets and trajectory bounds included; `(16,9)` is the safe center default.
+
+Encoding note: project JSON and Markdown files are authored in VS Code as UTF-8. When reading Japanese stage or BulletBuffer data from PowerShell, explicitly use UTF-8, for example `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8` and `Get-Content -Encoding UTF8`, before judging parse errors, mojibake, or `clipName` mismatches.
 
 Generator project coupling:
 
@@ -59,6 +61,7 @@ BulletDataJson shape:
   "gravity": 0,
   "initialAngle": 0,
   "angleSpeed": 0,
+  "useVelocityAngle": true,
   "polarForm": { "x": 1, "y": 0 },
   "radiusVlc": 0,
   "thetaVlc": 0,
@@ -107,12 +110,13 @@ Important load quirks:
 
 Stage bullet spawners:
 
-1. `StageReader.Init()` scans `stageData.bulletSpawners`.
-2. It resolves `clipName` with `BulletBufferManager.TryGetBulletBufferIndex()`.
-3. It expands `count`, `interval`, `time`, and `angleInterval` into scheduled `BulletSpawnEvent` entries.
-4. `StageReader.UpdateStage()` calls `QuadOrder.AddEnemyBullets(index, pos, originVlc, angle, color)` when an event reaches its time.
-5. `BulletBufferManager.CreateSpawnedBullets()` clones the template BulletData entries into spawned BulletData entries.
-6. Normal buffers append to `enemyBullets`; laser buffers go to `LaserEmitter`.
+1. `GManager.GoGame()` selects `StageData.difficulties[]` by the chosen `Difficulty` and passes a runtime copy to `StageReader.Init()`.
+2. `StageReader.Init()` scans the runtime `stageData.bulletSpawners`.
+3. It resolves `clipName` with `BulletBufferManager.TryGetBulletBufferIndex()`.
+4. It expands `count`, `interval`, `time`, and `angleInterval` into scheduled `BulletSpawnEvent` entries.
+5. `StageReader.UpdateStage()` calls `QuadOrder.AddEnemyBullets(index, pos, originVlc, angle, color)` when an event reaches its time.
+6. `BulletBufferManager.CreateSpawnedBullets()` clones the template BulletData entries into spawned BulletData entries.
+7. Normal buffers append to `enemyBullets`; laser buffers go to `LaserEmitter`.
 
 Enemy bullet emission:
 
@@ -173,8 +177,8 @@ Gravity:
 
 Visual angle:
 
-- `angle = atan2(velocity.y, velocity.x)`, normalized to `0..2*pi`.
-- Then add `angleSpeed * lapse`.
+- If `useVelocityAngle` is true or omitted, `angle = atan2(velocity.y, velocity.x) + angleSpeed * lapse`, then `initialAngle` is added for rendering and collision.
+- If `useVelocityAngle` is false, rendering and collision use `polarForm.y + initialAngle` and ignore the velocity-derived angle.
 
 Bounds:
 
@@ -245,7 +249,7 @@ Snake or wave:
 
 ## 6. Creation Checklist
 
-- Top-level `name` exactly matches the StageData `clipName`.
+- Top-level `name` exactly matches the StageData `clipName`; authored StageData JSON now stores spawners under `difficulties[].bulletSpawners`.
 - `bullets` is not empty.
 - `typeName` exists in `BulletTypeDataBase`.
 - JSON angles are radians; StageData spawner angles are degrees.

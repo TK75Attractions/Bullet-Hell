@@ -82,7 +82,7 @@ public struct WarpBulletJob : IJobParallelFor
     private bool Contains(BulletData zone, float2 position)
     {
         float2 halfSize = math.abs(zone.scale) * 0.5f;
-        float angle = zone.angle + zone.initialAngle;
+        float angle = zone.GetRotationAngle();
         float cos = math.cos(angle);
         float sin = math.sin(angle);
         float2 delta = position - zone.position;

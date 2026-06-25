@@ -40,6 +40,7 @@ public class StageSelectManager : MonoBehaviour
         scroll.Init();
         stageBar.Init();
         stageDescription.Init();
+        defficultyBar.SetStage(GManager.Control.SDB.GetStage(stageBar.currentStage));
 
         state = State.Music;
 
@@ -55,6 +56,7 @@ public class StageSelectManager : MonoBehaviour
             case State.Music:
                 if (button)
                 {
+                    defficultyBar.SetStage(GManager.Control.SDB.GetStage(stageBar.currentStage));
                     state = State.Difficulty;
                     TransitionToDifficulty();
                     break;
