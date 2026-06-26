@@ -51,6 +51,10 @@ Material:
     m_Floats:
     - _AttentionBorderWidth: 0.08
     - _AttentionMarkScale: 1
+    - _CounterGlowRadius: 1.5
+    - _CounterGlowStrength: 0.42
+    - _CounterMaskTexelSize: 0.0078125
+    - _CounterRimBoost: 1.25
     - _EnableExternalAlpha: 0
     m_Colors:
     - _AttentionMarkSourceMax: {r: 0.65, g: 0.8, b: 0, a: 0}

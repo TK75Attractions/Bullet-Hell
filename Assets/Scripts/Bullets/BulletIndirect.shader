@@ -207,11 +207,51 @@ Shader "Custom/BulletIndirectMasked"
                 return fixed4(outRgb, outAlpha * appear);
             }
 
+            fixed4 fragCounterTrail(v2f i)
+            {
+                float appear = saturate(i.appear);
+                float colorAlpha = saturate(i.color.a);
+                float2 centeredUv = abs(i.uv - 0.5) * 2.0;
+                float cross = centeredUv.y;
+                float cap = smoothstep(0.0, 0.22, i.uv.x)
+                    * smoothstep(0.0, 0.22, 1.0 - i.uv.x);
+                float core = 1.0 - smoothstep(0.05, 0.48, cross);
+                float glow = 1.0 - smoothstep(0.16, 1.0, cross);
+                float headBoost = lerp(0.72, 1.12, saturate(i.uv.x));
+                float alpha = saturate((core * 0.68 + glow * 0.34) * cap * headBoost * colorAlpha);
+
+                return fixed4(i.color.rgb, alpha * appear);
+            }
+
+            fixed4 fragCounterSpawnFlash(v2f i)
+            {
+                float appear = saturate(i.appear);
+                float colorAlpha = saturate(i.color.a);
+                float2 centeredUv = i.uv - 0.5;
+                float distanceFromCenter = length(centeredUv) * 2.0;
+                float ringDistance = abs(distanceFromCenter - 0.62);
+                float ring = 1.0 - smoothstep(0.035, 0.11, ringDistance);
+                float innerGlow = (1.0 - smoothstep(0.0, 0.9, distanceFromCenter)) * 0.22;
+                float alpha = saturate((ring + innerGlow) * colorAlpha);
+
+                return fixed4(i.color.rgb, alpha * appear);
+            }
+
             //========================
             // Fragment Shader
             //========================
             fixed4 frag(v2f i) : SV_Target
             {
+                if (i.renderMode > 4.5)
+                {
+                    return fragCounterSpawnFlash(i);
+                }
+
+                if (i.renderMode > 3.5)
+                {
+                    return fragCounterTrail(i);
+                }
+
                 if (i.renderMode > 2.5)
                 {
                     return fragCounter(i);

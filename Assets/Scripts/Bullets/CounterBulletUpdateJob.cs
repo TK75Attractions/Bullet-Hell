@@ -15,6 +15,22 @@ public struct CounterBulletUpdateJob : IJobParallelFor
         CounterBullet bullet = bullets[index];
         if (!bullet.isActive) return;
 
+        if (!bullet.launched)
+        {
+            bullet.spawnElapsed += dt;
+            if (bullet.spawnElapsed < bullet.spawnDelay)
+            {
+                bullets[index] = bullet;
+                return;
+            }
+
+            bullet.launched = true;
+            bullet.homingElapsed = 0f;
+            bullet.trailCount = 0;
+            bullets[index] = bullet;
+            return;
+        }
+
         bullet.homingElapsed += dt;
         bullet.PushTrailSample(bullet.position);
 

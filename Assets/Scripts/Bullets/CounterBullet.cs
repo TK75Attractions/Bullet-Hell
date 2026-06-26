@@ -6,7 +6,14 @@ public struct CounterBullet
     public float2 velocity;
     public float damage;
     public bool isActive;
+    public bool launched;
     public float homingElapsed;
+    public float spawnElapsed;
+    public float spawnDelay;
+    public int sourceTypeId;
+    public float2 sourceScale;
+    public float sourceAngle;
+    public float4 sourceColor;
 
     public int trailCount;
     public float2 trail0;
@@ -32,6 +39,7 @@ public struct CounterBullet
     public const float HomingStrength = 8f;
     public const float InitialHomingFactor = -0.3f;
     public const float HomingRampDuration = 0.85f;
+    public const float SpawnDelay = 0.12f;
 
     public static float GetSize(float damage)
     {

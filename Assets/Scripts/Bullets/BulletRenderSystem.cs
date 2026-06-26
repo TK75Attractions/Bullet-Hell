@@ -215,7 +215,7 @@ public class BulletRenderSystem : MonoBehaviour
         int safeEnemyCount = math.max(0, enemyCount);
         int safeWarpZoneCount = math.max(0, warpZoneCount);
         int safeCounterCount = math.max(0, counterCount);
-        int totalCount = safeEnemyCount + safeWarpZoneCount + safeCounterCount * (CounterBullet.TrailCapacity + 1);
+        int totalCount = safeEnemyCount + safeWarpZoneCount + safeCounterCount * (CounterBullet.TrailCapacity + 2);
 
         if (totalCount == 0)
         {
@@ -352,8 +352,14 @@ public class BulletRenderSystem : MonoBehaviour
             if (!b.isActive) continue;
 
             float headSize = CounterBullet.GetSize(b.damage);
-            float appear = 1f;
             int renderPriority = GetRenderPriority(CounterBullet.TypeId);
+            if (!b.launched)
+            {
+                writeIndex = AppendCounterSpawnRenderData(b, headSize, renderPriority, writeIndex, maxCount);
+                continue;
+            }
+
+            float appear = 1f;
             float4 counterColor = GetCounterBulletColor(1f);
             renderArray[writeIndex] = new BulletRenderData
             {
@@ -383,25 +389,79 @@ public class BulletRenderSystem : MonoBehaviour
                 }
 
                 float tNorm = (trailIndex + 1f) / (b.trailCount + 1f);
-                float taper = math.pow(1f - tNorm, 0.45f);
+                float taper = math.pow(1f - tNorm, 0.75f);
                 float fade = math.pow(1f - tNorm, 1.8f);
-                float segmentSize = math.max(headSize * (0.85f * taper + 0.08f), segmentLength * 1.4f);
+                float trailWidth = headSize * (0.05f + 0.23f * taper);
+                float trailLength = math.max(segmentLength + trailWidth * 2.4f, headSize * (0.08f + 0.36f * taper));
                 float4 trailColor = GetCounterBulletColor(fade);
+                int trailRenderPriority = renderPriority - 1;
                 renderArray[writeIndex] = new BulletRenderData
                 {
                     pos = (previousPoint + currentPoint) * 0.5f,
                     angle = math.atan2(segment.y, segment.x),
-                    scale = new float2(segmentSize, segmentSize),
+                    scale = new float2(trailLength, trailWidth),
                     texIndex = CounterBullet.TypeId,
                     maskIndex = CounterBullet.TypeId,
-                    appear = fade,
+                    appear = 1f,
                     color = trailColor,
-                    renderPriority = renderPriority,
-                    renderMode = BulletRenderData.CounterBulletRenderMode,
+                    renderPriority = trailRenderPriority,
+                    renderMode = BulletRenderData.CounterTrailRenderMode,
                 };
                 writeIndex++;
                 previousPoint = currentPoint;
             }
+        }
+
+        return writeIndex;
+    }
+
+    private int AppendCounterSpawnRenderData(CounterBullet bullet, float headSize, int renderPriority, int startIndex, int maxCount)
+    {
+        int writeIndex = startIndex;
+        float progress = bullet.spawnDelay > 1e-5f
+            ? math.saturate(bullet.spawnElapsed / bullet.spawnDelay)
+            : 1f;
+        float eased = math.smoothstep(0f, 1f, progress);
+
+        BulletType sourceType = GetBulletType(bullet.sourceTypeId);
+        float sourceBaseSize = sourceType != null ? sourceType.baseSize : 1f;
+        float2 sourceScale = bullet.sourceScale * sourceBaseSize * math.max(0f, 1f - eased);
+        if (sourceType != null && math.cmax(math.abs(sourceScale)) > 0.02f && writeIndex < maxCount)
+        {
+            float sourceAppear = 1f - math.smoothstep(0.72f, 1f, progress);
+            renderArray[writeIndex] = new BulletRenderData
+            {
+                pos = bullet.position,
+                angle = bullet.sourceAngle,
+                scale = sourceScale,
+                texIndex = bullet.sourceTypeId,
+                maskIndex = bullet.sourceTypeId,
+                appear = sourceAppear,
+                color = bullet.sourceColor,
+                renderPriority = sourceType.renderPriority,
+                renderMode = GetRenderMode(sourceType),
+            };
+            writeIndex++;
+        }
+
+        if (writeIndex < maxCount)
+        {
+            float sourceSize = math.max(headSize, math.cmax(math.abs(bullet.sourceScale)) * sourceBaseSize);
+            float ringSize = sourceSize * math.lerp(1.15f, 2.35f, eased);
+            float ringAlpha = math.pow(1f - progress, 0.55f);
+            renderArray[writeIndex] = new BulletRenderData
+            {
+                pos = bullet.position,
+                angle = 0f,
+                scale = new float2(ringSize, ringSize),
+                texIndex = CounterBullet.TypeId,
+                maskIndex = CounterBullet.TypeId,
+                appear = 1f,
+                color = GetCounterBulletColor(ringAlpha),
+                renderPriority = renderPriority - 1,
+                renderMode = BulletRenderData.CounterSpawnFlashRenderMode,
+            };
+            writeIndex++;
         }
 
         return writeIndex;
@@ -459,12 +519,17 @@ public class BulletRenderSystem : MonoBehaviour
 
     private int GetRenderPriority(int typeId)
     {
-        BulletTypeDataBase typeDataBase = GManager.Control != null ? GManager.Control.BTDB : null;
-        if (typeDataBase == null || typeDataBase.types == null) return 0;
-        if (typeId < 0 || typeId >= typeDataBase.types.Length) return 0;
-
-        BulletType type = typeDataBase.types[typeId];
+        BulletType type = GetBulletType(typeId);
         return type != null ? type.renderPriority : 0;
+    }
+
+    private BulletType GetBulletType(int typeId)
+    {
+        BulletTypeDataBase typeDataBase = GManager.Control != null ? GManager.Control.BTDB : null;
+        if (typeDataBase == null || typeDataBase.types == null) return null;
+        if (typeId < 0 || typeId >= typeDataBase.types.Length) return null;
+
+        return typeDataBase.types[typeId];
     }
 
     private void UpdateInstanceCount(int count)

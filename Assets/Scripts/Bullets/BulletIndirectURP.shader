@@ -200,8 +200,48 @@ Shader "Custom/BulletIndirectURP"
                 return half4(outRgb, outAlpha * appear);
             }
 
+            half4 fragCounterTrail(Varyings input)
+            {
+                half appear = saturate(input.appear);
+                half colorAlpha = saturate(input.color.a);
+                half2 centeredUv = abs(input.uv - 0.5) * 2.0;
+                half cross = centeredUv.y;
+                half cap = smoothstep(0.0, 0.22, input.uv.x)
+                    * smoothstep(0.0, 0.22, 1.0 - input.uv.x);
+                half core = 1.0 - smoothstep(0.05, 0.48, cross);
+                half glow = 1.0 - smoothstep(0.16, 1.0, cross);
+                half headBoost = lerp(0.72, 1.12, saturate(input.uv.x));
+                half alpha = saturate((core * 0.68 + glow * 0.34) * cap * headBoost * colorAlpha);
+
+                return half4(input.color.rgb, alpha * appear);
+            }
+
+            half4 fragCounterSpawnFlash(Varyings input)
+            {
+                half appear = saturate(input.appear);
+                half colorAlpha = saturate(input.color.a);
+                float2 centeredUv = input.uv - 0.5;
+                float distanceFromCenter = length(centeredUv) * 2.0;
+                float ringDistance = abs(distanceFromCenter - 0.62);
+                half ring = 1.0 - smoothstep(0.035, 0.11, ringDistance);
+                half innerGlow = (1.0 - smoothstep(0.0, 0.9, distanceFromCenter)) * 0.22;
+                half alpha = saturate((ring + innerGlow) * colorAlpha);
+
+                return half4(input.color.rgb, alpha * appear);
+            }
+
             half4 frag(Varyings input) : SV_Target
             {
+                if (input.renderMode > 4.5)
+                {
+                    return fragCounterSpawnFlash(input);
+                }
+
+                if (input.renderMode > 3.5)
+                {
+                    return fragCounterTrail(input);
+                }
+
                 if (input.renderMode > 2.5)
                 {
                     return fragCounter(input);

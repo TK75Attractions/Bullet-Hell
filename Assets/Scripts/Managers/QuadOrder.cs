@@ -903,7 +903,14 @@ public class QuadOrder : MonoBehaviour
                 ? bulletPowers[sourceBullet.typeId] * math.cmax(math.abs(sourceBullet.scale))
                 : 0f,
             isActive = true,
+            launched = false,
             homingElapsed = 0f,
+            spawnElapsed = 0f,
+            spawnDelay = CounterBullet.SpawnDelay,
+            sourceTypeId = sourceBullet.typeId,
+            sourceScale = sourceBullet.scale,
+            sourceAngle = sourceBullet.GetRotationAngle(),
+            sourceColor = sourceBullet.color,
         };
 
         counterBullets.Add(counterBullet);
