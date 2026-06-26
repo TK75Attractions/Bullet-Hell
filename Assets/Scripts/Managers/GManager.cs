@@ -56,6 +56,8 @@ public class GManager : MonoBehaviour
     public DifficultySelection CurrentDataDifficultySelection { get; private set; } = DifficultySelection.FromOfficial(Difficulty.Easy);
     public int CurrentStageIndex { get; private set; } = -1;
     public StageData CurrentStageData { get; private set; }
+    //ステージによって変化
+    public Color playerColor = new(1, 1, 0.6f, 1);
 
     public async void Awake()
     {

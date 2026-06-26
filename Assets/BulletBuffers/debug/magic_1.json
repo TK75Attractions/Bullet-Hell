@@ -22,12 +22,13 @@
       },
       "angleSpeed": 0,
       "initialAngle": 0,
+      "useVelocityAngle": false,
       "polarForm": {
-        "x": 6,
+        "x": 8,
         "y": 0
       },
       "radiusVlc": 0,
-      "radiusAccel": 0.64,
+      "radiusAccel": 1.64,
       "thetaVlc": -2.2146,
       "thetaAccel": 0,
       "startPos": {
@@ -42,14 +43,14 @@
       },
       "typeName": "normal",
       "scale": {
-        "x": 0,
-        "y": 0
+        "x": 1,
+        "y": 1
       },
       "color": {
-        "x": 0,
-        "y": 0,
-        "z": 0,
-        "w": 0
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
       },
       "appearTime": 0,
       "appearDuration": 0,

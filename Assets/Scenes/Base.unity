@@ -303,8 +303,8 @@ Transform:
   m_GameObject: {fileID: 47708256}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -8.468071, z: 0}
-  m_LocalScale: {x: 10.83913, y: 10.83913, z: 0}
+  m_LocalPosition: {x: 0, y: -25, z: 0}
+  m_LocalScale: {x: 32, y: 32, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -433,8 +433,8 @@ Transform:
   m_GameObject: {fileID: 62090605}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 8.468071, z: 0}
-  m_LocalScale: {x: 10.83913, y: 10.83913, z: 0}
+  m_LocalPosition: {x: 0, y: 25, z: 0}
+  m_LocalScale: {x: 32, y: 32, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -2692,7 +2692,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 04b2de4dfe176fd43a93a166db8e36d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CManager
-  noiseFrequency: 30
+  noiseFrequency: 16
   blurPixelsPerScaleUnit: 6
   debugScheduledNoiseCount: 0
   debugActiveNoiseCount: 0
@@ -2724,8 +2724,8 @@ Transform:
   m_GameObject: {fileID: 1068602616}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 8.468071, y: 0, z: 0}
-  m_LocalScale: {x: 6.0970106, y: 6.0970106, z: 0}
+  m_LocalPosition: {x: 25, y: 0, z: 0}
+  m_LocalScale: {x: 18, y: 18, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -3322,10 +3322,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0
-    y: 0.3306386
-    width: 1
-    height: 0.33872283
+    x: 0.010312706
+    y: 0
+    width: 0.9793746
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -5093,10 +5093,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0
-    y: 0.3306386
-    width: 1
-    height: 0.33872283
+    x: 0.010312706
+    y: 0
+    width: 0.9793746
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -5224,10 +5224,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0
-    y: 0.3306386
-    width: 1
-    height: 0.33872283
+    x: 0.010312706
+    y: 0
+    width: 0.9793746
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -5439,7 +5439,7 @@ MonoBehaviour:
   warpZoneReflectXTypeName: warp_zone_reflect_x
   warpZoneReflectYTypeId: -1
   warpZoneReflectYTypeName: warp_zone_reflect_y
-  defaultWarpCooldown: 3
+  defaultWarpCooldown: 0.1
   debugSyncNativeBulletListsToInspector: 0
   debugNativeBulletDisplayLimit: 128
   debugEnemyBulletSlotCount: 0
@@ -5494,6 +5494,7 @@ MonoBehaviour:
   musicOn: 0
   playerHitCount: 0
   counterHitBossCount: 0
+  playerColor: {r: 0.990566, g: 0, b: 0, a: 1}
 --- !u!114 &1890939116
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5534,6 +5535,7 @@ MonoBehaviour:
     delayTime: 0
     stageDescription: 
     enemyVisuals: []
+    difficulties: []
     multiBulletSpawners: []
     bossSpawners: []
     bulletSpawners: []
@@ -5657,8 +5659,8 @@ Transform:
   m_GameObject: {fileID: 1928468751}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -8.468071, y: 0, z: 0}
-  m_LocalScale: {x: 6.0970106, y: 6.0970106, z: 0}
+  m_LocalPosition: {x: -25, y: 0, z: 0}
+  m_LocalScale: {x: 18, y: 18, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -6067,10 +6069,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0
-    y: 0.3306386
-    width: 1
-    height: 0.33872283
+    x: 0.010312706
+    y: 0
+    width: 0.9793746
+    height: 1
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60

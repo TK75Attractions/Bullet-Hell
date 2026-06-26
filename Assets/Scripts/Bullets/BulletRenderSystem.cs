@@ -13,6 +13,7 @@ public class BulletRenderSystem : MonoBehaviour
     private const float disappearDuration = 0.1f; // 弾が完全に消えるまでの時間（秒）
     private const float appearBeatBaseAlpha = 0.2f; // a
     private const float appearBeatSinCoeff = 0.3f; // k
+    private static readonly int CounterMaskTexelSizeId = Shader.PropertyToID("_CounterMaskTexelSize");
 
     private ComputeBuffer bulletBuffer;
     private ComputeBuffer argsBuffer;
@@ -125,6 +126,7 @@ public class BulletRenderSystem : MonoBehaviour
         maskArray.Apply(false);
 
         material.SetTexture("_MaskArray", maskArray);
+        material.SetFloat(CounterMaskTexelSizeId, 1f / Mathf.Max(w, h));
         Debug.Log("MaskArray initialized and set to material");
     }
 
@@ -352,6 +354,7 @@ public class BulletRenderSystem : MonoBehaviour
             float headSize = CounterBullet.GetSize(b.damage);
             float appear = 1f;
             int renderPriority = GetRenderPriority(CounterBullet.TypeId);
+            float4 counterColor = GetCounterBulletColor(1f);
             renderArray[writeIndex] = new BulletRenderData
             {
                 pos = b.position,
@@ -360,9 +363,9 @@ public class BulletRenderSystem : MonoBehaviour
                 texIndex = CounterBullet.TypeId,
                 maskIndex = CounterBullet.TypeId,
                 appear = appear,
-                color = CounterBullet.Color,
+                color = counterColor,
                 renderPriority = renderPriority,
-                renderMode = BulletRenderData.DefaultRenderMode,
+                renderMode = BulletRenderData.CounterBulletRenderMode,
             };
             writeIndex++;
 
@@ -383,6 +386,7 @@ public class BulletRenderSystem : MonoBehaviour
                 float taper = math.pow(1f - tNorm, 0.45f);
                 float fade = math.pow(1f - tNorm, 1.8f);
                 float segmentSize = math.max(headSize * (0.85f * taper + 0.08f), segmentLength * 1.4f);
+                float4 trailColor = GetCounterBulletColor(fade);
                 renderArray[writeIndex] = new BulletRenderData
                 {
                     pos = (previousPoint + currentPoint) * 0.5f,
@@ -391,9 +395,9 @@ public class BulletRenderSystem : MonoBehaviour
                     texIndex = CounterBullet.TypeId,
                     maskIndex = CounterBullet.TypeId,
                     appear = fade,
-                    color = new float4(CounterBullet.Color.x, CounterBullet.Color.y, CounterBullet.Color.z, CounterBullet.Color.w * fade),
+                    color = trailColor,
                     renderPriority = renderPriority,
-                    renderMode = BulletRenderData.DefaultRenderMode,
+                    renderMode = BulletRenderData.CounterBulletRenderMode,
                 };
                 writeIndex++;
                 previousPoint = currentPoint;
@@ -401,6 +405,12 @@ public class BulletRenderSystem : MonoBehaviour
         }
 
         return writeIndex;
+    }
+
+    private static float4 GetCounterBulletColor(float alphaMultiplier)
+    {
+        Color color = GManager.Control != null ? GManager.Control.playerColor : Color.white;
+        return new float4(color.r, color.g, color.b, math.saturate(color.a * alphaMultiplier));
     }
 
     private void SortRenderData(int count)

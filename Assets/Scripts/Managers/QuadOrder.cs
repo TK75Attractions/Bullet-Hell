@@ -105,7 +105,7 @@ public class QuadOrder : MonoBehaviour
     [SerializeField] private string warpZoneReflectXTypeName = BulletData.WarpZoneReflectXTypeName;
     [SerializeField] private int warpZoneReflectYTypeId = -1;
     [SerializeField] private string warpZoneReflectYTypeName = BulletData.WarpZoneReflectYTypeName;
-    [SerializeField] private float defaultWarpCooldown = 2f;
+    [SerializeField] private float defaultWarpCooldown = 0.1f;
     private bool warpZoneTypeResolutionAttempted;
     [Header("Debug")]
     [SerializeField] private bool debugSyncNativeBulletListsToInspector;

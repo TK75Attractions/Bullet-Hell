@@ -154,6 +154,7 @@ public class ScreenNoiseBlurFeature : ScriptableRendererFeature
         private static readonly int JitterParamsId = Shader.PropertyToID("_ScreenNoiseJitterParams");
 
         private const string PassName = "Screen Noise Blur";
+        private const string WriteBackPassName = "Screen Noise Blur Write Back";
 
         private Material material;
         private Vector2 blurPixels;
@@ -198,7 +199,7 @@ public class ScreenNoiseBlurFeature : ScriptableRendererFeature
             RenderGraphUtils.BlitMaterialParameters parameters = new RenderGraphUtils.BlitMaterialParameters(source, destination, material, 0);
             renderGraph.AddBlitPass(parameters, PassName);
 
-            resourceData.cameraColor = destination;
+            renderGraph.AddBlitPass(destination, source, Vector2.one, Vector2.zero, passName: WriteBackPassName);
             onRecordRenderGraphPass?.Invoke();
         }
 

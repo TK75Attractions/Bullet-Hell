@@ -5,7 +5,7 @@ public class CManager : MonoBehaviour
 {
     public static CManager Current { get; private set; }
 
-    [SerializeField] private float noiseFrequency = 30f;
+    [SerializeField] private float noiseFrequency = 16f;
     [SerializeField] private float blurPixelsPerScaleUnit = 6f;
     [SerializeField] private int debugScheduledNoiseCount;
     [SerializeField] private int debugActiveNoiseCount;

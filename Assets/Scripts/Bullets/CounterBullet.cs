@@ -1,4 +1,3 @@
-using UnityEngine;
 using Unity.Mathematics;
 
 public struct CounterBullet
@@ -27,13 +26,12 @@ public struct CounterBullet
     public float2 trail14;
     public float2 trail15;
 
-    public const int TypeId = 5;
+    public const int TypeId = 18;
     public const int TrailCapacity = 16;
     public const float Speed = 20f;
     public const float HomingStrength = 8f;
     public const float InitialHomingFactor = -0.3f;
     public const float HomingRampDuration = 0.85f;
-    public static readonly float4 Color = new float4(1f, 0.9f, 0.35f, 1f);
 
     public static float GetSize(float damage)
     {

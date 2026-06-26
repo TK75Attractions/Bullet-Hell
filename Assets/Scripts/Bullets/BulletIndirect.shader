@@ -8,6 +8,10 @@ Shader "Custom/BulletIndirectMasked"
         _AttentionMarkScale("Attention Mark Scale", Range(0, 1)) = 1
         _AttentionMarkSourceMin("Attention Mark Source Min", Vector) = (0.35, 0.2, 0, 0)
         _AttentionMarkSourceMax("Attention Mark Source Max", Vector) = (0.65, 0.8, 0, 0)
+        _CounterMaskTexelSize("Counter Mask Texel Size", Float) = 0.0078125
+        _CounterGlowRadius("Counter Glow Radius", Float) = 1.5
+        _CounterGlowStrength("Counter Glow Strength", Float) = 0.42
+        _CounterRimBoost("Counter Rim Boost", Float) = 1.25
     }
 
         SubShader
@@ -38,6 +42,10 @@ Shader "Custom/BulletIndirectMasked"
             float _AttentionMarkScale;
             float4 _AttentionMarkSourceMin;
             float4 _AttentionMarkSourceMax;
+            float _CounterMaskTexelSize;
+            float _CounterGlowRadius;
+            float _CounterGlowStrength;
+            float _CounterRimBoost;
 
             //========================
             // GPU �\���́iC# �ƈ�v�K�{�j
@@ -161,11 +169,54 @@ Shader "Custom/BulletIndirectMasked"
                 return fixed4(outRgb, outAlpha);
             }
 
+            float SampleCounterMask(float2 uv, float maskIndex)
+            {
+                return UNITY_SAMPLE_TEX2DARRAY(_MaskArray, float3(uv, maskIndex)).r;
+            }
+
+            fixed4 fragCounter(v2f i)
+            {
+                float appear = saturate(i.appear);
+                float colorAlpha = saturate(i.color.a);
+
+                fixed4 baseCol =
+                    UNITY_SAMPLE_TEX2DARRAY(_MainArray, float3(i.uv, i.texIndex));
+                float mask = SampleCounterMask(i.uv, i.maskIndex);
+
+                float2 glowStep = float2(_CounterMaskTexelSize, _CounterMaskTexelSize)
+                    * max(_CounterGlowRadius, 0.0);
+                float glowMask = mask;
+                glowMask = max(glowMask, SampleCounterMask(i.uv + float2(glowStep.x, 0.0), i.maskIndex));
+                glowMask = max(glowMask, SampleCounterMask(i.uv + float2(-glowStep.x, 0.0), i.maskIndex));
+                glowMask = max(glowMask, SampleCounterMask(i.uv + float2(0.0, glowStep.y), i.maskIndex));
+                glowMask = max(glowMask, SampleCounterMask(i.uv + float2(0.0, -glowStep.y), i.maskIndex));
+                glowMask = max(glowMask, SampleCounterMask(i.uv + glowStep, i.maskIndex));
+                glowMask = max(glowMask, SampleCounterMask(i.uv - glowStep, i.maskIndex));
+                glowMask = max(glowMask, SampleCounterMask(i.uv + float2(glowStep.x, -glowStep.y), i.maskIndex));
+                glowMask = max(glowMask, SampleCounterMask(i.uv + float2(-glowStep.x, glowStep.y), i.maskIndex));
+
+                float rimAlpha = saturate(mask * colorAlpha * _CounterRimBoost);
+                float glowAlpha = saturate(max(glowMask - mask, 0.0) * colorAlpha * _CounterGlowStrength);
+                float tintAlpha = saturate(rimAlpha + glowAlpha * (1.0 - rimAlpha));
+                float baseAlpha = saturate(baseCol.a);
+                float outAlpha = saturate(baseAlpha + tintAlpha * (1.0 - baseAlpha));
+                fixed3 outRgb = outAlpha > 1e-4
+                    ? (baseCol.rgb * baseAlpha + i.color.rgb * tintAlpha * (1.0 - baseAlpha)) / outAlpha
+                    : fixed3(0.0, 0.0, 0.0);
+
+                return fixed4(outRgb, outAlpha * appear);
+            }
+
             //========================
             // Fragment Shader
             //========================
             fixed4 frag(v2f i) : SV_Target
             {
+                if (i.renderMode > 2.5)
+                {
+                    return fragCounter(i);
+                }
+
                 if (i.renderMode > 1.5)
                 {
                     return fragAttention(i);
@@ -185,14 +236,19 @@ Shader "Custom/BulletIndirectMasked"
                     return baseCol;
                 }
 
-                float tintStrength = saturate(mask * i.color.a);
+                float tintAlpha = saturate(mask * i.color.a);
+                float baseAlpha = saturate(baseCol.a);
+                float outAlpha = saturate(baseAlpha + tintAlpha * (1.0 - baseAlpha));
+                fixed3 outRgb = outAlpha > 1e-4
+                    ? (baseCol.rgb * baseAlpha * (1.0 - tintAlpha) + i.color.rgb * tintAlpha) / outAlpha
+                    : fixed3(0.0, 0.0, 0.0);
 
                 // デバッグ: マスク値を可視化（一時的）
                 // return fixed4(mask, mask, mask, 1); // マスクをグレースケールで表示
                 
                 // マスク値に color.a を掛けて色の掛かり方を 0-1 で制御する
-                baseCol.rgb = lerp(baseCol.rgb, i.color.rgb, tintStrength);
-                baseCol.a = max(baseCol.a, tintStrength) * appear;
+                baseCol.rgb = outRgb;
+                baseCol.a = outAlpha * appear;
 
                 return baseCol;
             }
