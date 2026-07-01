@@ -17,6 +17,7 @@ public class MultiBullet : MonoBehaviour
 
     public BulletClip bulletClip = new BulletClip();
     public List<BulletChangeClip> bulletChangeClips = new List<BulletChangeClip>();
+    public bool keepVisualUpright;
     private List<BulletChache> bulletChaches = new List<BulletChache>();
 
     [Serializable]
@@ -49,6 +50,7 @@ public class MultiBullet : MonoBehaviour
         bulletCount = spawner.bulletCount;
         bulletClip = spawner.bulletClip;
         bulletChangeClips = spawner.bulletChangeClips;
+        keepVisualUpright = !string.IsNullOrWhiteSpace(spawner.visualId) && spawner.bulletCount == 0;
 
         trans = transform;
         trans.localScale = new Vector3(spawner.orbit.scale.x, spawner.orbit.scale.y, 1);

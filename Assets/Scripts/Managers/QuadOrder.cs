@@ -1273,7 +1273,9 @@ public class QuadOrder : MonoBehaviour
 
             BulletData orbit = multiBulletOrbitBullets[i];
             multiBullet.trans.position = new Vector3(orbit.position.x, orbit.position.y, 0);
-            multiBullet.trans.rotation = Quaternion.Euler(0, 0, orbit.angle * Mathf.Rad2Deg);
+            multiBullet.trans.rotation = multiBullet.keepVisualUpright
+                ? Quaternion.identity
+                : Quaternion.Euler(0, 0, orbit.angle * Mathf.Rad2Deg);
             multiBullet.UpdateMultiBullet(dt);
 
             if (i < bossDisplays.Count && bossDisplays[i] != null)

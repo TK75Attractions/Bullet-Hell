@@ -32,6 +32,7 @@ public struct BulletDataJson
     public float random;
     public float warpCooldown;
     public bool unCounterable;
+    public bool lockRotation;
 
     public BulletData ToBulletData()
     {
@@ -66,6 +67,7 @@ public struct BulletDataJson
             random = this.random,
             warpCooldown = this.warpCooldown,
             unCounterable = this.unCounterable,
+            lockRotation = this.lockRotation,
             isActive = true
         };
         return b;

@@ -39,6 +39,22 @@ public class PlayerController
         }
         xRange = new float2(margin, 32 - margin);
         yRange = new float2(margin, 18 - margin);
+        ResetToCenter();
+    }
+
+    public void ResetToCenter()
+    {
+        // Stages begin horizontally centered and low enough to give the player
+        // a clear view of incoming patterns.
+        pos = new float2(
+            (xRange.x + xRange.y) * 0.5f,
+            math.lerp(yRange.x, yRange.y, 0.22f));
+        velocity = float2.zero;
+        dash = -dashCooldown * 1.4f;
+        if (playerTransform != null)
+        {
+            playerTransform.position = new Vector3(pos.x, pos.y, 0f);
+        }
     }
 
     // Update is called once per frame

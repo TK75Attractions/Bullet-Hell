@@ -63,65 +63,94 @@ public class GManager : MonoBehaviour
 
     public async void Awake()
     {
-        if (Control == null) Control = this;
-        else
+        try
         {
-            Destroy(this.transform.parent.gameObject);
-            return;
+            LogStartup("Awake start");
+            if (Control == null) Control = this;
+            else
+            {
+                LogStartup("Duplicate manager destroyed");
+                Destroy(this.transform.parent.gameObject);
+                return;
+            }
+
+            ready = false;
+
+            IManager = GetComponent<InputManager>();
+            IManager.Init();
+            LogStartup("Input initialized");
+
+            AManager = transform.parent.Find("AManager").GetComponent<AudioManager>();
+            AManager.Init();
+            LogStartup("Audio initialized");
+
+            BManager = transform.parent.Find("BManager").GetComponent<BeatManager>();
+            CManager = GetComponent<CManager>();
+            if (CManager == null) CManager = FindObjectOfType<CManager>();
+            if (CManager == null) CManager = gameObject.AddComponent<CManager>();
+            LogStartup("Core managers resolved");
+
+            BTDB.Init();
+            LogStartup("Bullet types initialized");
+            SDB = new();
+            LogStartup("Stage database init start");
+            await SDB.InitAsync();
+            LogStartup("Stage database init done");
+            BClipManager = new();
+            LogStartup("Bullet buffers init start");
+            await BClipManager.InitAsync();
+            LogStartup("Bullet buffers init done");
+
+            BRS = GetComponent<BulletRenderSystem>();
+            BRS.Init();
+            LogStartup("Bullet renderer initialized");
+
+            EDB.Init();
+            LogStartup("Enemies initialized");
+
+            SSManager = transform.parent.Find("Canvases").Find("StageCanvas").Find("StageBoxParent").GetComponent<StageSelectManager>();
+            SSManager.Init();
+            LogStartup("Stage select initialized");
+
+            Transform titleTrans = transform.parent.Find("Canvases").Find("StageCanvas").Find("Title");
+            if (titleTrans != null)
+            {
+                TManager = titleTrans.GetComponent<TitleManager>();
+                TManager?.Init();
+            }
+
+            Transform optionTrans = transform.parent.Find("Canvases").Find("StageCanvas").Find("OptionScreen");
+            if (optionTrans != null)
+            {
+                optionScreenObj = optionTrans.gameObject;
+                optionMenu = optionTrans.GetComponent<OptionMenu>();
+            }
+
+            QOrder = GetComponent<QuadOrder>();
+            QOrder.AwakeSetting();
+            PController = new PlayerController();
+            GameObject ptemp = Instantiate(PlayerObj);
+            PController.Init(ptemp);
+            LogStartup("Player initialized");
+
+            SReader = GetComponent<StageReader>();
+
+            state = GameState.Title;
+
+            ready = true;
+            LogStartup("Awake ready");
         }
-
-        ready = false;
-
-        IManager = GetComponent<InputManager>();
-        IManager.Init();
-
-        AManager = transform.parent.Find("AManager").GetComponent<AudioManager>();
-        AManager.Init();
-
-        BManager = transform.parent.Find("BManager").GetComponent<BeatManager>();
-        CManager = GetComponent<CManager>();
-        if (CManager == null) CManager = FindObjectOfType<CManager>();
-        if (CManager == null) CManager = gameObject.AddComponent<CManager>();
-
-        BTDB.Init();
-        SDB = new();
-        await SDB.InitAsync();
-        BClipManager = new();
-        await BClipManager.InitAsync();
-
-        BRS = GetComponent<BulletRenderSystem>();
-        BRS.Init();
-
-        EDB.Init();
-
-        SSManager = transform.parent.Find("Canvases").Find("StageCanvas").Find("StageBoxParent").GetComponent<StageSelectManager>();
-        SSManager.Init();
-
-        Transform titleTrans = transform.parent.Find("Canvases").Find("StageCanvas").Find("Title");
-        if (titleTrans != null)
+        catch (Exception ex)
         {
-            TManager = titleTrans.GetComponent<TitleManager>();
-            TManager?.Init();
+            ready = false;
+            Debug.LogException(ex, this);
         }
+    }
 
-        Transform optionTrans = transform.parent.Find("Canvases").Find("StageCanvas").Find("OptionScreen");
-        if (optionTrans != null)
-        {
-            optionScreenObj = optionTrans.gameObject;
-            optionMenu = optionTrans.GetComponent<OptionMenu>();
-        }
-
-        QOrder = GetComponent<QuadOrder>();
-        QOrder.AwakeSetting();
-        PController = new PlayerController();
-        GameObject ptemp = Instantiate(PlayerObj);
-        PController.Init(ptemp);
-
-        SReader = GetComponent<StageReader>();
-
-        state = GameState.Title;
-
-        ready = true;
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    private void LogStartup(string message)
+    {
+        Debug.Log($"[GManagerStartup] {message}", this);
     }
 
 
@@ -138,7 +167,8 @@ public class GManager : MonoBehaviour
             if (IManager.backPressedThisFrame)
             {
                 // Esc closes the confirm popup first; otherwise it resumes.
-                if (optionMenu == null || !optionMenu.HandleBack()) SetPaused(false);
+                if (optionMenu == null) SetPaused(false);
+                else if (!optionMenu.HandleBack()) optionMenu.BeginResume();
             }
             else if (optionMenu != null)
             {
@@ -247,7 +277,13 @@ public class GManager : MonoBehaviour
         {
             playerHitCount = 0;
             counterHitBossCount = 0;
+            QOrder?.ClearManagedEnemyDanmaku();
+            PController?.ResetToCenter();
+            TManager?.Dismiss();
+            HideTitleBossBackdrop();
             await SReader.Init(stage);
+            SReader.ResetStageClockToScheduledStart();
+            HideTitleBossBackdrop();
             state = GameState.Playing;
             Debug.Log($"Started Stage: {stage.stageName}");
         }
@@ -263,6 +299,9 @@ public class GManager : MonoBehaviour
         isPaused = pause;
         Time.timeScale = pause ? 0f : 1f;
         AudioListener.pause = pause;
+        // The option menu captures the completed game frame and applies a
+        // full-resolution UI blur. Do not stack the gameplay noise blur over it.
+        CManager?.SetMenuBlur(false);
         if (optionScreenObj != null)
         {
             optionScreenObj.SetActive(pause);
@@ -272,9 +311,25 @@ public class GManager : MonoBehaviour
 
     // 「プレイを終了」(はい) : ends the session and reboots cleanly to the title
     // screen by reloading the scene.
-    public void QuitPlay()
+    public async void QuitPlay()
     {
-        SetPaused(false);
+        // Keep the option screen visible beneath the pixels. Time must resume
+        // for scene systems, while the transition itself uses unscaled time.
+        isPaused = false;
+        Time.timeScale = 1f;
+        AudioListener.pause = true;
+        PixelTransition[] transitions = UnityEngine.Object.FindObjectsByType<PixelTransition>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None);
+        if (transitions.Length > 0)
+        {
+            transitions[0].SetColor(Color.white);
+            await transitions[0].Cover();
+            // Set this only after the previously inactive transition has run
+            // Start(). Otherwise the outgoing scene consumes the flag before
+            // the title scene is loaded and remains hidden behind the pixels.
+            PixelTransition.RevealAfterNextSceneLoad(true);
+        }
+        AudioListener.pause = false;
         UnityEngine.SceneManagement.SceneManager.LoadScene(
             UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
     }
@@ -290,5 +345,16 @@ public class GManager : MonoBehaviour
         if (value <= 0) return;
         counterHitBossCount += value;
     }
-}
 
+    private void HideTitleBossBackdrop()
+    {
+        GameObject titleBoss = GameObject.Find("boss");
+        if (titleBoss == null) return;
+
+        Renderer[] renderers = titleBoss.GetComponentsInChildren<Renderer>(true);
+        foreach (Renderer renderer in renderers)
+        {
+            renderer.enabled = false;
+        }
+    }
+}

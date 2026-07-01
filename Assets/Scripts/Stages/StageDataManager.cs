@@ -21,6 +21,15 @@ public class StageDataManager
     private const bool UseAddressablesInEditor = false;
     private static readonly string[] AudioExtensions = { ".wav", ".mp3", ".ogg", ".m4a" };
     private static readonly string[] VideoExtensions = { ".mp4", ".webm" };
+    private static readonly string[] OfficialStageOrder =
+    {
+        "25",
+        "captain",
+        "debug",
+        "debug(nature)",
+        "stone",
+        "mirror"
+    };
 
     [Serializable]
     private struct BulletDataJsonDeserializer
@@ -46,6 +55,7 @@ public class StageDataManager
         public float life;
         public float random;
         public bool unCounterable;
+        public bool lockRotation;
 
         public BulletDataJson ToBulletDataJson()
         {
@@ -78,7 +88,8 @@ public class StageDataManager
                 appearDuration = appearDuration,
                 life = life,
                 random = random,
-                unCounterable = unCounterable
+                unCounterable = unCounterable,
+                lockRotation = lockRotation
             };
         }
     }
@@ -290,6 +301,7 @@ public class StageDataManager
         }
 
         string[] stageDirectories = Directory.GetDirectories(stageDataPath);
+        Array.Sort(stageDirectories, CompareOfficialStageDirectories);
         foreach (string dir in stageDirectories)
         {
             string stageName = Path.GetFileName(dir);
@@ -299,6 +311,44 @@ public class StageDataManager
         }
 
         return stageDataList;
+    }
+
+    private static int CompareOfficialStageDirectories(string left, string right)
+    {
+        string leftName = Path.GetFileName(left);
+        string rightName = Path.GetFileName(right);
+        int leftIndex = GetOfficialStageOrderIndex(leftName);
+        int rightIndex = GetOfficialStageOrderIndex(rightName);
+
+        if (leftIndex >= 0 && rightIndex >= 0)
+        {
+            return leftIndex.CompareTo(rightIndex);
+        }
+
+        if (leftIndex >= 0)
+        {
+            return -1;
+        }
+
+        if (rightIndex >= 0)
+        {
+            return 1;
+        }
+
+        return string.Compare(leftName, rightName, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static int GetOfficialStageOrderIndex(string stageDirectoryName)
+    {
+        for (int i = 0; i < OfficialStageOrder.Length; i++)
+        {
+            if (string.Equals(OfficialStageOrder[i], stageDirectoryName, StringComparison.OrdinalIgnoreCase))
+            {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     private async Task<List<StageData>> TryGetAllStageDataFromAddressablesAsync()
@@ -408,7 +458,7 @@ public class StageDataManager
 
     public async Task EnsureRuntimeMediaLoadedAsync(StageData data)
     {
-        if (data == null || data.source != StageData.StageSource.Mod || data.audioClip != null)
+        if (data == null)
         {
             return;
         }
@@ -418,7 +468,18 @@ public class StageDataManager
             return;
         }
 
-        data.audioClip = await LoadExternalAudioClipAsync(data.audioPath);
+        bool shouldLoadExternalAudio = data.source == StageData.StageSource.Mod || data.audioClip == null;
+
+        if (!shouldLoadExternalAudio)
+        {
+            return;
+        }
+
+        AudioClip externalClip = await LoadExternalAudioClipAsync(data.audioPath);
+        if (externalClip != null)
+        {
+            data.audioClip = externalClip;
+        }
     }
 
     private List<StageData> ReadModStageDataFromDirectory(string modDirectory)
@@ -617,14 +678,18 @@ public class StageDataManager
         }
 
         // 音源ファイル読み込み
-        string[] audioExtensions = { ".wav", ".mp3", ".ogg", ".m4a" };
-        foreach (var ext in audioExtensions)
+        foreach (var ext in AudioExtensions)
         {
             string audioPath = Path.Combine(directoryPath, name + ext);
             if (File.Exists(audioPath))
             {
                 try
                 {
+                    if (string.IsNullOrWhiteSpace(data.audioPath))
+                    {
+                        data.audioPath = audioPath;
+                    }
+
                     if (ext == ".wav")
                     {
                         data.audioClip = LoadWavFile(audioPath);
@@ -865,6 +930,11 @@ public class StageDataManager
 
             try
             {
+                if (string.IsNullOrWhiteSpace(data.audioPath))
+                {
+                    data.audioPath = audioPath;
+                }
+
                 if (ext == ".wav")
                 {
                     data.audioClip = LoadWavFile(audioPath);

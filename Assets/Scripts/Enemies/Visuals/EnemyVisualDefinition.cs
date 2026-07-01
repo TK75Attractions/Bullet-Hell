@@ -11,6 +11,8 @@ public class EnemyVisualDefinition
     public string basePath = "";
     public string fallbackSpriteEnemyName = "";
     public float pixelsPerUnit = 100f;
+    public bool transparentBackground;
+    public int transparentTolerance;
     public Vector2 pivot = new Vector2(0.5f, 0.5f);
     public List<EnemyVisualClipDefinition> clips = new List<EnemyVisualClipDefinition>();
 
@@ -34,6 +36,7 @@ public class EnemyVisualClipDefinition
     public bool loop;
     public string next = "";
     public float frameDuration = 0.1f;
+    public int maxFrames;
 }
 
 public static class EnemyVisualSource

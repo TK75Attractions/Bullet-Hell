@@ -9,6 +9,7 @@ public struct BulletDataUpdateJob : IJobParallelFor
 {
     private const float NoiseFrequency = 1f;
     private const float AngleVelocityEpsilonSq = 1e-10f;
+    private const float CullingMargin = 2f;
 
     public NativeArray<BulletData> bullets;
     public float dt;
@@ -131,7 +132,7 @@ public struct BulletDataUpdateJob : IJobParallelFor
         }
 
         //角度を計算
-        if (math.lengthsq(bullet.velocity) > AngleVelocityEpsilonSq)
+        if (!bullet.lockRotation && math.lengthsq(bullet.velocity) > AngleVelocityEpsilonSq)
         {
             float a = GetAngleRad(bullet.velocity.x, bullet.velocity.y);
             bullet.angle = a + bullet.angleSpeed * lapse;
@@ -141,9 +142,9 @@ public struct BulletDataUpdateJob : IJobParallelFor
     }
     public int GetTreeNum(float2 pos)
     {
-        if (pos.x < 0 || pos.y < 0) return -1;
-        int nx = Mathf.FloorToInt(pos.x / cellSize);
-        int ny = Mathf.FloorToInt(pos.y / cellSize);
+        if (pos.x < -CullingMargin || pos.y < -CullingMargin) return -1;
+        int nx = Mathf.Max(0, Mathf.FloorToInt(pos.x / cellSize));
+        int ny = Mathf.Max(0, Mathf.FloorToInt(pos.y / cellSize));
 
         int result = BitSeparate32(nx) | (BitSeparate32(ny) << 1);
         int maxCellCount = totalCellCount > 0 ? totalCellCount : cellCount;

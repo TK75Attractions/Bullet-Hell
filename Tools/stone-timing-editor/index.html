@@ -1,0 +1,1205 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>石工タイミング</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #ffffff;
+      --panel: #ffffff;
+      --panel-2: #f7f7f5;
+      --line: #e6e6e6;
+      --line-soft: #f1f1f1;
+      --text: #000000;
+      --muted: #5d5d5d;
+      --cyan: #ff3d8b;
+      --cyan-2: #1f1d3d;
+      --magenta: #ff3d8b;
+      --green: #1ea64a;
+      --warn: #000000;
+      --danger: #cf234d;
+      --lime: #dceeb1;
+      --lilac: #c5b0f4;
+      --cream: #f4ecd6;
+      --pink: #efd4d4;
+      --mint: #c8e6cd;
+      --coral: #f3c9b6;
+      --navy: #1f1d3d;
+      --radius: 8px;
+      --shadow: none;
+      font-family: "M PLUS 1p", "Yu Gothic UI", "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 1px solid #000000;
+      border-radius: 999px;
+      background: #ffffff;
+      color: #000000;
+      min-height: 38px;
+      padding: 0 16px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border-color 130ms ease, transform 130ms ease, background 130ms ease;
+    }
+
+    button:hover {
+      border-color: #000000;
+      background: var(--lime);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button.primary {
+      background: #000000;
+      border-color: #000000;
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    button.danger {
+      border-color: #000000;
+      background: var(--pink);
+      color: #000000;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--text);
+      outline: none;
+    }
+
+    input,
+    select {
+      min-height: 34px;
+      padding: 0 10px;
+    }
+
+    textarea {
+      min-height: 128px;
+      resize: vertical;
+      padding: 10px;
+      line-height: 1.6;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #000000;
+      box-shadow: 0 0 0 3px rgba(255, 61, 139, 0.18);
+    }
+
+    .app {
+      display: grid;
+      grid-template-rows: 72px minmax(0, 1fr) 84px;
+      height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 220px minmax(280px, 1fr) auto;
+      align-items: center;
+      gap: 16px;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--line);
+      background: #ffffff;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 30px;
+      height: 30px;
+      border: 2px solid #000000;
+      background: var(--lime);
+      transform: rotate(45deg);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0;
+      line-height: 1;
+    }
+
+    .file-row,
+    .top-actions,
+    .transport {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .file-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--muted);
+      font-size: 13px;
+      min-width: 120px;
+    }
+
+    .hidden-input {
+      display: none;
+    }
+
+    .main {
+      display: grid;
+      grid-template-columns: minmax(620px, 1fr) 390px;
+      min-height: 0;
+    }
+
+    .timeline-shell {
+      display: grid;
+      grid-template-rows: 56px minmax(0, 1fr) 146px;
+      min-width: 0;
+      border-right: 1px solid var(--line);
+    }
+
+    .timeline-toolbar {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(96px, 148px)) minmax(0, 1fr);
+      gap: 10px;
+      align-items: end;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--line);
+      background: var(--lime);
+    }
+
+    label {
+      display: grid;
+      gap: 4px;
+      color: #000000;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .timeline-wrap {
+      position: relative;
+      min-height: 0;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px) 0 0 / 56px 100%,
+        linear-gradient(180deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px) 0 0 / 100% 54px,
+        var(--navy);
+      overflow: hidden;
+    }
+
+    canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .time-readout {
+      position: absolute;
+      top: 14px;
+      left: 18px;
+      padding: 8px 10px;
+      border: 1px solid #ffffff;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #000000;
+      font: 700 20px/1 "Cascadia Mono", "Consolas", monospace;
+      pointer-events: none;
+    }
+
+    .status {
+      position: absolute;
+      right: 18px;
+      top: 14px;
+      max-width: 48%;
+      color: rgba(255, 255, 255, 0.76);
+      font-size: 12px;
+      text-align: right;
+      pointer-events: none;
+    }
+
+    .marker-strip {
+      border-top: 1px solid var(--line);
+      background: #ffffff;
+      overflow: auto;
+    }
+
+    .marker-row {
+      display: grid;
+      grid-template-columns: 92px 72px 1fr 28px;
+      gap: 8px;
+      align-items: center;
+      min-height: 42px;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--line-soft);
+      cursor: pointer;
+    }
+
+    .marker-row:hover,
+    .marker-row.active {
+      background: var(--lilac);
+    }
+
+    .marker-time {
+      color: #000000;
+      font: 700 13px/1 "Cascadia Mono", "Consolas", monospace;
+    }
+
+    .marker-kind {
+      color: #000000;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .marker-text {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .marker-note {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--magenta);
+      justify-self: center;
+    }
+
+    .side {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      min-height: 0;
+      background: var(--panel-2);
+    }
+
+    .editor {
+      display: grid;
+      gap: 12px;
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--lilac);
+    }
+
+    .editor-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .list-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px 8px;
+      color: #000000;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .json-box {
+      min-height: 0;
+      margin: 0 16px 16px;
+      border: 1px solid #000000;
+      border-radius: var(--radius);
+      background: var(--cream);
+      overflow: hidden;
+    }
+
+    .json-box textarea {
+      height: 100%;
+      min-height: 180px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      font: 12px/1.55 "Cascadia Mono", "Consolas", monospace;
+    }
+
+    .footer {
+      display: grid;
+      grid-template-columns: minmax(280px, 1fr) auto minmax(260px, 1fr);
+      align-items: center;
+      gap: 14px;
+      padding: 12px 18px;
+      border-top: 1px solid #000000;
+      background: #000000;
+      color: #ffffff;
+    }
+
+    .transport {
+      justify-self: center;
+    }
+
+    .transport button {
+      min-width: 44px;
+      padding: 0 10px;
+    }
+
+    .time-inputs {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .time-inputs input {
+      width: 100px;
+    }
+
+    .range {
+      width: 100%;
+      accent-color: var(--cyan);
+    }
+
+    .progress {
+      display: grid;
+      grid-template-columns: 72px minmax(120px, 1fr) 72px;
+      gap: 10px;
+      align-items: center;
+      color: #ffffff;
+      font: 12px/1 "Cascadia Mono", "Consolas", monospace;
+    }
+
+    .footer button,
+    .footer select {
+      border-color: #ffffff;
+      background: #000000;
+      color: #ffffff;
+    }
+
+    .footer button.primary {
+      background: #ffffff;
+      color: #000000;
+    }
+
+    .quick-comments,
+    .micro-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .quick-comments button,
+    .micro-actions button {
+      min-height: 32px;
+      padding: 0 12px;
+      font-size: 12px;
+      background: #ffffff;
+    }
+
+    .micro-actions button {
+      min-width: 64px;
+    }
+
+    .rate-select {
+      width: 76px;
+      min-height: 38px;
+    }
+
+    @media (max-width: 960px) {
+      body {
+        overflow: auto;
+      }
+
+      .app {
+        height: auto;
+        min-height: 100vh;
+        grid-template-rows: auto auto auto;
+      }
+
+      .topbar,
+      .main,
+      .footer {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar,
+      .footer {
+        align-items: stretch;
+        padding: 12px;
+      }
+
+      .timeline-shell {
+        min-height: 620px;
+        border-right: 0;
+      }
+
+      .timeline-toolbar {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .side {
+        min-height: 520px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"></div>
+        <h1>石工タイミング</h1>
+      </div>
+      <div class="file-row">
+        <button id="loadBundled" class="primary">石工 m4a</button>
+        <button id="chooseAudio">音源</button>
+        <input id="audioInput" class="hidden-input" type="file" accept="audio/*">
+        <span id="fileName" class="file-name">未読み込み</span>
+      </div>
+      <div class="top-actions">
+        <button id="importJson">読込</button>
+        <button id="copyJson">コピー</button>
+        <button id="downloadJson">JSON</button>
+        <button id="downloadCsv">CSV</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="timeline-shell">
+        <div class="timeline-toolbar">
+          <label>BPM
+            <input id="bpm" type="number" value="144" min="1" step="0.001">
+          </label>
+          <label>拍オフセット
+            <input id="beatOffset" type="number" value="0" step="0.001">
+          </label>
+          <label>スナップ
+            <select id="snap">
+              <option value="0">なし</option>
+              <option value="0.25">16分</option>
+              <option value="0.5">8分</option>
+              <option value="1">4分</option>
+            </select>
+          </label>
+          <label>ズーム
+            <input id="zoom" type="number" value="4" min="0.25" max="8" step="0.25">
+          </label>
+          <div></div>
+        </div>
+
+        <div class="timeline-wrap" id="timelineWrap">
+          <canvas id="waveCanvas"></canvas>
+          <div id="timeReadout" class="time-readout">00:00.000</div>
+          <div id="status" class="status">音源を読み込んでください</div>
+        </div>
+
+        <div id="markerStrip" class="marker-strip"></div>
+      </section>
+
+      <aside class="side">
+        <section class="editor">
+          <div class="editor-grid">
+            <label>時刻
+              <input id="markerTime" type="number" step="0.001" min="0">
+            </label>
+            <label>種類
+              <select id="markerKind">
+                <option value="attack">攻撃</option>
+                <option value="warning">予告</option>
+                <option value="drop">落下</option>
+                <option value="flow">流し</option>
+                <option value="note">メモ</option>
+              </select>
+            </label>
+          </div>
+          <label>ラベル
+            <input id="markerLabel" type="text" placeholder="例: タイル出現 1-A">
+          </label>
+          <label>コメント
+            <textarea id="markerComment" placeholder="ここに音ハメ指示を書く"></textarea>
+          </label>
+          <div class="quick-comments">
+            <button type="button" data-comment="予告をもっと早める">予告早め</button>
+            <button type="button" data-comment="落下を遅らせる">落下遅め</button>
+            <button type="button" data-comment="流しを遅らせる">流し遅め</button>
+            <button type="button" data-comment="左端まで残す">左端まで</button>
+          </div>
+          <div class="top-actions">
+            <button id="addMarker" class="primary">キー追加</button>
+            <button id="updateMarker">保存</button>
+            <button id="timeFromPlayhead">現在へ</button>
+            <button id="seekSelected">選択へ</button>
+            <button id="deleteMarker" class="danger">削除</button>
+          </div>
+          <div class="micro-actions">
+            <button id="nudgeBackLarge">-50ms</button>
+            <button id="nudgeBack">-10ms</button>
+            <button id="nudgeForward">+10ms</button>
+            <button id="nudgeForwardLarge">+50ms</button>
+            <button id="snapMarker">拍へ</button>
+            <button id="duplicateMarker">複製</button>
+          </div>
+        </section>
+
+        <div class="list-title">
+          <span>書き出し</span>
+          <span id="markerCount">0 keys</span>
+        </div>
+        <div class="json-box">
+          <textarea id="exportText" spellcheck="false"></textarea>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="footer">
+      <div class="progress">
+        <span id="currentTime">00:00.000</span>
+        <input id="seek" class="range" type="range" min="0" max="0" value="0" step="0.001">
+        <span id="duration">00:00.000</span>
+      </div>
+      <div class="transport">
+        <button id="jumpBack" title="-1秒">-1s</button>
+        <button id="play" class="primary">再生</button>
+        <button id="jumpForward" title="+1秒">+1s</button>
+        <select id="playbackRate" class="rate-select" title="再生速度">
+          <option value="0.5">0.5x</option>
+          <option value="0.75">0.75x</option>
+          <option value="1" selected>1x</option>
+          <option value="1.25">1.25x</option>
+        </select>
+      </div>
+      <div class="time-inputs">
+        <button id="markWarning">予告</button>
+        <button id="markDrop">落下</button>
+        <button id="markFlow">流し</button>
+      </div>
+    </footer>
+  </div>
+
+  <audio id="audio" preload="metadata"></audio>
+
+  <script>
+    const audio = document.getElementById("audio");
+    const canvas = document.getElementById("waveCanvas");
+    const ctx = canvas.getContext("2d");
+    const ui = {
+      loadBundled: document.getElementById("loadBundled"),
+      chooseAudio: document.getElementById("chooseAudio"),
+      audioInput: document.getElementById("audioInput"),
+      fileName: document.getElementById("fileName"),
+      bpm: document.getElementById("bpm"),
+      beatOffset: document.getElementById("beatOffset"),
+      snap: document.getElementById("snap"),
+      zoom: document.getElementById("zoom"),
+      status: document.getElementById("status"),
+      timeReadout: document.getElementById("timeReadout"),
+      markerStrip: document.getElementById("markerStrip"),
+      markerTime: document.getElementById("markerTime"),
+      markerKind: document.getElementById("markerKind"),
+      markerLabel: document.getElementById("markerLabel"),
+      markerComment: document.getElementById("markerComment"),
+      addMarker: document.getElementById("addMarker"),
+      updateMarker: document.getElementById("updateMarker"),
+      timeFromPlayhead: document.getElementById("timeFromPlayhead"),
+      seekSelected: document.getElementById("seekSelected"),
+      deleteMarker: document.getElementById("deleteMarker"),
+      nudgeBackLarge: document.getElementById("nudgeBackLarge"),
+      nudgeBack: document.getElementById("nudgeBack"),
+      nudgeForward: document.getElementById("nudgeForward"),
+      nudgeForwardLarge: document.getElementById("nudgeForwardLarge"),
+      snapMarker: document.getElementById("snapMarker"),
+      duplicateMarker: document.getElementById("duplicateMarker"),
+      exportText: document.getElementById("exportText"),
+      markerCount: document.getElementById("markerCount"),
+      seek: document.getElementById("seek"),
+      currentTime: document.getElementById("currentTime"),
+      duration: document.getElementById("duration"),
+      play: document.getElementById("play"),
+      playbackRate: document.getElementById("playbackRate"),
+      jumpBack: document.getElementById("jumpBack"),
+      jumpForward: document.getElementById("jumpForward"),
+      markWarning: document.getElementById("markWarning"),
+      markDrop: document.getElementById("markDrop"),
+      markFlow: document.getElementById("markFlow"),
+      copyJson: document.getElementById("copyJson"),
+      downloadJson: document.getElementById("downloadJson"),
+      downloadCsv: document.getElementById("downloadCsv"),
+      importJson: document.getElementById("importJson"),
+    };
+
+    let audioContext;
+    let peaks = [];
+    let duration = 0;
+    let markers = [
+      { time: 5.416667, kind: "warning", label: "タイル予告 1-A", comment: "" },
+      { time: 6.25, kind: "attack", label: "タイル出現 1-A", comment: "" },
+      { time: 8.75, kind: "drop", label: "一斉落下 1", comment: "" },
+      { time: 9.583333, kind: "flow", label: "ベルト流し 1", comment: "" },
+      { time: 19.166667, kind: "warning", label: "落下予告 1-A", comment: "" },
+      { time: 20, kind: "drop", label: "ランダム落下 1-A", comment: "" },
+      { time: 22.083333, kind: "flow", label: "落下後ベルト流し 1", comment: "" },
+    ];
+    let selectedId = null;
+    let idSeed = 1;
+
+    markers = markers.map((marker) => ({ id: idSeed++, ...marker }));
+
+    function formatTime(value) {
+      const safe = Math.max(0, Number(value) || 0);
+      const minutes = Math.floor(safe / 60);
+      const seconds = Math.floor(safe % 60);
+      const millis = Math.floor((safe - Math.floor(safe)) * 1000);
+      return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.${String(millis).padStart(3, "0")}`;
+    }
+
+    function markerColor(kind) {
+      return {
+        warning: "#dceeb1",
+        drop: "#f3c9b6",
+        flow: "#c8e6cd",
+        attack: "#c5b0f4",
+        note: "#ff4f9f",
+      }[kind] || "#ff3d8b";
+    }
+
+    function visibleWindow() {
+      const zoom = Math.max(0.25, Number(ui.zoom.value) || 1);
+      const full = duration || Math.max(35, audio.duration || 35);
+      const windowDuration = full / zoom;
+      const center = audio.currentTime || 0;
+      let start = center - windowDuration * 0.5;
+      start = Math.max(0, Math.min(start, Math.max(0, full - windowDuration)));
+      return { start, end: start + windowDuration, full, windowDuration };
+    }
+
+    function timeToX(time, rect, windowInfo) {
+      return ((time - windowInfo.start) / windowInfo.windowDuration) * rect.width;
+    }
+
+    function xToTime(x, rect, windowInfo) {
+      return windowInfo.start + (x / rect.width) * windowInfo.windowDuration;
+    }
+
+    function draw() {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+      canvas.width = Math.floor(rect.width * dpr);
+      canvas.height = Math.floor(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, rect.width, rect.height);
+
+      const windowInfo = visibleWindow();
+      const mid = rect.height * 0.52;
+      const amp = rect.height * 0.34;
+      ctx.fillStyle = "#1f1d3d";
+      ctx.fillRect(0, 0, rect.width, rect.height);
+
+      drawBeatGrid(rect, windowInfo);
+
+      if (peaks.length) {
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let x = 0; x < rect.width; x += 1) {
+          const t = xToTime(x, rect, windowInfo);
+          const index = Math.floor((t / windowInfo.full) * peaks.length);
+          const peak = peaks[Math.max(0, Math.min(peaks.length - 1, index))] || 0;
+          ctx.moveTo(x + 0.5, mid - peak * amp);
+          ctx.lineTo(x + 0.5, mid + peak * amp);
+        }
+        ctx.stroke();
+      } else {
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.28)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, mid);
+        ctx.lineTo(rect.width, mid);
+        ctx.stroke();
+      }
+
+      markers.forEach((marker) => {
+        if (marker.time < windowInfo.start || marker.time > windowInfo.end) return;
+        const x = timeToX(marker.time, rect, windowInfo);
+        const color = markerColor(marker.kind);
+        ctx.strokeStyle = marker.id === selectedId ? "#ffffff" : color;
+        ctx.lineWidth = marker.id === selectedId ? 3 : 2;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, rect.height);
+        ctx.stroke();
+        ctx.fillStyle = color;
+        ctx.fillRect(x - 5, 62, 10, 10);
+        if (windowInfo.windowDuration <= 14 || marker.id === selectedId) {
+          ctx.fillStyle = "#eef8ff";
+          ctx.font = "12px Yu Gothic UI, sans-serif";
+          ctx.fillText(marker.label || marker.kind, x + 8, 72);
+        }
+      });
+
+      const playX = timeToX(audio.currentTime || 0, rect, windowInfo);
+      ctx.strokeStyle = "#ff4f9f";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(playX, 0);
+      ctx.lineTo(playX, rect.height);
+      ctx.stroke();
+    }
+
+    function drawBeatGrid(rect, windowInfo) {
+      const bpm = Number(ui.bpm.value) || 144;
+      const offset = Number(ui.beatOffset.value) || 0;
+      const beat = 60 / bpm;
+      const beatPx = rect.width * beat / windowInfo.windowDuration;
+      const measurePx = beatPx * 4;
+      let stepBeats = 1;
+      if (beatPx < 8) stepBeats = 4;
+      if (measurePx < 28) stepBeats = 16;
+      const first = Math.floor((windowInfo.start - offset) / beat / stepBeats) * stepBeats - stepBeats;
+      const last = Math.ceil((windowInfo.end - offset) / beat) + 1;
+      for (let i = first; i <= last; i += stepBeats) {
+        const time = offset + i * beat;
+        const x = timeToX(time, rect, windowInfo);
+        const strong = i % 4 === 0;
+        ctx.strokeStyle = strong ? "rgba(255, 255, 255, 0.28)" : "rgba(255, 255, 255, 0.12)";
+        ctx.lineWidth = strong ? 1.5 : 1;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, rect.height);
+        ctx.stroke();
+        if (strong && (measurePx > 86 || i % 16 === 0)) {
+          ctx.fillStyle = "rgba(255, 255, 255, 0.52)";
+          ctx.font = "11px Cascadia Mono, Consolas, monospace";
+          ctx.fillText(formatTime(time), x + 4, rect.height - 12);
+        }
+      }
+    }
+
+    function renderMarkers() {
+      markers.sort((a, b) => a.time - b.time);
+      ui.markerStrip.innerHTML = "";
+      for (const marker of markers) {
+        const row = document.createElement("div");
+        row.className = `marker-row${marker.id === selectedId ? " active" : ""}`;
+        row.dataset.id = marker.id;
+        row.innerHTML = `
+          <span class="marker-time">${formatTime(marker.time)}</span>
+          <span class="marker-kind">${marker.kind}</span>
+          <span class="marker-text">${escapeHtml(marker.label || marker.comment || "")}</span>
+          <span class="marker-note" style="background:${markerColor(marker.kind)}"></span>
+        `;
+        row.addEventListener("click", () => selectMarker(marker.id));
+        row.addEventListener("dblclick", () => {
+          audio.currentTime = marker.time;
+          draw();
+        });
+        ui.markerStrip.appendChild(row);
+      }
+      ui.markerCount.textContent = `${markers.length} keys`;
+      updateExport();
+      draw();
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#039;",
+      }[char]));
+    }
+
+    function selectMarker(id) {
+      selectedId = id;
+      const marker = markers.find((item) => item.id === id);
+      if (!marker) return;
+      ui.markerTime.value = marker.time.toFixed(3);
+      ui.markerKind.value = marker.kind;
+      ui.markerLabel.value = marker.label || "";
+      ui.markerComment.value = marker.comment || "";
+      renderMarkers();
+    }
+
+    function readEditorMarker() {
+      return {
+        time: Math.max(0, Number(ui.markerTime.value) || 0),
+        kind: ui.markerKind.value,
+        label: ui.markerLabel.value.trim(),
+        comment: ui.markerComment.value.trim(),
+      };
+    }
+
+    function addMarker(kind = ui.markerKind.value, label = "") {
+      const time = snapTime(audio.currentTime || Number(ui.markerTime.value) || 0);
+      const marker = {
+        id: idSeed++,
+        time,
+        kind,
+        label: label || defaultLabel(kind),
+        comment: "",
+      };
+      markers.push(marker);
+      selectMarker(marker.id);
+    }
+
+    function defaultLabel(kind) {
+      return {
+        warning: "予告",
+        drop: "落下",
+        flow: "流し",
+        attack: "攻撃",
+        note: "メモ",
+      }[kind] || "キー";
+    }
+
+    function updateSelected() {
+      const marker = markers.find((item) => item.id === selectedId);
+      if (!marker) return;
+      Object.assign(marker, readEditorMarker());
+      renderMarkers();
+    }
+
+    function autoUpdateSelected() {
+      const marker = markers.find((item) => item.id === selectedId);
+      if (!marker) return;
+      Object.assign(marker, readEditorMarker());
+      renderMarkers();
+    }
+
+    function setSelectedToPlayhead() {
+      const marker = markers.find((item) => item.id === selectedId);
+      if (!marker) return;
+      marker.time = snapTime(audio.currentTime || 0);
+      selectMarker(marker.id);
+    }
+
+    function seekToSelected() {
+      const marker = markers.find((item) => item.id === selectedId);
+      if (!marker) return;
+      audio.currentTime = marker.time;
+      updateTransport();
+    }
+
+    function duplicateSelected() {
+      const marker = markers.find((item) => item.id === selectedId);
+      if (!marker) return;
+      const duplicate = {
+        ...marker,
+        id: idSeed++,
+        time: snapTime(marker.time + 0.1),
+        label: `${marker.label || defaultLabel(marker.kind)} copy`,
+      };
+      markers.push(duplicate);
+      selectMarker(duplicate.id);
+    }
+
+    function appendQuickComment(value) {
+      const current = ui.markerComment.value.trim();
+      ui.markerComment.value = current ? `${current}\n${value}` : value;
+      autoUpdateSelected();
+    }
+
+    function deleteSelected() {
+      if (selectedId == null) return;
+      markers = markers.filter((item) => item.id !== selectedId);
+      selectedId = markers[0]?.id ?? null;
+      if (selectedId != null) selectMarker(selectedId);
+      renderMarkers();
+    }
+
+    function nudgeSelected(delta) {
+      const marker = markers.find((item) => item.id === selectedId);
+      if (!marker) return;
+      marker.time = Math.max(0, marker.time + delta);
+      selectMarker(marker.id);
+    }
+
+    function snapTime(time) {
+      const snap = Number(ui.snap.value);
+      if (!snap) return time;
+      const bpm = Number(ui.bpm.value) || 144;
+      const offset = Number(ui.beatOffset.value) || 0;
+      const unit = (60 / bpm) * snap;
+      return offset + Math.round((time - offset) / unit) * unit;
+    }
+
+    function snapSelected() {
+      const marker = markers.find((item) => item.id === selectedId);
+      if (!marker) return;
+      marker.time = snapTime(marker.time);
+      selectMarker(marker.id);
+    }
+
+    function updateExport() {
+      const payload = {
+        track: "石工",
+        composer: "べにぐち",
+        bpm: Number(ui.bpm.value) || 144,
+        beatOffset: Number(ui.beatOffset.value) || 0,
+        markers: markers
+          .slice()
+          .sort((a, b) => a.time - b.time)
+          .map(({ time, kind, label, comment }) => ({
+            time: Number(time.toFixed(6)),
+            timeLabel: formatTime(time),
+            kind,
+            label,
+            comment,
+          })),
+      };
+      ui.exportText.value = JSON.stringify(payload, null, 2);
+    }
+
+    function exportCsv() {
+      const header = "time,timeLabel,kind,label,comment";
+      const rows = markers
+        .slice()
+        .sort((a, b) => a.time - b.time)
+        .map((marker) => [
+          marker.time.toFixed(6),
+          formatTime(marker.time),
+          marker.kind,
+          marker.label || "",
+          marker.comment || "",
+        ].map(csvCell).join(","));
+      return [header, ...rows].join("\n");
+    }
+
+    function csvCell(value) {
+      return `"${String(value).replace(/"/g, "\"\"")}"`;
+    }
+
+    function download(name, content, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function loadAudioFromUrl(url, name) {
+      ui.status.textContent = "音源を読み込み中";
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const blob = await response.blob();
+      await loadAudioBlob(blob, name);
+    }
+
+    async function loadAudioBlob(blob, name) {
+      const objectUrl = URL.createObjectURL(blob);
+      const applyMetadata = () => {
+        duration = audio.duration || duration;
+        ui.seek.max = duration || 0;
+        ui.duration.textContent = formatTime(duration || 0);
+        ui.status.textContent = `${name} / ${formatTime(duration || 0)}`;
+        draw();
+      };
+      audio.src = objectUrl;
+      ui.fileName.textContent = name;
+      audio.addEventListener("loadedmetadata", applyMetadata, { once: true });
+      const buffer = await blob.arrayBuffer();
+      await decodeWaveform(buffer);
+      if (audio.readyState >= 1) applyMetadata();
+    }
+
+    async function decodeWaveform(buffer) {
+      audioContext ||= new AudioContext();
+      const decoded = await audioContext.decodeAudioData(buffer.slice(0));
+      duration = decoded.duration;
+      const data = decoded.getChannelData(0);
+      const target = 4200;
+      const block = Math.max(1, Math.floor(data.length / target));
+      peaks = [];
+      for (let i = 0; i < data.length; i += block) {
+        let peak = 0;
+        for (let j = 0; j < block && i + j < data.length; j += 1) {
+          peak = Math.max(peak, Math.abs(data[i + j]));
+        }
+        peaks.push(peak);
+      }
+      draw();
+    }
+
+    function updateTransport() {
+      const time = audio.currentTime || 0;
+      ui.timeReadout.textContent = formatTime(time);
+      ui.currentTime.textContent = formatTime(time);
+      ui.seek.value = String(time);
+      ui.play.textContent = audio.paused ? "再生" : "停止";
+      draw();
+      if (!audio.paused) requestAnimationFrame(updateTransport);
+    }
+
+    ui.loadBundled.addEventListener("click", async () => {
+      try {
+        await loadAudioFromUrl("../../Assets/StageData/stone/stone.m4a", "stone.m4a");
+      } catch (error) {
+        ui.status.textContent = "自動読み込み失敗。音源を選択してください";
+      }
+    });
+
+    ui.chooseAudio.addEventListener("click", () => ui.audioInput.click());
+    ui.audioInput.addEventListener("change", async () => {
+      const file = ui.audioInput.files?.[0];
+      if (!file) return;
+      await loadAudioBlob(file, file.name);
+    });
+
+    ui.play.addEventListener("click", async () => {
+      if (!audio.src) return;
+      if (audio.paused) {
+        await audio.play();
+        updateTransport();
+      } else {
+        audio.pause();
+        updateTransport();
+      }
+    });
+
+    ui.seek.addEventListener("input", () => {
+      audio.currentTime = Number(ui.seek.value) || 0;
+      updateTransport();
+    });
+
+    ui.jumpBack.addEventListener("click", () => {
+      audio.currentTime = Math.max(0, (audio.currentTime || 0) - 1);
+      updateTransport();
+    });
+
+    ui.jumpForward.addEventListener("click", () => {
+      audio.currentTime = Math.min(duration || audio.duration || Infinity, (audio.currentTime || 0) + 1);
+      updateTransport();
+    });
+
+    ui.addMarker.addEventListener("click", () => addMarker());
+    ui.updateMarker.addEventListener("click", updateSelected);
+    ui.timeFromPlayhead.addEventListener("click", setSelectedToPlayhead);
+    ui.seekSelected.addEventListener("click", seekToSelected);
+    ui.deleteMarker.addEventListener("click", deleteSelected);
+    ui.nudgeBackLarge.addEventListener("click", () => nudgeSelected(-0.05));
+    ui.nudgeBack.addEventListener("click", () => nudgeSelected(-0.01));
+    ui.nudgeForward.addEventListener("click", () => nudgeSelected(0.01));
+    ui.nudgeForwardLarge.addEventListener("click", () => nudgeSelected(0.05));
+    ui.snapMarker.addEventListener("click", snapSelected);
+    ui.duplicateMarker.addEventListener("click", duplicateSelected);
+    ui.markWarning.addEventListener("click", () => addMarker("warning", "予告"));
+    ui.markDrop.addEventListener("click", () => addMarker("drop", "落下"));
+    ui.markFlow.addEventListener("click", () => addMarker("flow", "流し"));
+    document.querySelectorAll("[data-comment]").forEach((button) => {
+      button.addEventListener("click", () => appendQuickComment(button.dataset.comment));
+    });
+    [ui.markerTime, ui.markerKind, ui.markerLabel, ui.markerComment].forEach((control) => {
+      control.addEventListener("input", autoUpdateSelected);
+      control.addEventListener("change", autoUpdateSelected);
+    });
+
+    ui.copyJson.addEventListener("click", async () => {
+      updateExport();
+      await navigator.clipboard.writeText(ui.exportText.value);
+      ui.status.textContent = "JSONをコピーしました";
+    });
+
+    ui.downloadJson.addEventListener("click", () => {
+      updateExport();
+      download("stone-timing-markers.json", ui.exportText.value, "application/json");
+    });
+
+    ui.downloadCsv.addEventListener("click", () => {
+      download("stone-timing-markers.csv", exportCsv(), "text/csv;charset=utf-8");
+    });
+
+    ui.importJson.addEventListener("click", () => {
+      try {
+        const payload = JSON.parse(ui.exportText.value);
+        if (!Array.isArray(payload.markers)) throw new Error("markers missing");
+        markers = payload.markers.map((marker) => ({
+          id: idSeed++,
+          time: Number(marker.time) || 0,
+          kind: marker.kind || "note",
+          label: marker.label || "",
+          comment: marker.comment || "",
+        }));
+        selectedId = markers[0]?.id ?? null;
+        if (selectedId != null) selectMarker(selectedId);
+        renderMarkers();
+        ui.status.textContent = "JSONを読み込みました";
+      } catch (error) {
+        ui.status.textContent = "JSONを読み込めません";
+      }
+    });
+
+    ui.bpm.addEventListener("input", () => {
+      updateExport();
+      draw();
+    });
+    ui.beatOffset.addEventListener("input", () => {
+      updateExport();
+      draw();
+    });
+    ui.zoom.addEventListener("input", draw);
+    ui.playbackRate.addEventListener("change", () => {
+      audio.playbackRate = Number(ui.playbackRate.value) || 1;
+    });
+    audio.addEventListener("timeupdate", updateTransport);
+    audio.addEventListener("play", updateTransport);
+    audio.addEventListener("pause", updateTransport);
+    window.addEventListener("resize", draw);
+
+    document.getElementById("timelineWrap").addEventListener("click", (event) => {
+      const rect = canvas.getBoundingClientRect();
+      const next = xToTime(event.clientX - rect.left, rect, visibleWindow());
+      audio.currentTime = Math.max(0, Math.min(duration || next, next));
+      updateTransport();
+    });
+
+    window.addEventListener("keydown", async (event) => {
+      const tag = document.activeElement?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (event.code === "Space") {
+        event.preventDefault();
+        ui.play.click();
+      }
+      if (event.key.toLowerCase() === "k") addMarker("note", "メモ");
+      if (event.key === "[") nudgeSelected(-0.01);
+      if (event.key === "]") nudgeSelected(0.01);
+    });
+
+    renderMarkers();
+    selectMarker(markers[0].id);
+    updateTransport();
+  </script>
+</body>
+</html>

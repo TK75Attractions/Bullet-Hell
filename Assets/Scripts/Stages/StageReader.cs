@@ -15,6 +15,8 @@ public class StageReader : MonoBehaviour
     [SerializeField] private int bulletCount = 0;
     [SerializeField] private bool isReady = false;
     private EnemyVisualCatalog enemyVisualCatalog;
+    private AudioSource stageBgmSource;
+    private double stageBgmScheduledDspTime = -1d;
 
     [Serializable]
     private struct BulletSpawnEvent
@@ -30,20 +32,25 @@ public class StageReader : MonoBehaviour
     public async Task<bool> Init(StageData data)
     {
         stageData = data;
+        LogStageInit($"Init start: {stageData?.stageName}");
         time = 0f;
         enemyCount = 0;
         bulletCount = 0;
         spawnEvents.Clear();
         isReady = false;
+        stageBgmSource = null;
+        stageBgmScheduledDspTime = -1d;
 
         if (GManager.Control.SDB != null)
         {
             await GManager.Control.SDB.EnsureRuntimeMediaLoadedAsync(stageData);
+            LogStageInit("Runtime media loaded");
         }
 
         enemyVisualCatalog?.Release();
         enemyVisualCatalog = await EnemyVisualLoader.LoadCatalogAsync(stageData);
         stageData.enemyVisualCatalog = enemyVisualCatalog;
+        LogStageInit("Enemy visuals loaded");
 
         if (GManager.Control.BClipManager != null)
         {
@@ -58,22 +65,25 @@ public class StageReader : MonoBehaviour
                     : stageData.stageDirectoryName;
                 await GManager.Control.BClipManager.ReloadForStageBulletBuffersAsync(bulletBufferDirectory);
             }
+            LogStageInit("Bullet buffers loaded");
         }
 
         if (GManager.Control.AManager != null && GManager.Control.BManager != null)
         {
+            LogStageInit("BGM load start");
             AudioSource bgmSource = await GManager.Control.AManager.PlayBGM(stageData.audioClip);
             if (bgmSource != null && stageData.audioClip != null)
             {
-                double scheduledDspTime = AudioSettings.dspTime + BgmLeadTime;
-                bgmSource.PlayScheduled(scheduledDspTime);
-                GManager.Control.BManager.SetBeat(bgmSource, stageData.audioClip, stageData.MusicEvents, scheduledDspTime, stageData.delayTime);
+                stageBgmSource = bgmSource;
+                ResetStageClockToScheduledStart();
                 GManager.Control.musicOn = true;
+                LogStageInit("BGM scheduled");
             }
             else
             {
                 GManager.Control.musicOn = false;
                 Debug.LogWarning($"BGM was not started for stage '{stageData.stageName}' because audio clip failed to load.");
+                LogStageInit("BGM failed");
             }
         }
 
@@ -119,7 +129,40 @@ public class StageReader : MonoBehaviour
         spawnEvents.Sort((a, b) => a.time.CompareTo(b.time));
 
         isReady = true;
+        LogStageInit("Init ready");
         return true;
+    }
+
+    public void ResetStageClockToScheduledStart()
+    {
+        time = 0f;
+        enemyCount = 0;
+        bulletCount = 0;
+
+        if (stageBgmSource == null || stageData == null || stageData.audioClip == null)
+        {
+            stageBgmScheduledDspTime = -1d;
+            return;
+        }
+
+        double scheduledDspTime = AudioSettings.dspTime + BgmLeadTime;
+        stageBgmScheduledDspTime = scheduledDspTime;
+        stageBgmSource.Stop();
+        stageBgmSource.timeSamples = 0;
+        stageBgmSource.time = 0f;
+        stageBgmSource.PlayScheduled(scheduledDspTime);
+        GManager.Control.BManager.SetBeat(
+            stageBgmSource,
+            stageData.audioClip,
+            stageData.MusicEvents,
+            scheduledDspTime,
+            stageData.delayTime);
+    }
+
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    private void LogStageInit(string message)
+    {
+        Debug.Log($"[StageReaderInit] {message}", this);
     }
 
     public EnemyVisualSetRuntime GetEnemyVisual(string visualId)
@@ -130,7 +173,40 @@ public class StageReader : MonoBehaviour
     public void UpdateStage(float dt)
     {
         if (stageData == null || !isReady) return;
-        time += dt;
+        if (GManager.Control == null || GManager.Control.state != GManager.GameState.Playing) return;
+
+        if (stageBgmSource != null && stageData.audioClip != null)
+        {
+            if (stageBgmScheduledDspTime > 0d)
+            {
+                double syncedTime = AudioSettings.dspTime - stageBgmScheduledDspTime - stageData.delayTime;
+                if (syncedTime < 0d)
+                {
+                    return;
+                }
+
+                time = Mathf.Max(time, (float)syncedTime);
+            }
+            else
+            {
+                if (!stageBgmSource.isPlaying && stageBgmSource.timeSamples <= 0)
+                {
+                    return;
+                }
+
+                float syncedTime = stageBgmSource.time - stageData.delayTime;
+                if (syncedTime < 0f)
+                {
+                    return;
+                }
+
+                time = Mathf.Max(time, syncedTime);
+            }
+        }
+        else
+        {
+            time += dt;
+        }
 
         while (stageData.enemySpawners.Count > enemyCount && stageData.enemySpawners[enemyCount].enemyAppearTime <= time)
         {

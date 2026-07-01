@@ -11,10 +11,13 @@ public class StageBox : MonoBehaviour
 
     // Unselected bars render as muted navy, selected as the sprite's full blue.
     private static readonly Color barDimColor = new Color(0.42f, 0.55f, 0.72f);
-    private static readonly Color textDimColor = new Color(0.66f, 0.78f, 0.9f);
+    private static readonly Color textDimColor = new Color(0.78f, 0.88f, 1f);
+    private const float stageNameWidth = 520f;
+    private const float stageNameHeight = 92f;
 
     private CanvasGroup CG;
     private TMP_Text stageNameText;
+    private RectTransform stageNameRect;
     private RectTransform rectTransform;
     private Image backImage;
     private float baseScale = 1f;
@@ -22,10 +25,26 @@ public class StageBox : MonoBehaviour
     public void Init()
     {
         stageNameText = transform.Find("StageName").GetComponent<TMP_Text>();
+        stageNameRect = stageNameText.GetComponent<RectTransform>();
         rectTransform = GetComponent<RectTransform>();
         CG = GetComponent<CanvasGroup>();
         Transform back = transform.Find("Back");
         if (back != null) backImage = back.GetComponent<Image>();
+
+        stageNameText.gameObject.SetActive(true);
+        stageNameText.raycastTarget = false;
+        stageNameText.enableAutoSizing = true;
+        stageNameText.fontSizeMin = 18f;
+        stageNameText.fontSizeMax = 44f;
+
+        stageNameRect.anchorMin = new Vector2(0.5f, 0.5f);
+        stageNameRect.anchorMax = new Vector2(0.5f, 0.5f);
+        stageNameRect.pivot = new Vector2(0.5f, 0.5f);
+        stageNameRect.anchoredPosition = Vector2.zero;
+        stageNameRect.sizeDelta = new Vector2(stageNameWidth, stageNameHeight);
+        stageNameText.alignment = TextAlignmentOptions.Center;
+        stageNameText.textWrappingMode = TextWrappingModes.NoWrap;
+        stageNameText.overflowMode = TextOverflowModes.Ellipsis;
     }
 
     public void SetStageName(string name)
@@ -51,7 +70,9 @@ public class StageBox : MonoBehaviour
         rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, y);
 
         if (backImage != null) backImage.color = Color.Lerp(barDimColor, Color.white, selection);
-        stageNameText.color = Color.Lerp(textDimColor, Color.white, selection);
+        Color textColor = Color.Lerp(textDimColor, Color.white, selection);
+        textColor.a = 1f;
+        stageNameText.color = textColor;
     }
 
     // Gentle breathing applied on top of the base scale while selected and idle.

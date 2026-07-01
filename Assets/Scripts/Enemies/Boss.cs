@@ -32,6 +32,14 @@ public class Boss : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         Sprite fallbackSprite = GetFallbackSprite(spawner);
         EnemyVisualSetRuntime visualSet = ResolveVisualSet(spawner);
+        bool hasExternalVisual = visualSet != null;
+
+        SetPrefabMarkerVisible(!hasExternalVisual);
+        if (hasExternalVisual && spriteRenderer != null)
+        {
+            spriteRenderer.sortingOrder = Mathf.Max(spriteRenderer.sortingOrder, 10);
+            spriteRenderer.color = Color.white;
+        }
 
         visualPlayer = new EnemyVisualPlayer();
         visualPlayer.Init(spriteRenderer, visualSet, spawner != null ? spawner.animation : null, fallbackSprite);
@@ -72,6 +80,19 @@ public class Boss : MonoBehaviour
         }
 
         return null;
+    }
+
+    private void SetPrefabMarkerVisible(bool visible)
+    {
+        SpriteRenderer[] renderers = GetComponentsInChildren<SpriteRenderer>(true);
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            SpriteRenderer childRenderer = renderers[i];
+            if (childRenderer != null && childRenderer != spriteRenderer && childRenderer.name == "Circle")
+            {
+                childRenderer.enabled = visible;
+            }
+        }
     }
 
     public void UpdateBoss(float dt)

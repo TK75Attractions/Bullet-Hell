@@ -57,6 +57,21 @@ public class StageBar : MonoBehaviour
         SetStageBoxPositions(length);
     }
 
+    public void SetCurrentStage(int index)
+    {
+        int length = GManager.Control.SDB.GetStageCount();
+        if (length <= 0)
+        {
+            currentStage = 0;
+            return;
+        }
+
+        currentStage = Mathf.Clamp(index, 0, length - 1);
+        RefreshStageNames(length);
+        SetStageBoxPositions(length);
+        Tick(0f);
+    }
+
     // Per-frame idle animation: arrow hints bob, the selected box breathes.
     public void Tick(float dt)
     {

@@ -66,6 +66,7 @@ Shader "Custom/BulletIndirectURP"
                 float maskIndex : TEXCOORD2;
                 float appear : TEXCOORD3;
                 float4 color : TEXCOORD4;
+                float2 scale : TEXCOORD5;
             };
 
             Varyings vert(Attributes input, uint instanceID : SV_InstanceID)
@@ -96,18 +97,25 @@ Shader "Custom/BulletIndirectURP"
                 output.maskIndex = b.maskIndex;
                 output.appear = b.appear;
                 output.color = b.color;
+                output.scale = b.scale;
 
                 return output;
             }
 
             half4 frag(Varyings input) : SV_Target
             {
+                float2 uv = input.uv;
+                if (input.scale.x > 20.0 && input.scale.y < 3.5)
+                {
+                uv.x = frac(uv.x + _Time.y * 0.14);
+                }
+
                 // テクスチャ配列からサンプリング
                 half4 baseCol = SAMPLE_TEXTURE2D_ARRAY(_MainArray, sampler_MainArray, 
-                    input.uv, input.texIndex);
+                    uv, input.texIndex);
 
                 half mask = SAMPLE_TEXTURE2D_ARRAY(_MaskArray, sampler_MaskArray, 
-                    input.uv, input.maskIndex).r;
+                    uv, input.maskIndex).r;
                 half appear = saturate(input.appear);
                 half tintStrength = saturate(mask * input.color.a);
 

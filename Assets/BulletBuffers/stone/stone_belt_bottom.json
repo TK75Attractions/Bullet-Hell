@@ -1,0 +1,59 @@
+{
+    "name": "石工ベルトコンベア_下部",
+    "bullets": [
+        {
+            "originPos": {
+                "x": 16,
+                "y": 0.55
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_conveyor_belt",
+            "scale": {
+                "x": 36.5,
+                "y": 1.65
+            },
+            "color": {
+                "x": 0.012,
+                "y": 0.03,
+                "z": 0.075,
+                "w": 0.96
+            },
+            "appearTime": 0,
+            "appearDuration": 0.02,
+            "life": 34.2,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        }
+    ],
+    "homing": false,
+    "isLaser": false
+}

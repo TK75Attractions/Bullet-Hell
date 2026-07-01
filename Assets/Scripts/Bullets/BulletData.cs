@@ -72,6 +72,7 @@ public struct BulletData
     public float clearTime;
     public float clearDuration;
     public bool unCounterable;
+    public bool lockRotation;
 
     /// <summary>
     /// 弾幕のデータ
@@ -126,6 +127,7 @@ public struct BulletData
         clearDuration = 0f;
         color = _color;
         unCounterable = _unCounterable;
+        lockRotation = false;
 
         float x = _start;
         startX = x;
@@ -182,6 +184,7 @@ public struct BulletData
         life = data.life;
         // Keep source flag when cloning; optional arg can force uncounterable.
         unCounterable = data.unCounterable || _unCounterable;
+        lockRotation = data.lockRotation;
 
         areaNum = 0;
         time = 0;

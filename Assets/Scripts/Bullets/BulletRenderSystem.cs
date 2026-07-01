@@ -56,7 +56,7 @@ public class BulletRenderSystem : MonoBehaviour
             false
         );
         textureArray.filterMode = FilterMode.Point;
-        textureArray.wrapMode = TextureWrapMode.Clamp;
+        textureArray.wrapMode = TextureWrapMode.Repeat;
 
         for (int i = 0; i < textures.Length; i++)
         {
@@ -90,7 +90,7 @@ public class BulletRenderSystem : MonoBehaviour
             false
         );
         maskArray.filterMode = FilterMode.Point;
-        maskArray.wrapMode = TextureWrapMode.Clamp;
+        maskArray.wrapMode = TextureWrapMode.Repeat;
 
         for (int i = 0; i < maskTextures.Length; i++)
         {

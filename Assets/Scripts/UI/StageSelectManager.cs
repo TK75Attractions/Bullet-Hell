@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,6 +7,9 @@ public class StageSelectManager : MonoBehaviour
 {
     private const float musicSelectTime = 90f;
     private const float difficultySelectTime = 30f;
+    private const string InitialStageName = "石工";
+    private static readonly bool SkipStoneTutorialForDebug = true;
+    private const string DebugSkipTutorialStageName = "石工";
     // How far the side lists travel off-screen during transitions (camera-pan feel).
     private const float slideDistance = 560f;
     private const float screenTransitionDuration = 0.3f;
@@ -17,7 +21,7 @@ public class StageSelectManager : MonoBehaviour
     private Scroll scroll;
     private StageBar stageBar;
     private StageDescription stageDescription;
-    private Image timeDimImage;
+    private RectTransform timeDimRect;
     private PixelTransition pixelTransition;
     private CanvasGroup playHUD;
     private TMPro.TMP_Text playHUDSongName;
@@ -26,6 +30,9 @@ public class StageSelectManager : MonoBehaviour
     private RectTransform guideRect;
     private Vector2 guideBasePos;
     private float guideAnimTime;
+    private readonly List<Renderer> tutorialEnemyRenderers = new List<Renderer>();
+    private readonly List<bool> tutorialEnemyRendererStates = new List<bool>();
+    private float timeDimBaseX;
 
     private RectTransform stageBarRect;
     private RectTransform scrollRect;
@@ -58,8 +65,12 @@ public class StageSelectManager : MonoBehaviour
         stageBar = GetComponentInChildren<StageBar>();
         stageDescription = GetComponentInChildren<StageDescription>();
 
-        Transform dim = staticCG.transform.Find("TimeDim");
-        if (dim != null) timeDimImage = dim.GetComponent<Image>();
+        Transform dim = staticCG.transform.Find("Head/TimeDim");
+        if (dim != null)
+        {
+            timeDimRect = dim as RectTransform;
+            timeDimBaseX = timeDimRect.anchoredPosition.x;
+        }
 
         Transform pixel = transform.parent.Find("PixelTransition");
         if (pixel != null) pixelTransition = pixel.GetComponent<PixelTransition>();
@@ -72,7 +83,7 @@ public class StageSelectManager : MonoBehaviour
         {
             guideText = guide.GetComponent<TMPro.TMP_Text>();
             guideRect = guide as RectTransform;
-            guideBasePos = guideRect.anchoredPosition;
+            guideBasePos = guideRect.anchoredPosition + Vector2.up * 20f;
         }
 
         Transform hud = transform.parent.Find("PlayHUD");
@@ -87,22 +98,36 @@ public class StageSelectManager : MonoBehaviour
         stageBarRect = stageBar.GetComponent<RectTransform>();
         scrollRect = scroll.GetComponent<RectTransform>();
         defficultyRect = defficultyBar.GetComponent<RectTransform>();
-        stageBarBasePos = stageBarRect.anchoredPosition;
-        scrollBasePos = scrollRect.anchoredPosition;
-        defficultyBasePos = defficultyRect.anchoredPosition;
+        stageBarBasePos = stageBarRect.anchoredPosition + Vector2.up * 35f;
+        scrollBasePos = scrollRect.anchoredPosition + Vector2.up * 10f;
+        defficultyBasePos = defficultyRect.anchoredPosition + Vector2.left * 20f;
         ApplySlide(0);
 
         defficultyBar.Init();
         header.Init();
         scroll.Init();
         stageBar.Init();
+        int initialStage = FindStageIndex(InitialStageName);
+        if (initialStage >= 0) stageBar.SetCurrentStage(initialStage);
         stageDescription.Init();
         stageDescription.Set(stageBar.currentStage);
+        scroll.UpdateArea(stageBar.currentStage, GManager.Control.SDB.GetStageCount());
 
         state = State.Music;
         remainingTime = musicSelectTime;
         phaseTotalTime = musicSelectTime;
         header.UpdateTimer(remainingTime);
+    }
+
+    private int FindStageIndex(string stageName)
+    {
+        int length = GManager.Control.SDB.GetStageCount();
+        for (int i = 0; i < length; i++)
+        {
+            StageData stage = GManager.Control.SDB.GetStage(i);
+            if (stage != null && stage.stageName == stageName) return i;
+        }
+        return -1;
     }
 
     public void UpdateSelect(bool up, bool down, float dt, bool button, bool back)
@@ -189,33 +214,50 @@ public class StageSelectManager : MonoBehaviour
             await pixelTransition.Cover();
             variableCG.alpha = 0;
             staticCG.alpha = 0;
-            ShowPlayHUD(stageIndex);
+            if (playHUD != null) playHUD.alpha = 0f;
+            GManager.Control.PController?.ResetToCenter();
+            SetTutorialEnemiesVisible(false);
             // The player can already move while the tutorial runs on the bare field.
             GManager.Control.state = GManager.GameState.Tutorial;
             await pixelTransition.Reveal();
-            if (tutorialManager != null)
+            bool skipPreStage = ShouldSkipPreStageTutorial(stageIndex);
+            if (!skipPreStage && tutorialManager != null)
             {
                 await tutorialManager.RunTutorial(GManager.Control.IManager);
                 await tutorialManager.ShowStartText();
             }
-            await GManager.Control.GoGameAsync(stageIndex);
-            if (tutorialManager != null)
+
+            StageData data = GManager.Control.SDB.GetStage(stageIndex);
+            string diffName = defficultyBar.index == 0 ? "EASY" : defficultyBar.index == 2 ? "LUNATIC" : "NORMAL";
+            if (!skipPreStage && tutorialManager != null)
             {
-                StageData data = GManager.Control.SDB.GetStage(stageIndex);
-                string diffName = defficultyBar.index == 0 ? "EASY" : defficultyBar.index == 2 ? "LUNATIC" : "NORMAL";
-                tutorialManager.ShowSongIntro(data != null ? data.stageName : "", diffName, defficultyBar.index);
+                await tutorialManager.ShowSongIntro(data != null ? data.stageName : "", diffName, defficultyBar.index);
             }
+
+            await ShowPlayHUD(stageIndex);
+            // Keep the player's tutorial-end position when the actual stage begins.
+            await GManager.Control.GoGameAsync(stageIndex);
+            SetTutorialEnemiesVisible(true);
         }
         else
         {
             variableCG.alpha = 0;
             staticCG.alpha = 0;
-            ShowPlayHUD(stageIndex);
-            GManager.Control.GoGame(stageIndex);
+            GManager.Control.PController?.ResetToCenter();
+            await ShowPlayHUD(stageIndex);
+            await GManager.Control.GoGameAsync(stageIndex);
         }
     }
 
-    private void ShowPlayHUD(int stageIndex)
+    private bool ShouldSkipPreStageTutorial(int stageIndex)
+    {
+        if (!SkipStoneTutorialForDebug) return false;
+
+        StageData data = GManager.Control.SDB.GetStage(stageIndex);
+        return data != null && data.stageName == DebugSkipTutorialStageName;
+    }
+
+    private async Task ShowPlayHUD(int stageIndex)
     {
         if (playHUD == null) return;
         if (playHUDSongName != null)
@@ -223,11 +265,11 @@ public class StageSelectManager : MonoBehaviour
             StageData data = GManager.Control.SDB.GetStage(stageIndex);
             playHUDSongName.text = data != null && !string.IsNullOrWhiteSpace(data.stageName) ? data.stageName : "";
         }
-        AnimateHUDIn();
+        await AnimateHUDIn();
     }
 
     // HUD slides down from above the screen edge while fading in.
-    private async void AnimateHUDIn()
+    private async Task AnimateHUDIn()
     {
         RectTransform rect = (RectTransform)playHUD.transform;
         Vector2 basePos = Vector2.zero;
@@ -244,6 +286,47 @@ public class StageSelectManager : MonoBehaviour
         }
         playHUD.alpha = 1f;
         rect.anchoredPosition = basePos;
+    }
+
+    private void SetTutorialEnemiesVisible(bool visible)
+    {
+        if (!visible)
+        {
+            tutorialEnemyRenderers.Clear();
+            tutorialEnemyRendererStates.Clear();
+            Boss[] bosses = Object.FindObjectsByType<Boss>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            foreach (Boss boss in bosses)
+            {
+                Renderer[] renderers = boss.GetComponentsInChildren<Renderer>(true);
+                if (boss.gameObject.name == "boss")
+                {
+                    foreach (Renderer renderer in renderers)
+                    {
+                        renderer.enabled = false;
+                    }
+                    continue;
+                }
+
+                foreach (Renderer renderer in renderers)
+                {
+                    if (tutorialEnemyRenderers.Contains(renderer)) continue;
+                    tutorialEnemyRenderers.Add(renderer);
+                    tutorialEnemyRendererStates.Add(renderer.enabled);
+                    renderer.enabled = false;
+                }
+            }
+            return;
+        }
+
+        for (int i = 0; i < tutorialEnemyRenderers.Count; i++)
+        {
+            if (tutorialEnemyRenderers[i] != null)
+            {
+                tutorialEnemyRenderers[i].enabled = tutorialEnemyRendererStates[i];
+            }
+        }
+        tutorialEnemyRenderers.Clear();
+        tutorialEnemyRendererStates.Clear();
     }
 
     // Entrance from the title screen: while the title zooms past the camera
@@ -308,18 +391,24 @@ public class StageSelectManager : MonoBehaviour
         }
     }
 
-    // Width of the timer cell in the header that the wipe fills (right-pivot).
-    private const float timerCellWidth = 460f;
+    // The right edge stays fixed just outside the screen. Only the mask width
+    // grows, so the red background never drifts away from the right side.
+    private const float timerVisibleWidth = 502f;
+    private const float timerRightOverscan = 40f;
 
     // A tinted panel confined to the remaining-time cell in the header grows
     // leftward as time runs out (per UI mock). Color/placement are set in the
     // scene; here we only drive its width (right-pivot rect).
     private void UpdateTimeDim()
     {
-        if (timeDimImage == null) return;
-        float p = phaseTotalTime > 0f ? 1f - remainingTime / phaseTotalTime : 0f;
-        RectTransform rt = timeDimImage.rectTransform;
-        rt.sizeDelta = new Vector2(timerCellWidth * p, rt.sizeDelta.y);
+        if (timeDimRect == null) return;
+        float p = phaseTotalTime > 0f
+            ? Mathf.Clamp01(1f - remainingTime / phaseTotalTime)
+            : 0f;
+        timeDimRect.anchoredPosition = new Vector2(timeDimBaseX, timeDimRect.anchoredPosition.y);
+        timeDimRect.sizeDelta = new Vector2(
+            timerRightOverscan + timerVisibleWidth * p,
+            timeDimRect.sizeDelta.y);
     }
 
     public async void TransitionToDifficulty()

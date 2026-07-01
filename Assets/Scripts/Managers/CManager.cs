@@ -13,6 +13,7 @@ public class CManager : MonoBehaviour
     [SerializeField] private Vector2 debugCurrentJitterPixels;
 
     private readonly List<ScreenNoise> screenNoises = new List<ScreenNoise>();
+    private bool menuBlurActive;
 
     public Vector2 CurrentBlurPixels { get; private set; }
     public Vector2 CurrentJitterPixels { get; private set; }
@@ -52,6 +53,7 @@ public class CManager : MonoBehaviour
     private void OnDisable()
     {
         screenNoises.Clear();
+        menuBlurActive = false;
         CurrentBlurPixels = Vector2.zero;
         CurrentJitterPixels = Vector2.zero;
         CurrentStrength = 0f;
@@ -93,6 +95,12 @@ public class CManager : MonoBehaviour
         debugCurrentJitterPixels = Vector2.zero;
     }
 
+    public void SetMenuBlur(bool enabled)
+    {
+        menuBlurActive = enabled;
+        UpdateScreenNoise(0f);
+    }
+
     private void UpdateScreenNoise(float dt)
     {
         Vector2 blurPixels = Vector2.zero;
@@ -127,6 +135,13 @@ public class CManager : MonoBehaviour
             blurPixels += noise.amplitude * envelope;
             jitterPixels += new Vector2(x * noise.amplitude.x, y * noise.amplitude.y) * envelope;
             strength = Mathf.Max(strength, envelope);
+        }
+
+        if (menuBlurActive)
+        {
+            blurPixels = new Vector2(18f, 10f);
+            jitterPixels = Vector2.zero;
+            strength = 1f;
         }
 
         CurrentBlurPixels = blurPixels;

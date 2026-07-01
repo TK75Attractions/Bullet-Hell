@@ -13,6 +13,8 @@ public class TitleManager : MonoBehaviour
     private float logoBaseY;
     private float animTime;
     private bool dismissed;
+    private bool returnAnimating;
+    private Image returnBackdrop;
 
     private float beatTimer;
     private float beatPulse;
@@ -36,6 +38,11 @@ public class TitleManager : MonoBehaviour
 
     public void Init()
     {
+        animTime = 0f;
+        beatTimer = 0f;
+        beatPulse = 0f;
+        returnAnimating = false;
+        if (returnBackdrop != null) returnBackdrop.gameObject.SetActive(false);
         group = GetComponent<CanvasGroup>();
         Transform prompt = transform.Find("Prompt");
         if (prompt != null) promptText = prompt.GetComponent<TMP_Text>();
@@ -77,11 +84,106 @@ public class TitleManager : MonoBehaviour
         gameObject.SetActive(true);
     }
 
+    // Returning from the option screen: the title rushes toward the viewer,
+    // overshoots slightly, then settles as the pixel cover clears.
+    public void PrepareReturnEntrance()
+    {
+        EnsureReturnBackdrop();
+        returnBackdrop.gameObject.SetActive(true);
+        int titleSiblingIndex = transform.GetSiblingIndex();
+        if (returnBackdrop.transform.GetSiblingIndex() > titleSiblingIndex)
+        {
+            returnBackdrop.transform.SetSiblingIndex(titleSiblingIndex);
+        }
+        returnAnimating = true;
+        group.alpha = 1f;
+        transform.localScale = Vector3.one * 0.78f;
+        for (int i = 0; i < shapes.Length; i++)
+        {
+            if (shapes[i].rect != null) shapes[i].rect.anchoredPosition = shapes[i].basePos;
+        }
+        if (logoRect != null)
+        {
+            logoRect.localScale = Vector3.one;
+            logoRect.anchoredPosition = new Vector2(logoRect.anchoredPosition.x, logoBaseY);
+        }
+        if (promptText != null) promptText.alpha = 0f;
+    }
+
+    public async void PlayReturnEntrance()
+    {
+        if (!returnAnimating) PrepareReturnEntrance();
+        const float delay = 0.01f;
+        float wait = 0f;
+        while (wait < delay)
+        {
+            wait += Time.unscaledDeltaTime;
+            await Task.Yield();
+            if (this == null) return;
+        }
+
+        const float duration = 0.30f;
+        float time = 0f;
+        while (time < duration)
+        {
+            time += Time.unscaledDeltaTime;
+            float p = Mathf.Clamp01(time / duration);
+            float q = p - 1f;
+            float easeOutBack = 1f + 2.2f * q * q * q + 1.2f * q * q;
+            transform.localScale = Vector3.one * Mathf.LerpUnclamped(0.78f, 1f, easeOutBack);
+            if (promptText != null) promptText.alpha = Mathf.Clamp01((p - 0.45f) / 0.4f);
+            await Task.Yield();
+            if (this == null || group == null) return;
+        }
+        if (logoRect != null)
+        {
+            logoRect.localScale = Vector3.one;
+            logoRect.anchoredPosition = new Vector2(logoRect.anchoredPosition.x, logoBaseY);
+        }
+        transform.localScale = Vector3.one;
+        group.alpha = 1f;
+        animTime = 0f;
+        beatTimer = 0f;
+        beatPulse = 0f;
+        returnAnimating = false;
+        if (returnBackdrop != null) returnBackdrop.gameObject.SetActive(false);
+    }
+
+    private void EnsureReturnBackdrop()
+    {
+        if (returnBackdrop != null) return;
+
+        Transform parent = transform.parent;
+        Transform existing = parent != null ? parent.Find("TitleReturnBackdrop") : null;
+        if (existing != null)
+        {
+            returnBackdrop = existing.GetComponent<Image>();
+            if (returnBackdrop != null) return;
+        }
+
+        GameObject backdrop = new GameObject(
+            "TitleReturnBackdrop",
+            typeof(RectTransform),
+            typeof(CanvasRenderer),
+            typeof(Image));
+        RectTransform rect = backdrop.GetComponent<RectTransform>();
+        rect.SetParent(parent, false);
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+        rect.localScale = Vector3.one;
+
+        returnBackdrop = backdrop.GetComponent<Image>();
+        returnBackdrop.color = new Color(0.018f, 0.02f, 0.035f, 1f);
+        returnBackdrop.raycastTarget = false;
+    }
+
     // Idle animation: prompt blinks, logo floats and bounces on the beat,
     // background shapes drift, spin and flash slightly in time with the BPM.
     public void UpdateTitle(float dt)
     {
-        if (dismissed) return;
+        if (dismissed || returnAnimating) return;
         animTime += dt;
 
         beatTimer += dt;
@@ -114,8 +216,8 @@ public class TitleManager : MonoBehaviour
             ShapeAnim s = shapes[i];
             if (s.rect == null) continue;
             s.rect.anchoredPosition = s.basePos + new Vector2(
-                Mathf.Sin(animTime * s.speedX + s.phase) * s.ampX,
-                Mathf.Cos(animTime * s.speedY + s.phase * 1.3f) * s.ampY);
+                (Mathf.Sin(animTime * s.speedX + s.phase) - Mathf.Sin(s.phase)) * s.ampX,
+                (Mathf.Cos(animTime * s.speedY + s.phase * 1.3f) - Mathf.Cos(s.phase * 1.3f)) * s.ampY);
             s.rect.Rotate(0f, 0f, s.rotSpeed * dt);
         }
     }

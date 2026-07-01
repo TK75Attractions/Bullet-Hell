@@ -70,6 +70,7 @@ Shader "Custom/BulletIndirectMasked"
                 float maskIndex : TEXCOORD2;
                 float appear : TEXCOORD3;
                 float4 color    : TEXCOORD4;
+                float2 scale : TEXCOORD5;
             };
 
             //========================
@@ -103,6 +104,7 @@ Shader "Custom/BulletIndirectMasked"
                 o.maskIndex = b.maskIndex;
                 o.appear = b.appear;
                 o.color = b.color;
+                o.scale = b.scale;
 
                 return o;
             }
@@ -112,11 +114,17 @@ Shader "Custom/BulletIndirectMasked"
             //========================
             fixed4 frag(v2f i) : SV_Target
             {
+                float2 uv = i.uv;
+                if (i.scale.x > 20.0 && i.scale.y < 3.5)
+                {
+                uv.x = frac(uv.x + _Time.y * 0.14);
+                }
+
                 fixed4 baseCol =
-                    UNITY_SAMPLE_TEX2DARRAY(_MainArray, float3(i.uv, i.texIndex));
+                    UNITY_SAMPLE_TEX2DARRAY(_MainArray, float3(uv, i.texIndex));
 
                 float mask =
-                    UNITY_SAMPLE_TEX2DARRAY(_MaskArray, float3(i.uv, i.maskIndex)).r;
+                    UNITY_SAMPLE_TEX2DARRAY(_MaskArray, float3(uv, i.maskIndex)).r;
                 float appear = saturate(i.appear);
                 float tintStrength = saturate(mask * i.color.a);
 

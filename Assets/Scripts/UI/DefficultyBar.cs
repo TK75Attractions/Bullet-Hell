@@ -61,6 +61,9 @@ public class DefficultyBar : MonoBehaviour
     public void Init()
     {
         Transform trans = transform.Find("List");
+        (trans.Find("Easy") as RectTransform).anchoredPosition = new Vector2(0f, 135f);
+        (trans.Find("Normal") as RectTransform).anchoredPosition = Vector2.zero;
+        (trans.Find("Lunatic") as RectTransform).anchoredPosition = new Vector2(0f, -135f);
         boxes[0] = new DefficultyBox(trans.Find("Easy"), "EASY", new Color(0.086f, 0.227f, 0.373f), new Color(0.56f, 0.72f, 0.91f));
         boxes[1] = new DefficultyBox(trans.Find("Normal"), "NORMAL", new Color(0.055f, 0.525f, 0.91f), new Color(0.85f, 0.93f, 1f));
         boxes[2] = new DefficultyBox(trans.Find("Lunatic"), "LUNATIC", new Color(0.36f, 0.078f, 0.188f), new Color(0.91f, 0.6f, 0.69f));
@@ -84,6 +87,18 @@ public class DefficultyBar : MonoBehaviour
         if (rubyO != null) promptRubyO = rubyO.GetComponent<TMP_Text>();
         Transform rubyK = transform.Find("PromptRubyK");
         if (rubyK != null) promptRubyK = rubyK.GetComponent<TMP_Text>();
+
+        SetLayoutPosition("Title", new Vector2(0f, 365f));
+        SetLayoutPosition("TitleRubyN", new Vector2(-114f, 425f));
+        SetLayoutPosition("TitleRubyS", new Vector2(152f, 425f));
+        SetLayoutPosition("LineT", new Vector2(0f, -315f));
+        SetLayoutPosition("DescText", new Vector2(0f, -370f));
+        SetLayoutPosition("LineB", new Vector2(0f, -425f));
+        SetLayoutPosition("PromptRubyO", new Vector2(0f, -468f));
+        SetLayoutPosition("PromptRubyK", new Vector2(133f, -468f));
+        SetLayoutPosition("Prompt", new Vector2(0f, -505f));
+        if (descRect != null) descRect.sizeDelta = new Vector2(960f, 60f);
+        if (promptText != null) promptText.rectTransform.sizeDelta = new Vector2(650f, 60f);
 
         ResetSelection(1);
     }
@@ -183,5 +198,11 @@ public class DefficultyBar : MonoBehaviour
         descText.text = descriptions[index];
         descAnimT = 0f;
         descText.alpha = 0f;
+    }
+
+    private void SetLayoutPosition(string childName, Vector2 position)
+    {
+        RectTransform child = transform.Find(childName) as RectTransform;
+        if (child != null) child.anchoredPosition = position;
     }
 }
