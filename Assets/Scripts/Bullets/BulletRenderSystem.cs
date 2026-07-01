@@ -13,6 +13,8 @@ public class BulletRenderSystem : MonoBehaviour
     private const float disappearDuration = 0.1f; // 弾が完全に消えるまでの時間（秒）
     private const float appearBeatBaseAlpha = 0.2f; // a
     private const float appearBeatSinCoeff = 0.3f; // k
+    private const string StoneBlockTypeName = "stone_block";
+
 
     private ComputeBuffer bulletBuffer;
     private ComputeBuffer argsBuffer;
@@ -286,7 +288,8 @@ public class BulletRenderSystem : MonoBehaviour
                 fadeIn = 0f;
             }
 
-            if (b.life > 0f)
+            bool skipDisappearFade = string.Equals(type.typeName, StoneBlockTypeName, StringComparison.Ordinal);
+            if (b.life > 0f && !skipDisappearFade)
             {
                 if (disappearDuration > 0f)
                 {
