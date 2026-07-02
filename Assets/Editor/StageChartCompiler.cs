@@ -158,9 +158,10 @@ public static class StageChartCompiler
             return result;
         }
 
-        // ---- Events -> bulletSpawners ----
+        // ---- Events -> bulletSpawners (+ patternEvents) ----
         var spawners = new List<BulletSpawner>();
         var spawnerJsonArray = new JArray();
+        var patternJsonArray = new JArray();
         if (root["events"] is JArray events)
         {
             int i = 0;
@@ -198,6 +199,17 @@ public static class StageChartCompiler
                 }
 
                 double time6 = Round6(seconds);
+
+                // New P3 pattern event. Only 'at' is baked to seconds here; the
+                // pattern's own beat-domain params (warnBeats/fallBeats/...) are left
+                // verbatim and resolved at runtime from the stage BPM.
+                string patternType = (string)ev["pattern"];
+                if (!string.IsNullOrEmpty(patternType))
+                {
+                    patternJsonArray.Add(BuildPatternJson(patternType, time6, ev["params"] as JObject, ev));
+                    result.EventCount++;
+                    continue;
+                }
 
                 string clipName;
                 string kind = (string)ev["kind"];
@@ -266,9 +278,24 @@ public static class StageChartCompiler
         // ---- Full stage.json ----
         result.StageJson = BuildStageJson(
             stageName, bpm, measure, barCount, delayTime, stageDescription,
-            root["enemyVisuals"] as JArray, enemyJsonArray, spawnerJsonArray, stageDir);
+            root["enemyVisuals"] as JArray, enemyJsonArray, spawnerJsonArray, patternJsonArray, stageDir);
 
         return result;
+    }
+
+    /// <summary>Builds one patternEvents entry. Params are cloned verbatim (beat
+    /// fields stay beat-domain, resolved at runtime); only <c>time</c> is baked.</summary>
+    private static JObject BuildPatternJson(string patternType, double time6, JObject paramsObj, JObject ev)
+    {
+        return new JObject
+        {
+            ["time"] = time6,
+            ["patternType"] = patternType,
+            ["args"] = paramsObj != null ? (JObject)paramsObj.DeepClone() : new JObject(),
+            ["minDifficulty"] = (int)ReadDouble(ev["minDifficulty"], 0.0),
+            ["thin"] = Round6(ReadDouble(ev["thin"], 0.0)),
+            ["diffScale"] = Round6(ReadDouble(ev["diffScale"], 1.0))
+        };
     }
 
     /// <summary>
@@ -410,7 +437,7 @@ public static class StageChartCompiler
 
     private static string BuildStageJson(string stageName, double bpm, int measure, int barCount,
         float delayTime, string stageDescription, JArray enemyVisuals, JArray enemySpawners,
-        JArray bulletSpawners, string stageDir)
+        JArray bulletSpawners, JArray patternEvents, string stageDir)
     {
         var music = new JObject
         {
@@ -430,7 +457,8 @@ public static class StageChartCompiler
             ["stageDescription"] = stageDescription,
             ["enemyVisuals"] = enemyVisuals != null ? (JArray)enemyVisuals.DeepClone() : new JArray(),
             ["enemySpawners"] = enemySpawners ?? new JArray(),
-            ["bulletSpawners"] = bulletSpawners ?? new JArray()
+            ["bulletSpawners"] = bulletSpawners ?? new JArray(),
+            ["patternEvents"] = patternEvents ?? new JArray()
         };
 
         return root.ToString(Formatting.Indented);

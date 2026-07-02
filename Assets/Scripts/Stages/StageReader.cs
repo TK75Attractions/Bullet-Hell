@@ -10,6 +10,16 @@ public class StageReader : MonoBehaviour
     private const bool LogStageSchedule = false;
     [SerializeField] private StageData stageData;
     [SerializeField] private List<StageScheduleExpander.ScheduledSpawn> spawnEvents = new List<StageScheduleExpander.ScheduledSpawn>();
+    // Flattened, time-sorted runtime pattern emissions. Each pattern event is
+    // expanded once at Init into individual timed bullets, mirroring how
+    // spawnEvents expands bullet spawners. Consumed the same way in UpdateStage.
+    private struct PatternBulletEvent
+    {
+        public float time;
+        public BulletData bullet;
+    }
+    private List<PatternBulletEvent> patternBulletEvents = new List<PatternBulletEvent>();
+    private int patternBulletCount = 0;
     [SerializeField] private float time = 0f;
     [SerializeField] private int enemyCount = 0;
     [SerializeField] private int bulletCount = 0;
@@ -27,6 +37,8 @@ public class StageReader : MonoBehaviour
         enemyCount = 0;
         bulletCount = 0;
         spawnEvents.Clear();
+        patternBulletEvents.Clear();
+        patternBulletCount = 0;
         isReady = false;
         clearRecorded = false;
         stageBgmSource = null;
@@ -117,9 +129,69 @@ public class StageReader : MonoBehaviour
             }
         }
 
+        ExpandPatternEvents();
+
         isReady = true;
         LogStageInit("Init ready");
         return true;
+    }
+
+    /// <summary>
+    /// Expands every StagePattern event into a flat, time-sorted list of individual
+    /// bullet emissions. Done once at Init (BPM is known), so a chart BPM change
+    /// (baked into MusicEvents) re-times beat-domain pattern params. Runtime, not
+    /// pre-baked into buffers, so this coexists with the legacy clip path.
+    /// </summary>
+    private void ExpandPatternEvents()
+    {
+        patternBulletEvents.Clear();
+        patternBulletCount = 0;
+
+        if (stageData == null || stageData.patternEvents == null || stageData.patternEvents.Count == 0)
+        {
+            return;
+        }
+
+        float bpm = 120f;
+        if (stageData.MusicEvents != null && stageData.MusicEvents.Count > 0 && stageData.MusicEvents[0].BPM > 0f)
+        {
+            bpm = stageData.MusicEvents[0].BPM;
+        }
+
+        BulletTypeDataBase typeDB = GManager.Control != null ? GManager.Control.BTDB : null;
+        PatternContext ctx = new PatternContext
+        {
+            BeatSeconds = 60f / bpm,
+            ResolveTypeId = name => BulletData.ResolveTypeId(name, typeDB)
+        };
+
+        List<PatternEmission> emissions = new List<PatternEmission>();
+        foreach (PatternEventData ev in stageData.patternEvents)
+        {
+            if (ev == null || string.IsNullOrEmpty(ev.patternType))
+            {
+                continue;
+            }
+
+            emissions.Clear();
+            if (!PatternExecutor.Expand(ev.patternType, ev.args, ctx, emissions))
+            {
+                Debug.LogWarning($"[StageReader] Unknown pattern type '{ev.patternType}' at t={ev.time}.");
+                continue;
+            }
+
+            for (int i = 0; i < emissions.Count; i++)
+            {
+                patternBulletEvents.Add(new PatternBulletEvent
+                {
+                    time = ev.time + emissions[i].TimeOffset,
+                    bullet = emissions[i].Bullet
+                });
+            }
+        }
+
+        patternBulletEvents.Sort((a, b) => a.time.CompareTo(b.time));
+        LogStageInit($"Pattern events expanded: {stageData.patternEvents.Count} event(s) -> {patternBulletEvents.Count} bullet(s)");
     }
 
     public void ResetStageClockToScheduledStart()
@@ -230,6 +302,11 @@ public class StageReader : MonoBehaviour
             //Debug.Log($"Spawned bullet: {spawner.index}");
         }
 
+        while (patternBulletEvents.Count > patternBulletCount && patternBulletEvents[patternBulletCount].time <= time)
+        {
+            GManager.Control.QOrder.AddPreparedEnemyBullet(patternBulletEvents[patternBulletCount].bullet);
+            patternBulletCount++;
+        }
     }
 
     private void OnDestroy()

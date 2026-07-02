@@ -61,5 +61,10 @@ public class StageData
 
     public List<BulletSpawner> bulletSpawners = new List<BulletSpawner>();
 
+    // New P3 runtime path: pattern events are executed at runtime by PatternExecutor
+    // rather than pre-expanded into bullet buffers. Old stages omit this list, so
+    // the legacy clip path is untouched.
+    public List<PatternEventData> patternEvents = new List<PatternEventData>();
+
     [System.NonSerialized] public EnemyVisualCatalog enemyVisualCatalog;
 }

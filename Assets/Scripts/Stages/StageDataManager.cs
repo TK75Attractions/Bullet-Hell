@@ -104,6 +104,9 @@ public class StageDataManager
         public List<EnemyVisualDefinition> enemyVisuals = new();
         public List<EnemySpawnerJson> enemySpawners = new();
         public List<BulletSpawnerJson> bulletSpawners = new();
+        // New P3 runtime pattern events. PatternEventData is a flat [Serializable]
+        // type, so JsonUtility fills it directly; absent in old stage.json => null.
+        public List<PatternEventData> patternEvents = new();
     }
 
     [Serializable]
@@ -666,6 +669,8 @@ public class StageDataManager
                 {
                     data.bulletSpawners.Add(spawner.ToBulletSpawner());
                 }
+
+                data.patternEvents = NormalizePatternEvents(jsonData.patternEvents);
             }
             catch (System.Exception ex)
             {
@@ -796,7 +801,34 @@ public class StageDataManager
             }
         }
 
+        data.patternEvents = NormalizePatternEvents(jsonData.patternEvents);
+
         return data;
+    }
+
+    private static List<PatternEventData> NormalizePatternEvents(List<PatternEventData> events)
+    {
+        List<PatternEventData> normalized = new List<PatternEventData>();
+        if (events == null)
+        {
+            return normalized;
+        }
+
+        for (int i = 0; i < events.Count; i++)
+        {
+            PatternEventData ev = events[i];
+            if (ev == null || string.IsNullOrEmpty(ev.patternType))
+            {
+                continue;
+            }
+            if (ev.args == null)
+            {
+                ev.args = new PatternParamsJson();
+            }
+            normalized.Add(ev);
+        }
+
+        return normalized;
     }
 
     private static List<EnemyVisualDefinition> NormalizeEnemyVisualDefinitions(List<EnemyVisualDefinition> definitions)

@@ -23,11 +23,14 @@ public class MultiBullet : MonoBehaviour
     [Serializable]
     private class BulletChache
     {
-        public List<int> indexes = new List<int>();
+        // Generation-stamped handles (S4): after a ClearManagedEnemyDanmaku the
+        // handles resolve as stale and UpdateBulletDataByHandle drops them, instead
+        // of mutating raw indices that may point at faded/cleared bullets.
+        public List<BulletHandle> indexes = new List<BulletHandle>();
         public float time = 0;
         public int clipCount;
 
-        public BulletChache(List<int> _ind, float _time, int _clipCount)
+        public BulletChache(List<BulletHandle> _ind, float _time, int _clipCount)
         {
             indexes = _ind;
             time = _time;
@@ -90,7 +93,8 @@ public class MultiBullet : MonoBehaviour
                     List<int> emitted = GManager.Control.QOrder.EmitEnemyBullet(bulletClip, arrayIndex);
                     if (bulletChangeClips != null && bulletChangeClips.Count > 0)
                     {
-                        BulletChache chache = new BulletChache(emitted, bulletChangeClips[0].time, 0);
+                        List<BulletHandle> handles = GManager.Control.QOrder.ToHandles(emitted);
+                        BulletChache chache = new BulletChache(handles, bulletChangeClips[0].time, 0);
                         bulletChaches.Add(chache);
                     }
                     count++;
@@ -109,7 +113,7 @@ public class MultiBullet : MonoBehaviour
             {
                 if (bulletChangeClips != null && chache.clipCount >= 0 && chache.clipCount < bulletChangeClips.Count)
                 {
-                    List<int> updatedIndexes = GManager.Control.QOrder.UpdateBulletData(chache.indexes, bulletChangeClips[chache.clipCount].clip);
+                    List<BulletHandle> updatedIndexes = GManager.Control.QOrder.UpdateBulletDataByHandle(chache.indexes, bulletChangeClips[chache.clipCount].clip);
                     int nextClip = chache.clipCount + 1;
 
                     if (updatedIndexes != null && updatedIndexes.Count > 0 && nextClip < bulletChangeClips.Count)
