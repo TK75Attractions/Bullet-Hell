@@ -38,6 +38,13 @@
 
 **リタイム**は markers の値を書き換えて再コンパイルするだけ。
 
+enemies のオプションフィールド:
+
+- `fadeInSec` / `fadeOutSec`: 敵スプライトのαを出現直後 / 寿命(orbit.life)末尾で補間(0 なら無効)
+- `sortingOrder`: SpriteRenderer.sortingOrder の明示指定(0 なら既定の 10)。敵同士の前後関係用
+- `animation.events[].atAbs`: アニメ発火をマーカー式(例 `"M21 + 2beat"`)で絶対時刻指定
+- 使用例: 石工の形態変化(老人を sortingOrder 12 + fadeOutSec 1.4 で手前から消し、ゴーレムを fadeInSec 1.0 で背後に出す)
+
 ## 2. パターン(バッファJSONを書かずに弾幕を出す)
 
 | パターン | 用途 | 主パラメータ |
