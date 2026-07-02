@@ -45,8 +45,11 @@ public sealed class FallingBlockPattern : IBulletPattern
 
             if (warnSec > 0f)
             {
-                BulletData warn = PatternMath.Make(warnId, pos, 0f, 0f, 0f, 0f, s * 1.05f, warnCol, warnSec);
-                output.Add(new PatternEmission(0f, PatternMath.AsFullBlink(warn), structural: true));
+                var dashes = new List<BulletData>();
+                float fw = scale * 1.05f;
+                PatternMath.BuildDashedFrame(dashes, warnId, pos, fw, fw, warnSec, warnCol);
+                foreach (BulletData dash in dashes)
+                    output.Add(new PatternEmission(0f, dash, structural: true));
             }
 
             if (holdSec > 0f)
@@ -164,8 +167,10 @@ public sealed class BeatPulseWarnPattern : IBulletPattern
 
         foreach (Vector2 p in a.positions)
         {
-            BulletData warn = PatternMath.Make(warnId, new float2(p.x, p.y), 0f, 0f, 0f, 0f, s, warnCol, life);
-            output.Add(new PatternEmission(0f, PatternMath.AsFullBlink(warn), structural: true));
+            var dashes = new List<BulletData>();
+            PatternMath.BuildDashedFrame(dashes, warnId, new float2(p.x, p.y), scale, scale, life, warnCol);
+            foreach (BulletData dash in dashes)
+                output.Add(new PatternEmission(0f, dash, structural: true));
         }
     }
 }
@@ -200,14 +205,20 @@ public sealed class GhostPreviewPattern : IBulletPattern
 /// <summary>Shared sub-emitters used by more than one pattern.</summary>
 internal static class PatternHelpers
 {
-    /// <summary>Three harmless dust shards (150/90/30 deg fan) at a landing point.</summary>
+    /// <summary>Three harmless dust chips at a landing point, scattered by a seed so
+    /// each landing looks natural rather than a fixed 3-way fan: direction +/-60 deg
+    /// around straight up, speed 2-4, scale 0.25-0.45, life 0.25-0.4, low alpha.</summary>
     public static void EmitDust(List<PatternEmission> output, float offset, float2 pos, int dustId)
     {
-        float[] dirsDeg = { 150f, 90f, 30f };
-        for (int i = 0; i < dirsDeg.Length; i++)
+        int baseSeed = (int)math.round(pos.x * 13.7f + pos.y * 7.3f);
+        for (int i = 0; i < 3; i++)
         {
-            float dir = math.radians(dirsDeg[i]);
-            BulletData dust = PatternMath.Make(dustId, pos, dir, 3f, 10f, 0f, new float2(0.35f, 0.35f), PatternMath.ColorDust, 0.35f);
+            int seed = baseSeed * 101 + i * 17 + 1;
+            float dir = math.radians(90f + PatternMath.HashSigned(seed) * 60f);
+            float spd = 2f + PatternMath.Hash01(seed + 1) * 2f;
+            float sc = 0.25f + PatternMath.Hash01(seed + 2) * 0.20f;
+            float life = 0.25f + PatternMath.Hash01(seed + 3) * 0.15f;
+            BulletData dust = PatternMath.Make(dustId, pos, dir, spd, 10f, 0f, new float2(sc, sc), PatternMath.ColorDust, life);
             output.Add(new PatternEmission(offset, dust));
         }
     }

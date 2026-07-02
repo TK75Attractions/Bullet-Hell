@@ -1,10 +1,10 @@
-{
+﻿{
     "name": "石工タイル予告_1_A",
     "bullets": [
         {
             "originPos": {
-                "x": 1.45,
-                "y": 15.65
+                "x": 0.02,
+                "y": 17.08
             },
             "originVlc": {
                 "x": 0,
@@ -37,13 +37,13 @@
             },
             "typeName": "stone_warning",
             "scale": {
-                "x": 2.86,
-                "y": 2.86
+                "x": 0.4,
+                "y": 0.4
             },
             "color": {
-                "x": 0.22,
-                "y": 0.76,
-                "z": 1,
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
                 "w": 0.962
             },
             "appearTime": 0.833333,
@@ -55,8 +55,8 @@
         },
         {
             "originPos": {
-                "x": 10.15,
-                "y": 12.75
+                "x": 0.02,
+                "y": 14.22
             },
             "originVlc": {
                 "x": 0,
@@ -89,13 +89,13 @@
             },
             "typeName": "stone_warning",
             "scale": {
-                "x": 2.86,
-                "y": 2.86
+                "x": 0.4,
+                "y": 0.4
             },
             "color": {
-                "x": 0.22,
-                "y": 0.76,
-                "z": 1,
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
                 "w": 0.962
             },
             "appearTime": 0.833333,
@@ -107,8 +107,8 @@
         },
         {
             "originPos": {
-                "x": 18.85,
-                "y": 15.65
+                "x": 0.592,
+                "y": 17.08
             },
             "originVlc": {
                 "x": 0,
@@ -141,13 +141,13 @@
             },
             "typeName": "stone_warning",
             "scale": {
-                "x": 2.86,
-                "y": 2.86
+                "x": 0.4,
+                "y": 0.4
             },
             "color": {
-                "x": 0.22,
-                "y": 0.76,
-                "z": 1,
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
                 "w": 0.962
             },
             "appearTime": 0.833333,
@@ -159,8 +159,8 @@
         },
         {
             "originPos": {
-                "x": 30.45,
-                "y": 9.85
+                "x": 0.592,
+                "y": 14.22
             },
             "originVlc": {
                 "x": 0,
@@ -193,13 +193,13 @@
             },
             "typeName": "stone_warning",
             "scale": {
-                "x": 2.86,
-                "y": 2.86
+                "x": 0.4,
+                "y": 0.4
             },
             "color": {
-                "x": 0.22,
-                "y": 0.76,
-                "z": 1,
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
                 "w": 0.962
             },
             "appearTime": 0.833333,
@@ -211,8 +211,8 @@
         },
         {
             "originPos": {
-                "x": 24.65,
-                "y": 6.95
+                "x": 1.164,
+                "y": 17.08
             },
             "originVlc": {
                 "x": 0,
@@ -245,13 +245,4953 @@
             },
             "typeName": "stone_warning",
             "scale": {
-                "x": 2.86,
-                "y": 2.86
+                "x": 0.4,
+                "y": 0.4
             },
             "color": {
-                "x": 0.22,
-                "y": 0.76,
-                "z": 1,
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 1.164,
+                "y": 14.22
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 1.736,
+                "y": 17.08
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 1.736,
+                "y": 14.22
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 2.308,
+                "y": 17.08
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 2.308,
+                "y": 14.22
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 2.88,
+                "y": 17.08
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 2.88,
+                "y": 14.22
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 0.02,
+                "y": 14.792
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 2.88,
+                "y": 14.792
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 0.02,
+                "y": 15.364
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 2.88,
+                "y": 15.364
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 0.02,
+                "y": 15.936
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 2.88,
+                "y": 15.936
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 0.02,
+                "y": 16.508
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 2.88,
+                "y": 16.508
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 8.72,
+                "y": 14.18
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 8.72,
+                "y": 11.32
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 9.292,
+                "y": 14.18
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 9.292,
+                "y": 11.32
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 9.864,
+                "y": 14.18
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 9.864,
+                "y": 11.32
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 10.436,
+                "y": 14.18
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 10.436,
+                "y": 11.32
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 11.008,
+                "y": 14.18
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 11.008,
+                "y": 11.32
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 11.58,
+                "y": 14.18
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 11.58,
+                "y": 11.32
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 8.72,
+                "y": 11.892
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 11.58,
+                "y": 11.892
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 8.72,
+                "y": 12.464
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 11.58,
+                "y": 12.464
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 8.72,
+                "y": 13.036
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 11.58,
+                "y": 13.036
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 8.72,
+                "y": 13.608
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 11.58,
+                "y": 13.608
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 17.42,
+                "y": 17.08
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 17.42,
+                "y": 14.22
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 17.992,
+                "y": 17.08
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 17.992,
+                "y": 14.22
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 18.564,
+                "y": 17.08
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 18.564,
+                "y": 14.22
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 19.136,
+                "y": 17.08
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 19.136,
+                "y": 14.22
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 19.708,
+                "y": 17.08
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 19.708,
+                "y": 14.22
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 20.28,
+                "y": 17.08
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 20.28,
+                "y": 14.22
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 17.42,
+                "y": 14.792
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 20.28,
+                "y": 14.792
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 17.42,
+                "y": 15.364
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 20.28,
+                "y": 15.364
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 17.42,
+                "y": 15.936
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 20.28,
+                "y": 15.936
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 17.42,
+                "y": 16.508
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 20.28,
+                "y": 16.508
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 29.02,
+                "y": 11.28
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 29.02,
+                "y": 8.42
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 29.592,
+                "y": 11.28
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 29.592,
+                "y": 8.42
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 30.164,
+                "y": 11.28
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 30.164,
+                "y": 8.42
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 30.736,
+                "y": 11.28
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 30.736,
+                "y": 8.42
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 31.308,
+                "y": 11.28
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 31.308,
+                "y": 8.42
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 31.88,
+                "y": 11.28
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 31.88,
+                "y": 8.42
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 29.02,
+                "y": 8.992
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 31.88,
+                "y": 8.992
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 29.02,
+                "y": 9.564
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 31.88,
+                "y": 9.564
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 29.02,
+                "y": 10.136
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 31.88,
+                "y": 10.136
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 29.02,
+                "y": 10.708
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 31.88,
+                "y": 10.708
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 23.22,
+                "y": 8.38
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 23.22,
+                "y": 5.52
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 23.792,
+                "y": 8.38
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 23.792,
+                "y": 5.52
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 24.364,
+                "y": 8.38
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 24.364,
+                "y": 5.52
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 24.936,
+                "y": 8.38
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 24.936,
+                "y": 5.52
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 25.508,
+                "y": 8.38
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 25.508,
+                "y": 5.52
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 26.08,
+                "y": 8.38
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 26.08,
+                "y": 5.52
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 23.22,
+                "y": 6.092
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 26.08,
+                "y": 6.092
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 23.22,
+                "y": 6.664
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 26.08,
+                "y": 6.664
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 23.22,
+                "y": 7.236
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 26.08,
+                "y": 7.236
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 23.22,
+                "y": 7.808
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
+                "w": 0.962
+            },
+            "appearTime": 0.833333,
+            "appearDuration": 0.833333,
+            "life": 0.833333,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 26.08,
+                "y": 7.808
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_warning",
+            "scale": {
+                "x": 0.4,
+                "y": 0.4
+            },
+            "color": {
+                "x": 0.45,
+                "y": 0.55,
+                "z": 0.85,
                 "w": 0.962
             },
             "appearTime": 0.833333,

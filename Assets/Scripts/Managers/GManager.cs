@@ -333,6 +333,11 @@ public class GManager : MonoBehaviour
             }
         }
         titlePhase = TitlePhase.Menu;
+        // Require the confirm button to be released again before the menu accepts
+        // a press, so the input used to dismiss the option screen (or a button
+        // still held from it) cannot leak into the menu and instantly fire an
+        // item on the frame the title regains control.
+        titleArmed = false;
         TManager?.ShowMenu();
         TManager?.PlayReturnEntrance();
     }
@@ -343,6 +348,9 @@ public class GManager : MonoBehaviour
         {
             TManager?.CloseTransfer();
             titlePhase = TitlePhase.Menu;
+            // Same re-arming guard as the option screen: swallow the dismiss input
+            // so it cannot immediately trigger a menu item.
+            titleArmed = false;
             TManager?.ShowMenu();
             return;
         }

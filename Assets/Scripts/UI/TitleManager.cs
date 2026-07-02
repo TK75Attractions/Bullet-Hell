@@ -45,10 +45,22 @@ public class TitleManager : MonoBehaviour
     private static readonly Color NavyDeep = new Color(0.015f, 0.028f, 0.06f, 0.98f);
     private static readonly Color ErrorRed = new Color(0.96f, 0.46f, 0.52f);
 
+    // Menu bars reuse the stage-select bar sprite and its color treatment so the
+    // title menu matches the stage list: dim tinted bar + faint text when idle,
+    // full bright bar + white text when selected (mirrors StageBox constants).
+    private static readonly Color BarDim = new Color(0.42f, 0.55f, 0.72f);
+    private static readonly Color BarSelected = Color.white;
+    private static readonly Color MenuTextDim = new Color(0.78f, 0.88f, 1f);
+
+    // How far above its scene-authored position the logo is lifted.
+    private const float LogoRaiseOffset = 80f;
+
     private TMP_FontAsset uiFont;
     private RectTransform menuRoot;
     private TMP_Text[] menuItems = new TMP_Text[0];
     private RectTransform[] menuItemRects = new RectTransform[0];
+    private Image[] menuBars = new Image[0];
+    private Sprite barSprite;
     private float[] menuItemSel = new float[0];
     private int menuIndex;
 
@@ -78,7 +90,10 @@ public class TitleManager : MonoBehaviour
         if (logo != null)
         {
             logoRect = logo.GetComponent<RectTransform>();
-            logoBaseY = logoRect.anchoredPosition.y;
+            // Lift the logo above its scene-authored spot (float / beat pulse are
+            // applied on top of this raised base position).
+            logoBaseY = logoRect.anchoredPosition.y + LogoRaiseOffset;
+            logoRect.anchoredPosition = new Vector2(logoRect.anchoredPosition.x, logoBaseY);
         }
 
         Transform shapesRoot = transform.Find("Shapes");
@@ -323,10 +338,11 @@ public class TitleManager : MonoBehaviour
         {
             bool selected = i == menuIndex;
             menuItemSel[i] = Mathf.Lerp(menuItemSel[i], selected ? 1f : 0f, 1f - Mathf.Exp(-16f * dt));
-            float pulse = selected ? 1f + 0.09f * beatPulse : 1f;
-            float scale = Mathf.Lerp(0.9f, 1.08f, menuItemSel[i]) * pulse;
+            float pulse = selected ? 1f + 0.05f * beatPulse : 1f;
+            float scale = Mathf.Lerp(0.94f, 1.06f, menuItemSel[i]) * pulse;
             if (menuItemRects[i] != null) menuItemRects[i].localScale = Vector3.one * scale;
-            if (menuItems[i] != null) menuItems[i].color = Color.Lerp(CyanDim, Cyan, menuItemSel[i]);
+            if (menuBars[i] != null) menuBars[i].color = Color.Lerp(BarDim, BarSelected, menuItemSel[i]);
+            if (menuItems[i] != null) menuItems[i].color = Color.Lerp(MenuTextDim, Color.white, menuItemSel[i]);
         }
     }
 
@@ -340,21 +356,77 @@ public class TitleManager : MonoBehaviour
         menuRoot.anchoredPosition = Vector2.zero;
         menuRoot.sizeDelta = new Vector2(700f, 500f);
 
+        barSprite = FindStageBarSprite();
+
         string[] labels = { "スタート", "設定", "引き継ぎ" };
-        float[] rowY = { -195f, -305f, -415f };
+        float[] rowY = { -178f, -303f, -428f };
+        Vector2 barSize = new Vector2(600f, 104f);
         menuItems = new TMP_Text[labels.Length];
         menuItemRects = new RectTransform[labels.Length];
+        menuBars = new Image[labels.Length];
         menuItemSel = new float[labels.Length];
         for (int i = 0; i < labels.Length; i++)
         {
-            TMP_Text item = CreateText("Item" + i, menuRoot, new Vector2(0f, rowY[i]),
-                new Vector2(640f, 96f), 62f, i == 0 ? Cyan : CyanDim, TextAlignmentOptions.Center);
+            // Each row is a container so the bar and its label scale together on
+            // selection / beat, exactly like a stage-select box.
+            RectTransform row = CreateRow("Item" + i, menuRoot, new Vector2(0f, rowY[i]), barSize);
+
+            Image bar = CreatePanel("Bar", row, Vector2.zero, barSize, i == 0 ? BarSelected : BarDim);
+            if (barSprite != null)
+            {
+                bar.sprite = barSprite;
+                bar.type = Image.Type.Simple;
+                bar.preserveAspect = false;
+            }
+            menuBars[i] = bar;
+
+            TMP_Text item = CreateText("Label", row, Vector2.zero, barSize, 52f,
+                i == 0 ? Color.white : MenuTextDim, TextAlignmentOptions.Center);
             item.text = labels[i];
             item.fontStyle = FontStyles.Bold;
             menuItems[i] = item;
-            menuItemRects[i] = item.rectTransform;
+            menuItemRects[i] = row;
             menuItemSel[i] = i == 0 ? 1f : 0f;
         }
+    }
+
+    // The stage-select boxes are created before the title during startup, so we
+    // can borrow the exact bar sprite they use (Box prefab's "StageBar" image)
+    // without touching the scene or hard-coding an asset path.
+    private Sprite FindStageBarSprite()
+    {
+        StageBox[] boxes = transform.root.GetComponentsInChildren<StageBox>(true);
+        foreach (StageBox box in boxes)
+        {
+            Image[] images = box.GetComponentsInChildren<Image>(true);
+            foreach (Image img in images)
+            {
+                if (img != null && img.sprite != null && img.gameObject.name == "StageBar")
+                    return img.sprite;
+            }
+        }
+        // Fallback: any sprited image on a box.
+        foreach (StageBox box in boxes)
+        {
+            Image[] images = box.GetComponentsInChildren<Image>(true);
+            foreach (Image img in images)
+            {
+                if (img != null && img.sprite != null) return img.sprite;
+            }
+        }
+        return null;
+    }
+
+    private RectTransform CreateRow(string objectName, Transform parent, Vector2 pos, Vector2 size)
+    {
+        GameObject go = new GameObject(objectName, typeof(RectTransform));
+        go.layer = gameObject.layer;
+        RectTransform rect = (RectTransform)go.transform;
+        rect.SetParent(parent, false);
+        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = pos;
+        rect.sizeDelta = size;
+        return rect;
     }
 
     // ---- Transfer panel ---------------------------------------------------
