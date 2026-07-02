@@ -580,6 +580,47 @@ public class BulletBufferManager
         return false;
     }
 
+#if UNITY_EDITOR
+    /// <summary>
+    /// Read-only snapshot of a loaded buffer for editor tooling (golden dumper,
+    /// linter, tests). Does not exist in player builds and does not alter any
+    /// runtime behavior.
+    /// </summary>
+    public struct EditorBufferView
+    {
+        public string name;
+        public bool homing;
+        public bool isLaser;
+        public List<BulletData> bullets;
+    }
+
+    /// <summary>Enumerates the currently loaded buffers in registration order.</summary>
+    public List<EditorBufferView> GetLoadedBuffersForEditor()
+    {
+        List<EditorBufferView> views = new List<EditorBufferView>(bulletBuffers.Count);
+        for (int i = 0; i < bulletBuffers.Count; i++)
+        {
+            BulletBuffer b = bulletBuffers[i];
+            views.Add(new EditorBufferView { name = b.name, homing = b.homing, isLaser = b.isLaser, bullets = b.bullets });
+        }
+        return views;
+    }
+
+    /// <summary>Looks up a single loaded buffer by its registration name.</summary>
+    public bool TryGetLoadedBufferForEditor(string bufferName, out EditorBufferView view)
+    {
+        if (TryGetBulletClipIndex(bufferName, out int index))
+        {
+            BulletBuffer b = bulletBuffers[index];
+            view = new EditorBufferView { name = b.name, homing = b.homing, isLaser = b.isLaser, bullets = b.bullets };
+            return true;
+        }
+
+        view = default;
+        return false;
+    }
+#endif
+
     public List<BulletData> GetBulletClip(int index, float2 pPos, float2 emitPos, float2 _vlc, float angle, float4 _color, out bool isLaser)
     {
         isLaser = false;

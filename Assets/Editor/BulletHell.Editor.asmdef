@@ -1,0 +1,24 @@
+{
+    "name": "BulletHell.Editor",
+    "rootNamespace": "",
+    "references": [
+        "BulletHell.Core",
+        "BulletHell.Audio",
+        "Unity.Mathematics",
+        "Unity.Collections",
+        "Unity.Addressables",
+        "Unity.Addressables.Editor",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
