@@ -1,0 +1,930 @@
+{
+  "_comment": "石工ステージ StageChart v1。時刻は bar:beat(1始まり)/秒/マーカー式で記述。コンパイル: Tools/Bullet Hell/Compile Stage Charts。stone.json は生成物。",
+  "meta": {
+    "stageName": "石工",
+    "bpm": 144,
+    "measure": 4,
+    "barCount": 91,
+    "beatOffsetSec": 0,
+    "delayTime": 0,
+    "stageDescription": "べにぐち"
+  },
+  "markers": {
+    "_comment": "設計 v2 §1 の確定タイムライン。ここを書き換えて再コンパイルするとリタイムできる。",
+    "M1": "5:1",
+    "M2": "7:1",
+    "M3": "8:1",
+    "M4": "9:1",
+    "M5": "13:1",
+    "M6": "15:4",
+    "M7": "17:1",
+    "M8": "21:1",
+    "M9": "21:1.75",
+    "M10": "21:4",
+    "M11": "23:1",
+    "M12": "23:2.75",
+    "M13": "25:1",
+    "M14": "28:1",
+    "M15": "29:1",
+    "M16": "29:4",
+    "M17": "33:1",
+    "M18": "34:1",
+    "M19": "35:1",
+    "M20": "37:1",
+    "M21": "39:1",
+    "M22": "41:1",
+    "M23": "41:3",
+    "M24": "42:1",
+    "M25": "42:3",
+    "M26": "43:1",
+    "M27": "43:3",
+    "M28": "44:1",
+    "M29": "45:1",
+    "M30": "47:1",
+    "M31": "49:1"
+  },
+  "_markerLabels": {
+    "M1": "タイル列1 出現開始(予告付き)",
+    "M2": "タイル列1 一斉落下",
+    "M3": "ベルト流し1",
+    "M4": "タイル列2 出現開始",
+    "M5": "ランダム落下1 開始",
+    "M6": "落下後ベルト流し1",
+    "M7": "ランダム落下2 開始",
+    "M8": "大ブロックA 予告",
+    "M9": "大ブロックB 予告",
+    "M10": "大ブロックA/B 同時出現",
+    "M11": "ハンマー→大ブロックA 破裂",
+    "M12": "ハンマー→大ブロックB 破裂",
+    "M13": "繰り返し",
+    "M14": "小ブロック4連",
+    "M15": "大ブロックC/D 予告",
+    "M16": "大ブロックC/D 出現",
+    "M17": "ブロックE 出現",
+    "M18": "ブロックF 出現",
+    "M19": "ブロック7連",
+    "M20": "一斉落下(残置)",
+    "M21": "カッター粉砕・ゴーレム出現",
+    "M22": "下部破裂1",
+    "M23": "下部破裂2",
+    "M24": "下部破裂3",
+    "M25": "下部破裂4",
+    "M26": "横流しカッター",
+    "M27": "縦流しカッター",
+    "M28": "中央横断スローカッター",
+    "M29": "下部破裂の繰り返し",
+    "M30": "縁カッター倍量倍速",
+    "M31": "Clear"
+  },
+  "events": [
+    {
+      "at": "7:1",
+      "clip": "石工ベルトコンベア_下部"
+    },
+    {
+      "at": "4:3",
+      "clip": "石工タイル予告_1_A"
+    },
+    {
+      "at": "4:4",
+      "clip": "石工タイル予告_1_B"
+    },
+    {
+      "at": "5:1",
+      "clip": "石工タイル出現_1_A"
+    },
+    {
+      "at": "5:1",
+      "clip": "石工タイル予告_1_C"
+    },
+    {
+      "at": "5:2",
+      "clip": "石工タイル出現_1_B"
+    },
+    {
+      "at": "5:2",
+      "clip": "石工タイル予告_1_D"
+    },
+    {
+      "at": "5:3",
+      "clip": "石工タイル出現_1_C"
+    },
+    {
+      "at": "5:4",
+      "clip": "石工タイル出現_1_D"
+    },
+    {
+      "at": "6:4",
+      "clip": "石工タイル一斉落下_1"
+    },
+    {
+      "at": "6:4",
+      "clip": "石工タイル着地_1"
+    },
+    {
+      "at": "8:1",
+      "clip": "石工ベルト流し_1"
+    },
+    {
+      "at": "8:3",
+      "clip": "石工タイル予告_2_A"
+    },
+    {
+      "at": "8:4",
+      "clip": "石工タイル予告_2_B"
+    },
+    {
+      "at": "9:1",
+      "clip": "石工タイル出現_2_A"
+    },
+    {
+      "at": "9:1",
+      "clip": "石工タイル予告_2_C"
+    },
+    {
+      "at": "9:2",
+      "clip": "石工タイル出現_2_B"
+    },
+    {
+      "at": "9:2",
+      "clip": "石工タイル予告_2_D"
+    },
+    {
+      "at": "9:3",
+      "clip": "石工タイル出現_2_C"
+    },
+    {
+      "at": "9:4",
+      "clip": "石工タイル出現_2_D"
+    },
+    {
+      "at": "10:4",
+      "clip": "石工タイル一斉落下_2"
+    },
+    {
+      "at": "10:4",
+      "clip": "石工タイル着地_2"
+    },
+    {
+      "at": "12:1",
+      "clip": "石工ベルト流し_2"
+    },
+    {
+      "at": "13:1",
+      "clip": "石工ランダム落下予告_1_A"
+    },
+    {
+      "at": "13:2",
+      "clip": "石工ランダム落下予告_1_B"
+    },
+    {
+      "at": "13:2",
+      "clip": "石工ランダム落下_1_A"
+    },
+    {
+      "at": "13:3",
+      "clip": "石工ランダム落下予告_1_C"
+    },
+    {
+      "at": "13:3",
+      "clip": "石工ランダム落下_1_B"
+    },
+    {
+      "at": "13:4",
+      "clip": "石工ランダム落下予告_1_D"
+    },
+    {
+      "at": "13:4",
+      "clip": "石工ランダム落下_1_C"
+    },
+    {
+      "at": "13:2",
+      "clip": "石工ランダム落下着地_1_A"
+    },
+    {
+      "at": "14:1",
+      "clip": "石工ランダム落下_1_D"
+    },
+    {
+      "at": "13:3",
+      "clip": "石工ランダム落下着地_1_B"
+    },
+    {
+      "at": "13:4",
+      "clip": "石工ランダム落下着地_1_C"
+    },
+    {
+      "at": "14:1",
+      "clip": "石工ランダム落下着地_1_D"
+    },
+    {
+      "at": "15:4",
+      "clip": "石工落下後ベルト流し_1"
+    },
+    {
+      "at": "17:1",
+      "clip": "石工ランダム落下予告_2_A"
+    },
+    {
+      "at": "17:2",
+      "clip": "石工ランダム落下予告_2_B"
+    },
+    {
+      "at": "17:2",
+      "clip": "石工ランダム落下_2_A"
+    },
+    {
+      "at": "17:3",
+      "clip": "石工ランダム落下予告_2_C"
+    },
+    {
+      "at": "17:3",
+      "clip": "石工ランダム落下_2_B"
+    },
+    {
+      "at": "17:4",
+      "clip": "石工ランダム落下予告_2_D"
+    },
+    {
+      "at": "17:4",
+      "clip": "石工ランダム落下_2_C"
+    },
+    {
+      "at": "17:2",
+      "clip": "石工ランダム落下着地_2_A"
+    },
+    {
+      "at": "18:1",
+      "clip": "石工ランダム落下_2_D"
+    },
+    {
+      "at": "17:3",
+      "clip": "石工ランダム落下着地_2_B"
+    },
+    {
+      "at": "17:4",
+      "clip": "石工ランダム落下着地_2_C"
+    },
+    {
+      "at": "18:1",
+      "clip": "石工ランダム落下着地_2_D"
+    },
+    {
+      "at": "19:4",
+      "clip": "石工落下後ベルト流し_2"
+    },
+    {
+      "at": "49:1",
+      "kind": "clear"
+    },
+    {
+      "at": "21:1",
+      "clip": "石工大ブロック予告_1"
+    },
+    {
+      "at": "21:4",
+      "clip": "石工大ブロック出現_1"
+    },
+    {
+      "at": "22:3",
+      "clip": "石工大ブロックハンマー_1"
+    },
+    {
+      "at": "23:1",
+      "clip": "石工大ブロック破片_1"
+    },
+    {
+      "at": "25:1",
+      "clip": "石工大ブロック予告_2"
+    },
+    {
+      "at": "25:4",
+      "clip": "石工大ブロック出現_2"
+    },
+    {
+      "at": "26:3",
+      "clip": "石工大ブロックハンマー_2"
+    },
+    {
+      "at": "27:1",
+      "clip": "石工大ブロック破片_2"
+    },
+    {
+      "at": "27:3",
+      "clip": "石工連ブロック予告_1"
+    },
+    {
+      "at": "28:1",
+      "clip": "石工連ブロック出現_1"
+    },
+    {
+      "at": "29:1",
+      "clip": "石工大ブロック予告_3"
+    },
+    {
+      "at": "29:4",
+      "clip": "石工大ブロック出現_3"
+    },
+    {
+      "at": "32:3",
+      "clip": "石工ブロック予告_E"
+    },
+    {
+      "at": "33:1",
+      "clip": "石工ブロック出現_E"
+    },
+    {
+      "at": "33:3",
+      "clip": "石工ブロック予告_F"
+    },
+    {
+      "at": "34:1",
+      "clip": "石工ブロック出現_F"
+    },
+    {
+      "at": "34:3",
+      "clip": "石工連ブロック予告_2"
+    },
+    {
+      "at": "35:1",
+      "clip": "石工連ブロック出現_2"
+    },
+    {
+      "at": "36:4",
+      "clip": "石工一斉落下_3"
+    },
+    {
+      "at": "36:4",
+      "clip": "石工着地_3"
+    },
+    {
+      "at": "38:3",
+      "clip": "石工下部カッター"
+    },
+    {
+      "at": "63.750002",
+      "clip": "石工粉砕破片"
+    },
+    {
+      "at": "40:3",
+      "clip": "石工下部破裂予告_1"
+    },
+    {
+      "at": "41:1",
+      "clip": "石工下部破裂_1"
+    },
+    {
+      "at": "44:3",
+      "clip": "石工下部破裂予告_2"
+    },
+    {
+      "at": "45:1",
+      "clip": "石工下部破裂_2"
+    },
+    {
+      "at": "42:3",
+      "clip": "石工走行カッター_1"
+    },
+    {
+      "at": "43:1",
+      "clip": "石工走行カッター_2"
+    },
+    {
+      "at": "44:1",
+      "clip": "石工走行カッター予告"
+    },
+    {
+      "at": "44:1",
+      "clip": "石工走行カッター_3"
+    },
+    {
+      "at": "46:3",
+      "clip": "石工縁カッター_1"
+    },
+    {
+      "at": "47:3",
+      "clip": "石工縁カッター_2"
+    },
+    {
+      "at": "23:1",
+      "clip": "石工大ブロック破裂フラッシュ_1"
+    },
+    {
+      "at": "27:1",
+      "clip": "石工大ブロック破裂フラッシュ_2"
+    },
+    {
+      "at": "29:4",
+      "clip": "石工消去フラッシュ_1"
+    },
+    {
+      "at": "33:1",
+      "clip": "石工消去フラッシュ_2"
+    },
+    {
+      "at": "41:1",
+      "clip": "石工下部破裂フラッシュ_1"
+    },
+    {
+      "at": "45:1",
+      "clip": "石工下部破裂フラッシュ_2"
+    },
+    {
+      "at": "6:4",
+      "clip": "石工着地ダスト_タイル1"
+    },
+    {
+      "at": "10:4",
+      "clip": "石工着地ダスト_タイル2"
+    },
+    {
+      "at": "13:2",
+      "clip": "石工着地ダスト_レイン1"
+    },
+    {
+      "at": "17:2",
+      "clip": "石工着地ダスト_レイン2"
+    },
+    {
+      "at": "36:4",
+      "clip": "石工着地ダスト_一斉"
+    },
+    {
+      "at": "37:1",
+      "clip": "石工形態変化ダスト"
+    }
+  ],
+  "enemies": [
+    {
+      "enemyName": "demo",
+      "visualId": "golem",
+      "appearAt": "39:1",
+      "life": 16.666667,
+      "count": 1,
+      "enemyInterval": 0.0,
+      "bulletEmitTime": 0.0,
+      "bulletCount": 0,
+      "animation": {
+        "initialClip": "idle",
+        "events": [
+          {
+            "time": 0.0,
+            "clip": "fall1",
+            "next": "idle"
+          },
+          {
+            "time": 0.833,
+            "clip": "fall2",
+            "next": "idle"
+          },
+          {
+            "time": 3.333,
+            "clip": "leftSlam",
+            "next": "idle"
+          },
+          {
+            "time": 4.167,
+            "clip": "rightSlam",
+            "next": "idle"
+          },
+          {
+            "time": 5,
+            "clip": "leftSlam",
+            "next": "idle"
+          },
+          {
+            "time": 5.833,
+            "clip": "bothSlam",
+            "next": "idle"
+          },
+          {
+            "time": 10,
+            "clip": "leftSlam",
+            "next": "idle"
+          },
+          {
+            "time": 10.833,
+            "clip": "rightSlam",
+            "next": "idle"
+          },
+          {
+            "time": 11.667,
+            "clip": "bothSlam",
+            "next": "idle"
+          },
+          {
+            "time": 13.333,
+            "clip": "bothSlam",
+            "next": "idle"
+          }
+        ]
+      },
+      "orbit": {
+        "originPos": {
+          "x": 16,
+          "y": 13.8
+        },
+        "originVlc": {
+          "x": 0,
+          "y": 0
+        },
+        "startX": 0,
+        "speed": 0,
+        "gravity": 0,
+        "angleSpeed": 0,
+        "initialAngle": 0,
+        "polarForm": {
+          "x": 0,
+          "y": 0
+        },
+        "radiusVlc": 0,
+        "thetaVlc": 0,
+        "startPos": {
+          "x": 0,
+          "y": 0
+        },
+        "polynomial": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 0
+        },
+        "typeName": null,
+        "scale": {
+          "x": 2.25,
+          "y": 2.25
+        },
+        "color": {
+          "x": 1,
+          "y": 1,
+          "z": 1,
+          "w": 1
+        },
+        "appearTime": 0,
+        "appearDuration": 0,
+        "life": 16.666667,
+        "random": 0,
+        "unCounterable": false
+      },
+      "bulletClip": {
+        "data": {
+          "originPos": {
+            "x": 0,
+            "y": 0
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "startX": 0,
+          "speed": 0,
+          "gravity": 0,
+          "angleSpeed": 0,
+          "initialAngle": 0,
+          "polarForm": {
+            "x": 0,
+            "y": 0
+          },
+          "radiusVlc": 0,
+          "thetaVlc": 0,
+          "startPos": {
+            "x": 0,
+            "y": 0
+          },
+          "polynomial": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 0
+          },
+          "typeName": null,
+          "scale": {
+            "x": 1,
+            "y": 1
+          },
+          "color": {
+            "x": 1,
+            "y": 1,
+            "z": 1,
+            "w": 1
+          },
+          "appearTime": 0,
+          "appearDuration": 0,
+          "life": 0,
+          "random": 0,
+          "unCounterable": false
+        },
+        "number": 0,
+        "disRad": 0,
+        "homing": false
+      },
+      "bulletChangeClips": []
+    },
+    {
+      "enemyName": "demo",
+      "visualId": "stone",
+      "appearAt": "5.2",
+      "life": 54.8,
+      "count": 1,
+      "enemyInterval": 0.0,
+      "bulletEmitTime": 0.0,
+      "bulletCount": 0,
+      "animation": {
+        "initialClip": "idle",
+        "events": [
+          {
+            "time": 1.467,
+            "clip": "cast1",
+            "next": "idle"
+          },
+          {
+            "time": 4.8,
+            "clip": "cast2",
+            "next": "idle"
+          },
+          {
+            "time": 8.133,
+            "clip": "cast1",
+            "next": "idle"
+          },
+          {
+            "time": 11.467,
+            "clip": "cast2",
+            "next": "idle"
+          },
+          {
+            "time": 14.8,
+            "clip": "cast3",
+            "next": "idle"
+          },
+          {
+            "time": 21.467,
+            "clip": "cast3",
+            "next": "idle"
+          },
+          {
+            "time": 28.133,
+            "clip": "cast4",
+            "next": "idle"
+          },
+          {
+            "time": 29.383,
+            "clip": "cast4",
+            "next": "idle"
+          },
+          {
+            "time": 31.467,
+            "clip": "cast5",
+            "next": "idle"
+          },
+          {
+            "time": 36.05,
+            "clip": "cast5",
+            "next": "idle"
+          },
+          {
+            "time": 39.8,
+            "clip": "cast6",
+            "next": "idle"
+          },
+          {
+            "time": 47.467,
+            "clip": "cast6",
+            "next": "idle"
+          },
+          {
+            "time": 51.467,
+            "clip": "cast1",
+            "next": "idle"
+          },
+          {
+            "time": 54.383,
+            "clip": "cast2",
+            "next": "idle"
+          }
+        ]
+      },
+      "orbit": {
+        "originPos": {
+          "x": 16,
+          "y": 13.8
+        },
+        "originVlc": {
+          "x": 0,
+          "y": 0
+        },
+        "startX": 0,
+        "speed": 0,
+        "gravity": 0,
+        "angleSpeed": 0,
+        "initialAngle": 0,
+        "polarForm": {
+          "x": 0,
+          "y": 0
+        },
+        "radiusVlc": 0,
+        "thetaVlc": 0,
+        "startPos": {
+          "x": 0,
+          "y": 0
+        },
+        "polynomial": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 0
+        },
+        "typeName": null,
+        "scale": {
+          "x": 2.25,
+          "y": 2.25
+        },
+        "color": {
+          "x": 1,
+          "y": 1,
+          "z": 1,
+          "w": 1
+        },
+        "appearTime": 0,
+        "appearDuration": 0,
+        "life": 54.8,
+        "random": 0,
+        "unCounterable": false
+      },
+      "bulletClip": {
+        "data": {
+          "originPos": {
+            "x": 0,
+            "y": 0
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "startX": 0,
+          "speed": 0,
+          "gravity": 0,
+          "angleSpeed": 0,
+          "initialAngle": 0,
+          "polarForm": {
+            "x": 0,
+            "y": 0
+          },
+          "radiusVlc": 0,
+          "thetaVlc": 0,
+          "startPos": {
+            "x": 0,
+            "y": 0
+          },
+          "polynomial": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 0
+          },
+          "typeName": null,
+          "scale": {
+            "x": 1,
+            "y": 1
+          },
+          "color": {
+            "x": 1,
+            "y": 1,
+            "z": 1,
+            "w": 1
+          },
+          "appearTime": 0,
+          "appearDuration": 0,
+          "life": 0,
+          "random": 0,
+          "unCounterable": false
+        },
+        "number": 0,
+        "disRad": 0,
+        "homing": false
+      },
+      "bulletChangeClips": []
+    }
+  ],
+  "enemyVisuals": [
+    {
+      "id": "stone",
+      "source": "externalGif",
+      "basePath": "Visuals",
+      "pixelsPerUnit": 100,
+      "transparentBackground": true,
+      "transparentTolerance": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "clips": [
+        {
+          "name": "idle",
+          "path": "stone_idle.gif",
+          "loop": true,
+          "frameDuration": 0.1,
+          "maxFrames": 1
+        },
+        {
+          "name": "cast1",
+          "path": "stone_cast1.gif",
+          "loop": false,
+          "next": "idle",
+          "frameDuration": 0.1
+        },
+        {
+          "name": "cast2",
+          "path": "stone_cast2.gif",
+          "loop": false,
+          "next": "idle",
+          "frameDuration": 0.1
+        },
+        {
+          "name": "cast3",
+          "path": "stone_cast3.gif",
+          "loop": false,
+          "next": "idle",
+          "frameDuration": 0.1
+        },
+        {
+          "name": "cast4",
+          "path": "stone_cast4.gif",
+          "loop": false,
+          "next": "idle",
+          "frameDuration": 0.1
+        },
+        {
+          "name": "cast5",
+          "path": "stone_cast5.gif",
+          "loop": false,
+          "next": "idle",
+          "frameDuration": 0.1
+        },
+        {
+          "name": "cast6",
+          "path": "stone_cast6.gif",
+          "loop": false,
+          "next": "idle",
+          "frameDuration": 0.1
+        }
+      ]
+    },
+    {
+      "id": "golem",
+      "source": "externalGif",
+      "basePath": "Visuals",
+      "pixelsPerUnit": 100,
+      "transparentBackground": true,
+      "transparentTolerance": 0,
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      },
+      "clips": [
+        {
+          "name": "idle",
+          "path": "golem_idle.gif",
+          "loop": true,
+          "frameDuration": 0.1,
+          "maxFrames": 1
+        },
+        {
+          "name": "fall1",
+          "path": "golem_fall1.gif",
+          "loop": false,
+          "next": "idle",
+          "frameDuration": 0.1
+        },
+        {
+          "name": "fall2",
+          "path": "golem_fall2.gif",
+          "loop": false,
+          "next": "idle",
+          "frameDuration": 0.1
+        },
+        {
+          "name": "leftSlam",
+          "path": "golem_left_slam.gif",
+          "loop": false,
+          "next": "idle",
+          "frameDuration": 0.1
+        },
+        {
+          "name": "rightSlam",
+          "path": "golem_right_slam.gif",
+          "loop": false,
+          "next": "idle",
+          "frameDuration": 0.1
+        },
+        {
+          "name": "bothSlam",
+          "path": "golem_both_slam.gif",
+          "loop": false,
+          "next": "idle",
+          "frameDuration": 0.1
+        }
+      ]
+    }
+  ]
+}

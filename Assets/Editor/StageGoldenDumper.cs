@@ -146,7 +146,7 @@ public static class StageGoldenDumper
         return byDir;
     }
 
-    private static string BuildGolden(StageData stage, string stageDir)
+    public static string BuildGolden(StageData stage, string stageDir)
     {
         // Load buffers exactly as the runtime does for this stage.
         BulletBufferManager buffers = new BulletBufferManager();
