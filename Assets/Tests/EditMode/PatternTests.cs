@@ -76,27 +76,27 @@ public class PatternTests
         // bpm 120 => beat 0.5s. warn=1.0, hold=0.5, fall=1.0.
         List<PatternEmission> output = ExpandFallingBlock(dust: false, burst: false);
 
-        // warn(1) -> hold block(2) -> fall block(2) -> land block(2).
-        Assert.AreEqual(4, output.Count, "warn + hold + fall + land");
+        // Dashed-frame warning: many dash bullets (typeId 1) at offset 0, then the
+        // hold -> fall -> land blocks (typeId 2) in order.
+        List<PatternEmission> warns = output.FindAll(e => e.Bullet.typeId == 1);
+        List<PatternEmission> blocks = output.FindAll(e => e.Bullet.typeId == 2);
 
-        Assert.AreEqual(1, output[0].Bullet.typeId, "first emission is the warning");
-        Assert.AreEqual(0f, output[0].TimeOffset, 1e-5f);
+        Assert.Greater(warns.Count, 4, "warning is a dotted frame of many dashes");
+        foreach (PatternEmission w in warns)
+            Assert.AreEqual(0f, w.TimeOffset, 1e-5f, "dashes appear immediately");
 
-        Assert.AreEqual(2, output[1].Bullet.typeId, "hold block");
-        Assert.AreEqual(1.0f, output[1].TimeOffset, 1e-5f); // warnBeats*beat
-
-        Assert.AreEqual(2, output[2].Bullet.typeId, "falling block");
-        Assert.AreEqual(1.5f, output[2].TimeOffset, 1e-5f); // (warn+hold)*beat
-
-        Assert.AreEqual(2, output[3].Bullet.typeId, "landed block");
-        Assert.AreEqual(2.5f, output[3].TimeOffset, 1e-5f); // (warn+hold+fall)*beat
+        Assert.AreEqual(3, blocks.Count, "hold + fall + land");
+        Assert.AreEqual(1.0f, blocks[0].TimeOffset, 1e-5f); // hold: warnBeats*beat
+        Assert.AreEqual(1.5f, blocks[1].TimeOffset, 1e-5f); // fall: (warn+hold)*beat
+        Assert.AreEqual(2.5f, blocks[2].TimeOffset, 1e-5f); // land: (warn+hold+fall)*beat
     }
 
     [Test]
     public void FallingBlock_FallingBulletUsesReverseSolvedGravity_AndLandsAtGround()
     {
         List<PatternEmission> output = ExpandFallingBlock(dust: false, burst: false);
-        PatternEmission fall = output[2];
+        List<PatternEmission> blocks = output.FindAll(e => e.Bullet.typeId == 2);
+        PatternEmission fall = blocks[1];
 
         float fallSec = 1.0f;               // 2 beats @ 120 bpm
         float landY = PatternMath.GroundY(3f); // 2.9
@@ -106,7 +106,7 @@ public class PatternTests
         Assert.AreEqual(fallSec, fall.Bullet.life, 1e-5f);
 
         // Landed block sits exactly on the ground line.
-        PatternEmission landed = output[3];
+        PatternEmission landed = blocks[2];
         Assert.AreEqual(landY, landed.Bullet.originPos.y, 1e-4f);
         Assert.AreEqual(0f, landed.Bullet.gravity, 1e-5f);
         Assert.AreEqual(3f, landed.Bullet.life, 1e-5f); // untilSec

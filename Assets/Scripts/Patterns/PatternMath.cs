@@ -7,15 +7,22 @@ using Unity.Mathematics;
 /// </summary>
 public static class PatternMath
 {
-    // ---- default stone palette (design v2 §6), premultiplied nowhere ----
+    // ---- default stone palette (design v2 §6.1, navy unification) ----
+    // All attacks share the boss body's grayish-navy hue, kept bright enough for
+    // black-background legibility. Only the block body stays near-black navy.
     public static readonly float4 ColorBlock  = new float4(0.025f, 0.04f, 0.095f, 0.98f);
-    public static readonly float4 ColorWarn   = new float4(0.22f, 0.76f, 1f, 0.6f);
-    public static readonly float4 ColorCutter = new float4(0.5f, 0.78f, 1f, 1f);
-    public static readonly float4 ColorShard  = new float4(0.38f, 0.72f, 1f, 1f);
-    public static readonly float4 ColorBurst  = new float4(0.4f, 0.85f, 1f, 0.85f);
-    public static readonly float4 ColorFlash  = new float4(0.3f, 0.5f, 0.95f, 0.8f);
-    public static readonly float4 ColorDust   = new float4(0.35f, 0.6f, 0.95f, 0.85f);
-    public static readonly float4 ColorHammer = new float4(0.55f, 0.68f, 0.95f, 1f);
+    public static readonly float4 ColorWarn   = new float4(0.45f, 0.55f, 0.85f, 0.6f);
+    public static readonly float4 ColorCutter = new float4(0.4f, 0.46f, 0.66f, 1f);
+    public static readonly float4 ColorShard  = new float4(0.36f, 0.42f, 0.6f, 1f);
+    public static readonly float4 ColorBurst  = new float4(0.42f, 0.48f, 0.7f, 0.85f);
+    public static readonly float4 ColorFlash  = new float4(0.38f, 0.44f, 0.62f, 0.8f);
+    public static readonly float4 ColorDust   = new float4(0.42f, 0.5f, 0.8f, 0.55f);
+    public static readonly float4 ColorHammer = new float4(0.4f, 0.46f, 0.66f, 1f);
+
+    // Dashed-frame defaults (design v2 §6, item 3): constant pitch/dash size so the
+    // dotted preview stays crisp regardless of the framed region's size.
+    public const float DashPitch = 0.6f;
+    public const float DashScale = 0.4f;
 
     /// <summary>Landing centre y for a block of the given (uniform) scale so its
     /// base rests near y = 1.4 (design "接地式 1.4 + scale/2").</summary>
@@ -106,5 +113,43 @@ public static class PatternMath
         bullet.appearTime = bullet.life;
         bullet.appearDuration = bullet.life;
         return bullet;
+    }
+
+    /// <summary>
+    /// Builds a dotted rectangle outline centred at <paramref name="center"/> from
+    /// small full-blink dash bullets. Dash pitch/size are constant (independent of
+    /// w/h) so a big frame or a wide band keeps the same crisp dotted look. Appends
+    /// each dash as a beat-blink warning bullet to <paramref name="output"/>.
+    /// </summary>
+    public static void BuildDashedFrame(
+        System.Collections.Generic.List<BulletData> output,
+        int warnTypeId, float2 center, float w, float h, float warnSeconds,
+        float4 color, float pitch = DashPitch, float dashScale = DashScale,
+        bool unCounterable = true)
+    {
+        float hw = w * 0.5f, hh = h * 0.5f;
+        int nx = math.max(1, (int)math.round(w / pitch));
+        int ny = math.max(1, (int)math.round(h / pitch));
+        float2 s = new float2(dashScale, dashScale);
+
+        void Dot(float x, float y)
+        {
+            BulletData b = Make(warnTypeId, new float2(x, y), 0f, 0f, 0f, 0f, s, color, warnSeconds,
+                unCounterable: unCounterable);
+            output.Add(AsFullBlink(b));
+        }
+
+        for (int i = 0; i <= nx; i++)
+        {
+            float x = center.x - hw + w * i / nx;
+            Dot(x, center.y + hh);
+            Dot(x, center.y - hh);
+        }
+        for (int j = 1; j < ny; j++)
+        {
+            float y = center.y - hh + h * j / ny;
+            Dot(center.x - hw, y);
+            Dot(center.x + hw, y);
+        }
     }
 }
