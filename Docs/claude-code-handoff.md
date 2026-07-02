@@ -155,6 +155,16 @@ Recorder:
 - Project audio speaker mode was checked as `Stereo / 48000`.
 - For movie recording, use MP4/H.264 with `Include Audio`; audio requires Mono/Stereo.
 - If using Oracle/Gemini video input, keep clips short and prefer 720p/30fps.
+- `RecorderControllerSettings.CapFrameRate` must stay `true`: with it off, game time
+  outruns the realtime BGM clock and every beat-timed event desyncs in the recording
+  (observed as a 133s realtime run producing an 806s video).
+- Recording auto-stops a few seconds after the stage content ends (enemy bullet count
+  stays 0 after bullets were seen). Debug-started stages never leave `GameState.Playing`
+  and the BGM clip (150s) is longer than the stone content (~83s), so neither of those
+  is a usable end signal.
+- Gemini video review can silently answer without the attachment (it then says it
+  cannot watch videos). Put an instruction in the prompt to first confirm the video is
+  viewable by describing the opening seconds, and retry if that proof is missing.
 
 JSON sanity check:
 

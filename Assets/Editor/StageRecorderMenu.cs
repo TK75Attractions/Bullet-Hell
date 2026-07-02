@@ -10,8 +10,9 @@ using UnityEngine;
 /// <c>Recordings/&lt;stage&gt;_&lt;timestamp&gt;.mp4</c> (1280x720 / 30fps / audio) via
 /// Unity Recorder's <see cref="RecorderController"/>. Exposes a toggle menu and
 /// static start/stop entry points the stage launcher window reuses for its
-/// "Start + Record" one-click flow. Recording auto-stops when Play mode ends or the
-/// game leaves the Playing state (e.g. a stage Clear).
+/// "Start + Record" one-click flow. Recording auto-stops when Play mode ends, the
+/// game leaves the Playing state (e.g. a stage Clear), or the stage content finishes
+/// (no enemy bullets left for a few seconds after some were seen).
 /// </summary>
 public static class StageRecorderMenu
 {
@@ -20,9 +21,17 @@ public static class StageRecorderMenu
     private const int OutputHeight = 720;
     private const float FrameRate = 30f;
 
+    // Stop this many seconds after the last enemy bullet disappears, so the recording
+    // keeps the visual tail (clear effects, last fades) without running forever when
+    // the game state never leaves Playing (debug-started stages stay in Playing after
+    // the stage content ends, and the BGM clip can be much longer than the content).
+    private const double BulletsClearedTailSec = 5.0;
+
     private static RecorderController controller;
     private static RecorderControllerSettings controllerSettings;
     private static string activeOutputFile;
+    private static bool sawEnemyBullets;
+    private static double bulletsClearedAt;
 
     public static bool IsRecording => controller != null && controller.IsRecording();
 
@@ -78,7 +87,10 @@ public static class StageRecorderMenu
         controllerSettings = ScriptableObject.CreateInstance<RecorderControllerSettings>();
         controllerSettings.SetRecordModeToManual();
         controllerSettings.FrameRate = FrameRate;
-        controllerSettings.CapFrameRate = false;
+        // Must be true: with captureFramerate active and uncapped rendering, game time
+        // outruns the realtime BGM clock (StageReader only corrects forward), desyncing
+        // every beat-timed event in the recording.
+        controllerSettings.CapFrameRate = true;
 
         MovieRecorderSettings movie = ScriptableObject.CreateInstance<MovieRecorderSettings>();
         movie.name = "StageMovie";
@@ -104,6 +116,8 @@ public static class StageRecorderMenu
             return;
         }
 
+        sawEnemyBullets = false;
+        bulletsClearedAt = 0;
         EditorApplication.update -= WatchForAutoStop;
         EditorApplication.update += WatchForAutoStop;
         Debug.Log($"[StageRecorder] Recording started -> {activeOutputFile}.mp4");
@@ -138,12 +152,40 @@ public static class StageRecorderMenu
         if (!playing)
         {
             StopRecording();
+            return;
+        }
+
+        // Debug-started stages never leave GameState.Playing, so also stop shortly
+        // after the stage content ends: once enemy bullets have been seen, a sustained
+        // zero count means the last attack (tiles/cutters/fragments are all bullets)
+        // has expired.
+        if (EditorApplication.isPaused) return;
+        if (GManager.Control.QOrder == null) return;
+        int enemyBullets = GManager.Control.QOrder.GetEnemyBulletCount();
+        if (enemyBullets > 0)
+        {
+            sawEnemyBullets = true;
+            bulletsClearedAt = 0;
+        }
+        else if (sawEnemyBullets)
+        {
+            if (bulletsClearedAt == 0)
+            {
+                bulletsClearedAt = EditorApplication.timeSinceStartup;
+            }
+            else if (EditorApplication.timeSinceStartup - bulletsClearedAt > BulletsClearedTailSec)
+            {
+                Debug.Log("[StageRecorder] Stage content finished; auto-stopping recording.");
+                StopRecording();
+            }
         }
     }
 
     private static void Cleanup()
     {
         EditorApplication.update -= WatchForAutoStop;
+        sawEnemyBullets = false;
+        bulletsClearedAt = 0;
         controller = null;
         if (controllerSettings != null)
         {
