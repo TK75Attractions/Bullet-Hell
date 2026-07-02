@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 public class StageSelectManager : MonoBehaviour
 {
@@ -33,6 +34,11 @@ public class StageSelectManager : MonoBehaviour
     private readonly List<Renderer> tutorialEnemyRenderers = new List<Renderer>();
     private readonly List<bool> tutorialEnemyRendererStates = new List<bool>();
     private float timeDimBaseX;
+
+    // JSAB-style variation overlay (built at runtime; scene stays unchanged).
+    private const string StylePrefKey = "stageSelectStyle";
+    private JsabStageSelect jsab;
+    private int stageSelectStyle;
 
     private RectTransform stageBarRect;
     private RectTransform scrollRect;
@@ -117,6 +123,35 @@ public class StageSelectManager : MonoBehaviour
         remainingTime = musicSelectTime;
         phaseTotalTime = musicSelectTime;
         header.UpdateTimer(remainingTime);
+
+        // Build the JSAB-style overlay (runtime only) and mirror the current stage.
+        stageSelectStyle = PlayerPrefs.GetInt(StylePrefKey, 0);
+        Transform canvasesRoot = transform.parent != null ? transform.parent.parent : null;
+        TMPro.TMP_FontAsset uiFont = guideText != null ? guideText.font : null;
+        Sprite playerSprite = null;
+        if (GManager.Control.PlayerObj != null)
+        {
+            SpriteRenderer sr = GManager.Control.PlayerObj.GetComponent<SpriteRenderer>();
+            if (sr != null) playerSprite = sr.sprite;
+        }
+        jsab = JsabStageSelect.Create(canvasesRoot, uiFont, playerSprite);
+        jsab.SetStage(stageBar.currentStage, GManager.Control.SDB.GetStageCount(), false);
+        RefreshStyleVisibility();
+    }
+
+    // JSAB style covers the whole music phase with an opaque canvas. When it is
+    // active we also hide the default music UI's CanvasGroups (without destroying
+    // anything); leaving Music restores them so the difficulty screen shows.
+    private void RefreshStyleVisibility()
+    {
+        bool jsabOn = jsab != null && stageSelectStyle == 1 && state == State.Music;
+        if (jsab != null) jsab.SetVisible(jsabOn);
+        // The JSAB overlay is the only thing that hides the default UI; whenever it
+        // is not covering the screen, the default CanvasGroups must be restored so
+        // the music/difficulty screens render normally.
+        float defaultAlpha = jsabOn ? 0f : 1f;
+        variableCG.alpha = defaultAlpha;
+        staticCG.alpha = defaultAlpha;
     }
 
     private int FindStageIndex(string stageName)
@@ -138,6 +173,20 @@ public class StageSelectManager : MonoBehaviour
         stageBar.Tick(dt);
         defficultyBar.Tick(dt);
         stageDescription.Tick(dt);
+        if (jsab != null) jsab.Tick(dt);
+
+        // Toggle between the default and JSAB stage-select styles with V.
+        if (state == State.Music && !isTransitioning)
+        {
+            Keyboard kb = Keyboard.current;
+            if (kb != null && kb.vKey.wasPressedThisFrame)
+            {
+                stageSelectStyle = stageSelectStyle == 1 ? 0 : 1;
+                PlayerPrefs.SetInt(StylePrefKey, stageSelectStyle);
+                PlayerPrefs.Save();
+                RefreshStyleVisibility();
+            }
+        }
 
         if (guideText != null && state == State.Music && !isTransitioning)
         {
@@ -168,6 +217,7 @@ public class StageSelectManager : MonoBehaviour
                 if (button)
                 {
                     state = State.Difficulty;
+                    RefreshStyleVisibility();
                     TransitionToDifficulty();
                     break;
                 }
@@ -176,7 +226,11 @@ public class StageSelectManager : MonoBehaviour
                     bool moved = false;
                     if (up) { stageBar.Up(); moved = true; }
                     else if (down) { stageBar.Down(); moved = true; }
-                    if (moved) stageDescription.Set(stageBar.currentStage);
+                    if (moved)
+                    {
+                        stageDescription.Set(stageBar.currentStage);
+                        if (jsab != null) jsab.SetStage(stageBar.currentStage, GManager.Control.SDB.GetStageCount(), true);
+                    }
                     scroll.UpdateArea(stageBar.currentStage, GManager.Control.SDB.GetStageCount());
                     break;
                 }
@@ -368,6 +422,7 @@ public class StageSelectManager : MonoBehaviour
         staticCG.alpha = 1;
         variableRect.localScale = Vector3.one;
         staticRect.localScale = Vector3.one;
+        RefreshStyleVisibility();
     }
 
     // Resets the countdown for the current phase (e.g. when leaving the title screen).
@@ -478,6 +533,7 @@ public class StageSelectManager : MonoBehaviour
             defficultyBar.SetAlpha(0);
             defficultyBar.SetEntranceProgress(0);
             state = State.Music;
+            RefreshStyleVisibility();
 
             isTransitioning = false;
         }

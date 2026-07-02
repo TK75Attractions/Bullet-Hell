@@ -14,6 +14,7 @@ public class StageReader : MonoBehaviour
     [SerializeField] private int enemyCount = 0;
     [SerializeField] private int bulletCount = 0;
     [SerializeField] private bool isReady = false;
+    private bool clearRecorded = false;
     private EnemyVisualCatalog enemyVisualCatalog;
     private AudioSource stageBgmSource;
     private double stageBgmScheduledDspTime = -1d;
@@ -38,6 +39,7 @@ public class StageReader : MonoBehaviour
         bulletCount = 0;
         spawnEvents.Clear();
         isReady = false;
+        clearRecorded = false;
         stageBgmSource = null;
         stageBgmScheduledDspTime = -1d;
 
@@ -224,6 +226,17 @@ public class StageReader : MonoBehaviour
             {
                 GManager.Control.QOrder.ClearManagedEnemyDanmaku();
                 if (LogStageSchedule) Debug.Log($"Cleared enemy bullets");
+
+                // The "Clear" marker signals stage completion. Record it once
+                // per play so a repeat visitor accrues clear counts.
+                if (!clearRecorded)
+                {
+                    clearRecorded = true;
+                    string dir = string.IsNullOrWhiteSpace(stageData.stageDirectoryName)
+                        ? stageData.stageName
+                        : stageData.stageDirectoryName;
+                    PlayHistory.RecordClear(dir);
+                }
             }
 
             GManager.Control.QOrder.AddEnemyBullets(spawner.index, spawner.pos, spawner.originVlc, spawner.angle, spawner.color);

@@ -45,6 +45,11 @@ public class GManager : MonoBehaviour
     private GameObject optionScreenObj;
     private OptionMenu optionMenu;
     private bool titleArmed = false;
+
+    // Which layer of the title screen currently owns input.
+    private enum TitlePhase { Menu, Options, Transfer }
+    private TitlePhase titlePhase = TitlePhase.Menu;
+    private int optionScreenSiblingIndex = -1;
     public BulletBufferManager BClipManager;
     public QuadOrder QOrder;
     public BulletTypeDataBase BTDB;
@@ -211,25 +216,140 @@ public class GManager : MonoBehaviour
         if (state == GameState.Title)
         {
             TManager?.UpdateTitle(t);
-            // Require the button to be released once before the title accepts a
-            // press. Without this, a button still held from the previous screen
-            // (e.g. the pause "quit" confirmation that reloaded into the title)
-            // would instantly skip past the title into stage select.
-            if (!titleArmed)
+            if (UpdateTitleMenu(t, ref stageSelectButton))
             {
-                if (!IManager.buttonPressed) titleArmed = true;
-            }
-            else if (IManager.buttonPressed)
-            {
-                state = GameState.ChoosingStage;
-                stageSelectButton = false;
-                TManager?.Dismiss();
-                SSManager.ResetTimer();
-                SSManager.PlayEntrance();
+                // The settings or transfer layer consumed this frame; do not
+                // leak input into stage select.
+                return;
             }
         }
 
         SSManager.UpdateSelect(IManager.upPressedThisFrame, IManager.downPressedThisFrame, t, stageSelectButton, IManager.backPressedThisFrame);
+    }
+
+    // Drives the title menu / settings / transfer layers. Returns true when the
+    // frame was fully consumed by an overlay (options or transfer).
+    private bool UpdateTitleMenu(float t, ref bool stageSelectButton)
+    {
+        switch (titlePhase)
+        {
+            case TitlePhase.Options:
+                UpdateTitleOptions();
+                return true;
+
+            case TitlePhase.Transfer:
+                UpdateTitleTransfer();
+                return true;
+
+            default: // Menu
+                stageSelectButton = false;
+                TManager?.UpdateMenu(t, IManager.upPressedThisFrame, IManager.downPressedThisFrame);
+
+                // Require the button to be released once before the title accepts
+                // a press, so a button still held from a previous screen cannot
+                // instantly trigger a menu item.
+                if (!titleArmed)
+                {
+                    if (!IManager.buttonPressed) titleArmed = true;
+                    return false;
+                }
+
+                if (IManager.buttonPressedThisFrame)
+                {
+                    TitleManager.TitleMenuAction action =
+                        TManager != null ? TManager.CurrentAction : TitleManager.TitleMenuAction.Start;
+                    switch (action)
+                    {
+                        case TitleManager.TitleMenuAction.Start:
+                            state = GameState.ChoosingStage;
+                            TManager?.Dismiss();
+                            SSManager.ResetTimer();
+                            SSManager.PlayEntrance();
+                            break;
+                        case TitleManager.TitleMenuAction.Options:
+                            OpenTitleOptions();
+                            return true;
+                        case TitleManager.TitleMenuAction.Transfer:
+                            titlePhase = TitlePhase.Transfer;
+                            TManager?.OpenTransfer();
+                            return true;
+                    }
+                }
+                return false;
+        }
+    }
+
+    private void OpenTitleOptions()
+    {
+        titlePhase = TitlePhase.Options;
+        TManager?.HideMenu();
+        // The title never freezes time or audio; the option screen simply
+        // overlays the running title. The Title sibling is drawn above the
+        // OptionScreen in the scene, so lift the option screen to the front
+        // while it is open, then restore its order on close.
+        if (optionScreenObj != null)
+        {
+            optionScreenSiblingIndex = optionScreenObj.transform.GetSiblingIndex();
+            optionScreenObj.transform.SetAsLastSibling();
+            optionScreenObj.SetActive(true);
+            optionMenu?.Open();
+        }
+    }
+
+    private void UpdateTitleOptions()
+    {
+        if (optionScreenObj == null || !optionScreenObj.activeSelf)
+        {
+            CloseTitleOptions();
+            return;
+        }
+
+        if (IManager.backPressedThisFrame)
+        {
+            if (optionMenu == null || !optionMenu.HandleBack()) CloseTitleOptions();
+            return;
+        }
+
+        // Suppress the confirm button so the option menu's play-only rows
+        // (resume / quit) never fire from the title. Volume and effects are
+        // still adjustable via left/right.
+        optionMenu?.UpdateMenu(Time.unscaledDeltaTime,
+            IManager.upPressedThisFrame, IManager.downPressedThisFrame,
+            IManager.leftPressedThisFrame, IManager.rightPressedThisFrame,
+            IManager.leftPressed, IManager.rightPressed,
+            false);
+    }
+
+    private void CloseTitleOptions()
+    {
+        if (optionScreenObj != null)
+        {
+            optionScreenObj.SetActive(false);
+            if (optionScreenSiblingIndex >= 0)
+            {
+                optionScreenObj.transform.SetSiblingIndex(optionScreenSiblingIndex);
+                optionScreenSiblingIndex = -1;
+            }
+        }
+        titlePhase = TitlePhase.Menu;
+        TManager?.ShowMenu();
+        TManager?.PlayReturnEntrance();
+    }
+
+    private void UpdateTitleTransfer()
+    {
+        if (IManager.backPressedThisFrame)
+        {
+            TManager?.CloseTransfer();
+            titlePhase = TitlePhase.Menu;
+            TManager?.ShowMenu();
+            return;
+        }
+
+        if (IManager.buttonPressedThisFrame && (TManager == null || !TManager.IsTransferInputFocused))
+        {
+            TManager?.ApplyTransfer();
+        }
     }
 
     public void LateUpdate()
@@ -285,6 +405,10 @@ public class GManager : MonoBehaviour
             SReader.ResetStageClockToScheduledStart();
             HideTitleBossBackdrop();
             state = GameState.Playing;
+            string historyDir = string.IsNullOrWhiteSpace(stage.stageDirectoryName)
+                ? stage.stageName
+                : stage.stageDirectoryName;
+            PlayHistory.RecordPlay(historyDir);
             Debug.Log($"Started Stage: {stage.stageName}");
         }
         else

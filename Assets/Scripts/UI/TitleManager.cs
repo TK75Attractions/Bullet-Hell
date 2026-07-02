@@ -36,6 +36,34 @@ public class TitleManager : MonoBehaviour
 
     private ShapeAnim[] shapes = new ShapeAnim[0];
 
+    // ---- Title menu + transfer panel (black / cyan / deep navy) -------------
+    public enum TitleMenuAction { Start = 0, Options = 1, Transfer = 2 }
+
+    private static readonly Color Cyan = new Color(0.219f, 0.761f, 0.878f);
+    private static readonly Color CyanDim = new Color(0.11f, 0.34f, 0.40f);
+    private static readonly Color Navy = new Color(0.03f, 0.05f, 0.11f, 1f);
+    private static readonly Color NavyDeep = new Color(0.015f, 0.028f, 0.06f, 0.98f);
+    private static readonly Color ErrorRed = new Color(0.96f, 0.46f, 0.52f);
+
+    private TMP_FontAsset uiFont;
+    private RectTransform menuRoot;
+    private TMP_Text[] menuItems = new TMP_Text[0];
+    private RectTransform[] menuItemRects = new RectTransform[0];
+    private float[] menuItemSel = new float[0];
+    private int menuIndex;
+
+    private GameObject transferRoot;
+    private TMP_Text transferCodeText;
+    private TMP_InputField transferInput;
+    private TMP_Text transferMessageText;
+    private Image applyButton;
+    private bool transferOpen;
+
+    public int MenuIndex => menuIndex;
+    public TitleMenuAction CurrentAction => (TitleMenuAction)menuIndex;
+    public bool IsTransferOpen => transferOpen;
+    public bool IsTransferInputFocused => transferInput != null && transferInput.isFocused;
+
     public void Init()
     {
         animTime = 0f;
@@ -78,10 +106,35 @@ public class TitleManager : MonoBehaviour
             }
         }
 
+        EnsureUiBuilt();
+
         group.alpha = 1f;
         transform.localScale = Vector3.one;
         dismissed = false;
         gameObject.SetActive(true);
+    }
+
+    private void EnsureUiBuilt()
+    {
+        if (uiFont == null)
+        {
+            uiFont = promptText != null ? promptText.font : TMP_Settings.defaultFontAsset;
+        }
+        if (menuRoot == null) BuildMenu();
+        if (transferRoot == null) BuildTransferPanel();
+
+        menuIndex = 0;
+        transferOpen = false;
+        for (int i = 0; i < menuItemSel.Length; i++) menuItemSel[i] = i == 0 ? 1f : 0f;
+        if (transferRoot != null) transferRoot.SetActive(false);
+        if (menuRoot != null) menuRoot.gameObject.SetActive(true);
+
+        // The scene-authored "PRESS ANY BUTTON" prompt is replaced by the menu.
+        if (promptText != null)
+        {
+            promptText.gameObject.SetActive(false);
+            promptText = null;
+        }
     }
 
     // Returning from the option screen: the title rushes toward the viewer,
@@ -243,5 +296,261 @@ public class TitleManager : MonoBehaviour
         }
         group.alpha = 0f;
         gameObject.SetActive(false);
+    }
+
+    // ---- Menu -------------------------------------------------------------
+
+    public void ShowMenu()
+    {
+        if (menuRoot != null) menuRoot.gameObject.SetActive(true);
+    }
+
+    public void HideMenu()
+    {
+        if (menuRoot != null) menuRoot.gameObject.SetActive(false);
+    }
+
+    // Navigate + animate the vertical menu. Selection pulses with the beat and
+    // brightens toward cyan; unselected items sit in a dim teal.
+    public void UpdateMenu(float dt, bool up, bool down)
+    {
+        if (transferOpen || menuItems.Length == 0) return;
+
+        if (up) menuIndex = Mathf.Max(0, menuIndex - 1);
+        else if (down) menuIndex = Mathf.Min(menuItems.Length - 1, menuIndex + 1);
+
+        for (int i = 0; i < menuItems.Length; i++)
+        {
+            bool selected = i == menuIndex;
+            menuItemSel[i] = Mathf.Lerp(menuItemSel[i], selected ? 1f : 0f, 1f - Mathf.Exp(-16f * dt));
+            float pulse = selected ? 1f + 0.09f * beatPulse : 1f;
+            float scale = Mathf.Lerp(0.9f, 1.08f, menuItemSel[i]) * pulse;
+            if (menuItemRects[i] != null) menuItemRects[i].localScale = Vector3.one * scale;
+            if (menuItems[i] != null) menuItems[i].color = Color.Lerp(CyanDim, Cyan, menuItemSel[i]);
+        }
+    }
+
+    private void BuildMenu()
+    {
+        GameObject rootObj = new GameObject("Menu", typeof(RectTransform));
+        rootObj.layer = gameObject.layer;
+        menuRoot = (RectTransform)rootObj.transform;
+        menuRoot.SetParent(transform, false);
+        menuRoot.anchorMin = menuRoot.anchorMax = new Vector2(0.5f, 0.5f);
+        menuRoot.anchoredPosition = Vector2.zero;
+        menuRoot.sizeDelta = new Vector2(700f, 500f);
+
+        string[] labels = { "スタート", "設定", "引き継ぎ" };
+        float[] rowY = { -195f, -305f, -415f };
+        menuItems = new TMP_Text[labels.Length];
+        menuItemRects = new RectTransform[labels.Length];
+        menuItemSel = new float[labels.Length];
+        for (int i = 0; i < labels.Length; i++)
+        {
+            TMP_Text item = CreateText("Item" + i, menuRoot, new Vector2(0f, rowY[i]),
+                new Vector2(640f, 96f), 62f, i == 0 ? Cyan : CyanDim, TextAlignmentOptions.Center);
+            item.text = labels[i];
+            item.fontStyle = FontStyles.Bold;
+            menuItems[i] = item;
+            menuItemRects[i] = item.rectTransform;
+            menuItemSel[i] = i == 0 ? 1f : 0f;
+        }
+    }
+
+    // ---- Transfer panel ---------------------------------------------------
+
+    public void OpenTransfer()
+    {
+        if (transferRoot == null) return;
+        transferOpen = true;
+        if (menuRoot != null) menuRoot.gameObject.SetActive(false);
+        transferRoot.SetActive(true);
+        transferRoot.transform.SetAsLastSibling();
+        RefreshTransferCode();
+        if (transferMessageText != null) transferMessageText.text = string.Empty;
+        if (transferInput != null)
+        {
+            transferInput.text = string.Empty;
+            transferInput.ActivateInputField();
+        }
+    }
+
+    public void CloseTransfer()
+    {
+        transferOpen = false;
+        if (transferInput != null) transferInput.DeactivateInputField();
+        if (transferRoot != null) transferRoot.SetActive(false);
+        if (menuRoot != null) menuRoot.gameObject.SetActive(true);
+    }
+
+    public void ApplyTransfer()
+    {
+        if (transferInput == null) return;
+        if (PlayHistory.TryImportCode(transferInput.text, out string error))
+        {
+            if (transferMessageText != null)
+            {
+                transferMessageText.color = Cyan;
+                transferMessageText.text =
+                    $"引き継ぎました(プレイ {PlayHistory.TotalPlays} 回 / クリア {PlayHistory.TotalClears} 回)";
+            }
+            RefreshTransferCode();
+            transferInput.text = string.Empty;
+        }
+        else
+        {
+            if (transferMessageText != null)
+            {
+                transferMessageText.color = ErrorRed;
+                transferMessageText.text = error;
+            }
+        }
+    }
+
+    private void RefreshTransferCode()
+    {
+        if (transferCodeText == null) return;
+        transferCodeText.text = PlayHistory.HasHistory
+            ? PlayHistory.ExportCode()
+            : "まだプレイ履歴がありません";
+    }
+
+    private void BuildTransferPanel()
+    {
+        GameObject rootObj = new GameObject("TransferPanel", typeof(RectTransform));
+        rootObj.layer = gameObject.layer;
+        transferRoot = rootObj;
+        RectTransform rootRect = (RectTransform)rootObj.transform;
+        rootRect.SetParent(transform, false);
+        rootRect.anchorMin = Vector2.zero;
+        rootRect.anchorMax = Vector2.one;
+        rootRect.offsetMin = Vector2.zero;
+        rootRect.offsetMax = Vector2.zero;
+
+        CreatePanel("Scrim", rootRect, Vector2.zero, new Vector2(4000f, 4000f), new Color(0f, 0f, 0f, 0.86f));
+        CreatePanel("Panel", rootRect, Vector2.zero, new Vector2(1120f, 760f), NavyDeep);
+        CreatePanel("PanelEdge", rootRect, new Vector2(0f, 322f), new Vector2(1120f, 8f), Cyan);
+
+        CreateText("Heading", rootRect, new Vector2(0f, 268f), new Vector2(1000f, 90f), 60f, Cyan, TextAlignmentOptions.Center)
+            .fontStyle = FontStyles.Bold;
+        CreateText("CodeLabel", rootRect, new Vector2(0f, 168f), new Vector2(1000f, 60f), 34f, CyanDim, TextAlignmentOptions.Center);
+
+        transferCodeText = CreateText("Code", rootRect, new Vector2(0f, 78f), new Vector2(1040f, 110f), 70f, Cyan, TextAlignmentOptions.Center);
+        transferCodeText.fontStyle = FontStyles.Bold;
+        transferCodeText.characterSpacing = 6f;
+
+        CreatePanel("Divider", rootRect, new Vector2(0f, 2f), new Vector2(920f, 3f), new Color(0.12f, 0.28f, 0.34f, 1f));
+        CreateText("InputLabel", rootRect, new Vector2(0f, -66f), new Vector2(1000f, 60f), 34f, CyanDim, TextAlignmentOptions.Center);
+
+        BuildInputField(rootRect, new Vector2(0f, -158f), new Vector2(880f, 104f));
+
+        applyButton = CreatePanel("ApplyButton", rootRect, new Vector2(0f, -282f), new Vector2(300f, 84f), Cyan);
+        CreateText("ApplyLabel", applyButton.rectTransform, Vector2.zero, new Vector2(300f, 84f), 38f, new Color(0.02f, 0.05f, 0.08f), TextAlignmentOptions.Center)
+            .fontStyle = FontStyles.Bold;
+
+        transferMessageText = CreateText("Message", rootRect, new Vector2(0f, -352f), new Vector2(1040f, 56f), 32f, Cyan, TextAlignmentOptions.Center);
+
+        // Fill the label texts.
+        SetChildText(rootRect, "Heading", "引き継ぎ");
+        SetChildText(rootRect, "CodeLabel", "あなたの引き継ぎコード");
+        SetChildText(rootRect, "InputLabel", "コードを入力");
+        SetChildText(applyButton.rectTransform, "ApplyLabel", "適用");
+        transferMessageText.text = string.Empty;
+
+        transferRoot.SetActive(false);
+    }
+
+    private void BuildInputField(RectTransform parent, Vector2 pos, Vector2 size)
+    {
+        GameObject fieldObj = new GameObject("CodeInput", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(TMP_InputField));
+        fieldObj.layer = gameObject.layer;
+        RectTransform fieldRect = (RectTransform)fieldObj.transform;
+        fieldRect.SetParent(parent, false);
+        fieldRect.anchorMin = fieldRect.anchorMax = new Vector2(0.5f, 0.5f);
+        fieldRect.anchoredPosition = pos;
+        fieldRect.sizeDelta = size;
+        Image bg = fieldObj.GetComponent<Image>();
+        bg.color = Navy;
+
+        GameObject areaObj = new GameObject("TextArea", typeof(RectTransform), typeof(RectMask2D));
+        areaObj.layer = gameObject.layer;
+        RectTransform areaRect = (RectTransform)areaObj.transform;
+        areaRect.SetParent(fieldRect, false);
+        areaRect.anchorMin = Vector2.zero;
+        areaRect.anchorMax = Vector2.one;
+        areaRect.offsetMin = new Vector2(24f, 8f);
+        areaRect.offsetMax = new Vector2(-24f, -8f);
+
+        TMP_Text placeholder = CreateText("Placeholder", areaRect, Vector2.zero, size, 46f, new Color(0.28f, 0.44f, 0.5f), TextAlignmentOptions.Center);
+        StretchToParent(placeholder.rectTransform);
+        placeholder.text = "XXXX-XXXX-XXXX-XXXX";
+
+        TMP_Text textComp = CreateText("Text", areaRect, Vector2.zero, size, 46f, Cyan, TextAlignmentOptions.Center);
+        StretchToParent(textComp.rectTransform);
+        textComp.fontStyle = FontStyles.Bold;
+        textComp.characterSpacing = 4f;
+
+        transferInput = fieldObj.GetComponent<TMP_InputField>();
+        transferInput.textViewport = areaRect;
+        transferInput.textComponent = textComp;
+        transferInput.placeholder = placeholder;
+        transferInput.fontAsset = uiFont;
+        transferInput.pointSize = 46f;
+        transferInput.characterLimit = 19; // 16 symbols + 3 grouping hyphens
+        transferInput.lineType = TMP_InputField.LineType.SingleLine;
+        transferInput.richText = false;
+        transferInput.onValidateInput += (string text, int pos, char ch) => char.ToUpperInvariant(ch);
+        transferInput.onSubmit.AddListener(_ => ApplyTransfer());
+    }
+
+    // ---- UI helpers -------------------------------------------------------
+
+    private TMP_Text CreateText(string objectName, Transform parent, Vector2 pos, Vector2 size, float fontSize, Color color, TextAlignmentOptions align)
+    {
+        GameObject go = new GameObject(objectName, typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+        go.layer = gameObject.layer;
+        RectTransform rect = (RectTransform)go.transform;
+        rect.SetParent(parent, false);
+        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = pos;
+        rect.sizeDelta = size;
+        TextMeshProUGUI label = go.GetComponent<TextMeshProUGUI>();
+        if (uiFont != null) label.font = uiFont;
+        label.fontSize = fontSize;
+        label.color = color;
+        label.alignment = align;
+        label.raycastTarget = false;
+        return label;
+    }
+
+    private Image CreatePanel(string objectName, Transform parent, Vector2 pos, Vector2 size, Color color)
+    {
+        GameObject go = new GameObject(objectName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        go.layer = gameObject.layer;
+        RectTransform rect = (RectTransform)go.transform;
+        rect.SetParent(parent, false);
+        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = pos;
+        rect.sizeDelta = size;
+        Image image = go.GetComponent<Image>();
+        image.color = color;
+        image.raycastTarget = false;
+        return image;
+    }
+
+    private static void StretchToParent(RectTransform rect)
+    {
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+    }
+
+    private static void SetChildText(Transform parent, string childName, string value)
+    {
+        Transform child = parent.Find(childName);
+        if (child == null) return;
+        TMP_Text text = child.GetComponent<TMP_Text>();
+        if (text != null) text.text = value;
     }
 }
