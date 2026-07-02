@@ -59,6 +59,16 @@ public class ChartTimeExprTest
     }
 
     [Test]
+    public void StoneSeekTargetsMatchVerificationValues()
+    {
+        // Pins the exact seek targets the P4 debug UI jumps to for the stone chart
+        // (bpm 144, 4/4). These are the numbers used in the seek verification pass.
+        var markers = new Dictionary<string, string> { { "M20", "37:1" }, { "M21", "39:1" } };
+        Assert.AreEqual(60.0, ChartTimeExpr.Evaluate("M20", Ctx(markers)), 1e-6);       // 一斉落下(残置)
+        Assert.AreEqual(63.333333, ChartTimeExpr.Evaluate("M21", Ctx(markers)), 1e-5);  // カッター粉砕・ゴーレム出現
+    }
+
+    [Test]
     public void RelativeBeatAndBarOffsets()
     {
         var markers = new Dictionary<string, string> { { "M20", "37:1" } };
