@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" href="data:,">
-  <title>石工タイミング</title>
+  <title>タイミングエディタ</title>
   <style>
     :root {
       color-scheme: dark;
@@ -299,14 +299,25 @@
     }
 
     .timeline-toolbar {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(96px, 140px)) minmax(180px, 1fr);
+      display: flex;
+      flex-wrap: wrap;
       gap: 12px;
       align-items: end;
       min-height: 76px;
       padding: 12px 20px;
       border-bottom: 1px solid var(--hairline);
       background: var(--surface);
+    }
+
+    .timeline-toolbar > label {
+      flex: 1 1 92px;
+      min-width: 84px;
+      max-width: 150px;
+    }
+
+    .timeline-toolbar > label.wide {
+      flex: 1 1 132px;
+      max-width: 200px;
     }
 
     label,
@@ -320,8 +331,9 @@
     }
 
     .toolbar-note {
+      flex: 1 1 240px;
       align-self: center;
-      justify-self: end;
+      margin-left: auto;
       max-width: 320px;
       color: var(--muted);
       font-size: 12px;
@@ -363,6 +375,10 @@
     }
 
     .timeline-wrap.is-scrubbing {
+      cursor: ew-resize;
+    }
+
+    .timeline-wrap.is-marker-hover {
       cursor: ew-resize;
     }
 
@@ -656,6 +672,56 @@
       font-weight: 600;
     }
 
+    .format-toggle {
+      display: inline-flex;
+      padding: 3px;
+      gap: 2px;
+      border: 1px solid var(--hairline);
+      border-radius: 999px;
+      background: var(--surface-dark-elevated);
+    }
+
+    .format-toggle button {
+      min-height: 26px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .format-toggle button:hover {
+      background: transparent;
+      color: var(--body);
+    }
+
+    .format-toggle button.active {
+      background: var(--primary);
+      color: var(--on-primary);
+    }
+
+    .beat-readout {
+      align-self: end;
+      padding: 0 2px 6px;
+      color: var(--muted);
+      font: 600 12px/1.3 "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+    }
+
+    .beat-readout strong {
+      color: var(--body);
+      font-weight: 700;
+    }
+
+    .beat-readout .off {
+      color: var(--accent-amber);
+    }
+
+    .beat-readout .on {
+      color: var(--success);
+    }
+
     .json-box {
       min-height: 0;
       overflow: hidden;
@@ -824,7 +890,7 @@
       <div class="brand">
         <div class="brand-mark" aria-hidden="true"><span></span></div>
         <div class="brand-copy">
-          <h1>石工タイミング</h1>
+          <h1 id="appTitle">タイミングエディタ</h1>
           <div class="brand-sub">音ハメ用マーカーエディタ</div>
         </div>
       </div>
@@ -836,16 +902,29 @@
       </div>
       <div class="top-actions">
         <button id="importJson" data-icon="file-input">JSON読込</button>
+        <input id="jsonInput" class="hidden-input" type="file" accept="application/json,.json,text/plain">
         <button id="copyJson" data-icon="copy">コピー</button>
-        <button id="downloadJson" data-icon="download">JSON保存</button>
+        <button id="downloadJson" data-icon="download">保存</button>
       </div>
     </header>
 
     <main class="main">
       <section class="timeline-shell" aria-label="タイムライン">
         <div class="timeline-toolbar">
+          <label class="wide">曲名
+            <input id="trackName" type="text" placeholder="例: 石工">
+          </label>
+          <label class="wide">作曲者
+            <input id="composer" type="text" placeholder="任意">
+          </label>
+          <label class="wide">スラッグ
+            <input id="slug" type="text" placeholder="例: stone" autocapitalize="off" autocomplete="off" spellcheck="false">
+          </label>
           <label>BPM
             <input id="bpm" type="number" value="144" min="1" step="0.001">
+          </label>
+          <label>拍子
+            <input id="measure" type="number" value="4" min="1" max="16" step="1">
           </label>
           <label>拍オフセット
             <input id="beatOffset" type="number" value="0" step="0.001">
@@ -863,8 +942,9 @@
           </label>
           <div class="toolbar-note">
             <span class="kbd">Space</span> 再生/停止
-            <span class="kbd">K</span> メモ
+            <span class="kbd">K</span> 現在位置にメモ
             <span class="kbd">I</span> 画像
+            <span class="kbd">Del</span> 選択を削除
             <span class="kbd">←</span><span class="kbd">→</span> スクロール
             <span class="kbd">+/-</span> ズーム
             <span class="kbd">Shift</span> + クリックでメモ追加
@@ -910,6 +990,7 @@
             <label>時刻
               <input id="markerTime" type="number" step="0.001" min="0">
             </label>
+            <div id="beatReadout" class="beat-readout">小節:拍 —</div>
           </div>
           <label>ラベル
             <input id="markerLabel" type="text" placeholder="例: タイル出現 1-A">
@@ -949,7 +1030,10 @@
 
         <section class="export-panel">
           <div class="export-title">
-            <span>書き出し / 貼り付け読込</span>
+            <div class="format-toggle" role="tablist" aria-label="書き出し形式">
+              <button id="formatMarkdown" class="active" type="button" role="tab" aria-selected="true">Claude向け</button>
+              <button id="formatJson" type="button" role="tab" aria-selected="false">JSON</button>
+            </div>
             <span id="markerCount">0 keys</span>
           </div>
           <div class="json-box">
@@ -993,7 +1077,12 @@
       chooseAudio: document.getElementById("chooseAudio"),
       audioInput: document.getElementById("audioInput"),
       fileName: document.getElementById("fileName"),
+      appTitle: document.getElementById("appTitle"),
+      trackName: document.getElementById("trackName"),
+      composer: document.getElementById("composer"),
+      slug: document.getElementById("slug"),
       bpm: document.getElementById("bpm"),
+      measure: document.getElementById("measure"),
       beatOffset: document.getElementById("beatOffset"),
       snap: document.getElementById("snap"),
       zoom: document.getElementById("zoom"),
@@ -1004,6 +1093,9 @@
       markerTime: document.getElementById("markerTime"),
       markerLabel: document.getElementById("markerLabel"),
       markerComment: document.getElementById("markerComment"),
+      beatReadout: document.getElementById("beatReadout"),
+      formatMarkdown: document.getElementById("formatMarkdown"),
+      formatJson: document.getElementById("formatJson"),
       markerImageInput: document.getElementById("markerImageInput"),
       imagePreview: document.getElementById("imagePreview"),
       attachImage: document.getElementById("attachImage"),
@@ -1032,6 +1124,7 @@
       copyJson: document.getElementById("copyJson"),
       downloadJson: document.getElementById("downloadJson"),
       importJson: document.getElementById("importJson"),
+      jsonInput: document.getElementById("jsonInput"),
     };
 
     let audioContext;
@@ -1049,6 +1142,12 @@
     let selectedId = null;
     let idSeed = 1;
     let exportDirty = false;
+    let exportFormat = "markdown";
+    const STORAGE_PREFIX = "timingEditor:";
+    const LAST_SLUG_KEY = "timingEditor:lastSlug";
+    let autoSaveTimer = 0;
+    let currentStorageSlug = "";
+    let quotaWarned = false;
     let viewCenter = 0;
     let followPlayhead = true;
     let drawFrameId = 0;
@@ -1064,6 +1163,9 @@
     let timelineDragRect = null;
     let isTimelinePanning = false;
     let isPlayheadDragging = false;
+    let isMarkerDragging = false;
+    let draggedMarkerId = null;
+    let markerDragMoved = false;
     let suppressTimelineClick = false;
     let panStartX = 0;
     let panStartCenter = 0;
@@ -1211,6 +1313,22 @@
       return Math.abs(localX - playX) <= 18;
     }
 
+    // ポインタ位置に最も近い（しきい値内の）マーカーを返す。無ければ null。
+    function markerAtPointer(event, rect, windowInfo) {
+      const localX = event.clientX - rect.left;
+      let best = null;
+      let bestDist = 7;
+      for (const marker of markers) {
+        if (marker.time < windowInfo.start || marker.time > windowInfo.end) continue;
+        const dist = Math.abs(localX - timeToX(marker.time, rect, windowInfo));
+        if (dist <= bestDist) {
+          bestDist = dist;
+          best = marker;
+        }
+      }
+      return best;
+    }
+
     function resetWaveformCache() {
       waveformCanvas.width = 0;
       waveformCanvas.height = 0;
@@ -1352,31 +1470,31 @@
     }
 
     function drawBeatGrid(rect, windowInfo, fastMode = false) {
-      const bpm = Number(ui.bpm.value) || 144;
-      const offset = Number(ui.beatOffset.value) || 0;
-      const beat = 60 / bpm;
+      const offset = beatOffsetSec();
+      const measure = measureCount();
+      const beat = beatDuration();
       const beatPx = rect.width * beat / windowInfo.windowDuration;
-      const measurePx = beatPx * 4;
+      const measurePx = beatPx * measure;
       let stepBeats = 1;
-      if (beatPx < 8) stepBeats = 4;
-      if (measurePx < 28) stepBeats = 16;
+      if (beatPx < 8) stepBeats = measure;
+      if (measurePx < 28) stepBeats = measure * 4;
       if (fastMode) {
-        stepBeats = Math.max(stepBeats, 4);
-        if (measurePx < 64) stepBeats = Math.max(stepBeats, 16);
+        stepBeats = Math.max(stepBeats, measure);
+        if (measurePx < 64) stepBeats = Math.max(stepBeats, measure * 4);
       }
       const first = Math.floor((windowInfo.start - offset) / beat / stepBeats) * stepBeats - stepBeats;
       const last = Math.ceil((windowInfo.end - offset) / beat) + 1;
       for (let i = first; i <= last; i += stepBeats) {
         const time = offset + i * beat;
         const x = timeToX(time, rect, windowInfo);
-        const strong = i % 4 === 0;
+        const strong = i % measure === 0;
         ctx.strokeStyle = strong ? "rgba(250, 249, 245, 0.24)" : "rgba(250, 249, 245, 0.1)";
         ctx.lineWidth = strong ? 1.5 : 1;
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, rect.height);
         ctx.stroke();
-        if (!fastMode && strong && (measurePx > 86 || i % 16 === 0)) {
+        if (!fastMode && strong && (measurePx > 86 || i % (measure * 4) === 0)) {
           ctx.fillStyle = "rgba(250, 249, 245, 0.48)";
           ctx.font = "11px Cascadia Mono, Consolas, monospace";
           ctx.fillText(formatTime(time), x + 4, rect.height - 12);
@@ -1413,6 +1531,7 @@
       updateSelectedSummary();
       updateImagePreview();
       requestDraw();
+      scheduleAutoSave();
     }
 
     function escapeHtml(value) {
@@ -1455,6 +1574,7 @@
     function updateSelectedSummary() {
       const marker = markers.find((item) => item.id === selectedId);
       ui.selectedSummary.textContent = marker ? formatTime(marker.time) : "未選択";
+      updateBeatReadout();
     }
 
     function readEditorMarker() {
@@ -1601,7 +1721,7 @@
       selectedId = markers[0]?.id ?? null;
       ui.status.textContent = "選択マーカーを削除しました";
       if (selectedId != null) {
-        selectMarker(selectedId);
+        selectMarker(selectedId, true);
       } else {
         ui.markerTime.value = "";
         ui.markerLabel.value = "";
@@ -1621,10 +1741,59 @@
     function snapTime(time) {
       const snap = Number(ui.snap.value);
       if (!snap) return time;
-      const bpm = Number(ui.bpm.value) || 144;
-      const offset = Number(ui.beatOffset.value) || 0;
-      const unit = (60 / bpm) * snap;
-      return offset + Math.round((time - offset) / unit) * unit;
+      const unit = beatDuration() * snap;
+      return beatOffsetSec() + Math.round((time - beatOffsetSec()) / unit) * unit;
+    }
+
+    function beatDuration() {
+      return 60 / (Number(ui.bpm.value) || 144);
+    }
+
+    function measureCount() {
+      return Math.max(1, Math.round(Number(ui.measure.value) || 4));
+    }
+
+    function beatOffsetSec() {
+      return Number(ui.beatOffset.value) || 0;
+    }
+
+    // 秒 -> 音楽的な位置。小節/拍は 1 始まり、offset は最寄りの拍からのズレ(ms)。
+    function musicalPosition(time) {
+      const beatDur = beatDuration();
+      const measure = measureCount();
+      const beatsFromStart = (time - beatOffsetSec()) / beatDur;
+      const bar = Math.floor(beatsFromStart / measure);
+      const beatInBar = beatsFromStart - bar * measure;
+      const nearestBeat = Math.round(beatsFromStart);
+      const offsetMs = (beatsFromStart - nearestBeat) * beatDur * 1000;
+      return {
+        beatsFromStart,
+        barLabel: bar + 1,
+        beatLabel: beatInBar + 1,
+        nearestBeat,
+        offsetMs,
+      };
+    }
+
+    function positionLabel(time) {
+      const pos = musicalPosition(time);
+      return `${pos.barLabel}:${pos.beatLabel.toFixed(2)}`;
+    }
+
+    function updateBeatReadout() {
+      const marker = markers.find((item) => item.id === selectedId);
+      const time = marker ? marker.time : Number(ui.markerTime.value);
+      if (!Number.isFinite(time)) {
+        ui.beatReadout.innerHTML = "小節:拍 —";
+        return;
+      }
+      const pos = musicalPosition(time);
+      const off = Math.round(pos.offsetMs);
+      const onGrid = Math.abs(off) <= 3;
+      const offText = onGrid
+        ? `<span class="on">拍ジャスト</span>`
+        : `<span class="off">拍から ${off > 0 ? "+" : ""}${off}ms</span>`;
+      ui.beatReadout.innerHTML = `小節:拍 <strong>${pos.barLabel}:${pos.beatLabel.toFixed(2)}</strong> ・ ${offText}`;
     }
 
     function snapSelected() {
@@ -1635,26 +1804,200 @@
       selectMarker(marker.id, true);
     }
 
+    function sortedMarkers() {
+      return markers.slice().sort((a, b) => a.time - b.time);
+    }
+
+    function trackName() {
+      return ui.trackName.value.trim();
+    }
+
+    function composerName() {
+      return ui.composer.value.trim();
+    }
+
+    function sanitizeSlug(value) {
+      return String(value || "").toLowerCase().replace(/[^a-z0-9-]/g, "");
+    }
+
+    function slugValue() {
+      return sanitizeSlug(ui.slug.value);
+    }
+
+    // ファイル名・保存キー用。slug 未入力時は "stage" をフォールバックに使う。
+    function fileSlug() {
+      return slugValue() || "stage";
+    }
+
+    function updateTitle() {
+      const name = trackName();
+      const title = name ? `${name} タイミング` : "タイミングエディタ";
+      document.title = title;
+      ui.appTitle.textContent = title;
+    }
+
+    function storageKeyFor(slug) {
+      return STORAGE_PREFIX + slug;
+    }
+
+    function storageGet(key) {
+      try {
+        return localStorage.getItem(key) || "";
+      } catch (error) {
+        return "";
+      }
+    }
+
+    // slug 単位で現在の状態(buildJson 相当)を localStorage に保存する。
+    function saveToStorage() {
+      const slug = slugValue();
+      if (!slug) return;
+      try {
+        localStorage.setItem(storageKeyFor(slug), buildJson());
+        localStorage.setItem(LAST_SLUG_KEY, slug);
+        currentStorageSlug = slug;
+        quotaWarned = false;
+      } catch (error) {
+        if (!quotaWarned) {
+          quotaWarned = true;
+          ui.status.textContent = "自動保存に失敗しました（保存容量の上限かもしれません）";
+        }
+      }
+    }
+
+    function scheduleAutoSave() {
+      if (autoSaveTimer) window.clearTimeout(autoSaveTimer);
+      autoSaveTimer = window.setTimeout(saveToStorage, 1000);
+    }
+
+    // ページ読み込み時に、前回使った slug の保存データを自動復元する。
+    function restoreLastSession() {
+      const lastSlug = storageGet(LAST_SLUG_KEY);
+      if (!lastSlug) return false;
+      const raw = storageGet(storageKeyFor(lastSlug));
+      if (!raw) return false;
+      if (applyImportedJson(raw, "保存データ")) {
+        currentStorageSlug = lastSlug;
+        ui.status.textContent = `前回のデータを復元しました（${lastSlug}）。音源は再度読み込んでください。`;
+        return true;
+      }
+      return false;
+    }
+
+    // 保存/往復用。画像は base64 も含めて完全な状態で残す。
+    function buildJson() {
+      const payload = {
+        track: trackName(),
+        composer: composerName(),
+        slug: slugValue(),
+        bpm: Number(ui.bpm.value) || 144,
+        measure: measureCount(),
+        beatOffset: beatOffsetSec(),
+        markers: sortedMarkers().map(({ time, label, comment, imageName, imageDataUrl }) => ({
+          time: Number(time.toFixed(3)),
+          timeLabel: formatTime(time),
+          position: positionLabel(time),
+          label,
+          comment,
+          image: imageDataUrl ? { name: imageName || "", dataUrl: imageDataUrl } : null,
+        })),
+      };
+      return JSON.stringify(payload, null, 2);
+    }
+
+    // Claude に渡す指示書。base64 は載せず、画像は名前で参照させる。
+    function buildMarkdown() {
+      const bpm = Number(ui.bpm.value) || 144;
+      const measure = measureCount();
+      const beatDur = beatDuration();
+      const list = sortedMarkers();
+      const total = duration || fullDuration();
+      const escapeCell = (value) => String(value || "").replace(/\|/g, "\\|").replace(/\r?\n/g, " ").trim();
+
+      const name = trackName() || "ステージ";
+      const composer = composerName();
+      const lines = [];
+      lines.push(`# ${name} 音ハメ指示書`);
+      lines.push("");
+      lines.push(`- 曲: ${name}${composer ? `（作曲: ${composer}）` : ""}`);
+      lines.push(`- BPM: ${bpm} / 拍子: ${measure}/4 / 拍オフセット: ${beatOffsetSec().toFixed(3)}s`);
+      lines.push(`- 1拍 = ${beatDur.toFixed(4)}s / 1小節 = ${(beatDur * measure).toFixed(4)}s`);
+      lines.push(`- マーカー数: ${list.length} / 音源長: ${formatTime(total)}`);
+      lines.push("");
+      lines.push("> 各行は音源上の演出タイミング。`秒` は Unity 側 BulletBuffer の発火/`appearTime` 基準に対応させる値。`小節:拍` は BPM グリッド上の位置（1始まり）。`間隔` は直前マーカーからの差（秒 / 拍数）。画像列に名前がある行は別途スクショを添付。");
+      lines.push("");
+      lines.push("## タイミング一覧");
+      lines.push("");
+      lines.push("| # | 時刻 | 秒 | 小節:拍 | 間隔(秒/拍) | ラベル | 画像 |");
+      lines.push("|---:|---|---:|---|---|---|---|");
+      let prev = null;
+      const imageRefs = [];
+      list.forEach((marker, index) => {
+        const num = index + 1;
+        const interval = prev == null
+          ? "—"
+          : `+${(marker.time - prev.time).toFixed(3)} / ${((marker.time - prev.time) / beatDur).toFixed(2)}拍`;
+        let imageCell = "—";
+        if (marker.imageDataUrl) {
+          const name = marker.imageName || `image_${num}`;
+          imageRefs.push({ num, name });
+          imageCell = name;
+        }
+        lines.push(`| ${num} | ${formatTime(marker.time)} | ${marker.time.toFixed(3)} | ${positionLabel(marker.time)} | ${interval} | ${escapeCell(marker.label) || "—"} | ${imageCell} |`);
+        prev = marker;
+      });
+
+      const detailed = list.filter((marker) => (marker.comment || "").trim() || marker.imageDataUrl);
+      if (detailed.length) {
+        lines.push("");
+        lines.push("## 指示（詳細）");
+        prev = null;
+        list.forEach((marker, index) => {
+          const comment = (marker.comment || "").trim();
+          if (!comment && !marker.imageDataUrl) return;
+          const num = index + 1;
+          lines.push("");
+          lines.push(`### ${num}. ${formatTime(marker.time)} ・ ${positionLabel(marker.time)} ・ ${marker.label || "（無題）"}`);
+          if (marker.imageDataUrl) {
+            lines.push(`- 画像: ${marker.imageName || `image_${num}`}（別途添付）`);
+          }
+          if (comment) {
+            lines.push(comment);
+          }
+        });
+      }
+
+      if (imageRefs.length) {
+        lines.push("");
+        lines.push("## 添付画像");
+        lines.push("");
+        imageRefs.forEach(({ num, name }) => lines.push(`- ${name} … マーカー #${num}`));
+        lines.push("");
+        lines.push("※ base64 は含めていません。上記の名前のスクショをこのチャットに添付してください。");
+      }
+
+      lines.push("");
+      return lines.join("\n");
+    }
+
     function updateExport() {
       if (exportDirty && document.activeElement === ui.exportText) return;
-      const payload = {
-        track: "石工",
-        composer: "べにぐち",
-        bpm: Number(ui.bpm.value) || 144,
-        beatOffset: Number(ui.beatOffset.value) || 0,
-        markers: markers
-          .slice()
-          .sort((a, b) => a.time - b.time)
-          .map(({ time, label, comment, imageName, imageDataUrl }) => ({
-            time: Number(time.toFixed(6)),
-            timeLabel: formatTime(time),
-            label,
-            comment,
-            image: imageDataUrl ? { name: imageName || "", dataUrl: imageDataUrl } : null,
-          })),
-      };
-      ui.exportText.value = JSON.stringify(payload, null, 2);
+      ui.exportText.value = exportFormat === "json" ? buildJson() : buildMarkdown();
       exportDirty = false;
+    }
+
+    function setExportFormat(format) {
+      exportFormat = format === "json" ? "json" : "markdown";
+      ui.formatMarkdown.classList.toggle("active", exportFormat === "markdown");
+      ui.formatJson.classList.toggle("active", exportFormat === "json");
+      ui.formatMarkdown.setAttribute("aria-selected", String(exportFormat === "markdown"));
+      ui.formatJson.setAttribute("aria-selected", String(exportFormat === "json"));
+      ui.exportText.spellcheck = false;
+      setButtonIcon(ui.downloadJson, "download", exportFormat === "json" ? "JSON保存" : "MD保存");
+      ui.copyJson.title = exportFormat === "json" ? "JSONをコピー" : "Claude向け指示書をコピー";
+      ui.downloadJson.title = exportFormat === "json" ? "JSONファイルを保存" : "Markdownファイルを保存";
+      exportDirty = false;
+      updateExport();
     }
 
     function download(name, content, type) {
@@ -1783,9 +2126,9 @@
       syncTransport();
     }
 
-    function importMarkersFromText() {
+    function applyImportedJson(text, sourceLabel = "JSON") {
       try {
-        const payload = JSON.parse(ui.exportText.value);
+        const payload = JSON.parse(text);
         if (!Array.isArray(payload.markers)) throw new Error("markers missing");
         markers = payload.markers.map((marker) => ({
           id: idSeed++,
@@ -1796,15 +2139,33 @@
           imageDataUrl: marker.image?.dataUrl || marker.imageDataUrl || "",
         }));
         if (payload.bpm != null) ui.bpm.value = Number(payload.bpm) || 144;
+        if (payload.measure != null) ui.measure.value = Math.max(1, Math.round(Number(payload.measure) || 4));
         if (payload.beatOffset != null) ui.beatOffset.value = Number(payload.beatOffset) || 0;
+        if (payload.track != null) ui.trackName.value = String(payload.track);
+        if (payload.composer != null) ui.composer.value = String(payload.composer);
+        // 後方互換: 旧 JSON に slug が無ければ現状のまま。
+        if (payload.slug != null) ui.slug.value = sanitizeSlug(payload.slug);
+        updateTitle();
         selectedId = markers[0]?.id ?? null;
         exportDirty = false;
         if (selectedId != null) selectMarker(selectedId);
         renderMarkers();
-        ui.status.textContent = "JSONを読み込みました";
+        ui.status.textContent = `${sourceLabel}を読み込みました（${markers.length}件）`;
+        return true;
       } catch (error) {
-        ui.status.textContent = "JSONを読み込めません";
+        ui.status.textContent = `JSONを読み込めません: ${error.message || "不正な形式"}`;
+        return false;
       }
+    }
+
+    // 読込ボタン: テキストエリアに貼り付けた JSON があればそれを、無ければファイル選択を開く。
+    function importMarkersFromText() {
+      const raw = ui.exportText.value.trim();
+      if (exportDirty && raw.startsWith("{")) {
+        applyImportedJson(raw, "貼り付けJSON");
+        return;
+      }
+      ui.jsonInput.click();
     }
 
     ui.loadBundled.addEventListener("click", async () => {
@@ -1911,26 +2272,89 @@
       exportDirty = true;
     });
 
+    ui.formatMarkdown.addEventListener("click", () => setExportFormat("markdown"));
+    ui.formatJson.addEventListener("click", () => setExportFormat("json"));
+
     ui.copyJson.addEventListener("click", async () => {
       updateExport();
       await navigator.clipboard.writeText(ui.exportText.value);
-      ui.status.textContent = "JSONをコピーしました";
+      ui.status.textContent = exportFormat === "json" ? "JSONをコピーしました" : "Claude向け指示書をコピーしました";
     });
 
     ui.downloadJson.addEventListener("click", () => {
       updateExport();
-      download("stone-timing-markers.json", ui.exportText.value, "application/json");
+      const slug = fileSlug();
+      if (exportFormat === "json") {
+        download(`${slug}-timing-markers.json`, ui.exportText.value, "application/json");
+      } else {
+        download(`${slug}-timing-instructions.md`, ui.exportText.value, "text/markdown");
+      }
     });
 
     ui.importJson.addEventListener("click", importMarkersFromText);
+    ui.jsonInput.addEventListener("change", async () => {
+      const file = ui.jsonInput.files?.[0];
+      ui.jsonInput.value = "";
+      if (!file) return;
+      try {
+        const text = await file.text();
+        applyImportedJson(text, file.name);
+      } catch (error) {
+        ui.status.textContent = "ファイルを読み込めません";
+      }
+    });
 
     ui.bpm.addEventListener("input", () => {
       updateExport();
+      updateBeatReadout();
       requestDraw();
+      scheduleAutoSave();
+    });
+    ui.measure.addEventListener("input", () => {
+      updateExport();
+      updateBeatReadout();
+      requestDraw();
+      scheduleAutoSave();
     });
     ui.beatOffset.addEventListener("input", () => {
       updateExport();
+      updateBeatReadout();
       requestDraw();
+      scheduleAutoSave();
+    });
+
+    [ui.trackName, ui.composer].forEach((control) => {
+      control.addEventListener("input", () => {
+        updateTitle();
+        updateExport();
+        scheduleAutoSave();
+      });
+    });
+
+    // slug 入力: 半角英数とハイフンのみに整形。打鍵ごとの保存はしない。
+    ui.slug.addEventListener("input", () => {
+      const clean = sanitizeSlug(ui.slug.value);
+      if (ui.slug.value !== clean) ui.slug.value = clean;
+      updateExport();
+    });
+
+    // slug 確定時: 同じ slug の保存データがあれば読み込むか確認。無ければ現内容を新 slug で保存継続。
+    ui.slug.addEventListener("change", () => {
+      const slug = slugValue();
+      if (ui.slug.value !== slug) ui.slug.value = slug;
+      if (!slug) return;
+      const raw = storageGet(storageKeyFor(slug));
+      if (raw && slug !== currentStorageSlug) {
+        if (window.confirm(`スラッグ「${slug}」の保存データがあります。読み込みますか？\n（現在の編集内容は破棄されます）`)) {
+          if (applyImportedJson(raw, "保存データ")) {
+            currentStorageSlug = slug;
+            ui.status.textContent = `「${slug}」の保存データを読み込みました`;
+            return;
+          }
+        }
+      }
+      currentStorageSlug = slug;
+      saveToStorage();
     });
     ui.zoom.addEventListener("input", () => requestDraw());
     ui.snap.addEventListener("change", () => requestDraw());
@@ -1968,6 +2392,18 @@
       const rect = canvas.getBoundingClientRect();
       const windowInfo = visibleWindow();
       timelineDragRect = rect;
+      const hitMarker = markerAtPointer(event, rect, windowInfo);
+      if (hitMarker) {
+        isMarkerDragging = true;
+        draggedMarkerId = hitMarker.id;
+        markerDragMoved = false;
+        suppressTimelineClick = true;
+        followPlayhead = false;
+        selectMarker(hitMarker.id);
+        ui.timelineWrap.classList.add("is-scrubbing");
+        ui.timelineWrap.setPointerCapture?.(event.pointerId);
+        return;
+      }
       if (isNearPlayhead(event, rect, windowInfo)) {
         isPlayheadDragging = true;
         suppressTimelineClick = true;
@@ -1993,7 +2429,27 @@
         setAudioTime(timelinePointerTime(event, timelineDragRect || canvas.getBoundingClientRect()));
         return;
       }
-      if (!isTimelinePanning) return;
+      if (isMarkerDragging) {
+        const marker = markers.find((item) => item.id === draggedMarkerId);
+        if (!marker) return;
+        const rect = timelineDragRect || canvas.getBoundingClientRect();
+        const limit = duration || fullDuration();
+        const next = clamp(snapTime(xToTime(event.clientX - rect.left, rect, visibleWindow())), 0, limit);
+        marker.time = next;
+        markerDragMoved = true;
+        suppressTimelineClick = true;
+        ui.markerTime.value = next.toFixed(3);
+        updateBeatReadout();
+        ui.status.textContent = `${marker.label || "メモ"} → ${formatTime(next)}`;
+        requestDraw();
+        return;
+      }
+      if (!isTimelinePanning) {
+        const rect = canvas.getBoundingClientRect();
+        const overMarker = !!markerAtPointer(event, rect, visibleWindow());
+        ui.timelineWrap.classList.toggle("is-marker-hover", overMarker);
+        return;
+      }
       const rect = timelineDragRect || canvas.getBoundingClientRect();
       if (!rect.width) return;
       const deltaX = event.clientX - panStartX;
@@ -2003,6 +2459,24 @@
     });
 
     function stopTimelinePan(event) {
+      if (isMarkerDragging) {
+        isMarkerDragging = false;
+        const id = draggedMarkerId;
+        const moved = markerDragMoved;
+        draggedMarkerId = null;
+        timelineDragRect = null;
+        ui.timelineWrap.classList.remove("is-scrubbing");
+        if (event?.pointerId != null) ui.timelineWrap.releasePointerCapture?.(event.pointerId);
+        const marker = markers.find((item) => item.id === id);
+        if (moved && marker) {
+          ui.status.textContent = `${marker.label || "メモ"} を ${formatTime(marker.time)} へ移動しました`;
+        }
+        selectMarker(id, true);
+        window.setTimeout(() => {
+          suppressTimelineClick = false;
+        }, 80);
+        return;
+      }
       if (isPlayheadDragging) {
         isPlayheadDragging = false;
         timelineDragRect = null;
@@ -2080,8 +2554,16 @@
         event.preventDefault();
         ui.play.click();
       }
-      if (event.key.toLowerCase() === "k") addMarker("メモ");
+      if (event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        addMarker("メモ");
+        ui.markerComment.focus();
+      }
       if (event.key.toLowerCase() === "i") ui.markerImageInput.click();
+      if ((event.key === "Delete" || event.key === "Backspace") && selectedId != null) {
+        event.preventDefault();
+        deleteSelected();
+      }
       if (event.key === "[") nudgeSelected(-0.01);
       if (event.key === "]") nudgeSelected(0.01);
       if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
@@ -2100,8 +2582,11 @@
     });
 
     decorateIcons();
+    setExportFormat(exportFormat);
+    updateTitle();
+    restoreLastSession();
     renderMarkers();
-    selectMarker(markers[0].id);
+    if (markers.length) selectMarker(markers[0].id);
     updateTransport();
     window.setTimeout(() => {
       if (!audio.src) ensureAudioLoaded();
