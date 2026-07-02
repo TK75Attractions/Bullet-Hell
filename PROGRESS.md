@@ -1,5 +1,34 @@
 # PROGRESS
 
+## 2026-07-03 朝(自律セッション・改善継続ラウンド3: シーク後 NRE ループの根本修正)
+
+### 今回やったこと
+
+前ラウンド未解決筆頭「シークで終端(73s〜)を跨ぐと GManager.Control が null になり PlayerController.Move が NRE ループ」を調査・修正:
+
+1. **真因の特定(シークは無実)**
+   - Play Mode で 6s→75s シーク、70s へ巻き戻して終端 80s(Clear イベント+ゴーレム寿命)を2回跨いでもエラーゼロ。シーク・終端跨ぎ単体では再現しない
+   - 前セッションの Editor.log(113,378行目〜)を精査すると、NRE スパムの直前に「Reloading assemblies after forced synchronous recompile」= **Play Mode 中のドメインリロード**があった
+   - 機序: リロードで static `GManager.Control` と非シリアライズ状態が消える一方、シリアライズされる `ready=true` / `state=Playing` は生き残る → `GManager.Update` が動き続け `PlayerController.Move` の `GManager.Control.IManager` が毎フレーム NRE
+   - Play 中に `EditorUtility.RequestScriptReload()` を実行して同一の NRE ループを意図的に再現し、機序を確定
+2. **修正(`GManager.cs` のみ、差分最小)**
+   - `ready` を `[NonSerialized]` 化: リロード後は必ず false に戻り、Update/LateUpdate が安全に停止(NRE の連鎖を根元で遮断)
+   - `OnEnable` で `Control == null` なら再ラッチ: エディタ拡張の null ガードが「未初期化」として正しく機能する
+   - `ready=false` かつ `state != Title` を検出したら一度だけ警告ログ(「Play を止めてステージを再起動して」)を出す
+
+### 検証結果
+
+- コンパイルエラーなし、EditMode テスト 49/49 緑
+- 修正後の Play Mode で再テスト: 石工ステージ起動 → 75s シーク → Play 中に強制ドメインリロード → **NRE ゼロ**、警告1行のみ、Control 再ラッチ・ready=false を確認
+- 通常起動(Play → タイトル → ステージ開始 → シーク)への影響なしを同セッションで確認
+- リロード時の「Leak Detected: Persistent allocates 21 allocations」は修正前から出ている既存事象(リロードで QuadOrder の NativeArray が Dispose されないため)。今回のスコープ外
+
+### 未解決と次の一手
+
+- 恒久対策の推奨: Unity の Preferences > General > Script Changes While Playing を「Recompile After Finished Playing」にすると Play 中リロード自体が起きなくなる(ユーザー環境設定のため未変更)
+- Play 中ドメインリロード時の NativeArray リーク(既存)。実害は小さいがいつか OnApplicationQuit/リロード前 Dispose を検討
+- 演出系(Gemini/Oracle 指摘の反映、カッターのビート同期、形態変化強化など)は引き続きユーザー判断待ち。今回は手を付けていない
+
 ## 2026-07-03 朝(自律セッション・改善継続ラウンド2: 録画→検証→動画レビューの完走)
 
 ### 今回やったこと

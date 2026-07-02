@@ -60,7 +60,14 @@ public class GManager : MonoBehaviour
     public BulletRenderSystem BRS;
 
     public float gameTime;
-    public bool ready = false;
+    // Play Mode 中にドメインリロード(スクリプト再コンパイル等)が走ると static の
+    // Control や非シリアライズの実行時状態(BClipManager 等)は消えるが、この
+    // インスタンス自体はシリアライズ経由で生き残る。ready が true のまま復元されると
+    // Update が壊れた状態のまま毎フレーム走り、PlayerController.Move が
+    // GManager.Control.IManager で NRE ループする。NonSerialized でリロード後は
+    // 必ず false に戻し、Update/LateUpdate を安全に停止させる。
+    [NonSerialized] public bool ready = false;
+    private bool reloadDuringPlayWarned = false;
 
     public bool musicOn = false;
     public int playerHitCount = 0;
@@ -159,11 +166,29 @@ public class GManager : MonoBehaviour
         Debug.Log($"[GManagerStartup] {message}", this);
     }
 
-
+    // ドメインリロード後は Awake が再実行されず Control が null のままになるので、
+    // OnEnable(リロード後にも呼ばれる)で張り直す。エディタ拡張の null ガードが
+    // 「未初期化」として正しく扱えるようにするため。通常起動では Awake が先に設定済み。
+    private void OnEnable()
+    {
+        if (Control == null) Control = this;
+    }
 
     public void Update()
     {
-        if (!ready) return;
+        if (!ready)
+        {
+            // state はシリアライズされて生き残るため、Playing のまま ready=false は
+            // Play 中のドメインリロードで実行時状態が失われた証拠。一度だけ知らせる。
+            if (!reloadDuringPlayWarned && state != GameState.Title)
+            {
+                reloadDuringPlayWarned = true;
+                Debug.LogWarning(
+                    "[GManager] Domain reload during Play Mode detected; runtime state was lost. " +
+                    "Stop Play Mode and restart the stage.", this);
+            }
+            return;
+        }
 
         // While paused, only watch for Esc to resume; gameplay updates are skipped
         // (timeScale is 0 and all audio is paused via AudioListener).
