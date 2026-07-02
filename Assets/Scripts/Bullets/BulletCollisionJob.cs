@@ -18,7 +18,9 @@ public struct BulletCollisionJob : IJobParallelFor
     public NativeArray<float> bPowers;
     public float2 pPos;
     public bool isPlayerDash;
-    public float grazeRange;
+    // Squared graze/erase radius: compared directly against squared distance
+    // (dot(dis,dis)). A value of 10 means an effective radius of sqrt(10) ~= 3.16.
+    public float grazeRangeSq;
 
     [NativeDisableParallelForRestriction]
     public NativeArray<int> isCollided;
@@ -40,7 +42,7 @@ public struct BulletCollisionJob : IJobParallelFor
             if (bullet.unCounterable) return; // カウンター不可の弾はダッシュで消せない
             float2 dis = pPos - bullet.position;
             float distSq = math.dot(dis, dis);
-            if (grazeRange > distSq)
+            if (grazeRangeSq > distSq)
             {
                 float uniformScale = math.cmax(math.abs(bullet.scale));
                 attackPower[0] += bPowers[bullet.typeId] * uniformScale;

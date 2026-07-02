@@ -162,9 +162,9 @@ public static class StageGoldenDumper
             {
                 spawner.index = clipIndex;
             }
-            else if (spawner.clipName == "Clear")
+            else if (spawner.clipName == StageScheduleExpander.ClearClipName)
             {
-                spawner.index = -3;
+                spawner.index = StageScheduleExpander.ClearEventIndex;
             }
             else
             {
@@ -173,7 +173,7 @@ public static class StageGoldenDumper
             spawners[i] = spawner;
             if (!indexToClip.ContainsKey(spawner.index))
             {
-                indexToClip[spawner.index] = spawner.index == -3 ? "Clear" : spawner.clipName;
+                indexToClip[spawner.index] = spawner.index == StageScheduleExpander.ClearEventIndex ? StageScheduleExpander.ClearClipName : spawner.clipName;
             }
         }
 

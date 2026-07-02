@@ -19,6 +19,17 @@ public static class StageScheduleExpander
     /// </summary>
     public const int UnresolvedIndex = int.MinValue;
 
+    /// <summary>
+    /// Sentinel index written onto a spawner whose clipName is "Clear". It
+    /// resolves to no buffer; instead, when consumed at its scheduled time the
+    /// runtime triggers <c>ClearManagedEnemyDanmaku</c>. Kept as a distinct
+    /// negative value so it never collides with a real buffer index.
+    /// </summary>
+    public const int ClearEventIndex = -3;
+
+    /// <summary>The clipName that maps to <see cref="ClearEventIndex"/>.</summary>
+    public const string ClearClipName = "Clear";
+
     [System.Serializable]
     public struct ScheduledSpawn
     {

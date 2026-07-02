@@ -658,6 +658,8 @@ public class BulletBufferManager
                 {
                     BulletData template = templateBullets[i];
                     float2 dis = -template.startPos;
+                    // Unit boundary: stage spawner `angle` is in DEGREES; the bullet
+                    // constructor expects RADIANS, so convert here (deg/180*PI).
                     BulletData spawned = new BulletData(template, emitPos, _vlc, angle / 180 * math.PI, _color);
                     spawned.startPos -= dis;
                     spawnedBullets.Add(spawned);
@@ -670,7 +672,7 @@ public class BulletBufferManager
         }
         else
         {
-            if (index == -3) return default; // "Clear" という特別なインデックスは、空の弾リストを返す
+            if (index == StageScheduleExpander.ClearEventIndex) return default; // "Clear" という特別なインデックスは、空の弾リストを返す
             Debug.LogError($"Bullet clip index out of range: {index}");
             return default;
         }
