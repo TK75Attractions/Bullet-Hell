@@ -524,9 +524,12 @@ public partial class QuadOrder : MonoBehaviour
         return indexes;
     }
 
-    public void AddEnemyBullets(int index, float2 pos, float2 originVlc, float angle, float4 color)
+    // thinN is the P5 difficulty decimation stride (0 => keep all). It is forwarded
+    // to GetBulletClip which drops every N-th template bullet by index. The default
+    // keeps every existing caller unchanged.
+    public void AddEnemyBullets(int index, float2 pos, float2 originVlc, float angle, float4 color, int thinN = 0)
     {
-        List<BulletData> bullets = GManager.Control.BClipManager.GetBulletClip(index, GManager.Control.PController.pos, pos, originVlc, angle, color, out bool isLaser);
+        List<BulletData> bullets = GManager.Control.BClipManager.GetBulletClip(index, GManager.Control.PController.pos, pos, originVlc, angle, color, out bool isLaser, thinN);
 
         if (bullets == null || bullets.Count == 0)
         {

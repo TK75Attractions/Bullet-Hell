@@ -27,10 +27,21 @@ public static class PlayHistory
     // Crockford Base32 alphabet (excludes I, L, O, U for legibility).
     private const string Alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
 
-    // Fallback stage order used only if the stage database is not yet available.
-    private static readonly string[] DefaultStageOrder =
+    // Fixed transfer-code slot assignment keyed by stageDirectoryName. Pinning the
+    // slots (instead of following the live stage-database order) keeps previously
+    // issued codes valid when the difficulty feature or new stages shift that order.
+    // These indices match the historical stage-database order, so existing codes are
+    // unchanged. Unknown stages are assigned to the remaining empty slots in
+    // discovery order (slot 7 first), never displacing a fixed stage.
+    private static readonly Dictionary<string, int> FixedSlotMap = new Dictionary<string, int>
     {
-        "25", "captain", "debug", "debug(nature)", "stone", "mirror"
+        { "25", 0 },
+        { "captain", 1 },
+        { "debug", 2 },
+        { "debug(nature)", 3 },
+        { "stone", 4 },
+        { "mirror", 5 },
+        { "pattern_demo", 6 }
     };
 
     // dir -> {play, clear}
@@ -257,9 +268,18 @@ public static class PlayHistory
         PlayerPrefs.Save();
     }
 
+    // Returns the slot->stageDirectoryName assignment (length MaxSlots). Fixed
+    // stages sit at their pinned index; unknown stages fill remaining empty slots in
+    // discovery order. Empty slots are "" (they never match a cached stage key, so
+    // they contribute zero play/clear counts to the code).
     private static List<string> GetStageOrder()
     {
-        List<string> order = new List<string>(MaxSlots);
+        string[] slots = new string[MaxSlots];
+        foreach (KeyValuePair<string, int> kv in FixedSlotMap)
+        {
+            if (kv.Value >= 0 && kv.Value < MaxSlots) slots[kv.Value] = kv.Key;
+        }
+
         List<StageData> stages = GManager.Control?.SDB?.GetAllStages();
         if (stages != null)
         {
@@ -269,22 +289,26 @@ public static class PlayHistory
                 string dir = string.IsNullOrWhiteSpace(stage.stageDirectoryName)
                     ? stage.stageName
                     : stage.stageDirectoryName;
-                if (string.IsNullOrWhiteSpace(dir) || order.Contains(dir)) continue;
-                order.Add(dir);
-                if (order.Count == MaxSlots) break;
+                if (string.IsNullOrWhiteSpace(dir) || FixedSlotMap.ContainsKey(dir)) continue;
+
+                int slot = FirstEmptySlot(slots);
+                if (slot < 0) break; // all slots taken
+                slots[slot] = dir;
             }
         }
 
-        if (order.Count == 0)
-        {
-            foreach (string dir in DefaultStageOrder)
-            {
-                order.Add(dir);
-                if (order.Count == MaxSlots) break;
-            }
-        }
-
+        List<string> order = new List<string>(MaxSlots);
+        for (int i = 0; i < MaxSlots; i++) order.Add(slots[i] ?? string.Empty);
         return order;
+    }
+
+    private static int FirstEmptySlot(string[] slots)
+    {
+        for (int i = 0; i < slots.Length; i++)
+        {
+            if (string.IsNullOrEmpty(slots[i])) return i;
+        }
+        return -1;
     }
 
     private static string Normalize(string input)

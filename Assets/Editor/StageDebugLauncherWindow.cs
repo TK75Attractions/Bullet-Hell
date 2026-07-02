@@ -56,7 +56,33 @@ public class StageDebugLauncherWindow : EditorWindow
 
         DrawStageList();
         EditorGUILayout.Space(6);
+        DrawDifficulty();
+        EditorGUILayout.Space(6);
         DrawSeekControls();
+    }
+
+    private static readonly string[] DifficultyLabels = { "EASY", "NORMAL", "LUNATIC" };
+
+    /// <summary>
+    /// P5 difficulty selector. Sets <see cref="GManager.selectedDifficulty"/> (so the
+    /// next stage start snapshots it) and, when a stage is already running, pushes it
+    /// live into <see cref="StageReader.ActiveDifficulty"/> so subsequent clip events
+    /// filter/decimate and pattern events re-expand immediately.
+    /// </summary>
+    private void DrawDifficulty()
+    {
+        int current = Mathf.Clamp(GManager.Control.selectedDifficulty, 0, 2);
+        EditorGUILayout.LabelField("Difficulty (P5)", EditorStyles.boldLabel);
+        int picked = GUILayout.Toolbar(current, DifficultyLabels);
+        if (picked != current)
+        {
+            GManager.Control.selectedDifficulty = picked;
+            StageReader reader = StageSeekSupport.CurrentReader();
+            if (reader != null && reader.IsReady) reader.ActiveDifficulty = picked;
+        }
+        EditorGUILayout.LabelField(
+            "Charts are authored at LUNATIC; EASY/NORMAL subtract via minDifficulty/thin/diffScale.",
+            EditorStyles.miniLabel);
     }
 
     private void DrawStageList()

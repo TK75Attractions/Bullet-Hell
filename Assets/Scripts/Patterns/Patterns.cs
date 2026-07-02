@@ -46,22 +46,22 @@ public sealed class FallingBlockPattern : IBulletPattern
             if (warnSec > 0f)
             {
                 BulletData warn = PatternMath.Make(warnId, pos, 0f, 0f, 0f, 0f, s * 1.05f, warnCol, warnSec);
-                output.Add(new PatternEmission(0f, PatternMath.AsFullBlink(warn)));
+                output.Add(new PatternEmission(0f, PatternMath.AsFullBlink(warn), structural: true));
             }
 
             if (holdSec > 0f)
             {
                 BulletData hold = PatternMath.Make(blockId, pos, 0f, 0f, 0f, 0f, s, blockCol, holdSec);
-                output.Add(new PatternEmission(tAppear, hold));
+                output.Add(new PatternEmission(tAppear, hold, structural: true));
             }
 
             float gravity = PatternMath.GravityForDrop(pos.y - landY, fallSec);
             BulletData fall = PatternMath.Make(blockId, pos, 0f, 0f, gravity, 0f, s, blockCol, fallSec);
-            output.Add(new PatternEmission(tDrop, fall));
+            output.Add(new PatternEmission(tDrop, fall, structural: true));
 
             float2 landPos = new float2(pos.x, landY);
             BulletData landed = PatternMath.Make(blockId, landPos, 0f, 0f, 0f, 0f, s, blockCol, untilSec);
-            output.Add(new PatternEmission(tLand, landed));
+            output.Add(new PatternEmission(tLand, landed, structural: true));
 
             if (a.dust)
             {
@@ -165,7 +165,7 @@ public sealed class BeatPulseWarnPattern : IBulletPattern
         foreach (Vector2 p in a.positions)
         {
             BulletData warn = PatternMath.Make(warnId, new float2(p.x, p.y), 0f, 0f, 0f, 0f, s, warnCol, life);
-            output.Add(new PatternEmission(0f, PatternMath.AsFullBlink(warn)));
+            output.Add(new PatternEmission(0f, PatternMath.AsFullBlink(warn), structural: true));
         }
     }
 }
@@ -224,7 +224,7 @@ internal static class PatternHelpers
             BulletData flash = PatternMath.Make(
                 burstId, pos, 0f, 0f, 0f, 0f, new float2(sc, sc), PatternMath.ColorBurst, 0.2f + appear,
                 appearTime: appear, appearDuration: 0f);
-            output.Add(new PatternEmission(offset, flash));
+            output.Add(new PatternEmission(offset, flash, structural: true));
         }
     }
 }

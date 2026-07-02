@@ -25,6 +25,10 @@ public class StageReader : MonoBehaviour
     [SerializeField] private int bulletCount = 0;
     [SerializeField] private bool isReady = false;
     private bool clearRecorded = false;
+    // P5: difficulty snapshotted at Init from GManager.selectedDifficulty. Clip
+    // events are filtered/decimated live in UpdateStage; pattern events are
+    // re-expanded when this changes (see ActiveDifficulty).
+    private int activeDifficulty = 1;
     private EnemyVisualCatalog enemyVisualCatalog;
     private AudioSource stageBgmSource;
     private double stageBgmScheduledDspTime = -1d;
@@ -41,6 +45,7 @@ public class StageReader : MonoBehaviour
         patternBulletCount = 0;
         isReady = false;
         clearRecorded = false;
+        activeDifficulty = GManager.Control != null ? GManager.Control.selectedDifficulty : 1;
         stageBgmSource = null;
         stageBgmScheduledDspTime = -1d;
 
@@ -173,19 +178,43 @@ public class StageReader : MonoBehaviour
                 continue;
             }
 
+            // P5: minDifficulty hides the whole pattern below its threshold.
+            if (!DifficultyResolver.ShouldEmitEvent(ev.minDifficulty, activeDifficulty))
+            {
+                continue;
+            }
+
+            // P5: diffScale multiplies the pattern's speed/count arguments before it
+            // emits (ApplyScale returns the original instance when both factors are 1).
+            float speedMul = DifficultyResolver.SelectScale(activeDifficulty, ev.scaleEasySpeed, ev.scaleNormalSpeed);
+            float countMul = DifficultyResolver.SelectScale(activeDifficulty, ev.scaleEasyCount, ev.scaleNormalCount);
+            PatternParamsJson scaledArgs = DifficultyResolver.ApplyScale(ev.args, speedMul, countMul);
+
             emissions.Clear();
-            if (!PatternExecutor.Expand(ev.patternType, ev.args, ctx, emissions))
+            if (!PatternExecutor.Expand(ev.patternType, scaledArgs, ctx, emissions))
             {
                 Debug.LogWarning($"[StageReader] Unknown pattern type '{ev.patternType}' at t={ev.time}.");
                 continue;
             }
 
+            // P5: thin decimates non-structural emissions (shards/dust/cutters) by
+            // their running index; structural bullets (blocks/warnings/flashes) stay.
+            int thinN = DifficultyResolver.ThinForDifficulty(activeDifficulty, ev.thinEasy, ev.thinNormal);
+            int thinnableIndex = 0;
             for (int i = 0; i < emissions.Count; i++)
             {
+                PatternEmission emission = emissions[i];
+                if (!emission.Structural)
+                {
+                    bool keep = DifficultyResolver.ShouldEmitBullet(thinnableIndex, thinN);
+                    thinnableIndex++;
+                    if (!keep) continue;
+                }
+
                 patternBulletEvents.Add(new PatternBulletEvent
                 {
-                    time = ev.time + emissions[i].TimeOffset,
-                    bullet = emissions[i].Bullet
+                    time = ev.time + emission.TimeOffset,
+                    bullet = emission.Bullet
                 });
             }
         }
@@ -296,9 +325,17 @@ public class StageReader : MonoBehaviour
                         : stageData.stageDirectoryName;
                     PlayHistory.RecordClear(dir);
                 }
+                continue; // Clear carries no bullets.
             }
 
-            GManager.Control.QOrder.AddEnemyBullets(spawner.index, spawner.pos, spawner.originVlc, spawner.angle, spawner.color);
+            // P5: minDifficulty hides the whole event below its threshold; thin
+            // decimates the buffer's bullets by index inside GetBulletClip.
+            if (!DifficultyResolver.ShouldEmitEvent(spawner.minDifficulty, activeDifficulty))
+            {
+                continue;
+            }
+            int clipThinN = DifficultyResolver.ThinForDifficulty(activeDifficulty, spawner.thinEasy, spawner.thinNormal);
+            GManager.Control.QOrder.AddEnemyBullets(spawner.index, spawner.pos, spawner.originVlc, spawner.angle, spawner.color, clipThinN);
             //Debug.Log($"Spawned bullet: {spawner.index}");
         }
 
@@ -319,6 +356,31 @@ public class StageReader : MonoBehaviour
 
     /// <summary>True once Init has finished and the stage is running.</summary>
     public bool IsReady => isReady;
+
+    /// <summary>
+    /// P5 active difficulty (0=EASY/1=NORMAL/2=LUNATIC). Snapshotted at Init from
+    /// <see cref="GManager.selectedDifficulty"/>; the debug launcher can set it live.
+    /// Clip events pick this up on the next spawn; pattern events are re-expanded
+    /// here so their thin/scale re-resolve immediately, with the pattern cursor
+    /// re-advanced to the current time (already-past events are not replayed).
+    /// </summary>
+    public int ActiveDifficulty
+    {
+        get => activeDifficulty;
+        set
+        {
+            if (activeDifficulty == value) return;
+            activeDifficulty = value;
+            if (!isReady) return;
+
+            ExpandPatternEvents();
+            patternBulletCount = 0;
+            while (patternBulletCount < patternBulletEvents.Count && patternBulletEvents[patternBulletCount].time <= time)
+            {
+                patternBulletCount++;
+            }
+        }
+    }
 
     /// <summary>BGM source driving the clock, or null for silent stages.</summary>
     public AudioSource StageBgmSource => stageBgmSource;
