@@ -9,7 +9,7 @@ public class StageReader : MonoBehaviour
     private const double BgmLeadTime = 2d;
     private const bool LogStageSchedule = false;
     [SerializeField] private StageData stageData;
-    [SerializeField] private List<BulletSpawnEvent> spawnEvents = new List<BulletSpawnEvent>();
+    [SerializeField] private List<StageScheduleExpander.ScheduledSpawn> spawnEvents = new List<StageScheduleExpander.ScheduledSpawn>();
     [SerializeField] private float time = 0f;
     [SerializeField] private int enemyCount = 0;
     [SerializeField] private int bulletCount = 0;
@@ -18,17 +18,6 @@ public class StageReader : MonoBehaviour
     private EnemyVisualCatalog enemyVisualCatalog;
     private AudioSource stageBgmSource;
     private double stageBgmScheduledDspTime = -1d;
-
-    [Serializable]
-    private struct BulletSpawnEvent
-    {
-        public float time;
-        public float2 pos;
-        public float2 originVlc;
-        public float angle;
-        public int index;
-        public float4 color;
-    }
 
     public async Task<bool> Init(StageData data)
     {
@@ -110,25 +99,23 @@ public class StageReader : MonoBehaviour
             else
             {
                 Debug.LogError($"Bullet clip not found: {spawner.clipName}");
+                spawner.index = StageScheduleExpander.UnresolvedIndex;
+                stageData.bulletSpawners[i] = spawner; // Mark unresolved so expansion skips it.
                 continue;
             }
+        }
 
-            for (int k = 0; k < spawner.count; k++)
+        // Expand resolved spawners into the time-sorted event list. Shared with
+        // the golden-master dumper so runtime and tests stay in lockstep.
+        StageScheduleExpander.Expand(stageData.bulletSpawners, spawnEvents);
+        if (LogStageSchedule)
+        {
+            for (int e = 0; e < spawnEvents.Count; e++)
             {
-                BulletSpawnEvent spawnEvent = new BulletSpawnEvent
-                {
-                    time = spawner.time + k * spawner.interval,
-                    pos = spawner.pos,
-                    angle = spawner.angle + k * spawner.angleInterval,
-                    index = spawner.index,
-                    originVlc = spawner.originVlc,
-                    color = spawner.color
-                };
-                if (LogStageSchedule) Debug.Log($"Scheduled bullet spawn: time={spawnEvent.time}, pos={spawnEvent.pos}, angle={spawnEvent.angle}, index={spawnEvent.index}");
-                spawnEvents.Add(spawnEvent);
+                StageScheduleExpander.ScheduledSpawn spawnEvent = spawnEvents[e];
+                Debug.Log($"Scheduled bullet spawn: time={spawnEvent.time}, pos={spawnEvent.pos}, angle={spawnEvent.angle}, index={spawnEvent.index}");
             }
         }
-        spawnEvents.Sort((a, b) => a.time.CompareTo(b.time));
 
         isReady = true;
         LogStageInit("Init ready");
@@ -220,7 +207,7 @@ public class StageReader : MonoBehaviour
 
         while (spawnEvents.Count > bulletCount && spawnEvents[bulletCount].time <= time)
         {
-            BulletSpawnEvent spawner = spawnEvents[bulletCount];
+            StageScheduleExpander.ScheduledSpawn spawner = spawnEvents[bulletCount];
             bulletCount++;
             if (spawner.index == -3)
             {
