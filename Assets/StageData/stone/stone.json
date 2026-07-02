@@ -146,52 +146,52 @@
         "initialClip": "idle",
         "events": [
           {
-            "time": 0.0,
+            "time": 3.333333,
             "clip": "fall1",
             "next": "idle"
           },
           {
-            "time": 0.833,
+            "time": 4.166667,
             "clip": "fall2",
             "next": "idle"
           },
           {
-            "time": 3.333,
+            "time": 6.666667,
             "clip": "leftSlam",
             "next": "idle"
           },
           {
-            "time": 4.167,
+            "time": 7.5,
             "clip": "rightSlam",
             "next": "idle"
           },
           {
-            "time": 5.0,
+            "time": 8.333333,
             "clip": "leftSlam",
             "next": "idle"
           },
           {
-            "time": 5.833,
+            "time": 9.166667,
             "clip": "bothSlam",
             "next": "idle"
           },
           {
-            "time": 10.0,
+            "time": 13.333333,
             "clip": "leftSlam",
             "next": "idle"
           },
           {
-            "time": 10.833,
+            "time": 14.166667,
             "clip": "rightSlam",
             "next": "idle"
           },
           {
-            "time": 11.667,
+            "time": 15.0,
             "clip": "bothSlam",
             "next": "idle"
           },
           {
-            "time": 13.333,
+            "time": 16.666667,
             "clip": "bothSlam",
             "next": "idle"
           }
@@ -199,10 +199,13 @@
       },
       "count": 1,
       "enemyInterval": 0.0,
-      "enemyAppearTime": 63.333333,
+      "enemyAppearTime": 60.0,
       "bulletEmitTime": 0.0,
       "bulletCount": 0,
-      "life": 16.666667,
+      "life": 20.0,
+      "fadeInSec": 2.0,
+      "fadeOutSec": 0.0,
+      "sortingOrder": 0,
       "orbit": {
         "originPos": {
           "x": 16,
@@ -246,7 +249,7 @@
         },
         "appearTime": 0,
         "appearDuration": 0,
-        "life": 16.666667,
+        "life": 20.0,
         "random": 0,
         "unCounterable": false
       },
@@ -387,7 +390,10 @@
       "enemyAppearTime": 5.2,
       "bulletEmitTime": 0.0,
       "bulletCount": 0,
-      "life": 54.8,
+      "life": 58.133333,
+      "fadeInSec": 0.0,
+      "fadeOutSec": 3.333333,
+      "sortingOrder": 12,
       "orbit": {
         "originPos": {
           "x": 16,
@@ -431,7 +437,7 @@
         },
         "appearTime": 0,
         "appearDuration": 0,
-        "life": 54.8,
+        "life": 58.133333,
         "random": 0,
         "unCounterable": false
       },

@@ -12,6 +12,10 @@ public class Boss : MonoBehaviour
     private EnemyVisualPlayer visualPlayer = new EnemyVisualPlayer();
     private float visualTime;
     private bool initialized;
+    private float fadeElapsed; // シーク起動時に経過済みの秒数(通常スポーンは 0)
+    private float fadeLife;
+    private float fadeInSec;
+    private float fadeOutSec;
 
     public void Init()
     {
@@ -24,10 +28,19 @@ public class Boss : MonoBehaviour
 
     public void Init(EnemySpawner spawner)
     {
+        Init(spawner, 0f);
+    }
+
+    public void Init(EnemySpawner spawner, float elapsed)
+    {
         initialized = true;
         bossId = spawner != null ? spawner.id : -1;
         bossName = spawner != null ? spawner.enemyName : "";
         visualTime = 0f;
+        fadeElapsed = Mathf.Max(0f, elapsed);
+        fadeLife = spawner != null ? spawner.orbit.life : 0f;
+        fadeInSec = spawner != null ? spawner.fadeInSec : 0f;
+        fadeOutSec = spawner != null ? spawner.fadeOutSec : 0f;
 
         spriteRenderer = GetComponent<SpriteRenderer>();
         Sprite fallbackSprite = GetFallbackSprite(spawner);
@@ -37,12 +50,15 @@ public class Boss : MonoBehaviour
         SetPrefabMarkerVisible(!hasExternalVisual);
         if (hasExternalVisual && spriteRenderer != null)
         {
-            spriteRenderer.sortingOrder = Mathf.Max(spriteRenderer.sortingOrder, 10);
+            spriteRenderer.sortingOrder = spawner != null && spawner.sortingOrder != 0
+                ? spawner.sortingOrder
+                : Mathf.Max(spriteRenderer.sortingOrder, 10);
             spriteRenderer.color = Color.white;
         }
 
         visualPlayer = new EnemyVisualPlayer();
         visualPlayer.Init(spriteRenderer, visualSet, spawner != null ? spawner.animation : null, fallbackSprite);
+        ApplyFadeAlpha();
         UpdatePosition();
         UpdateBossImage(fallbackSprite);
     }
@@ -105,7 +121,33 @@ public class Boss : MonoBehaviour
 
         visualTime += dt;
         visualPlayer?.Update(dt, visualTime);
+        ApplyFadeAlpha();
         UpdateBossImage();
+    }
+
+    // fadeInSec/fadeOutSec が指定された敵のみ、経過時間(シーク分込み)に応じて
+    // スプライトαを補間する。石工の形態変化クロスフェード用。
+    private void ApplyFadeAlpha()
+    {
+        if (spriteRenderer == null || (fadeInSec <= 0f && fadeOutSec <= 0f))
+        {
+            return;
+        }
+
+        float t = fadeElapsed + visualTime;
+        float alpha = 1f;
+        if (fadeInSec > 0f)
+        {
+            alpha = Mathf.Min(alpha, Mathf.Clamp01(t / fadeInSec));
+        }
+        if (fadeOutSec > 0f && fadeLife > 0f)
+        {
+            alpha = Mathf.Min(alpha, Mathf.Clamp01((fadeLife - t) / fadeOutSec));
+        }
+
+        Color color = spriteRenderer.color;
+        color.a = alpha;
+        spriteRenderer.color = color;
     }
 
     private void UpdatePosition()

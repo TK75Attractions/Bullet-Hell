@@ -158,6 +158,9 @@ public class StageDataManager
     {
         public string enemyName = ""; //描画するエネミー(弾源)の名前, Unity 側で一致するエネミーを見つけたら、そのスプライトを描画する
         public string visualId = "";
+        public float fadeInSec;
+        public float fadeOutSec;
+        public int sortingOrder;
         public EnemyAnimationPlan animation = new EnemyAnimationPlan();
         public int count; //飛ばすエネミーの数
         public float enemyInterval; //飛ばす時間間隔(0 なら同時)
@@ -186,6 +189,9 @@ public class StageDataManager
                 id = GManager.Control.EDB.GetEnemyId(enemyName),
                 enemyName = enemyName,
                 visualId = visualId,
+                fadeInSec = fadeInSec,
+                fadeOutSec = fadeOutSec,
+                sortingOrder = sortingOrder,
                 animation = NormalizeAnimationPlan(animation),
                 count = count,
                 enemyInterval = enemyInterval,

@@ -505,8 +505,10 @@
     {
       "enemyName": "demo",
       "visualId": "golem",
-      "appearAt": "39:1",
-      "life": 16.666667,
+      "_comment": "形態変化: M20(60s)で老人の背後にフェードイン出現し、M21で活動開始。攻撃アニメは atAbs でマーカー同期",
+      "appearAt": "M20",
+      "life": 20.0,
+      "fadeInSec": 2.0,
       "count": 1,
       "enemyInterval": 0.0,
       "bulletEmitTime": 0.0,
@@ -515,52 +517,52 @@
         "initialClip": "idle",
         "events": [
           {
-            "time": 0.0,
+            "atAbs": "M21",
             "clip": "fall1",
             "next": "idle"
           },
           {
-            "time": 0.833,
+            "atAbs": "M21 + 2beat",
             "clip": "fall2",
             "next": "idle"
           },
           {
-            "time": 3.333,
+            "atAbs": "M21 + 8beat",
             "clip": "leftSlam",
             "next": "idle"
           },
           {
-            "time": 4.167,
+            "atAbs": "M21 + 10beat",
             "clip": "rightSlam",
             "next": "idle"
           },
           {
-            "time": 5,
+            "atAbs": "M21 + 12beat",
             "clip": "leftSlam",
             "next": "idle"
           },
           {
-            "time": 5.833,
+            "atAbs": "M21 + 14beat",
             "clip": "bothSlam",
             "next": "idle"
           },
           {
-            "time": 10,
+            "atAbs": "M21 + 24beat",
             "clip": "leftSlam",
             "next": "idle"
           },
           {
-            "time": 10.833,
+            "atAbs": "M21 + 26beat",
             "clip": "rightSlam",
             "next": "idle"
           },
           {
-            "time": 11.667,
+            "atAbs": "M21 + 28beat",
             "clip": "bothSlam",
             "next": "idle"
           },
           {
-            "time": 13.333,
+            "atAbs": "M21 + 32beat",
             "clip": "bothSlam",
             "next": "idle"
           }
@@ -609,7 +611,7 @@
         },
         "appearTime": 0,
         "appearDuration": 0,
-        "life": 16.666667,
+        "life": 20.0,
         "random": 0,
         "unCounterable": false
       },
@@ -670,8 +672,11 @@
     {
       "enemyName": "demo",
       "visualId": "stone",
+      "_comment": "M21(63.333s)まで延命し、M20からの3.33秒でゴーレムの手前(sortingOrder 12)でフェードアウト",
       "appearAt": "5.2",
-      "life": 54.8,
+      "life": 58.133333,
+      "fadeOutSec": 3.333333,
+      "sortingOrder": 12,
       "count": 1,
       "enemyInterval": 0.0,
       "bulletEmitTime": 0.0,
@@ -794,7 +799,7 @@
         },
         "appearTime": 0,
         "appearDuration": 0,
-        "life": 54.8,
+        "life": 58.133333,
         "random": 0,
         "unCounterable": false
       },

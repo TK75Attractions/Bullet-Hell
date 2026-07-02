@@ -81,7 +81,7 @@ public partial class QuadOrder
         Boss bossDisplay = multiBulletObject.GetComponent<Boss>();
         if (bossDisplay != null)
         {
-            bossDisplay.Init(spawner);
+            bossDisplay.Init(spawner, elapsed);
         }
 
         BulletData orbit = SimulateOrbitForward(spawner.orbit, elapsed);

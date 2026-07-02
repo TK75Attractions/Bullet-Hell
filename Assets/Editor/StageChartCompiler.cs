@@ -456,6 +456,9 @@ public static class StageChartCompiler
             outEn["bulletEmitTime"] = Round6(ReadDouble(en["bulletEmitTime"], 0.0));
             outEn["bulletCount"] = (int)ReadDouble(en["bulletCount"], 0.0);
             outEn["life"] = Round6(ReadDouble(en["life"], 0.0));
+            outEn["fadeInSec"] = Round6(ReadDouble(en["fadeInSec"], 0.0));
+            outEn["fadeOutSec"] = Round6(ReadDouble(en["fadeOutSec"], 0.0));
+            outEn["sortingOrder"] = (int)ReadDouble(en["sortingOrder"], 0.0);
 
             // Passthrough of the heavy static structures (deep clone, verbatim).
             outEn["orbit"] = en["orbit"] != null ? en["orbit"].DeepClone() : new JObject();
