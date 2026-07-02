@@ -7,8 +7,14 @@ using System.Collections.Generic;
 public class BulletTypeDataBase : ScriptableObject
 {
     public BulletType[] types = new BulletType[0];
-    public List<float2[]> bVerts = new List<float2[]>();
-    public List<float> bPower = new List<float>();
+
+    // Derived, runtime-only parallel arrays indexed by typeId. They are always
+    // rebuilt from the type SOs in Init() (bVerts from BulletType.verts, bPower
+    // from BulletType.counterPower), so they are intentionally NOT serialized:
+    // the SOs are the single source of truth. (List<float2[]> was never Unity-
+    // serializable anyway; bPower previously carried stale, ignored values.)
+    [System.NonSerialized] public List<float2[]> bVerts = new List<float2[]>();
+    [System.NonSerialized] public List<float> bPower = new List<float>();
 
     public void Init()
     {

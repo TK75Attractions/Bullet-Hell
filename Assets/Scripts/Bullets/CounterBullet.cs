@@ -27,7 +27,42 @@ public struct CounterBullet
     public float2 trail14;
     public float2 trail15;
 
-    public const int TypeId = 5;
+    // The counter attack reuses an existing bullet type's texture/mask slice for
+    // rendering. Historically this was hardcoded to id 5 (the "sword" type). It
+    // is now resolved from BulletTypeDataBase by name so it survives a reorder of
+    // the type list, falling back to the historical id (with a warning) if the
+    // type is missing.
+    public const int DefaultTypeId = 5;
+    public const string TypeName = "sword";
+    private static int resolvedTypeId = -1;
+
+    /// <summary>Texture/mask slice used to render the counter attack.</summary>
+    public static int TypeId => resolvedTypeId >= 0 ? resolvedTypeId : DefaultTypeId;
+
+    /// <summary>
+    /// Resolves <see cref="TypeId"/> from the bullet type database by
+    /// <see cref="TypeName"/>. Call once after the database is initialized.
+    /// </summary>
+    public static void ResolveTypeId(BulletTypeDataBase typeDataBase)
+    {
+        if (typeDataBase == null)
+        {
+            resolvedTypeId = DefaultTypeId;
+            return;
+        }
+
+        int id = typeDataBase.GetTypeId(TypeName);
+        if (id < 0)
+        {
+            Debug.LogWarning($"CounterBullet type '{TypeName}' not found in BulletTypeDataBase; falling back to id {DefaultTypeId}.");
+            resolvedTypeId = DefaultTypeId;
+        }
+        else
+        {
+            resolvedTypeId = id;
+        }
+    }
+
     public const int TrailCapacity = 16;
     public const float Speed = 20f;
     public const float HomingStrength = 8f;

@@ -128,6 +128,13 @@ public static class StageValidation
             return;
         }
 
+        // Advisory: BulletType assets on disk that are not registered in the DB.
+        // They are unusable from JSON until added (see 'Sync Bullet Types').
+        foreach (string path in FindUnregisteredBulletTypeAssetPaths(source))
+        {
+            report.Warn($"[Types] BulletType asset '{path}' is not registered in BulletTypeDataBase (run 'Tools/Bullet Hell/Sync Bullet Types').");
+        }
+
         // Work on a clone so Init() (which rebuilds parallel arrays) never dirties
         // the real asset.
         BulletTypeDataBase clone = UnityEngine.Object.Instantiate(source);
@@ -198,6 +205,9 @@ public static class StageValidation
                 {
                     report.Warn($"[Types] BulletType '{type.typeName}' (index {i}) maskSprite '{type.maskSprite.name}' is not marked Read/Write.");
                 }
+
+                WarnIfTextureCompressed(type.baseSprite, "baseSprite", type.typeName, i, report);
+                WarnIfTextureCompressed(type.maskSprite, "maskSprite", type.typeName, i, report);
             }
         }
         finally
@@ -234,7 +244,7 @@ public static class StageValidation
             for (int i = 0; i < spawners.Count; i++)
             {
                 string clip = spawners[i].clipName;
-                if (clip == "Clear")
+                if (clip == StageScheduleExpander.ClearClipName)
                 {
                     continue;
                 }
@@ -301,6 +311,65 @@ public static class StageValidation
             set.Add(trimmed);
         }
         return set;
+    }
+
+    // ---- BulletType asset registration / import validation ----
+
+    public const string BulletTypesFolder = "Assets/Scripts/Bullets/BulletTypes";
+
+    /// <summary>
+    /// Returns the asset paths of every <see cref="BulletType"/> under
+    /// <see cref="BulletTypesFolder"/> that is not present in the given
+    /// database's <c>types</c> array. Shared by the linter and the
+    /// "Sync Bullet Types" menu so they never diverge.
+    /// </summary>
+    public static List<string> FindUnregisteredBulletTypeAssetPaths(BulletTypeDataBase btdb)
+    {
+        List<string> result = new List<string>();
+        HashSet<BulletType> registered = new HashSet<BulletType>();
+        if (btdb != null && btdb.types != null)
+        {
+            foreach (BulletType type in btdb.types)
+            {
+                if (type != null)
+                {
+                    registered.Add(type);
+                }
+            }
+        }
+
+        string[] guids = AssetDatabase.FindAssets("t:BulletType", new[] { BulletTypesFolder });
+        foreach (string guid in guids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            BulletType asset = AssetDatabase.LoadAssetAtPath<BulletType>(path);
+            if (asset != null && !registered.Contains(asset))
+            {
+                result.Add(path);
+            }
+        }
+        result.Sort(StringComparer.Ordinal);
+        return result;
+    }
+
+    private static void WarnIfTextureCompressed(Texture2D texture, string role, string typeName, int index, Report report)
+    {
+        if (texture == null)
+        {
+            return;
+        }
+
+        string path = AssetDatabase.GetAssetPath(texture);
+        if (string.IsNullOrEmpty(path))
+        {
+            return;
+        }
+
+        TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+        if (importer != null && importer.textureCompression != TextureImporterCompression.Uncompressed)
+        {
+            report.Warn($"[Types] BulletType '{typeName}' (index {index}) {role} '{texture.name}' is compressed ({importer.textureCompression}); the renderer expects Uncompressed textures.");
+        }
     }
 
     // ---- Helpers ----

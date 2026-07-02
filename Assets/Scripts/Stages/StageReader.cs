@@ -90,11 +90,11 @@ public class StageReader : MonoBehaviour
                 stageData.bulletSpawners[i] = spawner; // Update the spawner with the correct index
                 if (LogStageSchedule) Debug.Log($"Bullet clip found: {spawner.clipName} at index {clipIndex}");
             }
-            else if (spawner.clipName == "Clear") // "Clear" という名前のクリップは存在しないが、特別な意味を持つと仮定
+            else if (spawner.clipName == StageScheduleExpander.ClearClipName) // "Clear" という名前のクリップは存在しないが、特別な意味を持つと仮定
             {
-                spawner.index = -3; // No bullet clip, set index to -3
+                spawner.index = StageScheduleExpander.ClearEventIndex; // No bullet clip, mark as the Clear sentinel
                 stageData.bulletSpawners[i] = spawner; // Update the spawner with the correct index
-                if (LogStageSchedule) Debug.Log($"No bullet clip for spawner at time {spawner.time}, using index -3 for 'Clear'");
+                if (LogStageSchedule) Debug.Log($"No bullet clip for spawner at time {spawner.time}, using Clear sentinel index for 'Clear'");
             }
             else
             {
@@ -209,7 +209,7 @@ public class StageReader : MonoBehaviour
         {
             StageScheduleExpander.ScheduledSpawn spawner = spawnEvents[bulletCount];
             bulletCount++;
-            if (spawner.index == -3)
+            if (spawner.index == StageScheduleExpander.ClearEventIndex)
             {
                 GManager.Control.QOrder.ClearManagedEnemyDanmaku();
                 if (LogStageSchedule) Debug.Log($"Cleared enemy bullets");

@@ -55,10 +55,20 @@ public class QuadOrder : MonoBehaviour
     [SerializeField] private Boss boss = null;
     private NativeList<BulletData> enemyBullets;
     private NativeList<CounterBullet> counterBullets;
+    // One entry per spawned enemy: its MultiBullet, optional Boss visual, and the
+    // index of its orbit bullet inside multiBulletOrbitBullets. Replaces the old
+    // trio of parallel lists (multiBullets / bossDisplays / orbit array) so the
+    // orbit index lives in exactly one place. Orbit data itself stays in the
+    // NativeList below for Burst processing.
+    [Serializable]
+    private class EnemyEntry
+    {
+        public MultiBullet multiBullet;
+        public Boss boss;
+        public int orbitIndex;
+    }
     [SerializeField]
-    private List<MultiBullet> multiBullets = new List<MultiBullet>();
-    [SerializeField]
-    private List<Boss> bossDisplays = new List<Boss>();
+    private List<EnemyEntry> enemyEntries = new List<EnemyEntry>();
     private NativeList<BulletData> multiBulletOrbitBullets;
     private NativeList<BulletData> warpZones;
     private NativeArray<float2> collisionVerts;
@@ -469,8 +479,8 @@ public class QuadOrder : MonoBehaviour
                 if (!bullet.isActive) continue;
                 int areaNum = bullet.areaNum;
                 if (areaNum < 0 || areaNum >= cells.Length) continue;
-                if (i >= multiBullets.Count) continue;
-                cells[areaNum].multiBullets.Add(multiBullets[i]);
+                if (i >= enemyEntries.Count) continue;
+                cells[areaNum].multiBullets.Add(enemyEntries[i].multiBullet);
             }
         }
     }
@@ -1019,7 +1029,7 @@ public class QuadOrder : MonoBehaviour
             bVertRanges = collisionVertRanges,
             bPowers = bulletPowers,
             pPos = pPos,
-            grazeRange = 10f,
+            grazeRangeSq = 10f, // squared distance threshold => effective radius sqrt(10) ~= 3.16
             isPlayerDash = isPlayerDash,
             isCollided = collisionHitFlag,
             attackPower = grazePower
@@ -1151,15 +1161,14 @@ public class QuadOrder : MonoBehaviour
             allLASERs[i].BeginFadeOut(fadeDuration);
         }
 
-        for (int i = multiBullets.Count - 1; i >= 0; i--)
+        for (int i = enemyEntries.Count - 1; i >= 0; i--)
         {
-            MultiBullet multiBullet = multiBullets[i];
+            MultiBullet multiBullet = enemyEntries[i].multiBullet;
             if (multiBullet == null) continue;
             multiBullet.isActive = false;
             UnityEngine.Object.Destroy(multiBullet.gameObject);
         }
-        multiBullets.Clear();
-        bossDisplays.Clear();
+        enemyEntries.Clear();
 
         if (multiBulletOrbitBullets.IsCreated) multiBulletOrbitBullets.Clear();
         if (warpZones.IsCreated) warpZones.Clear();
@@ -1247,31 +1256,31 @@ public class QuadOrder : MonoBehaviour
                 return;
             }
 
-            int multiBulletIndex = multiBullets.Count;
-            multiBullet.Init(multiBulletIndex, spawner);
-            multiBullets.Add(multiBullet);
+            int orbitIndex = multiBulletOrbitBullets.Length; // == enemyEntries.Count; the two grow in lockstep
+            multiBullet.Init(orbitIndex, spawner);
 
             Boss bossDisplay = multiBulletObject.GetComponent<Boss>();
             if (bossDisplay != null)
             {
                 bossDisplay.Init(spawner);
             }
-            bossDisplays.Add(bossDisplay);
 
             //Debug.Log($"Spawned multi bullet: {spawner.orbit.speed}");
             multiBulletOrbitBullets.Add(spawner.orbit);
+            enemyEntries.Add(new EnemyEntry { multiBullet = multiBullet, boss = bossDisplay, orbitIndex = orbitIndex });
         }
     }
 
     private void UpdateMultiBulletPos(float dt)
     {
-        for (int i = 0; i < multiBullets.Count; i++)
+        for (int i = 0; i < enemyEntries.Count; i++)
         {
-            MultiBullet multiBullet = multiBullets[i];
+            EnemyEntry entry = enemyEntries[i];
+            MultiBullet multiBullet = entry.multiBullet;
             if (multiBullet == null) continue;
-            if (i >= multiBulletOrbitBullets.Length) continue;
+            if (entry.orbitIndex < 0 || entry.orbitIndex >= multiBulletOrbitBullets.Length) continue;
 
-            BulletData orbit = multiBulletOrbitBullets[i];
+            BulletData orbit = multiBulletOrbitBullets[entry.orbitIndex];
             if (!orbit.isActive)
             {
                 if (multiBullet.gameObject.activeSelf) multiBullet.gameObject.SetActive(false);
@@ -1283,9 +1292,9 @@ public class QuadOrder : MonoBehaviour
                 : Quaternion.Euler(0, 0, orbit.angle * Mathf.Rad2Deg);
             multiBullet.UpdateMultiBullet(dt);
 
-            if (i < bossDisplays.Count && bossDisplays[i] != null)
+            if (entry.boss != null)
             {
-                bossDisplays[i].UpdateBoss(dt);
+                entry.boss.UpdateBoss(dt);
             }
         }
     }

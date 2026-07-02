@@ -41,7 +41,6 @@ public class BulletEvent
         if (bullets.Count == 0)
         {
             return;
-            //child.AddRange(GManager.Control.ShootingManager.BOrder.Generate(type, clips[0], clips[0].data.originPos));
         }
         else
         {
@@ -53,10 +52,6 @@ public class BulletEvent
                     Debug.LogError($"Bullet index {index} is out of range.");
                     continue;
                 }
-
-                BulletData bulletData = GManager.Control.QOrder.GetEnemyBulletData(index);
-                BulletData newBulletData = transitions[0].bulletData;
-                //child.AddRange(GManager.Control.QOrder.AddEnemyBullets(newBulletData, bulletData));
             }
         }
 

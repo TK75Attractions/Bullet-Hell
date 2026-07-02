@@ -96,6 +96,7 @@ public class GManager : MonoBehaviour
             LogStartup("Core managers resolved");
 
             BTDB.Init();
+            CounterBullet.ResolveTypeId(BTDB);
             LogStartup("Bullet types initialized");
             SDB = new();
             LogStartup("Stage database init start");
