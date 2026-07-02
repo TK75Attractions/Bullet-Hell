@@ -1,5 +1,6 @@
 using UnityEditor;
 using UnityEngine;
+using System.Collections.Generic;
 using System.Reflection;
 
 public static class StoneStageDebugMenu
@@ -45,13 +46,23 @@ public static class StoneStageDebugMenu
     }
 
     [MenuItem(StartMenuPath)]
-    private static async void StartStoneStage()
+    private static void StartStoneStage()
+    {
+        StartStageByName(StageName);
+    }
+
+    /// <summary>
+    /// Starts any stage by its <c>stageName</c> from the current Play session,
+    /// applying the same debug BGM/clock reset used by the stone shortcut. Shared
+    /// by the stone menu and the generic Start Stage launcher window.
+    /// </summary>
+    public static async void StartStageByName(string stageName)
     {
         try
         {
             if (!EditorApplication.isPlaying)
             {
-                Debug.LogWarning("[StoneDebug] Enter Play mode first. This menu no longer enters Play mode automatically.");
+                Debug.LogWarning("[StageDebug] Enter Play mode first. This menu does not enter Play mode automatically.");
                 return;
             }
 
@@ -63,35 +74,56 @@ public static class StoneStageDebugMenu
             if (GManager.Control == null || !GManager.Control.ready || GManager.Control.SDB == null)
             {
                 Debug.LogWarning(
-                    $"[StoneDebug] GManager is not ready. " +
+                    $"[StageDebug] GManager is not ready. " +
                     $"GManager={GManager.Control != null}, " +
                     $"ready={GManager.Control?.ready}, " +
                     $"stageDatabase={GManager.Control?.SDB != null}");
                 return;
             }
 
-            int stageIndex = FindStageIndex(StageName);
+            int stageIndex = FindStageIndex(stageName);
             if (stageIndex < 0)
             {
-                Debug.LogError($"[StoneDebug] stage '{StageName}' was not found.");
+                Debug.LogError($"[StageDebug] stage '{stageName}' was not found.");
                 return;
             }
 
             Time.timeScale = 1f;
             AudioListener.pause = false;
-            Debug.Log($"[StoneDebug] Starting stage '{StageName}' at index {stageIndex}.");
+            Debug.Log($"[StageDebug] Starting stage '{stageName}' at index {stageIndex}.");
             StageData stage = GManager.Control.SDB.GetStage(stageIndex);
             QueueStageClockResetForDebug(stage);
             await GManager.Control.GoGameAsync(stageIndex);
             ResetStageClockForDebug(stage);
             ClearQueuedStageClockReset();
-            Debug.Log($"[StoneDebug] Started stage '{StageName}'.");
+            Debug.Log($"[StageDebug] Started stage '{stageName}'.");
             HideSelectionCanvases();
         }
         catch (System.Exception ex)
         {
             Debug.LogException(ex);
         }
+    }
+
+    /// <summary>Stage names known to the current Play session, in database order.</summary>
+    public static List<string> GetStageNames()
+    {
+        List<string> names = new List<string>();
+        if (GManager.Control == null || GManager.Control.SDB == null)
+        {
+            return names;
+        }
+
+        int count = GManager.Control.SDB.GetStageCount();
+        for (int i = 0; i < count; i++)
+        {
+            StageData stage = GManager.Control.SDB.GetStage(i);
+            if (stage != null)
+            {
+                names.Add(stage.stageName);
+            }
+        }
+        return names;
     }
 
     private static void QueueStageClockResetForDebug(StageData stage)
