@@ -41,10 +41,7 @@
         ],
         "scale": 2.6,
         "warnBeats": 4
-      },
-      "minDifficulty": 0,
-      "thin": 0.0,
-      "diffScale": 1.0
+      }
     },
     {
       "time": 2.5,
@@ -67,10 +64,7 @@
         "untilSec": 3,
         "dust": true,
         "burst": true
-      },
-      "minDifficulty": 0,
-      "thin": 0.0,
-      "diffScale": 1.0
+      }
     },
     {
       "time": 6.0,
@@ -91,9 +85,10 @@
         "seed": 12345,
         "flash": true
       },
-      "minDifficulty": 0,
-      "thin": 0.0,
-      "diffScale": 1.0
+      "scaleEasySpeed": 0.7,
+      "scaleEasyCount": 0.5,
+      "scaleNormalSpeed": 0.85,
+      "scaleNormalCount": 0.75
     },
     {
       "time": 8.5,
@@ -124,10 +119,7 @@
             "ghostBeats": 2
           }
         ]
-      },
-      "minDifficulty": 0,
-      "thin": 0.0,
-      "diffScale": 1.0
+      }
     },
     {
       "time": 11.0,
@@ -153,10 +145,7 @@
         "life": 3,
         "scale": 1.0,
         "tumble": 6
-      },
-      "minDifficulty": 0,
-      "thin": 0.0,
-      "diffScale": 1.0
+      }
     }
   ]
 }

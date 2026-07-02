@@ -65,8 +65,11 @@ public struct CutterDefJson
 /// <summary>
 /// One StageChart pattern event, deserialized straight from stage.json. Old
 /// stages simply omit the <c>patternEvents</c> array, so this is inert for them.
-/// The difficulty fields are P5 scaffolding: defined here so the schema is stable,
-/// but ignored by the P3 runtime.
+///
+/// The difficulty fields are the P5 subtractive modifiers, stored in a flat,
+/// JsonUtility-friendly form (the compiler flattens the friendly nested chart
+/// syntax into these). All default to "no modification", so an un-annotated event
+/// behaves identically on every difficulty. See <see cref="DifficultyResolver"/>.
 /// </summary>
 [Serializable]
 public class PatternEventData
@@ -75,8 +78,12 @@ public class PatternEventData
     public string patternType;         // registry key, e.g. "FallingBlock"
     public PatternParamsJson args = new PatternParamsJson();
 
-    // ---- P5 scaffolding (defined, unused in P3) ----
-    public int minDifficulty;          // 0 => all difficulties
-    public float thin;                 // decimation ratio placeholder
-    public float diffScale = 1f;       // per-difficulty scale placeholder
+    // ---- P5 difficulty modifiers (flat; empty/0 => no modification) ----
+    public string minDifficulty;       // "" / "easy" => all; "normal"; "lunatic"
+    public int thinEasy;               // decimation stride on EASY (0 => keep all)
+    public int thinNormal;             // decimation stride on NORMAL (0 => keep all)
+    public float scaleEasySpeed;       // EASY speed factor (0 => 1)
+    public float scaleEasyCount;       // EASY count factor (0 => 1)
+    public float scaleNormalSpeed;     // NORMAL speed factor (0 => 1)
+    public float scaleNormalCount;     // NORMAL count factor (0 => 1)
 }

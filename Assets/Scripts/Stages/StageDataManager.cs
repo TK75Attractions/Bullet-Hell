@@ -249,6 +249,12 @@ public class StageDataManager
         public float angleInterval; //Buffer 毎に角度をずらす (1発目を 0, 2発目を 30°, 3発目を 60°... みたいな事が出来る)
         public Vector4 color; // 色(和訳)
 
+        // P5 difficulty modifiers (flat; empty/0 => no modification). Absent in old
+        // stage.json => defaults, so legacy stages behave identically.
+        public string minDifficulty;
+        public int thinEasy;
+        public int thinNormal;
+
         public BulletSpawner ToBulletSpawner()
         {
             return new BulletSpawner
@@ -261,7 +267,10 @@ public class StageDataManager
                 originVlc = (float2)originVlc,
                 angle = angle,
                 angleInterval = angleInterval,
-                color = (float4)color
+                color = (float4)color,
+                minDifficulty = minDifficulty,
+                thinEasy = thinEasy,
+                thinNormal = thinNormal
             };
         }
     }

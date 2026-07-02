@@ -13,10 +13,19 @@ public struct PatternEmission
     public float TimeOffset;
     public BulletData Bullet;
 
-    public PatternEmission(float timeOffset, BulletData bullet)
+    /// <summary>
+    /// True for bullets that form the readable structure of the gimmick (blocks,
+    /// warnings, burst flashes). Structural emissions are never removed by a
+    /// difficulty <c>thin</c>; only non-structural fire (shards, dust, cutters) is
+    /// decimated. See <see cref="DifficultyResolver.ShouldEmitBullet"/>.
+    /// </summary>
+    public bool Structural;
+
+    public PatternEmission(float timeOffset, BulletData bullet, bool structural = false)
     {
         TimeOffset = timeOffset;
         Bullet = bullet;
+        Structural = structural;
     }
 }
 

@@ -39,6 +39,14 @@ public static class StageScheduleExpander
         public float angle;
         public int index;
         public float4 color;
+
+        // P5 difficulty modifiers copied from the source spawner. Carried through
+        // expansion so the runtime can filter/decimate at consumption time. The
+        // golden-master dumper does not serialize these, so its digest is
+        // difficulty-independent (always the full Lunatic stream).
+        public string minDifficulty;
+        public int thinEasy;
+        public int thinNormal;
     }
 
     public static List<ScheduledSpawn> Expand(IReadOnlyList<BulletSpawner> spawners)
@@ -77,7 +85,10 @@ public static class StageScheduleExpander
                     angle = spawner.angle + k * spawner.angleInterval,
                     index = spawner.index,
                     originVlc = spawner.originVlc,
-                    color = spawner.color
+                    color = spawner.color,
+                    minDifficulty = spawner.minDifficulty,
+                    thinEasy = spawner.thinEasy,
+                    thinNormal = spawner.thinNormal
                 });
             }
         }

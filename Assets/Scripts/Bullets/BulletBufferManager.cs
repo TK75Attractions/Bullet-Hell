@@ -621,7 +621,10 @@ public class BulletBufferManager
     }
 #endif
 
-    public List<BulletData> GetBulletClip(int index, float2 pPos, float2 emitPos, float2 _vlc, float angle, float4 _color, out bool isLaser)
+    // thinN (P5 difficulty decimation, 0 => keep all) drops every N-th template
+    // bullet by index in the copy loop, so a lower difficulty fires fewer bullets
+    // deterministically. Default 0 leaves the legacy spawn path unchanged.
+    public List<BulletData> GetBulletClip(int index, float2 pPos, float2 emitPos, float2 _vlc, float angle, float4 _color, out bool isLaser, int thinN = 0)
     {
         isLaser = false;
         if (bulletBuffers.Count == 0)
@@ -641,6 +644,7 @@ public class BulletBufferManager
             {
                 for (int i = 0; i < templateBullets.Count; i++)
                 {
+                    if (!DifficultyResolver.ShouldEmitBullet(i, thinN)) continue;
                     angle = math.atan2(pPos.y - emitPos.y, pPos.x - emitPos.x);
                     BulletData template = templateBullets[i];
                     float2 dis = -template.startPos;
@@ -656,6 +660,7 @@ public class BulletBufferManager
             {
                 for (int i = 0; i < templateBullets.Count; i++)
                 {
+                    if (!DifficultyResolver.ShouldEmitBullet(i, thinN)) continue;
                     BulletData template = templateBullets[i];
                     float2 dis = -template.startPos;
                     // Unit boundary: stage spawner `angle` is in DEGREES; the bullet

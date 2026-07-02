@@ -206,7 +206,7 @@ public static class StageChartCompiler
                 string patternType = (string)ev["pattern"];
                 if (!string.IsNullOrEmpty(patternType))
                 {
-                    patternJsonArray.Add(BuildPatternJson(patternType, time6, ev["params"] as JObject, ev));
+                    patternJsonArray.Add(BuildPatternJson(patternType, time6, ev["params"] as JObject, ev, result, i));
                     result.EventCount++;
                     continue;
                 }
@@ -249,7 +249,7 @@ public static class StageChartCompiler
                     clipName = clipName
                 });
 
-                spawnerJsonArray.Add(BuildSpawnerJson(clipName, count, interval, time6, pos, originVlc, angleDeg, angleInterval, color));
+                spawnerJsonArray.Add(BuildSpawnerJson(clipName, count, interval, time6, pos, originVlc, angleDeg, angleInterval, color, ev, result, i));
                 result.EventCount++;
             }
         }
@@ -284,18 +284,70 @@ public static class StageChartCompiler
     }
 
     /// <summary>Builds one patternEvents entry. Params are cloned verbatim (beat
-    /// fields stay beat-domain, resolved at runtime); only <c>time</c> is baked.</summary>
-    private static JObject BuildPatternJson(string patternType, double time6, JObject paramsObj, JObject ev)
+    /// fields stay beat-domain, resolved at runtime); only <c>time</c> is baked.
+    /// P5 difficulty modifiers are flattened from the friendly nested chart syntax
+    /// and appended only when present.</summary>
+    private static JObject BuildPatternJson(string patternType, double time6, JObject paramsObj, JObject ev, CompileResult result, int index)
     {
-        return new JObject
+        var o = new JObject
         {
             ["time"] = time6,
             ["patternType"] = patternType,
-            ["args"] = paramsObj != null ? (JObject)paramsObj.DeepClone() : new JObject(),
-            ["minDifficulty"] = (int)ReadDouble(ev["minDifficulty"], 0.0),
-            ["thin"] = Round6(ReadDouble(ev["thin"], 0.0)),
-            ["diffScale"] = Round6(ReadDouble(ev["diffScale"], 1.0))
+            ["args"] = paramsObj != null ? (JObject)paramsObj.DeepClone() : new JObject()
         };
+        ApplyDifficultyMods(o, ev, includeScale: true, result, index);
+        return o;
+    }
+
+    /// <summary>
+    /// Reads the friendly nested difficulty modifiers off a chart event and writes
+    /// the flat, JsonUtility-friendly fields onto <paramref name="target"/>. Only
+    /// non-default values are emitted, keeping the generated stage.json diff minimal.
+    /// Chart syntax:
+    /// <code>
+    ///   "minDifficulty": "normal",
+    ///   "thin": { "easy": 2, "normal": 3 },
+    ///   "diffScale": { "easy": { "speed": 0.8, "count": 0.6 }, "normal": { ... } }
+    /// </code>
+    /// <paramref name="includeScale"/> is false for clip spawners (diffScale is a
+    /// pattern-only concept: clips have no speed/count arguments to scale).
+    /// </summary>
+    private static void ApplyDifficultyMods(JObject target, JObject ev, bool includeScale, CompileResult result, int index)
+    {
+        string min = (string)ev["minDifficulty"];
+        if (!string.IsNullOrWhiteSpace(min))
+        {
+            string norm = min.Trim().ToLowerInvariant();
+            if (norm != "easy" && norm != "normal" && norm != "lunatic")
+            {
+                result.Warnings.Add($"events[{index}] minDifficulty='{min}' is not easy/normal/lunatic; it will be treated as 'easy' (always shown).");
+            }
+            target["minDifficulty"] = norm;
+        }
+
+        if (ev["thin"] is JObject thin)
+        {
+            int te = (int)ReadDouble(thin["easy"], 0.0);
+            int tn = (int)ReadDouble(thin["normal"], 0.0);
+            if (te != 0) target["thinEasy"] = te;
+            if (tn != 0) target["thinNormal"] = tn;
+        }
+
+        if (includeScale && ev["diffScale"] is JObject scale)
+        {
+            JObject easy = scale["easy"] as JObject;
+            JObject normal = scale["normal"] as JObject;
+            AddScale(target, "scaleEasySpeed", easy?["speed"]);
+            AddScale(target, "scaleEasyCount", easy?["count"]);
+            AddScale(target, "scaleNormalSpeed", normal?["speed"]);
+            AddScale(target, "scaleNormalCount", normal?["count"]);
+        }
+    }
+
+    private static void AddScale(JObject target, string key, JToken tok)
+    {
+        double v = ReadDouble(tok, 0.0);
+        if (v != 0.0) target[key] = Round6(v);
     }
 
     /// <summary>
@@ -418,9 +470,9 @@ public static class StageChartCompiler
     // ---- JSON builders ----
 
     private static JObject BuildSpawnerJson(string clipName, int count, float interval, double time6,
-        float2 pos, float2 originVlc, float angle, float angleInterval, float4 color)
+        float2 pos, float2 originVlc, float angle, float angleInterval, float4 color, JObject ev, CompileResult result, int index)
     {
-        return new JObject
+        var o = new JObject
         {
             ["index"] = 0,
             ["count"] = count,
@@ -433,6 +485,9 @@ public static class StageChartCompiler
             ["color"] = new JObject { ["x"] = Round6(color.x), ["y"] = Round6(color.y), ["z"] = Round6(color.z), ["w"] = Round6(color.w) },
             ["clipName"] = clipName
         };
+        // Clip spawners get minDifficulty + thin (no diffScale — that scales pattern args).
+        ApplyDifficultyMods(o, ev, includeScale: false, result, index);
+        return o;
     }
 
     private static string BuildStageJson(string stageName, double bpm, int measure, int barCount,
