@@ -1272,6 +1272,11 @@ public class QuadOrder : MonoBehaviour
             if (i >= multiBulletOrbitBullets.Length) continue;
 
             BulletData orbit = multiBulletOrbitBullets[i];
+            if (!orbit.isActive)
+            {
+                if (multiBullet.gameObject.activeSelf) multiBullet.gameObject.SetActive(false);
+                continue;
+            }
             multiBullet.trans.position = new Vector3(orbit.position.x, orbit.position.y, 0);
             multiBullet.trans.rotation = multiBullet.keepVisualUpright
                 ? Quaternion.identity
