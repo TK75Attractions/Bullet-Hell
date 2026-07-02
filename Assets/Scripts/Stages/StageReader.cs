@@ -309,6 +309,154 @@ public class StageReader : MonoBehaviour
         }
     }
 
+    // --- P4 stage seek --------------------------------------------------------
+
+    /// <summary>Stage currently loaded by this reader (null until Init).</summary>
+    public StageData CurrentStage => stageData;
+
+    /// <summary>Current stage clock in seconds (BGM-synced during play).</summary>
+    public float CurrentTime => time;
+
+    /// <summary>True once Init has finished and the stage is running.</summary>
+    public bool IsReady => isReady;
+
+    /// <summary>BGM source driving the clock, or null for silent stages.</summary>
+    public AudioSource StageBgmSource => stageBgmSource;
+
+    /// <summary>
+    /// Best-effort stage length in seconds: the BGM clip length when present,
+    /// otherwise the last scheduled spawn/enemy/pattern time plus a small tail.
+    /// Used by the debug seek UI to bound the scrubber.
+    /// </summary>
+    public float GetStageDuration()
+    {
+        if (stageBgmSource != null && stageBgmSource.clip != null)
+        {
+            return stageBgmSource.clip.length;
+        }
+
+        float last = 1f;
+        if (spawnEvents.Count > 0) last = Mathf.Max(last, spawnEvents[spawnEvents.Count - 1].time);
+        if (patternBulletEvents.Count > 0) last = Mathf.Max(last, patternBulletEvents[patternBulletEvents.Count - 1].time);
+        if (stageData != null)
+        {
+            for (int i = 0; i < stageData.enemySpawners.Count; i++)
+            {
+                last = Mathf.Max(last, stageData.enemySpawners[i].enemyAppearTime);
+            }
+        }
+        return last + 2f;
+    }
+
+    /// <summary>
+    /// Debug-only stage seek ("bullet-less headstart" model). Jumps the clock to
+    /// <paramref name="targetTime"/> by:
+    /// <list type="number">
+    /// <item>hard-clearing every live enemy bullet, laser and spawned enemy;</item>
+    /// <item>advancing the spawn / pattern / enemy consumption cursors to the events
+    /// at or before the target without replaying them;</item>
+    /// <item>re-appearing enemies whose spawn time already passed and are still
+    /// within their orbit lifetime, with the orbit advanced to the seeked time;</item>
+    /// <item>repositioning the BGM (<c>timeSamples</c>) and re-aligning the dspTime /
+    /// beat tracking so playback resumes from the target with no rewind fight.</item>
+    /// </list>
+    /// Bullets fired before the target that would still be alive at the target are
+    /// intentionally NOT reconstructed — the seek moment is empty of enemy fire.
+    /// Forward and backward seeks use the identical procedure.
+    /// </summary>
+    public void SeekTo(float targetTime)
+    {
+        if (stageData == null || !isReady)
+        {
+            Debug.LogWarning("[StageReader] SeekTo ignored: stage not ready.");
+            return;
+        }
+
+        targetTime = Mathf.Clamp(targetTime, 0f, GetStageDuration());
+
+        QuadOrder qorder = GManager.Control != null ? GManager.Control.QOrder : null;
+        qorder?.SeekClearAll();
+
+        // Advance the spawn cursor to the target without replaying events.
+        bulletCount = 0;
+        while (bulletCount < spawnEvents.Count && spawnEvents[bulletCount].time <= targetTime)
+        {
+            bulletCount++;
+        }
+
+        patternBulletCount = 0;
+        while (patternBulletCount < patternBulletEvents.Count && patternBulletEvents[patternBulletCount].time <= targetTime)
+        {
+            patternBulletCount++;
+        }
+
+        // Re-appear enemies whose spawn time is at or before the target and that
+        // are still within their orbit lifetime.
+        enemyCount = 0;
+        while (enemyCount < stageData.enemySpawners.Count
+            && stageData.enemySpawners[enemyCount].enemyAppearTime <= targetTime)
+        {
+            EnemySpawner spawner = stageData.enemySpawners[enemyCount];
+            if (qorder != null)
+            {
+                for (int i = 0; i < spawner.count; i++)
+                {
+                    float appear = spawner.enemyAppearTime + spawner.enemyInterval * i;
+                    if (appear > targetTime) break;
+                    float elapsed = targetTime - appear;
+                    float life = spawner.orbit.life;
+                    if (life > 0f && elapsed >= life) continue; // expired -> stays hidden
+                    qorder.SeekSpawnEnemy(spawner, elapsed);
+                }
+            }
+            enemyCount++;
+        }
+
+        // Re-sync the BGM clock so playback resumes from the target. See UpdateStage
+        // for the dspTime formula this mirrors.
+        if (stageBgmSource != null && stageData.audioClip != null)
+        {
+            AudioClip clip = stageData.audioClip;
+            const double lead = 0.12d;
+            double scheduledStartDsp = AudioSettings.dspTime + lead;
+
+            int sampleOffset = Mathf.RoundToInt((targetTime + stageData.delayTime) * clip.frequency);
+            sampleOffset = Mathf.Clamp(sampleOffset, 0, Mathf.Max(0, clip.samples - 1));
+
+            stageBgmSource.Stop();
+            stageBgmSource.timeSamples = sampleOffset;
+            stageBgmSource.PlayScheduled(scheduledStartDsp);
+
+            // stageBgmScheduledDspTime is the dsp time at which audio position 0
+            // would have played. UpdateStage computes
+            //   syncedTime = dspNow - stageBgmScheduledDspTime - delayTime
+            // and we want syncedTime == targetTime once playback begins (dspNow ==
+            // scheduledStartDsp) at sampleOffset == (targetTime + delay) * freq.
+            stageBgmScheduledDspTime = scheduledStartDsp - stageData.delayTime - targetTime;
+
+            if (GManager.Control != null && GManager.Control.BManager != null)
+            {
+                GManager.Control.BManager.SetBeat(
+                    stageBgmSource,
+                    clip,
+                    stageData.MusicEvents,
+                    stageBgmScheduledDspTime,
+                    stageData.delayTime);
+            }
+        }
+        else
+        {
+            stageBgmScheduledDspTime = -1d;
+        }
+
+        time = targetTime;
+        Debug.Log(
+            $"[StageReader] Seeked to t={targetTime:0.###}s " +
+            $"(bulletCursor={bulletCount}/{spawnEvents.Count}, " +
+            $"enemyCursor={enemyCount}/{stageData.enemySpawners.Count}, " +
+            $"patternCursor={patternBulletCount}/{patternBulletEvents.Count}).");
+    }
+
     private void OnDestroy()
     {
         enemyVisualCatalog?.Release();
