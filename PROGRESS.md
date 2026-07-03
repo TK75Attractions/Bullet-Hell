@@ -1,5 +1,37 @@
 # PROGRESS
 
+## 2026-07-03 夜(自律セッション・Opus ラウンド1やり直し: 仕掛かり確定+Task B 検証)
+
+### 今回やったこと
+
+前回(14:34 session limit で中断)以降の状態を精査し、推奨順 B→A→C を検証第一で進めた。
+
+1. **仕掛かり状態の確定(中途半端な未コミットは無し)**
+   - `git status` は完全に clean。チェックポイント `b4bc4ba` 以降に2コミット追加済み: `b4bc4ba`(dirty だった CLAUDE.md / LiberationSans SDF を確定)→ `28eb47c`(**Task C = NativeArray リーク修正**)
+   - つまり **Task C は前セッション終盤に既に実装・コミット済み**。内容を精読して健全性を確認: `OnDestroy` の破棄を `DisposeNativeContainers()` に抽出し、`AwakeSetting` で `AssemblyReloadEvents.beforeAssemblyReload` に登録(二重登録防止フラグ `reloadDisposeHooked`)、`OnDestroy` でフック解除、`IsCreated` ガードで二重破棄も安全。すべて `#if UNITY_EDITOR`。差分は QuadOrder.cs 単一ファイル +34行。破棄漏れ経路(Play 中強制リロードで OnDestroy が飛ぶ)を正しく塞いでおり、ゲーム挙動は不変。→ **検証済み・破棄不要**
+2. **Task B(ドット拡大 scale 0.45 の Oracle 再レビュー)= 検証タスクを完了**
+   - Unity ブリッジが落ちていた(下記)ため、前セッションが 14:16 に撮影済みの `Assets/Screenshots/capture_stone_66.50.png` / `73.00.png`(いずれも scale 0.45・color 0.52/0.63/0.98 のコミット `40e3f81` より後の撮影 = 現状を反映)を使用
+   - Oracle(browser、`browserModelStrategy:"ignore"` で現在選択中モデル使用)に2枚を添付レビュー。画像描写がスクショと一致し実視聴を確認
+   - **結果: scale 0.45 は「合格」**(暗背景で危険予告として読める。四角枠の形・ドット間隔・角の閉じ、いずれも問題なし)。Oracle の任意推奨は **scale 0.48**(73.0s で左右の大きな丸ノコに視線を取られる際の周辺視野を考慮した安全寄り。0.50 以上は不要)
+3. **Oracle 運用知見をメモリに反映**: `browserModelLabel:"High"` は MCP 経由で効かず config 既定の gpt-5.5-pro(Plus に無い Pro)を掴む。`browserModelStrategy:"ignore"`(または `current`)で現在選択中モデルをそのまま使うのが確実、と `feedback_oracle_chatgpt_model.md` に追記
+
+### 検証結果
+
+- **Unity ブリッジは本セッション中ずっと利用不可**。`mcpforunity://instances` は instance_count=0。Unity プロセスは3つ生存するが RAM が異常に低く(main 0.63GB)、14:34 のクラッシュ由来でハングと推測。**ユーザー離席中の kill/再起動は危険なので実施せず**(GUI 操作も不可)
+- そのため Task B の「合格」判定は既存スクショ+Oracle 客観評価で確定できたが、コンパイル/EditMode/golden 再生成を要する変更は一切行っていない
+- Task C は git 上のコミット済み実装をコード精読で確認(静的検証)。Play 中リロードの実挙動再検証は Unity 復帰後に可能
+
+### 未解決と次の一手(Unity 復帰が前提)
+
+- **Task B 任意フォローアップ(scale 0.45→0.48)**: Oracle 推奨の安全寄り微調整。実行レシピ(次セッションで数分):
+  1. `Assets/BulletBuffers/stone/lower_burst_warn_1.json` と `lower_burst_warn_2.json` の scale 値 `0.45` を全て `0.48` に置換(各ファイル 64 ドット。`0.45` は scale の x/y にのみ出現し color/appearTime とは非重複なので安全に一括置換可)
+  2. `Tools/Bullet Hell/Golden/Dump All Stages` → `git diff Tests/Golden/stone.golden.json` で対象2バッファの sha1 のみ変化を確認
+  3. `run_tests`(EditMode)で 49/49 緑
+  4. Play Mode → Start Stone Stage → Capture At Times 66.5/73.0s で拡大を目視 → 1コミット
+  - **判断**: 0.45 で既に合格のため必須ではない。安全側に倒すなら実施。alpha/色は触らない(凍結リスト)
+- **Task A(起動リングの因果明確化)**: 未着手。JSON+chart 変更→golden 再生成→テスト期待値更新→Play Mode 検証が必要で、Unity 必須のため本セッションでは着手せず(OPUS-HANDOFF §4-A に手順あり)
+- Unity ブリッジ復帰の確認が最優先。復帰しない場合はユーザーに Unity 再起動を依頼
+
 ## 2026-07-03 昼過ぎ(自律セッション・Opus 引き継ぎ整備)
 
 ### 今回やったこと

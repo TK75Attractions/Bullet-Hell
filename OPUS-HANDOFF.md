@@ -8,9 +8,11 @@
 
 ## 1. 現状スナップショット(2026-07-03 時点・検証済み)
 
-- ブランチ: `marron/claude-codex`(origin より **30 コミット先行**。push はユーザー確認が必要 → §4)
-- 最新コミット: `40e3f81` 石工: 破片寿命20%短縮+下部破裂予告の点線を明るく・大きく
-- **EditMode テスト 49/49 緑**(2026-07-03 にこの引き継ぎ書作成時点で再実行して確認)
+- ブランチ: `marron/claude-codex`(origin より **33 コミット先行**。push はユーザー確認が必要 → §4)
+- 最新コミット: `28eb47c` 石工/描画: Play中ドメインリロード時のNativeArrayリーク修正(QuadOrder)
+- **タスク進捗**: **Task C(NativeArray リーク)は `28eb47c` で実装・コミット済み**(コード精読で健全性確認済み)。**Task B(ドット拡大の Oracle 再レビュー)は完了**: scale 0.45 は Oracle「合格」、任意で 0.48 推奨(PROGRESS 2026-07-03 夜の節参照)
+- **EditMode テスト 49/49 緑**(引き継ぎ書作成時点で確認。以後 Unity ブリッジ不通のため未再実行)
+- ⚠ **2026-07-03 夜時点で Unity ブリッジ不通**(instance_count=0、プロセスはハング疑い)。JSON/コード変更を伴うタスクは Unity 復帰後に
 - ワークツリーの dirty(意図的・**revert 禁止**):
   - `CLAUDE.md`(+12行: 「短期的な指示」セクション。ユーザー管理)
   - `Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF - Fallback.asset`(過去セッション由来)
@@ -71,17 +73,13 @@ UnityMCP `run_tests`(mode=EditMode)→ `get_test_job` で 49/49 を確認。
 - **検証**: 3.2 → 3.3 → 3.4(63.3〜63.6s 前後を Capture At Times、過去の証跡は 63.38/63.46/63.50s)→ Oracle 画像レビュー
 - **戻し方**: 追加した JSON と chart の差分、golden、テスト期待値を revert
 
-### B. ★ ドット拡大(scale 0.45)後の Oracle 再レビュー【難易度: 低 / リスク: なし】
-- **内容**: 前回、下部破裂予告のドットを 0.4→0.45 に拡大したが、拡大後の Oracle 再レビューが未実施のまま確定している。検証だけのタスク
-- **手順**: 3.4 で 66.5 / 73.0s のスクショを撮る → Oracle 画像レビュー「点線予告の視認性はこれで十分か。明るさの上限は RGB 0.58/0.70/1.00 とされている」
-- **注意**: Oracle が変更を提案しても、色は「現状値が適正」と一度確定済み。scale の微調整のみ許容。alpha は触らない(§5)
+### B. ✅ ドット拡大(scale 0.45)後の Oracle 再レビュー【完了・2026-07-03 夜】
+- **結果**: 既存スクショ(66.5/73.0s、scale 0.45 反映)を Oracle 画像レビュー。**scale 0.45 は「合格」**(危険予告として読める・枠の形も良好)。任意推奨は **scale 0.48**(周辺視野で安全寄り。0.50 以上は不要)。色/alpha は現状維持で確定
+- **残: 任意フォローアップ(0.45→0.48)** — 必須ではない。実施するなら PROGRESS 2026-07-03 夜の「実行レシピ」参照(warn_1/2.json の 0.45→0.48 一括置換 → golden 再生成 → テスト → Capture 目視)
 
-### C. ★ Play 中ドメインリロード時の NativeArray リーク修正【難易度: 中 / リスク: 低】
-- **内容**: リロード時に QuadOrder の NativeArray が Dispose されず「Leak Detected: Persistent allocates 21 allocations」が出る(実害小・既存事象)
-- **対象**: `Assets/Scripts/Bullets/BulletRenderSystem.cs` 周辺(QuadOrder の NativeArray 確保箇所)
-- **手順**: 確保箇所を特定 → `AppDomain.CurrentDomain.DomainUnload` か `AssemblyReloadEvents.beforeAssemblyReload` で Dispose を追加(ゲーム挙動を変えないこと)
-- **検証**: 3.1 → 3.2 → Play Mode で石工起動 → `EditorUtility.RequestScriptReload()` を Play 中に実行(前セッションの再現手順)→ リーク警告が消えること+NRE が出ないこと(GManager の ready=[NonSerialized] ガードは 596ef09 で対応済み)
-- **戻し方**: 単一ファイルの revert
+### C. ✅ Play 中ドメインリロード時の NativeArray リーク修正【完了・`28eb47c`】
+- **実装**: `Assets/Scripts/Managers/QuadOrder.cs` に `DisposeNativeContainers()` を抽出し、`AwakeSetting` で `beforeAssemblyReload` に登録(二重登録防止フラグ)、`OnDestroy` で解除+破棄、`IsCreated` ガードで二重破棄も安全。すべて `#if UNITY_EDITOR`。リーク 21→2 に減少(残2は LASER.vertsSet・別スコープ・実害小)
+- **残検証**: Play 中 `EditorUtility.RequestScriptReload()` での実挙動再確認は Unity 復帰後に(コード精読では健全)
 
 ### D. 点線予告のビート同期出現(Gemini 優先度5)【難易度: 中 / リスク: 中】
 - **内容**: 0:28 以降の点線枠がフワッと出るのを、ハイハット等の細ビートに合わせてパラパラ出現させる
@@ -118,7 +116,7 @@ UnityMCP `run_tests`(mode=EditMode)→ `get_test_job` で 49/49 を確認。
 - **内容**: ベルト帯を一括消滅ではなくカッター通過位置から順に崩す
 - **理由**: `stone_belt_bottom_2.json` を複数分割する再設計。65.417s 同期(直近2ラウンドで作り込んだ因果)を壊すリスクが高い。現状でも Oracle は「粉砕→床消滅→次攻撃の因果が読める」と評価済みで、緊急度は低い
 
-**推奨着手順(Opus 単独で完結できる順)**: B → A → C → (余力があれば) G の亀裂のみ → D。E/F は録画レビューまで完走できるときのみ。H/I は実装せず提案止まり。
+**推奨着手順(Opus 単独で完結できる順)**: ~~B~~(完了) → **A(次はこれ)** → ~~C~~(完了) → (余力があれば) G の亀裂のみ → D。E/F は録画レビューまで完走できるときのみ。H/I は実装せず提案止まり。**いずれも Unity ブリッジ復帰が前提**(2026-07-03 夜時点で不通)。
 
 ---
 
