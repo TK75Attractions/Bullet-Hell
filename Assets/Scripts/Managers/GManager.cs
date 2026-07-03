@@ -144,6 +144,12 @@ public class GManager : MonoBehaviour
             PController = new PlayerController();
             GameObject ptemp = Instantiate(PlayerObj);
             PController.Init(ptemp);
+            // Keep the player readable on top of the GPU bullet layer (URP draws
+            // the instanced bullets after the 2D sprite passes, otherwise burying it).
+            if (ptemp.GetComponent<PlayerFrontOverlay>() == null)
+            {
+                ptemp.AddComponent<PlayerFrontOverlay>();
+            }
             LogStartup("Player initialized");
 
             SReader = GetComponent<StageReader>();
