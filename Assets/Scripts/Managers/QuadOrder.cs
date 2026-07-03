@@ -135,6 +135,11 @@ public partial class QuadOrder : MonoBehaviour
 
     public List<List<int>> laserVertsIndex = new List<List<int>>();
 
+#if UNITY_EDITOR
+    // beforeAssemblyReload に DisposeNativeContainers を二重登録しないためのフラグ。
+    [NonSerialized] private bool reloadDisposeHooked;
+#endif
+
     public void AwakeSetting()
     {
         int side = 1;
@@ -211,9 +216,38 @@ public partial class QuadOrder : MonoBehaviour
 
         allLASERs.AddRange(laserEmitter.EmitLASER(clips[0], new float2(0, 0)));
         if (boss != null) boss.Init();
+
+#if UNITY_EDITOR
+        // Play 中に script を編集して強制リロードが走ると OnDestroy が呼ばれず、
+        // ここで確保した Persistent コンテナがリークする。リロード直前に破棄する。
+        if (!reloadDisposeHooked)
+        {
+            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += DisposeNativeContainers;
+            reloadDisposeHooked = true;
+        }
+#endif
     }
 
     private void OnDestroy()
+    {
+#if UNITY_EDITOR
+        // Play 中の強制ドメインリロードでは OnDestroy が呼ばれず native 確保がリークするため、
+        // リロード直前フックを解除してから通常破棄する(フックは AwakeSetting で登録)。
+        if (reloadDisposeHooked)
+        {
+            UnityEditor.AssemblyReloadEvents.beforeAssemblyReload -= DisposeNativeContainers;
+            reloadDisposeHooked = false;
+        }
+#endif
+        DisposeNativeContainers();
+    }
+
+    /// <summary>
+    /// Persistent native コンテナを一括破棄する。OnDestroy と、エディタでの
+    /// beforeAssemblyReload(Play 中リロードで OnDestroy が飛ぶ経路)から呼ぶ。
+    /// IsCreated ガードにより二重呼び出しは安全。
+    /// </summary>
+    private void DisposeNativeContainers()
     {
         if (enemyBullets.IsCreated) enemyBullets.Dispose();
         if (counterBullets.IsCreated) counterBullets.Dispose();
