@@ -1,5 +1,7 @@
 # Claude Code handoff: Bullet-Hell
 
+> 2026-07-03 追記: 自律セッション(特に Opus 運用)は、まずリポジトリ直下の `OPUS-HANDOFF.md` を読むこと。残タスク・検証手順・凍結リストが最新の状態で整理されている。
+
 Date: 2026-07-01
 Repo: `D:\Unity\Bullet-Hell`
 Branch: `marron/claude-codex`
