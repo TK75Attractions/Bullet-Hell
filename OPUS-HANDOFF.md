@@ -8,8 +8,8 @@
 
 ## 1. 現状スナップショット(2026-07-03 時点・検証済み)
 
-- ブランチ: `marron/claude-codex`(origin より **46 コミット先行**。push はユーザー確認が必要 → §4)
-- 最新コミット: `05729e9` 石工/破壊エフェクト: 粉砕破片を4分拍グリッドに整列(OPUS-HANDOFF §4-E)。その前は `1b3c69d` 点線パラパラ出現(§4-D)、`309aae0` 床消滅の亀裂ライン(§4-G)
+- ブランチ: `marron/claude-codex`(origin より **53 コミット先行**。push はユーザー確認が必要 → §4)
+- 最新コミット: **R9(ユーザー実確認フィードバック4件)完了** — `f4bc132` 形態変化ブロックの重なり解消/ジッター(Task3)、`d9ce6ea` 色統一(Task4)、`3942a98` 点線予告の簡素化(Task1)、`8275960` tile/mass_drop 減速(Task2)。その前は R8 `814765d` 自機視認性(§4-F)
 - **タスク進捗**: **Task C(NativeArray リーク)は `28eb47c` で実装・コミット済み**(コード精読で健全性確認済み)。**Task B(ドット拡大の Oracle 再レビュー)は完了**: scale 0.45 は Oracle「合格」、任意で 0.48 推奨(PROGRESS 2026-07-03 夜の節参照)
 - **EditMode テスト 49/49 緑**(引き継ぎ書作成時点で確認。以後 Unity ブリッジ不通のため未再実行)
 - ⚠ **2026-07-03 夜時点で Unity ブリッジ不通**(instance_count=0、プロセスはハング疑い)。JSON/コード変更を伴うタスクは Unity 復帰後に
@@ -129,11 +129,24 @@ UnityMCP `run_tests`(mode=EditMode)→ `get_test_job` で 49/49 を確認。
 | `appearBeatBaseAlpha = 0.2f` | `Assets/Scripts/Bullets/BulletRenderSystem.cs:14` | 全ステージの予告フェード共通定数。Oracle は 0.3 を提案したが全体の見た目に効くためユーザー判断 |
 | 破片(shatter_shard)のアルファ | `shatter_shard.json` | 「半透明で最初表示するのをやめて」というユーザー指示と干渉。寿命 0.96s も Oracle 確定値 |
 | カッターの最終 Y / スケール | `edge_cutter_1/2.json` | 当たり判定=難易度に直結。Oracle 案(Y を 0.3〜0.5 下げ or scale 0.9)は保留中 |
-| 形態変化の演出方向 | ゴーレム/老人のクロスフェード一式 | Gemini は「粒子吸い込み/グリッチ」を提案したが、「老人がゴーレムに重なって消える」は**ユーザー指示そのもの**。変更は要相談 |
-| 下部破裂予告の点線の色 | `lower_burst_warn_1/2.json` | RGB 0.52/0.63/0.98 で Oracle と確定済み(上限 0.58/0.70/1.00) |
+| 形態変化の**キャラ演出**(老人/ゴーレムのクロスフェード) | ゴーレム/老人のクロスフェード一式 | 「老人がゴーレムに重なって消える」は**ユーザー指示そのもの**。変更は要相談。**注: ブロック配置の重なり/ランダム化は R9 でユーザー指示により解除・実施済み(`f4bc132`)。凍結対象はキャラのクロスフェード演出のみ** |
+| 下部破裂予告の点線の色 | `lower_burst_warn_1/2.json` | RGB 0.52/0.63/0.98 で Oracle と確定済み(上限 0.58/0.70/1.00)。**R9 の色統一(`d9ce6ea`)でも非変更** |
+| 起動リングの赤 | `golem_core_ring.json` | 因果演出(赤=起動インパクト)で Oracle 確定。ネイビー統一の対象外 |
 | Script Changes While Playing | Unity Preferences | ユーザー環境設定。変更しない(推奨値の伝達のみ) |
 | CLAUDE.md「短期的な指示」 | `CLAUDE.md`(dirty) | 全項目対応済みのはずだが、セクション整理はユーザー確認後 |
 | push / 公開 / force push | — | ユーザー確認必須 |
+
+## 5.1 石工 統一ネイビーパレット(R9 `d9ce6ea` で確定・以後これに揃える)
+
+| 役割 | RGBA | 対象 |
+|---|---|---|
+| ソリッドブロック/コンベア/床 | `0.025, 0.04, 0.095, 0.98` | block spawn/drop/settle・belt_flow・belt_bottom |
+| エフェクト雲(ダスト/フラッシュ/明滅) | `0.42, 0.5, 0.8, (α各自)` | land_dust*・*_flash・erase_flash・prefall_blink・transform_dust |
+| 予告(点線 warn) | `0.45, 0.55, 0.85, 0.962` | block/rain/tile warn・run_cutter_warn |
+| カッター刃 | `0.12, 0.17, 0.42, 1.0` | edge/run/lower cutter(視認性で据置) |
+| 破片/デブリ | `0.1, 0.14, 0.36, 1.0` | shard 系(視認性で据置) |
+
+- 例外(統一しない): `lower_burst_warn`(凍結色)・`shatter_shard`(凍結α)・`golem_core_ring`(赤)・lower_burst/hammer の攻撃弾(視認性)。棚卸し詳細は PROGRESS 2026-07-04 昼の R9 節。
 
 ## 6. その他の申し送り
 
