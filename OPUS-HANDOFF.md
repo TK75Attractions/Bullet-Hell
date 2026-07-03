@@ -95,11 +95,13 @@ UnityMCP `run_tests`(mode=EditMode)→ `get_test_job` で 49/49 を確認。
 - **対象外**: `edge_cutter_1/2.json`(75s台=65s破壊と無関係、かつ最終Y/scale が §5凍結)は未着手
 - **戻し方**: `git revert 05729e9`(shatter_shard.json+golden がまとまっている)
 
-### F. プレイヤーの視認性向上(Oracle 優先度1)【難易度: 中〜高 / リスク: 中】
+### F. プレイヤーの視認性向上(Oracle 優先度1)【難易度: 中〜高 / リスク: 中】✅完了(`814765d`)
 - **内容**: 65.5s 前後で自機が破片・カッターに埋もれる。自機の描画順を前面化+1px 暗色アウトライン
+- **実装(ラウンド8)**: URP 2D は弾(SRPDefaultUnlit の DrawMeshInstancedIndirect)を 2D スプライトパスの後に描くため、通常 SpriteRenderer の自機は常に弾の背後になっていた(=真因)。`Assets/Shaders/PlayerFrontOverlay.shader`(URP unlit・Queue=Transparent+100)+ `Assets/Scripts/Managers/PlayerFrontOverlay.cs`(自機スプライトを弾の直後に `Graphics.DrawMesh` で再描画、色を MPB 伝播)を追加。GManager が自機生成直後に付与。既存 SpriteRenderer 不変=追加のみ。**アウトラインは不採用**(Oracle が「暗い画面で浮くので不要」と明言)
 - **対象**: 自機の描画(SpriteRenderer の sortingOrder ないしプレイヤー用マテリアル)。描画コード変更が必要
 - **注意**: 全ステージに効く変更になりやすい。石工以外(過去ステージ)のスクショも1枚撮って副作用がないか見る
-- **検証**: 3.1 → 3.2 → 3.4(64.3〜65.7s)→ Oracle 画像レビュー
+- **検証**: 3.1 → 3.2 → 3.4(64.3〜65.7s)→ Oracle 画像レビュー。→ EditMode 49/49・石工 before/after・Captain 回帰なし・Oracle 合格で完走
+- **戻し方**: `git revert 814765d`(shader+component+GManager フックがまとまっている)
 - **戻し方**: 変更ファイルの revert
 
 ### G. ✅ 床消滅の演出強化: 亀裂ライン(JSON のみ)【完了・`309aae0`(2026-07-03 深夜4)】
@@ -116,7 +118,7 @@ UnityMCP `run_tests`(mode=EditMode)→ `get_test_job` で 49/49 を確認。
 - **内容**: ベルト帯を一括消滅ではなくカッター通過位置から順に崩す
 - **理由**: `stone_belt_bottom_2.json` を複数分割する再設計。65.417s 同期(直近2ラウンドで作り込んだ因果)を壊すリスクが高い。現状でも Oracle は「粉砕→床消滅→次攻撃の因果が読める」と評価済みで、緊急度は低い
 
-**推奨着手順(Opus 単独で完結できる順)**: ~~B~~ → ~~A~~ → ~~C~~ → ~~G の亀裂のみ~~ → ~~D~~ → ~~E~~(すべて完了)。**残るは F(自機視認性・描画コード変更要)**。H/I は実装せず提案止まり。G の画面揺れ(カメラ制御)は未実装で別タスク。Oracle 動画レビューのパイプライン確立済み(録画→ffmpeg で <1MB 圧縮→browser 添付→冒頭 describe で実視聴確認)。
+**推奨着手順(Opus 単独で完結できる順)**: ~~B~~ → ~~A~~ → ~~C~~ → ~~G の亀裂のみ~~ → ~~D~~ → ~~E~~ → ~~F~~(**§4 の A〜G すべて完了**)。H/I は実装せず提案止まり(要ユーザー相談)。G の画面揺れ(カメラ制御)は未実装で別タスク。Oracle 動画レビューのパイプライン確立済み(録画→ffmpeg で <1MB 圧縮→browser 添付→冒頭 describe で実視聴確認)。
 
 ---
 

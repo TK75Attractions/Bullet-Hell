@@ -1,5 +1,43 @@
 # PROGRESS
 
+## 2026-07-04 早朝2(自律セッション・Opus ラウンド8: 自機視認性の前面化/OPUS-HANDOFF §4-F)
+
+OPUS-HANDOFF §4-F『プレイヤーの視認性向上(Oracle 優先度1)』を、描画コード変更を伴うため慎重に進め、実装前調査→最小追加→EditMode/PlayMode/回帰/Oracle 検証まで完走して独立コミットした(`814765d`)。凍結リスト不可侵・push 禁止を遵守。origin より **48 コミット先行**。
+
+### 実装前調査(描画順の precisely 把握)
+
+- **真因の特定**: 弾は `BulletRenderSystem.Draw()`(GManager.Update:408)が `Graphics.DrawMeshInstancedIndirect` で描画。使用マテリアル `BulletMaterial.mat` は **URP 版シェーダ `BulletIndirectURP.shader`**(guid 0ef0…、Built-in 版 `BulletIndirect.shader` は不使用)。タグ = `RenderType=Transparent`/`Queue=Transparent`(3000)/`LightMode=SRPDefaultUnlit`、ZWrite Off、world Z=0。パイプラインは **URP 2D Renderer**(UniversalRP.asset + Renderer2D.asset)
+- **自機**: 実行時生成の GameObject `player`(SpriteRenderer、sprite R_0_0、sortingLayer=Default/order 0、マテリアル `Sprite-Lit-Default`、Z=0)。子に `Spell`(ダッシュ用、order -1)
+- **結論**: URP 2D は SRPDefaultUnlit のジオメトリ(=弾)を **2D スプライトパス群の後**に描くため、通常 SpriteRenderer の自機は構造上つねに弾の背後 → 破片/カッターに埋もれる。sortingOrder では解決不能(弾は Renderer2D のソート系外)。**同じ unlit collection に Queue>3000 で自機を再描画**すれば確実に前面化できる、と判断してから着手
+
+### 今回やったこと
+
+1. **自機を弾レイヤーの直後に再描画する前面化オーバーレイを新規実装** — `814765d`
+   - `Assets/Shaders/PlayerFrontOverlay.shader`: URP unlit、`LightMode=SRPDefaultUnlit`(弾と同じ collection)・`Queue=Transparent+100`(=3100、弾の 3000 の後にソート)・ZWrite Off・SrcAlpha 合成。`_MainTex*_Color` を出力
+   - `Assets/Scripts/Managers/PlayerFrontOverlay.cs`: 自機の SpriteRenderer から `sprite.vertices/uv/triangles` で quad を構築し、`LateUpdate` で `Graphics.DrawMesh(quad, transform.localToWorldMatrix, overlayMat, layer, null, 0, mpb)`。テクスチャと **color(被弾フラッシュの赤含む)を MaterialPropertyBlock で毎フレーム伝播**。既存 SpriteRenderer は不変 = 純粋な追加描画
+   - `GManager.cs`: 自機生成直後(`Instantiate(PlayerObj)`)に `PlayerFrontOverlay` を1回付与(全ステージ共通)。差分は6行
+   - **アウトラインは不採用**: HANDOFF は「+1px 暗色アウトライン」も挙げていたが、Oracle が「常時アウトラインはこの暗いミニマル画面で浮く・不要」と明言したため、前面化のみに留めた
+2. **before/after を Play Mode で実撮影して比較 + Oracle 画像レビュー**(gpt-5.5-pro, browser, `browserModelStrategy:current`)
+   - 対策前(前回コミット状態)で 64.3/65.0/65.5/65.7s を撮影 → `before_taskF_*.png` に退避 → 実装後に同時刻を再撮影
+   - 65.5s: **before は紺色破片が自機 body に重なって隠す(赤い頭しか読めない)→ after は自機の頭+body 全身が破片の前面に出て読める**
+   - 別ステージ `Captain`(自機生成経路は全ステージ共通)を起動し、弾 186 発の状況で自機を撮影 → 二重描画/オフセット/色濁りなしを確認(回帰チェック)
+   - Oracle 判定 = **合格**: (A)埋もれ解消=改善、(B)自機前面はこのジャンルで自然(プレイアビリティ上正しい)、(C)Captain で破綻なし=回帰合格、(D)現状で十分・常時アウトライン不要
+
+### 検証結果
+
+- **EditMode 49/49 緑**(実装後に実行)。golden/JSON/chart は不変(描画コードのみの追加)=`ChartCompileParityTest` 等の期待値変更なし
+- **コンパイル成功**(自作 shader/script のエラー・警告なし。既知無害の mp4 color-primaries とスクショ png の sprite 警告のみ)
+- **Play Mode 実挙動**: 石工 65.0/65.5s で自機が弾/破片の前面に出るのを before/after で目視確認(`Assets/Screenshots/capture_stone_65.00/65.50.png`・`before_taskF_*.png`、gitignore)。Captain で正常描画(`regression_captain_overlay.png`)
+- **音ハメへの影響なし**: 描画のみの追加で、弾の appearTime・chart・当たり判定は一切不変
+- Oracle 画像レビュー(3枚添付、冒頭 describe で実視聴確認)= 合格
+
+### 未解決と次の一手
+
+- **§4 A〜G はすべて完了**(F 完了で残タスク消化)。残るは **H/I(要ユーザー相談)** と **G の画面揺れ(カメラ制御・全ステージ影響のため別タスク)**
+- **任意の微調整(Oracle・低優先)**: さらに視認性を上げるなら「被弾フラッシュ時だけ頭部〜胴体の発光を少し強める」程度でよい(常時アウトラインは不要と Oracle が明言)。現状で合格のため見送り
+- **副作用の設計メモ**: 本オーバーレイは自機を弾だけでなく**敵スプライトより前**にも出す(unlit collection は全 2D スプライトの後)。通常プレイでは自機と敵(ゴーレム/老人)が重ならないため不可視だが、将来ボスが自機に重なる演出を入れる場合は自機が前に出る点に留意。UI(ScreenSpace オーバーレイ)は影響なし(Captain の HP メーターが前面のままを確認)
+- push はユーザー確認待ち(origin より **48 コミット先行**)
+
 ## 2026-07-04 早朝(自律セッション・Opus ラウンド7: 破壊エフェクトのビート同期/OPUS-HANDOFF §4-E)
 
 OPUS-HANDOFF §4-E『破壊エフェクトのビート同期』を、録画+Oracle 動画レビューまで完走してコミットした(`05729e9`)。65s 台のブロック粉砕(石工粉砕破片)の破片バーストが拍からズレて砕けていたのを、キック/スネアの4分拍グリッドに整列。凍結リスト不可侵・push 禁止を遵守。origin より 46 コミット先行。
