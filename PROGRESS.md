@@ -1,5 +1,30 @@
 # PROGRESS
 
+## 2026-07-04 早朝(自律セッション・Opus: 弾幕生成リファクタ第4弾 = 合成スポーン位置検査)
+
+REFACTOR-REPORT §8.2 昇格候補1を実装。advisory 棚卸しの数値実測を「出現前に即死する弾」を world 座標で名指しする静的リンターに昇格。**詳細は `REFACTOR-REPORT.md` §9**。挙動不変(EditMode 全緑・golden/chart パリティ不変・runtime 非接触)。push 禁止遵守、origin より **95 コミット先行**。
+
+### 今回やったこと
+
+1. **着手前に実測でチェック強度を確定**(`execute_code`): 全公式ステージの bulletSpawners × クリップ弾を実行時の非ホーミング発射経路どおり合成(`world = spawnerPos + Rotate(originPos, angle)`)し生存域 [-2,36)² 外を計数。除外なし/laser除外=172、laser+homing除外=**171**。内訳 shellsplash 126 + 石工ベルトダッシュ 45 + mirror_LASER_SUB 1
+2. **§8.2 の 172 が1件の誤検知を含むことを現物で発見**: 172件目 mirror_LASER_SUB は名前に反し `isLaser=false, homing=true`。homing は発射時に角度をプレイヤー方向へ再計算するため、静的角度0での域外判定(world=(38,12))は実挙動と乖離(|originPos|=10・spawner(28,12)は域内なので半径10円は生存域と交差=通常時は域内スポーン)。→ **laser・enemySpawner と同じ理由で homing も除外**し真陽性 **171件**に精緻化
+3. **`98492b6` リンター: 合成スポーン位置検査を新設**: `ValidateStageSpawnPositions`(probe 依存)+ 純粋幾何コア3種(`ComposeSpawnWorldPosition`/`IsInsideSurvivalRegion`/`CheckSpawnPositions`)を分離。除外=enemySpawner(emitPos 動的)/laser/homing/未解決 clip。severity は warn のみ(shellsplash 良性裾 + belt dash 実バグが混在)。`StageLinterMenu` に結線
+4. **`StageSpawnPositionLintTests` 6本**: 実データ ratchet 1(0 error / 171 warn・全 warn が既知2クリップ限定・件数固定)+ 合成幾何 negative 5(域外検出・域内通過・回転適用・並進+回転合成値・境界の下側包含 [-2] 上側排他 [36))
+5. 文書: REFACTOR-REPORT §9 追記+§8.4 の候補1解消マーク
+
+### 検証結果
+
+- **EditMode 86→92 全緑**(新規6本含む)。golden 6ステージ・chart パリティは同スイート内で緑=挙動不変を機械確認
+- **Validate All Stages: 0 error / 696 warn** = 従来525 + 新設 [Spawn]171。prefix 内訳 [Buffer]492 + [Types]32 + [Link]1 + [Spawn]171。既存プレフィックス不変=追加ノイズは171の真陽性のみ・誤検知ゼロ
+- コンパイルエラーなし。Play Mode/Oracle レビュー: 該当なし(Editor/Tests/Docs のみ・視覚成果物なし)
+
+### 未解決と次の一手
+
+- **石工ベルトダッシュのデータ修正はユーザー判断待ち(継続)**: [Spawn] が45件を world 座標で名指しするようになった。授権意図(6.35秒ベルトが右から補充)に対し x=38〜70 起点の9発×5 spawner が即死。修正時は ratchet 期待値(171→126)を golden 同様に更新
+- **既存の生 originPos advisory 492件の廃止/縮小は未実施**: [Spawn] と重複するが、生 advisory は未参照26件・enemy/laser/homing も拾う広いカバレッジを持つため差分追加優先で両立(REFACTOR-REPORT §9.4-1)
+- angleInterval ファンアウト未検査(base 角度のみ)、`enemyName`→EDB 解決検査、startPos 整合検査、未参照26件のスコープ分離、圧縮テクスチャ30件は未実装のまま
+- push はユーザー確認待ち(origin より **95 コミット先行**)
+
 ## 2026-07-04 深夜〜早朝(自律セッション・Fable: 弾幕生成リファクタ第3弾 = visualId リンク検査+advisory 棚卸し)
 
 REFACTOR-REPORT §7.4 の次候補を消化。**詳細は `REFACTOR-REPORT.md` §8(追記)**。挙動不変(EditMode 全緑・golden 不変・実データ警告の追加ノイズ 0)。push 禁止遵守、origin より **94 コミット先行**。

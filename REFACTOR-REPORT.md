@@ -195,6 +195,40 @@
 ### 8.4 残ギャップ(§7.4 の更新)
 
 1. §7.4-2(bulletInterval データ掃除)は `4915c94`、§7.4-3 前半(visualId 検査)は本ラウンドで解消。§7.4-4・5 は据え置き
-2. **次の最有力**: §8.2 の昇格候補 1(合成スポーン位置検査)。実装素材(生存域・合成式・除外条件・期待真陽性172件)は §8.2 に全て揃っている
+2. ~~**次の最有力**: §8.2 の昇格候補 1(合成スポーン位置検査)。実装素材(生存域・合成式・除外条件・期待真陽性172件)は §8.2 に全て揃っている~~ **→ ラウンド4で解消(§9)。実測で 172 のうち1件が homing 由来の誤検知と判明し、真陽性は 171 に精緻化**
 3. **ユーザー判断待ち**: 石工ベルトダッシュの授権意図の確認とデータ修正(§8.2 候補2)
 4. `enemyName` → EDB 解決検査(probe 要)、startPos 整合検査(§5-4)、laser 特化検査(§5-5)は未実装のまま
+
+## 9. ラウンド4(2026-07-04 早朝): 合成スポーン位置検査
+
+対象コミット: `98492b6`(挙動不変・独立 revert 可)+ 本レポート/PROGRESS 追記。§8.2 の昇格候補 1 を実装し、advisory 棚卸しの数値実測を「出現前に即死する弾」を world 座標で名指しする静的チェックに昇格させた。
+
+### 9.1 実測でチェック強度を確定(着手前)
+
+`execute_code` で全公式ステージの bulletSpawners × クリップ弾を合成し(`world = spawnerPos + Rotate(originPos, angle deg→rad)`、BulletData.cs:167 と同一の Rotate)、生存域 [-2,36)² 外を数えた:
+
+- **除外なし = 172 / laser 除外 = 172 / laser+homing 除外 = 171**。内訳は shellsplash(captain)126 + 石工ベルトダッシュ(stone)45 + mirror_LASER_SUB(mirror)1
+- §8.2 の 172 を正確に再現。ただし **172 件目の mirror_LASER_SUB は homing 弾**(`isLaser=false, homing=true`。名前に LASER を含むが laser ではない)で、5 spawner から参照され、域外は spawner pos=(28,12)・originPos=(10,0) の1発だけ = 静的角度0で world=(38,12)(x≥36)
+- **この1件は homing 由来の誤検知**と判定: homing は発射時に角度をプレイヤー方向へ再計算する(BulletBufferManager.GetBulletClip の homing 分岐)。|originPos|=10 で spawner (28,12) は生存域内(box 最近点まで距離0)なので、半径10の円は生存域と交差する = プレイヤーが画面内にいる通常時この弾は域内にスポーンする。静的角度での域外判定は実挙動と乖離する
+- したがって正しい設計は **laser・enemySpawner(emitPos 動的)と同じ理由で homing(角度動的)も除外**し、真陽性 **171件**・誤検知ゼロにすること。§8.2 の 172 からの意図的な精緻化で、根拠を上記実測で確定した
+
+### 9.2 実施内容(`98492b6`)
+
+- `StageValidation.ValidateStageSpawnPositions(stages, report)`: probe 依存(`ValidateStageLinks` と同型。buffer をロードして originPos と homing/laser フラグを読む)。全 bulletSpawner について clip を解決し、非 laser・非 homing の弾ごとに合成位置を計算、生存域外なら **warn**
+- 純粋な幾何コアを分離してテスト可能に: `ComposeSpawnWorldPosition(pos, angleDeg, originPos)`(実行時の Rotate と一致)、`IsInsideSurvivalRegion(world)`(GetTreeNum のカル境界のミラー:左下 CullingMargin=2、右上 Morton グリッド separateLevel6→64セル×cellSize0.5625=36)、`CheckSpawnPositions(...)`(合成 originPos 列を受けて warn を積む)。probe 無しで detector の発火を実証できる
+- **severity は warn のみ**(error にしない): shellsplash 126 は可視域外を上昇する意図的な演出裾(良性の死にデータ)、belt dash 45 は実バグ(x=38〜70 起点)で、両者が混在するため advisory が正しい。既存の生 originPos advisory(clip ローカル座標)の world 座標版の後継
+- **除外**: enemySpawners(オービット原点が動的)/ laser(カル経路が別+フィールド再解釈)/ homing(角度動的)/ 未解決 clip(ValidateStageLinks 担当)。base 角度のみ合成(angleInterval のファンアウトは展開しない = 常に発射される k=0 の弾を検査。base が域外なら必ず実発射されるため偽陽性は増えない)
+- `StageLinterMenu` の probe ブロックに結線。`StageSpawnPositionLintTests` 6本: 実データ ratchet 1本(0 error / 171 warn・全 warn が既知2クリップ限定・件数固定)+ 合成幾何 negative 5本(域外検出・域内通過・回転適用・並進+回転の合成値・境界の下側包含/上側排他)
+
+### 9.3 検証結果
+
+- **EditMode: 86 → 92 で全緑**(新規6本含む)。golden 6ステージ・chart パリティは同スイート内で緑 = 挙動不変を機械確認(Editor/Tests のみの変更・runtime/データ非接触)
+- **Validate All Stages: 0 error / 696 warn** = ラウンド3の 525 + 新設 [Spawn] 171。prefix 内訳 [Buffer]492 + [Types]32 + [Link]1 + [Spawn]171。既存プレフィックスは不変 = 追加ノイズは 171 の真陽性のみ、誤検知ゼロ
+- コンパイルエラーなし。Play Mode: 該当なし(棚卸しの数値実測は §9.1 の execute_code で確定)。Oracle レビュー: 該当なし(視覚成果物なし)
+
+### 9.4 残ギャップ(§8.4 の更新)
+
+1. §8.2 候補1(合成スポーン位置検査)は本ラウンドで解消。**既存の生 originPos advisory 492件の廃止/スコープ縮小は未実施**: [Spawn] と重複するが、生 advisory は未参照バッファ26件・enemy/laser/homing クリップも拾う(粗いが広い)カバレッジを持つため、差分追加優先で本ラウンドでは両立させた。廃止するなら未参照・enemy 経由のカバー手段を別途用意してからが安全
+2. **ユーザー判断待ち(継続)**: 石工ベルトダッシュのデータ修正(§8.2 候補2)。[Spawn] が45件を world 座標で名指しするようになったので、修正後は ratchet の期待値(171→126)を golden と同様に更新する
+3. **angleInterval ファンアウト未検査**: count>1 かつ angleInterval≠0 の spawner では k>0 の回転コピーは合成していない(base のみ)。base が域内でも回転コピーが域外に出るケースは false negative。必要なら Expand 相当の角度展開を足す余地
+4. `enemyName` → EDB 解決検査(probe 要)、startPos 整合検査(§5-4)、laser 特化検査(§5-5)、未参照26件のスコープ分離、圧縮テクスチャ30件の import 修正は未実装のまま
