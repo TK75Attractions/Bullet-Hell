@@ -126,6 +126,22 @@ public static class StageValidation
                     report.Warn($"[Buffer] {rel} bullet[{i}] appearDuration {bullet.appearDuration} is negative (runtime substitutes DefaultAppearDuration; write the explicit value).");
                 }
 
+                // polarForm.y and initialAngle are radians. A magnitude beyond
+                // two full turns (4*pi) in these static angles almost always
+                // means degrees were written by mistake (spawner angles are
+                // degrees, JSON angles are radians). Rate fields
+                // (thetaVlc/angleSpeed) are excluded: fast spins are legal.
+                const float twoTurnsRad = 4f * Mathf.PI;
+                if (Mathf.Abs(bullet.polarForm.y) > twoTurnsRad)
+                {
+                    report.Warn($"[Buffer] {rel} bullet[{i}] polarForm.y {bullet.polarForm.y} exceeds 4*pi — degrees written where radians are expected?");
+                }
+
+                if (Mathf.Abs(bullet.initialAngle) > twoTurnsRad)
+                {
+                    report.Warn($"[Buffer] {rel} bullet[{i}] initialAngle {bullet.initialAngle} exceeds 4*pi — degrees written where radians are expected?");
+                }
+
                 // color is a multiplier against the spawner color; w==0 is the
                 // documented "show the sprite's own colors" mode. Components
                 // outside 0..1 have no defined meaning in this renderer.
