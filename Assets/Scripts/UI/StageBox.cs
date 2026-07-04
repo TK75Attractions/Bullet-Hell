@@ -50,6 +50,8 @@ public class StageBox : MonoBehaviour
     public void SetStageName(string name)
     {
         stageNameText.text = name;
+        // Japanese names ride high under Middle alignment; optically center.
+        TmpAlign.CenterInkVertically(stageNameText);
     }
 
     public void SetPosition(float progress)

@@ -309,13 +309,15 @@ public class JsabStageSelect : MonoBehaviour
 
         StageData cur = GetStage(currentIndex);
         string curName = cur != null && !string.IsNullOrWhiteSpace(cur.stageName) ? cur.stageName : ("Stage " + currentIndex);
-        if (stageNameText != null) stageNameText.text = curName;
-        if (cardFallbackName != null) cardFallbackName.text = curName;
+        // Japanese stage names ride high under Middle alignment (Latin UI font +
+        // CJK fallback metrics); optically center each by its ink bounds.
+        if (stageNameText != null) { stageNameText.text = curName; TmpAlign.CenterInkVertically(stageNameText); }
+        if (cardFallbackName != null) { cardFallbackName.text = curName; TmpAlign.CenterInkVertically(cardFallbackName); }
 
         StageData left = GetStage(currentIndex - 1);
         StageData right = GetStage(currentIndex + 1);
-        if (leftName != null) leftName.text = left != null ? SafeName(left) : "";
-        if (rightName != null) rightName.text = right != null ? SafeName(right) : "";
+        if (leftName != null) { leftName.text = left != null ? SafeName(left) : ""; TmpAlign.CenterInkVertically(leftName); }
+        if (rightName != null) { rightName.text = right != null ? SafeName(right) : ""; TmpAlign.CenterInkVertically(rightName); }
 
         UpdateVideo(cur);
 

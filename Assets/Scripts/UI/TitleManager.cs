@@ -384,6 +384,9 @@ public class TitleManager : MonoBehaviour
                 i == 0 ? Color.white : MenuTextDim, TextAlignmentOptions.Center);
             item.text = labels[i];
             item.fontStyle = FontStyles.Bold;
+            // The Japanese labels ride high in the bar under Middle alignment
+            // (Latin UI font + CJK fallback metrics); optically center them.
+            TmpAlign.CenterInkVertically(item);
             menuItems[i] = item;
             menuItemRects[i] = row;
             menuItemSel[i] = i == 0 ? 1f : 0f;
@@ -485,6 +488,7 @@ public class TitleManager : MonoBehaviour
         transferCodeText.text = PlayHistory.HasHistory
             ? PlayHistory.ExportCode()
             : "まだプレイ履歴がありません";
+        TmpAlign.CenterInkVertically(transferCodeText);
     }
 
     private void BuildTransferPanel()
@@ -623,6 +627,10 @@ public class TitleManager : MonoBehaviour
         Transform child = parent.Find(childName);
         if (child == null) return;
         TMP_Text text = child.GetComponent<TMP_Text>();
-        if (text != null) text.text = value;
+        if (text != null)
+        {
+            text.text = value;
+            TmpAlign.CenterInkVertically(text);
+        }
     }
 }
