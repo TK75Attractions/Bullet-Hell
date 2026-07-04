@@ -37,8 +37,8 @@
             },
             "typeName": "stone_block",
             "scale": {
-                "x": 3,
-                "y": 3
+                "x": 3.0,
+                "y": 3.0
             },
             "color": {
                 "x": 0.025,
@@ -89,8 +89,8 @@
             },
             "typeName": "stone_block",
             "scale": {
-                "x": 3,
-                "y": 3
+                "x": 3.0,
+                "y": 3.0
             },
             "color": {
                 "x": 0.025,
@@ -107,59 +107,7 @@
         },
         {
             "originPos": {
-                "x": 4,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 0,
-            "gravity": 0,
-            "angleSpeed": 0,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 0
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_block",
-            "scale": {
-                "x": 1.8,
-                "y": 1.8
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.416667,
-            "appearDuration": 0.02,
-            "life": 4.166667,
-            "random": 0,
-            "unCounterable": true,
-            "lockRotation": true
-        },
-        {
-            "originPos": {
-                "x": 8,
+                "x": 3.6,
                 "y": 2.3
             },
             "originVlc": {
@@ -211,7 +159,7 @@
         },
         {
             "originPos": {
-                "x": 12,
+                "x": 8.4,
                 "y": 2.3
             },
             "originVlc": {
@@ -256,14 +204,14 @@
             },
             "appearTime": 0.416667,
             "appearDuration": 0.02,
-            "life": 5.208334,
+            "life": 4.6875,
             "random": 0,
             "unCounterable": true,
             "lockRotation": true
         },
         {
             "originPos": {
-                "x": 16,
+                "x": 11.4,
                 "y": 2.3
             },
             "originVlc": {
@@ -308,14 +256,14 @@
             },
             "appearTime": 0.416667,
             "appearDuration": 0.02,
-            "life": 5.729167,
+            "life": 4.6875,
             "random": 0,
             "unCounterable": true,
             "lockRotation": true
         },
         {
             "originPos": {
-                "x": 20,
+                "x": 16.6,
                 "y": 2.3
             },
             "originVlc": {
@@ -360,7 +308,59 @@
             },
             "appearTime": 0.416667,
             "appearDuration": 0.02,
-            "life": 5.208334,
+            "life": 4.6875,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": true
+        },
+        {
+            "originPos": {
+                "x": 20.4,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": 0,
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_block",
+            "scale": {
+                "x": 1.8,
+                "y": 1.8
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.416667,
+            "appearDuration": 0.02,
+            "life": 4.6875,
             "random": 0,
             "unCounterable": true,
             "lockRotation": true
@@ -419,7 +419,7 @@
         },
         {
             "originPos": {
-                "x": 28,
+                "x": 28.2,
                 "y": 2.3
             },
             "originVlc": {
@@ -464,7 +464,7 @@
             },
             "appearTime": 0.416667,
             "appearDuration": 0.02,
-            "life": 4.166667,
+            "life": 4.6875,
             "random": 0,
             "unCounterable": true,
             "lockRotation": true
