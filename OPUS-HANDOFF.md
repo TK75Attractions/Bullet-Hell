@@ -129,7 +129,7 @@ UnityMCP `run_tests`(mode=EditMode)→ `get_test_job` で 49/49 を確認。
 | `appearBeatBaseAlpha = 0.2f` | `Assets/Scripts/Bullets/BulletRenderSystem.cs:14` | 全ステージの予告フェード共通定数。Oracle は 0.3 を提案したが全体の見た目に効くためユーザー判断 |
 | 破片(shatter_shard)のアルファ | `shatter_shard.json` | 「半透明で最初表示するのをやめて」というユーザー指示と干渉。寿命 0.96s も Oracle 確定値 |
 | カッターの最終 Y / スケール | `edge_cutter_1/2.json` | 当たり判定=難易度に直結。Oracle 案(Y を 0.3〜0.5 下げ or scale 0.9)は保留中 |
-| 形態変化の**キャラ演出**(老人/ゴーレムのクロスフェード) | ゴーレム/老人のクロスフェード一式 | 「老人がゴーレムに重なって消える」は**ユーザー指示そのもの**。変更は要相談。**注: ブロック配置の重なり/ランダム化は R9 でユーザー指示により解除・実施済み(`f4bc132`)。凍結対象はキャラのクロスフェード演出のみ** |
+| 形態変化の**キャラ演出**(召喚→落下→着地→騎乗) | `stone.chart.json` enemies 3エントリ一式 | 旧凍結対象だったクロスフェードは、ユーザー指示動画 `Instructions/石工弾幕形態変化.mp4`(2026-07-04 追加)に基づき「老人召喚→ゴーレム上空落下→M21着地→老人騎乗」へ刷新済み(`3cd3931`・Oracle 合格)。**この mp4 準拠の形が新基準**。さらに変える場合は要相談 |
 | 下部破裂予告の点線の色 | `lower_burst_warn_1/2.json` | RGB 0.52/0.63/0.98 で Oracle と確定済み(上限 0.58/0.70/1.00)。**R9 の色統一(`d9ce6ea`)でも非変更** |
 | 起動リングの赤 | `golem_core_ring.json` | 因果演出(赤=起動インパクト)で Oracle 確定。ネイビー統一の対象外 |
 | Script Changes While Playing | Unity Preferences | ユーザー環境設定。変更しない(推奨値の伝達のみ) |
