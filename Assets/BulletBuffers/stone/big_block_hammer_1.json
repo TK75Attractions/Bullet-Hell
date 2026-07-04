@@ -3,25 +3,25 @@
     "bullets": [
         {
             "originPos": {
-                "x": 13.96,
-                "y": 19.6
+                "x": 12.2,
+                "y": 19.8
             },
             "originVlc": {
-                "x": 0.0,
-                "y": 0.0
+                "x": -3.5971,
+                "y": -14.8681
             },
             "playerInfluence": {
                 "x": 0,
                 "y": 0
             },
             "startX": 1,
-            "speed": 29.102,
+            "speed": 0.0,
             "gravity": 0.0,
             "angleSpeed": 14.0,
             "initialAngle": 0.0,
             "polarForm": {
                 "x": 1.0,
-                "y": -1.9428
+                "y": 0.0
             },
             "radiusVlc": 0,
             "thetaVlc": -4.607669,
@@ -46,7 +46,7 @@
                 "z": 1.0,
                 "w": 0.0
             },
-            "appearTime": 0.384,
+            "appearTime": 0.0,
             "appearDuration": 0.02,
             "life": 0.834,
             "random": 0,
@@ -55,8 +55,8 @@
         },
         {
             "originPos": {
-                "x": 18.13,
-                "y": 19.6
+                "x": 9.2,
+                "y": 7.4
             },
             "originVlc": {
                 "x": 0.0,
@@ -67,13 +67,65 @@
                 "y": 0
             },
             "startX": 1,
-            "speed": 20.553,
+            "speed": 0.0,
+            "gravity": 0.0,
+            "angleSpeed": 0.0,
+            "initialAngle": 0.3,
+            "polarForm": {
+                "x": 1.0,
+                "y": 0.0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": -4.607669,
+            "startPos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shovel",
+            "scale": {
+                "x": 3.2,
+                "y": 3.2
+            },
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 0.0
+            },
+            "appearTime": 0.834,
+            "appearDuration": 0.02,
+            "life": 1.014,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": false
+        },
+        {
+            "originPos": {
+                "x": 26.1,
+                "y": 19.8
+            },
+            "originVlc": {
+                "x": -1.9145,
+                "y": -5.1053
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 1,
+            "speed": 0.0,
             "gravity": 0.0,
             "angleSpeed": 14.0,
             "initialAngle": 0.0,
             "polarForm": {
                 "x": 1.0,
-                "y": -1.0035
+                "y": 0.0
             },
             "radiusVlc": 0,
             "thetaVlc": -4.607669,
@@ -98,9 +150,61 @@
                 "z": 1.0,
                 "w": 0.0
             },
-            "appearTime": 1.117,
+            "appearTime": 0.0,
             "appearDuration": 0.02,
             "life": 1.567,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": false
+        },
+        {
+            "originPos": {
+                "x": 23.1,
+                "y": 11.8
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 1,
+            "speed": 0.0,
+            "gravity": 0.0,
+            "angleSpeed": 0.0,
+            "initialAngle": 0.3,
+            "polarForm": {
+                "x": 1.0,
+                "y": 0.0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": -4.607669,
+            "startPos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "hummer",
+            "scale": {
+                "x": 3.2,
+                "y": 3.2
+            },
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 0.0
+            },
+            "appearTime": 1.567,
+            "appearDuration": 0.02,
+            "life": 1.747,
             "random": 0,
             "unCounterable": true,
             "lockRotation": false
