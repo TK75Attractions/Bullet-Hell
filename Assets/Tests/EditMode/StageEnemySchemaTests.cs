@@ -6,27 +6,26 @@ using NUnit.Framework;
 /// no runtime DTO field accepts. JsonUtility silently drops any key absent from
 /// the target type, so a misspelled or unsupported key is dead data that no one
 /// notices — it never crashes, so every finding is a warning, not an error. The
-/// live case is captain, which writes bulletInterval on all 6 spawners even though
-/// EnemySpawnerJson has no such field; the runtime recomputes bulletInterval from
-/// bulletEmitTime/bulletCount, so edits to that key do nothing. The real-data test
-/// ratchets on exactly that one known dead key: any NEW dead key fails the suite
-/// and must be fixed or explicitly accepted. The synthetic self-tests prove each
-/// nesting level of the detector actually fires.
+/// historical case was captain, which wrote bulletInterval on all 6 spawners even
+/// though EnemySpawnerJson has no such field (the runtime recomputes it from
+/// bulletEmitTime/bulletCount); that data was cleaned in 2026-07, so the real-data
+/// test now ratchets on zero dead keys: any new one fails the suite and must be
+/// fixed or explicitly accepted. The synthetic self-tests prove each nesting level
+/// of the detector actually fires.
 /// </summary>
 public class StageEnemySchemaTests
 {
     [Test]
-    public void StageEnemyUnknownKeysAreOnlyTheKnownBulletIntervalDebt()
+    public void StageEnemySpawnersHaveNoUnknownKeys()
     {
         StageValidation.Report report = new StageValidation.Report();
         StageValidation.ValidateStageEnemySchema(report);
 
         Assert.IsEmpty(report.Errors, "Stage enemy schema errors:\n" + string.Join("\n", report.Errors));
 
-        // Ratchet: bulletInterval is today's only known dead key. If captain is
-        // regenerated without it this assertion is vacuously green; a new dead key
-        // trips it here and must be addressed deliberately.
-        Assert.That(report.Warnings, Has.All.Contains("key 'bulletInterval'"),
+        // Ratchet: the known bulletInterval debt was removed from captain.json,
+        // so any warning here is a NEW dead key and must be addressed deliberately.
+        Assert.IsEmpty(report.Warnings,
             "Unexpected schema warnings:\n" + string.Join("\n", report.Warnings));
     }
 

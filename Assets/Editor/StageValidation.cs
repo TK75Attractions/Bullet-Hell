@@ -808,11 +808,12 @@ public static class StageValidation
     /// JsonUtility silently drops any key absent from the target type, so a
     /// misspelled or unsupported key is dead data nobody notices — it never
     /// crashes, which is why every finding here is a warning, not an error. Real
-    /// case: captain writes bulletInterval on all 6 spawners, but EnemySpawnerJson
-    /// has no such field; the runtime recomputes bulletInterval from
-    /// bulletEmitTime/bulletCount, so edits to that key do nothing. Warning-only
-    /// keeps the debt visible without failing the suite. The nested
-    /// EnemyAnimationPlan tree is out of scope and is not descended into.
+    /// case (cleaned in 2026-07): captain wrote bulletInterval on all 6 spawners,
+    /// but EnemySpawnerJson has no such field; the runtime recomputes
+    /// bulletInterval from bulletEmitTime/bulletCount, so edits to that key did
+    /// nothing. Warning-only keeps any future debt visible without failing the
+    /// suite. The nested EnemyAnimationPlan tree is out of scope and is not
+    /// descended into.
     /// </summary>
     public static void ValidateStageEnemySchema(Report report)
     {
