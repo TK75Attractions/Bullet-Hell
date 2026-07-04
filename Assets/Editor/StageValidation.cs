@@ -955,6 +955,336 @@ public static class StageValidation
         }
     }
 
+    // ---- Stage enemy-visual link validation (static; no probe needed) ----
+
+    // Independent lint-only mirror of the two stage.json sections this check
+    // reads: the top-level enemyVisuals list and, per enemySpawner, just its
+    // visualId/enemyName/count. EnemyVisualDefinition is the REAL runtime type
+    // (like the pattern check reusing PatternEventData), so its IsAddressable/
+    // IsExternalGif predicates and its fields can never drift from what the loader
+    // sees. The spawner mirror carries only the three fields this check needs;
+    // JsonUtility ignores every other key, so a subset sees exactly what the
+    // runtime sees. The existing EnemySpawnerLintJson is deliberately left
+    // untouched so the two enemy checks stay decoupled.
+    [Serializable] private struct EnemyVisualSpawnerLintJson { public string enemyName; public string visualId; public int count; }
+    [Serializable]
+    private class StageVisualLintJson
+    {
+        public List<EnemyVisualDefinition> enemyVisuals = new List<EnemyVisualDefinition>();
+        public List<EnemyVisualSpawnerLintJson> enemySpawners = new List<EnemyVisualSpawnerLintJson>();
+    }
+
+    // Facts the reference pass needs about a definition that never enters the
+    // catalog: where it lives and why it is skipped (for the error/warning text).
+    private sealed class UnloadedVisualRecord
+    {
+        public int Index;
+        public string Reason;
+    }
+
+    /// <summary>
+    /// Validates the enemySpawner.visualId -&gt; enemyVisuals link inside every
+    /// stage JSON, statically (no probe / Play Mode). Severities follow the
+    /// runtime's silent-failure semantics:
+    ///
+    /// EnemyVisualLoader.LoadCatalogAsync registers a definition only when its id
+    /// is non-blank AND it is either an external GIF or an addressable with a
+    /// non-blank address; every other definition is skipped (silently, except an
+    /// addressable-with-blank-address, which the loader LogWarnings). The catalog
+    /// is keyed by id (visualsById[id] = visual), so a second registered
+    /// definition with the same id silently replaces the first — an error.
+    /// Boss.ResolveVisualSet looks spawner.visualId up in that catalog and, on a
+    /// miss, falls back with NO console message to the enemyName visual and then to
+    /// an EDB fallback sprite/prefab marker. So a broken visualId on a spawner that
+    /// actually fires (count &gt; 0) corrupts the on-screen enemy with zero runtime
+    /// signal — an error; on a dormant spawner (count &lt;= 0, which spawns no
+    /// enemy) it is only a warning, mirroring ValidateStageEnemyTypeNames'
+    /// fires/dormant split. Definition-side defects (blank id, never-loads,
+    /// duplicate, missing GIF file, dead data) are reported as warnings that expose
+    /// the root cause; the actual breakage is escalated to an error on the
+    /// referencing side, so the cause and its impact each appear as their own
+    /// message. Error- and warning-free on the current data (captain + stone are
+    /// the only stages with enemyVisuals); keep it that way.
+    /// </summary>
+    public static void ValidateStageEnemyVisuals(Report report)
+    {
+        foreach (string file in EnumerateStageJsonFiles())
+        {
+            string rel = ToAssetRelative(file);
+            string json;
+            try
+            {
+                // Read failures are already hard errors in ValidateStageEnemyTypeNames;
+                // skip here instead of double-reporting (like ValidateBufferNames).
+                json = File.ReadAllText(file);
+            }
+            catch (Exception)
+            {
+                continue;
+            }
+
+            ValidateStageEnemyVisualsJson(rel, json, Path.GetDirectoryName(file), report);
+        }
+    }
+
+    /// <summary>
+    /// Enemy-visual link check for a single stage JSON. Public so tests can feed
+    /// synthetic JSON and prove the detector fires. <paramref name="stageBaseDir"/>
+    /// is the stage folder (Path.GetDirectoryName of the JSON), used to resolve
+    /// external GIF clip paths exactly as EnemyVisualLoader does; a null/blank
+    /// value only skips the file-existence probe, never any other check. See
+    /// <see cref="ValidateStageEnemyVisuals"/> for the severity rationale.
+    /// </summary>
+    public static void ValidateStageEnemyVisualsJson(string rel, string json, string stageBaseDir, Report report)
+    {
+        StageVisualLintJson data;
+        try
+        {
+            data = JsonUtility.FromJson<StageVisualLintJson>(json);
+        }
+        catch (Exception)
+        {
+            // Strict parse failures are already errors in ValidateStageEnemyJson,
+            // which reads the same files; stay silent here.
+            return;
+        }
+
+        if (data == null)
+        {
+            return;
+        }
+
+        List<EnemyVisualDefinition> definitions = data.enemyVisuals ?? new List<EnemyVisualDefinition>();
+        List<EnemyVisualSpawnerLintJson> spawners = data.enemySpawners ?? new List<EnemyVisualSpawnerLintJson>();
+        if (definitions.Count == 0 && spawners.Count == 0)
+        {
+            return;
+        }
+
+        // Names any spawner points at, so an unreferenced registered definition can
+        // be reported as dead data. enemyName counts because Boss.ResolveVisualSet
+        // uses it as a second catalog lookup when visualId misses.
+        HashSet<string> referenced = new HashSet<string>(StringComparer.Ordinal);
+        for (int i = 0; i < spawners.Count; i++)
+        {
+            if (!string.IsNullOrWhiteSpace(spawners[i].visualId))
+            {
+                referenced.Add(spawners[i].visualId);
+            }
+            if (!string.IsNullOrWhiteSpace(spawners[i].enemyName))
+            {
+                referenced.Add(spawners[i].enemyName);
+            }
+        }
+
+        // Definition pass: emit definition-side findings and build the id maps the
+        // reference pass consults.
+        HashSet<string> registeredIds = new HashSet<string>(StringComparer.Ordinal);
+        Dictionary<string, int> firstRegisteredIndex = new Dictionary<string, int>(StringComparer.Ordinal);
+        Dictionary<string, UnloadedVisualRecord> unloadedById = new Dictionary<string, UnloadedVisualRecord>(StringComparer.Ordinal);
+
+        for (int j = 0; j < definitions.Count; j++)
+        {
+            EnemyVisualDefinition def = definitions[j];
+            if (def == null)
+            {
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(def.id))
+            {
+                report.Warn($"[Visual] {rel} enemyVisuals[{j}] has a blank id; the loader silently skips it (dead data).");
+                continue;
+            }
+
+            if (!VisualDefinitionRegisters(def))
+            {
+                // Root cause only: the real breakage (if any spawner points here) is
+                // escalated to an error in the reference pass below.
+                if (def.IsAddressable())
+                {
+                    report.Warn($"[Visual] {rel} enemyVisuals[{j}] (id '{def.id}') is addressable but its address is blank; the loader warns and skips it.");
+                }
+                else
+                {
+                    report.Warn($"[Visual] {rel} enemyVisuals[{j}] (id '{def.id}') source '{def.source}' is neither '{EnemyVisualSource.ExternalGif}' nor '{EnemyVisualSource.Addressable}' (and address is blank); the loader silently skips it.");
+                }
+
+                if (!unloadedById.ContainsKey(def.id))
+                {
+                    unloadedById.Add(def.id, new UnloadedVisualRecord { Index = j, Reason = VisualUnloadReason(def) });
+                }
+                continue;
+            }
+
+            // Registered definition. The catalog is a dictionary keyed by id, so a
+            // second registered definition with the same id silently overwrites the
+            // first (last wins) — an authoring accident, hence an error.
+            if (registeredIds.Contains(def.id))
+            {
+                report.Error($"[Visual] {rel} enemyVisuals[{j}] id '{def.id}' duplicates enemyVisuals[{firstRegisteredIndex[def.id]}]; the later definition silently replaces the earlier one in the catalog.");
+            }
+            else
+            {
+                registeredIds.Add(def.id);
+                firstRegisteredIndex.Add(def.id, j);
+            }
+
+            if (def.IsExternalGif())
+            {
+                ValidateExternalGifClips(rel, j, def, stageBaseDir, report);
+            }
+
+            // A registered visual that no spawner references (by visualId or the
+            // enemyName fallback chain) is dead data.
+            if (!referenced.Contains(def.id))
+            {
+                report.Warn($"[Visual] {rel} enemyVisuals[{j}] (id '{def.id}') is not referenced by any spawner's visualId or enemyName (dead data).");
+            }
+        }
+
+        // Reference pass: every spawner that names a visualId.
+        for (int i = 0; i < spawners.Count; i++)
+        {
+            EnemyVisualSpawnerLintJson s = spawners[i];
+            string visualId = s.visualId;
+            if (string.IsNullOrWhiteSpace(visualId))
+            {
+                continue;
+            }
+
+            if (registeredIds.Contains(visualId))
+            {
+                continue;
+            }
+
+            bool fires = s.count > 0;
+            if (unloadedById.TryGetValue(visualId, out UnloadedVisualRecord rec))
+            {
+                if (fires)
+                {
+                    report.Error($"[Visual] {rel} enemySpawners[{i}] visualId '{visualId}' matches enemyVisuals[{rec.Index}] but that definition never loads ({rec.Reason}); the runtime silently falls back to the enemyName visual / EDB sprite.");
+                }
+                else
+                {
+                    report.Warn($"[Visual] {rel} enemySpawners[{i}] dormant (count {s.count}) visualId '{visualId}' matches enemyVisuals[{rec.Index}] but that definition never loads ({rec.Reason}).");
+                }
+            }
+            else
+            {
+                if (fires)
+                {
+                    report.Error($"[Visual] {rel} enemySpawners[{i}] visualId '{visualId}' has no enemyVisuals definition in this stage (the runtime silently falls back to the enemyName visual / EDB sprite).");
+                }
+                else
+                {
+                    report.Warn($"[Visual] {rel} enemySpawners[{i}] dormant (count {s.count}) visualId '{visualId}' has no enemyVisuals definition in this stage.");
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// True iff a definition would enter the runtime catalog. Mirrors
+    /// EnemyVisualLoader.LoadCatalogAsync's gate: a blank id is skipped, an
+    /// external GIF always registers (even with zero clips — it then shows only
+    /// its fallback sprite), an addressable registers only with a non-blank
+    /// address, and anything else is silently skipped. Uses the definition's own
+    /// IsExternalGif/IsAddressable predicates so the linter can never disagree with
+    /// the runtime about what those source strings mean.
+    /// </summary>
+    private static bool VisualDefinitionRegisters(EnemyVisualDefinition def)
+    {
+        if (string.IsNullOrWhiteSpace(def.id))
+        {
+            return false;
+        }
+        if (def.IsExternalGif())
+        {
+            return true;
+        }
+        return def.IsAddressable() && !string.IsNullOrWhiteSpace(def.address);
+    }
+
+    /// <summary>
+    /// Human-readable reason a non-blank-id definition does not register, reused in
+    /// both the definition-side warning and the reference-side error. An addressable
+    /// one is only reached with a blank address (a non-blank address would have
+    /// registered), so the remaining case is a source that is neither externalGif
+    /// nor addressable.
+    /// </summary>
+    private static string VisualUnloadReason(EnemyVisualDefinition def)
+    {
+        return def.IsAddressable()
+            ? "it is addressable but its address is blank"
+            : $"its source '{def.source}' is neither '{EnemyVisualSource.ExternalGif}' nor '{EnemyVisualSource.Addressable}'";
+    }
+
+    /// <summary>
+    /// Checks the clips of a registered external-GIF definition. An external GIF
+    /// registers even with no usable clips (fallback-sprite only), so an empty clip
+    /// set is a warning; a clip whose name or path is blank is silently skipped by
+    /// the loader; and a clip whose file is missing is LogWarned and dropped at
+    /// runtime, degrading the visual to its fallback. File existence is resolved the
+    /// same way EnemyVisualLoader does and is only probed when a stage base
+    /// directory is available (synthetic tests may omit it).
+    /// </summary>
+    private static void ValidateExternalGifClips(string rel, int j, EnemyVisualDefinition def, string stageBaseDir, Report report)
+    {
+        if (def.clips == null || def.clips.Count == 0)
+        {
+            report.Warn($"[Visual] {rel} enemyVisuals[{j}] (id '{def.id}') is an external GIF visual with no clips; it registers with only a fallback sprite.");
+            return;
+        }
+
+        bool canProbeFiles = !string.IsNullOrWhiteSpace(stageBaseDir);
+        for (int c = 0; c < def.clips.Count; c++)
+        {
+            EnemyVisualClipDefinition clip = def.clips[c];
+            if (clip == null || string.IsNullOrWhiteSpace(clip.name) || string.IsNullOrWhiteSpace(clip.path))
+            {
+                report.Warn($"[Visual] {rel} enemyVisuals[{j}] (id '{def.id}') clips[{c}] has a blank name or path; the loader silently skips the clip.");
+                continue;
+            }
+
+            if (!canProbeFiles)
+            {
+                continue;
+            }
+
+            string full = ResolveExternalClipPath(stageBaseDir, def.basePath, clip.path);
+            if (string.IsNullOrEmpty(full) || !File.Exists(full))
+            {
+                report.Warn($"[Visual] {rel} enemyVisuals[{j}] (id '{def.id}') clips[{c}] file '{full}' does not exist; the runtime warns and drops the clip (the visual degrades to its fallback).");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Resolves an external GIF clip path exactly as
+    /// EnemyVisualLoader.ResolveExternalPath / ResolveExternalBaseDirectory do for a
+    /// stage loaded from disk (the linter's stageBaseDir stands in for
+    /// stageData.baseDirectory): a rooted clip path is used as-is; otherwise it is
+    /// combined onto basePath (a rooted basePath as-is, else basePath under the
+    /// stage folder).
+    /// </summary>
+    private static string ResolveExternalClipPath(string stageBaseDir, string basePath, string clipPath)
+    {
+        if (string.IsNullOrWhiteSpace(clipPath))
+        {
+            return null;
+        }
+        if (Path.IsPathRooted(clipPath))
+        {
+            return Path.GetFullPath(clipPath);
+        }
+
+        string baseDir = !string.IsNullOrWhiteSpace(basePath) && Path.IsPathRooted(basePath)
+            ? basePath
+            : Path.Combine(stageBaseDir, basePath ?? "");
+        return Path.GetFullPath(Path.Combine(baseDir, clipPath));
+    }
+
     // ---- Stage pattern-event validation (static; no probe needed) ----
 
     // Wrapper around the REAL runtime types (PatternEventData / PatternParamsJson
