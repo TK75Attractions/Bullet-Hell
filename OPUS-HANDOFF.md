@@ -6,9 +6,11 @@
 
 ---
 
-## 1. 現状スナップショット(2026-07-03 時点・検証済み)
+## 1. 現状スナップショット(2026-07-04 夕方 更新・検証済み)
 
-- ブランチ: `marron/claude-codex`(origin より **53 コミット先行**。push はユーザー確認が必要 → §4)
+- ブランチ: `marron/claude-codex`(origin より **82 コミット先行**。push はユーザー確認が必要 → §4)
+- 2026-07-04 夕方時点の直近3コミット: `75be3d5` M21着地カメラシェイク(§4-G 画面揺れ完了)、`f483add` lower_burst 破片ネイビー統一、`5cf2411` StageTimeOverlay の Input System 修正(毎フレーム例外の解消)。EditMode 49/49 緑・Unity ブリッジ正常
+- 以下は 2026-07-03 時点の記録(履歴として保持):
 - 最新コミット: **R9(ユーザー実確認フィードバック4件)完了** — `f4bc132` 形態変化ブロックの重なり解消/ジッター(Task3)、`d9ce6ea` 色統一(Task4)、`3942a98` 点線予告の簡素化(Task1)、`8275960` tile/mass_drop 減速(Task2)。その前は R8 `814765d` 自機視認性(§4-F)
 - **タスク進捗**: **Task C(NativeArray リーク)は `28eb47c` で実装・コミット済み**(コード精読で健全性確認済み)。**Task B(ドット拡大の Oracle 再レビュー)は完了**: scale 0.45 は Oracle「合格」、任意で 0.48 推奨(PROGRESS 2026-07-03 夜の節参照)
 - **EditMode テスト 49/49 緑**(引き継ぎ書作成時点で確認。以後 Unity ブリッジ不通のため未再実行)
@@ -106,7 +108,7 @@ UnityMCP `run_tests`(mode=EditMode)→ `get_test_job` で 49/49 を確認。
 
 ### G. ✅ 床消滅の演出強化: 亀裂ライン(JSON のみ)【完了・`309aae0`(2026-07-03 深夜4)】
 - **結果**: 新バッファ `stone_floor_crack.json`(石工床亀裂・stone_warning 型 23発)を追加し、chart "40:1"(65.0s)に発生イベント追加。中央(16,0.85)→左右へ appearTime 0→0.28 でギザギザに伝播、life=0.59 で 65.59s に一斉消滅。床(65.417s 消滅)の直前に全長が読め、「床がヒビ割れる→砕けて消える→残光として消える」の因果を作る。Oracle 画像レビュー=条件付き合格、指摘(非均等密度・色 (0.55,0.68,1.0)・ギザギザ+20%・life 短縮)を反映済み。golden 再生成(count 23・eventCount 105→106)・ChartCompileParityTest 期待値 106・EditMode 49/49 緑・通し再生スクショ済み。詳細は PROGRESS 2026-07-03 深夜4
-- **画面揺れは未実装(スコープ外)**: 0.05〜0.08s の画面揺れはカメラ制御のコード新設が必要。亀裂ラインのみを切り出して JSON で実装した。画面揺れをやるなら別タスク
+- **画面揺れは実装済み(2026-07-04・`75be3d5`)**: `Assets/Scripts/Managers/CameraShake.cs`(idle-by-default・トリガー時のみ transform に触れ厳密復元)+ GManager の石工 63.333s 交差検知で **M21 ゴーレム着地**にカメラシェイク(振幅0.22u≈画面高1.2%・0.16s 減衰・下方向初撃)。Oracle 動画レビュー=合格(重さ適正・酔いリスク低)。CameraShake.Trigger(amp, dur, freq) は汎用なので、床消滅(65.417s)にも揺れを足すなら GManager に同様の交差検知を1つ足すだけ(要レビュー)
 - **戻し方**: `git revert 309aae0`(新 JSON+meta、chart、stone.json、golden、テスト期待値がまとまっている)
 
 ### H. カッターのコマ送り移動/ビート明滅(Gemini 優先度2)【難易度: 高 / 着手前にユーザー相談推奨】
@@ -118,7 +120,7 @@ UnityMCP `run_tests`(mode=EditMode)→ `get_test_job` で 49/49 を確認。
 - **内容**: ベルト帯を一括消滅ではなくカッター通過位置から順に崩す
 - **理由**: `stone_belt_bottom_2.json` を複数分割する再設計。65.417s 同期(直近2ラウンドで作り込んだ因果)を壊すリスクが高い。現状でも Oracle は「粉砕→床消滅→次攻撃の因果が読める」と評価済みで、緊急度は低い
 
-**推奨着手順(Opus 単独で完結できる順)**: ~~B~~ → ~~A~~ → ~~C~~ → ~~G の亀裂のみ~~ → ~~D~~ → ~~E~~ → ~~F~~(**§4 の A〜G すべて完了**)。H/I は実装せず提案止まり(要ユーザー相談)。G の画面揺れ(カメラ制御)は未実装で別タスク。Oracle 動画レビューのパイプライン確立済み(録画→ffmpeg で <1MB 圧縮→browser 添付→冒頭 describe で実視聴確認)。
+**推奨着手順(Opus 単独で完結できる順)**: ~~B~~ → ~~A~~ → ~~C~~ → ~~G の亀裂のみ~~ → ~~D~~ → ~~E~~ → ~~F~~ → ~~G の画面揺れ(M21着地・`75be3d5`)~~(**§4 の A〜G すべて完了**)。H/I は実装せず提案止まり(要ユーザー相談)。Oracle 動画レビューのパイプライン確立済み(録画→ffmpeg で <1MB 圧縮→browser 添付→冒頭 describe で実視聴確認)。
 
 ---
 
@@ -130,7 +132,7 @@ UnityMCP `run_tests`(mode=EditMode)→ `get_test_job` で 49/49 を確認。
 | 破片(shatter_shard)のアルファ | `shatter_shard.json` | 「半透明で最初表示するのをやめて」というユーザー指示と干渉。寿命 0.96s も Oracle 確定値 |
 | カッターの最終 Y / スケール | `edge_cutter_1/2.json` | 当たり判定=難易度に直結。Oracle 案(Y を 0.3〜0.5 下げ or scale 0.9)は保留中 |
 | 形態変化の**キャラ演出**(召喚→落下→着地→騎乗) | `stone.chart.json` enemies 3エントリ一式 | 旧凍結対象だったクロスフェードは、ユーザー指示動画 `Instructions/石工弾幕形態変化.mp4`(2026-07-04 追加)に基づき「老人召喚→ゴーレム上空落下→M21着地→老人騎乗」へ刷新済み(`3cd3931`・Oracle 合格)。**この mp4 準拠の形が新基準**。さらに変える場合は要相談 |
-| 下部破裂予告の点線の色 | `lower_burst_warn_1/2.json` | RGB 0.52/0.63/0.98 で Oracle と確定済み(上限 0.58/0.70/1.00)。**R9 の色統一(`d9ce6ea`)でも非変更** |
+| 下部破裂予告 | `lower_burst_warn_1/2.json` | ユーザー合流ラウンドで点線→**半透明の危険域ボックス1発・(0.3,0.34,0.55)** に再設計済み(`7e7f916`/`7d56dd1`)。旧記載「点線 RGB 0.52/0.63/0.98」は陳腐化。現行のボックス形式・色がユーザー由来の基準なので変更しない |
 | 起動リングの赤 | `golem_core_ring.json` | 因果演出(赤=起動インパクト)で Oracle 確定。ネイビー統一の対象外 |
 | Script Changes While Playing | Unity Preferences | ユーザー環境設定。変更しない(推奨値の伝達のみ) |
 | CLAUDE.md「短期的な指示」 | `CLAUDE.md`(dirty) | 全項目対応済みのはずだが、セクション整理はユーザー確認後 |
@@ -144,9 +146,10 @@ UnityMCP `run_tests`(mode=EditMode)→ `get_test_job` で 49/49 を確認。
 | エフェクト雲(ダスト/フラッシュ/明滅) | `0.42, 0.5, 0.8, (α各自)` | land_dust*・*_flash・erase_flash・prefall_blink・transform_dust |
 | 予告(点線 warn) | `0.45, 0.55, 0.85, 0.962` | block/rain/tile warn・run_cutter_warn |
 | カッター刃 | `0.12, 0.17, 0.42, 1.0` | edge/run/lower cutter(視認性で据置) |
-| 破片/デブリ | `0.1, 0.14, 0.36, 1.0` | shard 系(視認性で据置) |
+| 破片/デブリ | `0.1, 0.14, 0.36, 1.0` | shard 系 + **lower_burst の破片(2026-07-04 `f483add` で統一・Oracle 合格)** |
 
-- 例外(統一しない): `lower_burst_warn`(凍結色)・`shatter_shard`(凍結α)・`golem_core_ring`(赤)・lower_burst/hammer の攻撃弾(視認性)。棚卸し詳細は PROGRESS 2026-07-04 昼の R9 節。
+- 例外(統一しない): `lower_burst_warn`(現行の半透明ボックスはユーザー由来)・`shatter_shard`(凍結α)・`golem_core_ring`(赤)。cutter/hammer は JSON tint でなく **color.w=0+ネイビースプライト表示**(`404bebf`)で統一済み。棚卸し詳細は PROGRESS 2026-07-04 昼の R9 節と同日夕の節。
+- Oracle 任意メモ(2026-07-04): lower_burst のネイビー破片は視認性合格だが、実プレイで見落としが出る場合のみ「明度+10〜15%」または「1px の薄いリム」を検討(色相は戻さない)。
 
 ## 6. その他の申し送り
 
