@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 
@@ -110,12 +111,260 @@ public static class StageValidation
                     report.Warn($"[Buffer] {rel} bullet[{i}] has negative life {bullet.life}.");
                 }
 
-                if (bullet.life > 0f && bullet.appearTime > bullet.life)
+                // For laser buffers appearTime is the beam width, not a spawn
+                // time, so comparing it against life is meaningless there.
+                if (!data.isLaser && bullet.life > 0f && bullet.appearTime > bullet.life)
                 {
                     report.Warn($"[Buffer] {rel} bullet[{i}] appearTime {bullet.appearTime} exceeds life {bullet.life}.");
                 }
+
+                // Negative appearDuration is silently replaced by
+                // BulletData.DefaultAppearDuration in BulletDataJson.ToBulletData();
+                // authors should write the intended value explicitly.
+                if (bullet.appearDuration < 0f)
+                {
+                    report.Warn($"[Buffer] {rel} bullet[{i}] appearDuration {bullet.appearDuration} is negative (runtime substitutes DefaultAppearDuration; write the explicit value).");
+                }
+
+                // color is a multiplier against the spawner color; w==0 is the
+                // documented "show the sprite's own colors" mode. Components
+                // outside 0..1 have no defined meaning in this renderer.
+                if (OutsideUnitRange(bullet.color.x) || OutsideUnitRange(bullet.color.y) ||
+                    OutsideUnitRange(bullet.color.z) || OutsideUnitRange(bullet.color.w))
+                {
+                    report.Warn($"[Buffer] {rel} bullet[{i}] color ({bullet.color.x}, {bullet.color.y}, {bullet.color.z}, {bullet.color.w}) has components outside 0..1.");
+                }
             }
         }
+    }
+
+    private static bool OutsideUnitRange(float v) => v < 0f || v > 1f;
+
+    // ---- Buffer file format validation (raw bytes; no probe needed) ----
+
+    /// <summary>
+    /// Validates the raw bytes of every BulletBuffer JSON. Files must be valid
+    /// UTF-8 and must use one consistent line-ending style per file. A
+    /// "CR CR" sequence is the signature of a text-mode double conversion
+    /// accident (a real incident on 2026-07-04 corrupted files to \r\r\n) and is
+    /// always an error. BOM/no-BOM and the CRLF-vs-LF choice both exist in the
+    /// repo and are accepted as-is; only corruption and intra-file mixing fail.
+    /// </summary>
+    public static void ValidateBufferFileFormat(Report report)
+    {
+        UTF8Encoding strictUtf8 = new UTF8Encoding(false, true);
+        foreach (string file in EnumerateBufferFiles())
+        {
+            string rel = ToAssetRelative(file);
+            byte[] bytes;
+            try
+            {
+                bytes = File.ReadAllBytes(file);
+            }
+            catch (Exception ex)
+            {
+                report.Error($"[Format] Unable to read {rel}: {ex.Message}");
+                continue;
+            }
+
+            try
+            {
+                strictUtf8.GetString(bytes);
+            }
+            catch (DecoderFallbackException)
+            {
+                report.Error($"[Format] {rel} is not valid UTF-8.");
+                continue;
+            }
+
+            int crlf = 0, bareLf = 0, bareCr = 0, crCr = 0;
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                if (bytes[i] == (byte)'\r')
+                {
+                    if (i + 1 < bytes.Length && bytes[i + 1] == (byte)'\r')
+                    {
+                        crCr++;
+                    }
+
+                    if (i + 1 < bytes.Length && bytes[i + 1] == (byte)'\n')
+                    {
+                        crlf++;
+                        i++;
+                    }
+                    else
+                    {
+                        bareCr++;
+                    }
+                }
+                else if (bytes[i] == (byte)'\n')
+                {
+                    bareLf++;
+                }
+            }
+
+            if (crCr > 0)
+            {
+                report.Error($"[Format] {rel} contains {crCr} CR CR sequence(s) (text-mode double conversion corruption; restore from git and rewrite in binary mode).");
+            }
+            else if (bareCr > 0)
+            {
+                report.Error($"[Format] {rel} contains {bareCr} bare CR character(s) not followed by LF.");
+            }
+
+            if (crlf > 0 && bareLf > 0)
+            {
+                report.Error($"[Format] {rel} mixes CRLF ({crlf}) and LF ({bareLf}) line endings.");
+            }
+        }
+    }
+
+    // ---- Buffer registration-name validation (load-scope uniqueness) ----
+
+    /// <summary>
+    /// Built-in buffer names registered by <see cref="BulletBufferManager"/>
+    /// before any JSON is read.
+    /// </summary>
+    private static readonly string[] BuiltInBufferNames = { "Rumia_0", "Rumia_1", "Line", "LineLaser", "Circle" };
+
+    /// <summary>
+    /// Mirrors BulletBufferManager.CommonDirectoryNames: these folders are
+    /// loaded for every stage, before the stage's own folder.
+    /// </summary>
+    private static readonly HashSet<string> CommonBufferDirs = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "common", "debug" };
+
+    private const string ArchiveBufferDir = "_archive";
+
+    /// <summary>
+    /// Validates registration-name uniqueness per runtime load scope. A stage
+    /// run loads: built-ins + every buffer under common/ and debug/ + the
+    /// stage's own folder (BulletBufferManager.ReloadForStageBulletBuffersAsync).
+    /// The registration key is the JSON 'name', falling back to the file name
+    /// without extension when blank. A duplicate key inside one folder means
+    /// one file silently replaces the other (last file wins by OS enumeration
+    /// order) — always an authoring accident, so an error. A stage name that
+    /// shadows a common/built-in buffer is reported as a warning because
+    /// replace-by-name is documented behaviour and could be intentional.
+    /// _archive/ is excluded: it is never a stage directory name, so the
+    /// per-stage loader never reads it.
+    /// </summary>
+    public static void ValidateBufferNames(Report report)
+    {
+        // topDir -> (effectiveName -> first file registered under that name)
+        Dictionary<string, Dictionary<string, string>> byDir =
+            new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (string file in EnumerateBufferFiles())
+        {
+            string top = TopLevelBufferDir(file);
+            if (top == null || top.Equals(ArchiveBufferDir, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            string rel = ToAssetRelative(file);
+            BufferFileJson data;
+            try
+            {
+                // Read/parse failures are already hard errors in ValidateBuffers;
+                // skip here instead of double-reporting.
+                data = JsonUtility.FromJson<BufferFileJson>(File.ReadAllText(file));
+            }
+            catch (Exception)
+            {
+                continue;
+            }
+
+            if (data == null)
+            {
+                continue;
+            }
+
+            string effective = data.name;
+            if (string.IsNullOrWhiteSpace(effective))
+            {
+                effective = Path.GetFileNameWithoutExtension(file);
+                report.Warn($"[Name] {rel} has a blank 'name'; runtime falls back to the file name '{effective}'. Prefer an explicit name.");
+            }
+
+            if (!byDir.TryGetValue(top, out Dictionary<string, string> names))
+            {
+                names = new Dictionary<string, string>(StringComparer.Ordinal);
+                byDir.Add(top, names);
+            }
+
+            if (names.TryGetValue(effective, out string firstFile))
+            {
+                report.Error($"[Name] Duplicate buffer name '{effective}' inside '{top}': {ToAssetRelative(firstFile)} and {rel} (one silently replaces the other).");
+            }
+            else
+            {
+                names.Add(effective, file);
+            }
+        }
+
+        // Base scope shared by every stage: built-ins + common folders.
+        Dictionary<string, string> baseScope = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (string builtIn in BuiltInBufferNames)
+        {
+            baseScope[builtIn] = "<built-in>";
+        }
+
+        foreach (KeyValuePair<string, Dictionary<string, string>> dir in byDir)
+        {
+            if (!CommonBufferDirs.Contains(dir.Key))
+            {
+                continue;
+            }
+
+            foreach (KeyValuePair<string, string> entry in dir.Value)
+            {
+                if (baseScope.TryGetValue(entry.Key, out string firstOwner))
+                {
+                    report.Error($"[Name] Buffer name '{entry.Key}' in {ToAssetRelative(entry.Value)} collides with {firstOwner} (both are loaded for every stage).");
+                }
+                else
+                {
+                    baseScope.Add(entry.Key, ToAssetRelative(entry.Value));
+                }
+            }
+        }
+
+        // Each stage folder is overlaid on the base scope.
+        foreach (KeyValuePair<string, Dictionary<string, string>> dir in byDir)
+        {
+            if (CommonBufferDirs.Contains(dir.Key))
+            {
+                continue;
+            }
+
+            foreach (KeyValuePair<string, string> entry in dir.Value)
+            {
+                if (baseScope.TryGetValue(entry.Key, out string owner))
+                {
+                    report.Warn($"[Name] Stage buffer {ToAssetRelative(entry.Value)} shadows '{entry.Key}' from {owner} (replace-by-name; verify this is intentional).");
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns the top-level folder name under Assets/BulletBuffers for the
+    /// given file (e.g. "stone", "common"), or null for files directly at the
+    /// root.
+    /// </summary>
+    private static string TopLevelBufferDir(string absolutePath)
+    {
+        string root = Path.GetFullPath(Path.Combine(Application.dataPath, "BulletBuffers"));
+        string full = Path.GetFullPath(absolutePath);
+        if (!full.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        string remainder = full.Substring(root.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        int cut = remainder.IndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar });
+        return cut < 0 ? null : remainder.Substring(0, cut);
     }
 
     // ---- BulletTypeDataBase integrity (no probe needed) ----
