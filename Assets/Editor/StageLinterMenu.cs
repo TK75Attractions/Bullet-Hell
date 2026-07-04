@@ -28,6 +28,7 @@ public static class StageLinterMenu
         StageValidation.ValidateBuffers(btdb, report);
         StageValidation.ValidateBufferFileFormat(report);
         StageValidation.ValidateBufferNames(report);
+        StageValidation.ValidateStageEnemyTypeNames(btdb, report);
 
         using (EditorStageProbe probe = new EditorStageProbe(StageGoldenDumper.BtdbAssetPath, StageGoldenDumper.EdbAssetPath))
         {

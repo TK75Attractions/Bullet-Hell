@@ -586,6 +586,186 @@ public static class StageValidation
         return set;
     }
 
+    // ---- Stage enemy-structure typeName validation (static; no probe needed) ----
+
+    // Lint-only mirrors of the private DTOs in StageDataManager.cs
+    // (EnemySpawnerJson / BulletClipJson / BulletChangeClipJson /
+    // BulletDataJsonDeserializer). JsonUtility ignores JSON keys absent from the
+    // target type, so a subset mirror sees exactly what the runtime sees for the
+    // fields we check. Keep these fields in sync if StageDataManager's DTOs move.
+    [Serializable] private struct EnemyBulletLintJson { public string typeName; }
+    [Serializable] private struct EnemyClipLintJson { public EnemyBulletLintJson data; public int number; }
+    [Serializable] private struct EnemyChangeClipLintJson { public EnemyClipLintJson clip; }
+    [Serializable]
+    private class EnemySpawnerLintJson
+    {
+        public string enemyName = "";
+        public int count;
+        public int bulletCount;
+        public EnemyBulletLintJson orbit;
+        public EnemyClipLintJson bulletClip;
+        public List<EnemyChangeClipLintJson> bulletChangeClips = new List<EnemyChangeClipLintJson>();
+    }
+    [Serializable]
+    private class StageEnemyLintJson
+    {
+        public List<EnemySpawnerLintJson> enemySpawners = new List<EnemySpawnerLintJson>();
+    }
+
+    /// <summary>
+    /// Enumerates every official stage JSON on disk: Assets/StageData/&lt;dir&gt;/&lt;dir&gt;.json.
+    /// Mirrors StageDataManager's per-directory naming rule.
+    /// </summary>
+    public static IEnumerable<string> EnumerateStageJsonFiles()
+    {
+        string root = Path.Combine(Application.dataPath, "StageData");
+        if (!Directory.Exists(root))
+        {
+            yield break;
+        }
+
+        string[] dirs = Directory.GetDirectories(root);
+        Array.Sort(dirs, StringComparer.Ordinal);
+        foreach (string dir in dirs)
+        {
+            string candidate = Path.Combine(dir, Path.GetFileName(dir) + ".json");
+            if (File.Exists(candidate))
+            {
+                yield return candidate;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Validates the bullet typeNames declared by every stage's enemySpawners,
+    /// statically (no probe / Play Mode). Severity is keyed to the runtime firing
+    /// semantics measured in MultiBullet + QuadOrder: a spawner emits bullets iff
+    /// count &gt; 0 && bulletCount &gt; 0 && bulletClip.number &gt; 0, and
+    /// bulletChangeClips only ever apply to bullets that were emitted. An
+    /// unresolved typeName on a firing bullet resolves to typeId -1 and misbehaves
+    /// at runtime, so those are errors; the same typo on a dormant (never-firing)
+    /// spawner is only a warning, keeping the debt visible without failing the
+    /// suite. orbit.typeName is never required — the enemy's own trajectory
+    /// ignores typeId and every real spawner leaves it empty, so empty is silent.
+    /// Error-free and warning-free on the current data (captain + stone, the only
+    /// dirs with enemySpawners); keep it that way.
+    /// </summary>
+    public static void ValidateStageEnemyTypeNames(BulletTypeDataBase btdb, Report report)
+    {
+        foreach (string file in EnumerateStageJsonFiles())
+        {
+            string rel = ToAssetRelative(file);
+            string json;
+            try
+            {
+                json = File.ReadAllText(file);
+            }
+            catch (Exception ex)
+            {
+                report.Error($"[Enemy] Unable to read {rel}: {ex.Message}");
+                continue;
+            }
+
+            ValidateStageEnemyJson(rel, json, btdb, report);
+        }
+    }
+
+    /// <summary>
+    /// Enemy-structure typeName check for a single stage JSON. Public so tests can
+    /// feed synthetic JSON and prove the detector actually fires. See
+    /// <see cref="ValidateStageEnemyTypeNames"/> for the severity rationale.
+    /// </summary>
+    public static void ValidateStageEnemyJson(string rel, string json, BulletTypeDataBase btdb, Report report)
+    {
+        StageEnemyLintJson data;
+        try
+        {
+            data = JsonUtility.FromJson<StageEnemyLintJson>(json);
+        }
+        catch (Exception ex)
+        {
+            report.Error($"[Enemy] JSON parse failed for {rel}: {ex.Message}");
+            return;
+        }
+
+        if (data == null)
+        {
+            report.Error($"[Enemy] JSON produced null object: {rel}");
+            return;
+        }
+
+        if (data.enemySpawners == null || data.enemySpawners.Count == 0)
+        {
+            return;
+        }
+
+        HashSet<string> valid = BuildValidTypeNames(btdb);
+
+        for (int i = 0; i < data.enemySpawners.Count; i++)
+        {
+            EnemySpawnerLintJson s = data.enemySpawners[i];
+            if (s == null)
+            {
+                continue;
+            }
+
+            bool fires = s.count > 0 && s.bulletCount > 0 && s.bulletClip.number > 0;
+
+            // orbit.typeName drives only the enemy's own trajectory, which ignores
+            // typeId; empty is the universal real-data pattern and never flagged.
+            // A non-empty unresolved value is still an authoring typo worth an error.
+            string orbitName = s.orbit.typeName;
+            if (!string.IsNullOrEmpty(orbitName) && !valid.Contains(orbitName))
+            {
+                report.Error($"[Enemy] {rel} enemySpawners[{i}] orbit typeName '{orbitName}' is not in BulletTypeDataBase.");
+            }
+
+            string clipName = s.bulletClip.data.typeName;
+            if (fires && string.IsNullOrEmpty(clipName))
+            {
+                report.Error($"[Enemy] {rel} enemySpawners[{i}] fires {s.bulletCount} time(s) but bulletClip typeName is empty (bullets would resolve to typeId -1).");
+            }
+            else if (fires && !valid.Contains(clipName))
+            {
+                report.Error($"[Enemy] {rel} enemySpawners[{i}] bulletClip typeName '{clipName}' is not in BulletTypeDataBase.");
+            }
+            else if (!fires && !string.IsNullOrEmpty(clipName) && !valid.Contains(clipName))
+            {
+                report.Warn($"[Enemy] {rel} enemySpawners[{i}] dormant bulletClip typeName '{clipName}' is not in BulletTypeDataBase.");
+            }
+
+            // Configured to fire (count/bulletCount > 0) but the clip holds zero
+            // bullets, so nothing is ever emitted: surface the dead configuration.
+            if (s.count > 0 && s.bulletCount > 0 && s.bulletClip.number <= 0)
+            {
+                report.Warn($"[Enemy] {rel} enemySpawners[{i}] bulletCount {s.bulletCount} > 0 but bulletClip.number is {s.bulletClip.number}; the spawner never emits bullets.");
+            }
+
+            if (s.bulletChangeClips == null)
+            {
+                continue;
+            }
+
+            for (int k = 0; k < s.bulletChangeClips.Count; k++)
+            {
+                // A change clip replaces the in-flight bullet wholesale; an empty
+                // or unresolved typeName resolves to typeId -1 and makes the fired
+                // bullet vanish, so it is an error whenever the parent fires.
+                string changeName = s.bulletChangeClips[k].clip.data.typeName;
+                bool changeResolved = !string.IsNullOrEmpty(changeName) && valid.Contains(changeName);
+                if (fires && !changeResolved)
+                {
+                    string why = string.IsNullOrEmpty(changeName) ? "is empty" : "is not in BulletTypeDataBase";
+                    report.Error($"[Enemy] {rel} enemySpawners[{i}] bulletChangeClips[{k}] typeName '{changeName}' {why}.");
+                }
+                else if (!fires && !string.IsNullOrEmpty(changeName) && !valid.Contains(changeName))
+                {
+                    report.Warn($"[Enemy] {rel} enemySpawners[{i}] dormant bulletChangeClips[{k}] typeName '{changeName}' is not in BulletTypeDataBase.");
+                }
+            }
+        }
+    }
+
     // ---- BulletType asset registration / import validation ----
 
     public const string BulletTypesFolder = "Assets/Scripts/Bullets/BulletTypes";
