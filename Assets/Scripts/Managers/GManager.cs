@@ -80,6 +80,14 @@ public class GManager : MonoBehaviour
     // untouched until the exact crossing fires it once.
     private const string StoneStageName = "石工";
     private const float StoneLandingShakeTime = 63.333f;
+    // The earlier 0.22u/0.16s shake measured ~8.8px peak for a single frame at
+    // 720p (1.2% of the 18u view height) and settled inside ~0.12s — real, but
+    // too small and brief to feel while dodging. A giant golem slam should land
+    // as a clear thump, so amplitude/duration are raised to a felt-but-tasteful
+    // impact: 0.6u ≈ 3.3% of view height (~24px @720p) decaying over 0.34s.
+    private const float StoneLandingShakeAmplitude = 0.6f;
+    private const float StoneLandingShakeDuration = 0.34f;
+    private const float StoneLandingShakeFrequency = 18f;
     private float prevStageClock = -1f;
 
     public async void Awake()
@@ -305,7 +313,7 @@ public class GManager : MonoBehaviour
             && prevStageClock < StoneLandingShakeTime
             && now >= StoneLandingShakeTime)
         {
-            CameraShake.Trigger(0.22f, 0.16f);
+            CameraShake.Trigger(StoneLandingShakeAmplitude, StoneLandingShakeDuration, StoneLandingShakeFrequency);
         }
         prevStageClock = now;
     }
