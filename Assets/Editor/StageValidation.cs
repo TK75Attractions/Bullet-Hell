@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 
@@ -1453,6 +1454,158 @@ public static class StageValidation
                 {
                     report.Error($"[Pattern] {rel} uses pattern events but default type '{name}' is not in BulletTypeDataBase.");
                 }
+            }
+        }
+    }
+
+    // ---- Composite spawn-position validation (requires an active probe) ----
+
+    // World-coordinate survival region for a live bullet. A bullet is culled
+    // (isActive=false) on the first frame its position leaves this box, so a
+    // spawn position outside it means the bullet never appears. The bounds mirror
+    // BulletDataUpdateJob.GetTreeNum exactly: the left/bottom edge is the
+    // CullingMargin (positions with x < -2 or y < -2 return tree index -1), and
+    // the right/top edge is the Morton grid extent — separateLevel 6 gives
+    // 2^6 = 64 cells of cellSize 0.5625, so 64 * 0.5625 = 36, and a cell index
+    // >= 64 (position >= 36) also returns -1. A live bullet therefore survives
+    // iff position is in [-2, 36) on both axes. Verified empirically: composing
+    // every stage's static bulletSpawners against this box reproduces the
+    // measured out-of-range set.
+    public const float SurvivalMin = -2f;
+    public const float SurvivalMax = 36f;
+
+    /// <summary>
+    /// True iff a world position lies inside the runtime survival region
+    /// [-2, 36) on both axes. A composite spawn position outside it is culled on
+    /// the bullet's first update, so it never appears. Mirrors
+    /// <see cref="BulletDataUpdateJob"/>.GetTreeNum.
+    /// </summary>
+    public static bool IsInsideSurvivalRegion(float2 world)
+    {
+        return world.x >= SurvivalMin && world.x < SurvivalMax &&
+               world.y >= SurvivalMin && world.y < SurvivalMax;
+    }
+
+    /// <summary>
+    /// Composes the world spawn position of a bullet exactly as the non-homing
+    /// spawn path does: <c>world = spawnerPos + Rotate(clipOriginPos, angle)</c>.
+    /// The spawner angle is in DEGREES (converted to radians at the spawn
+    /// boundary in BulletBufferManager.GetBulletClip) and the rotation matches the
+    /// clone constructor in <see cref="BulletData"/>. Public so tests can feed
+    /// synthetic geometry without loading buffers.
+    /// </summary>
+    public static float2 ComposeSpawnWorldPosition(float2 spawnerPos, float angleDegrees, float2 clipOriginPos)
+    {
+        float theta = angleDegrees / 180f * math.PI;
+        float cos = math.cos(theta);
+        float sin = math.sin(theta);
+        float2 rotated = new float2(
+            clipOriginPos.x * cos - clipOriginPos.y * sin,
+            clipOriginPos.x * sin + clipOriginPos.y * cos);
+        return spawnerPos + rotated;
+    }
+
+    /// <summary>
+    /// Appends a <c>[Spawn]</c> warning for each clip origin whose composite world
+    /// spawn position leaves the survival region. Public so tests can prove the
+    /// detector fires on synthetic geometry without a probe. See
+    /// <see cref="ValidateStageSpawnPositions"/> for the scope and severity
+    /// rationale.
+    /// </summary>
+    public static void CheckSpawnPositions(string stageDir, int spawnerIndex, string clip, float2 spawnerPos, float angleDegrees, IReadOnlyList<float2> clipOriginPositions, Report report)
+    {
+        if (clipOriginPositions == null)
+        {
+            return;
+        }
+
+        for (int b = 0; b < clipOriginPositions.Count; b++)
+        {
+            float2 world = ComposeSpawnWorldPosition(spawnerPos, angleDegrees, clipOriginPositions[b]);
+            if (!IsInsideSurvivalRegion(world))
+            {
+                report.Warn($"[Spawn] Stage '{stageDir}' spawner[{spawnerIndex}] clip '{clip}' bullet[{b}] composes to world ({world.x}, {world.y}), outside the survival region [{SurvivalMin}, {SurvivalMax}) — it is culled before it ever appears.");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Flags static bulletSpawners whose composed world spawn position lands
+    /// outside the survival region, i.e. bullets that are culled on their first
+    /// update and never appear (dead data or a real spawn bug). This is the
+    /// world-space successor to the raw per-bullet originPos advisory in
+    /// <see cref="ValidateBuffers"/>: originPos is a clip-local coordinate, so
+    /// comparing it to a world box yields false positives/negatives, whereas here
+    /// the spawner's static pos/angle turn it into the actual spawn point.
+    ///
+    /// Scope and exclusions keep every finding a genuine, statically determinable
+    /// dead spawn (no false positives):
+    /// - Only bulletSpawners are examined. enemySpawners emit from a moving orbit
+    ///   origin (dynamic emitPos), so their composite cannot be resolved
+    ///   statically — out of scope.
+    /// - Laser clips are skipped: they run a separate culling path and reinterpret
+    ///   the bullet fields (appearTime = beam width, etc.).
+    /// - Homing clips are skipped: the spawn angle is recomputed toward the player
+    ///   at emit time (BulletBufferManager.GetBulletClip homing branch), so the
+    ///   static spawner angle does not describe the real position. Including them
+    ///   would flag bullets that actually spawn in-range once aimed (the mirror
+    ///   "LASER_SUB" case), a false positive.
+    /// - Unresolved clips are left to <see cref="ValidateStageLinks"/>.
+    ///
+    /// Advisory only (warnings, never errors): some out-of-range composites are
+    /// intentional off-screen visual tails (captain shellsplash rises outside the
+    /// visible x range), while others are genuine bugs (stone belt dash spawns
+    /// bullets at x = 38..70). On the current official data this surfaces 171
+    /// warnings (126 shellsplash + 45 belt dash) and zero errors. Requires an
+    /// active <see cref="EditorStageProbe"/> to load each stage's buffers, exactly
+    /// like <see cref="ValidateStageLinks"/>. Only the base spawner angle is
+    /// composed; per-emission angleInterval fan-out is not expanded, so the base
+    /// (k=0) emission — which always fires — is what is checked.
+    /// </summary>
+    public static void ValidateStageSpawnPositions(IReadOnlyDictionary<string, StageData> stages, Report report)
+    {
+        foreach (string dir in StageGoldenDumper.OfficialStageDirs)
+        {
+            if (!stages.TryGetValue(dir, out StageData stage))
+            {
+                // A missing official stage is already an error in
+                // ValidateStageLinks / the golden dumper; skip here to avoid
+                // double-reporting.
+                continue;
+            }
+
+            BulletBufferManager buffers = new BulletBufferManager();
+            buffers.ReloadForStageBulletBuffersAsync(dir).GetAwaiter().GetResult();
+
+            List<BulletSpawner> spawners = stage.bulletSpawners ?? new List<BulletSpawner>();
+            for (int i = 0; i < spawners.Count; i++)
+            {
+                BulletSpawner sp = spawners[i];
+                string clip = sp.clipName;
+                if (clip == StageScheduleExpander.ClearClipName)
+                {
+                    continue;
+                }
+
+                if (!buffers.TryGetLoadedBufferForEditor(clip, out BulletBufferManager.EditorBufferView view))
+                {
+                    // Unresolved clip: ValidateStageLinks owns that diagnostic.
+                    continue;
+                }
+
+                // Laser: different cull path; homing: dynamic angle toward player.
+                if (view.isLaser || view.homing || view.bullets == null)
+                {
+                    continue;
+                }
+
+                List<float2> origins = new List<float2>(view.bullets.Count);
+                for (int b = 0; b < view.bullets.Count; b++)
+                {
+                    origins.Add(view.bullets[b].originPos);
+                }
+
+                CheckSpawnPositions(dir, i, clip, sp.pos, sp.angle, origins, report);
             }
         }
     }

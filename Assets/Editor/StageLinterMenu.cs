@@ -37,6 +37,7 @@ public static class StageLinterMenu
         {
             Dictionary<string, StageData> stages = StageGoldenDumper.LoadOfficialStages();
             StageValidation.ValidateStageLinks(stages, report);
+            StageValidation.ValidateStageSpawnPositions(stages, report);
         }
 
         StringBuilder sb = new StringBuilder();
