@@ -1,9 +1,9 @@
 ﻿{
-    "name": "石工大ブロックハンマー_1",
+    "name": "石工大ブロックハンマー_3",
     "bullets": [
         {
             "originPos": {
-                "x": 13.96,
+                "x": 14.14,
                 "y": 19.6
             },
             "originVlc": {
@@ -15,65 +15,13 @@
                 "y": 0
             },
             "startX": 1,
-            "speed": 29.102,
+            "speed": 32.996,
             "gravity": 0.0,
             "angleSpeed": 14.0,
             "initialAngle": 0.0,
             "polarForm": {
                 "x": 1.0,
-                "y": -1.9428
-            },
-            "radiusVlc": 0,
-            "thetaVlc": -4.607669,
-            "startPos": {
-                "x": 0.0,
-                "y": 0.0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shovel",
-            "scale": {
-                "x": 2.5,
-                "y": 2.5
-            },
-            "color": {
-                "x": 0.4,
-                "y": 0.46,
-                "z": 0.66,
-                "w": 1
-            },
-            "appearTime": 0.384,
-            "appearDuration": 0.02,
-            "life": 0.834,
-            "random": 0,
-            "unCounterable": true,
-            "lockRotation": false
-        },
-        {
-            "originPos": {
-                "x": 18.13,
-                "y": 19.6
-            },
-            "originVlc": {
-                "x": 0.0,
-                "y": 0.0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 1,
-            "speed": 20.553,
-            "gravity": 0.0,
-            "angleSpeed": 14.0,
-            "initialAngle": 0.0,
-            "polarForm": {
-                "x": 1.0,
-                "y": -1.0035
+                "y": -1.8674
             },
             "radiusVlc": 0,
             "thetaVlc": -4.607669,
@@ -98,9 +46,61 @@
                 "z": 0.66,
                 "w": 1
             },
-            "appearTime": 1.117,
+            "appearTime": 0.383,
             "appearDuration": 0.02,
-            "life": 1.567,
+            "life": 0.833,
+            "random": 0,
+            "unCounterable": true,
+            "lockRotation": false
+        },
+        {
+            "originPos": {
+                "x": 17.92,
+                "y": 19.6
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 1,
+            "speed": 29.299,
+            "gravity": 0.0,
+            "angleSpeed": 14.0,
+            "initialAngle": 0.0,
+            "polarForm": {
+                "x": 1.0,
+                "y": -1.2241
+            },
+            "radiusVlc": 0,
+            "thetaVlc": -4.607669,
+            "startPos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "hummer",
+            "scale": {
+                "x": 2.5,
+                "y": 2.5
+            },
+            "color": {
+                "x": 0.4,
+                "y": 0.46,
+                "z": 0.66,
+                "w": 1
+            },
+            "appearTime": 0.383,
+            "appearDuration": 0.02,
+            "life": 0.833,
             "random": 0,
             "unCounterable": true,
             "lockRotation": false
