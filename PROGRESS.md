@@ -1,5 +1,31 @@
 # PROGRESS
 
+## 2026-07-04 深夜〜早朝(自律セッション・Fable: 弾幕生成リファクタ第3弾 = visualId リンク検査+advisory 棚卸し)
+
+REFACTOR-REPORT §7.4 の次候補を消化。**詳細は `REFACTOR-REPORT.md` §8(追記)**。挙動不変(EditMode 全緑・golden 不変・実データ警告の追加ノイズ 0)。push 禁止遵守、origin より **94 コミット先行**。
+
+### 今回やったこと
+
+1. **前セッション仕掛かり(+330行 dirty)の完成**: `StageValidation.ValidateStageEnemyVisuals` のランタイムミラー(EnemyVisualLoader 登録ゲート / EnemyVisualCatalog 後勝ち上書き / Boss.ResolveVisualSet 無言フォールバック / GIF パス解決)を全て現物コードと突き合わせて一致を確認した上で、未了だった配線(StageLinterMenu)とテストを実装
+2. **`6484271` リンター: visualId→enemyVisuals リンク検査を新設**: 発射 spawner の未解決/never-loads visualId=error、休眠=warn、定義側根本原因(blank id/address 空/未知 source/死にデータ/GIF 欠落)=warn、登録 id 重複=error。実データ(stone GIF13本+captain addressable)は error/warn ゼロ。`StageVisualLintTests` 12本(実データ緑1+合成 negative 11)
+3. **advisory 524件の棚卸し(分類+昇格候補リストまで。昇格は未実施)**: 正規化分類で [Buffer] originPos 域外 492 / [Types] 32 を確定。originPos は clip ローカル座標のため生値比較では昇格不可という構造的結論を BulletData.cs:167 で確定。生存域を **position ∈ [-2,36)²** に精密化(separateLevel=6×cellSize0.5625 実測)し、bulletSpawners(pos/angle 静的)との合成実測 7,977 発中 **172 発が出現前に即死する真陽性**を特定
+4. **石工ベルトダッシュの実バグを Play Mode で確認**: x=38〜70 起点の「右から流れ込む」9発×5 spawner が全滅(生存弾の起点逆算で 38 以降が不在 = Temp/belt-probe2.txt)。ベルトは授権上 6.35 秒補充されるはずが実際は約 0.4 秒で右から涸れる
+5. 文書: REFACTOR-REPORT §8 追記+§2/§7.4 の解消マーク、BulletBufferContext.md §3 Bounds を精密な生存域 [-2,36)² に更新
+
+### 検証結果
+
+- **EditMode 74→86本 全緑**(新規12本含む)。golden 6ステージ・chart パリティ不変
+- **Validate All Stages: 0 error / 525 warn** = 531 − bulletInterval 掃除6件(`4915c94`)。内訳 [Buffer]492+[Types]32+[Link]1、新設 [Visual] は 0 件
+- belt dash の即死は Play Mode 実測で確認済み(数値逆算。update フックは自己解除・終了後 stop 済み)
+- Oracle レビュー: 該当なし(視覚成果物なし。棚卸しは数値実測で確定)
+
+### 未解決と次の一手
+
+- **次の最有力**: 合成スポーン位置検査の新設(REFACTOR-REPORT §8.2 候補1。生存域・合成式・除外条件・期待真陽性172件まで素材が揃っている)
+- **ユーザー判断待ち**: 石工ベルトダッシュのデータ修正(§8.2 候補2 — x=38〜70 の9発を域内に収めるか、長時間ベルトの実現手段を変えるか。stone.chart.json の authoring 判断)
+- 未参照バッファ26件のスコープ分離、圧縮テクスチャ30件の import 修正(視覚差分レビュー付き別タスク)
+- push はユーザー確認待ち(origin より **94 コミット先行**)
+
 ## 2026-07-04 深夜(自律セッション・Fable: 弾幕生成リファクタ第2弾ラウンド2 = stage.json 構造の静的検証)
 
 前ラウンド(REFACTOR-REPORT §5)の優先度 1・2 を解消。挙動不変(golden 完全一致・EditMode 全緑を各コミットで維持)の独立コミット3つ+文書1つ。**詳細は `REFACTOR-REPORT.md` §7(追記)**。実装は Opus サブエージェント3本、設計・実測・監査・検証は Fable。push 禁止遵守、origin より **92 コミット先行**。

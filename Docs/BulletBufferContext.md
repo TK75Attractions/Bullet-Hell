@@ -173,9 +173,9 @@ Visual angle:
 
 Bounds:
 
-- The exact culling rule is `position.x < -2 || position.y < -2` (`CullingMargin = 2`, `BulletDataUpdateJob.cs:12,145`) or a Morton cell index out of range (grid top is far above the visible 18, so entry from above is safe).
-- There is no right/top hard kill at 32/18 from position alone; bullets die from the Morton index only when far outside. Still design trajectories around the visible `0..32 / 0..18` area.
-- Avoid spawn/trajectory setups that immediately move into negative coordinates unless that is intended.
+- The exact survival region is `-2 <= position.x < 36 && -2 <= position.y < 36`. Left/bottom is `CullingMargin = 2` (`BulletDataUpdateJob.cs:12,145`); right/top is the Morton cell grid: `separateLevel = 6` -> 64x64 cells x `cellSize = 0.5625` = 36 world units (both values live on the GManager scene object, `QuadOrder.AwakeSetting`). A bullet whose position leaves that square is silently set inactive on that frame.
+- The check only runs after `appearTime` (`BulletDataUpdateJob.cs:43-58` returns early before it), so a bullet may WAIT outside the region, but on its first post-appear frame it must already be inside — a spawn at `x >= 36` intended to "fly in from the right" never appears at all (measured 2026-07-04: `石工ベルトダッシュ` loses its 9 bullets authored at x=38..70 this way; see REFACTOR-REPORT §8).
+- Entry margins are therefore: 2 units on the left/bottom, 4 units right of the visible 32, 18 units above the visible 18. Design trajectories around the visible `0..32 / 0..18` area and spawn inside `[-2,36)` on both axes.
 - Pitfall: `polarForm.x == 0` collapses the rotated vector to the origin (`rotatedVector = polarForm.x * rotate(...)`), so a "straight" bullet with `polarForm.x = 0` renders stuck at `originPos`. Straight bullets need `polarForm = { 1, angleRad }`.
 
 ## 4. Laser Trajectory

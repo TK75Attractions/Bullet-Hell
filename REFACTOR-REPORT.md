@@ -35,7 +35,7 @@
 | `appearDuration` は省略時 0、**負値のみ** DefaultAppearDuration=1.2 に暗黙置換 | `BulletDataJson.cs:65`, `BulletData.cs:9` |
 | `appearDuration` は描画専用。当たり判定は常に `appearTime` 開始 | `BulletRenderSystem.cs:269-288`, `BulletCollisionJob.cs:37` |
 | `color.w` は tint 強度。**w=0 はスプライト本来の色で表示**(透明ではない)。衝突は color を一切見ない | `BulletIndirectURP.shader:120-124` |
-| 消滅境界は x<0 ではなく **x<-2 ‖ y<-2**(CullingMargin=2) | `BulletDataUpdateJob.cs:12,145` |
+| 消滅境界は x<0 ではなく **x<-2 ‖ y<-2**(CullingMargin=2)。~~上/右は「遠方でのみ」~~ **→ ラウンド3で精密化: 生存域は [-2, 36)²**(§8.2) | `BulletDataUpdateJob.cs:12,145` |
 | `counterPower` は JSON フィールドではなく BulletType.verts の面積から自動算出(verts<3 で 0=無害) | `BulletType.cs:32-50`, `BulletCollisionJob.cs:48` |
 | `polarForm.x=0` は回転ベクトルが 0 倍になり弾が originPos に潰れる(直進弾は {1, angleRad} 必須) | `BulletDataUpdateJob.cs:115` |
 | **DTO が二系統**: stage.json 内 orbit/bulletClip の弾には `playerInfluence`/`warpCooldown` が存在しない | `StageDataManager.cs:35-95` |
@@ -139,7 +139,62 @@
 ### 7.4 残ギャップ(§5 の更新)
 
 1. §5-1(enemy typeName)・§5-2(pattern リンター)は本ラウンドで解消。§5-3〜6 は据え置き
-2. **新規**: captain の bulletInterval 死にキー6件の実データ修正(chart 再生成 or キー除去)。warn+ラチェットで固定済みなので急がない
-3. **新規**: `visualId` → 同 JSON 内 enemyVisuals の対応検査は未実装(enemy の見た目リンク)。`enemyName` → EDB 解決も probe が要るため未実装
+2. ~~**新規**: captain の bulletInterval 死にキー6件の実データ修正(chart 再生成 or キー除去)。warn+ラチェットで固定済みなので急がない~~ **→ `4915c94` で解消(キー除去+ラチェットをゼロに強化)**
+3. ~~**新規**: `visualId` → 同 JSON 内 enemyVisuals の対応検査は未実装(enemy の見た目リンク)。~~ **→ ラウンド3で解消(§8.1)**。`enemyName` → EDB 解決は probe が要るため未実装のまま
 4. **新規**: 未知キー検査は enemySpawners サブツリーのみ。トップレベル(MusicEvents 等)と animation 木は対象外
 5. **新規**: chart 側(compile 前)の同等検査は無し — stage.json は生成物なので生成後検査で実害は覆えているが、コンパイル時に落とせれば作者へのフィードバックがより早い
+
+## 8. ラウンド3(2026-07-04 深夜〜早朝): visualId リンク検査+advisory 524件の棚卸し
+
+対象コミット: `6484271`(挙動不変・独立 revert 可)+ 本レポート/ドキュメント追記。§7.4-3 の解消と §5-3(advisory 棚卸し)の第一歩。
+
+### 8.1 `6484271` リンター: visualId → enemyVisuals リンク検査
+
+- `StageValidation.ValidateStageEnemyVisuals`: 全 stage.json を probe 不要で静的検査。severity はランタイムのサイレント失敗実測に準拠:
+  - `Boss.ResolveVisualSet` は visualId のカタログミスを**無言で** enemyName visual → EDB スプライトへフォールバック(Boss.cs:84-90)→ 発射 spawner(count>0)の未解決/never-loads visualId = **error**、休眠 spawner = warn
+  - カタログは `visualsById[id] = visual` の後勝ち上書き(EnemyVisualCatalog.cs:19)→ 登録 id 重複 = **error**
+  - 定義側の根本原因(blank id / addressable の address 空 / 未知 source / 未参照の死にデータ / GIF クリップ欠落・ファイル不在)= warn。登録ゲートは `EnemyVisualLoader.LoadCatalogAsync` の実装(blank id skip / externalGif は常に登録 / addressable は address 必須)をミラー
+  - GIF パス解決は `ResolveExternalPath / ResolveExternalBaseDirectory` と同一規則(rooted 優先 → basePath → stage フォルダ)
+- 実測: enemyVisuals を持つのは stone(externalGif×2, クリップ13本全て実在)と captain(addressable×1)のみで、実データは error/warn ともゼロ
+- `StageVisualLintTests` 12本: 実データ緑1本+合成 JSON negative 11本で全分岐の発火を実証
+
+### 8.2 advisory 524件の棚卸し(分類と昇格候補リストまで。昇格は未実施)
+
+メッセージ正規化で全524件を分類した(集計は Temp/lint-warnings.txt、再現は §8.2 の手順どおり)。
+
+**[Buffer] originPos 域外 = 492件(94%)— 静的単体では error 昇格不可(構造的理由)**
+
+- JSON の originPos は **clip ローカル座標**。実行時は `world = spawnerPos + Rotate(originPos, spawner角度)`(BulletBufferManager.cs:668 → BulletData.cs:167)で平行移動+回転されるため、生の originPos を world 境界と比較しても真陽性/偽陽性を区別できない
+- 参照実測: 492件のうち **466件は stage.json の bulletSpawners から参照される現役バッファ**(captain 208 / stone 217 / mirror 27 / debug(nature) 14)、**26件は未参照**(debug/HexagonClockwise 12・debug/LightMagic 6・_archive 8)
+- **生存域の精密化(コード+実測)**: 弾が生き残る条件は `position ∈ [-2, 36)²`。左/下は CullingMargin=2、右/上は Morton グリッド(separateLevel=6 → 64セル × cellSize=0.5625 = 36)。カルは **appearTime 後の毎フレーム**のみ適用(BulletDataUpdateJob.cs:36-58,63-67,143-153)。§2 の表の「上/右は遠方でのみ」は不正確だった(是正済み)
+- **合成実測(bulletSpawners は pos/angle が静的なので合成可能)**: 全ステージ×全 bulletSpawner×全弾 = 7,977 スポーン実体のうち **172 発が生存域外 = 出現前に即死**:
+  - `shellsplash`(captain)126発: スプラッシュ左裾が x<-2。可視域(x∈[0,32])外を垂直上昇するだけの弾のため**視覚影響なし(良性の無駄データ)**
+  - `石工ベルトダッシュ`(stone)45発 = 9発×5 spawner: x=38〜70 起点の「右から流れ込む」弾が**全滅。Play Mode 実測で確認済みの実バグ** — sp[4](t=10.83 発射)の age=2.72 時点の生存弾を逆算すると起点は 14/18/22/26/30/34 のみで、38 以降は一度も出現しない(Temp/belt-probe2.txt)。授権意図(life 6.35 秒間ベルトが右から補充され続ける)に対し、実際は約 0.4 秒で補充が止まり右から涸れる
+  - `mirror_LASER_SUB`(mirror)1発
+- 未参照26件は昇格対象外(スコープ分離が正道)
+
+**[Types] = 32件**
+
+- 圧縮テクスチャ 30件(15 BulletType × base/mask): renderer は Uncompressed 前提。修正は import settings 変更=視覚に触るため、視覚差分レビュー付きの別タスク
+- index 8 の空 typeName + baseSprite 無し 2件: BTDB の穴。typeId=index のため除去は全後続 id のシフトを伴い危険。JSON から参照不能なだけの穴として据え置き(文書化のみ)
+
+**error 昇格候補リスト(優先度順・本ラウンドでは実施しない)**
+
+1. **新設「合成スポーン位置検査」**: bulletSpawners(pos/angle 静的)× クリップ originPos の合成位置が [-2,36)² 外なら warn(新規チェック。既存492件の originPos advisory の実質的な後継)。laser クリップ(カル経路が別)と enemySpawner 経由(オービット依存で emitPos が動的)は対象外。真陽性172件を新規可視化でき、既存の生 originPos 警告はノイズとして廃止候補になる
+2. **石工ベルトダッシュのデータ修正**: x=38〜70 の9発を x<36 に収める(間隔詰め)か、授権意図どおり長時間ベルトにするなら別の実現手段(originVlc 起点を域内に+appearTime ずらし等)。stone.chart.json 側の authoring 判断が要るためユーザー確認案件
+3. **未参照バッファ26件のスコープ分離**(debug/HexagonClockwise・LightMagic・_archive): per-stage ローダー対象かの確認の上で lint 対象から除外し、advisory を 492→466 に削減
+4. **圧縮テクスチャ30件の import 修正**(視覚差分レビュー付き別タスク)
+
+### 8.3 検証結果
+
+- **EditMode: 74 → 86 で全緑**(新規12本を含む。golden 6ステージ・chart パリティ不変 = 挙動不変を機械確認)
+- **Validate All Stages: 0 error / 525 warn** = ラウンド2の 531 − captain bulletInterval 6件(`4915c94` で掃除)。prefix 内訳 [Buffer]492 + [Types]32 + [Link]1、**新設 [Visual] は実データ 0 件**(追加ノイズなし)
+- コンパイルエラーなし。Play Mode: belt dash の実測検証に使用(§8.2。update フックは自己解除・録画なし・終了後 stop 済み)
+- Oracle レビュー: 該当なし(視覚成果物なし。棚卸しは数値実測で確定)
+
+### 8.4 残ギャップ(§7.4 の更新)
+
+1. §7.4-2(bulletInterval データ掃除)は `4915c94`、§7.4-3 前半(visualId 検査)は本ラウンドで解消。§7.4-4・5 は据え置き
+2. **次の最有力**: §8.2 の昇格候補 1(合成スポーン位置検査)。実装素材(生存域・合成式・除外条件・期待真陽性172件)は §8.2 に全て揃っている
+3. **ユーザー判断待ち**: 石工ベルトダッシュの授権意図の確認とデータ修正(§8.2 候補2)
+4. `enemyName` → EDB 解決検査(probe 要)、startPos 整合検査(§5-4)、laser 特化検査(§5-5)は未実装のまま
