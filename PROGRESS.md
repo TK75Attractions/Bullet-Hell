@@ -1,5 +1,30 @@
 # PROGRESS
 
+## 2026-07-04 夜(自律セッション・Fable: 弾幕生成リファクタ再開2 = データ層の安全化)
+
+「Opus 単体で BulletBuffer JSON / chart を正確に編集できるようにする」リファクタラウンド。挙動不変(golden 完全一致・既存テスト全緑を各ステップ維持)で、スキーマ明文化+バリデーション強化+不変条件テストを4つの独立コミットで実施。**詳細は `REFACTOR-REPORT.md`(新規・リポジトリ直下)**。push 禁止遵守。origin より **88 コミット先行**。
+
+### 今回やったこと(コミット順)
+
+1. **`759733a` リンター新設2種+誤検知修正**: ファイル形式(不正UTF-8・\r\r\n text-mode破壊・改行混在=error)とバッファ登録名のロードスコープ重複(=error)。isLaser の appearTime>life 誤警告を抑止。テスト2本を結線
+2. **`92cbf8e` スキーマ明文化**: BulletBufferContext.md をコード準拠に是正・増補(appearDuration 負値→1.2 暗黙置換の誤記修正、消滅境界 x<-2、新設 §5 描画/衝突セマンティクス=color.w は tint 強度で w=0 は非透明・counterPower は verts 由来・stage.json 側 DTO に playerInfluence/warpCooldown が無い二重スキーマ、新設 §6 ファイル形式規約+binary 編集レシピ、typeName 25種現物化)。authoring-guide も現状化
+3. **`028c134` 度/ラジアン取り違え検出**: 静的角度(polarForm.y/initialAngle)4π 超で warn。現データ警告ゼロ
+4. **`c8d3058` 検出能力の実証**: バイト検査を ValidateBufferBytes に抽出し、合成した破壊データで「本当に検出する」negative テスト4本を追加
+5. 実装前に実データを実測してチェック強度を決定: 626 JSON の形式分布(BOM+CRLF 472 主流)、appearDuration>appearTime は**343弾実在の正常パターン**(警告化を回避)、\r\r\n・名前重複・4π超は現状ゼロ(=error/warn 化してもノイズゼロ)
+
+### 検証結果
+
+- **EditMode 49→55本、各コミット時点で全緑**(既存49本は全ステップ不変)。golden 6ステージ+chart パリティ(110イベント)は毎回そのまま合格=挙動不変を機械確認
+- **Validate All Stages: 0 error / 524 warn**(着手前525。新チェックの追加ノイズ0、誤検知1件減)
+- Play Mode・Oracle レビューは該当なし(Editor/Tests/Docs のみの変更で視覚成果物なし)。ランタイム非接触
+- Explore サブエージェントの棚卸しレポート中の誤認2件(「color.w=0 は透明」「テスト48本」)をシェーダ現物と実行実測で棄却してから文書化
+
+### 未解決と次の一手
+
+- **次の最小ステップ**: stage.json 内 enemy 構造(orbit/bulletClip)の typeName 解決チェック(現状コンパイラが verbatim 通過で無検証)。次点: pattern イベントの静的リンター、既存 advisory 約500件の棚卸しによる error 昇格判断(詳細は REFACTOR-REPORT §5)
+- worktree 残骸3件(`.claude/worktrees/agent-*`、今朝の演出セッション由来・全て clean・内容は本ブランチ反映済み)は削除せず残置(ユーザー判断)
+- push はユーザー確認待ち(origin より **88 コミット先行**)
+
 ## 2026-07-04 夕方(自律セッション・Fable: M21着地カメラシェイク+lower_burst色統一+例外修正)
 
 前セッション(外部停止)の仕掛かり(未コミットの CameraShake.cs+GManager.cs)を検証から再開し、ユーザー承認3件を完了した。origin より **82 コミット先行**。push 禁止遵守。
