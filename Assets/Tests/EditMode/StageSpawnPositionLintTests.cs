@@ -11,12 +11,14 @@ using Unity.Mathematics;
 
 public class StageSpawnPositionLintTests
 {
-    // The only two official clips whose composed spawns currently leave the
-    // survival region. shellsplash (126) rises outside the visible x range on
-    // purpose; the stone belt dash (45 = 9 bullets x 5 spawners) is a real spawn
-    // bug tracked for an authoring decision. Total is the ratchet below.
-    private const int KnownOutOfRangeWarnings = 171;
-    private static readonly string[] KnownOutOfRangeClips = { "shellsplash", "石工ベルトダッシュ" };
+    // shellsplash (126) rises outside the visible x range on purpose and is the
+    // only official clip whose composed spawns currently leave the survival
+    // region. The stone belt dash (previously 45 = 9 bullets x 5 spawners, all
+    // culled off-screen) was removed as a superfluous decoration per user
+    // feedback, which also cleared that tracked spawn bug; the ratchet dropped
+    // 171 -> 126 accordingly.
+    private const int KnownOutOfRangeWarnings = 126;
+    private static readonly string[] KnownOutOfRangeClips = { "shellsplash" };
 
     [Test]
     public void AllStageSpawnPositionsAreKnownAndErrorFree()
