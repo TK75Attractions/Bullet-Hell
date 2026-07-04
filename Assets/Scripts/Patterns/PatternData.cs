@@ -3,6 +3,40 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
+/// The fixed bullet type names built-in patterns resolve: fallbacks for the
+/// chart-overridable shardType / cutterType (empty is the universal real-data
+/// case) plus the structural emission types that are not overridable at all.
+/// These lived as bare string literals inside Patterns.cs; the linter has to
+/// check the very same names, and a shared const cannot silently drift from the
+/// runtime the way two copies of a literal would.
+/// </summary>
+public static class PatternDefaults
+{
+    /// <summary>Fallback bullet type for shards when PatternParamsJson.shardType is empty.</summary>
+    public const string ShardTypeName = "stone_shard";
+    /// <summary>Fallback bullet type for cutters when PatternParamsJson.cutterType is empty.</summary>
+    public const string CutterTypeName = "stone_cutter";
+    /// <summary>Structural block emissions (FallingBlock); not overridable from args.</summary>
+    public const string BlockTypeName = "stone_block";
+    /// <summary>Structural warning-frame emissions (FallingBlock, BeatPulseWarn); not overridable from args.</summary>
+    public const string WarningTypeName = "stone_warning";
+    /// <summary>Structural landing-dust emissions (FallingBlock); not overridable from args.</summary>
+    public const string DustTypeName = "stone_dust";
+    /// <summary>Structural burst-flash emissions (FallingBlock, RadialBurst); not overridable from args.</summary>
+    public const string BurstTypeName = "stone_burst";
+
+    /// <summary>
+    /// Every fixed type name any built-in pattern can resolve. The linter checks
+    /// these against the BTDB whenever a stage uses pattern events, so a deleted
+    /// or renamed type is caught statically instead of silently dropping emissions.
+    /// </summary>
+    public static readonly string[] RequiredTypeNames =
+    {
+        ShardTypeName, CutterTypeName, BlockTypeName, WarningTypeName, DustTypeName, BurstTypeName
+    };
+}
+
+/// <summary>
 /// Serializable union of every parameter any built-in pattern reads. A single flat
 /// struct keeps <see cref="UnityEngine.JsonUtility"/> happy (no polymorphic JSON)
 /// while each <see cref="IBulletPattern"/> interprets only the fields it needs.

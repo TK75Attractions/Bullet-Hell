@@ -954,6 +954,178 @@ public static class StageValidation
         }
     }
 
+    // ---- Stage pattern-event validation (static; no probe needed) ----
+
+    // Wrapper around the REAL runtime types (PatternEventData / PatternParamsJson
+    // from PatternData.cs), not a mirror: JsonUtility sees exactly the fields the
+    // runtime sees, so there is zero drift to keep in sync here.
+    [Serializable]
+    private class StagePatternLintJson
+    {
+        public List<PatternEventData> patternEvents = new List<PatternEventData>();
+    }
+
+    /// <summary>
+    /// Validates every stage's patternEvents statically (no probe / Play Mode).
+    /// Three runtime failures are all silent, which is why these findings can be
+    /// hard errors: StageDataManager.NormalizePatternEvents drops any event with
+    /// an empty patternType, PatternExecutor.Expand returns false (emits nothing)
+    /// for an unregistered patternType, and Expand filters out every emission
+    /// whose bullet type name resolves to typeId &lt; 0 before rendering. So a
+    /// chart typo in patternType / shardType / cutterType — or a deleted/renamed
+    /// entry among the fixed PatternDefaults.RequiredTypeNames the patterns
+    /// always resolve — produces no bullets and no console message. Only
+    /// pattern_demo carries patternEvents today (one event per registered type,
+    /// all clean, and all six required types exist in the BTDB), so this stays
+    /// error- and warning-free on the current data.
+    /// </summary>
+    public static void ValidateStagePatternEvents(BulletTypeDataBase btdb, Report report)
+    {
+        foreach (string file in EnumerateStageJsonFiles())
+        {
+            string rel = ToAssetRelative(file);
+            string json;
+            try
+            {
+                // Read failures are already hard errors in ValidateStageEnemyTypeNames;
+                // skip here instead of double-reporting (like ValidateBufferNames).
+                json = File.ReadAllText(file);
+            }
+            catch (Exception)
+            {
+                continue;
+            }
+
+            ValidateStagePatternJson(rel, json, btdb, report);
+        }
+    }
+
+    /// <summary>
+    /// Pattern-event check for a single stage JSON. Public so tests can feed
+    /// synthetic JSON and prove the detector fires. See
+    /// <see cref="ValidateStagePatternEvents"/> for the silent-failure rationale
+    /// behind the error severities.
+    /// </summary>
+    public static void ValidateStagePatternJson(string rel, string json, BulletTypeDataBase btdb, Report report)
+    {
+        StagePatternLintJson data;
+        try
+        {
+            data = JsonUtility.FromJson<StagePatternLintJson>(json);
+        }
+        catch (Exception)
+        {
+            // Strict parse failures are already errors in ValidateStageEnemyJson,
+            // which reads the same files; stay silent here.
+            return;
+        }
+
+        if (data == null || data.patternEvents == null || data.patternEvents.Count == 0)
+        {
+            return;
+        }
+
+        HashSet<string> valid = BuildValidTypeNames(btdb);
+        bool anyRegisteredEvent = false;
+
+        for (int i = 0; i < data.patternEvents.Count; i++)
+        {
+            PatternEventData ev = data.patternEvents[i];
+            if (ev == null)
+            {
+                continue;
+            }
+
+            if (string.IsNullOrEmpty(ev.patternType))
+            {
+                report.Warn($"[Pattern] {rel} patternEvents[{i}] has empty patternType (runtime silently drops the event).");
+                continue;
+            }
+
+            if (!PatternExecutor.IsRegistered(ev.patternType))
+            {
+                report.Error($"[Pattern] {rel} patternEvents[{i}] patternType '{ev.patternType}' is not registered in PatternExecutor.");
+                continue;
+            }
+
+            anyRegisteredEvent = true;
+
+            if (ev.time < 0f)
+            {
+                report.Warn($"[Pattern] {rel} patternEvents[{i}] time {ev.time} is negative (event fires before stage start).");
+            }
+
+            // JsonUtility builds args from the field initializer, but a hand-fed
+            // JSON with an explicit null could still leave it null.
+            PatternParamsJson args = ev.args;
+            if (args == null)
+            {
+                continue;
+            }
+
+            // An explicit, non-empty shard/cutter type that does not resolve makes
+            // every emission of that pattern silently vanish (typeId < 0 filter).
+            if (!string.IsNullOrEmpty(args.shardType) && !valid.Contains(args.shardType))
+            {
+                report.Error($"[Pattern] {rel} patternEvents[{i}] shardType '{args.shardType}' is not in BulletTypeDataBase (emissions are silently dropped).");
+            }
+            if (!string.IsNullOrEmpty(args.cutterType) && !valid.Contains(args.cutterType))
+            {
+                report.Error($"[Pattern] {rel} patternEvents[{i}] cutterType '{args.cutterType}' is not in BulletTypeDataBase (emissions are silently dropped).");
+            }
+
+            // Advisory only, mirroring the buffer originPos advisory: an off-screen
+            // anchor may be an intentional entry point from outside the play area.
+            if (args.positions != null)
+            {
+                for (int k = 0; k < args.positions.Count; k++)
+                {
+                    Vector2 pt = args.positions[k];
+                    if (pt.x < 0f || pt.x > AreaWidth || pt.y < 0f || pt.y > AreaHeight)
+                    {
+                        report.Warn($"[Pattern] {rel} patternEvents[{i}] positions[{k}] ({pt.x}, {pt.y}) is outside 0..{AreaWidth}/0..{AreaHeight}.");
+                    }
+                }
+            }
+
+            // Beats fields are multiplied by the stage BeatSeconds; a negative
+            // value inverts the timing and never expresses a real intent.
+            if (args.warnBeats < 0f)
+            {
+                report.Warn($"[Pattern] {rel} patternEvents[{i}] warnBeats {args.warnBeats} is negative.");
+            }
+            if (args.holdBeats < 0f)
+            {
+                report.Warn($"[Pattern] {rel} patternEvents[{i}] holdBeats {args.holdBeats} is negative.");
+            }
+            if (args.fallBeats < 0f)
+            {
+                report.Warn($"[Pattern] {rel} patternEvents[{i}] fallBeats {args.fallBeats} is negative.");
+            }
+            if (args.ghostBeats < 0f)
+            {
+                report.Warn($"[Pattern] {rel} patternEvents[{i}] ghostBeats {args.ghostBeats} is negative.");
+            }
+        }
+
+        // Patterns unconditionally resolve their structural types (block/warning/
+        // dust/burst) and fall back to the shard/cutter defaults whenever
+        // shardType / cutterType is empty, which is the universal real-data case.
+        // Scope the check to files that actually use pattern events so stages
+        // without patterns stay silent.
+        if (anyRegisteredEvent)
+        {
+            for (int i = 0; i < PatternDefaults.RequiredTypeNames.Length; i++)
+            {
+                string name = PatternDefaults.RequiredTypeNames[i];
+                if (!valid.Contains(name))
+                {
+                    report.Error($"[Pattern] {rel} uses pattern events but default type '{name}' is not in BulletTypeDataBase.");
+                }
+            }
+        }
+    }
+
     // ---- BulletType asset registration / import validation ----
 
     public const string BulletTypesFolder = "Assets/Scripts/Bullets/BulletTypes";

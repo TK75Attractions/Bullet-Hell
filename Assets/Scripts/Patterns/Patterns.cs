@@ -30,10 +30,10 @@ public sealed class FallingBlockPattern : IBulletPattern
         float4 blockCol = PatternMath.OrColor(ToF4(a.color), PatternMath.ColorBlock);
         float4 warnCol = PatternMath.OrColor(ToF4(a.warnColor), PatternMath.ColorWarn);
 
-        int blockId = ctx.Resolve("stone_block");
-        int warnId = ctx.Resolve("stone_warning");
-        int dustId = ctx.Resolve("stone_dust");
-        int burstId = ctx.Resolve("stone_burst");
+        int blockId = ctx.Resolve(PatternDefaults.BlockTypeName);
+        int warnId = ctx.Resolve(PatternDefaults.WarningTypeName);
+        int dustId = ctx.Resolve(PatternDefaults.DustTypeName);
+        int burstId = ctx.Resolve(PatternDefaults.BurstTypeName);
 
         float tAppear = warnSec;
         float tDrop = warnSec + holdSec;
@@ -98,8 +98,8 @@ public sealed class RadialBurstPattern : IBulletPattern
         float2 s = new float2(scale, scale);
         float4 shardCol = PatternMath.OrColor(new float4(a.color.x, a.color.y, a.color.z, a.color.w), PatternMath.ColorShard);
 
-        int shardId = ctx.Resolve(string.IsNullOrEmpty(a.shardType) ? "stone_shard" : a.shardType);
-        int burstId = ctx.Resolve("stone_burst");
+        int shardId = ctx.Resolve(string.IsNullOrEmpty(a.shardType) ? PatternDefaults.ShardTypeName : a.shardType);
+        int burstId = ctx.Resolve(PatternDefaults.BurstTypeName);
 
         foreach (Vector2 p in a.positions)
         {
@@ -129,7 +129,7 @@ public sealed class CutterSweepPattern : IBulletPattern
 
         float bs = ctx.BeatSeconds;
         float baseScale = PatternMath.Or(a.scale, 3f);
-        int cutterId = ctx.Resolve(string.IsNullOrEmpty(a.cutterType) ? "stone_cutter" : a.cutterType);
+        int cutterId = ctx.Resolve(string.IsNullOrEmpty(a.cutterType) ? PatternDefaults.CutterTypeName : a.cutterType);
 
         foreach (CutterDefJson c in a.cutters)
         {
@@ -163,7 +163,7 @@ public sealed class BeatPulseWarnPattern : IBulletPattern
         float2 s = new float2(scale, scale);
         float life = PatternMath.Or(a.warnBeats, 2f) * ctx.BeatSeconds;
         float4 warnCol = PatternMath.OrColor(new float4(a.warnColor.x, a.warnColor.y, a.warnColor.z, a.warnColor.w), PatternMath.ColorWarn);
-        int warnId = ctx.Resolve("stone_warning");
+        int warnId = ctx.Resolve(PatternDefaults.WarningTypeName);
 
         foreach (Vector2 p in a.positions)
         {
@@ -192,7 +192,7 @@ public sealed class GhostPreviewPattern : IBulletPattern
         float ghost = PatternMath.Or(a.ghostBeats, 2f) * ctx.BeatSeconds;
         float dir = math.radians(a.dirDeg);
         float tumble = a.tumble;
-        int shardId = ctx.Resolve(string.IsNullOrEmpty(a.shardType) ? "stone_shard" : a.shardType);
+        int shardId = ctx.Resolve(string.IsNullOrEmpty(a.shardType) ? PatternDefaults.ShardTypeName : a.shardType);
 
         foreach (Vector2 p in a.positions)
         {
