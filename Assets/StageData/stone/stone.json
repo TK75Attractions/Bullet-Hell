@@ -143,55 +143,162 @@
       "enemyName": "demo",
       "visualId": "golem",
       "animation": {
-        "initialClip": "idle",
+        "initialClip": "fall1",
+        "events": []
+      },
+      "count": 1,
+      "enemyInterval": 0.0,
+      "enemyAppearTime": 62.916667,
+      "bulletEmitTime": 0.0,
+      "bulletCount": 0,
+      "life": 0.416667,
+      "fadeInSec": 0.0,
+      "fadeOutSec": 0.0,
+      "sortingOrder": 0,
+      "orbit": {
+        "originPos": {
+          "x": 16,
+          "y": 22.2
+        },
+        "originVlc": {
+          "x": 0,
+          "y": -20.16
+        },
+        "startX": 0,
+        "speed": 0,
+        "gravity": 0,
+        "angleSpeed": 0,
+        "initialAngle": 0,
+        "polarForm": {
+          "x": 0,
+          "y": 0
+        },
+        "radiusVlc": 0,
+        "thetaVlc": 0,
+        "startPos": {
+          "x": 0,
+          "y": 0
+        },
+        "polynomial": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 0
+        },
+        "typeName": null,
+        "scale": {
+          "x": 2.8,
+          "y": 2.8
+        },
+        "color": {
+          "x": 1,
+          "y": 1,
+          "z": 1,
+          "w": 1
+        },
+        "appearTime": 0,
+        "appearDuration": 0,
+        "life": 0.416667,
+        "random": 0,
+        "unCounterable": false
+      },
+      "bulletClip": {
+        "data": {
+          "originPos": {
+            "x": 0,
+            "y": 0
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "startX": 0,
+          "speed": 0,
+          "gravity": 0,
+          "angleSpeed": 0,
+          "initialAngle": 0,
+          "polarForm": {
+            "x": 0,
+            "y": 0
+          },
+          "radiusVlc": 0,
+          "thetaVlc": 0,
+          "startPos": {
+            "x": 0,
+            "y": 0
+          },
+          "polynomial": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 0
+          },
+          "typeName": null,
+          "scale": {
+            "x": 1,
+            "y": 1
+          },
+          "color": {
+            "x": 1,
+            "y": 1,
+            "z": 1,
+            "w": 1
+          },
+          "appearTime": 0,
+          "appearDuration": 0,
+          "life": 0,
+          "random": 0,
+          "unCounterable": false
+        },
+        "number": 0,
+        "disRad": 0,
+        "homing": false
+      },
+      "bulletChangeClips": []
+    },
+    {
+      "enemyName": "demo",
+      "visualId": "golem",
+      "animation": {
+        "initialClip": "fall2",
         "events": [
           {
             "time": 3.333333,
-            "clip": "fall1",
+            "clip": "leftSlam",
             "next": "idle"
           },
           {
             "time": 4.166667,
-            "clip": "fall2",
-            "next": "idle"
-          },
-          {
-            "time": 6.666667,
-            "clip": "leftSlam",
-            "next": "idle"
-          },
-          {
-            "time": 7.5,
             "clip": "rightSlam",
             "next": "idle"
           },
           {
-            "time": 8.333333,
+            "time": 5.0,
             "clip": "leftSlam",
             "next": "idle"
           },
           {
-            "time": 9.166667,
+            "time": 5.833333,
+            "clip": "bothSlam",
+            "next": "idle"
+          },
+          {
+            "time": 10.0,
+            "clip": "leftSlam",
+            "next": "idle"
+          },
+          {
+            "time": 10.833333,
+            "clip": "rightSlam",
+            "next": "idle"
+          },
+          {
+            "time": 11.666667,
             "clip": "bothSlam",
             "next": "idle"
           },
           {
             "time": 13.333333,
-            "clip": "leftSlam",
-            "next": "idle"
-          },
-          {
-            "time": 14.166667,
-            "clip": "rightSlam",
-            "next": "idle"
-          },
-          {
-            "time": 15.0,
-            "clip": "bothSlam",
-            "next": "idle"
-          },
-          {
-            "time": 16.666667,
             "clip": "bothSlam",
             "next": "idle"
           }
@@ -199,11 +306,11 @@
       },
       "count": 1,
       "enemyInterval": 0.0,
-      "enemyAppearTime": 60.0,
+      "enemyAppearTime": 63.333333,
       "bulletEmitTime": 0.0,
       "bulletCount": 0,
-      "life": 20.0,
-      "fadeInSec": 1.0,
+      "life": 16.666667,
+      "fadeInSec": 0.0,
       "fadeOutSec": 0.0,
       "sortingOrder": 0,
       "orbit": {
@@ -249,7 +356,7 @@
         },
         "appearTime": 0,
         "appearDuration": 0,
-        "life": 20.0,
+        "life": 16.666667,
         "random": 0,
         "unCounterable": false
       },
@@ -382,6 +489,16 @@
             "time": 54.383,
             "clip": "cast2",
             "next": "idle"
+          },
+          {
+            "time": 56.467,
+            "clip": "cast4",
+            "next": "idle"
+          },
+          {
+            "time": 57.3,
+            "clip": "cast5",
+            "next": "idle"
           }
         ]
       },
@@ -390,10 +507,10 @@
       "enemyAppearTime": 5.2,
       "bulletEmitTime": 0.0,
       "bulletCount": 0,
-      "life": 56.4,
+      "life": 58.05,
       "fadeInSec": 0.0,
-      "fadeOutSec": 1.4,
-      "sortingOrder": 12,
+      "fadeOutSec": 0.4,
+      "sortingOrder": 9,
       "orbit": {
         "originPos": {
           "x": 16,
@@ -437,7 +554,7 @@
         },
         "appearTime": 0,
         "appearDuration": 0,
-        "life": 56.4,
+        "life": 58.05,
         "random": 0,
         "unCounterable": false
       },

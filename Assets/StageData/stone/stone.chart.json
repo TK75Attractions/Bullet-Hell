@@ -534,27 +534,132 @@
     {
       "enemyName": "demo",
       "visualId": "golem",
-      "_comment": "形態変化: M20(60s)で老人の背後にフェードイン出現し、M21で活動開始。攻撃アニメは atAbs でマーカー同期。フェード秒数は Oracle レビュー(stone-transform-crossfade-review-3)反映",
-      "appearAt": "M20",
-      "life": 20.0,
-      "fadeInSec": 1.0,
+      "_comment": "形態変化の前段(mp4指示反映): ゴーレム胴体が画面外上空(y22.2)から M21-1beat に落下開始し、M21 ちょうどに (16,13.8) へ到達して寿命切れ=後続の本体エントリへ引き継ぎ。落下中は fall1(腕を広げた落下姿勢)",
+      "appearAt": "M21 - 1beat",
+      "life": 0.416667,
       "count": 1,
       "enemyInterval": 0.0,
       "bulletEmitTime": 0.0,
       "bulletCount": 0,
       "animation": {
-        "initialClip": "idle",
+        "initialClip": "fall1",
+        "events": []
+      },
+      "orbit": {
+        "originPos": {
+          "x": 16,
+          "y": 22.2
+        },
+        "originVlc": {
+          "x": 0,
+          "y": -20.16
+        },
+        "startX": 0,
+        "speed": 0,
+        "gravity": 0,
+        "angleSpeed": 0,
+        "initialAngle": 0,
+        "polarForm": {
+          "x": 0,
+          "y": 0
+        },
+        "radiusVlc": 0,
+        "thetaVlc": 0,
+        "startPos": {
+          "x": 0,
+          "y": 0
+        },
+        "polynomial": {
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "w": 0
+        },
+        "typeName": null,
+        "scale": {
+          "x": 2.8,
+          "y": 2.8
+        },
+        "color": {
+          "x": 1,
+          "y": 1,
+          "z": 1,
+          "w": 1
+        },
+        "appearTime": 0,
+        "appearDuration": 0,
+        "life": 0.416667,
+        "random": 0,
+        "unCounterable": false
+      },
+      "bulletClip": {
+        "data": {
+          "originPos": {
+            "x": 0,
+            "y": 0
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "startX": 0,
+          "speed": 0,
+          "gravity": 0,
+          "angleSpeed": 0,
+          "initialAngle": 0,
+          "polarForm": {
+            "x": 0,
+            "y": 0
+          },
+          "radiusVlc": 0,
+          "thetaVlc": 0,
+          "startPos": {
+            "x": 0,
+            "y": 0
+          },
+          "polynomial": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 0
+          },
+          "typeName": null,
+          "scale": {
+            "x": 1,
+            "y": 1
+          },
+          "color": {
+            "x": 1,
+            "y": 1,
+            "z": 1,
+            "w": 1
+          },
+          "appearTime": 0,
+          "appearDuration": 0,
+          "life": 0,
+          "random": 0,
+          "unCounterable": false
+        },
+        "number": 0,
+        "disRad": 0,
+        "homing": false
+      },
+      "bulletChangeClips": []
+    },
+    {
+      "enemyName": "demo",
+      "visualId": "golem",
+      "_comment": "形態変化(mp4指示反映): 前段エントリの胴体落下を受け、M21 ちょうどに着地姿勢(fall2=衝撃)で出現。老人はGIF側で頭上に乗車済み。攻撃アニメは atAbs でマーカー同期。参考 Instructions/石工弾幕形態変化.mp4",
+      "appearAt": "M21",
+      "life": 16.666667,
+      "fadeInSec": 0.0,
+      "count": 1,
+      "enemyInterval": 0.0,
+      "bulletEmitTime": 0.0,
+      "bulletCount": 0,
+      "animation": {
+        "initialClip": "fall2",
         "events": [
-          {
-            "atAbs": "M21",
-            "clip": "fall1",
-            "next": "idle"
-          },
-          {
-            "atAbs": "M21 + 2beat",
-            "clip": "fall2",
-            "next": "idle"
-          },
           {
             "atAbs": "M21 + 8beat",
             "clip": "leftSlam",
@@ -640,7 +745,7 @@
         },
         "appearTime": 0,
         "appearDuration": 0,
-        "life": 20.0,
+        "life": 16.666667,
         "random": 0,
         "unCounterable": false
       },
@@ -701,11 +806,11 @@
     {
       "enemyName": "demo",
       "visualId": "stone",
-      "_comment": "ゴーレムの手前(sortingOrder 12)で 60.2〜61.6s にフェードアウト(長い重なりは貼り付いて見えるため 1.4s に短縮)",
+      "_comment": "老人(mp4指示反映): ゴーレム落下(M21-1beat〜M21)まで居残り召喚ジェスチャー、降下する胴体に覆われる 63.25s に寿命切れ=頭上の老人(ゴーレムGIF側)へ引き継ぎ。落下中 0.45s でフェードアウト。sortingOrder 9(ゴーレム10の背面)で降下中の胴体に隠れる(Oracle stone-transform-fall-review 反映)",
       "appearAt": "5.2",
-      "life": 56.4,
-      "fadeOutSec": 1.4,
-      "sortingOrder": 12,
+      "life": 58.05,
+      "fadeOutSec": 0.4,
+      "sortingOrder": 9,
       "count": 1,
       "enemyInterval": 0.0,
       "bulletEmitTime": 0.0,
@@ -782,6 +887,16 @@
             "time": 54.383,
             "clip": "cast2",
             "next": "idle"
+          },
+          {
+            "time": 56.467,
+            "clip": "cast4",
+            "next": "idle"
+          },
+          {
+            "time": 57.3,
+            "clip": "cast5",
+            "next": "idle"
           }
         ]
       },
@@ -828,7 +943,7 @@
         },
         "appearTime": 0,
         "appearDuration": 0,
-        "life": 56.4,
+        "life": 58.05,
         "random": 0,
         "unCounterable": false
       },
