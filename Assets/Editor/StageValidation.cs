@@ -168,7 +168,6 @@ public static class StageValidation
     /// </summary>
     public static void ValidateBufferFileFormat(Report report)
     {
-        UTF8Encoding strictUtf8 = new UTF8Encoding(false, true);
         foreach (string file in EnumerateBufferFiles())
         {
             string rel = ToAssetRelative(file);
@@ -183,55 +182,64 @@ public static class StageValidation
                 continue;
             }
 
-            try
-            {
-                strictUtf8.GetString(bytes);
-            }
-            catch (DecoderFallbackException)
-            {
-                report.Error($"[Format] {rel} is not valid UTF-8.");
-                continue;
-            }
+            ValidateBufferBytes(rel, bytes, report);
+        }
+    }
 
-            int crlf = 0, bareLf = 0, bareCr = 0, crCr = 0;
-            for (int i = 0; i < bytes.Length; i++)
+    /// <summary>
+    /// Byte-level format check for a single buffer file. Public so tests can
+    /// feed synthetic corrupt content and prove the detector actually fires.
+    /// </summary>
+    public static void ValidateBufferBytes(string rel, byte[] bytes, Report report)
+    {
+        try
+        {
+            new UTF8Encoding(false, true).GetString(bytes);
+        }
+        catch (DecoderFallbackException)
+        {
+            report.Error($"[Format] {rel} is not valid UTF-8.");
+            return;
+        }
+
+        int crlf = 0, bareLf = 0, bareCr = 0, crCr = 0;
+        for (int i = 0; i < bytes.Length; i++)
+        {
+            if (bytes[i] == (byte)'\r')
             {
-                if (bytes[i] == (byte)'\r')
+                if (i + 1 < bytes.Length && bytes[i + 1] == (byte)'\r')
                 {
-                    if (i + 1 < bytes.Length && bytes[i + 1] == (byte)'\r')
-                    {
-                        crCr++;
-                    }
-
-                    if (i + 1 < bytes.Length && bytes[i + 1] == (byte)'\n')
-                    {
-                        crlf++;
-                        i++;
-                    }
-                    else
-                    {
-                        bareCr++;
-                    }
+                    crCr++;
                 }
-                else if (bytes[i] == (byte)'\n')
+
+                if (i + 1 < bytes.Length && bytes[i + 1] == (byte)'\n')
                 {
-                    bareLf++;
+                    crlf++;
+                    i++;
+                }
+                else
+                {
+                    bareCr++;
                 }
             }
+            else if (bytes[i] == (byte)'\n')
+            {
+                bareLf++;
+            }
+        }
 
-            if (crCr > 0)
-            {
-                report.Error($"[Format] {rel} contains {crCr} CR CR sequence(s) (text-mode double conversion corruption; restore from git and rewrite in binary mode).");
-            }
-            else if (bareCr > 0)
-            {
-                report.Error($"[Format] {rel} contains {bareCr} bare CR character(s) not followed by LF.");
-            }
+        if (crCr > 0)
+        {
+            report.Error($"[Format] {rel} contains {crCr} CR CR sequence(s) (text-mode double conversion corruption; restore from git and rewrite in binary mode).");
+        }
+        else if (bareCr > 0)
+        {
+            report.Error($"[Format] {rel} contains {bareCr} bare CR character(s) not followed by LF.");
+        }
 
-            if (crlf > 0 && bareLf > 0)
-            {
-                report.Error($"[Format] {rel} mixes CRLF ({crlf}) and LF ({bareLf}) line endings.");
-            }
+        if (crlf > 0 && bareLf > 0)
+        {
+            report.Error($"[Format] {rel} mixes CRLF ({crlf}) and LF ({bareLf}) line endings.");
         }
     }
 
