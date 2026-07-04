@@ -23,7 +23,7 @@
 
 1. **push・force push・公開操作は禁止**(ユーザー確認が取れるまで)。ローカル commit は節目ごとに意味単位で行ってよい(許可済み)
 2. dirty ファイルを revert しない。`git add .` を使わず対象ファイルだけ狭く add
-3. `Assets/Screenshots/`、`Assets/_Recovery/`、`Recordings/`、`.oracle-output/` はコミットしない
+3. `Assets/Screenshots/`、`Assets/_Recovery/`、`Recordings/`、`.oracle-output/` はコミットしない。**`Instructions/` も基本コミットしない**(2026-07-04 確定・.gitignore 済み。ユーザーが置く指示ファイル(mp4 等)は作業入力であってリポジトリ成果物ではない。既にトラック済みの5ファイルはそのまま管理し削除しない)
 4. UnityMCP: 変更系呼び出しと Play Mode 突入を並列にしない。スクリプト編集後はコンパイル完了+エラー無しを確認してから次へ
 5. §5 の「凍結リスト」の値・方針を変更しない
 6. BulletBuffer JSON: 極座標角は**ラジアン**、ステージ spawner の角度は**度**。プレイエリアは 32x18、左下 (0,0)

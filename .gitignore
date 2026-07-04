@@ -108,3 +108,10 @@ InitTestScene*.unity*
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
 
+
+# Instructions/ は基本コミットしない方針(2026-07-04 確定)。
+# 既にトラック済みのファイルは影響を受けない(削除もしない)。
+/Instructions/
+
+# mp4 フレーム抽出などの一時ディレクトリ
+/.tmp_mp4_frames/
