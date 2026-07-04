@@ -23,7 +23,7 @@ public class ChartCompileParityTest
 
         StageChartCompiler.CompileResult result = StageChartCompiler.Compile(File.ReadAllText(ChartPath), StageDir);
         Assert.IsTrue(result.IsGreen, "Compile reported errors:\n" + string.Join("\n", result.Errors));
-        Assert.AreEqual(106, result.EventCount, "Expected 106 compiled bullet events.");
+        Assert.AreEqual(107, result.EventCount, "Expected 107 compiled bullet events.");
 
         string goldenPath = StageGoldenDumper.GoldenPath(StageDir);
         Assert.IsTrue(File.Exists(goldenPath), $"Committed golden missing: {goldenPath}");
