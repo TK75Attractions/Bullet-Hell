@@ -73,6 +73,15 @@ public class GManager : MonoBehaviour
     public int playerHitCount = 0;
     public int counterHitBossCount = 0;
 
+    // --- Stone stage M21 landing shake ------------------------------------
+    // The stone stage's golem slams down at M21 (stage clock 63.333s). A short,
+    // decaying camera shake sells the landing weight. Event-driven and gated on
+    // the stone stage's clock, so no other stage ever shakes and the camera is
+    // untouched until the exact crossing fires it once.
+    private const string StoneStageName = "石工";
+    private const float StoneLandingShakeTime = 63.333f;
+    private float prevStageClock = -1f;
+
     public async void Awake()
     {
         try
@@ -152,6 +161,16 @@ public class GManager : MonoBehaviour
             }
             LogStartup("Player initialized");
 
+            // Attach the (idle-by-default) camera shake to the main gameplay
+            // camera so event-driven landing shakes (e.g. the stone stage M21
+            // golem slam) can play. It never touches the transform until it is
+            // triggered, so every other stage is unaffected.
+            FreezeAspectRate cameraRig = FindObjectOfType<FreezeAspectRate>();
+            if (cameraRig != null && cameraRig.GetComponent<CameraShake>() == null)
+            {
+                cameraRig.gameObject.AddComponent<CameraShake>();
+            }
+
             SReader = GetComponent<StageReader>();
 
             state = GameState.Title;
@@ -228,6 +247,7 @@ public class GManager : MonoBehaviour
         }
 
         SReader.UpdateStage(t);
+        UpdateStoneLandingShake();
 
         QOrder.QuadUpdate(t);
         IManager.UpdateInput();
@@ -257,6 +277,37 @@ public class GManager : MonoBehaviour
         }
 
         SSManager.UpdateSelect(IManager.upPressedThisFrame, IManager.downPressedThisFrame, t, stageSelectButton, IManager.backPressedThisFrame);
+    }
+
+    // Fires the M21 golem landing camera shake once, the frame the stone stage
+    // clock crosses StoneLandingShakeTime. Called only from the non-paused
+    // Playing update path, so it is naturally pause- and stage-gated: the clock
+    // does not advance while paused, and non-stone stages never match the name.
+    // A restart or backward seek drops the clock below the threshold, which
+    // re-arms the crossing so a replay shakes again.
+    private void UpdateStoneLandingShake()
+    {
+        if (SReader == null || !SReader.IsReady)
+        {
+            prevStageClock = -1f;
+            return;
+        }
+
+        StageData stage = SReader.CurrentStage;
+        if (stage == null || stage.stageName != StoneStageName)
+        {
+            prevStageClock = -1f;
+            return;
+        }
+
+        float now = SReader.CurrentTime;
+        if (prevStageClock >= 0f
+            && prevStageClock < StoneLandingShakeTime
+            && now >= StoneLandingShakeTime)
+        {
+            CameraShake.Trigger(0.22f, 0.16f);
+        }
+        prevStageClock = now;
     }
 
     // Drives the title menu / settings / transfer layers. Returns true when the
