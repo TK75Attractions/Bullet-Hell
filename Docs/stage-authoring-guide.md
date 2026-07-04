@@ -43,7 +43,7 @@
 - `at` は必須。裸の数値は秒、`"小節:拍"` は1始まり、単位は `beat`/`bar`/`sec`(乗除算は不可)
 - スポナーの `color` 既定は `(1,1,1,1)`(白)。バッファ側 color と乗算される
 - `diffScale` は pattern イベント専用(clip イベントでは無視される)
-- enemies の `orbit` / `bulletClip` / `bulletChangeClips` は**コンパイラが検証せずそのまま通す**。この中の弾には `playerInfluence` / `warpCooldown` が存在しない(stage.json 側は別デシリアライザ)。必要なら BulletBuffer JSON 側で書く
+- enemies の `orbit` / `bulletClip` / `bulletChangeClips` は**コンパイラが検証せずそのまま通す**が、`Tools/Bullet Hell/Validate All Stages` が生成後の stage.json を静的検査する(発射される弾の typeName 未解決=error、DTO に無いキー=warn)。この中の弾には `playerInfluence` / `warpCooldown` が存在しない(stage.json 側は別デシリアライザ)。必要なら BulletBuffer JSON 側で書く
 - chart.json は Newtonsoft パース(コメント可)、生成物 stage.json と BulletBuffer JSON は JsonUtility(コメント不可・未知キー無視)
 
 enemies のオプションフィールド:

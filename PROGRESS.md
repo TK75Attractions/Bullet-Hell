@@ -1,5 +1,29 @@
 # PROGRESS
 
+## 2026-07-04 深夜(自律セッション・Fable: 弾幕生成リファクタ第2弾ラウンド2 = stage.json 構造の静的検証)
+
+前ラウンド(REFACTOR-REPORT §5)の優先度 1・2 を解消。挙動不変(golden 完全一致・EditMode 全緑を各コミットで維持)の独立コミット3つ+文書1つ。**詳細は `REFACTOR-REPORT.md` §7(追記)**。実装は Opus サブエージェント3本、設計・実測・監査・検証は Fable。push 禁止遵守、origin より **92 コミット先行**。
+
+### 今回やったこと(コミット順)
+
+1. **`7f0654b` enemy 構造の typeName 解決チェック**: 全 stage.json の enemySpawners を probe 不要で静的検査。発射条件(count>0 && bulletCount>0 && number>0)を MultiBullet/QuadOrder の現物で確定し、発射弾の未解決 typeName=error / 休眠 typo=warn / orbit 空=不問(実データ全9件が空=正常)に強度設計。テスト7本
+2. **`cc4a136` enemy 構造の未知キー検出**: StageDataManager の実 DTO 4種をリフレクションした許可集合と Newtonsoft パースで照合。JsonUtility が黙って捨てる死にキーを warn 化。**実データの真陽性6件を発見・可視化**(captain 全 spawner の `bulletInterval` — runtime は再計算するため編集無効)。テスト5本(既知債務のみ許すラチェット付き)
+3. **`9ba7a3f` pattern イベントの静的検証+PatternDefaults**: 未登録 patternType/未解決 shardType・cutterType=error(実行時は全てサイレント消滅のため)、positions 域外・負 beats 等=warn。Patterns.cs にリテラル直書きだった固定型名6種を `PatternDefaults` const に集約し、pattern 使用ステージでは6種の BTDB 存在を error 検査。テスト7本
+4. 文書: REFACTOR-REPORT §7 追記(実測値・severity 根拠・残ギャップ)、stage-authoring-guide の「orbit 等は未検証」記述を現状化
+
+### 検証結果
+
+- **EditMode 55→74本、各コミット時点で全緑**。golden 6ステージ+chart パリティは runtime に触れた const 置換後も不変=挙動不変を機械確認
+- **Validate All Stages: 0 error / 531 warn**(前回524)。+6 は captain bulletInterval の真陽性のみ、新チェック3種の追加ノイズは 0。残る +1 は [Types]/[Buffer] の環境ドリフトで本セッションの diff 由来でないことを prefix 内訳で確認
+- 実装前に実データ全数を実測してチェック強度を決定(orbit 空9/9、pattern は pattern_demo の5件のみ、固定型名6種の BTDB 実在)— 誤検知ゼロで導入
+- Play Mode・Oracle レビューは該当なし(視覚成果物なし。runtime 変更は const 置換のみ)
+
+### 未解決と次の一手
+
+- **captain の bulletInterval 死にキー6件のデータ修正**(chart 再生成 or キー除去)。warn+テストのラチェットで固定済みなので急がないが、データを触る次のラウンドで一掃するのが自然
+- 次の候補: visualId→enemyVisuals リンク検査、advisory 約500件の棚卸しによる error 昇格(REFACTOR-REPORT §7.4 参照)
+- push はユーザー確認待ち(origin より **92 コミット先行**)
+
 ## 2026-07-04 夜(自律セッション・Fable: 弾幕生成リファクタ再開2 = データ層の安全化)
 
 「Opus 単体で BulletBuffer JSON / chart を正確に編集できるようにする」リファクタラウンド。挙動不変(golden 完全一致・既存テスト全緑を各ステップ維持)で、スキーマ明文化+バリデーション強化+不変条件テストを4つの独立コミットで実施。**詳細は `REFACTOR-REPORT.md`(新規・リポジトリ直下)**。push 禁止遵守。origin より **88 コミット先行**。
