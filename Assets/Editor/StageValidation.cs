@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
@@ -763,6 +764,193 @@ public static class StageValidation
                     report.Warn($"[Enemy] {rel} enemySpawners[{i}] dormant bulletChangeClips[{k}] typeName '{changeName}' is not in BulletTypeDataBase.");
                 }
             }
+        }
+    }
+
+    // ---- Stage enemy-structure schema-key validation (Newtonsoft; static) ----
+
+    // The bullet-data DTO name, used to key the tailored playerInfluence/
+    // warpCooldown hint (those two are buffer-only fields). Kept as a const so
+    // the worker and the hint logic reference the same reflected type.
+    private const string BulletDataDtoName = "BulletDataJsonDeserializer";
+
+    /// <summary>
+    /// Reflects the public instance field names of a private DTO nested in
+    /// <see cref="StageDataManager"/>. These DTOs are all-public-fields (no
+    /// [SerializeField] privates, no [NonSerialized] publics), so their public
+    /// instance fields are exactly the key set JsonUtility accepts — pulling the
+    /// allowed keys from the live type means this check can never drift from the
+    /// runtime schema. If a [SerializeField]/[NonSerialized] is ever added to one
+    /// of these DTOs, this helper must be extended to honour those attributes.
+    /// Returns null (after reporting an internal error) when the DTO is missing,
+    /// which happens only if a rename broke the mirror.
+    /// </summary>
+    private static HashSet<string> DtoFieldNames(string nestedTypeName, Report report)
+    {
+        Type dto = typeof(StageDataManager).GetNestedType(nestedTypeName, BindingFlags.NonPublic);
+        if (dto == null)
+        {
+            report.Error($"[EnemySchema] internal: DTO '{nestedTypeName}' not found in StageDataManager — update StageValidation to match the renamed DTO.");
+            return null;
+        }
+
+        HashSet<string> names = new HashSet<string>(StringComparer.Ordinal);
+        FieldInfo[] fields = dto.GetFields(BindingFlags.Public | BindingFlags.Instance);
+        for (int i = 0; i < fields.Length; i++)
+        {
+            names.Add(fields[i].Name);
+        }
+        return names;
+    }
+
+    /// <summary>
+    /// Flags stage enemySpawner JSON keys that no runtime DTO field accepts.
+    /// JsonUtility silently drops any key absent from the target type, so a
+    /// misspelled or unsupported key is dead data nobody notices — it never
+    /// crashes, which is why every finding here is a warning, not an error. Real
+    /// case: captain writes bulletInterval on all 6 spawners, but EnemySpawnerJson
+    /// has no such field; the runtime recomputes bulletInterval from
+    /// bulletEmitTime/bulletCount, so edits to that key do nothing. Warning-only
+    /// keeps the debt visible without failing the suite. The nested
+    /// EnemyAnimationPlan tree is out of scope and is not descended into.
+    /// </summary>
+    public static void ValidateStageEnemySchema(Report report)
+    {
+        foreach (string file in EnumerateStageJsonFiles())
+        {
+            string rel = ToAssetRelative(file);
+            string json;
+            try
+            {
+                // Read failures are already hard errors in ValidateStageEnemyTypeNames;
+                // skip here instead of double-reporting (like ValidateBufferNames).
+                json = File.ReadAllText(file);
+            }
+            catch (Exception)
+            {
+                continue;
+            }
+
+            ValidateStageEnemySchemaJson(rel, json, report);
+        }
+    }
+
+    /// <summary>
+    /// Schema-key check for a single stage JSON. Public so tests can feed
+    /// synthetic JSON and prove the detector fires. See
+    /// <see cref="ValidateStageEnemySchema"/> for the warning-only rationale.
+    /// </summary>
+    public static void ValidateStageEnemySchemaJson(string rel, string json, Report report)
+    {
+        HashSet<string> spawnerKeys = DtoFieldNames("EnemySpawnerJson", report);
+        HashSet<string> bulletKeys = DtoFieldNames(BulletDataDtoName, report);
+        HashSet<string> clipKeys = DtoFieldNames("BulletClipJson", report);
+        HashSet<string> changeClipKeys = DtoFieldNames("BulletChangeClipJson", report);
+        if (spawnerKeys == null || bulletKeys == null || clipKeys == null || changeClipKeys == null)
+        {
+            // DtoFieldNames already reported the internal error.
+            return;
+        }
+
+        Newtonsoft.Json.Linq.JObject root;
+        try
+        {
+            root = Newtonsoft.Json.Linq.JObject.Parse(json);
+        }
+        catch (Exception)
+        {
+            // Newtonsoft is more lenient than JsonUtility, so anything it rejects
+            // already failed the strict typeName validator; stay silent here.
+            return;
+        }
+
+        Newtonsoft.Json.Linq.JArray spawners = root["enemySpawners"] as Newtonsoft.Json.Linq.JArray;
+        if (spawners == null || spawners.Count == 0)
+        {
+            return;
+        }
+
+        for (int i = 0; i < spawners.Count; i++)
+        {
+            Newtonsoft.Json.Linq.JObject spawner = spawners[i] as Newtonsoft.Json.Linq.JObject;
+            if (spawner == null)
+            {
+                continue;
+            }
+
+            string where = $"enemySpawners[{i}]";
+            WarnUnknownKeys(spawner, spawnerKeys, "EnemySpawnerJson", where, rel, report);
+
+            // orbit is a raw bullet-data object.
+            WarnUnknownKeys(spawner["orbit"], bulletKeys, BulletDataDtoName, where + ".orbit", rel, report);
+
+            // bulletClip: the clip wrapper plus its nested bullet-data 'data'.
+            Newtonsoft.Json.Linq.JObject bulletClip = spawner["bulletClip"] as Newtonsoft.Json.Linq.JObject;
+            if (bulletClip != null)
+            {
+                WarnUnknownKeys(bulletClip, clipKeys, "BulletClipJson", where + ".bulletClip", rel, report);
+                WarnUnknownKeys(bulletClip["data"], bulletKeys, BulletDataDtoName, where + ".bulletClip.data", rel, report);
+            }
+
+            // bulletChangeClips: each element wraps a clip, which wraps bullet data.
+            Newtonsoft.Json.Linq.JArray changeClips = spawner["bulletChangeClips"] as Newtonsoft.Json.Linq.JArray;
+            if (changeClips == null)
+            {
+                continue;
+            }
+
+            for (int k = 0; k < changeClips.Count; k++)
+            {
+                Newtonsoft.Json.Linq.JObject change = changeClips[k] as Newtonsoft.Json.Linq.JObject;
+                if (change == null)
+                {
+                    continue;
+                }
+
+                string changeWhere = where + $".bulletChangeClips[{k}]";
+                WarnUnknownKeys(change, changeClipKeys, "BulletChangeClipJson", changeWhere, rel, report);
+
+                Newtonsoft.Json.Linq.JObject clip = change["clip"] as Newtonsoft.Json.Linq.JObject;
+                if (clip != null)
+                {
+                    WarnUnknownKeys(clip, clipKeys, "BulletClipJson", changeWhere + ".clip", rel, report);
+                    WarnUnknownKeys(clip["data"], bulletKeys, BulletDataDtoName, changeWhere + ".clip.data", rel, report);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Warns on every property of <paramref name="token"/> (when it is a JObject)
+    /// whose name is absent from <paramref name="allowed"/>. Non-JObject / null
+    /// tokens are ignored so callers can pass any child token unguarded. Keys named
+    /// exactly playerInfluence/warpCooldown on a bullet-data object get a tailored
+    /// hint: those two ARE fields of the buffer-side BulletDataJson but NOT of the
+    /// stage-enemy deserializer, so writing them inside an enemy orbit/clip
+    /// silently does nothing.
+    /// </summary>
+    private static void WarnUnknownKeys(Newtonsoft.Json.Linq.JToken token, HashSet<string> allowed, string dtoName, string where, string rel, Report report)
+    {
+        Newtonsoft.Json.Linq.JObject obj = token as Newtonsoft.Json.Linq.JObject;
+        if (obj == null)
+        {
+            return;
+        }
+
+        foreach (Newtonsoft.Json.Linq.JProperty prop in obj.Properties())
+        {
+            string name = prop.Name;
+            if (allowed.Contains(name))
+            {
+                continue;
+            }
+
+            bool bufferOnlyOnBulletData = dtoName == BulletDataDtoName &&
+                (name == "playerInfluence" || name == "warpCooldown");
+            string tail = bufferOnlyOnBulletData
+                ? "supported by buffer BulletDataJson but not by stage enemy bullets; JsonUtility silently ignores it"
+                : "JsonUtility silently ignores it";
+            report.Warn($"[EnemySchema] {rel} {where} key '{name}' is not a field of {dtoName} ({tail}).");
         }
     }
 
