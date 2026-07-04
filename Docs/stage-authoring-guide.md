@@ -38,6 +38,14 @@
 
 **リタイム**は markers の値を書き換えて再コンパイルするだけ。
 
+チャート編集の注意:
+
+- `at` は必須。裸の数値は秒、`"小節:拍"` は1始まり、単位は `beat`/`bar`/`sec`(乗除算は不可)
+- スポナーの `color` 既定は `(1,1,1,1)`(白)。バッファ側 color と乗算される
+- `diffScale` は pattern イベント専用(clip イベントでは無視される)
+- enemies の `orbit` / `bulletClip` / `bulletChangeClips` は**コンパイラが検証せずそのまま通す**。この中の弾には `playerInfluence` / `warpCooldown` が存在しない(stage.json 側は別デシリアライザ)。必要なら BulletBuffer JSON 側で書く
+- chart.json は Newtonsoft パース(コメント可)、生成物 stage.json と BulletBuffer JSON は JsonUtility(コメント不可・未知キー無視)
+
 enemies のオプションフィールド:
 
 - `fadeInSec` / `fadeOutSec`: 敵スプライトのαを出現直後 / 寿命(orbit.life)末尾で補間(0 なら無効)
@@ -80,14 +88,14 @@ enemies のオプションフィールド:
 - `Debug/Record Current Stage`: 実行中ステージの録画(720p/30fps/音声)
 - `Debug/Capture At Times...`: 指定秒リストで自動スクショ
 - `Compile Stage Charts`: 全チャート再コンパイル(リンター込み)
-- `Validate All Stages`: データ検証(clipName解決/スキーマ/タイプDB/テクスチャ設定)
+- `Validate All Stages`: データ検証(clipName解決/スキーマ/タイプDB/テクスチャ設定/ファイル形式 UTF-8・改行/バッファ登録名の重複)
 - `Sync Bullet Types`: BulletTypes フォルダの .asset を DB に自動登録
 
 シークは「弾なし頭出し」(その時刻を跨いで生存中の弾は出ない)。BGM・ビート・敵出現は同期する。
 
 ## 5. テスト(壊していないかの確認)
 
-Unity Test Runner(EditMode)で `BulletHell.Tests` を実行(48本)。
+Unity Test Runner(EditMode)で `BulletHell.Tests` を実行(2026-07-04 時点 51本)。
 ゴールデンテストは全ステージの展開スケジュールを固定しており、意図した変更でゴールデンが変わる場合は `Tools/Bullet Hell/Golden/Dump All Stages` で再生成してコミットする。
 
 ## 6. 弾タイプの追加

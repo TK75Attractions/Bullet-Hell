@@ -64,37 +64,42 @@ BulletDataJson shape:
   "appearDuration": 0,
   "life": 10,
   "random": 0,
-  "unCounterable": false
+  "warpCooldown": 0,
+  "unCounterable": false,
+  "lockRotation": false
 }
 ```
 
-Known usable `typeName` values:
+Fields easy to miss (all optional, default to 0/false when omitted):
 
-- `attention`
-- `anchor`
-- `box`
-- `chain`
-- `hummer`
-- `knife`
-- `normal`
-- `simpleline`
-- `slash`
-- `splash_0`
-- `splash_1`
-- `splash_2`
-- `sword`
-- `tear`
+- `warpCooldown` (seconds): suppresses re-warping after a warp-zone teleport (`WarpBulletJob`). Only meaningful when warp zones are active.
+- `unCounterable`: when true the bullet cannot be erased by the player dash counter (`BulletCollisionJob.cs:42`). It still damages the player.
+- `lockRotation`: when true the render angle stops following the velocity vector (`BulletDataUpdateJob`); use for sprites that must not spin.
+- `size` (legacy scalar): used only when `scale` is `{0,0}`. Prefer `scale`.
 
-Avoid `rocket` for JSON assets because its asset exists but its `typeName` field is blank.
+`typeName` values registered in `BulletTypeDataBase` (snapshot 2026-07-04; the
+authoritative source is the asset itself — `Tools/Bullet Hell/Validate All Stages`
+errors on any unknown name, and `Sync Bullet Types` registers new assets):
+
+- generic: `anchor`, `attention`, `box`, `chain`, `hummer`, `knife`, `normal`,
+  `simpleline`, `slash`, `splash_0`, `splash_1`, `splash_2`, `sword`, `tear`
+- special-behaviour: `warp_zone` (teleport zones via `WarpBulletJob`),
+  `ScreenNoise` (not an asset; resolves to reserved id -1000, `BulletData.cs:12`)
+- stone stage: `stone_block`, `stone_burst`, `stone_conveyor_belt`,
+  `stone_cutter`, `stone_dust`, `stone_flash`, `stone_shard`, `stone_shovel`,
+  `stone_warning`
+
+Avoid `rocket` for JSON assets because its asset exists but its `typeName` field is blank (resolves to -1 = dropped).
 
 Important load quirks:
 
 - `BulletDataJson.ToBulletData()` directly assigns fields and does not call the main `BulletData` constructor.
 - Because of that, JSON should explicitly set `startPos`. Usually set it to `{ "x": startX, "y": polynomial(startX) }`, or `{ "x": 0, "y": 0 }` when `startX` and polynomial are zero.
 - New assets should use `scale`. Legacy `size` is only used if `scale` is `{0,0}`.
-- `appearDuration` defaults to `0` when omitted. During `appearTime`, the bullet receives almost-zero trajectory updates and then appears immediately.
+- `appearDuration` defaults to `0` when omitted, but a **negative** value is silently replaced by `BulletData.DefaultAppearDuration = 1.2` (`BulletDataJson.cs:65`). Always write the intended value explicitly (the linter warns on negatives).
+- `appearDuration` is **render-only** (see "Render and Collision Semantics" below); collision always starts exactly at `appearTime` regardless of it.
 - `life <= 0` means no life timeout. Use positive life values for cleanup.
-- Spawn color is multiplied with JSON color. Keep either JSON color or spawner color at white `{1,1,1,1}` unless multiplication is intentional.
+- Spawn color is multiplied component-wise (including `w`) with JSON color (`BulletData.cs:181`). Keep either JSON color or spawner color at white `{1,1,1,1}` unless multiplication is intentional.
 
 ## 2. Spawn Flow
 
@@ -168,8 +173,10 @@ Visual angle:
 
 Bounds:
 
-- If `position.x < 0`, `position.y < 0`, or the Morton cell index is out of range, the bullet becomes inactive.
+- The exact culling rule is `position.x < -2 || position.y < -2` (`CullingMargin = 2`, `BulletDataUpdateJob.cs:12,145`) or a Morton cell index out of range (grid top is far above the visible 18, so entry from above is safe).
+- There is no right/top hard kill at 32/18 from position alone; bullets die from the Morton index only when far outside. Still design trajectories around the visible `0..32 / 0..18` area.
 - Avoid spawn/trajectory setups that immediately move into negative coordinates unless that is intended.
+- Pitfall: `polarForm.x == 0` collapses the rotated vector to the origin (`rotatedVector = polarForm.x * rotate(...)`), so a "straight" bullet with `polarForm.x = 0` renders stuck at `originPos`. Straight bullets need `polarForm = { 1, angleRad }`.
 
 ## 4. Laser Trajectory
 
@@ -195,7 +202,47 @@ Important laser quirk:
 - For laser buffers, `appearTime` is not a spawn delay. It is passed as width.
 - To make visible lasers, set `isLaser: true`, use `scale` for length, set `appearTime` to a positive width, and set `life` to a positive lifetime.
 
-## 5. Asset Design Patterns
+## 5. Render and Collision Semantics
+
+These are the rules that most often surprise editors because they live in the
+renderer/collision jobs, not in the trajectory math.
+
+`appearDuration` (render-only, `BulletRenderSystem.cs:269-288`):
+
+- `appearDuration > 0`: invisible before `appearTime - appearDuration`; during the window `[appearTime - appearDuration, appearTime]` the bullet is drawn with a beat-pulsing alpha (`saturate(appearBeatBaseAlpha + coeff * beatValueSin)` — the music-synced shimmer used by warn telegraphs); fully drawn after `appearTime`.
+- `appearDuration == 0`: invisible before `appearTime`, pops in at `appearTime`.
+- Collision is independent of all of this: `BulletCollisionJob.cs:37` skips hits only while `appearTime > time`. Changing `appearDuration` never changes difficulty or timing.
+- `appearDuration > appearTime` is common and legal (the window is simply clipped at clip spawn); the repo has ~340 such bullets.
+
+`color` (tint model, `BulletIndirectURP.shader:120-124`):
+
+- `tintStrength = saturate(mask * color.w)`; `rgb = lerp(spriteRGB, color.rgb, tintStrength)`; `alpha = max(spriteAlpha, tintStrength) * fade`.
+- So `color.w = 0` means "show the sprite's own colors and shape" (used by cutters/hammers) — the bullet is NOT transparent. Note the mask covers the full quad on some types, making the visual a solid rectangle.
+- With `color.w = 0` the screen pixels come from the sprite, so pixel sampling cannot be compared against JSON tint values; compare against other bullets using the same setup instead.
+- Collision never reads `color`; an alpha-0-everything bullet would still hit. The linter warns on components outside `0..1`.
+
+Counter (dash) interaction:
+
+- `counterPower` is NOT a JSON field. It is derived from the `BulletType` asset's `verts` polygon area at load (`BulletType.cs:32-50`); `verts` shorter than 3 gives power 0.
+- On a dash-counter kill the player gains `bPowers[typeId] * uniformScale` attack (`BulletCollisionJob.cs:48`). From JSON you control only `unCounterable`.
+- Telegraph/effect bullets should use types with empty `verts` (fully harmless) — that is why warn buffers are safe regardless of their other fields.
+
+Two DTO schemas exist (divergence to know about):
+
+- BulletBuffer JSON uses `BulletDataJson` (this document). Inline bullets inside `stage.json` enemy `orbit` / `bulletClip` / `bulletChangeClips` go through a separate deserializer in `StageDataManager` that has NO `playerInfluence` and NO `warpCooldown` fields — those two features work only in BulletBuffer JSON files.
+- `chart.json` is parsed with Newtonsoft (comments tolerated), while BulletBuffer JSON and `stage.json` use `JsonUtility` (strict: no comments, no NaN/Infinity, unknown keys ignored, missing keys become 0/false/null).
+
+## 6. File Format and Registration Rules
+
+Enforced by `Tools/Bullet Hell/Validate All Stages` and the EditMode test
+`BufferFormatInvariantTests` (errors fail the suite):
+
+- Files must be valid UTF-8 and must use ONE line-ending style per file. A `\r\r\n` sequence is the signature of a text-mode double conversion (a real incident on 2026-07-04) and is a hard error.
+- Repo convention is UTF-8 **BOM + CRLF** for most buffers (some are LF; both are accepted — just never mix within a file). Safe edit recipe: read the current bytes (or `git show HEAD:<path>` if the working copy is suspect), modify, and write back in **binary** mode preserving BOM and line endings. Do not use text-mode Python writes from Git Bash.
+- Registration name = JSON `name`, or the file name without extension when `name` is blank. One runtime load scope = built-ins (`Rumia_0`, `Rumia_1`, `Line`, `LineLaser`, `Circle`) + everything under `common/` and `debug/` + the stage's own folder. Duplicate names inside one scope silently replace each other, so the linter errors on duplicates (and warns when a stage buffer shadows a common/built-in one).
+- `Assets/BulletBuffers/_archive/` is never loaded by the per-stage loader; it is excluded from name checks but still schema-checked.
+
+## 7. Asset Design Patterns
 
 Straight bullet:
 
@@ -233,14 +280,16 @@ Snake or wave:
 - Combine non-zero `thetaVlc` with a second or higher polynomial term.
 - Small `random` adds smooth per-bullet noise.
 
-## 6. Creation Checklist
+## 8. Creation Checklist
 
-- Top-level `name` exactly matches the StageData `clipName`.
+- Top-level `name` exactly matches the StageData `clipName`, and is unique within its load scope (stage folder + common/debug + built-ins).
 - `bullets` is not empty.
 - `typeName` exists in `BulletTypeDataBase`.
 - JSON angles are radians; StageData spawner angles are degrees.
-- Normal bullet `startPos` matches `startX` and `polynomial`.
+- Normal bullet `startPos` matches `startX` and `polynomial`; straight bullets use `polarForm = { 1, angleRad }` (never `polarForm.x = 0`).
 - Spawn position and trajectory stay in the valid play area unless intentional.
-- Use positive `life` for cleanup.
+- Use positive `life` for cleanup; write `appearDuration` explicitly (never negative).
 - Prefer `scale` over legacy `size`.
 - For lasers, use `isLaser: true`, `scale` as length, and `appearTime` as width.
+- Preserve the file's BOM and line-ending style when editing (binary write).
+- After editing: `Tools/Bullet Hell/Validate All Stages` = 0 errors, then run the EditMode tests (golden catches unintended behaviour change).
