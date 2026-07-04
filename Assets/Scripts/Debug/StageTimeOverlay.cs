@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// Editor-only on-screen overlay that displays the running stage clock so a
@@ -43,7 +44,10 @@ public class StageTimeOverlay : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.F1))
+        // Input System package is the active input handler; the legacy
+        // UnityEngine.Input API throws InvalidOperationException every frame.
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard != null && keyboard.f1Key.wasPressedThisFrame)
         {
             visible = !visible;
         }
