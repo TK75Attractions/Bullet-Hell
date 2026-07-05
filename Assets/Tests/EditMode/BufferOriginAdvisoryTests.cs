@@ -20,8 +20,8 @@ public class BufferOriginAdvisoryTests
         "debug/HexagonClockwise.json",                    // unreferenced, 12
         "debug/LightMagic_HelixPillar_Strands.json",      // laser, 6
         "mirror/mirror_Insane.json",                      // laser, 27
-        "stone/belt_flow_dash.json",                      // unreferenced (removed from chart), 11
-        "stone/big_block_hammer_3.json",                  // unreferenced (51s rework), 2
+        "_archive/stone/belt_flow_dash.json",             // archived (removed from chart), 11
+        "_archive/stone/big_block_hammer_3.json",         // archived (51s rework), 2
         "_archive/stone/stone_block_drop_a.json",         // archive, 3
         "_archive/stone/stone_block_drop_b.json",         // archive, 3
         "_archive/stone/stone_conveyor_left_a.json",      // archive, 1
