@@ -42,6 +42,7 @@ public static class StageValidation
     public static void ValidateBuffers(BulletTypeDataBase btdb, Report report)
     {
         HashSet<string> validTypeNames = BuildValidTypeNames(btdb);
+        HashSet<string> spawnSuperseded = ComputeSpawnSupersededBufferFiles();
         foreach (string file in EnumerateBufferFiles())
         {
             string rel = ToAssetRelative(file);
@@ -101,9 +102,19 @@ public static class StageValidation
                     }
                 }
 
-                // Range advisories.
-                if (bullet.originPos.x < 0f || bullet.originPos.x > AreaWidth ||
-                    bullet.originPos.y < 0f || bullet.originPos.y > AreaHeight)
+                // Range advisories. The raw originPos advisory compares a
+                // clip-LOCAL coordinate against the world play area, which is
+                // structurally imprecise (the runtime translates and rotates it
+                // by the spawner transform first). For every clip that the
+                // composite [Spawn] check examines — referenced by an official
+                // stage's bulletSpawners, non-laser, non-homing — that check
+                // reports the true world spawn position instead, so the raw
+                // advisory is suppressed there and kept only where [Spawn]
+                // structurally cannot look (laser/homing clips, enemy-spawner
+                // clips, unreferenced/dead buffers).
+                if (!spawnSuperseded.Contains(file) &&
+                    (bullet.originPos.x < 0f || bullet.originPos.x > AreaWidth ||
+                     bullet.originPos.y < 0f || bullet.originPos.y > AreaHeight))
                 {
                     report.Warn($"[Buffer] {rel} bullet[{i}] originPos ({bullet.originPos.x}, {bullet.originPos.y}) is outside 0..{AreaWidth}/0..{AreaHeight}.");
                 }
@@ -157,6 +168,176 @@ public static class StageValidation
     }
 
     private static bool OutsideUnitRange(float v) => v < 0f || v > 1f;
+
+    // ---- originPos advisory scope (supersession by the [Spawn] check) ----
+
+    /// <summary>
+    /// Minimal description of one buffer file for supersession resolution.
+    /// Public so tests can feed synthetic layouts without touching the disk.
+    /// </summary>
+    public sealed class BufferClipRef
+    {
+        /// <summary>Identity key (absolute path on disk; any unique key in tests).</summary>
+        public string File;
+        /// <summary>Top-level folder under Assets/BulletBuffers ("stone", "common", ...).</summary>
+        public string TopDir;
+        /// <summary>Effective registration name: JSON 'name', or the file name when blank.</summary>
+        public string Name;
+        public bool IsLaser;
+        public bool Homing;
+    }
+
+    /// <summary>
+    /// Computes which buffer files have their raw originPos advisory superseded
+    /// by <see cref="ValidateStageSpawnPositions"/>. A file is superseded iff
+    /// that check actually examines it for at least one stage, i.e. it wins the
+    /// clip-name resolution for a clip referenced by that stage's bulletSpawners
+    /// (the stage's own folder shadows common/debug, mirroring
+    /// BulletBufferManager's load order) and it is neither laser nor homing.
+    /// Everything else — laser/homing clips, clips only reachable through
+    /// enemySpawners, unreferenced buffers, _archive — keeps the raw advisory,
+    /// so narrowing the advisory never loses coverage, it only removes the
+    /// entries that the [Spawn] check reports more precisely in world space.
+    /// Duplicate names inside one folder are already an error in
+    /// <see cref="ValidateBufferNames"/>, so their resolution ambiguity is moot
+    /// here (all same-name candidates in the winning folder are treated alike).
+    /// </summary>
+    public static HashSet<string> ComputeSpawnSupersededBufferFiles(
+        IReadOnlyList<BufferClipRef> buffers,
+        IReadOnlyDictionary<string, HashSet<string>> stageBulletSpawnerClips)
+    {
+        HashSet<string> superseded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (KeyValuePair<string, HashSet<string>> stage in stageBulletSpawnerClips)
+        {
+            foreach (string clip in stage.Value)
+            {
+                List<BufferClipRef> own = null;
+                List<BufferClipRef> shared = null;
+                for (int i = 0; i < buffers.Count; i++)
+                {
+                    BufferClipRef b = buffers[i];
+                    if (!string.Equals(b.Name, clip, StringComparison.Ordinal) || b.TopDir == null)
+                    {
+                        continue;
+                    }
+
+                    if (string.Equals(b.TopDir, stage.Key, StringComparison.OrdinalIgnoreCase))
+                    {
+                        (own ?? (own = new List<BufferClipRef>())).Add(b);
+                    }
+                    else if (CommonBufferDirs.Contains(b.TopDir))
+                    {
+                        (shared ?? (shared = new List<BufferClipRef>())).Add(b);
+                    }
+                }
+
+                List<BufferClipRef> winners = own ?? shared;
+                if (winners == null)
+                {
+                    continue;
+                }
+
+                foreach (BufferClipRef w in winners)
+                {
+                    if (!w.IsLaser && !w.Homing)
+                    {
+                        superseded.Add(w.File);
+                    }
+                }
+            }
+        }
+
+        return superseded;
+    }
+
+    [Serializable]
+    private class StageSpawnerRefsJson
+    {
+        public List<BulletSpawnerRefJson> bulletSpawners;
+    }
+
+    [Serializable]
+    private class BulletSpawnerRefJson
+    {
+        public string clipName;
+    }
+
+    /// <summary>
+    /// Disk-backed wrapper: reads every buffer file's identity and every
+    /// official stage's bulletSpawner clip references (static JSON scan, no
+    /// probe), then delegates to the pure core above.
+    /// </summary>
+    private static HashSet<string> ComputeSpawnSupersededBufferFiles()
+    {
+        List<BufferClipRef> buffers = new List<BufferClipRef>();
+        foreach (string file in EnumerateBufferFiles())
+        {
+            BufferFileJson data;
+            try
+            {
+                // Read/parse failures are already hard errors in ValidateBuffers;
+                // an unparseable file simply keeps its raw advisory.
+                data = JsonUtility.FromJson<BufferFileJson>(File.ReadAllText(file));
+            }
+            catch (Exception)
+            {
+                continue;
+            }
+
+            if (data == null)
+            {
+                continue;
+            }
+
+            buffers.Add(new BufferClipRef
+            {
+                File = file,
+                TopDir = TopLevelBufferDir(file),
+                Name = string.IsNullOrWhiteSpace(data.name) ? Path.GetFileNameWithoutExtension(file) : data.name,
+                IsLaser = data.isLaser,
+                Homing = data.homing,
+            });
+        }
+
+        Dictionary<string, HashSet<string>> stageClips =
+            new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+        foreach (string dir in StageGoldenDumper.OfficialStageDirs)
+        {
+            string stageJson = Path.Combine(Application.dataPath, "StageData", dir, dir + ".json");
+            if (!File.Exists(stageJson))
+            {
+                continue;
+            }
+
+            StageSpawnerRefsJson data;
+            try
+            {
+                data = JsonUtility.FromJson<StageSpawnerRefsJson>(File.ReadAllText(stageJson));
+            }
+            catch (Exception)
+            {
+                continue;
+            }
+
+            if (data == null || data.bulletSpawners == null)
+            {
+                continue;
+            }
+
+            HashSet<string> clips = new HashSet<string>(StringComparer.Ordinal);
+            foreach (BulletSpawnerRefJson sp in data.bulletSpawners)
+            {
+                if (!string.IsNullOrEmpty(sp.clipName) && sp.clipName != StageScheduleExpander.ClearClipName)
+                {
+                    clips.Add(sp.clipName);
+                }
+            }
+
+            stageClips[dir] = clips;
+        }
+
+        return ComputeSpawnSupersededBufferFiles(buffers, stageClips);
+    }
 
     // ---- Buffer file format validation (raw bytes; no probe needed) ----
 
