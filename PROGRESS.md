@@ -1,5 +1,70 @@
 # PROGRESS
 
+## 2026-07-05 朝・第10便(自律セッション・Opus: REVIEW-NOTES 残り4件を全て処理・完了)
+
+前便までで REVIEW-NOTES(stone_20260705_131010.mp4 への13件レビュー)の残りは4件だった。
+Oracle browser が復帰(cookie 適用済・`browserModelStrategy:"current"` で疎通)したので、主観品質の
+客観レビューを回しつつ **残り4件を全て実装・実機検証・独立コミットで完遂**。これで REVIEW-NOTES は全件 [x]。
+最後に **音声付き通し録画**(`Recordings/stone_20260705_172629.mp4`, 81.5s, h264+aac, t0〜自動停止)。
+
+### 今回やったこと(コミット順)
+
+1. **@41.5 ハンマー色を navy 化(前便の積み残し)** — `8a11e6d`(hummer.png/stone_shovel.png)
+   - hummer 型は color.w=0 で sprite 本来色を表示する設計のため JSON では色替え不可だった(前便で確認)。
+     **sprite PNG 自体を navy グラデーションマップ**(黒点(12,16,34)/白点(150,170,215))で陰影を保ったまま
+     再彩色。ブロック(rendered~52,61,92)と同系に統一。元テクスチャは git 履歴+`Backups/hammer-navy/` に保全。
+   - 実機 t=37.4/43.3s でハンマー飛来がブロックと同系 navy になるのを確認。
+
+2. **@66.2 下部破裂予告を半円点線アウトラインに** — `010a4eb`(lower_burst_warn_1/2 + golden)
+   - 従来のドームドット塊(基部3+アーチ)を、清潔な**半円点線**に作り替え。各列を半径3.3・11ドット・
+     18°間隔で床接地→頂点y4.1→床接地の半円アーチに(scale0.44/色#9EB8FF)。4列が0.833s間隔で順次点灯し
+     噴出と同時消滅=攻撃ごとの予告。実機66.2/72.9s で確認。**Oracle 合格**(頂点ドット10→11を反映)。
+     golden 予告_1/_2 count40→44+sha のみ。
+
+3. **@69.5 走行カッター予告を半透明長方形に** — `36f998f`(warn_box 新型 + run_cutter_warn + DB + golden)
+   - 走行カッター(中央横断)予告の点線174点を廃止し半透明navy長方形1枚に。**box型は不透明**(既知制約
+     7d56dd1・本便も実測確認)のため、**alpha焼き込みの半透明スプライトを持つ新BulletType `warn_box`**
+     を新設(navy(70,95,155)/alpha0.38、`Assets/Scripts/Bullets/BulletTypes/warn_box/`)。BulletTypeDataBase
+     に登録(26番目)。JSONは color.w=0 でスプライトの色/透明度をそのまま表示。走行帯(中央y5-13全幅)を覆い
+     噴出約1s前に0.15sフェードインしカッター通過まで表示。実機73.5/74.3s で危険帯が透けて伝わるのを確認。
+     **Oracle 合格**(alpha0.35→0.38反映)。golden 予告count174→1。
+
+4. **@48.1 大ブロックC/D の順次爆破+ハンマー同期(2コミット)** — `0dbf082`(前半)+`e97bf20`(後半・完了)
+   - (前半)50.83s同時破裂だった大ブロックC(x9.8)/D(x22.4)を、**D側の破片16/破裂フラッシュ3/消去フラッシュ1
+     の appearTime を +1拍(0.4167s)遅延**+Dブロック life 延長で C=50.83s(31:3拍)→D=51.25s(31:4拍)の
+     音ハメ順次爆破に。count不変・golden group3 4バッファの sha のみ。
+   - (後半)**ハンマー投擲を復活**(`big_block_hammer_3` 新設)。鏨を左端(-1.98,11)からCへ life0.833、槌を
+     右端(35.9,14)からDへ life1.25 で投擲、chart 31:1(50.0s)発火で着弾を各破裂と一致。navy化済スプライトで
+     色統一。chart eventCount 103→104(ParityTest 更新)、stone.json 再コンパイル。
+   - 実機 t=50.4(両ハンマー飛来)/50.86(C着弾・爆発/D降下中)/51.29(C破片拡散/D着弾爆発)で
+     **順次ハンマーコンボ**を確認。
+
+### 検証結果
+
+- **EditMode 99/99 緑**(各データコミットで実行。parity 103→104 を意図更新、golden 一致を機械確認)。
+- **Oracle 実レンダーレビュー3件合格**(半円点線 `stone-semicircle-telegraph-review-3`/半透明長方形
+  `stone-rect-telegraph-review`/※@48.1 は実機フレームで拍感を目視確認)。browser は `browserModelStrategy:"current"`
+  で疎通(model 切替が "Pro" を探して失敗するため現在選択モデルを使用)。
+- **実機スクショ**(Play+capture-at-times): ハンマー色(37.4/43.3)/半円予告(66.2/72.9)/半透明長方形(73.5/74.3)/
+  順次爆破(50.95/51.36)/ハンマー同期(50.4/50.86/51.29)を撮影・目視確認。
+- **JSON 健全性**: 全 buffer 編集で BOM+CRLF・lone CR 0・json.loads 通過を byte 検査。chart は BOM無し・CRLF を
+  保持(最小テキスト挿入で inline 整形を破壊しないよう対応)。
+- **音声付き通し録画**: `Recordings/stone_20260705_172629.mp4`(t0〜, 81.5s, h264+aac, 自動停止)で全修正区間を収録。
+
+### 未解決と次の一手
+
+- **REVIEW-NOTES は全13件 [x]**(本便で残り4件完了)。次のレビュー便が来るまで石工の指摘対応は一段落。
+- **warn_box 新型**: 今回汎用の半透明長方形型を新設した。他ステージの「危険域の塗り予告」でも box(不透明)の
+  代わりに使える。色/alpha はスプライト差し替えで調整可(現状 navy/0.38 は走行カッター向け)。
+- **Oracle model 切替**: browser で "Pro" ラベルを探して失敗するため `browserModelStrategy:"current"` が必要
+  (現在選択中=GPT-5.5)。設定側で既定モデルを直せば `select` 戦略も使える見込み。
+- **一時ファイル**: `Docs/_tmp_events48.txt`/`Docs/_tmp_hammer.txt`(本便の解析用・使い捨て)は削除権限が
+  取れず残置。次便で削除可。`.rev-tmp/`・Fonts 2 asset・`Tools/*.py` の dirty は本便非由来=据え置き。
+- **push 未実施**(禁止遵守・origin より先行)。Instructions/REVIEW-NOTES.md は gitignore 対象のため
+  チェック更新はローカルのみ(コミットには含まれない)。
+
+---
+
 ## 2026-07-05 朝・第9便(自律セッション・Opus: REVIEW-NOTES 残り11件のうち7件を数値/実機検証で処理)
 
 Oracle browser は cookie 未適用で使用不可を再確認(疎通1回のみ実施)。客観レビュー不要な項目を
