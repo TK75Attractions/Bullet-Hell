@@ -1,6 +1,58 @@
 # PROGRESS
 
-## 2026-07-05 早朝(自律セッション・Opus: 実プレイ第2弾 = 70sカッターの端スライドイン化)
+## 2026-07-05 朝(自律セッション・Opus: 実プレイ第3弾 = 38sハンマー描画順の解消+66s予告の設計確定)
+
+**UnityMCP がツールを公開せず(Unity 本体は起動中だが MCP ブリッジ未接続)、本セッションは Play Mode・
+EditMode テスト実行・録画・スクショが一切できなかった**。この制約下で、(1)render 側の確定的1件を独立コミットし、
+(2)golden 再生成が要る 66s 予告は「未検証のまま commit するとテストを壊す」ため実装せず、Oracle で設計方向を
+検証した確定スペックを残した。独立コミット2件、origin より先行(push 禁止遵守)。
+
+### 今回やったこと
+
+1. **【(4)/38s ハンマー描画順】hummer に renderPriority 3 を付与し背面回り込みを解消** — `6a4b70b`
+   - 前セッションの dirty 仕掛かり(`hummer.asset` に `renderPriority: 3` 追加)を現物で検証し確定・コミット。
+   - **機構**: `BulletRenderSystem.SortRenderData` が `BulletType.renderPriority` を**昇順**にCPUソートして
+     描画(小=背面/大=前面)。committed 済みの機構で、弾同士の前後を決める唯一の手段(単一マテリアルの
+     `DrawMeshInstancedIndirect` で Queue 一括のため)。
+   - **バグの正体**: hummer だけ renderPriority 未設定=0。石工の z 序列(belt/warp 0 < block 1 < cutter 2 <
+     鏨 stone_shovel 3 < flash/dust/burst 4 < warning 5)で、big_block_hammer(35.8/44/59s 付近、
+     stone_shovel×2+hummer×2)の**槌(hummer)が飛来中に block(1)/cutter(2)/兄弟の鏨(3)の背面へ回り込み**、
+     一部が隠れていた(ユーザー「ハンマーの一部が背面に表示される」)。スプライト実物で hummer=槌本体・
+     stone_shovel=鏨 と確認。演出は「外から投げて当てる」(上空から槌・鏨が飛来)。
+   - **修正**: hummer を兄弟 stone_shovel と同じ **3** に。槌+鏨の組が「叩く対象(block/cutter)の前・破裂効果
+     (4/5)の後ろ」に正しく重なる。hummer は石工 big_block_hammer_1/2/3 限定 typeName(全 buffer grep 済)
+     のため**回帰は石工内に閉じる**(Captain 等は hummer 不使用)。弾JSON/golden 非該当(.asset フィールドのみ)。
+2. **【(2)/66s・73s 予告の作り分け+床遅延】Oracle 検証済みの確定スペックを Docs に追加** — `3d504c2`
+   - 現物確定: 下部破裂(66.7/73.3s)は **4列 x=8,14,20,24** から shard を上向き扇で順次(0.833s間隔)噴出。
+     現状予告は **box 塗り矩形1枚**(lower_burst_warn_1/2)。中央カッター(lower_cutter)は専用予告なし=
+     **本体 alpha0 フェードインで自己予告**(=半透明予告は既に中央カッター専用)。丸ドット部品は
+     run_cutter_warn(stone_warning)。床 belt_bottom_2 は 65.4s 消滅=破裂の1.3s前。
+   - **Oracle(gpt-5.5 browser, session `stone-taska-telegraph-design-3`)で設計方向を検証**(忠実な模式図を
+     添付。Play Mode 実レンダーが無い分の代替)。要点: **満円リングでなく列ごとの上向きドーム**(25-155°,
+     r2.3/近接列2.1-2.2, 9-11点=アーチ7-8+基部3+頂点1)を**噴出直前に個別ステガー**表示。床は**破裂まで残し
+     突き破る**因果(現状は消滅1.3s後に無関係に噴く=因果が切れる)。半透明予告は中央カッター専用のまま。
+   - 実装手順・golden/parity・BOM+CRLF 注意・検証チェックリストを `Docs/stone-66s-telegraph-spec.md` に明記。
+     設計ターゲット図 `Temp/taskA_dome_target.png`(gitignore)。次セッションが即実装可能。
+
+### 検証結果
+
+- **タスクB(38s)**: 描画順ロジック(昇順ソート)・sprite 合成(槌/鏨)・typeName スコープ(石工3buffer限定)を
+  **静的に確定**。**Play Mode 実挙動は未検証**(UnityMCP 未接続でこのセッションでは実行不能)。要次セッション。
+- **タスクA(66s)**: Oracle 設計レビュー合格(dome化・ステガー・床遅延の具体値まで)。ただし**実レンダーでの
+  可読性・因果は未検証**(模式図ベース)。実装+Play/録画+Oracle 実レンダー再レビューは次セッション。
+- EditMode/golden はどちらも**未実行**(Unity 使用不可)。タスクB はデータJSON/golden 非該当なので影響なし。
+- 依頼末尾の「該当区間の音声付き録画を Recordings/へ」は**未実施**(Play Mode 不可)。
+
+### 未解決と次の一手
+
+- **UnityMCP 再接続が最優先**: Unity は起動中(PID 確認済)だが MCP ブリッジがツール未公開。次セッションで
+  接続を確認してから (a) hummer 修正の Play Mode 目視確認、(b) 66s 予告のスペック実装、を行う。
+- **【(2)/66s】実装**: `Docs/stone-66s-telegraph-spec.md` のとおり warn_1/2 を dome ドット化+ステガー、
+  belt_bottom_2 life 延長 → golden 再生成 → Play/録画 → Oracle 実レンダー再レビュー。
+- **【(3)/51s ブロック爆破】・【(5)/60s 縦重なり】は指示どおり触らずユーザー確認待ち**(前ラウンド分析のまま)。
+- push はユーザー確認待ち。
+
+
 
 前ラウンド(未明)の「未解決」5件のうち最優先 **(1) 70sカッターの画面端出入り** を完遂。残る (2)〜(5) は各々が設計判断/render 別タスクの壁に当たることを現物で確定し、証拠付きで区切った。独立コミット1件(`9d8ee50`)、origin より **105 コミット先行**(push 禁止遵守)。
 
