@@ -485,9 +485,9 @@
     {
       "enemyName": "demo",
       "visualId": "golem",
-      "_comment": "形態変化の前段(mp4指示反映): ゴーレム胴体が画面外上空(y22.2)から M21-1beat に落下開始し、M21 ちょうどに (16,13.8) へ到達して寿命切れ=後続の本体エントリへ引き継ぎ。落下中は fall1(腕を広げた落下姿勢)",
-      "appearAt": "M21 - 1beat",
-      "life": 0.416667,
+      "_comment": "形態変化の前段(mp4指示反映・第17便で降下改善): ゴーレム胴体が上空(y17.84)から M21-2beat に緩やかに落下開始(-7.2u/s)し、M21 ちょうどに (16,11.84) へ着地して寿命切れ=後続の本体エントリへ引き継ぎ。着地点を下げたことで頭上ベイク老人が実老人(y13.9)に一致=老人はそのまま・ゴーレムだけが下へ降りてくる。落下中は fall1(腕を広げた落下姿勢)。老人(sortingOrder9)を前面から覆って降下",
+      "appearAt": "M21 - 2beat",
+      "life": 0.833333,
       "count": 1,
       "enemyInterval": 0.0,
       "bulletEmitTime": 0.0,
@@ -499,11 +499,11 @@
       "orbit": {
         "originPos": {
           "x": 16,
-          "y": 22.2
+          "y": 17.84
         },
         "originVlc": {
           "x": 0,
-          "y": -20.16
+          "y": -7.2
         },
         "startX": 0,
         "speed": 0,
@@ -539,7 +539,7 @@
         },
         "appearTime": 0,
         "appearDuration": 0,
-        "life": 0.416667,
+        "life": 0.833333,
         "random": 0,
         "unCounterable": false
       },
@@ -600,7 +600,7 @@
     {
       "enemyName": "demo",
       "visualId": "golem",
-      "_comment": "形態変化(mp4指示反映): 前段エントリの胴体落下を受け、M21 ちょうどに着地姿勢(fall2=衝撃)で出現。老人はGIF側で頭上に乗車済み。攻撃アニメは atAbs でマーカー同期。参考 Instructions/石工弾幕形態変化.mp4",
+      "_comment": "形態変化(mp4指示反映・第17便で着地点を下げ): 前段エントリの胴体落下を受け、M21 ちょうどに着地姿勢(fall2=衝撃)で (16,11.84) に出現。老人はGIF側で頭上に乗車済みで、この着地点だとベイク老人が実老人(y13.9)と一致=老人はそのまま・ゴーレム本体が下へ展開。攻撃アニメは atAbs でマーカー同期。参考 Instructions/石工弾幕形態変化.mp4",
       "appearAt": "M21",
       "life": 16.666667,
       "fadeInSec": 0.0,
@@ -656,7 +656,7 @@
       "orbit": {
         "originPos": {
           "x": 16,
-          "y": 13.8
+          "y": 11.84
         },
         "originVlc": {
           "x": 0,
@@ -757,9 +757,9 @@
     {
       "enemyName": "demo",
       "visualId": "stone",
-      "_comment": "老人(mp4指示反映): ゴーレム落下(M21-1beat〜M21)まで居残り召喚ジェスチャー、降下する胴体に覆われる 63.25s に寿命切れ=頭上の老人(ゴーレムGIF側)へ引き継ぎ。落下中 0.45s でフェードアウト。sortingOrder 9(ゴーレム10の背面)で降下中の胴体に隠れる(Oracle stone-transform-fall-review 反映)",
+      "_comment": "老人(mp4指示反映・第17便): ゴーレム落下(M21-2beat〜M21)まで居残り召喚ジェスチャー、降下する胴体が M21 に完全着地=頭上ベイク老人が実老人位置(y13.9)に一致するので、この瞬間(63.333s)に寿命切れで引き継ぎ=老人の位置は動かず継続。落下中 0.4s でフェードアウト。sortingOrder 9(ゴーレム10の背面)で降下中の胴体に前面から覆われる(Oracle stone-transform-fall-review 反映)",
       "appearAt": "5.2",
-      "life": 58.05,
+      "life": 58.133333,
       "fadeOutSec": 0.4,
       "sortingOrder": 9,
       "count": 1,
