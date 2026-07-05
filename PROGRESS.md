@@ -1,5 +1,47 @@
 # PROGRESS
 
+## 2026-07-06 未明・第20便(自律セッション・Opus: JSAB風ステージ選択の改善 — 左右キー/下部デザイン/画面内難易度オーバーレイ)
+
+### 前提
+
+- 01:52 に EditMode テスト実行中 Editor がクラッシュ→親が再起動済み。再開時に UnityMCP 応答・コンパイルエラー0を確認してから着手。
+- 対象は「新ver」= JSAB風ステージ選択(`JsabStageSelect.cs`、PlayerPrefs `stageSelectStyle==1` で表示、V キーで切替)。参考: `Instructions/jsab stage-select.PNG` / `Instructions/DESIGN-figma.md`。REVIEW-NOTES に該当項目はなく指示はタスクプロンプトのみ。
+- ワークツリーの仕掛かり(GManager/StageSelectManager に左右キー配線途中)を最初に仮コミット(`c71ab8b`)して巻き戻し点を確保。font asset の dirty は他作業のため未touch。
+
+### 今回やったこと
+
+1. **左右キー(←→ / A/D)でステージ移動**(仕掛かりの続き): InputManager 既存の left/right PressedThisFrame を GManager→StageSelectManager に配線済み。JSAB カルーセルは横並びなので左右が自然。隣接カードのキー表記を ▲/W・▼/S → ← / A・→ / D に変更(フォント未収録の ◀▶ 豆腐字を除去)。
+2. **下部ヒントバーをキーキャップ調に刷新**: プレーンなテキスト行から `[←][→] ステージ選択 [SPACE] 決定 [ESC] 戻る [V] スタイル切替` へ。ネストした HorizontalLayoutGroup+ContentSizeFitter で自動中央寄せ、各キーはシアン枠+暗塗りのチップ。
+3. **画面内難易度オーバーレイ(最大の機能追加)**: JSAB で決定すると、同画面中央に EASY/NORMAL/LUNATIC の難易度モーダルを表示(従来はここで既定の難易度リスト画面へスライドして分断していた)。
+   - **背景ぼかし**: 開いた瞬間に現フレームを `ScreenCapture.CaptureScreenshotAsTexture` で取得→1/4→1/12 に2段ダウンサンプル(bilinear)して RawImage に焼き、暗幕を重ねる。自前オーバーレイ子は撮影中だけ非表示にしてカルーセルのみ写す。モーダル用に一度だけ生成。
+   - **操作**: キーボード ←→(上下も可)で選択、SPACE/Enter で決定、ESC/B で戻る。マウスはホバー選択+クリック決定(開幕0.2sデバウンス)。決定で `selectedDifficulty` を反映し JSAB オーバーレイを畳んで `StartGameTransition` へ。
+   - パネルはシアン枠+インセットのネイビー本体。選択中ボタンは難易度別ティント(緑/シアン/マゼンタ)塗り+**明るいシアン白の外枠**(oracle 指摘反映)+暗い文字で状態差を強調。
+
+### 検証結果(すべて Play Mode 実挙動、スクショで確認)
+
+- コンパイル: エラー0(3回のスクリプト編集→force recompile 各後に console 確認)。
+- **EditMode テスト: 99/99 成功・失敗0**(クラッシュ再発なし)。指示通り未コミット分をコミット後に1回だけ実行。
+- (a) 左右キー移動: `UpdateSelect(right)` で stageBar index 4→5、カルーセルが「石工」→「領主様の姿見」に更新、隣接が「石工/pattern_demo」に。
+- (b) オーバーレイ+ぼかし: 決定でモーダル展開、背景カルーセルがソフトにぼけ+暗幕、NORMAL 既定選択。
+- (c) 難易度移動: 右→LUNATIC(idx2)、左→EASY(idx0)、選択ハイライト(ティント+シアン枠)が追従。
+- (d) SPACE 決定: `selectedDifficulty=0`(EASY)反映、`jsab.Visible=false`、state=InGame、`StartGameTransition` 起動。
+- (e) ESC 戻る: モーダル閉、JSAB カルーセル継続(visible=true, state=Music)、ぼかし/モーダル残留なし。
+- oracle(GPT-5.5 Pro, browser)画像レビュー1回: 4点の指摘のうち「選択ハイライトの視認性」を即反映(シアン枠追加)。
+- スクショ証跡: `Assets/Screenshots/sscheck_01_carousel.png`(下部バー) / `_02_moveright.png`(左右移動) / `_04_diff_normal.png`(モーダル+ぼかし) / `_05_diff_lunatic.png`(選択移動) / `_06_back_carousel.png`(ESC復帰) / `_07_diff_border.png`(枠追加後)。※Assets/Screenshots は非コミット。
+
+### 未解決と次の一手
+
+- **マウスは無人検証不可**: 実プレイでは Tick と UpdateSelect が同フレームで整合するが、無人検証中にエディタの物理カーソルがボタン上→クリック相当を拾い、右キー押下時に誤確定した事例があった。0.2sデバウンスで緩和済みだが、**実マウス操作の視覚確認は未検証**。より堅牢にするなら GraphicRaycaster+Button 化 or press→release-over-button の完全クリック判定が次の一手。
+- **oracle 残り3点(未反映)**: (1)モーダル内余白の微調整(タイトル〜ボタン+8〜12px 等)、(3)カルーセル下部の進捗インジケータをプレビュー幅に揃え+ヒント帯を細HUD化してリズム統一、(4)フォント/色の役割固定(見出し=太シアン/補助=暗シアン/アクティブキー=高輝度)。いずれも見た目の詰めで、次セッションで反映余地。
+- **PlayerPrefs `stageSelectStyle` は 1(JSAB)のまま**。起動時に改善が即見えるようにしたが、石工の通し録画は箱型プレビューになる既知の落とし穴があるため、**録画前に V で 0 に切替 or PlayerPrefs を 0 に**。
+- 左右キー配線を含む GManager.cs は仮コミット `c71ab8b` に入っており本便の一部。
+
+### コミット(push はしていない)
+
+- `c71ab8b` WIP: 左右キー配線の仮コミット(巻き戻し点)
+- `8298333` 画面内難易度オーバーレイ+下部デザイン改善
+- `6d33e0c` 難易度モーダル選択中ボタンにシアン枠(oracle反映)
+
 ## 2026-07-06 朝・第19便(自律セッション・Opus: 001523レビュー8件を実装+クリーン通し録画で自己検証)
 
 ### 今回やったこと
