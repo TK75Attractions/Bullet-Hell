@@ -232,3 +232,30 @@
 2. **ユーザー判断待ち(継続)**: 石工ベルトダッシュのデータ修正(§8.2 候補2)。[Spawn] が45件を world 座標で名指しするようになったので、修正後は ratchet の期待値(171→126)を golden と同様に更新する
 3. **angleInterval ファンアウト未検査**: count>1 かつ angleInterval≠0 の spawner では k>0 の回転コピーは合成していない(base のみ)。base が域内でも回転コピーが域外に出るケースは false negative。必要なら Expand 相当の角度展開を足す余地
 4. `enemyName` → EDB 解決検査(probe 要)、startPos 整合検査(§5-4)、laser 特化検査(§5-5)、未参照26件のスコープ分離、圧縮テクスチャ30件の import 修正は未実装のまま
+
+## 10. ラウンド5(2026-07-05 早朝): 生 originPos advisory の [Spawn] への委譲(縮小)
+
+対象コミット: `53cce38`(リンター+テスト・挙動不変・独立 revert 可)+ `66f352b`(Docs クックブック)+ 本レポート/PROGRESS 追記。§9.4-1 の設計判断を実施した。
+
+### 10.1 着手前の実測(データドリフトの確認)
+
+- R4 記録(0 error / 696 warn)から **984 warn へドリフト**していた: 石工の作業続行でバッファが増え、生 originPos advisory は 492→**509 件**、[Buffer] 全体は 825 件に増加。[Spawn] は 171→**126**(ベルトダッシュがユーザー判断で装飾ごと削除され、§9.4-2 のデータ修正課題は消滅。ratchet は 126 に更新済みだった)
+- 縮小案のプロトタイプを execute_code で実測: [Spawn] がカバーするファイル(公式ステージ bulletSpawner 参照・非 laser・非 homing・ステージフォルダが common/debug を shadow)を除外すると **509 → 66 件**。残存 66 の内訳は laser 33(mirror_Insane 27 + LightMagic 6)/ 未参照 25(HexagonClockwise 12 + belt_flow_dash 11 + big_block_hammer_3 2)/ _archive 8 — **全て [Spawn] が構造的に見えない領域でカバレッジの穴なし**。belt_flow_dash と big_block_hammer_3 は最近の authoring で参照が外れた死にデータで、残存 advisory が正しく可視化している(廃止でなく縮小を選んだ根拠)
+
+### 10.2 実施内容(`53cce38`)
+
+- `StageValidation.ComputeSpawnSupersededBufferFiles`: 純粋コア(バッファ記述子+ステージ参照 → superseded 集合。合成テスト用に public)+ ディスク走査ラッパー(probe 不要の静的 JSON スキャン。名前解決は BulletBufferManager のロード順=ステージフォルダ shadow をミラー、blank name はファイル名 fallback、ClearClipName 除外)
+- `ValidateBuffers` は superseded ファイルの originPos advisory のみ抑制。他の advisory(life/appearTime/色域ほか)と、laser/homing・enemySpawner 経由・未参照・_archive の originPos advisory は従来どおり
+- `BufferOriginAdvisoryTests` 7本: 実データ ratchet(66件・既知9ファイル限定)+ 合成 negative 6本(参照済み/laser/homing/未参照/shadow(ステージ側 superseded・common 側残存)/他ステージフォルダ非該当)
+
+### 10.3 検証結果
+
+- **EditMode: 92 → 99 で全緑**(golden・chart パリティ同スイート内で緑 = 挙動不変。runtime/データ非接触の Editor+Tests のみの変更)
+- **Validate All Stages: 0 error / 984 → 541 warn**。prefix 内訳 [Types]32 + [Buffer]382(originPos 66)+ [Link]1 + [Spawn]126。削減 443 件は全て [Spawn] が world 座標で正確に報告するクリップの重複分
+- コンパイルエラーなし。Play Mode / 録画 / Oracle: 該当なし(ゲーム挙動に影響する変更なし・視覚成果物なし)
+
+### 10.4 残ギャップ(§9.4 の更新)
+
+1. §9.4-1(生 originPos の縮小)と §9.4-2(ベルトダッシュ。データ削除により消滅)は解消。§7.4 系候補(3)の Docs クックブックも `66f352b` で新設
+2. 残存 66 件のさらなる削減は authoring 判断: belt_flow_dash / big_block_hammer_3 の削除 or _archive 移動(クックブック §9.4 に手順化済み)。laser 33 件は laser 特化検査(§5-5)を作る際に severity を再判断
+3. angleInterval ファンアウト未検査(§9.4-3)、enemyName → EDB 解決検査、startPos 整合検査(§5-4)、圧縮テクスチャ30件は未実装のまま

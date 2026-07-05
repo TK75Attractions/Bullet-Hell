@@ -1,6 +1,30 @@
 # PROGRESS
 
-## 2026-07-05 朝・第3便(自律セッション・Opus: ブリッジ接続復活。(1)〜(4)を全て実装・検証・独立コミット+通し録画)
+## 2026-07-05 朝・第4便(自律セッション・Fable: 安全網R5 = 生 originPos advisory の [Spawn] 委譲+クックブック)
+
+Instructions/REVIEW-NOTES.md は存在せず未処理項目なし → REFACTOR-REPORT §9.4-1(生 originPos advisory 492件の廃止/縮小の設計判断)と §7.4 系候補(3)(クックブック)を実施。詳細は REFACTOR-REPORT §10。
+
+### 今回やったこと
+
+1. **リンター: 生 originPos advisory を [Spawn] カバー済みクリップから撤退** — `53cce38`
+   - 着手前実測: R4 の 696 warn から **984 warn へドリフト**(石工作業でバッファ増。originPos advisory 492→509件、[Spawn] は belt dash 削除で 171→126 に既に更新済み)
+   - 生 originPos はクリップローカル座標を world 域と比較する構造的に不正確な advisory。公式ステージ bulletSpawner 参照・非 laser・非 homing のクリップは [Spawn] が world 座標で正確に報告するため、そこだけ抑制(`ComputeSpawnSupersededBufferFiles`: 純粋コア+probe 不要の静的スキャン。名前解決はステージフォルダが common/debug を shadow するロード順をミラー)
+   - **originPos advisory 509→66件**(残存は laser 33 / 未参照 25 / _archive 8 = 全て [Spawn] スコープ外。カバレッジの穴なし)。未参照の belt_flow_dash 11件・big_block_hammer_3 2件は最近参照が外れた死にデータで、残存 advisory が正しく可視化
+   - `BufferOriginAdvisoryTests` 7本(実データ ratchet 66件+合成 negative 6本)
+2. **Docs/BulletBufferContext.md §9 クックブック新設** — `66f352b`
+   - 頻出5タスク(パラメータ調整/クリップ新設/攻撃の移動・リタイミング/クリップ廃止/実機検証)を手順化。全タスク共通の検証ゲート(Validate 0 error → EditMode 全緑 → ratchet は意図的更新のみ)を明文化
+3. REFACTOR-REPORT §10 追記+本ファイル更新(このコミット)
+
+### 検証結果
+
+- **EditMode 92→99 全緑**(golden・chart パリティ同スイート内で緑=挙動不変。Editor/Tests/Docs のみの変更でゲーム挙動・データ非接触)
+- **Validate All Stages: 0 error / 984→541 warn**([Types]32+[Buffer]382+[Link]1+[Spawn]126)。削減443件は全て [Spawn] と重複していたノイズ
+- コンパイルエラーなし。録画・Oracle: 該当なし(ゲーム挙動に影響する変更なし=録画ポリシー対象外、視覚成果物なし)
+
+### 未解決と次の一手
+
+- 残存 advisory 66件のさらなる削減は authoring 判断: `stone/belt_flow_dash.json`・`stone/big_block_hammer_3.json` の削除 or _archive 移動(手順はクックブック §9.4)。ユーザー確認推奨
+- 安全網の残候補(REFACTOR-REPORT §10.4): angleInterval ファンアウト検査、enemyName→EDB 解決検査、startPos 整合検査、laser 特化検査(その際に laser 33件の severity 再判断)、圧縮テクスチャ30件の import 修正(視覚差分レビュー付き別タスク)
 
 **UnityMCP ブリッジが接続済みに回復**（`mcpforunity` 応答・`read_console` 0 error・Play/EditMode/golden 全て可能）。
 前2便で整備した turnkey スペック（`Docs/stone-51s-60s-spec.md` / `Docs/stone-66s-telegraph-spec.md`）に沿って
