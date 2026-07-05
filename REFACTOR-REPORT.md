@@ -259,3 +259,31 @@
 1. §9.4-1(生 originPos の縮小)と §9.4-2(ベルトダッシュ。データ削除により消滅)は解消。§7.4 系候補(3)の Docs クックブックも `66f352b` で新設
 2. 残存 66 件のさらなる削減は authoring 判断: belt_flow_dash / big_block_hammer_3 の削除 or _archive 移動(クックブック §9.4 に手順化済み)。laser 33 件は laser 特化検査(§5-5)を作る際に severity を再判断
 3. angleInterval ファンアウト未検査(§9.4-3)、enemyName → EDB 解決検査、startPos 整合検査(§5-4)、圧縮テクスチャ30件は未実装のまま
+
+## 11. ラウンド6(2026-07-05 朝): 未参照クリップの _archive 退避(§10.4-2 の実施)
+
+対象コミット: `5436a5d`(データ移動+テスト whitelist+golden 再生成・挙動不変)+ 本レポート/PROGRESS 追記。§10.4-2 が挙げた選択肢のうち「_archive 移動」をクックブック §9.4 の手順どおり実施した。
+
+### 11.1 着手前の確認(未参照の実証)
+
+- 対象: `stone/belt_flow_dash.json`(石工ベルトダッシュ・11 advisory)/ `stone/big_block_hammer_3.json`(石工大ブロックハンマー_3・2 advisory)。同名 `_1`/`_2` は chart 現役だが `_3` は 51s リワークで参照消失
+- `Assets/StageData/stone/{stone.json,stone.chart.json}` を正確なクリップ名で grep → 両クリップとも参照 NONE を確認。worktree(`.claude/worktrees/…`)内の参照は別ツリーで無関係
+
+### 11.2 実施内容(`5436a5d`)
+
+- `.json` + `.meta` を `git mv` で `Assets/BulletBuffers/_archive/stone/` へ(GUID 保持・rename 100%)
+- `BufferOriginAdvisoryTests` の whitelist 2エントリを `_archive/stone/…` パス+「archived」コメントへ更新
+- `stone.golden.json` 再生成
+
+### 11.3 検証結果
+
+- **originPos advisory 総数は 66 のまま不変**。`EnumerateBufferFiles` は `SearchOption.AllDirectories` で `_archive` も走査対象にするため、退避しても schema-check + advisory は継続(クックブック §9.4「never loaded per-stage, still schema-checked」と一致)。よって §10.4-2 で想定した削減は起きない — 移動は「活きた stone/ からの死にデータ分離」であり lint 負債(whitelist 済み)は残る、が正しい理解
+- **golden は stone のみ変化・差分は idx 値のみ(非idx変更 0 行)**。エディタ側 dumper が stone バッファ集合を採番し直し後続 idx が -2 シフト(石工タイル予告_1_A 122→120)。時刻・位置・角度・クリップ名は完全一致。他5ステージ golden は不変
+- **ゲーム挙動不変(コードで確定)**: `StageReader.cs:104-107` がステージ読み込み時に `clipName`→`index` を `TryGetBulletClipIndex`(loaded buffer の名前線形探索)で再解決し `spawner.index` を上書きするため、stone.json の焼き込み index が古くても実際に撃たれるクリップは名前で決まり不変。加えて `_archive` はステージ別 addressable ラベルの対象外で runtime 非ロード
+- **EditMode 全 99 テスト緑**(golden schedule / chart パリティ同スイート内で緑 = 発射スケジュール同一を機械確認)。0 error 維持。コンパイルエラーなし。Play Mode / 録画 / Oracle: 該当なし(挙動非接触・視覚成果物なし)
+
+### 11.4 残ギャップ(§10.4 の更新)
+
+1. §10.4-2 の「_archive 移動」は実施。残存 66 件の originPos advisory はさらなる削減余地なし(全て [Spawn] が構造的に見えない領域=laser33 / 未参照 HexagonClockwise12 / _archive 内 belt11+hammer2+旧 archive8。退避しても _archive は走査対象なので数は減らない)
+2. `stone.json` の焼き込み index は古いまま(runtime 再解決で無害・生成物ゆえ本ラウンドでは未再生成)。将来 chart 再コンパイル時に自然解消する
+3. laser 33 件は laser 特化検査(§5-5)を作る際に severity 再判断、angleInterval ファンアウト未検査(§9.4-3)、enemyName → EDB 解決検査、startPos 整合検査(§5-4)、圧縮テクスチャ30件は未実装のまま

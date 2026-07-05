@@ -1,5 +1,32 @@
 # PROGRESS
 
+## 2026-07-05 朝・第5便(自律セッション・Opus: 未参照クリップ2件の _archive 退避 = REFACTOR §10.4-2 の実施)
+
+### 今回やったこと
+
+クックブック §9.4 に従い、chart から参照が消えた石工の未参照クリップ2件を活きた `stone/` から退避した(REFACTOR-REPORT §11 に詳細)。
+
+1. **未参照の実証** — `stone.json` / `stone.chart.json` を正確なクリップ名(石工ベルトダッシュ・石工大ブロックハンマー_3)で grep し参照 NONE を確認(`_1`/`_2` は現役、`_3` のみ死にデータ)
+2. **`git mv` で退避** — `belt_flow_dash.json` / `big_block_hammer_3.json` の `.json`+`.meta` を `Assets/BulletBuffers/_archive/stone/` へ(GUID 保持)
+3. **テスト whitelist 更新** — `BufferOriginAdvisoryTests` の2エントリを `_archive/stone/…` パスへ
+4. **golden 再生成** — `stone.golden.json`
+
+コミット: `5436a5d`(データ+テスト+golden・独立)。
+
+### 検証結果
+
+- **EditMode 全 99 テスト緑**(golden schedule / chart パリティ含む = 発射スケジュール同一を機械確認)。0 error 維持
+- **originPos advisory 総数 66 で不変** — `EnumerateBufferFiles` が `AllDirectories` で `_archive` も走査するため、退避しても advisory は継続(想定の 66→41 は不成立。原因究明済み・クックブック §9.4 記述と一致)
+- **golden 差分は stone のみ・idx 値のみ**(非idx変更 0 行、石工タイル予告_1_A 122→120)。他5ステージ golden 不変
+- **ゲーム挙動不変(コードで確定)** — `StageReader.cs:104-107` が読み込み時に clipName→index を名前解決し spawner.index を上書き。撃たれるクリップは名前で決まり不変。`_archive` は runtime 非ロード
+- Play Mode 実機確認: 未実施(挙動非接触が golden schedule パリティ+コード経路で担保されるため省略)
+
+### 未解決と次の一手
+
+- 残存 66 件の originPos advisory はこれ以上削減余地なし(全て [Spawn] 非スコープ。退避しても _archive は走査対象で数は減らない)。laser 33 件は laser 特化検査(§5-5)新設時に severity 再判断
+- `stone.json` の焼き込み index は古いまま(runtime 再解決で無害・生成物)。将来 chart 再コンパイルで自然解消
+- CLAUDE.md「短期的な指示」の石工/タイトル系タスク(点線簡素化・ブロック落下速度・ハンマー投擲化ほか)は別途対応が残る
+
 ## 2026-07-05 朝・第4便(自律セッション・Fable: 安全網R5 = 生 originPos advisory の [Spawn] 委譲+クックブック)
 
 Instructions/REVIEW-NOTES.md は存在せず未処理項目なし → REFACTOR-REPORT §9.4-1(生 originPos advisory 492件の廃止/縮小の設計判断)と §7.4 系候補(3)(クックブック)を実施。詳細は REFACTOR-REPORT §10。
