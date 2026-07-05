@@ -293,3 +293,84 @@ Snake or wave:
 - For lasers, use `isLaser: true`, `scale` as length, and `appearTime` as width.
 - Preserve the file's BOM and line-ending style when editing (binary write).
 - After editing: `Tools/Bullet Hell/Validate All Stages` = 0 errors, then run the EditMode tests (golden catches unintended behaviour change).
+
+## 9. Cookbook: Frequent Edit Tasks (step-by-step, for future sessions)
+
+Procedures for the edits that come up most often. Each ends with the same
+verification gate; skipping it is how silent regressions have happened.
+
+**Verification gate (finish EVERY task with this):**
+
+1. `Tools/Bullet Hell/Validate All Stages` — must be **0 errors**. Compare the
+   warning count to the previous run; an unexplained increase is new debt.
+2. Run the **EditMode** tests (Test Runner or UnityMCP `run_tests`) — all green.
+   A golden/parity failure means the compiled event stream changed: if that was
+   the intent, regenerate via `Tools/Bullet Hell/Golden/Dump All Stages` and
+   commit the golden diff together with the change; if not, you broke something.
+3. Ratchet tests pin advisory counts like goldens (`BufferOriginAdvisoryTests`,
+   `StageSpawnPositionLintTests`). If your edit legitimately changes a count,
+   update the constant deliberately in the same commit — never loosen a ratchet
+   to "make it pass".
+
+### 9.1 Tweak parameters of an existing clip (speed / color / life / scale)
+
+1. `git status -sb` first. If the buffer file is already dirty, it may be
+   another session's work in progress — do not revert it.
+2. Edit `Assets/BulletBuffers/<dir>/<file>.json` directly (buffers are
+   hand-authored; only `stage.json` is generated). Preserve BOM and line
+   endings — binary-mode write; never text-mode Python from Git Bash (§6).
+3. Remember the unit split: JSON angles are **radians**, spawner angles are
+   **degrees** (§2). Color is a multiplicative tint; `color.w = 0` shows the
+   sprite's own look (§5) — it is not "invisible".
+4. Run the verification gate.
+
+### 9.2 Add a new clip and fire it from a stage
+
+1. Create `Assets/BulletBuffers/<stage>/<name>.json` per §1/§8. The top-level
+   `name` must be unique in its load scope and is exactly what the stage will
+   reference as `clipName`.
+2. Wire it up in the **chart**, `Assets/StageData/<stage>/<stage>.chart.json`
+   (Newtonsoft-parsed, comments allowed; times as bar:beat / marker
+   expressions). Do NOT hand-edit `<stage>/<stage>.json` — it is a build
+   artifact and the next compile overwrites it.
+3. `Tools/Bullet Hell/Compile Stage Charts` regenerates the stage.json.
+   Review the stage.json diff: it should contain only your new events.
+4. Keep every composed spawn inside `[-2, 36)` on both axes (§3 Bounds). A
+   "fly in from the right" spawn at `x >= 36` never appears; the `[Spawn]`
+   linter names such bullets in world coordinates.
+5. For quick playback outside the stage, also reference the clip from
+   `Assets/StageData/debug/debug.json` (see the header of this file).
+6. Run the verification gate (the golden diff will show the new events —
+   expected; dump new goldens deliberately).
+
+### 9.3 Move or retime an existing attack
+
+1. Edit the chart (times/positions/angles live there), then
+   `Compile Stage Charts`. Never patch the generated stage.json.
+2. Chart event insertions can reorder same-time neighbours in the compiled
+   output (unstable sort); such reorderings are behaviour-neutral and the
+   golden update will show them — do not chase them as bugs.
+3. Run the verification gate; commit chart + regenerated stage.json + golden
+   together.
+
+### 9.4 Retire a clip
+
+1. Remove its chart references, recompile, and either delete the buffer file
+   or move it to `Assets/BulletBuffers/_archive/` (never loaded per-stage,
+   still schema-checked).
+2. A buffer left in place but unreferenced becomes lint debt: its raw
+   originPos advisories come back (unreferenced clips are outside the
+   `[Spawn]` check's scope) and the `BufferOriginAdvisoryTests` ratchet will
+   flag the drift. Prefer deleting or archiving over abandoning in place.
+
+### 9.5 Verify a visual / music-sync change in-engine
+
+1. Enter Play Mode FIRST, then `Tools/Bullet Hell/Debug/Start Stone Stage`
+   (stone workflow; state via `.../Dump Stone Debug State`). Do not run
+   UnityMCP mutations in parallel with entering Play Mode.
+2. Pixel-sampling caveat: `color.w = 0` bullets render sprite colors, so
+   screen pixels never match JSON tint values — compare against another
+   bullet with the same setup instead (§5).
+3. For music-sync/presentation changes, record with Unity Recorder and run
+   the video review flow (see `Docs/claude-code-handoff.md`); keep the
+   recording under `Recordings/`.
