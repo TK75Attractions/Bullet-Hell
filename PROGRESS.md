@@ -1,5 +1,37 @@
 # PROGRESS
 
+## 2026-07-06 朝・第19便(自律セッション・Opus: 001523レビュー8件を実装+クリーン通し録画で自己検証)
+
+### 今回やったこと
+
+REVIEW-NOTES 未処理8件(stone_20260706_001523.mp4、00:29送信)を全実装。最重要は @59.4 ゴーレム降下の再指摘。
+
+1. **@59.4 ゴーレム降下(最重要・再指摘)**: 第17便の着地点補正では不十分だった。原因はゴーレムGIFに老人がベイクされたまま降ろしていたため「老人も一緒に降りてくる」ように見えた点。対策として **降下中だけ老人領域を透明化した golem_fall1_descend.gif を PIL で生成**(老人 rows24-86/中央帯 x102-154 を alpha0、腕・台座は保持)。golem enemyVisuals に clip "fall1_descend" を追加し、降下前段エントリ(appearAt M21-2beat)の initialClip を fall1→fall1_descend に差替。着地(M21)で本体エントリの fall2(老人ベイク済)に切替=老人が本体頭上に一致。実老人(idle, y13.8, sortingOrder9)は定位置で表示継続。GIFローダー(EnemyVisualLoader.IsKeyColor)は alpha==0 を透過キーするため確実に透過。
+2. **@6.2/@12.9 落下後の静止**: 前便 +0.83s はレイン区間にしか効かず、**タイル区間ベルト流し(石工ベルト流し_1/_2)が漏れ**。ベルト流し_1/_2 を 7:1→7:4 / 11:1→11:4(各+1.25s)へ遅延、tile_settle_1/2 life 0.873→2.12 で静止ブロックを橋渡し。
+3. **@16.7 半透明予告を全高に**: rain warn_box(stone_rain_warn_1_a/c・2_a/c)を op.y9.5→9.7・scale.y15→16.6(画面上端y18〜地面y1.4)。
+4. **@32.1 地面はスライドアウト**: stone_belt_bottom 静止弾 life 26.4→25.9 + 沈降弾追加(ov(0,-7)・appearTime25.85=abs34.18・life26.9)。appearTime 前 originVlc 凍結を利用し 34.18s から下方向スライド。
+5. **@67.5 半透明予告が早い**: run_cutter_warn 43:1→43:2、life 0.833→0.4167(本体43:3で消滅)。
+6. **@70.2 半円点線を地面と非重複**: lower_burst_warn_1/2 全点 y +0.8(ymin0.8→1.6、belt top1.375より上)。
+7. **@73.8 破片の発射頻度も上げる**: edge_cutter_shard を chart 2発→4発(46:3/47:3を縁カッター_1に同期して追加)。加えて late shard の life 切れ(0.07sで消滅)を life=appearTime+1.9 に修正し全120発が完全飛翔。
+
+### 検証結果
+
+- **ChartCompileParityTest**: 破片2発追加で 94→96 event。テスト定数を 96 に更新。
+- **Validate All Stages: 0 error**(507 warning=既存debt、増加なし)。golden 再生成(stone.golden.json)。
+- **EditMode 99/99 緑**。
+- **クリーン通し録画 `Recordings/stone_20260706_013049.mp4`(82.8s・音声付・full-screen style)** をフレーム抽出で自己検証(offset stage=video+2.41):
+  - @59.4: stage62.6/62.9=ゴーレム本体のみ降下・実老人は別figureで静止(老人2人にならない)、stage63.2=降下ゴーレム上端に実老人接近、stage64.5=老人が本体頭上に乗る参考動画どおりの構図。**再指摘を解消**。
+  - @6.2: stage11.0=2段グリッド静止(ベルト流し11.7s〜)。@16.7: stage20.3=全高の縦バンド。@32.1: stage34.18満位置→34.37沈降→34.72消失=下方向スライド。@67.5: stage70.7=3バンド(本体直前)。@70.2: stage65.6=半円点線が地面band上に浮く。@73.8: stage77.6=画面全域に密な持続飛散。
+- BOM+CRLF は全編集バッファで保持(JSON round-trip、diff は変更値のみ最小)。chart は CRLF バイナリ置換。
+
+### 未解決と次の一手
+
+- **音ハメの主観確認は未実施**(フレーム抽出による静的検証のみ)。録画を Oracle/Gemini 動画レビューにかけるのが次の一手。
+- **表示スタイル(PlayerPrefs "stageSelectStyle")を 1(JSAB箱型)→0(full-screen)に戻した**。旧録画は全て style0(ユーザーがレビューした形式)のため 0 が正。前セッションで 1 に変わっていた模様。録画が箱型プレビューで撮れてしまう事故を防ぐため次回も 0 を確認すること。
+- @32.1 スライドは -7u/s で約0.5sと速め。もっと緩やかにする余地あり(主観次第)。
+- REVIEW-NOTES の未処理項目は現時点でゼロ。次の親レビュー待ち。
+- **検証Tip**: StageReader.SeekTo は enemy を orbit.originPos に置くだけで originVlc ドリフトを再現しない→降下など「動く敵」の位置検証には使えない。実時間再生(必要なら手前秒へ SeekTo してから timeScale1 で流す)+キャプチャフックが正。timeScale=0 では音声DSP駆動のステージ時計は止まらない(EditorApplication.isPaused でフレーム凍結が有効)。
+
 ## 2026-07-06 早朝・第18便(自律セッション・Opus: 230948レビュー10件の検証+コミット、@26.4浮き修正)
 
 ### 今回やったこと
