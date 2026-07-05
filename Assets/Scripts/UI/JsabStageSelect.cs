@@ -1,7 +1,9 @@
+using System.Collections;
 using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
+using UnityEngine.InputSystem;
 using TMPro;
 
 // Runtime-built "Just Shapes & Beats"-style horizontal carousel variation of the
@@ -45,6 +47,37 @@ public class JsabStageSelect : MonoBehaviour
     private float slideFrom;            // starting x offset
     private const float slideDuration = 0.25f;
     private Vector2 cardBasePos;
+
+    // --- In-screen difficulty overlay (built once, hidden until a stage is decided) ---
+    private static readonly string[] DifficultyNames = { "EASY", "NORMAL", "LUNATIC" };
+    private static readonly Color[] DifficultyTints =
+    {
+        new Color(0.42f, 0.85f, 0.55f, 1f),   // EASY: calm green
+        new Color(0.22f, 0.76f, 0.878f, 1f),  // NORMAL: brand cyan
+        new Color(0.95f, 0.36f, 0.55f, 1f),   // LUNATIC: hot magenta
+    };
+    private RectTransform diffRoot;      // container for blur + scrim + panel
+    private RawImage diffBlur;           // frozen, downsampled snapshot of the carousel
+    private Image diffScrim;             // dark wash for text contrast
+    private RectTransform diffPanel;     // the buttons + title
+    private readonly Image[] diffButtons = new Image[3];
+    private readonly TMP_Text[] diffButtonLabels = new TMP_Text[3];
+    private int diffIndex = 1;           // default NORMAL
+    private bool difficultyOpen;
+    private float diffOpenTime;           // unscaled time the modal opened (mouse debounce)
+    private RenderTexture blurRT;
+    private bool mouseConfirm;           // set when a difficulty button is left-clicked
+
+    public bool DifficultyOpen => difficultyOpen;
+    public int DifficultyIndex => diffIndex;
+
+    // Returns (and clears) whether the mouse just clicked a difficulty button.
+    public bool ConsumeMouseConfirm()
+    {
+        bool v = mouseConfirm;
+        mouseConfirm = false;
+        return v;
+    }
 
     public bool Visible { get; private set; }
 
@@ -163,6 +196,9 @@ public class JsabStageSelect : MonoBehaviour
 
         // --- Bottom hint bar ---
         BuildHintBar(root);
+
+        // --- In-screen difficulty overlay (hidden until a stage is decided) ---
+        BuildDifficultyOverlay(root);
     }
 
     private void BuildNeighbour(RectTransform root, int side)
@@ -189,14 +225,15 @@ public class JsabStageSelect : MonoBehaviour
         nr.sizeDelta = new Vector2(0f, 44f);
         if (side < 0) leftName = name; else rightName = name;
 
-        // Key hint on the outer edge (up/down move the carousel).
-        string hint = side < 0 ? "▲ / W" : "▼ / S";
-        TMP_Text keyHint = NewText(side < 0 ? "LeftHint" : "RightHint", r, hint, 28f, Cyan, TextAlignmentOptions.Center);
+        // Key hint centered on the neighbour card. The carousel is horizontal, so
+        // left/right (A/D or arrows) move between stages.
+        string hint = side < 0 ? "← / A" : "→ / D";
+        TMP_Text keyHint = NewText(side < 0 ? "LeftHint" : "RightHint", r, hint, 30f, Cyan, TextAlignmentOptions.Center);
         RectTransform kr = (RectTransform)keyHint.transform;
         kr.anchorMin = kr.anchorMax = new Vector2(0.5f, 0.5f);
         kr.pivot = new Vector2(0.5f, 0.5f);
-        kr.sizeDelta = new Vector2(160f, 40f);
-        kr.anchoredPosition = new Vector2(side < 0 ? -300f : 300f, 0f);
+        kr.sizeDelta = new Vector2(300f, 40f);
+        kr.anchoredPosition = new Vector2(0f, -40f);
     }
 
     private void BuildProgressIndicator(RectTransform root)
@@ -261,19 +298,254 @@ public class JsabStageSelect : MonoBehaviour
         br.anchorMax = new Vector2(1f, 0f);
         br.pivot = new Vector2(0.5f, 0f);
         br.anchoredPosition = Vector2.zero;
-        br.sizeDelta = new Vector2(0f, 72f);
+        br.sizeDelta = new Vector2(0f, 76f);
 
         Image topLine = NewImage("HintBarLine", root, Cyan);
         RectTransform tlr = topLine.rectTransform;
         tlr.anchorMin = new Vector2(0f, 0f);
         tlr.anchorMax = new Vector2(1f, 0f);
         tlr.pivot = new Vector2(0.5f, 0f);
-        tlr.anchoredPosition = new Vector2(0f, 72f);
+        tlr.anchoredPosition = new Vector2(0f, 76f);
         tlr.sizeDelta = new Vector2(0f, 2f);
 
-        string hints = "W / S  送る      SPACE  決定      ESC  戻る      V  スタイル切替";
-        TMP_Text text = NewText("HintText", br, hints, 30f, Cyan, TextAlignmentOptions.Center);
-        Stretch((RectTransform)text.transform);
+        // Key-cap style hints (reference art): [chip] label, grouped and centered.
+        BuildHintRow(br, 38f, new[]
+        {
+            new HintItem(new[] { "←", "→" }, "ステージ選択"),
+            new HintItem(new[] { "SPACE" }, "決定"),
+            new HintItem(new[] { "ESC" }, "戻る"),
+            new HintItem(new[] { "V" }, "スタイル切替"),
+        });
+    }
+
+    // ---- Key-cap hint rows (shared by the bottom bar and the difficulty overlay) ----
+
+    private readonly struct HintItem
+    {
+        public readonly string[] Keys;
+        public readonly string Label;
+        public HintItem(string[] keys, string label) { Keys = keys; Label = label; }
+    }
+
+    // Lays out a centered horizontal row of "[key][key] label" groups using nested
+    // layout groups so the whole row self-centers regardless of content width.
+    private void BuildHintRow(RectTransform parent, float y, HintItem[] items)
+    {
+        RectTransform row = NewLayoutRow("HintRow", parent, 44f, 4f, TextAnchor.MiddleCenter);
+        row.anchorMin = row.anchorMax = new Vector2(0.5f, 0.5f);
+        row.pivot = new Vector2(0.5f, 0.5f);
+        row.anchoredPosition = new Vector2(0f, y);
+        HorizontalLayoutGroup outer = row.GetComponent<HorizontalLayoutGroup>();
+        outer.spacing = 40f;
+
+        foreach (HintItem item in items)
+        {
+            RectTransform group = NewLayoutRow("Hint_" + item.Label, row, 44f, 8f, TextAnchor.MiddleCenter);
+            foreach (string key in item.Keys)
+            {
+                NewKeyCap(group, key, 40f, 26f);
+            }
+            TMP_Text label = NewText("Label", group, item.Label, 28f, Cyan, TextAlignmentOptions.Left);
+            AddLayoutElement((RectTransform)label.transform, label.GetPreferredValues().x, 40f);
+        }
+    }
+
+    // A dark, cyan-bordered key-cap chip with a centered label.
+    private RectTransform NewKeyCap(RectTransform parent, string label, float height, float fontSize)
+    {
+        float width = Mathf.Max(height, 20f + label.Length * fontSize * 0.66f);
+        Image border = NewImage("Key_" + label, parent, Cyan);
+        RectTransform br = border.rectTransform;
+        br.sizeDelta = new Vector2(width, height);
+        AddLayoutElement(br, width, height);
+
+        Image fill = NewImage("Fill", br, new Color(0.02f, 0.06f, 0.10f, 1f));
+        RectTransform fr = fill.rectTransform;
+        fr.anchorMin = Vector2.zero;
+        fr.anchorMax = Vector2.one;
+        fr.offsetMin = new Vector2(2f, 2f);
+        fr.offsetMax = new Vector2(-2f, -2f);
+
+        TMP_Text t = NewText("L", br, label, fontSize, Cyan, TextAlignmentOptions.Center);
+        Stretch((RectTransform)t.transform);
+        return br;
+    }
+
+    private RectTransform NewLayoutRow(string name, Transform parent, float height, float spacing, TextAnchor align)
+    {
+        GameObject go = new GameObject(name, typeof(RectTransform));
+        go.transform.SetParent(parent, false);
+        RectTransform rt = (RectTransform)go.transform;
+        rt.sizeDelta = new Vector2(0f, height);
+        HorizontalLayoutGroup h = go.AddComponent<HorizontalLayoutGroup>();
+        h.childAlignment = align;
+        h.spacing = spacing;
+        h.childControlWidth = true;
+        h.childControlHeight = true;
+        h.childForceExpandWidth = false;
+        h.childForceExpandHeight = false;
+        ContentSizeFitter fit = go.AddComponent<ContentSizeFitter>();
+        fit.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+        fit.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
+        return rt;
+    }
+
+    private static void AddLayoutElement(RectTransform rt, float width, float height)
+    {
+        LayoutElement le = rt.gameObject.AddComponent<LayoutElement>();
+        le.preferredWidth = width;
+        le.minWidth = width;
+        le.preferredHeight = height;
+        le.minHeight = height;
+    }
+
+    // ---- In-screen difficulty overlay ----
+
+    private void BuildDifficultyOverlay(RectTransform root)
+    {
+        GameObject rootGO = new GameObject("DifficultyOverlay", typeof(RectTransform));
+        rootGO.transform.SetParent(root, false);
+        diffRoot = (RectTransform)rootGO.transform;
+        Stretch(diffRoot);
+
+        // Frozen, blurred snapshot of the carousel behind the modal.
+        diffBlur = NewRawImage("DiffBlur", diffRoot, null);
+        Stretch(diffBlur.rectTransform);
+        diffBlur.color = new Color(0.55f, 0.62f, 0.72f, 1f); // slight dim on the snapshot
+
+        // Dark wash for text contrast.
+        diffScrim = NewImage("DiffScrim", diffRoot, new Color(0.01f, 0.03f, 0.06f, 0.55f));
+        Stretch(diffScrim.rectTransform);
+
+        // Centered panel: a cyan border rectangle with an inset navy body. The body
+        // is the first child (renders just above the cyan panel) so the title,
+        // buttons and hints added afterwards sit on the navy body, not the border.
+        Image panel = NewImage("DiffPanel", diffRoot, Cyan);
+        diffPanel = panel.rectTransform;
+        diffPanel.anchorMin = diffPanel.anchorMax = new Vector2(0.5f, 0.5f);
+        diffPanel.pivot = new Vector2(0.5f, 0.5f);
+        diffPanel.sizeDelta = new Vector2(880f, 420f);
+        diffPanel.anchoredPosition = new Vector2(0f, 30f);
+
+        Image body = NewImage("DiffPanelBody", diffPanel, new Color(0.03f, 0.08f, 0.13f, 0.99f));
+        RectTransform bodyR = body.rectTransform;
+        bodyR.anchorMin = Vector2.zero;
+        bodyR.anchorMax = Vector2.one;
+        bodyR.offsetMin = new Vector2(3f, 3f);
+        bodyR.offsetMax = new Vector2(-3f, -3f);
+
+        TMP_Text title = NewText("DiffTitle", diffPanel, "難易度を選択", 48f, Cyan, TextAlignmentOptions.Center);
+        RectTransform tr = (RectTransform)title.transform;
+        tr.anchorMin = new Vector2(0f, 1f);
+        tr.anchorMax = new Vector2(1f, 1f);
+        tr.pivot = new Vector2(0.5f, 1f);
+        tr.sizeDelta = new Vector2(0f, 70f);
+        tr.anchoredPosition = new Vector2(0f, -36f);
+
+        // Three difficulty buttons in a centered row.
+        const float bw = 240f;
+        const float bh = 150f;
+        const float bgap = 30f;
+        float startX = -(bw + bgap);
+        for (int i = 0; i < 3; i++)
+        {
+            Image btn = NewImage("DiffBtn_" + DifficultyNames[i], diffPanel, Navy);
+            RectTransform btr = btn.rectTransform;
+            btr.anchorMin = btr.anchorMax = new Vector2(0.5f, 0.5f);
+            btr.pivot = new Vector2(0.5f, 0.5f);
+            btr.sizeDelta = new Vector2(bw, bh);
+            btr.anchoredPosition = new Vector2(startX + i * (bw + bgap), -30f);
+            diffButtons[i] = btn;
+
+            TMP_Text lbl = NewText("Lbl", btr, DifficultyNames[i], 40f, Cyan, TextAlignmentOptions.Center);
+            Stretch((RectTransform)lbl.transform);
+            diffButtonLabels[i] = lbl;
+        }
+
+        // Bottom hints inside the panel.
+        BuildHintRow(diffPanel, -152f, new[]
+        {
+            new HintItem(new[] { "←", "→" }, "選択"),
+            new HintItem(new[] { "SPACE" }, "決定"),
+            new HintItem(new[] { "ESC" }, "戻る"),
+        });
+
+        diffRoot.gameObject.SetActive(false);
+        RefreshDifficultyVisual();
+    }
+
+    // ---- Public difficulty API (driven by StageSelectManager) ----
+
+    public void OpenDifficulty()
+    {
+        if (diffRoot == null) return;
+        diffIndex = 1; // default NORMAL each time it opens
+        difficultyOpen = true;
+        diffOpenTime = Time.unscaledTime;
+        mouseConfirm = false;
+        diffRoot.gameObject.SetActive(true);
+        RefreshDifficultyVisual();
+        StartCoroutine(CaptureBlurBackground());
+    }
+
+    public void CloseDifficulty()
+    {
+        difficultyOpen = false;
+        if (diffRoot != null) diffRoot.gameObject.SetActive(false);
+    }
+
+    public void MoveDifficulty(int dir)
+    {
+        if (!difficultyOpen) return;
+        diffIndex = Mathf.Clamp(diffIndex + (dir > 0 ? 1 : -1), 0, DifficultyNames.Length - 1);
+        RefreshDifficultyVisual();
+    }
+
+    private void RefreshDifficultyVisual()
+    {
+        for (int i = 0; i < diffButtons.Length; i++)
+        {
+            if (diffButtons[i] == null) continue;
+            bool sel = i == diffIndex;
+            Color tint = DifficultyTints[i];
+            diffButtons[i].color = sel ? tint : new Color(0.04f, 0.10f, 0.15f, 1f);
+            diffButtons[i].rectTransform.localScale = Vector3.one * (sel ? 1.06f : 0.94f);
+            if (diffButtonLabels[i] != null)
+                diffButtonLabels[i].color = sel ? Ink : tint;
+        }
+    }
+
+    // Freezes the current screen into a downsampled (thus blurred) snapshot behind
+    // the modal. Captured with our own overlay children hidden so only the carousel
+    // shows through.
+    private IEnumerator CaptureBlurBackground()
+    {
+        if (diffBlur != null) diffBlur.enabled = false;
+        if (diffScrim != null) diffScrim.enabled = false;
+        if (diffPanel != null) diffPanel.gameObject.SetActive(false);
+
+        yield return new WaitForEndOfFrame();
+
+        Texture2D shot = ScreenCapture.CaptureScreenshotAsTexture();
+        int w = Mathf.Max(24, shot.width / 12);
+        int h = Mathf.Max(14, shot.height / 12);
+        if (blurRT != null) { blurRT.Release(); Destroy(blurRT); }
+        blurRT = new RenderTexture(w, h, 0) { filterMode = FilterMode.Bilinear };
+        // Two-step downsample smooths the box edges into a softer blur.
+        RenderTexture mid = RenderTexture.GetTemporary(shot.width / 4, shot.height / 4, 0);
+        mid.filterMode = FilterMode.Bilinear;
+        Graphics.Blit(shot, mid);
+        Graphics.Blit(mid, blurRT);
+        RenderTexture.ReleaseTemporary(mid);
+        Destroy(shot);
+
+        if (diffBlur != null)
+        {
+            diffBlur.texture = blurRT;
+            diffBlur.enabled = true;
+        }
+        if (diffScrim != null) diffScrim.enabled = true;
+        if (diffPanel != null) diffPanel.gameObject.SetActive(true);
     }
 
     // ---- Public API used by StageSelectManager ----
@@ -337,6 +609,39 @@ public class JsabStageSelect : MonoBehaviour
     public void Tick(float dt)
     {
         if (!Visible) return;
+
+        // While the difficulty modal is open, the mouse can hover (to select) and
+        // click (to confirm) any of the three buttons. Keyboard is driven by the
+        // StageSelectManager; here we only translate pointer position/click.
+        // Ignore the pointer for a beat after opening so the interaction that opened
+        // the modal (or a focus click on the game view) cannot immediately confirm.
+        if (difficultyOpen && Time.unscaledTime - diffOpenTime >= 0.2f)
+        {
+            Mouse mouse = Mouse.current;
+            if (mouse != null)
+            {
+                Vector2 mp = mouse.position.ReadValue();
+                int hover = -1;
+                for (int i = 0; i < diffButtons.Length; i++)
+                {
+                    if (diffButtons[i] == null) continue;
+                    if (RectTransformUtility.RectangleContainsScreenPoint(diffButtons[i].rectTransform, mp, null))
+                    {
+                        hover = i;
+                        break;
+                    }
+                }
+                if (hover >= 0 && hover != diffIndex)
+                {
+                    diffIndex = hover;
+                    RefreshDifficultyVisual();
+                }
+                if (hover >= 0 && mouse.leftButton.wasPressedThisFrame)
+                {
+                    mouseConfirm = true;
+                }
+            }
+        }
 
         pulseTime += dt;
         // Breathing pulse on the selected card (matches StageBox.SetPulse feel).
@@ -485,6 +790,11 @@ public class JsabStageSelect : MonoBehaviour
         {
             videoRT.Release();
             Destroy(videoRT);
+        }
+        if (blurRT != null)
+        {
+            blurRT.Release();
+            Destroy(blurRT);
         }
     }
 }

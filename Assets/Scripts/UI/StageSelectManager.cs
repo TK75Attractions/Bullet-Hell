@@ -181,7 +181,9 @@ public class StageSelectManager : MonoBehaviour
         if (jsab != null) jsab.Tick(dt);
 
         // Toggle between the default and JSAB stage-select styles with V.
-        if (state == State.Music && !isTransitioning)
+        // Suppressed while the in-screen difficulty modal is open.
+        bool jsabDifficultyOpen = jsab != null && jsab.DifficultyOpen;
+        if (state == State.Music && !isTransitioning && !jsabDifficultyOpen)
         {
             Keyboard kb = Keyboard.current;
             if (kb != null && kb.vKey.wasPressedThisFrame)
@@ -219,8 +221,38 @@ public class StageSelectManager : MonoBehaviour
         switch (state)
         {
             case State.Music:
+                // JSAB style resolves the difficulty inside this same screen via a
+                // centered modal, instead of sliding to the default difficulty list.
+                if (jsabDifficultyOpen)
+                {
+                    if (back)
+                    {
+                        jsab.CloseDifficulty();
+                    }
+                    else if (button || jsab.ConsumeMouseConfirm())
+                    {
+                        GManager.Control.selectedDifficulty = jsab.DifficultyIndex;
+                        jsab.CloseDifficulty();
+                        // Hide the JSAB carousel overlay too; the pixel transition
+                        // then covers the screen and reveals the running stage.
+                        jsab.SetVisible(false);
+                        state = State.InGame;
+                        StartGameTransition(stageBar.currentStage);
+                    }
+                    else if (left || up) jsab.MoveDifficulty(-1);
+                    else if (right || down) jsab.MoveDifficulty(1);
+                    break;
+                }
+
                 if (button)
                 {
+                    // On the JSAB screen the decision opens the in-screen difficulty
+                    // modal; the default screen slides to the difficulty list.
+                    if (jsab != null && stageSelectStyle == 1)
+                    {
+                        jsab.OpenDifficulty();
+                        break;
+                    }
                     state = State.Difficulty;
                     RefreshStyleVisibility();
                     TransitionToDifficulty();
