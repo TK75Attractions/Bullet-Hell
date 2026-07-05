@@ -165,8 +165,13 @@ public class StageSelectManager : MonoBehaviour
         return -1;
     }
 
-    public void UpdateSelect(bool up, bool down, float dt, bool button, bool back)
+    public void UpdateSelect(bool up, bool down, bool left, bool right, float dt, bool button, bool back)
     {
+        // Stage select is a full-screen view; the left/right keys (A/D and ←/→)
+        // move between stages just like up/down (W/S and ↑/↓). The difficulty
+        // list is vertical, so there we keep up/down as the primary axis.
+        bool prev = up || left;
+        bool next = down || right;
         scroll.UpdateScroll(dt);
         if (state == State.InGame) return;
 
@@ -224,8 +229,8 @@ public class StageSelectManager : MonoBehaviour
                 else
                 {
                     bool moved = false;
-                    if (up) { stageBar.Up(); moved = true; }
-                    else if (down) { stageBar.Down(); moved = true; }
+                    if (prev) { stageBar.Up(); moved = true; }
+                    else if (next) { stageBar.Down(); moved = true; }
                     if (moved)
                     {
                         stageDescription.Set(stageBar.currentStage);

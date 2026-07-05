@@ -284,7 +284,7 @@ public class GManager : MonoBehaviour
             }
         }
 
-        SSManager.UpdateSelect(IManager.upPressedThisFrame, IManager.downPressedThisFrame, t, stageSelectButton, IManager.backPressedThisFrame);
+        SSManager.UpdateSelect(IManager.upPressedThisFrame, IManager.downPressedThisFrame, IManager.leftPressedThisFrame, IManager.rightPressedThisFrame, t, stageSelectButton, IManager.backPressedThisFrame);
     }
 
     // Fires the M21 golem landing camera shake once, the frame the stone stage
