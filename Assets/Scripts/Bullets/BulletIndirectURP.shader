@@ -107,7 +107,10 @@ Shader "Custom/BulletIndirectURP"
                 float2 uv = input.uv;
                 if (input.scale.x > 20.0 && input.scale.y < 3.5)
                 {
-                uv.x = frac(uv.x + _Time.y * 0.14);
+                // ベルト帯(scale.x36.5)のスリット模様を UV スクロール。
+                // 速度は帯上を流れるブロック(belt_flow ov.x=-9.5)と厳密一致させる:
+                // 0.26 UV/s * 36.5 world/UV = 9.49 world/s ≒ 9.5(REVIEW @6.3 速度一致)
+                uv.x = frac(uv.x + _Time.y * 0.26);
                 }
 
                 // テクスチャ配列からサンプリング
