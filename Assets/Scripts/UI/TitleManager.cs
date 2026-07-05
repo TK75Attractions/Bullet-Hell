@@ -52,6 +52,11 @@ public class TitleManager : MonoBehaviour
     private static readonly Color BarSelected = Color.white;
     private static readonly Color MenuTextDim = new Color(0.78f, 0.88f, 1f);
 
+    // Neon accents borrowed from the logo (cyan + magenta glitch) so the menu
+    // reads as part of the "JUST BEAT IT" title rather than a plain blue slab.
+    private static readonly Color NeonCyan = new Color(0.122f, 0.843f, 1f);
+    private static readonly Color NeonMagenta = new Color(1f, 0.106f, 0.471f);
+
     // How far above its scene-authored position the logo is lifted.
     private const float LogoRaiseOffset = 80f;
 
@@ -63,6 +68,19 @@ public class TitleManager : MonoBehaviour
     private Sprite barSprite;
     private float[] menuItemSel = new float[0];
     private int menuIndex;
+
+    // Per-row neon decoration (only visible on the selected row): a cyan halo and
+    // an offset magenta shadow behind the bar, small glitch chips on top of it,
+    // and inward-pointing triangle markers on either side.
+    private Image[] menuGlowCyan = new Image[0];
+    private Image[] menuGlowMagenta = new Image[0];
+    private Image[] menuTriLeft = new Image[0];
+    private Image[] menuTriRight = new Image[0];
+    private Image[][] menuChips = new Image[0][];
+    private Vector3[] menuTriLeftBase = new Vector3[0];
+    private Vector3[] menuTriRightBase = new Vector3[0];
+    private Vector2[][] menuChipBasePos = new Vector2[0][];
+    private Sprite triangleSprite;
 
     private GameObject transferRoot;
     private TMP_Text transferCodeText;
@@ -343,7 +361,41 @@ public class TitleManager : MonoBehaviour
             if (menuItemRects[i] != null) menuItemRects[i].localScale = Vector3.one * scale;
             if (menuBars[i] != null) menuBars[i].color = Color.Lerp(BarDim, BarSelected, menuItemSel[i]);
             if (menuItems[i] != null) menuItems[i].color = Color.Lerp(MenuTextDim, Color.white, menuItemSel[i]);
+
+            float s = menuItemSel[i];
+            float beat = selected ? beatPulse : 0f;
+            if (i < menuGlowCyan.Length && menuGlowCyan[i] != null)
+                SetAlpha(menuGlowCyan[i], s * (0.52f + 0.25f * beat));
+            if (i < menuGlowMagenta.Length && menuGlowMagenta[i] != null)
+                SetAlpha(menuGlowMagenta[i], s * 0.50f);
+            if (i < menuChips.Length && menuChips[i] != null)
+            {
+                for (int c = 0; c < menuChips[i].Length; c++)
+                {
+                    if (menuChips[i][c] == null) continue;
+                    SetAlpha(menuChips[i][c], c == 1 ? s * 0.55f : s);
+                    // Nudge one chip sideways on the beat for a glitch flicker.
+                    Vector2 bp = menuChipBasePos[i][c];
+                    float dx = c == 1 ? beat * 4f : 0f;
+                    menuChips[i][c].rectTransform.anchoredPosition = bp + new Vector2(dx, 0f);
+                }
+            }
+            if (i < menuTriLeft.Length && menuTriLeft[i] != null)
+            {
+                SetAlpha(menuTriLeft[i], s);
+                menuTriLeft[i].rectTransform.localScale = menuTriLeftBase[i] * (1f + 0.18f * beat);
+            }
+            if (i < menuTriRight.Length && menuTriRight[i] != null)
+            {
+                SetAlpha(menuTriRight[i], s);
+                menuTriRight[i].rectTransform.localScale = menuTriRightBase[i] * (1f + 0.18f * beat);
+            }
         }
+    }
+
+    private static void SetAlpha(Graphic g, float a)
+    {
+        Color c = g.color; c.a = a; g.color = c;
     }
 
     private void BuildMenu()
@@ -361,17 +413,43 @@ public class TitleManager : MonoBehaviour
         string[] labels = { "スタート", "設定", "引き継ぎ" };
         float[] rowY = { -178f, -303f, -428f };
         Vector2 barSize = new Vector2(600f, 104f);
+        triangleSprite = GetTriangleSprite();
+
         menuItems = new TMP_Text[labels.Length];
         menuItemRects = new RectTransform[labels.Length];
         menuBars = new Image[labels.Length];
         menuItemSel = new float[labels.Length];
+        menuGlowCyan = new Image[labels.Length];
+        menuGlowMagenta = new Image[labels.Length];
+        menuTriLeft = new Image[labels.Length];
+        menuTriRight = new Image[labels.Length];
+        menuChips = new Image[labels.Length][];
+        menuTriLeftBase = new Vector3[labels.Length];
+        menuTriRightBase = new Vector3[labels.Length];
+        menuChipBasePos = new Vector2[labels.Length][];
+
+        // Chip layout (relative to the bar centre): a few small rectangles that
+        // echo the pixel/glitch shards in the logo. white / magenta / cyan.
+        Vector2[] chipPos = { new Vector2(-232f, 42f), new Vector2(6f, 48f), new Vector2(214f, -44f) };
+        Vector2[] chipSize = { new Vector2(36f, 6f), new Vector2(20f, 7f), new Vector2(30f, 5f) };
+        Color[] chipCol = { Color.white, NeonMagenta, NeonCyan };
+
+        float barHalf = barSize.x * 0.5f;
         for (int i = 0; i < labels.Length; i++)
         {
+            bool sel = i == 0;
             // Each row is a container so the bar and its label scale together on
             // selection / beat, exactly like a stage-select box.
             RectTransform row = CreateRow("Item" + i, menuRoot, new Vector2(0f, rowY[i]), barSize);
 
-            Image bar = CreatePanel("Bar", row, Vector2.zero, barSize, i == 0 ? BarSelected : BarDim);
+            // Behind the bar: a cyan halo and an offset magenta shadow (a faux
+            // chromatic-aberration glow). Only lit on the selected row.
+            Image glowCyan = CreateBarCopy("GlowCyan", row, Vector2.zero, barSize + new Vector2(20f, 16f), NeonCyan, sel ? 0.6f : 0f);
+            Image glowMagenta = CreateBarCopy("GlowMagenta", row, new Vector2(7f, -6f), barSize + new Vector2(12f, 10f), NeonMagenta, sel ? 0.5f : 0f);
+            menuGlowCyan[i] = glowCyan;
+            menuGlowMagenta[i] = glowMagenta;
+
+            Image bar = CreatePanel("Bar", row, Vector2.zero, barSize, sel ? BarSelected : BarDim);
             if (barSprite != null)
             {
                 bar.sprite = barSprite;
@@ -380,17 +458,85 @@ public class TitleManager : MonoBehaviour
             }
             menuBars[i] = bar;
 
+            // Glitch chips on top of the bar.
+            menuChips[i] = new Image[chipPos.Length];
+            menuChipBasePos[i] = new Vector2[chipPos.Length];
+            for (int c = 0; c < chipPos.Length; c++)
+            {
+                Image chip = CreatePanel("Chip" + c, row, chipPos[c], chipSize[c], chipCol[c]);
+                Color cc = chip.color; cc.a = sel ? 1f : 0f; chip.color = cc;
+                menuChips[i][c] = chip;
+                menuChipBasePos[i][c] = chipPos[c];
+            }
+
             TMP_Text item = CreateText("Label", row, Vector2.zero, barSize, 52f,
-                i == 0 ? Color.white : MenuTextDim, TextAlignmentOptions.Center);
+                sel ? Color.white : MenuTextDim, TextAlignmentOptions.Center);
             item.text = labels[i];
             item.fontStyle = FontStyles.Bold;
+            item.characterSpacing = 6f;
             // The Japanese labels ride high in the bar under Middle alignment
             // (Latin UI font + CJK fallback metrics); optically center them.
             TmpAlign.CenterInkVertically(item);
             menuItems[i] = item;
             menuItemRects[i] = row;
-            menuItemSel[i] = i == 0 ? 1f : 0f;
+            menuItemSel[i] = sel ? 1f : 0f;
+
+            // Inward-pointing triangle markers echoing the logo's play mark.
+            Vector2 triSize = new Vector2(24f, 27f);
+            Image triLeft = CreateTriangle("TriLeft", row, new Vector2(-(barHalf + 30f), 0f), triSize, NeonCyan, sel ? 1f : 0f);
+            Image triRight = CreateTriangle("TriRight", row, new Vector2(barHalf + 30f, 0f), triSize, NeonMagenta, sel ? 1f : 0f);
+            triRight.rectTransform.localScale = new Vector3(-1f, 1f, 1f); // point left
+            menuTriLeft[i] = triLeft;
+            menuTriRight[i] = triRight;
+            menuTriLeftBase[i] = Vector3.one;
+            menuTriRightBase[i] = new Vector3(-1f, 1f, 1f);
         }
+    }
+
+    // A small right-pointing triangle sprite generated once at runtime (no asset
+    // needed). The right-side marker flips it horizontally to point left.
+    private Sprite GetTriangleSprite()
+    {
+        if (triangleSprite != null) return triangleSprite;
+        const int n = 64;
+        Texture2D tex = new Texture2D(n, n, TextureFormat.RGBA32, false);
+        tex.wrapMode = TextureWrapMode.Clamp;
+        Color32 clear = new Color32(255, 255, 255, 0);
+        Color32 solid = new Color32(255, 255, 255, 255);
+        for (int y = 0; y < n; y++)
+        {
+            // Apex at the right-centre; base along the left edge.
+            float t = Mathf.Abs(y - (n - 1) * 0.5f) / ((n - 1) * 0.5f); // 0 centre .. 1 edge
+            float maxX = (n - 1) * (1f - t);
+            for (int x = 0; x < n; x++)
+                tex.SetPixel(x, y, x <= maxX ? (Color)solid : (Color)clear);
+        }
+        tex.Apply();
+        triangleSprite = Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), 100f);
+        return triangleSprite;
+    }
+
+    private Image CreateBarCopy(string objectName, Transform parent, Vector2 pos, Vector2 size, Color color, float alpha)
+    {
+        Image img = CreatePanel(objectName, parent, pos, size, color);
+        if (barSprite != null)
+        {
+            img.sprite = barSprite;
+            img.type = Image.Type.Simple;
+            img.preserveAspect = false;
+        }
+        Color c = img.color; c.a = alpha; img.color = c;
+        return img;
+    }
+
+    private Image CreateTriangle(string objectName, Transform parent, Vector2 pos, Vector2 size, Color color, float alpha)
+    {
+        Image img = CreatePanel(objectName, parent, pos, size, color);
+        img.sprite = triangleSprite;
+        img.type = Image.Type.Simple;
+        img.preserveAspect = true;
+        Color c = img.color; c.a = alpha; img.color = c;
+        return img;
     }
 
     // The stage-select boxes are created before the title during startup, so we
