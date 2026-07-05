@@ -1,5 +1,52 @@
 # PROGRESS
 
+## 2026-07-05 朝・第2便(自律セッション・Opus: ブリッジ再び未接続。(3)51s/(4)60s の確定スペックを整備)
+
+**UnityMCP ブリッジは今回も未接続を確定**（前便と同一 PID・Unity 未再起動）。ユーザー指定の分岐に従い
+実装（Play/golden/録画を要する (1)〜(4)）は行わず。ただし手ぶらで終えず、**次の接続済みセッションが一発で
+適用・検証できるよう、(3)51s 爆破・(4)60s スタック解消の turnkey スペックを現物データで作成**した（docs 追加のみ・
+golden 非影響・非破壊）。前便が (2) について `Docs/stone-66s-telegraph-spec.md` を残したのと同じ方針。
+
+### 接続確認の結果（現物）
+
+- `manage_editor telemetry_status` = success（MCP サーバーは生存）だが、
+  `mcpforunity://instances` = `{"instance_count": 0, "instances": []}`（Unity 側ブリッジ未登録）。
+- `read_console` = `no_unity_session`。3回リトライも同一。
+- `Get-Process Unity` = PID 28972/36448/36800、いずれも 11:22〜23 開始＝**前便と同じプロセス（Unity 未再起動）**。
+- 復旧系ツール（deploy_package 等）も Unity セッションを要するため、こちらからブリッジ再接続は不可。
+
+### 今回やったこと（実装ではなくスペック整備）
+
+1. **`Docs/stone-51s-60s-spec.md` を新規作成**（(3)(4) の確定スペック）。現物確認に基づく:
+   - **拍換算**: BPM144 → 秒 = (bar-1)*1.66667 + (beat-1)*0.416667。**51.0 に最も近い実在拍 = 31:3 = 50.833s**。
+   - **(3)51s**: chart(`stone.chart.json`)で group3 の `石工大ブロックハンマー_3`(32:3) を削除、
+     破裂2件(`石工大ブロック破片_3`/`石工大ブロック破裂フラッシュ_3`)を 33:1→**31:3(50.833s)** へ前倒し。
+     E群(予告_E/出現_E/消去フラッシュ_2)は据え置き推奨（Play で前倒し可否を判断）。
+     **要検証**: `big_block_spawn_3` 本体 life が 53.3s 前提だと爆破後に居座る→ life を 50.833s 終了に短縮する要否を
+     次セッションで big_block_spawn_3.json / erase_flash_2 を見て確定。イベント −1 で ChartCompileParityTest 更新見込み。
+   - **(4)60s**: `mass_drop_3` は speed0・重力のみ＝x 列を真下に落下。着地は `mass_settle_3` が示す **2段スタック**
+     (big×2 が y4.7 で small の真上、x≈8 と x=24)。**9個を全て別 x 列にすればスタックと落下交差を同時解消**。
+     big2個を y2.3 へ降ろし単層横一列に。**重力は全弾不変（落下スピード感・音ハメ保持）**、着地y=2.3 に合わせ
+     originY のみ調整（big2個）、他7個は x のみ。新 x = 3.5/7.5(B)/11.0/14.0/17.0/20.0/23.5(B)/26.5/29.5(全て y2.3 着地)。
+     mass_settle_3 と prefall_blink_3(予告=落下開始位置ミラー) も同 x に一致させる。座標のみ変更＝
+     ChartCompileParityTest 不変、StageSpawnPositionLint ratchet + 該当3 buffer golden 更新。
+     具体的な originPos 新旧対応表・着地検算・列間隔チェックはスペック本文の表を参照。
+
+### 検証結果
+
+- 実装・golden・録画は**なし**（ブリッジ未接続のため不可能。未検証）。
+- スペックの数値は**現物 JSON（mass_drop_3 / mass_settle_3 / prefall_blink_3）と chart（stone.chart.json）を
+  読んで算出・検算済み**（着地y=originY−gravity×0.347222 で全9弾 2.30 を確認、列間隔も所要半幅超を確認）。
+  ただし見た目（回廊の抜けやすさ・爆破の拍感）と本体 life の居座り有無は Play/Oracle 未検証。
+
+### 未解決と次の一手
+
+- **最優先: UnityMCP ブリッジ再接続**（Unity Editor 再起動 or Reconnect）。`instance_count>=1` を確認後、
+  (1)38s 目視 → (2)`stone-66s-telegraph-spec.md` → (3)(4)`stone-51s-60s-spec.md` の順で着手。全スペック確定済み＝turnkey。
+- (3) は big_block_spawn_3.json / erase_flash_2 の本体消滅機構の確認が着手時の最初のステップ。
+
+---
+
 ## 2026-07-05 朝(自律セッション・Opus: UnityMCP ブリッジ未接続のため実装中断・引き継ぎ)
 
 **指示の最初の判定「UnityMCP ブリッジ接続確認」で未接続と確定したため、実装を行わず本セッションを中断する**。
