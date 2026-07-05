@@ -108,6 +108,13 @@
           "frameDuration": 0.1
         },
         {
+          "name": "fall1_descend",
+          "path": "golem_fall1_descend.gif",
+          "loop": false,
+          "next": "idle",
+          "frameDuration": 0.1
+        },
+        {
           "name": "fall2",
           "path": "golem_fall2.gif",
           "loop": false,
@@ -143,7 +150,7 @@
       "enemyName": "demo",
       "visualId": "golem",
       "animation": {
-        "initialClip": "fall1",
+        "initialClip": "fall1_descend",
         "events": []
       },
       "count": 1,
@@ -917,7 +924,7 @@
       "index": 0,
       "count": 1,
       "interval": 0.0,
-      "time": 10.0,
+      "time": 11.25,
       "pos": {
         "x": 0.0,
         "y": 0.0
@@ -1193,7 +1200,7 @@
       "index": 0,
       "count": 1,
       "interval": 0.0,
-      "time": 16.666667,
+      "time": 17.916667,
       "pos": {
         "x": 0.0,
         "y": 0.0
@@ -2328,7 +2335,7 @@
       "index": 0,
       "count": 1,
       "interval": 0.0,
-      "time": 70.0,
+      "time": 70.416667,
       "pos": {
         "x": 0.0,
         "y": 0.0
@@ -2463,6 +2470,54 @@
       },
       "clipName": "石工縁カッター_2",
       "minDifficulty": "normal"
+    },
+    {
+      "index": 0,
+      "count": 1,
+      "interval": 0.0,
+      "time": 75.833333,
+      "pos": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "originVlc": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "angle": 0.0,
+      "angleInterval": 0.0,
+      "color": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0,
+        "w": 1.0
+      },
+      "clipName": "石工縁カッター破片",
+      "thinEasy": 2
+    },
+    {
+      "index": 0,
+      "count": 1,
+      "interval": 0.0,
+      "time": 77.5,
+      "pos": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "originVlc": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "angle": 0.0,
+      "angleInterval": 0.0,
+      "color": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0,
+        "w": 1.0
+      },
+      "clipName": "石工縁カッター破片",
+      "thinEasy": 2
     },
     {
       "index": 0,
