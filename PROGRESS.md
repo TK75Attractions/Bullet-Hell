@@ -1,5 +1,47 @@
 # PROGRESS
 
+## 2026-07-05 朝・第11便(自律セッション・Opus: REVIEW-NOTES ハンドオフ表示バグを根本修正)
+
+REVIEW-NOTES 未処理の @13.4s(161044) と、作業中に届いた @19.2s(172629「何回言えば分かるの？」)を処理。
+**両者は完全に同一原因**で、settle→belt_flow ハンドオフ(stage 23.75s)の残存ポップだった。1修正で2件完了。
+
+### 今回やったこと
+
+- **原因特定**: video @13.4s(161044) = stage≈23.75s(overlay 実測 offset+9.92)。ここは「ランダム落下着地
+  (settle)ブロックの静止グリッド」→「落下後ベルト流し(belt_flow)」のハンドオフ。@21.0/@27.8(85c7f83)と
+  同族だが未解決の残件だった。85c7f83 は settle の消滅を belt 出現(23.75s ちょうど)に**時刻**整合させたが、
+  **belt_flow のブロック配置が settle グリッドと別レイアウト**(belt 下段は 30.45 を埋め・上段は 13.05/18.85、
+  settle は下段 30.45 空き・13.05 重なり・上段 15.95/21.75)だったため、23.75s に列の占有が一斉に入れ替わり
+  「表示が変わる/バグ」ポップになっていた。
+- **修正(位置のみ・count/timing 不変)**:
+  - `stone_rain_belt_flow_1.json` の初期 originPos.x 3列を settle union に一致: 30.45→13.05(下段) /
+    18.85→15.95(上段) / 13.05→21.75(上段)。
+  - 同族の `stone_rain_belt_flow_2.json`(settle_2 側・@27.8 相当・stage 30.42s)も 2列一致:
+    30.45→13.05(下段) / 13.05→7.25(上段)。
+  - どちらも settle a〜d の全ブロック座標の multiset と**完全一致**を Python で機械確認(MATCH・差分0)。
+- **@19.2s(172629)** は 172629 が修正前(17:26)録画だったため旧ポップが残っていただけで、上記修正で解消。
+
+### 検証結果
+
+- **JSON 健全性**: belt_flow_1/2 とも BOM+CRLF 保持・binary-safe な正規表現置換(各マッチ count==1 を assert)。
+  settle との座標 multiset 一致を機械確認。
+- **Validate All Stages**: 0 error / 551 warning(据え置き。座標変更のみで raw origin 数不変)。
+- **golden 再生成**: `Tools/Bullet Hell/Golden/Dump All Stages`。差分は 石工落下後ベルト流し_1/_2 の sha1 の
+  **2行のみ**(count 20 不変)。**EditMode 99/99 緑**。
+- **実機検証**: Play Mode + StageCaptureMenu.Arm でステージ秒同期スクショ。stage 23.60(settle)/23.72(settle)/
+  23.77(belt 直後)/23.85(belt) で 2段グリッドが**配置を保ったまま左スクロール開始**=ポップ消失を確認。
+- **音声付き通し録画**: `Recordings/stone_20260705_181115.mp4`(t0〜, h264+aac, 自動停止)。
+  handoff 区間 video19.35→19.70(stage23.62→23.97, video19.48=stage23.75 ちょうど)で連続性を再確認。
+
+### 未解決と次の一手
+
+- **REVIEW-NOTES は全件 [x]**(第10便で 13件 + 本便で 2件)。次のレビュー便待ち。
+- **同族パターンの予防**: settle→belt の位置整合は今回 belt_flow_1/2 の手作業一致で担保した。今後 settle 配置を
+  いじる場合は belt_flow も同時に合わせる必要がある(乖離すると再びポップ)。将来的には belt_flow を settle の
+  座標から自動生成できると安全。
+- **使い捨てファイル削除の保留**: 指示で許可された `Docs/_tmp_events48.txt` / `_tmp_hammer.txt` の削除は、
+  権限プロンプト(人間不在で承認不可)によりブロックされ未実施。次回インタラクティブ時に削除可。
+
 ## 2026-07-05 朝・第10便(自律セッション・Opus: REVIEW-NOTES 残り4件を全て処理・完了)
 
 前便までで REVIEW-NOTES(stone_20260705_131010.mp4 への13件レビュー)の残りは4件だった。
