@@ -61,7 +61,9 @@ public class JsabStageSelect : MonoBehaviour
     private Image diffScrim;             // dark wash for text contrast
     private RectTransform diffPanel;     // the buttons + title
     private readonly Image[] diffButtons = new Image[3];
+    private readonly Image[] diffButtonBorders = new Image[3];
     private readonly TMP_Text[] diffButtonLabels = new TMP_Text[3];
+    private static readonly Color SelectBorder = new Color(0.78f, 0.97f, 1f, 1f); // bright cyan-white
     private int diffIndex = 1;           // default NORMAL
     private bool difficultyOpen;
     private float diffOpenTime;           // unscaled time the modal opened (mouse debounce)
@@ -449,12 +451,24 @@ public class JsabStageSelect : MonoBehaviour
         float startX = -(bw + bgap);
         for (int i = 0; i < 3; i++)
         {
+            Vector2 pos = new Vector2(startX + i * (bw + bgap), -30f);
+
+            // Selection outline sits behind the button fill (added first) so it reads
+            // as a bright border, shown only for the highlighted difficulty.
+            Image border = NewImage("DiffBtnSel_" + DifficultyNames[i], diffPanel, SelectBorder);
+            RectTransform bdr = border.rectTransform;
+            bdr.anchorMin = bdr.anchorMax = new Vector2(0.5f, 0.5f);
+            bdr.pivot = new Vector2(0.5f, 0.5f);
+            bdr.sizeDelta = new Vector2(bw + 10f, bh + 10f);
+            bdr.anchoredPosition = pos;
+            diffButtonBorders[i] = border;
+
             Image btn = NewImage("DiffBtn_" + DifficultyNames[i], diffPanel, Navy);
             RectTransform btr = btn.rectTransform;
             btr.anchorMin = btr.anchorMax = new Vector2(0.5f, 0.5f);
             btr.pivot = new Vector2(0.5f, 0.5f);
             btr.sizeDelta = new Vector2(bw, bh);
-            btr.anchoredPosition = new Vector2(startX + i * (bw + bgap), -30f);
+            btr.anchoredPosition = pos;
             diffButtons[i] = btn;
 
             TMP_Text lbl = NewText("Lbl", btr, DifficultyNames[i], 40f, Cyan, TextAlignmentOptions.Center);
@@ -510,6 +524,11 @@ public class JsabStageSelect : MonoBehaviour
             Color tint = DifficultyTints[i];
             diffButtons[i].color = sel ? tint : new Color(0.04f, 0.10f, 0.15f, 1f);
             diffButtons[i].rectTransform.localScale = Vector3.one * (sel ? 1.06f : 0.94f);
+            if (diffButtonBorders[i] != null)
+            {
+                diffButtonBorders[i].enabled = sel;
+                diffButtonBorders[i].rectTransform.localScale = diffButtons[i].rectTransform.localScale;
+            }
             if (diffButtonLabels[i] != null)
                 diffButtonLabels[i].color = sel ? Ink : tint;
         }
