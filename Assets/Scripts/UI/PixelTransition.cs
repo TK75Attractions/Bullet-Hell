@@ -13,6 +13,10 @@ public class PixelTransition : MonoBehaviour
     private const float cellSize = 80f;
     private const float spreadTime = 0.45f;
     private const float jitterTime = 0.07f;
+    // プレイ開始の MosaicReveal 専用の小さめジッタ。共有の jitterTime(0.07)だと
+    // 拡大フロントのブロックが散らばって「中央から広がる」より「ランダムに溶ける」
+    // ように見えるため、モザイク解像だけ front を綺麗にして中央発を読みやすくする。
+    private const float mosaicJitterTime = 0.05f;
     private const float maxAnimationDelta = 1f / 30f;
     private const float loadedSceneHoldTime = 0.18f;
     private const float coveredHoldTime = 0.08f;
@@ -22,7 +26,7 @@ public class PixelTransition : MonoBehaviour
     // 見える)で 0.10 → 0.05 に短縮。
     private const float whiteoutTime = 0.20f;
     private const float whiteoutHoldTime = 0.05f;
-    private const float mosaicRevealTime = 0.62f;
+    private const float mosaicRevealTime = 0.76f;
 
     private RectTransform[] cells;
     private Image[] cellImages;
@@ -255,12 +259,12 @@ public class PixelTransition : MonoBehaviour
     {
         if (fadeGroup != null) fadeGroup.alpha = 1f;
         if (whiteSheet != null) whiteSheet.gameObject.SetActive(false);
-        float span = mosaicRevealTime - jitterTime;
+        float span = mosaicRevealTime - mosaicJitterTime;
         for (int i = 0; i < delays.Length; i++)
         {
             // baseDelays は中心からの距離を spreadTime に正規化した値。
             float order = baseDelays[i] / spreadTime; // 0(中心)→1(隅)
-            delays[i] = order * span + Random.Range(0f, jitterTime);
+            delays[i] = order * span + Random.Range(0f, mosaicJitterTime);
         }
         await Animate(coverIn: false);
         gameObject.SetActive(false);
