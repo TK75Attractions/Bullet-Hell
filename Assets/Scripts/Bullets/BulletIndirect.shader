@@ -30,6 +30,9 @@ Shader "Custom/BulletIndirectMasked"
             UNITY_DECLARE_TEX2DARRAY(_MainArray);
             UNITY_DECLARE_TEX2DARRAY(_MaskArray);
 
+            // 石工ベルト帯のスリット模様スクロール量(UV)。flow 窓だけ進む(第33便)。
+            float _StoneBeltScroll;
+
             //========================
             // GPU �\���́iC# �ƈ�v�K�{�j
             //========================
@@ -117,7 +120,8 @@ Shader "Custom/BulletIndirectMasked"
                 float2 uv = i.uv;
                 if (i.scale.x > 20.0 && i.scale.y < 3.5)
                 {
-                uv.x = frac(uv.x + _Time.y * 0.14);
+                // 第33便: _Time.y(常時)ではなく _StoneBeltScroll(flow 窓だけ進む)。
+                uv.x = frac(uv.x + _StoneBeltScroll);
                 }
 
                 fixed4 baseCol =

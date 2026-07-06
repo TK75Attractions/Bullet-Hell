@@ -38,6 +38,11 @@ Shader "Custom/BulletIndirectURP"
             TEXTURE2D_ARRAY(_MaskArray);
             SAMPLER(sampler_MaskArray);
 
+            // 石工ベルト帯のスリット模様スクロール量(UV)。ベルト上をブロックが流れて
+            // いる区間だけ StoneBeltScrollDriver が進める(停止中は据え置き=模様も静止)。
+            // 未設定時は 0(静止)。第33便: 常時 _Time.y スクロールから切替。
+            float _StoneBeltScroll;
+
             struct BulletData
             {
                 float2 pos;
@@ -110,7 +115,9 @@ Shader "Custom/BulletIndirectURP"
                 // ベルト帯(scale.x36.5)のスリット模様を UV スクロール。
                 // 速度は帯上を流れるブロック(belt_flow ov.x=-9.5)と厳密一致させる:
                 // 0.26 UV/s * 36.5 world/UV = 9.49 world/s ≒ 9.5(REVIEW @6.3 速度一致)
-                uv.x = frac(uv.x + _Time.y * 0.26);
+                // 第33便: _Time.y(常時)ではなく _StoneBeltScroll(flow 窓だけ進む)で
+                // スクロール。ブロックが流れていない区間では模様も静止する。
+                uv.x = frac(uv.x + _StoneBeltScroll);
                 }
 
                 // テクスチャ配列からサンプリング
