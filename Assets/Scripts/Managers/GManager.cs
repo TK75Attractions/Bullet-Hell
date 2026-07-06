@@ -392,7 +392,8 @@ public class GManager : MonoBehaviour
     private void OpenTitleOptions()
     {
         titlePhase = TitlePhase.Options;
-        TManager?.HideMenu();
+        // メニューは隠さない。設定画面は完成フレーム(メニュー・ロゴを含む)を
+        // 撮ってぼかし背景にするので、退場させず背景に残す(第31便)。
         // The title never freezes time or audio; the option screen simply
         // overlays the running title. The Title sibling is drawn above the
         // OptionScreen in the scene, so lift the option screen to the front

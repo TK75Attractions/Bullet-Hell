@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
@@ -81,6 +82,13 @@ public class TitleManager : MonoBehaviour
     private float menuWhiteY;
 
     private GameObject transferRoot;
+    private CanvasGroup transferCG;
+    // 引き継ぎ画面の背景ぼかし(難易度オーバーレイと同構成: 完成フレームの
+    // スナップショット+暗スクリム)。メニュー・ロゴを退場させず背景に残す。
+    private RawImage transferBackdrop;
+    private Material transferBlurMaterial;
+    private Texture2D transferBackdropTex;
+    private Coroutine transferCaptureRoutine;
     private TMP_Text transferCodeText;          // 履歴なしメッセージ(コードはブロック表示)
     private TMP_InputField transferInput;
     private TMP_Text transferMessageText;
@@ -639,12 +647,16 @@ public class TitleManager : MonoBehaviour
         if (transferRoot == null) return;
         transferOpen = true;
         transferInputError = false;
-        if (menuRoot != null) menuRoot.gameObject.SetActive(false);
-        // スクリムを薄くした分、背面のロゴがパネルに透けて汚れるため隠す
-        // (背景図形は演出として残す)。
-        if (logoRect != null) logoRect.gameObject.SetActive(false);
+        // メニュー・ロゴは退場させない。難易度オーバーレイと同様、完成フレーム
+        // (メニュー・ロゴを含む)を撮ってぼかし、その上にパネルを重ねる(第31便)。
         transferRoot.SetActive(true);
         transferRoot.transform.SetAsLastSibling();
+        // 撮影フレームはパネルを不可視にして背景(タイトル)だけを撮る。撮影後に
+        // ぼかしスナップショットを差し込んで表示する。
+        if (transferCG != null) transferCG.alpha = 0f;
+        if (transferBackdrop != null) transferBackdrop.gameObject.SetActive(false);
+        if (transferCaptureRoutine != null) StopCoroutine(transferCaptureRoutine);
+        transferCaptureRoutine = StartCoroutine(CaptureTransferBackdrop());
         // 固定ラベルの光学中央補正はビルド時(非アクティブ)に空振りしている
         // ことがあるため、初回オープン時に測り直す(チップ等の可変テキストは
         // RefreshTransferCode が毎回再適用する)。
@@ -673,9 +685,45 @@ public class TitleManager : MonoBehaviour
     {
         transferOpen = false;
         if (transferInput != null) transferInput.DeactivateInputField();
+        if (transferCaptureRoutine != null) { StopCoroutine(transferCaptureRoutine); transferCaptureRoutine = null; }
         if (transferRoot != null) transferRoot.SetActive(false);
+        if (transferBackdrop != null) transferBackdrop.texture = null;
+        ReleaseBackdropTexture();
+        // メニュー・ロゴはそもそも隠していないので再表示は不要(念のため確認)。
         if (menuRoot != null) menuRoot.gameObject.SetActive(true);
         if (logoRect != null) logoRect.gameObject.SetActive(true);
+    }
+
+    // 引き継ぎパネルを一瞬透明にして背景(タイトル: メニュー・ロゴ・図形)だけを
+    // 撮り、ぼかしマテリアル越しに背景として敷く。撮影はフレーム描画後に行う
+    // (入力処理中の同期キャプチャは白バッファを返すことがある)。
+    private IEnumerator CaptureTransferBackdrop()
+    {
+        yield return new WaitForEndOfFrame();
+        transferCaptureRoutine = null;
+        if (!transferOpen) yield break;
+        ReleaseBackdropTexture();
+        transferBackdropTex = ScreenCapture.CaptureScreenshotAsTexture();
+        if (transferBackdrop != null)
+        {
+            transferBackdrop.texture = transferBackdropTex;
+            transferBackdrop.gameObject.SetActive(true);
+        }
+        // パネルをふわりと出す(急な表示を防ぐ。難易度オーバーレイと同傾向)。
+        float t = 0f;
+        while (t < 0.14f)
+        {
+            t += Time.unscaledDeltaTime;
+            if (transferCG != null) transferCG.alpha = Mathf.Clamp01(t / 0.14f);
+            yield return null;
+        }
+        if (transferCG != null) transferCG.alpha = 1f;
+    }
+
+    private void ReleaseBackdropTexture()
+    {
+        if (transferBackdropTex != null) Destroy(transferBackdropTex);
+        transferBackdropTex = null;
     }
 
     public void ApplyTransfer()
@@ -789,6 +837,21 @@ public class TitleManager : MonoBehaviour
         rootRect.anchorMax = Vector2.one;
         rootRect.offsetMin = Vector2.zero;
         rootRect.offsetMax = Vector2.zero;
+        transferCG = rootObj.AddComponent<CanvasGroup>();
+
+        // 最背面: 完成フレームのぼかしスナップショット(オープン時に差し込む)。
+        // メニュー・ロゴを退場させず、その凍結ぼかしを背景として敷く(第31便)。
+        transferBackdrop = CreateRawImage("Backdrop", rootRect);
+        StretchToParent(transferBackdrop.rectTransform);
+        Shader blurShader = Shader.Find("UI/BulletHell/BackdropBlur");
+        if (blurShader != null)
+        {
+            transferBlurMaterial = new Material(blurShader);
+            transferBlurMaterial.SetFloat("_Radius", 4f);
+            transferBackdrop.material = transferBlurMaterial;
+        }
+        transferBackdrop.color = new Color(0.55f, 0.62f, 0.72f, 1f); // 難易度オーバーレイと同じ軽い減光
+        transferBackdrop.gameObject.SetActive(false);
 
         // 背景: 薄いスクリム+中央の無枠パネル1枚のみ。パネルはわずかに透けさせ
         // (0.90)、上辺ハイライト+下辺シャドウの各1pxで「ただの黒い板」感を消す
@@ -959,6 +1022,23 @@ public class TitleManager : MonoBehaviour
         label.alignment = align;
         label.raycastTarget = false;
         return label;
+    }
+
+    private void OnDestroy()
+    {
+        ReleaseBackdropTexture();
+        if (transferBlurMaterial != null) Destroy(transferBlurMaterial);
+    }
+
+    private RawImage CreateRawImage(string objectName, Transform parent)
+    {
+        GameObject go = new GameObject(objectName, typeof(RectTransform), typeof(CanvasRenderer), typeof(RawImage));
+        go.layer = gameObject.layer;
+        RectTransform rect = (RectTransform)go.transform;
+        rect.SetParent(parent, false);
+        RawImage raw = go.GetComponent<RawImage>();
+        raw.raycastTarget = false;
+        return raw;
     }
 
     private Image CreatePanel(string objectName, Transform parent, Vector2 pos, Vector2 size, Color color)
