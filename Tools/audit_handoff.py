@@ -137,3 +137,82 @@ for sec in ("1", "2"):
               + ("<-- GAP(消え)" if gap and gap>1e-3 else ("<-- OVERLAP(二重)" if gap and gap<-1e-3 else "OK")))
     report_handoff(drop, settle, f"drop->settle sec{sec}")
     report_handoff(settle, belt, f"settle->belt sec{sec}")
+
+
+# ---------------------------------------------------------------------------
+# 拡張(第36便): fresh-fire ハンドオフのフレーム単位ギャップ点検
+#
+# 実測で判明した根本原因: incoming クリップが「そのハンドオフ時刻に新規発火」
+# される対 (= incoming の appearTime==0) は、初回スポーンが約1ゲームフレーム
+# 遅れて描画されるため、ハードカット型の outgoing が先に消えて 1 フレームの
+# 継ぎ目(黒み/一瞬消え)が出る。数式上は gap=0 でも実レンダリングで欠ける。
+# 一方 settle/warn のように appearTime>0 で「事前発火→appearTime で可視化」
+# される incoming は初回スポーン済みなので gap は出ない(実測 drop->settle は clean)。
+#
+# よってブロックが持続する fresh-fire ハンドオフ(spawn->drop, settle->belt)は
+# outgoing の life に微小オーバーラップ余白を持たせる必要がある。ここでは
+# outgoing.disappear >= incoming_fire + MIN_OVERLAP を要求し、不足を FLAG する。
+# MIN_OVERLAP は 1 ゲームフレーム+ジッタを吸収する 0.02s。
+MIN_OVERLAP = 0.020
+
+def first_bullet(name):
+    f = name2file.get(name)
+    if not f:
+        return None
+    o = load(f)
+    return o["bullets"][0]
+
+def fresh_check(out_bases, in_base, label):
+    """out_bases: list of buffer basenames (persistent blocks) that must survive
+    until the freshly-fired incoming clip's first render frame."""
+    inn = base2name.get(in_base)
+    if inn is None:
+        print(f"  [{label}] incoming {in_base} MISSING"); return
+    inf = fires.get(inn, [None])[0]
+    ib = first_bullet(inn)
+    if inf is None or ib is None:
+        print(f"  [{label}] incoming {in_base} no-fire"); return
+    in_at = ib.get("appearTime", 0)
+    in_ov = ib.get("originVlc", {"x": 0, "y": 0}) or {"x": 0, "y": 0}
+    fresh = abs(in_at) < 1e-6
+    in_appear = inf + in_at
+    moving = abs(in_ov.get("x", 0)) > 1e-6 or abs(in_ov.get("y", 0)) > 1e-6
+    kind = f"belt/ov=({in_ov.get('x',0)},{in_ov.get('y',0)})" if moving else "gravity/static"
+    tag = "FRESH(gap-risk)" if fresh else "pre-fired(safe)"
+    print(f"  [{label}] incoming={in_base} appearTime={in_at} {tag} incoming={kind}")
+    worst = None
+    for ob in out_bases:
+        on = base2name.get(ob)
+        if on is None:
+            print(f"     out {ob}: MISSING"); continue
+        of = fires.get(on, [None])[0]
+        b = first_bullet(on)
+        if of is None or b is None:
+            print(f"     out {ob}: no-fire"); continue
+        life = b.get("life", 0)
+        dis = of + life
+        margin = dis - in_appear  # >0 = overlap(good), <0 = gap
+        worst = margin if worst is None else min(worst, margin)
+        state = "OK-overlap" if margin >= MIN_OVERLAP else ("!!GAP(消え)" if margin < 0 else "!!TIGHT(1F消え risk)")
+        print(f"     out {ob:26s} disappear={dis:.4f} incoming_appear={in_appear:.4f} margin={margin:+.4f}s {state}")
+    if fresh and worst is not None and worst < MIN_OVERLAP:
+        need = MIN_OVERLAP - worst
+        print(f"     ==> FLAG: fresh-fire かつ margin<{MIN_OVERLAP}s。outgoing life を +{need:.3f}s 以上延長せよ")
+
+print("\n\n================= FRESH-FIRE HANDOFF AUDIT (第36便拡張) =================")
+for sec in ("1", "2"):
+    print(f"\n----- TILE section {sec} -----")
+    fresh_check([f"stone_tile_spawn_{sec}_{s}" for s in "abcd"],
+                f"stone_tile_drop_{sec}", f"tile spawn->drop {sec}")
+    fresh_check([f"stone_tile_drop_{sec}"], f"stone_tile_settle_{sec}",
+                f"tile drop->settle {sec}")
+    fresh_check([f"stone_tile_settle_{sec}"], f"stone_belt_flow_{sec}",
+                f"tile settle->belt {sec}")
+for sec in ("1", "2"):
+    print(f"\n----- RAIN section {sec} -----")
+    fresh_check([f"stone_rain_drop_{sec}_{s}" for s in "ac"],
+                f"stone_rain_settle_{sec}_a", f"rain drop->settle {sec} (a)")
+    fresh_check([f"stone_rain_settle_{sec}_{s}" for s in "ac"],
+                f"stone_rain_belt_flow_{sec}", f"rain settle->belt {sec}")
+print(f"\n----- MASS drop -----")
+fresh_check(["mass_drop_3"], "mass_settle_3", "mass drop->settle")

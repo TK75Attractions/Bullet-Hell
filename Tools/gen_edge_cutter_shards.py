@@ -1,15 +1,39 @@
 # -*- coding: utf-8 -*-
-"""縁カッター破片を刃の掃引に追従(trailing)させて再生成する。
-edge_cutter_1(edge_cutter_shard) と逆方向の edge_cutter_2(edge_cutter_shard_2) を作る。
-各辺で刃が通過した位置・時刻に破片を発生させ、内向き+後方(trailing)へ射出する。"""
+"""縁カッター破片を刃の掃引に追従(trailing)して発生させ、最寄りの壁へ外向きに
+「重力的な加速」で飛ばして画面外へ抜けさせる(第36便 @77.7 対応)。
+edge_cutter_1(edge_cutter_shard) と逆方向の edge_cutter_2(edge_cutter_shard_2)。
+
+engine の gravity は -Y のみで任意方向の加速に使えないため、radiusVlc を使う。
+straight 弾の変位は offset(t) = (r0 + radiusVlc*t) * speed * t を theta 方向へ。
+r0=初速係数、radiusVlc*speed が t^2 項(=外向き加速)を生む。各辺で theta を外向き
+法線に向け、破片が壁方向へ加速して画面外(-2..36 の bounds)へ抜けるまで生かす。"""
 import sys, math, copy, json
 sys.path.insert(0, "Tools")
-from stone_edit_lib import load, dump, exit_lapse
+from stone_edit_lib import load, dump
 
-SPEED = 5.0
+# アーク軌道: 破片はまず内向き(arena 側)へ散り、外向き加速(重力的)で反転して
+# 最寄りの壁へ抜ける。offset(t) = (R0 + RADIUS_VLC*t) * SPEED * t を theta(外向き)へ。
+# R0<0 で初速は内向き、RADIUS_VLC>0 の t^2 項が外向き加速。turn 時刻 t*=-R0/(2*RVLC)、
+# 内向き最大侵入 = SPEED*R0^2/(4*RVLC)。壁が近い(0.7u)ため一旦内側に見せてから外へ出す。
+SPEED = 4.0
+R0 = -3.5          # 初速係数(負=内向き初速 SPEED*R0)。一旦 arena 側へ散る
+RADIUS_VLC = 4.5   # 外向き加速(t^2 項)= 重力的に壁へ引かれる
 SCALE = 0.55
 PER_EDGE = 10
 BLADE_SPEED = 24.0
+
+def accel_exit_lapse(ox, oy, theta, dt=0.002, maxt=6.0):
+    """radiusVlc 加速する straight 破片が bounds(-2..36) を出る lapse。"""
+    cs, sn = math.cos(theta), math.sin(theta)
+    t = 0.0
+    while t < maxt:
+        t += dt
+        off = (R0 + RADIUS_VLC * t) * SPEED * t
+        x = ox + off * cs
+        y = oy + off * sn
+        if not (-2.0 <= x < 36.0 and -2.0 <= y < 36.0):
+            return t
+    return maxt
 
 # edge geometry: name -> (fixed axis value, inward normal unit, along-edge sample range)
 # top/bottom sample x in [2,30]; left/right sample y in [2,16]
@@ -54,15 +78,15 @@ def make_bullet(template, edge, variant, i):
         ox, oy = pos, e["y"]
     else:
         ox, oy = e["x"], pos
-    # velocity direction = inward normal + trailing(-blade dir)*0.5
-    n = e["n"]; d = b["d"]
-    vx = n[0] * 1.0 + (-d[0]) * 0.5
-    vy = n[1] * 1.0 + (-d[1]) * 0.5
-    # deterministic small jitter (+/-8deg) for natural look
-    jit = ((i * 37 + (0 if variant == 1 else 19)) % 17 - 8) * math.radians(1.0)
-    ang = math.atan2(vy, vx) + jit
+    # velocity direction = 最寄りの壁へ向かう外向き法線(= -inward normal)。
+    # e["n"] は内向き法線なので符号反転で外向きにする。
+    n = e["n"]
+    ox_dir, oy_dir = -n[0], -n[1]
+    # deterministic small jitter (+/-15deg) で壁沿いに軽く散らす(過度な扇にしない)
+    jit = ((i * 37 + (0 if variant == 1 else 19)) % 31 - 15) * math.radians(1.0)
+    ang = math.atan2(oy_dir, ox_dir) + jit
     appT = passage_time(edge, b, pos)
-    life = exit_lapse(ox, oy, SPEED, ang, 0.0) + 0.15
+    life = accel_exit_lapse(ox, oy, ang) + 0.15
     spin = 6 + (i % 5)
     if i % 2 == 0:
         spin = -spin
@@ -71,8 +95,10 @@ def make_bullet(template, edge, variant, i):
     bl["originVlc"] = {"x": 0, "y": 0}
     bl["speed"] = SPEED
     bl["gravity"] = 0.0
+    bl["radiusVlc"] = RADIUS_VLC      # 外向き加速(t^2 項)= 重力的な加速
+    bl["thetaVlc"] = 0
     bl["angleSpeed"] = spin
-    bl["polarForm"] = {"x": 1, "y": round(ang % (2 * math.pi), 6)}
+    bl["polarForm"] = {"x": R0, "y": round(ang % (2 * math.pi), 6)}
     bl["startPos"] = {"x": 0, "y": 0}
     bl["startX"] = 0
     bl["scale"] = {"x": SCALE, "y": SCALE}

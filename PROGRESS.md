@@ -1,5 +1,56 @@
 # PROGRESS
 
+## 2026-07-07 深夜・第36便(自律セッション・Opus: 石工の細かい指摘3件)
+
+`Instructions/REVIEW-NOTES.md` の未処理3件(stone_20260706_230634_t0.mp4)を本体1本で対応
+(サブエージェント未使用。データ編集→まとめて1回の Compile/Golden/Play/録画で検証)。
+
+### 今回やったこと
+
+**(1)(2) ブロックが「一瞬消える」1フレーム継ぎ目の根治(@9.2 タイル spawn→drop / @24.6 レイン settle→belt)**
+
+- 実測で根因を確定。t0 録画の該当帯を明度測定すると、ハンドオフ瞬間に**ちょうど1フレームだけ**明度が急落
+  (@9.167: 30.5→21.97 / @24.6: 44→17.97=ほぼ消失)。前便の spawn→drop の「1拍 gap」修正とは別問題。
+- 根本原因: **incoming クリップが appearTime==0 でハンドオフ時刻に新規発火する対**は、初回スポーンが
+  約1ゲームフレーム遅れて描画される一方、ハードカット型(stone_block)の outgoing は `bullet.time>=life` で
+  即消滅するため、1フレームの黒い継ぎ目が出る(BulletRenderSystem 確認: appearTime==0 の incoming は
+  即 full alpha=フェード無し)。settle/warn(appearTime>0)は事前発火済で継ぎ目無し(実測 drop→settle は
+  dip 無し)と一致。
+- 対策: outgoing の life に微小オーバーラップ余白を付与。
+  - tile spawn_{1,2}_{a-d}: +0.05s(incoming=drop は gravity で初速ゼロ→オーバーラップ不可視)
+  - tile settle_{1,2}・rain settle_{1,2}_{a,c}: +0.034s(incoming=belt は ov.x=-9.5 で動くが belt 自身も
+    約1フレーム遅発するため実オーバーラップ 0.13-0.16u=二重像不可視)
+- **監査拡張**: `Tools/audit_handoff.py` にレイン全区間・mass drop・**fresh-fire(appearTime==0 の incoming)の
+  1フレーム gap リスク**の機械判定を追加(MIN_OVERLAP=0.02s、margin 不足を FLAG)。tile spawn→drop・
+  settle→belt(tile/rain 両)を検出し、pre-fired の drop→settle/mass は安全と分類。
+
+**(3) 縁カッター破片を壁方向へ「重力的に加速」して画面外へ(@77.7)**
+
+- 旧破片は内向き射出で中央へ収束(壁へ抜けない)。engine の gravity は -Y のみで任意方向加速に使えないため
+  **radiusVlc**(R(t)=r0+radiusVlc·t で polarForm.x を時間増加=任意方向の外向き加速 ∝t²=重力的)を活用。
+- `Tools/gen_edge_cutter_shards.py` を改修。theta を最寄りの壁の外向き法線(top→+Y/bottom→-Y/right→+X/
+  left→-X)に向け、R0=-3.5(初速は内向き=一旦 arena 側へ 2.72u 散る)+radiusVlc=4.5(外向き加速で反転)の
+  **アーク軌道**に。壁が近い(0.7u)ため一旦内へ見せてから重力的に壁へ引かれ画面外へ抜ける。life はアーク軌道
+  sim で bounds 到達+0.15s(途中消し0)。spawn 位置(辺=刃の掃引に追従)は不変。
+
+### 検証結果
+
+- EditMode **109/109 緑**、golden は変更16クリップ(tile spawn8+tile着地2+rain着地4+破片2)の sha1 のみ・count 不変。
+- 全 stone JSON の **BOM/CRLF 保全**(HEAD は全て LF、working は git autocrlf。diff は life 値/破片パラメータのみ)。
+- 新録画 **Recordings/stone_20260707_002513.mp4**(81.4s・音声付・style0)で明度測定: tile spawn→drop(stage9.0-9.4)
+  dip=NONE、rain settle→belt(stage24.3-24.9)dip=NONE。ハンドオフの +2.8 微小バンプ=gap 解消の証拠。
+  破片は stage77.5-79 で辺付近から外向きに抜けるのを確認。
+
+### 未解決・次の一手
+
+- 破片は navy 統一色のため黒背景で暗め・やや疎に見える(仕様: 過去便で色統一+小型化+中央不侵入を指示済)。
+  主観で「もっと目立たせたい」なら scale/count/明度の再調整余地あり(次便で親判断)。
+- fresh-fire gap の余白付与は「outgoing を1フレーム長生きさせる」対症療法。恒久的には incoming の初回スポーン
+  遅延(1フレーム)を無くす engine 側修正が本筋だが、全弾に影響するため今回は見送り(監査で棚卸し可能に)。
+- CLAUDE.md 記載の「次シーン制作へ移行予定」: 石工の細かい指摘が一巡したら着手候補。
+
+---
+
 ## 2026-07-06 深夜・第35便(自律セッション・Opus: 石工レビュー9件+引き継ぎ画面レイアウト4点)
 
 `Instructions/REVIEW-NOTES.md` の未処理9件(stone_20260706_222302.mp4)+ 親のスクショ分析による
