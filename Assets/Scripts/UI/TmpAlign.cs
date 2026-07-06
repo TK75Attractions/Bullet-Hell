@@ -28,10 +28,13 @@ public static class TmpAlign
     /// <summary>
     /// Vertically centers <paramref name="text"/> by its rendered ink bounds.
     /// Call after the text (and, for auto-sized labels, its size) is assigned.
+    /// Returns false when the correction could not be measured (no visible
+    /// characters — e.g. the label's canvas is not initialized yet); callers
+    /// that build UI during scene load should re-call once the UI is shown.
     /// </summary>
-    public static void CenterInkVertically(TMP_Text text)
+    public static bool CenterInkVertically(TMP_Text text)
     {
-        if (text == null) return;
+        if (text == null) return false;
 
         RectTransform rt = text.rectTransform;
         if (!baseY.TryGetValue(rt, out float rest))
@@ -40,7 +43,11 @@ public static class TmpAlign
             baseY[rt] = rest;
         }
 
-        text.ForceMeshUpdate();
+        // ignoreActiveState=true: タイトルメニューや引き継ぎパネルはビルド時に
+        // まだ非アクティブなことがあり、既定の ForceMeshUpdate() だと文字が
+        // 生成されず補正が無言でスキップされる(第30便で実測 8〜11px の上ずれ
+        // として発覚)。非アクティブでも必ずメッシュを生成して測る。
+        text.ForceMeshUpdate(true, true);
         TMP_TextInfo info = text.textInfo;
         float min = float.MaxValue;
         float max = float.MinValue;
@@ -51,9 +58,10 @@ public static class TmpAlign
             if (ch.bottomLeft.y < min) min = ch.bottomLeft.y;
             if (ch.topLeft.y > max) max = ch.topLeft.y;
         }
-        if (min == float.MaxValue) return; // nothing visible (e.g. empty string)
+        if (min == float.MaxValue) return false; // nothing visible (e.g. empty string)
 
         float inkCenter = (min + max) * 0.5f;
         rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, rest - inkCenter);
+        return true;
     }
 }

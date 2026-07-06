@@ -92,8 +92,12 @@ public class TitleManager : MonoBehaviour
     private GameObject transferCodeBlocksRoot;
     private TMP_Text[] transferCodeBlockTexts = new TMP_Text[0];
     private TMP_Text[] transferCodeBlockShadows = new TMP_Text[0];
+    private TMP_Text[] transferHyphenTexts = new TMP_Text[0]; // v2(4文字)コードでは非表示
     private Image transferInputBorder;
     private bool transferInputError;
+    // ビルド時に空振りした光学中央補正の再適用フラグ(表示後の初回に確定)。
+    private bool menuInkCentered;
+    private bool transferInkCentered;
 
     private static readonly Color InputBorderIdle = new Color(0.118f, 0.812f, 0.878f, 0.65f);
     // 適用ボタンは入力が空だと沈み、入力があると点灯する(oracle 指摘: 常時
@@ -295,6 +299,20 @@ public class TitleManager : MonoBehaviour
     public void UpdateTitle(float dt)
     {
         if (dismissed || returnAnimating) return;
+
+        // メニューの光学中央補正はビルド時(シーンロード中)には TMP が文字を
+        // 生成できず空振りすることがある(第30便で実測 8〜11px の上ずれ)。
+        // 表示中の最初のフレームで測定できるようになってから確定させる。
+        if (!menuInkCentered && menuItems != null)
+        {
+            bool all = true;
+            foreach (TMP_Text item in menuItems)
+            {
+                if (item != null) all &= TmpAlign.CenterInkVertically(item);
+            }
+            menuInkCentered = all;
+        }
+
         animTime += dt;
 
         beatTimer += dt;
@@ -627,6 +645,21 @@ public class TitleManager : MonoBehaviour
         if (logoRect != null) logoRect.gameObject.SetActive(false);
         transferRoot.SetActive(true);
         transferRoot.transform.SetAsLastSibling();
+        // 固定ラベルの光学中央補正はビルド時(非アクティブ)に空振りしている
+        // ことがあるため、初回オープン時に測り直す(チップ等の可変テキストは
+        // RefreshTransferCode が毎回再適用する)。
+        if (!transferInkCentered)
+        {
+            RectTransform rootRect = (RectTransform)transferRoot.transform;
+            bool all = true;
+            foreach (string n in new[] { "Heading", "HeadingSub", "CodeLabel", "InputLabel", "Hints" })
+            {
+                TMP_Text label = rootRect.Find(n)?.GetComponent<TMP_Text>();
+                if (label != null) all &= TmpAlign.CenterInkVertically(label);
+            }
+            if (applyLabelText != null) all &= TmpAlign.CenterInkVertically(applyLabelText);
+            transferInkCentered = all;
+        }
         RefreshTransferCode();
         if (transferMessageText != null) transferMessageText.text = string.Empty;
         if (transferInput != null)
@@ -716,10 +749,19 @@ public class TitleManager : MonoBehaviour
             }
         }
         if (!has) return;
-        string[] parts = PlayHistory.ExportCode().Split('-');
+        // v2 コードは4文字(ハイフンなし)。チップ1個に1文字ずつ収め、チップ間の
+        // ハイフンは隠す(4文字グループ×4だった v1 表示からの置き換え)。
+        string code = PlayHistory.ExportCode().Replace("-", "");
+        bool perChar = code.Length == transferCodeBlockTexts.Length;
+        foreach (TMP_Text hy in transferHyphenTexts)
+        {
+            if (hy != null) hy.gameObject.SetActive(!perChar);
+        }
         for (int i = 0; i < transferCodeBlockTexts.Length; i++)
         {
-            string part = i < parts.Length ? parts[i] : "";
+            string part = perChar
+                ? code[i].ToString()
+                : (i * 4 + 4 <= code.Length ? code.Substring(i * 4, 4) : "");
             if (transferCodeBlockTexts[i] != null)
             {
                 transferCodeBlockTexts[i].text = part;
@@ -780,6 +822,7 @@ public class TitleManager : MonoBehaviour
         blocksRect.anchoredPosition = new Vector2(0f, 48f);
         transferCodeBlockTexts = new TMP_Text[4];
         transferCodeBlockShadows = new TMP_Text[0];
+        transferHyphenTexts = new TMP_Text[3];
         float x0 = -(blockW * 3f + blockGap * 3f) * 0.5f;
         for (int i = 0; i < 4; i++)
         {
@@ -799,6 +842,7 @@ public class TitleManager : MonoBehaviour
                 TMP_Text hy = CreateText("Hyphen" + i, blocksRect, new Vector2(bx + (blockW + blockGap) * 0.5f, 0f), new Vector2(22f, 36f), 30f, new Color(0.345f, 0.863f, 0.922f, 0.5f), TextAlignmentOptions.Center);
                 hy.text = "-";
                 TmpAlign.CenterInkVertically(hy);
+                transferHyphenTexts[i] = hy;
             }
         }
         // 履歴なしのときだけ出すメッセージ(ブロックと同じ位置)。
@@ -871,7 +915,8 @@ public class TitleManager : MonoBehaviour
 
         TMP_Text placeholder = CreateText("Placeholder", areaRect, Vector2.zero, size, 28f, new Color(0.498f, 0.682f, 0.722f, 0.5f), TextAlignmentOptions.Left);
         StretchToParent(placeholder.rectTransform);
-        placeholder.text = "XXXX-XXXX-XXXX-XXXX";
+        // 発行コードは4文字(v2)。旧16文字コードも引き続き入力・適用できる。
+        placeholder.text = "XXXX";
 
         TMP_Text textComp = CreateText("Text", areaRect, Vector2.zero, size, 30f, new Color(0.953f, 0.984f, 1f, 0.95f), TextAlignmentOptions.Left);
         StretchToParent(textComp.rectTransform);
