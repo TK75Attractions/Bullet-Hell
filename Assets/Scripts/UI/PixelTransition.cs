@@ -17,10 +17,17 @@ public class PixelTransition : MonoBehaviour
     private const float loadedSceneHoldTime = 0.18f;
     private const float coveredHoldTime = 0.08f;
 
+    // プレイ開始(ステージ決定→プレイ画面)専用のホワイトアウト+モザイク解像。
+    private const float whiteoutTime = 0.20f;
+    private const float whiteoutHoldTime = 0.10f;
+    private const float mosaicRevealTime = 0.55f;
+
     private RectTransform[] cells;
     private Image[] cellImages;
     private float[] baseDelays;
     private float[] delays;
+    private CanvasGroup fadeGroup;
+    private Image whiteSheet;
     private bool built;
     private static bool revealAfterSceneLoad;
     private static bool titleReturnAfterSceneLoad;
@@ -54,6 +61,7 @@ public class PixelTransition : MonoBehaviour
             if (this == null) return;
         }
 
+        EnsureTopmost();
         Canvas.ForceUpdateCanvases();
         await Task.Yield();
         await Task.Yield();
@@ -112,6 +120,26 @@ public class PixelTransition : MonoBehaviour
         if (overrideCanvas == null) overrideCanvas = gameObject.AddComponent<Canvas>();
         overrideCanvas.overrideSorting = true;
         overrideCanvas.sortingOrder = 50;
+        fadeGroup = GetComponent<CanvasGroup>();
+        if (fadeGroup == null) fadeGroup = gameObject.AddComponent<CanvasGroup>();
+        fadeGroup.alpha = 1f;
+        fadeGroup.blocksRaycasts = false;
+        fadeGroup.interactable = false;
+
+        // ホワイトアウト用の白シート。セル群を中間 alpha で重ねると 1px の
+        // 重なりが格子状に透けるため、フェードは単一の全画面 Image で行う。
+        GameObject sheetGo = new GameObject("WhiteSheet", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        sheetGo.layer = gameObject.layer;
+        RectTransform sheetRect = (RectTransform)sheetGo.transform;
+        sheetRect.SetParent(transform, false);
+        sheetRect.anchorMin = Vector2.zero;
+        sheetRect.anchorMax = Vector2.one;
+        sheetRect.offsetMin = new Vector2(-40f, -40f);
+        sheetRect.offsetMax = new Vector2(40f, 40f);
+        whiteSheet = sheetGo.GetComponent<Image>();
+        whiteSheet.raycastTarget = false;
+        whiteSheet.color = Color.white;
+        sheetGo.SetActive(false);
         int count = cols * rows;
         cells = new RectTransform[count];
         cellImages = new Image[count];
@@ -146,14 +174,105 @@ public class PixelTransition : MonoBehaviour
         }
     }
 
+    // 親の StageCanvas は ScreenSpaceCamera で、ScreenSpaceOverlay の JSAB
+    // キャンバス(order 5)より常に奥に描かれる。ネスト Canvas の sortingOrder 50
+    // では追い越せないため、初回使用時に Canvases 直下へ出して自前の Overlay
+    // キャンバスにする。Awake で行うと StageSelectManager.Init の
+    // Find("PixelTransition") が壊れるので、参照解決が終わった後の使用時に行う。
+    private void EnsureTopmost()
+    {
+        Canvas canvas = GetComponent<Canvas>();
+        // 注意: overrideSorting=true のネスト Canvas は isRootCanvas=true を返す
+        // ため、移設済み判定は renderMode で行う。
+        if (canvas == null || canvas.renderMode == RenderMode.ScreenSpaceOverlay) return;
+        Transform canvasesRoot = transform.parent != null ? transform.parent.parent : null;
+        transform.SetParent(canvasesRoot, false);
+        canvas.overrideSorting = false;
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 50;
+        CanvasScaler scaler = GetComponent<CanvasScaler>();
+        if (scaler == null) scaler = gameObject.AddComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920f, 1080f);
+    }
+
     // Pixels appear from the center until the screen is fully covered.
     public async Task Cover()
     {
+        EnsureTopmost();
         gameObject.SetActive(true);
+        if (fadeGroup != null) fadeGroup.alpha = 1f;
         RollDelays();
         await Animate(coverIn: true);
         await Hold(coveredHoldTime);
     }
+
+    // プレイ開始用: モザイクのポップインではなく、一様な白フェードで画面を
+    // 覆う(ホワイトアウト)。フェードは白シート1枚で行い、覆い切ってから
+    // セル群(白ベタ)に引き継ぐので、そのまま MosaicReveal へつなげられる。
+    public async Task WhiteoutCover()
+    {
+        Build();
+        EnsureTopmost();
+        gameObject.SetActive(true);
+        fadeGroup.alpha = 1f;
+        for (int i = 0; i < cells.Length; i++) cells[i].localScale = Vector3.zero;
+        whiteSheet.gameObject.SetActive(true);
+        whiteSheet.transform.SetAsLastSibling();
+        SetSheetAlpha(0f);
+        float t = 0f;
+        while (t < whiteoutTime)
+        {
+            t += AnimationDelta();
+            float p = Mathf.Clamp01(t / whiteoutTime);
+            SetSheetAlpha(p * p); // 白へ向かって加速する(決定の瞬間の白飛び)
+            await Task.Yield();
+            if (this == null) return;
+        }
+        SetSheetAlpha(1f);
+        // 画面が完全に白になってからセル群へバトンタッチ(見た目は変わらない)。
+        for (int i = 0; i < cells.Length; i++) cells[i].localScale = Vector3.one;
+        await Hold(whiteoutHoldTime);
+        if (this == null) return;
+        whiteSheet.gameObject.SetActive(false);
+    }
+
+    private void SetSheetAlpha(float a)
+    {
+        Color c = whiteSheet.color;
+        c.a = a;
+        whiteSheet.color = c;
+    }
+
+    // プレイ開始用: 白カバーがピクセルブロック単位で欠けていき、背後の
+    // プレイ画面がモザイク状に解像していく。順序は 4x4 Bayer ディザ+微小
+    // ジッターで、画面全体が均一に「ドット絵が細かくなる」ように見せる
+    // (中心からのワイプや純ランダムのノイズ感を避ける)。
+    public async Task MosaicReveal()
+    {
+        if (fadeGroup != null) fadeGroup.alpha = 1f;
+        if (whiteSheet != null) whiteSheet.gameObject.SetActive(false);
+        for (int r = 0; r < rows; r++)
+        {
+            for (int c = 0; c < cols; c++)
+            {
+                int i = r * cols + c;
+                float order = Bayer4[(r & 3) * 4 + (c & 3)] / 16f;
+                delays[i] = order * mosaicRevealTime + Random.Range(0f, 0.02f);
+            }
+        }
+        await Animate(coverIn: false);
+        gameObject.SetActive(false);
+    }
+
+    // 4x4 の Bayer 行列。小さい値のセルから先に欠ける。
+    private static readonly int[] Bayer4 =
+    {
+         0,  8,  2, 10,
+        12,  4, 14,  6,
+         3, 11,  1,  9,
+        15,  7, 13,  5,
+    };
 
     public void SetColor(Color color)
     {
@@ -167,6 +286,7 @@ public class PixelTransition : MonoBehaviour
     // Pixels vanish from the center, revealing the screen behind.
     public async Task Reveal()
     {
+        if (fadeGroup != null) fadeGroup.alpha = 1f;
         RollDelays();
         await Animate(coverIn: false);
         gameObject.SetActive(false);
@@ -183,7 +303,13 @@ public class PixelTransition : MonoBehaviour
     private async Task Animate(bool coverIn)
     {
         float t = 0f;
-        float total = spreadTime + jitterTime + 0.05f;
+        // 遅延の最大値から所要時間を出す(中心ワイプとモザイクで長さが違う)。
+        float total = 0f;
+        for (int i = 0; i < delays.Length; i++)
+        {
+            if (delays[i] > total) total = delays[i];
+        }
+        total += 0.05f;
         Vector3 onScale = coverIn ? Vector3.one : Vector3.zero;
         Vector3 offScale = coverIn ? Vector3.zero : Vector3.one;
         for (int i = 0; i < cells.Length; i++) cells[i].localScale = offScale;

@@ -314,13 +314,14 @@ public class StageSelectManager : MonoBehaviour
         }
     }
 
-    // Pixel-mosaic transition into the stage: cover the screen from the center
-    // outward, load the stage while hidden, then reveal it center-first.
+    // プレイ開始遷移: ホワイトアウトで画面を白く飛ばし、覆われている間に
+    // プレイ画面へ切り替え、白カバーがピクセル(モザイク)状に欠けながら
+    // プレイ画面が解像していく。
     private async void StartGameTransition(int stageIndex)
     {
         if (pixelTransition != null)
         {
-            await pixelTransition.Cover();
+            await pixelTransition.WhiteoutCover();
             // 画面が完全に覆われてから JSAB オーバーレイと難易度モーダルを隠す。
             if (jsab != null)
             {
@@ -334,7 +335,7 @@ public class StageSelectManager : MonoBehaviour
             SetTutorialEnemiesVisible(false);
             // The player can already move while the tutorial runs on the bare field.
             GManager.Control.state = GManager.GameState.Tutorial;
-            await pixelTransition.Reveal();
+            await pixelTransition.MosaicReveal();
             bool skipPreStage = ShouldSkipPreStageTutorial(stageIndex);
             if (!skipPreStage && tutorialManager != null)
             {
