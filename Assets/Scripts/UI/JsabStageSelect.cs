@@ -408,7 +408,7 @@ public class JsabStageSelect : MonoBehaviour
         progressRow.anchorMin = progressRow.anchorMax = new Vector2(0.5f, 0.5f);
         progressRow.pivot = new Vector2(0.5f, 0.5f);
         progressRow.sizeDelta = new Vector2(0f, 60f);
-        progressRow.anchoredPosition = new Vector2(0f, CenterSlotPos.y - CenterSlotSize.y * 0.5f - 60f);
+        progressRow.anchoredPosition = new Vector2(0f, CenterSlotPos.y - CenterSlotSize.y * 0.5f - 72f);
         ringSprite = CreateRingSprite();
 
         // Persistent player marker; RefreshProgress never destroys it so its
@@ -846,10 +846,11 @@ public class JsabStageSelect : MonoBehaviour
         if (exit != null) exit.anchoredPosition = Vector2.Lerp(toSide, offSide, e);
         if (exitCG != null) exitCG.alpha = exitStartAlpha * (1f - p);
 
-        // ステージ名: 前半フェードアウト → 中間で差し替え → 後半フェードイン。
+        // ステージ名: 旧名は序盤(0〜0.35)で消し切り、新名は終盤(0.55〜1.0)で出す。
+        // 中間フレームに旧名が薄く残ると退場中か選択中か曖昧に見えるため。
         if (stageNameText != null)
         {
-            if (!nameSwapped && p >= 0.5f)
+            if (!nameSwapped && p >= 0.45f)
             {
                 nameSwapped = true;
                 StageData cur = GetStage(currentIndex);
@@ -857,7 +858,9 @@ public class JsabStageSelect : MonoBehaviour
                 stageNameText.text = curName;
                 TmpAlign.CenterInkVertically(stageNameText);
             }
-            stageNameText.alpha = Mathf.Abs(1f - 2f * p);
+            stageNameText.alpha = p < 0.35f ? 1f - p / 0.35f
+                                : p < 0.55f ? 0f
+                                : (p - 0.55f) / 0.45f;
         }
     }
 
