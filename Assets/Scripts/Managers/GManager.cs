@@ -456,6 +456,8 @@ public class GManager : MonoBehaviour
 
     private void UpdateTitleTransfer()
     {
+        TManager?.TickTransfer();
+
         if (IManager.backPressedThisFrame)
         {
             TManager?.CloseTransfer();
@@ -464,6 +466,14 @@ public class GManager : MonoBehaviour
             // so it cannot immediately trigger a menu item.
             titleArmed = false;
             TManager?.ShowMenu();
+            return;
+        }
+
+        // CTRL+C: 発行済みコードをコピー(入力欄のフォーカスと衝突しないキー)。
+        Keyboard kb = Keyboard.current;
+        if (kb != null && (kb.leftCtrlKey.isPressed || kb.rightCtrlKey.isPressed) && kb.cKey.wasPressedThisFrame)
+        {
+            TManager?.CopyTransferCode();
             return;
         }
 
