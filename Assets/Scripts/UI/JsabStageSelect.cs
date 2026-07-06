@@ -57,13 +57,39 @@ public class JsabStageSelect : MonoBehaviour
     private TMP_Text origTimerText;
     private RectTransform origTimeDim;
 
-    // Carousel band that slides together on stage change.
+    // Carousel slots. Panels physically move between these on stage change:
+    // the neighbour panel slides+grows into the center slot while the center
+    // card slides+shrinks into the neighbour slot (true slide carousel).
+    private const float BandYOffset = -60f;   // 全体を下げて上下の余白バランスを取る
+    private const float SideSlotX = 712f;
+    private const float OffSlotX = 1120f;     // 玉突きで画面外へ退場するパネルの x
+    private const float SideSlotY = 40f + BandYOffset;
+    private static readonly Vector2 CenterSlotPos = new Vector2(0f, 70f + BandYOffset);
+    private static readonly Vector2 CenterSlotSize = new Vector2(936f, 528f);
+    private static readonly Vector2 SideSlotSize = new Vector2(456f, 304f);
+    private static readonly Color ThumbDim = new Color(0.5f, 0.55f, 0.62f, 1f);
+    private static readonly Color ThumbScrimColor = new Color(0.02f, 0.05f, 0.09f, 0.4f);
+
     private RectTransform stageNameRect;
-    private Vector2 stageNameBasePos;
     private RectTransform leftCardRect;
-    private Vector2 leftCardBasePos;
     private RectTransform rightCardRect;
-    private Vector2 rightCardBasePos;
+    private CanvasGroup leftCG;
+    private CanvasGroup rightCG;
+    private CanvasGroup leftDecorCG;      // 隣パネルの名前+キーチップ(飛行中はフェードアウト)
+    private CanvasGroup rightDecorCG;
+    private Image leftFrame;              // 隣パネルの枠(飛行中に色を Cyan へ寄せる)
+    private Image rightFrame;
+    private RectTransform leftBody;
+    private RectTransform rightBody;
+    private Image leftScrim;
+    private Image rightScrim;
+    private TMP_Text leftFbName;
+    private TMP_Text rightFbName;
+    private Image cardBorderImg;
+    private RectTransform cardBodyRect;
+    // 端のステージで存在しない側のパネルを隠すためのフェード目標値
+    private float leftAlphaTarget = 1f;
+    private float rightAlphaTarget = 1f;
 
     // Vertical divider color between the center and side columns.
     private static readonly Color Divider = new Color(0.22f, 0.76f, 0.878f, 0.4f);
@@ -76,10 +102,12 @@ public class JsabStageSelect : MonoBehaviour
     private int currentIndex = 0;
     private int totalStages = 1;
     private float pulseTime;
-    private float slideTime = -1f;      // <0 == not animating
-    private float slideFrom;            // starting x offset
-    private const float slideDuration = 0.25f;
-    private Vector2 cardBasePos;
+    // Carousel transition (panels flying between slots). <0 == not animating.
+    private float transTime = -1f;
+    private int transDir;
+    private const float transDuration = 0.3f;
+    private float exitStartAlpha;       // 退場パネルの開始アルファ(端では元々 0)
+    private bool nameSwapped;           // ステージ名クロスフェードの差し替え済みフラグ
 
     // --- In-screen difficulty overlay (built once, hidden until a stage is decided) ---
     private RectTransform diffRoot;      // container for blur + scrim + panel
@@ -156,19 +184,20 @@ public class JsabStageSelect : MonoBehaviour
         // --- Center card ---
         // Cyan border frame = a cyan rect slightly larger than the black card.
         Image border = NewImage("CardBorder", root, Cyan);
+        cardBorderImg = border;
         cardRect = border.rectTransform;
         cardRect.anchorMin = cardRect.anchorMax = new Vector2(0.5f, 0.5f);
         cardRect.pivot = new Vector2(0.5f, 0.5f);
-        cardRect.anchoredPosition = new Vector2(0f, 70f);
-        cardRect.sizeDelta = new Vector2(936f, 528f);
-        cardBasePos = cardRect.anchoredPosition;
+        cardRect.anchoredPosition = CenterSlotPos;
+        cardRect.sizeDelta = CenterSlotSize;
 
+        // Body is stretch-anchored (6px border inset) so the whole card can be
+        // resized via sizeDelta while flying between slots.
         Image cardBody = NewImage("CardBody", cardRect, NavyDeep);
         RectTransform cbr = cardBody.rectTransform;
-        cbr.anchorMin = cbr.anchorMax = new Vector2(0.5f, 0.5f);
-        cbr.pivot = new Vector2(0.5f, 0.5f);
-        cbr.sizeDelta = new Vector2(924f, 516f);
-        cbr.anchoredPosition = Vector2.zero;
+        Stretch(cbr);
+        SetInset(cbr, 6f);
+        cardBodyRect = cbr;
 
         // Fallback (navy card + big name) shown when no video.
         cardFallback = NewImage("CardFallback", cbr, Navy);
@@ -204,9 +233,8 @@ public class JsabStageSelect : MonoBehaviour
         snr.pivot = new Vector2(0.5f, 0.5f);
         // +46f keeps the name clear of the 120px-tall top bar (bottom edge y=420).
         snr.sizeDelta = new Vector2(1000f, 80f);
-        snr.anchoredPosition = new Vector2(0f, 70f + 528f * 0.5f + 46f);
+        snr.anchoredPosition = new Vector2(0f, CenterSlotPos.y + CenterSlotSize.y * 0.5f + 46f);
         stageNameRect = snr;
-        stageNameBasePos = snr.anchoredPosition;
 
         // --- Progress indicator (player -> dashes -> ring) ---
         BuildProgressIndicator(root);
@@ -281,24 +309,21 @@ public class JsabStageSelect : MonoBehaviour
     {
         // side = -1 (left) or +1 (right). A dim thumbnail preview of the adjacent
         // stage with the stage name above and a key chip in the corner.
-        const float cw = 452f;
-        const float ch = 300f;
-        float x = side * 712f;
 
         // Thin cyan frame around the thumbnail.
         Image frame = NewImage(side < 0 ? "LeftCard" : "RightCard", root, CyanDim);
         RectTransform r = frame.rectTransform;
         r.anchorMin = r.anchorMax = new Vector2(0.5f, 0.5f);
         r.pivot = new Vector2(0.5f, 0.5f);
-        r.sizeDelta = new Vector2(cw + 4f, ch + 4f);
-        r.anchoredPosition = new Vector2(x, 40f);
+        r.sizeDelta = SideSlotSize;
+        r.anchoredPosition = new Vector2(side * SideSlotX, SideSlotY);
+        // 端のステージで丸ごとフェードアウトさせるための CanvasGroup。
+        CanvasGroup cg = frame.gameObject.AddComponent<CanvasGroup>();
 
         Image body = NewImage("ThumbBody", r, new Color(0.02f, 0.05f, 0.08f, 1f));
         RectTransform bodyR = body.rectTransform;
-        bodyR.anchorMin = Vector2.zero;
-        bodyR.anchorMax = Vector2.one;
-        bodyR.offsetMin = new Vector2(2f, 2f);
-        bodyR.offsetMax = new Vector2(-2f, -2f);
+        Stretch(bodyR);
+        SetInset(bodyR, 2f);
 
         // Fallback tile (stage name on navy) when the stage has no preview video.
         Image fallback = NewImage("ThumbFallback", bodyR, new Color(0.04f, 0.09f, 0.14f, 1f));
@@ -311,11 +336,11 @@ public class JsabStageSelect : MonoBehaviour
         RenderTexture rt = new RenderTexture(384, 216, 0) { name = (side < 0 ? "JsabLeftRT" : "JsabRightRT") };
         RawImage thumb = NewRawImage("Thumb", bodyR, rt);
         Stretch(thumb.rectTransform);
-        thumb.color = new Color(0.5f, 0.55f, 0.62f, 1f); // dim + slight desaturate feel
+        thumb.color = ThumbDim; // dim + slight desaturate feel
         thumb.enabled = false;
 
         // A subtle dark wash over the thumbnail so it reads as "dimmed / inactive".
-        Image scrim = NewImage("ThumbScrim", bodyR, new Color(0.02f, 0.05f, 0.09f, 0.4f));
+        Image scrim = NewImage("ThumbScrim", bodyR, ThumbScrimColor);
         Stretch(scrim.rectTransform);
 
         GameObject vpGO = new GameObject(side < 0 ? "LeftVideoPlayer" : "RightVideoPlayer");
@@ -332,8 +357,16 @@ public class JsabStageSelect : MonoBehaviour
         // Show a still first frame instead of a busy looping clip.
         vp.prepareCompleted += v => { if (thumb != null) thumb.enabled = true; v.Pause(); };
 
+        // Decor (stage name + key chip) sits in its own CanvasGroup so it can
+        // fade out while the panel flies into the center slot.
+        GameObject decorGO = new GameObject("Decor", typeof(RectTransform));
+        decorGO.transform.SetParent(r, false);
+        RectTransform decorR = (RectTransform)decorGO.transform;
+        Stretch(decorR);
+        CanvasGroup decorCG = decorGO.AddComponent<CanvasGroup>();
+
         // Stage name above the thumbnail (dim, per reference).
-        TMP_Text name = NewText(side < 0 ? "LeftName" : "RightName", r, "", 34f, CyanDim, TextAlignmentOptions.Center);
+        TMP_Text name = NewText(side < 0 ? "LeftName" : "RightName", decorR, "", 34f, CyanDim, TextAlignmentOptions.Center);
         RectTransform nr = (RectTransform)name.transform;
         nr.anchorMin = new Vector2(0f, 1f);
         nr.anchorMax = new Vector2(1f, 1f);
@@ -343,7 +376,7 @@ public class JsabStageSelect : MonoBehaviour
 
         // Key chip in the top-inner corner (reference LB/RB placement).
         string keyLabel = side < 0 ? "← A" : "D →";
-        RectTransform chip = NewKeyCap(r, keyLabel, 42f, 26f);
+        RectTransform chip = NewKeyCap(decorR, keyLabel, 42f, 26f);
         chip.anchorMin = chip.anchorMax = new Vector2(side < 0 ? 0f : 1f, 1f);
         chip.pivot = new Vector2(side < 0 ? 0f : 1f, 1f);
         chip.anchoredPosition = new Vector2(side < 0 ? 12f : -12f, -12f);
@@ -352,13 +385,15 @@ public class JsabStageSelect : MonoBehaviour
         {
             leftName = name; leftThumb = thumb; leftThumbFallback = fallback;
             leftVP = vp; leftRT = rt;
-            leftCardRect = r; leftCardBasePos = r.anchoredPosition;
+            leftCardRect = r; leftCG = cg; leftDecorCG = decorCG;
+            leftFrame = frame; leftBody = bodyR; leftScrim = scrim; leftFbName = fbName;
         }
         else
         {
             rightName = name; rightThumb = thumb; rightThumbFallback = fallback;
             rightVP = vp; rightRT = rt;
-            rightCardRect = r; rightCardBasePos = r.anchoredPosition;
+            rightCardRect = r; rightCG = cg; rightDecorCG = decorCG;
+            rightFrame = frame; rightBody = bodyR; rightScrim = scrim; rightFbName = fbName;
         }
     }
 
@@ -373,7 +408,7 @@ public class JsabStageSelect : MonoBehaviour
         progressRow.anchorMin = progressRow.anchorMax = new Vector2(0.5f, 0.5f);
         progressRow.pivot = new Vector2(0.5f, 0.5f);
         progressRow.sizeDelta = new Vector2(0f, 60f);
-        progressRow.anchoredPosition = new Vector2(0f, 70f - 528f * 0.5f - 60f);
+        progressRow.anchoredPosition = new Vector2(0f, CenterSlotPos.y - CenterSlotSize.y * 0.5f - 60f);
         ringSprite = CreateRingSprite();
 
         // Persistent player marker; RefreshProgress never destroys it so its
@@ -712,9 +747,198 @@ public class JsabStageSelect : MonoBehaviour
     {
         totalStages = Mathf.Max(1, total);
         int newIndex = Mathf.Clamp(index, 0, totalStages - 1);
+        if (transTime >= 0f)
+        {
+            // 飛行中の同一インデックス通知は無視。連打時は現在の遷移を即着地
+            // させてから次の遷移を始める(状態の取りこぼし防止)。
+            if (newIndex == currentIndex) return;
+            FinishTransition();
+        }
         int dir = newIndex == currentIndex ? 0 : (newIndex > currentIndex ? 1 : -1);
         currentIndex = newIndex;
+        RefreshProgress(animate && dir != 0);
 
+        if (animate && dir != 0)
+        {
+            BeginTransition(dir);
+        }
+        else
+        {
+            ApplyStageContent(false);
+            ResetPanels(true);
+        }
+    }
+
+    // Starts the slide-carousel transition: the neighbour panel on the moved-to
+    // side flies into the center slot while the center card flies out to the
+    // opposite neighbour slot. Content (names/thumbs) swaps only on landing.
+    private void BeginTransition(int dir)
+    {
+        transDir = dir;
+        transTime = 0f;
+        nameSwapped = false;
+        CanvasGroup exitCG = dir > 0 ? leftCG : rightCG;
+        exitStartAlpha = exitCG != null ? exitCG.alpha : 1f;
+        // 到着後すぐ再生に移れるよう、飛行中に新ステージの動画を裏で準備する。
+        // url を差し替えた時点で旧クリップは止まり、RT は最後のフレームで凍結
+        // するので、縮小しながら退く中央カードには旧ステージの静止画が残る。
+        StageData cur = GetStage(currentIndex);
+        string path = VideoPath(cur);
+        if (videoPlayer != null && path != null && videoPlayer.url != path)
+        {
+            videoPlayer.url = path;
+            videoPlayer.Prepare();
+        }
+        if (cardRect != null) cardRect.localScale = Vector3.one; // 飛行中はパルス停止
+    }
+
+    // Drives one frame of the transition. p is linear progress [0..1].
+    private void ApplyTransition(float p)
+    {
+        float e = 1f - Mathf.Pow(1f - p, 3f); // ease-out cubic
+
+        Vector2 fromSide = new Vector2(transDir * SideSlotX, SideSlotY);   // 到着パネルの出発点
+        Vector2 toSide = new Vector2(-transDir * SideSlotX, SideSlotY);    // 中央カードの行き先
+        Vector2 offSide = new Vector2(-transDir * OffSlotX, SideSlotY);    // 退場パネルの行き先
+
+        // 中央カード: 中央スロット → 反対隣スロットへ、縮小しながら移動。
+        if (cardRect != null)
+        {
+            cardRect.anchoredPosition = Vector2.Lerp(CenterSlotPos, toSide, e);
+            cardRect.sizeDelta = Vector2.Lerp(CenterSlotSize, SideSlotSize, e);
+        }
+        if (cardBorderImg != null) cardBorderImg.color = Color.Lerp(Cyan, CyanDim, e);
+        if (cardBodyRect != null) SetInset(cardBodyRect, Mathf.Lerp(6f, 2f, e));
+        if (cardVideo != null) cardVideo.color = Color.Lerp(Color.white, ThumbDim, e);
+        if (cardFallbackName != null) cardFallbackName.fontSize = Mathf.Lerp(96f, 44f, e);
+
+        // 到着パネル: 隣スロット → 中央スロットへ、拡大しながら移動。
+        // 装飾(名前/チップ)と減光は先行してフェードし、中央カードの見た目へ寄せる。
+        RectTransform arrive = transDir > 0 ? rightCardRect : leftCardRect;
+        Image arriveFrame = transDir > 0 ? rightFrame : leftFrame;
+        RectTransform arriveBody = transDir > 0 ? rightBody : leftBody;
+        RawImage arriveThumb = transDir > 0 ? rightThumb : leftThumb;
+        Image arriveScrim = transDir > 0 ? rightScrim : leftScrim;
+        CanvasGroup arriveDecor = transDir > 0 ? rightDecorCG : leftDecorCG;
+        CanvasGroup arriveCG = transDir > 0 ? rightCG : leftCG;
+        TMP_Text arriveFb = transDir > 0 ? rightFbName : leftFbName;
+        if (arrive != null)
+        {
+            arrive.anchoredPosition = Vector2.Lerp(fromSide, CenterSlotPos, e);
+            arrive.sizeDelta = Vector2.Lerp(SideSlotSize, CenterSlotSize, e);
+        }
+        if (arriveFrame != null) arriveFrame.color = Color.Lerp(CyanDim, Cyan, e);
+        if (arriveBody != null) SetInset(arriveBody, Mathf.Lerp(2f, 6f, e));
+        if (arriveThumb != null) arriveThumb.color = Color.Lerp(ThumbDim, Color.white, e);
+        if (arriveScrim != null)
+        {
+            Color sc = ThumbScrimColor;
+            sc.a = Mathf.Lerp(sc.a, 0f, e);
+            arriveScrim.color = sc;
+        }
+        if (arriveDecor != null) arriveDecor.alpha = 1f - Mathf.Clamp01(p * 3f);
+        if (arriveCG != null) arriveCG.alpha = 1f;
+        if (arriveFb != null) arriveFb.fontSize = Mathf.Lerp(44f, 96f, e);
+
+        // 退場パネル: 隣スロット → 画面外へフェードアウトしながら移動。
+        RectTransform exit = transDir > 0 ? leftCardRect : rightCardRect;
+        CanvasGroup exitCG = transDir > 0 ? leftCG : rightCG;
+        if (exit != null) exit.anchoredPosition = Vector2.Lerp(toSide, offSide, e);
+        if (exitCG != null) exitCG.alpha = exitStartAlpha * (1f - p);
+
+        // ステージ名: 前半フェードアウト → 中間で差し替え → 後半フェードイン。
+        if (stageNameText != null)
+        {
+            if (!nameSwapped && p >= 0.5f)
+            {
+                nameSwapped = true;
+                StageData cur = GetStage(currentIndex);
+                string curName = cur != null && !string.IsNullOrWhiteSpace(cur.stageName) ? cur.stageName : ("Stage " + currentIndex);
+                stageNameText.text = curName;
+                TmpAlign.CenterInkVertically(stageNameText);
+            }
+            stageNameText.alpha = Mathf.Abs(1f - 2f * p);
+        }
+    }
+
+    // Lands the transition: copies the arriving panel's still frame onto the
+    // center RenderTexture (so the swap frame shows the exact same picture),
+    // snaps every panel back to its home slot and applies the new content.
+    private void FinishTransition()
+    {
+        if (transTime < 0f) return;
+        transTime = -1f;
+
+        RawImage arriveThumb = transDir > 0 ? rightThumb : leftThumb;
+        RenderTexture arriveRT = transDir > 0 ? rightRT : leftRT;
+        bool arriveHadFrame = arriveThumb != null && arriveThumb.enabled && arriveRT != null;
+        if (arriveHadFrame && videoRT != null) Graphics.Blit(arriveRT, videoRT);
+
+        ResetPanels(false);
+        ApplyStageContent(arriveHadFrame);
+        if (stageNameText != null) stageNameText.alpha = 1f;
+    }
+
+    // Puts every panel back to its home slot / home look. instantAlpha=true
+    // snaps the side panels straight to their visibility target (initial show);
+    // false hides them so Tick fades them back in over the content swap.
+    private void ResetPanels(bool instantAlpha)
+    {
+        if (cardRect != null)
+        {
+            cardRect.anchoredPosition = CenterSlotPos;
+            cardRect.sizeDelta = CenterSlotSize;
+        }
+        if (cardBorderImg != null) cardBorderImg.color = Cyan;
+        if (cardBodyRect != null) SetInset(cardBodyRect, 6f);
+        if (cardVideo != null) cardVideo.color = Color.white;
+        if (cardFallbackName != null) cardFallbackName.fontSize = 96f;
+
+        if (leftCardRect != null)
+        {
+            leftCardRect.anchoredPosition = new Vector2(-SideSlotX, SideSlotY);
+            leftCardRect.sizeDelta = SideSlotSize;
+        }
+        if (rightCardRect != null)
+        {
+            rightCardRect.anchoredPosition = new Vector2(SideSlotX, SideSlotY);
+            rightCardRect.sizeDelta = SideSlotSize;
+        }
+        if (leftFrame != null) leftFrame.color = CyanDim;
+        if (rightFrame != null) rightFrame.color = CyanDim;
+        if (leftBody != null) SetInset(leftBody, 2f);
+        if (rightBody != null) SetInset(rightBody, 2f);
+        if (leftThumb != null) leftThumb.color = ThumbDim;
+        if (rightThumb != null) rightThumb.color = ThumbDim;
+        if (leftScrim != null) leftScrim.color = ThumbScrimColor;
+        if (rightScrim != null) rightScrim.color = ThumbScrimColor;
+        if (leftDecorCG != null) leftDecorCG.alpha = 1f;
+        if (rightDecorCG != null) rightDecorCG.alpha = 1f;
+        if (leftFbName != null) leftFbName.fontSize = 44f;
+        if (rightFbName != null) rightFbName.fontSize = 44f;
+
+        // 端のステージでは存在しない側のパネルを隠す(ラップアラウンドなし)。
+        leftAlphaTarget = GetStage(currentIndex - 1) != null ? 1f : 0f;
+        rightAlphaTarget = GetStage(currentIndex + 1) != null ? 1f : 0f;
+        if (instantAlpha)
+        {
+            if (leftCG != null) leftCG.alpha = leftAlphaTarget;
+            if (rightCG != null) rightCG.alpha = rightAlphaTarget;
+        }
+        else
+        {
+            // 着地直後はサムネイル差し替え中の古い絵を隠し、Tick でフェードイン。
+            if (leftCG != null) leftCG.alpha = 0f;
+            if (rightCG != null) rightCG.alpha = 0f;
+        }
+    }
+
+    // Applies the current stage's content to every panel (names, main video,
+    // neighbour thumbnails). keepBlittedFrame=true means the center RT already
+    // holds the arriving panel's still frame, so it can stay visible while the
+    // main clip finishes preparing (no pop on the landing frame).
+    private void ApplyStageContent(bool keepBlittedFrame)
+    {
         StageData cur = GetStage(currentIndex);
         string curName = cur != null && !string.IsNullOrWhiteSpace(cur.stageName) ? cur.stageName : ("Stage " + currentIndex);
         // Japanese stage names ride high under Middle alignment (Latin UI font +
@@ -727,33 +951,9 @@ public class JsabStageSelect : MonoBehaviour
         if (leftName != null) { leftName.text = left != null ? SafeName(left) : ""; TmpAlign.CenterInkVertically(leftName); }
         if (rightName != null) { rightName.text = right != null ? SafeName(right) : ""; TmpAlign.CenterInkVertically(rightName); }
 
-        UpdateVideo(cur);
+        UpdateVideo(cur, keepBlittedFrame);
         UpdateThumb(leftVP, leftThumb, leftThumbFallback, left);
         UpdateThumb(rightVP, rightThumb, rightThumbFallback, right);
-        RefreshProgress(animate && dir != 0);
-
-        if (animate && dir != 0)
-        {
-            // Slide the whole carousel band in from the direction we moved.
-            slideFrom = dir > 0 ? 260f : -260f;
-            slideTime = 0f;
-        }
-        else
-        {
-            slideTime = -1f;
-            ApplySlideOffset(0f);
-        }
-    }
-
-    // Offsets the carousel band (center card, stage name, both neighbour cards)
-    // as one unit so the switch reads as a single smooth slide.
-    private void ApplySlideOffset(float x)
-    {
-        Vector2 off = new Vector2(x, 0f);
-        if (cardRect != null) cardRect.anchoredPosition = cardBasePos + off;
-        if (stageNameRect != null) stageNameRect.anchoredPosition = stageNameBasePos + off;
-        if (leftCardRect != null) leftCardRect.anchoredPosition = leftCardBasePos + off;
-        if (rightCardRect != null) rightCardRect.anchoredPosition = rightCardBasePos + off;
     }
 
     public void Tick(float dt)
@@ -813,16 +1013,22 @@ public class JsabStageSelect : MonoBehaviour
         // Breathing pulse on the selected card (matches StageBox.SetPulse feel).
         float pulse = 1f + 0.02f * (0.5f + 0.5f * Mathf.Sin(pulseTime * 3f));
 
-        // Carousel band slide (ease-out). The root CanvasGroup alpha is left alone:
-        // dipping it made the opaque overlay translucent for a few frames, which
-        // read as a full-screen flash on every switch.
-        if (slideTime >= 0f)
+        // Slide-carousel transition (panels flying between slots, ease-out).
+        // The root CanvasGroup alpha is left alone: dipping it made the opaque
+        // overlay translucent for a few frames, which read as a full-screen flash.
+        if (transTime >= 0f)
         {
-            slideTime += dt;
-            float p = Mathf.Clamp01(slideTime / slideDuration);
-            float ease = 1f - Mathf.Pow(1f - p, 3f);
-            ApplySlideOffset(p >= 1f ? 0f : Mathf.Lerp(slideFrom, 0f, ease));
-            if (p >= 1f) slideTime = -1f;
+            transTime += dt;
+            float p = Mathf.Clamp01(transTime / transDuration);
+            ApplyTransition(p);
+            if (p >= 1f) FinishTransition();
+        }
+        else
+        {
+            // 端フェード / 着地後のフェードイン。存在しない側は 0 に向かう。
+            float step = dt / 0.15f;
+            if (leftCG != null) leftCG.alpha = Mathf.MoveTowards(leftCG.alpha, leftAlphaTarget, step);
+            if (rightCG != null) rightCG.alpha = Mathf.MoveTowards(rightCG.alpha, rightAlphaTarget, step);
         }
 
         // Page-indicator marker tween (ease-out between nodes).
@@ -835,37 +1041,49 @@ public class JsabStageSelect : MonoBehaviour
             if (p >= 1f) markerTweenTime = -1f;
         }
 
-        if (cardRect != null) cardRect.localScale = Vector3.one * pulse;
+        if (cardRect != null && transTime < 0f) cardRect.localScale = Vector3.one * pulse;
     }
 
     // ---- internals ----
 
-    private void UpdateVideo(StageData data)
+    // Returns the preview-clip path for a stage, or null when it has none.
+    private static string VideoPath(StageData data)
     {
         string dir = data != null ? data.stageDirectoryName : null;
-        string path = null;
-        if (!string.IsNullOrEmpty(dir))
-        {
-            path = Path.Combine(Application.dataPath, "StageData", dir, dir + ".mp4");
-        }
+        if (string.IsNullOrEmpty(dir)) return null;
+        string path = Path.Combine(Application.dataPath, "StageData", dir, dir + ".mp4");
+        return File.Exists(path) ? path : null;
+    }
 
-        bool hasVideo = !string.IsNullOrEmpty(path) && File.Exists(path);
-        if (hasVideo)
+    private void UpdateVideo(StageData data, bool keepBlittedFrame)
+    {
+        string path = VideoPath(data);
+        if (path != null)
         {
             if (videoPlayer == null) return;
             if (videoPlayer.url == path && videoPlayer.isPrepared)
             {
+                if (cardVideo != null) cardVideo.enabled = true;
+                if (cardFallback != null) cardFallback.gameObject.SetActive(false);
                 if (!videoPlayer.isPlaying) videoPlayer.Play();
                 return;
             }
-            // Keep whatever is on the RenderTexture (the previous stage's frame)
-            // visible while the new clip prepares; OnMainVideoPrepared swaps it in.
-            // Only when there is no previous frame (first show, or coming from a
-            // stage without video) does the fallback card cover the wait.
-            if (cardVideo != null && !cardVideo.enabled && cardFallback != null)
+            // 準備待ちの間の表示: 着地時に Blit した到着パネルの静止画があれば
+            // それを見せ続ける。無い場合のみフォールバックカードで覆う。
+            if (keepBlittedFrame)
+            {
+                if (cardVideo != null) cardVideo.enabled = true;
+                if (cardFallback != null) cardFallback.gameObject.SetActive(false);
+            }
+            else if (cardVideo != null && !cardVideo.enabled && cardFallback != null)
+            {
                 cardFallback.gameObject.SetActive(true);
-            videoPlayer.url = path;
-            videoPlayer.Prepare();
+            }
+            if (videoPlayer.url != path)
+            {
+                videoPlayer.url = path;
+                videoPlayer.Prepare();
+            }
         }
         else
         {
@@ -881,6 +1099,9 @@ public class JsabStageSelect : MonoBehaviour
 
     private void OnMainVideoPrepared(VideoPlayer vp)
     {
+        // 飛行中は退場する中央カードに旧ステージの静止画を残したいので、
+        // 表示切り替えと再生開始は着地時(FinishTransition 経由)に任せる。
+        if (transTime >= 0f) return;
         if (cardVideo != null) cardVideo.enabled = true;
         if (cardFallback != null) cardFallback.gameObject.SetActive(false);
         vp.Play();
@@ -968,6 +1189,13 @@ public class JsabStageSelect : MonoBehaviour
         r.anchorMax = Vector2.one;
         r.offsetMin = Vector2.zero;
         r.offsetMax = Vector2.zero;
+    }
+
+    // Uniform inset for a stretch-anchored rect (border thickness of a panel).
+    private static void SetInset(RectTransform r, float inset)
+    {
+        r.offsetMin = new Vector2(inset, inset);
+        r.offsetMax = new Vector2(-inset, -inset);
     }
 
     private Sprite CreateRingSprite()
