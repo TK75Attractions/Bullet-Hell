@@ -401,12 +401,13 @@ public class JsabStageSelect : MonoBehaviour
 
         // 山括弧型の矢印(キーチップ廃止)。サムネイル外側の縁に上下中央で重ね、
         // カルーセルの進行方向を示す。decor 配下なので飛行中は名前ごとフェードする。
+        // サイズ/位置/alpha は oracle レビュー反映(56pt・端から36px・alpha0.8)。
         TMP_Text arrow = NewText(side < 0 ? "LeftArrow" : "RightArrow", decorR,
-            side < 0 ? "<" : ">", 64f, Cyan, TextAlignmentOptions.Center);
+            side < 0 ? "<" : ">", 56f, new Color(Cyan.r, Cyan.g, Cyan.b, 0.8f), TextAlignmentOptions.Center);
         RectTransform ar = (RectTransform)arrow.transform;
         ar.anchorMin = ar.anchorMax = new Vector2(side < 0 ? 0f : 1f, 0.5f);
         ar.pivot = new Vector2(0.5f, 0.5f);
-        ar.anchoredPosition = new Vector2(side < 0 ? 34f : -34f, 0f);
+        ar.anchoredPosition = new Vector2(side < 0 ? 36f : -36f, 0f);
         ar.sizeDelta = new Vector2(64f, 90f);
         TmpAlign.CenterInkVertically(arrow);
 
