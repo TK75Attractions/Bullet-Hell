@@ -144,7 +144,11 @@ public class StageSelectManager : MonoBehaviour
     // anything); leaving Music restores them so the difficulty screen shows.
     private void RefreshStyleVisibility()
     {
-        bool jsabOn = jsab != null && stageSelectStyle == 1 && state == State.Music;
+        // タイトル画面中は JSAB オーバーレイ(不透明キャンバス)を出さない。
+        // ここを見ないと style=1 のとき起動直後からタイトルを覆ってしまい、
+        // 「タイトル画面が飛ばされる」ように見える。
+        bool onTitle = GManager.Control != null && GManager.Control.state == GManager.GameState.Title;
+        bool jsabOn = jsab != null && stageSelectStyle == 1 && state == State.Music && !onTitle;
         if (jsab != null) jsab.SetVisible(jsabOn);
         // The JSAB overlay is the only thing that hides the default UI; whenever it
         // is not covering the screen, the default CanvasGroups must be restored so
@@ -152,6 +156,13 @@ public class StageSelectManager : MonoBehaviour
         float defaultAlpha = jsabOn ? 0f : 1f;
         variableCG.alpha = defaultAlpha;
         staticCG.alpha = defaultAlpha;
+    }
+
+    // GManager が GameState を切り替えた直後に呼ぶ(タイトル⇔ステージ選択で
+    // JSAB オーバーレイの表示可否が変わるため)。
+    public void NotifyGameStateChanged()
+    {
+        RefreshStyleVisibility();
     }
 
     private int FindStageIndex(string stageName)
@@ -236,10 +247,9 @@ public class StageSelectManager : MonoBehaviour
                     else if (button || jsab.ConsumeMouseConfirm())
                     {
                         GManager.Control.selectedDifficulty = jsab.DifficultyIndex;
-                        jsab.CloseDifficulty();
-                        // Hide the JSAB carousel overlay too; the pixel transition
-                        // then covers the screen and reveals the running stage.
-                        jsab.SetVisible(false);
+                        // JSAB 画面はここでは隠さない。ピクセルトランジションが
+                        // 覆い切ってから StartGameTransition 側で隠す(先に隠すと
+                        // カバー完了前に下の画面が露出して一瞬乱れる)。
                         state = State.InGame;
                         StartGameTransition(stageBar.currentStage);
                     }
@@ -311,6 +321,12 @@ public class StageSelectManager : MonoBehaviour
         if (pixelTransition != null)
         {
             await pixelTransition.Cover();
+            // 画面が完全に覆われてから JSAB オーバーレイと難易度モーダルを隠す。
+            if (jsab != null)
+            {
+                jsab.CloseDifficulty();
+                jsab.SetVisible(false);
+            }
             variableCG.alpha = 0;
             staticCG.alpha = 0;
             if (playHUD != null) playHUD.alpha = 0f;
@@ -343,6 +359,11 @@ public class StageSelectManager : MonoBehaviour
         }
         else
         {
+            if (jsab != null)
+            {
+                jsab.CloseDifficulty();
+                jsab.SetVisible(false);
+            }
             variableCG.alpha = 0;
             staticCG.alpha = 0;
             GManager.Control.PController?.ResetToCenter();
@@ -440,6 +461,12 @@ public class StageSelectManager : MonoBehaviour
         RectTransform staticRect = (RectTransform)staticCG.transform;
         variableCG.alpha = 0;
         staticCG.alpha = 0;
+        // JSAB スタイルは不透明カルーセルを即座に出す(デフォルト UI のズーム
+        // 入場を見せてから終端で JSAB に切り替わるポップを防ぐ)。
+        if (jsab != null && stageSelectStyle == 1 && state == State.Music)
+        {
+            RefreshStyleVisibility();
+        }
 
         float delay = 0.16f;
         while (delay > 0f)

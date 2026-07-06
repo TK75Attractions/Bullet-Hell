@@ -182,6 +182,9 @@ public class GManager : MonoBehaviour
             SReader = GetComponent<StageReader>();
 
             state = GameState.Title;
+            // SSManager.Init はこの代入より前に走る(シーン値の state を見ている)
+            // ので、Title 確定後に JSAB オーバーレイの表示可否を取り直す。
+            SSManager.NotifyGameStateChanged();
 
             ready = true;
             LogStartup("Awake ready");

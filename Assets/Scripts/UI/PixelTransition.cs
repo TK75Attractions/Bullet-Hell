@@ -105,6 +105,13 @@ public class PixelTransition : MonoBehaviour
     {
         if (built) return;
         built = true;
+        // 全画面ワイプはどの UI よりも手前に描く。JSAB オーバーレイ(sortingOrder 5
+        // の独立キャンバス)より StageCanvas が下にあるため、オーバーライドしないと
+        // JSAB 画面を覆えず、先に画面を消してからカバーする不自然な順序になる。
+        Canvas overrideCanvas = GetComponent<Canvas>();
+        if (overrideCanvas == null) overrideCanvas = gameObject.AddComponent<Canvas>();
+        overrideCanvas.overrideSorting = true;
+        overrideCanvas.sortingOrder = 50;
         int count = cols * rows;
         cells = new RectTransform[count];
         cellImages = new Image[count];

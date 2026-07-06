@@ -55,6 +55,7 @@ public class JsabStageSelect : MonoBehaviour
         public Image[] thumbRim;       // thin pale frame around the thumbnail
         public Image glowFrame;        // center-look frame for the morph, alpha 0 at rest
         public RectTransform thumbArea;
+        public CanvasGroup mediaCG;    // thumbArea 専用。サムネ準備待ちはここだけ透明にする
         public RawImage thumb;
         public Image fallback;
         public TMP_Text fbName;
@@ -63,8 +64,8 @@ public class JsabStageSelect : MonoBehaviour
         public TMP_Text arrow;
         public VideoPlayer vp;
         public RenderTexture rt;
-        // サムネイル(or fallback)の準備が終わるまでフェードインを保留するフラグ。
-        // 枠だけ先に出て、動画準備完了の瞬間に絵が瞬時ポップするのを防ぐ。
+        // サムネイル(or fallback)の準備が終わるまで mediaCG のフェードインを保留する
+        // フラグ。パネル本体(枠/ブラケット/タイトル)は準備を待たずに表示する。
         public bool contentReady = true;
         public float alphaTarget = 1f; // 端のステージで存在しない側は 0
         public int side;               // -1 left / +1 right (arrow glyph & placement)
@@ -224,6 +225,15 @@ public class JsabStageSelect : MonoBehaviour
         Stretch(cardMediaRect);
         SetMediaInsets(cardMediaRect, 0f);
 
+        // 映像/フォールバックの四隅がチャンファ枠からはみ出さないよう、枠と同じ
+        // 面取り形状のステンシルマスクで子要素をクリップする。
+        Image maskImg = mediaGO.AddComponent<Image>();
+        maskImg.sprite = CreateChamferMaskSprite();
+        maskImg.type = Image.Type.Sliced;
+        maskImg.raycastTarget = false;
+        Mask chamferMask = mediaGO.AddComponent<Mask>();
+        chamferMask.showMaskGraphic = false;
+
         // Fallback (navy card + big name) shown when no video.
         cardFallback = NewImage("CardFallback", cardMediaRect, Navy);
         Stretch(cardFallback.rectTransform);
@@ -380,6 +390,9 @@ public class JsabStageSelect : MonoBehaviour
         p.thumbArea = (RectTransform)areaGO.transform;
         Stretch(p.thumbArea);
         SetMediaInsets(p.thumbArea, 1f);
+        // サムネ準備待ちの間は thumbArea だけを透明にする(パネル全体を消すと
+        // スライドイン中にカードが見えず、着地後の丸ごとポップになる)。
+        p.mediaCG = areaGO.AddComponent<CanvasGroup>();
 
         // Fallback tile (stage name on navy) when the stage has no preview video.
         p.fallback = NewImage("ThumbFallback", p.thumbArea, new Color(0.04f, 0.09f, 0.14f, 1f));
@@ -473,8 +486,10 @@ public class JsabStageSelect : MonoBehaviour
         if (p.arrow == null) return;
         p.arrow.text = side < 0 ? "<" : ">";
         RectTransform ar = (RectTransform)p.arrow.transform;
-        ar.anchorMin = ar.anchorMax = new Vector2(side < 0 ? 0f : 1f, 0.5f);
-        ar.anchoredPosition = new Vector2(side < 0 ? 36f : -36f, 0f);
+        // カードの内側(中央カード寄り)のエッジに寄せる。中央カード本体
+        // (エッジ±468)に隠れない範囲で、サイドカードと中央カードの間に見せる。
+        ar.anchorMin = ar.anchorMax = new Vector2(side < 0 ? 1f : 0f, 0.5f);
+        ar.anchoredPosition = new Vector2(side < 0 ? -36f : 36f, 0f);
         TmpAlign.CenterInkVertically(p.arrow);
     }
 
@@ -871,16 +886,29 @@ public class JsabStageSelect : MonoBehaviour
         yield return new WaitForEndOfFrame();
 
         Texture2D shot = ScreenCapture.CaptureScreenshotAsTexture();
-        int w = Mathf.Max(24, shot.width / 12);
-        int h = Mathf.Max(14, shot.height / 12);
         if (blurRT != null) { blurRT.Release(); Destroy(blurRT); }
-        blurRT = new RenderTexture(w, h, 0) { filterMode = FilterMode.Bilinear };
-        // Two-step downsample smooths the box edges into a softer blur.
-        RenderTexture mid = RenderTexture.GetTemporary(shot.width / 4, shot.height / 4, 0);
-        mid.filterMode = FilterMode.Bilinear;
-        Graphics.Blit(shot, mid);
-        Graphics.Blit(mid, blurRT);
-        RenderTexture.ReleaseTemporary(mid);
+        // 1/4 解像度で保持しつつ、2x ずつの縮小を 1/16 まで積んでから 2x ずつ
+        // 戻す(ダウンサンプルピラミッド)。一足飛びの縮小はサンプル飛ばしで
+        // モザイク状のジャギーになるため、全段をバイリニア 2x2 平均で畳んで
+        // ガウシアン近似の滑らかなぼけを作る。
+        int w4 = Mathf.Max(24, shot.width / 4);
+        int h4 = Mathf.Max(14, shot.height / 4);
+        blurRT = new RenderTexture(w4, h4, 0) { filterMode = FilterMode.Bilinear };
+        RenderTexture half = RenderTexture.GetTemporary(Mathf.Max(2, shot.width / 2), Mathf.Max(2, shot.height / 2), 0);
+        RenderTexture quarter = RenderTexture.GetTemporary(w4, h4, 0);
+        RenderTexture eighth = RenderTexture.GetTemporary(Mathf.Max(2, shot.width / 8), Mathf.Max(2, shot.height / 8), 0);
+        RenderTexture sixteenth = RenderTexture.GetTemporary(Mathf.Max(2, shot.width / 16), Mathf.Max(2, shot.height / 16), 0);
+        half.filterMode = quarter.filterMode = eighth.filterMode = sixteenth.filterMode = FilterMode.Bilinear;
+        Graphics.Blit(shot, half);
+        Graphics.Blit(half, quarter);
+        Graphics.Blit(quarter, eighth);
+        Graphics.Blit(eighth, sixteenth);
+        Graphics.Blit(sixteenth, eighth);
+        Graphics.Blit(eighth, blurRT);
+        RenderTexture.ReleaseTemporary(half);
+        RenderTexture.ReleaseTemporary(quarter);
+        RenderTexture.ReleaseTemporary(eighth);
+        RenderTexture.ReleaseTemporary(sixteenth);
         Destroy(shot);
 
         if (diffBlur != null)
@@ -1123,6 +1151,8 @@ public class JsabStageSelect : MonoBehaviour
             recycled.vp.url = null;
         }
         recycled.contentReady = true;
+        // blit した静止画は飛行中に見えていた絵の受け渡しなので即時表示する。
+        if (recycled.mediaCG != null) recycled.mediaCG.alpha = 1f;
         if (recycledHasFrame)
         {
             recycled.thumb.enabled = true;
@@ -1210,10 +1240,18 @@ public class JsabStageSelect : MonoBehaviour
 
         if (instantAlpha)
         {
-            // 初期表示でもサムネイル未準備なら 0 から始め、Tick 側で
-            // 準備完了後にフェードインさせる(絵の瞬時ポップ防止)。
-            if (leftPanel != null) leftPanel.cg.alpha = leftPanel.contentReady ? leftPanel.alphaTarget : 0f;
-            if (rightPanel != null) rightPanel.cg.alpha = rightPanel.contentReady ? rightPanel.alphaTarget : 0f;
+            // 初期表示: パネル本体は即表示。サムネイル未準備なら thumbArea だけ
+            // 0 から始め、Tick 側で準備完了後にフェードインさせる(瞬時ポップ防止)。
+            if (leftPanel != null)
+            {
+                leftPanel.cg.alpha = leftPanel.alphaTarget;
+                if (leftPanel.mediaCG != null) leftPanel.mediaCG.alpha = leftPanel.contentReady ? 1f : 0f;
+            }
+            if (rightPanel != null)
+            {
+                rightPanel.cg.alpha = rightPanel.alphaTarget;
+                if (rightPanel.mediaCG != null) rightPanel.mediaCG.alpha = rightPanel.contentReady ? 1f : 0f;
+            }
             accentAlpha = 1f;
             SetAccentAlpha(1f);
         }
@@ -1342,12 +1380,15 @@ public class JsabStageSelect : MonoBehaviour
             transTime += dt;
             float p = Mathf.Clamp01(transTime / transDuration);
             ApplyTransition(p);
-            // 登場パネル: スライドしながらフェードイン(サムネ準備完了までは透明)。
+            // 登場パネル: カード本体(枠/ブラケット/タイトル)はスライドしながら
+            // フェードイン。サムネイルは mediaCG 側で準備完了後に別途フェード。
             if (sparePanel != null)
             {
-                float target = sparePanel.contentReady ? sparePanel.alphaTarget : 0f;
-                sparePanel.cg.alpha = Mathf.MoveTowards(sparePanel.cg.alpha, target, fadeStep);
+                sparePanel.cg.alpha = Mathf.MoveTowards(sparePanel.cg.alpha, sparePanel.alphaTarget, fadeStep);
             }
+            TickMediaFade(leftPanel, fadeStep);
+            TickMediaFade(rightPanel, fadeStep);
+            TickMediaFade(sparePanel, fadeStep);
             if (p >= 1f) FinishTransition();
         }
         else
@@ -1379,9 +1420,16 @@ public class JsabStageSelect : MonoBehaviour
     private static void TickPanelFade(SidePanel p, float step)
     {
         if (p == null || p.cg == null) return;
-        float target = p.contentReady ? p.alphaTarget : 0f;
-        p.cg.alpha = Mathf.MoveTowards(p.cg.alpha, target, step);
+        p.cg.alpha = Mathf.MoveTowards(p.cg.alpha, p.alphaTarget, step);
         if (p.decorCG != null) p.decorCG.alpha = Mathf.MoveTowards(p.decorCG.alpha, 1f, step);
+        TickMediaFade(p, step);
+    }
+
+    // thumbArea(サムネ/フォールバック)の準備待ちフェード。パネル本体とは独立。
+    private static void TickMediaFade(SidePanel p, float step)
+    {
+        if (p == null || p.mediaCG == null) return;
+        p.mediaCG.alpha = Mathf.MoveTowards(p.mediaCG.alpha, p.contentReady ? 1f : 0f, step);
     }
 
     // ---- internals ----
@@ -1464,8 +1512,9 @@ public class JsabStageSelect : MonoBehaviour
             // thumb.enabled is flipped on in prepareCompleted so we never show a
             // stale texture from the previous stage.
             if (p.thumb != null) p.thumb.enabled = false;
-            // 準備完了(prepareCompleted)までパネルのフェードインを保留する。
+            // 準備完了(prepareCompleted)まで thumbArea のフェードインを保留する。
             p.contentReady = false;
+            if (p.mediaCG != null) p.mediaCG.alpha = 0f;
             p.vp.url = path;
             p.vp.Prepare();
         }
@@ -1632,6 +1681,35 @@ public class JsabStageSelect : MonoBehaviour
                     a = Mathf.Max(a, 0.16f * g * g);
                 }
                 px[y * size + x] = new Color32(255, 255, 255, (byte)(Mathf.Clamp01(a) * 255f));
+            }
+        }
+        tex.SetPixels32(px);
+        tex.Apply();
+        return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f,
+            0, SpriteMeshType.FullRect, new Vector4(100f, 100f, 100f, 100f));
+    }
+
+    // Filled chamfered rect matching CreateGlowFrameSprite's geometry (margin 0,
+    // same 22px chamfer). Used as a stencil mask so the center media never pokes
+    // past the chamfered frame corners.
+    private Sprite CreateChamferMaskSprite()
+    {
+        const int size = 256;
+        const float chamfer = 22f;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        tex.filterMode = FilterMode.Bilinear;
+        Color32[] px = new Color32[size * size];
+        float half = (size - 1) * 0.5f;
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float ax = Mathf.Abs(x - half);
+                float ay = Mathf.Abs(y - half);
+                float d = Mathf.Max(ax - half, ay - half);
+                d = Mathf.Max(d, (ax + ay - (2f * half - chamfer)) * 0.7071f);
+                float a = Mathf.Clamp01(0.5f - d);
+                px[y * size + x] = new Color32(255, 255, 255, (byte)(a * 255f));
             }
         }
         tex.SetPixels32(px);
