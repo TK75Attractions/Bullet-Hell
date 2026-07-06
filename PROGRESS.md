@@ -36,8 +36,10 @@ ParityTest 96→94、golden 再生成、EditMode **109/109緑**。BOM+CRLF保全
 - **item6 遷移**: 連写で中央発カバー→全白→中央発解像を証明(cover_04/cover_10/reveal_08)
 - **引き継ぎ5点**: Play Mode でパネルを開閉連写。刷新パネル(高さ480・青wash・下線・ピンク無し)と
   戻りフェードを確認。oracle(gpt-5.5)のパネル改善指示を反映
-- **石工10件**: EditMode 109/109緑。**通し録画 Recordings/stone_20260706_221422.mp4(78.2s・音声付・
-  stageSelectStyle=0で撮影→1に復元)**。フレーム抽出で @58.7 老人騎乗(上位置)・@64.1 放射破片(全方向
+- **石工10件**: EditMode 109/109緑。**通し録画 Recordings/stone_20260706_222302.mp4(85.13s・音声付・
+  t0起点・stageSelectStyle=0で撮影→1に復元)**。atomic Start+Record で t0 から全長録画(冒頭タイル導入含む)。
+  ※先に撮った stone_20260706_221422.mp4 は Record トグル遅延で stage~7s 起点のため 222302 を最終版とする。
+  フレーム抽出で @58.7 老人騎乗(上位置)・@64.1 放射破片(全方向
   直進)・@71.8/71.9 縁カッター破片(小・少・刃付近・中央非到達)・@69.5/70.8 床維持を確認
 - 監査ツール Tools/stone_edit_lib.py・dump_stone_clips.py・chart_timeline.py・TransitionCaptureMenu を常設
 
