@@ -40,6 +40,11 @@ public class JsabStageSelect : MonoBehaviour
     private TMP_Text cardFallbackName;
     private Image cardScrim;             // dim wash for the fly-out morph (alpha 0 at rest)
     private TMP_Text cardInnerTitle;     // side-card in-card title, fades in while flying out
+    // 着地時の受け渡しポップ根治用: サイドカードだけが持つ「淡色リム」と「山括弧
+    // 矢印」を中央カードにも持たせ、飛行中にフェードインさせて着地状態と一致させる。
+    private RectTransform cardRimRect;   // rim strips wrapper (insets follow the media morph)
+    private Image[] cardRim;
+    private TMP_Text cardArrow;
     private TMP_Text stageNameText;
     private float accentAlpha = 1f;      // accents fade back in after a landing
 
@@ -137,6 +142,11 @@ public class JsabStageSelect : MonoBehaviour
     private float diffOpenTime;           // unscaled time the modal opened (mouse debounce)
     private RenderTexture blurRT;
     private bool mouseConfirm;           // set when a difficulty button is left-clicked
+    // 開閉フェード(alpha + パネルの軽いスケール 0.96→1.0)。急な表示/消灯を防ぐ。
+    private CanvasGroup diffCG;
+    private Coroutine diffFadeCo;
+    private const float DiffPanelBaseScale = 0.8f;  // style0 準拠のパネル表示スケール
+    private const float DiffFadeDuration = 0.18f;
 
     public bool DifficultyOpen => difficultyOpen;
     public int DifficultyIndex => diffBar != null ? diffBar.index : 1;
@@ -186,6 +196,9 @@ public class JsabStageSelect : MonoBehaviour
         // Opaque black backdrop covering the whole screen.
         Image bg = NewImage("Background", root, Color.black);
         Stretch(bg.rectTransform);
+
+        // タイトル画面と同じ幾何学図形を薄く敷く(カード類より背面)。
+        BuildBackgroundShapes(root);
 
         // --- Top bar: clone of the default (style 0) header so both styles share
         // the exact same design. The timer text and the red time-dim panel mirror
@@ -265,6 +278,16 @@ public class JsabStageSelect : MonoBehaviour
         // prepares; visuals only swap once the new clip is ready (no flash).
         videoPlayer.prepareCompleted += OnMainVideoPrepared;
 
+        // Side-card rim for the fly-out morph (alpha 0 at rest). Lives outside the
+        // chamfer mask so its corners stay square like the real side-card rim.
+        GameObject rimGO = new GameObject("CardRim", typeof(RectTransform));
+        rimGO.transform.SetParent(cardRect, false);
+        cardRimRect = (RectTransform)rimGO.transform;
+        Stretch(cardRimRect);
+        SetMediaInsets(cardRimRect, 0f);
+        cardRim = BuildRim(cardRimRect);
+        SetRim(cardRim, new Color(ThumbRimColor.r, ThumbRimColor.g, ThumbRimColor.b, 0f), 2f);
+
         // Chamfered glow frame (mockup: rounded/notched luminous cyan border).
         Image frame = NewImage("CardFrame", cardRect, Cyan);
         frame.sprite = glowFrameSprite;
@@ -300,6 +323,13 @@ public class JsabStageSelect : MonoBehaviour
         citr.sizeDelta = new Vector2(0f, SideTitleBand - 10f);
         cardInnerTitle.alpha = 0f;
 
+        // Side-card arrow for the fly-out morph (alpha 0 at rest; BeginTransition
+        // points it at the side the card is about to become).
+        cardArrow = NewText("CardArrow", cardRect, ">", 56f, new Color(Cyan.r, Cyan.g, Cyan.b, 0f), TextAlignmentOptions.Center);
+        RectTransform car = (RectTransform)cardArrow.transform;
+        car.pivot = new Vector2(0.5f, 0.5f);
+        car.sizeDelta = new Vector2(64f, 90f);
+
         // Stage name above the card.
         stageNameText = NewText("StageName", root, "", 64f, Cyan, TextAlignmentOptions.Center);
         RectTransform snr = (RectTransform)stageNameText.transform;
@@ -318,6 +348,42 @@ public class JsabStageSelect : MonoBehaviour
 
         // --- In-screen difficulty overlay (hidden until a stage is decided) ---
         BuildDifficultyOverlay(root);
+    }
+
+    // タイトル画面の Shapes と同じ素材/生成方法(回転 Image 四角・SoftCircleGraphic・
+    // EquilateralTriangleGraphic、ピンク/ブルー配色)を流用した背景装飾。タイトルの
+    // alpha 0.28〜0.40 に対し 1/3 程度に抑え、カルーセルの視認性を邪魔しない。
+    // ドリフトはタイトルと同系の ShapeDrifter(子を緩慢に漂わせる)に任せる。
+    private void BuildBackgroundShapes(RectTransform root)
+    {
+        GameObject layer = new GameObject("BgShapes", typeof(RectTransform));
+        layer.transform.SetParent(root, false);
+        RectTransform lr = (RectTransform)layer.transform;
+        Stretch(lr);
+
+        AddShape<Image>(lr, "Square1", new Vector2(-700f, -395f), new Vector2(300f, 300f), 20f, new Color(0.95f, 0.20f, 0.50f, 0.12f));
+        AddShape<Image>(lr, "Square2", new Vector2(760f, 350f), new Vector2(250f, 250f), 35f, new Color(0.12f, 0.35f, 0.80f, 0.13f));
+        AddShape<SoftCircleGraphic>(lr, "Circle1", new Vector2(620f, -400f), new Vector2(320f, 320f), 0f, new Color(0.20f, 0.60f, 1.00f, 0.12f));
+        AddShape<SoftCircleGraphic>(lr, "Circle2", new Vector2(-760f, 345f), new Vector2(190f, 190f), 0f, new Color(0.95f, 0.30f, 0.55f, 0.10f));
+        AddShape<EquilateralTriangleGraphic>(lr, "Triangle1", new Vector2(-320f, -420f), new Vector2(260f, 225f), 345f, new Color(0.95f, 0.20f, 0.50f, 0.12f));
+        AddShape<EquilateralTriangleGraphic>(lr, "Triangle2", new Vector2(430f, 385f), new Vector2(200f, 175f), 150f, new Color(0.25f, 0.50f, 0.95f, 0.11f));
+
+        // ShapeDrifter.Awake は追加時点の子を拾うので、図形を並べ終えてから付ける。
+        layer.AddComponent<ShapeDrifter>();
+    }
+
+    private void AddShape<T>(RectTransform parent, string shapeName, Vector2 pos, Vector2 size, float rotZ, Color color) where T : Graphic
+    {
+        GameObject go = new GameObject(shapeName, typeof(RectTransform));
+        go.transform.SetParent(parent, false);
+        RectTransform rt = (RectTransform)go.transform;
+        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = pos;
+        rt.sizeDelta = size;
+        rt.localEulerAngles = new Vector3(0f, 0f, rotZ);
+        T g = go.AddComponent<T>();
+        g.color = color;
+        g.raycastTarget = false;
     }
 
     // Clones the two scene "Head" subtrees (base graphics from StaticCanvas, text
@@ -749,23 +815,28 @@ public class JsabStageSelect : MonoBehaviour
         }
     }
 
-    // A dark, cyan-outlined key-cap chip with a centered label (mockup chips).
+    // A blue key-cap chip with a white centered label. The blue matches the
+    // top bar's gradient blue (sampled #4290DB) so the bar and chips read as one
+    // design; a slightly lighter edge keeps the cap silhouette visible.
+    private static readonly Color KeyCapBlue = new Color(0.259f, 0.565f, 0.859f, 1f);
+    private static readonly Color KeyCapEdge = new Color(0.42f, 0.69f, 0.93f, 1f);
+
     private RectTransform NewKeyCap(RectTransform parent, string label, float height, float fontSize)
     {
         float width = Mathf.Max(height, 24f + label.Length * fontSize * 0.66f);
-        Image border = NewImage("Key_" + label, parent, Cyan);
+        Image border = NewImage("Key_" + label, parent, KeyCapEdge);
         RectTransform br = border.rectTransform;
         br.sizeDelta = new Vector2(width, height);
         AddLayoutElement(br, width, height);
 
-        Image fill = NewImage("Fill", br, new Color(0.02f, 0.06f, 0.10f, 1f));
+        Image fill = NewImage("Fill", br, KeyCapBlue);
         RectTransform fr = fill.rectTransform;
         fr.anchorMin = Vector2.zero;
         fr.anchorMax = Vector2.one;
         fr.offsetMin = new Vector2(2f, 2f);
         fr.offsetMax = new Vector2(-2f, -2f);
 
-        TMP_Text t = NewText("L", br, label, fontSize, Cyan, TextAlignmentOptions.Center);
+        TMP_Text t = NewText("L", br, label, fontSize, Color.white, TextAlignmentOptions.Center);
         Stretch((RectTransform)t.transform);
         return br;
     }
@@ -806,6 +877,7 @@ public class JsabStageSelect : MonoBehaviour
         rootGO.transform.SetParent(root, false);
         diffRoot = (RectTransform)rootGO.transform;
         Stretch(diffRoot);
+        diffCG = rootGO.AddComponent<CanvasGroup>();
 
         // Frozen, blurred snapshot of the carousel behind the modal.
         diffBlur = NewRawImage("DiffBlur", diffRoot, null);
@@ -831,7 +903,7 @@ public class JsabStageSelect : MonoBehaviour
             diffPanel.anchorMin = diffPanel.anchorMax = new Vector2(0.5f, 0.5f);
             diffPanel.pivot = new Vector2(0.5f, 0.5f);
             diffPanel.anchoredPosition = new Vector2(0f, 30f);
-            diffPanel.localScale = Vector3.one * 0.8f; // matches the original's on-screen scale
+            diffPanel.localScale = Vector3.one * DiffPanelBaseScale; // matches the original's on-screen scale
             diffBar = clone.GetComponent<DefficultyBar>();
             if (diffBar != null)
             {
@@ -857,6 +929,11 @@ public class JsabStageSelect : MonoBehaviour
         diffOpenTime = Time.unscaledTime;
         mouseConfirm = false;
         if (diffBar != null) diffBar.ResetSelection(1); // default NORMAL each time it opens
+        if (diffFadeCo != null) { StopCoroutine(diffFadeCo); diffFadeCo = null; }
+        // ぼかしスナップショットが用意できるまでは全体を透明にしておき、準備完了
+        // 後に CaptureBlurBackground がフェードインを開始する(急な表示を防ぐ)。
+        if (diffCG != null) diffCG.alpha = 0f;
+        if (diffPanel != null) diffPanel.localScale = Vector3.one * (DiffPanelBaseScale * 0.96f);
         diffRoot.gameObject.SetActive(true);
         StartCoroutine(CaptureBlurBackground());
     }
@@ -864,7 +941,32 @@ public class JsabStageSelect : MonoBehaviour
     public void CloseDifficulty()
     {
         difficultyOpen = false;
-        if (diffRoot != null) diffRoot.gameObject.SetActive(false);
+        if (diffRoot == null || !diffRoot.gameObject.activeSelf) return;
+        if (diffFadeCo != null) { StopCoroutine(diffFadeCo); diffFadeCo = null; }
+        // 開く時と対称のフェードアウト。完了後に非アクティブ化する。
+        if (gameObject.activeInHierarchy) diffFadeCo = StartCoroutine(FadeDifficulty(false));
+        else diffRoot.gameObject.SetActive(false);
+    }
+
+    // 開閉共通のフェード: alpha トゥイーン+パネルの軽いスケール(0.96→1.0)。
+    // スケールは常に現在 alpha に追随させるので、開閉が途中で切り替わっても連続。
+    private IEnumerator FadeDifficulty(bool opening)
+    {
+        float from = diffCG != null ? diffCG.alpha : (opening ? 0f : 1f);
+        float to = opening ? 1f : 0f;
+        float t0 = Time.unscaledTime;
+        while (true)
+        {
+            float p = Mathf.Clamp01((Time.unscaledTime - t0) / DiffFadeDuration);
+            float e = 1f - Mathf.Pow(1f - p, 3f);
+            float a = Mathf.Lerp(from, to, e);
+            if (diffCG != null) diffCG.alpha = a;
+            if (diffPanel != null) diffPanel.localScale = Vector3.one * (DiffPanelBaseScale * (0.96f + 0.04f * a));
+            if (p >= 1f) break;
+            yield return null;
+        }
+        diffFadeCo = null;
+        if (!opening && diffRoot != null) diffRoot.gameObject.SetActive(false);
     }
 
     public void MoveDifficulty(int dir)
@@ -918,6 +1020,13 @@ public class JsabStageSelect : MonoBehaviour
         }
         if (diffScrim != null) diffScrim.enabled = true;
         if (diffPanel != null) diffPanel.gameObject.SetActive(true);
+
+        // スナップショットが揃ったのでフェードイン開始(閉じられていなければ)。
+        if (difficultyOpen)
+        {
+            if (diffFadeCo != null) StopCoroutine(diffFadeCo);
+            diffFadeCo = StartCoroutine(FadeDifficulty(true));
+        }
     }
 
     // ---- Public API used by StageSelectManager ----
@@ -1004,6 +1113,21 @@ public class JsabStageSelect : MonoBehaviour
             cardInnerTitle.alpha = 0f;
         }
 
+        // 矢印も同様に仕込む: 中央カードは -dir 側のサイドカードになるので、
+        // SetPanelSide と同じ向き/位置に合わせ、飛行中にフェードインさせる。
+        if (cardArrow != null)
+        {
+            int newSide = -dir;
+            cardArrow.text = newSide < 0 ? "<" : ">";
+            RectTransform car = (RectTransform)cardArrow.transform;
+            car.anchorMin = car.anchorMax = new Vector2(newSide < 0 ? 1f : 0f, 0.5f);
+            car.anchoredPosition = new Vector2(newSide < 0 ? -36f : 36f, 0f);
+            TmpAlign.CenterInkVertically(cardArrow);
+            Color ac = Cyan;
+            ac.a = 0f;
+            cardArrow.color = ac;
+        }
+
         // 5スロット帯: 新しい隣ステージを spare パネルに載せ、画面外スロットから
         // 隣スロットへスライドインさせる(遷移後のその場フェードイン登場を廃止)。
         StageData incoming = GetStage(currentIndex + dir);
@@ -1043,8 +1167,25 @@ public class JsabStageSelect : MonoBehaviour
             cardFrameImg.color = fc;
         }
         SetAccentAlpha(1f - e);
-        SetBracketAlpha(cardBrackets, e);
+        // ブラケットは ease(e) だと序盤2フレームで一気に出て「突然出る」ため、
+        // 線形 p ベースの約 0.12s(p 0→0.4)でなだらかに出す。
+        SetBracketAlpha(cardBrackets, Mathf.Clamp01(p / 0.4f));
         if (cardMediaRect != null) SetMediaInsets(cardMediaRect, e);
+        // サイドカードだけが持つ淡色リムと矢印は、着地の瞬間に受け渡し先で突然
+        // 出さず、飛行中にフェードインさせて着地状態と一致させる。
+        if (cardRimRect != null)
+        {
+            SetMediaInsets(cardRimRect, e);
+            Color rimC = ThumbRimColor;
+            rimC.a *= e;
+            SetRim(cardRim, rimC, 2f);
+        }
+        if (cardArrow != null)
+        {
+            Color ac = Cyan;
+            ac.a = 0.8f * Mathf.Clamp01((p - 0.4f) / 0.5f);
+            cardArrow.color = ac;
+        }
         if (cardScrim != null)
         {
             Color sc = ThumbScrimColor;
@@ -1072,7 +1213,9 @@ public class JsabStageSelect : MonoBehaviour
             Color sc2 = ThumbScrimColor;
             sc2.a = Mathf.Lerp(sc2.a, 0f, e);
             arrive.scrim.color = sc2;
-            arrive.decorCG.alpha = 1f - Mathf.Clamp01(p * 3f);
+            // 出現側(中央カードのブラケット)と対称の 0.12s で消す。p*3 の3フレーム
+            // 消滅は「突然消える」側の不連続だった。
+            arrive.decorCG.alpha = 1f - Mathf.Clamp01(p / 0.4f);
             arrive.cg.alpha = 1f;
             arrive.fbName.fontSize = Mathf.Lerp(44f, 96f, e);
         }
@@ -1224,6 +1367,17 @@ public class JsabStageSelect : MonoBehaviour
         if (cardVideo != null) cardVideo.color = Color.white;
         if (cardFallbackName != null) cardFallbackName.fontSize = 96f;
         if (cardInnerTitle != null) cardInnerTitle.alpha = 0f;
+        if (cardRimRect != null)
+        {
+            SetMediaInsets(cardRimRect, 0f);
+            SetRim(cardRim, new Color(ThumbRimColor.r, ThumbRimColor.g, ThumbRimColor.b, 0f), 2f);
+        }
+        if (cardArrow != null)
+        {
+            Color ac = Cyan;
+            ac.a = 0f;
+            cardArrow.color = ac;
+        }
 
         if (leftPanel != null)
         {
