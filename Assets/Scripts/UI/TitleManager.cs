@@ -803,29 +803,18 @@ public class TitleManager : MonoBehaviour
             }
         }
         if (!has) return;
-        // v2 コードは4文字(ハイフンなし)。チップ1個に1文字ずつ収め、チップ間の
-        // ハイフンは隠す(4文字グループ×4だった v1 表示からの置き換え)。
+        // v2 コードは4文字(ハイフンなし)。第33便: 1文字=1チップの4分割をやめ、
+        // 「C4D7」のように1枚の帯に連続表示する(可読フォントは維持)。
         string code = PlayHistory.ExportCode().Replace("-", "");
-        bool perChar = code.Length == transferCodeBlockTexts.Length;
-        foreach (TMP_Text hy in transferHyphenTexts)
+        if (transferCodeBlockTexts.Length > 0 && transferCodeBlockTexts[0] != null)
         {
-            if (hy != null) hy.gameObject.SetActive(!perChar);
+            transferCodeBlockTexts[0].text = code;
+            TmpAlign.CenterInkVertically(transferCodeBlockTexts[0]);
         }
-        for (int i = 0; i < transferCodeBlockTexts.Length; i++)
+        if (transferCodeBlockShadows.Length > 0 && transferCodeBlockShadows[0] != null)
         {
-            string part = perChar
-                ? code[i].ToString()
-                : (i * 4 + 4 <= code.Length ? code.Substring(i * 4, 4) : "");
-            if (transferCodeBlockTexts[i] != null)
-            {
-                transferCodeBlockTexts[i].text = part;
-                TmpAlign.CenterInkVertically(transferCodeBlockTexts[i]);
-            }
-            if (i < transferCodeBlockShadows.Length && transferCodeBlockShadows[i] != null)
-            {
-                transferCodeBlockShadows[i].text = part;
-                TmpAlign.CenterInkVertically(transferCodeBlockShadows[i]);
-            }
+            transferCodeBlockShadows[0].text = code;
+            TmpAlign.CenterInkVertically(transferCodeBlockShadows[0]);
         }
     }
 
@@ -870,12 +859,13 @@ public class TitleManager : MonoBehaviour
         headingSub.characterSpacing = 9f;
         headingSub.text = "TRANSFER CODE";
 
-        // コード表示: ラベル+小ぶりなチップ4個(細枠+暗地のみ、影/ハイライトなし)。
-        // 主役として入力欄より一段強く(高さ64/枠2px/文字41px。oracle 第29便)。
-        const float blockW = 150f;
-        const float blockH = 58f;
-        const float blockGap = 18f;
-        float contentHalf = (blockW * 4f + blockGap * 3f) * 0.5f; // = 327
+        // コード表示: ラベル+1枚のネオン帯(第33便: 1文字=1チップの4分割をやめ、
+        // 「C4D7」のように連続した1フィールドにまとめる。可読フォントは維持)。
+        // 装飾層(外グロー→外枠→本体→ハイライト/影/帯/アクセント)はチップ時代の
+        // 見た目を踏襲しつつ、帯1枚に集約する。
+        const float contentHalf = 327f; // 入力行の左右端を揃える基準(旧チップ4個分の半幅)
+        const float bandW = 460f;
+        const float bandH = 74f;
         TMP_Text codeLabel = CreateText("CodeLabel", rootRect, new Vector2(-contentHalf + 180f, 112f), new Vector2(360f, 30f), 20f, new Color(0.388f, 0.867f, 0.91f, 0.5f), TextAlignmentOptions.Left);
         codeLabel.characterSpacing = 3f;
 
@@ -885,53 +875,40 @@ public class TitleManager : MonoBehaviour
         blocksRect.SetParent(rootRect, false);
         blocksRect.anchorMin = blocksRect.anchorMax = new Vector2(0.5f, 0.5f);
         blocksRect.anchoredPosition = new Vector2(0f, 48f);
-        transferCodeBlockTexts = new TMP_Text[4];
-        transferCodeBlockShadows = new TMP_Text[4]; // 背面のシアン疑似グロー文字
-        transferHyphenTexts = new TMP_Text[3];
-        float x0 = -(blockW * 3f + blockGap * 3f) * 0.5f;
-        Vector2 chipSize = new Vector2(blockW, blockH);
-        for (int i = 0; i < 4; i++)
-        {
-            float bx = x0 + i * (blockW + blockGap);
-            // oracle 第31便: 単なる4分割入力欄に見えないよう「外グロー→外枠→本体→
-            // ハイライト/影/帯/アクセント」の層で組む(角丸は不可のため矩形のまま)。
-            // 外グロー(本体より一回り大きい半透明シアン。ブラー代替)。
-            CreatePanel("Glow" + i, blocksRect, new Vector2(bx, 0f), new Vector2(blockW + 8f, blockH + 8f), new Color(0.04f, 0.85f, 1f, 0.14f));
-            // 外枠(シアン)。fill を 2px 内側に入れて枠を残す。
-            Image border = CreatePanel("Block" + i, blocksRect, new Vector2(bx, 0f), chipSize, new Color(0.25f, 0.95f, 1f, 0.95f));
-            Image fill = CreatePanel("Fill", border.rectTransform, Vector2.zero, Vector2.zero, new Color(0.018f, 0.075f, 0.125f, 0.92f));
-            fill.rectTransform.anchorMin = Vector2.zero;
-            fill.rectTransform.anchorMax = Vector2.one;
-            fill.rectTransform.offsetMin = new Vector2(2f, 2f);
-            fill.rectTransform.offsetMax = new Vector2(-2f, -2f);
-            // 上辺ハイライト・下辺影で「入力欄」ではなく小型ネオンプレートに見せる。
-            CreatePanel("TopHi", border.rectTransform, new Vector2(0f, blockH * 0.5f - 3f), new Vector2(blockW - 20f, 2f), new Color(0.55f, 1f, 1f, 0.55f));
-            CreatePanel("BottomSh", border.rectTransform, new Vector2(0f, -(blockH * 0.5f - 2f)), new Vector2(blockW, 4f), new Color(0f, 0.02f, 0.05f, 0.45f));
-            // 左端の内側グロー帯。
-            CreatePanel("LeftStrip", border.rectTransform, new Vector2(-(blockW * 0.5f - 4f), 0f), new Vector2(3f, blockH - 12f), new Color(0.35f, 0.95f, 1f, 0.35f));
-            // 右上に小さなマゼンタの斜めアクセント(各チップ1つだけ)。
-            Image accent = CreatePanel("Accent" + i, border.rectTransform, new Vector2(blockW * 0.5f - 16f, blockH * 0.5f - 11f), new Vector2(16f, 3f), new Color(1f, 0.12f, 0.62f, 0.55f));
-            accent.rectTransform.localEulerAngles = new Vector3(0f, 0f, -18f);
-            // 背面のシアン疑似グロー文字(本体文字の一回り大きいコピー)。
-            TMP_Text glowText = CreateText("TextGlow", border.rectTransform, Vector2.zero, chipSize, 38f, new Color(0.15f, 0.95f, 1f, 0.145f), TextAlignmentOptions.Center);
-            if (codeFont != null) glowText.font = codeFont;
-            glowText.fontStyle = FontStyles.Bold;
-            glowText.characterSpacing = 4f;
-            glowText.rectTransform.localScale = Vector3.one * 1.06f;
-            transferCodeBlockShadows[i] = glowText;
-            TMP_Text bt = CreateText("Text", border.rectTransform, Vector2.zero, chipSize, 38f, new Color(0.62f, 0.98f, 1f), TextAlignmentOptions.Center);
-            if (codeFont != null) bt.font = codeFont;
-            bt.fontStyle = FontStyles.Bold;
-            bt.characterSpacing = 4f;
-            transferCodeBlockTexts[i] = bt;
-            if (i < 3)
-            {
-                TMP_Text hy = CreateText("Hyphen" + i, blocksRect, new Vector2(bx + (blockW + blockGap) * 0.5f, 0f), new Vector2(22f, 36f), 30f, new Color(0.345f, 0.863f, 0.922f, 0.5f), TextAlignmentOptions.Center);
-                hy.text = "-";
-                TmpAlign.CenterInkVertically(hy);
-                transferHyphenTexts[i] = hy;
-            }
-        }
+        transferCodeBlockTexts = new TMP_Text[1];
+        transferCodeBlockShadows = new TMP_Text[1]; // 背面のシアン疑似グロー文字
+        transferHyphenTexts = new TMP_Text[0];       // 分割しないのでハイフンは無し
+        Vector2 bandSize = new Vector2(bandW, bandH);
+        // 外グロー(本体より一回り大きい半透明シアン。ブラー代替)。
+        CreatePanel("Glow", blocksRect, Vector2.zero, new Vector2(bandW + 10f, bandH + 10f), new Color(0.04f, 0.85f, 1f, 0.14f));
+        // 外枠(シアン)。fill を 2px 内側に入れて枠を残す。
+        Image border = CreatePanel("Band", blocksRect, Vector2.zero, bandSize, new Color(0.25f, 0.95f, 1f, 0.95f));
+        Image fill = CreatePanel("Fill", border.rectTransform, Vector2.zero, Vector2.zero, new Color(0.018f, 0.075f, 0.125f, 0.92f));
+        fill.rectTransform.anchorMin = Vector2.zero;
+        fill.rectTransform.anchorMax = Vector2.one;
+        fill.rectTransform.offsetMin = new Vector2(2f, 2f);
+        fill.rectTransform.offsetMax = new Vector2(-2f, -2f);
+        // 上辺ハイライト・下辺影で「入力欄」ではなくネオンプレートに見せる。
+        CreatePanel("TopHi", border.rectTransform, new Vector2(0f, bandH * 0.5f - 3f), new Vector2(bandW - 24f, 2f), new Color(0.55f, 1f, 1f, 0.55f));
+        CreatePanel("BottomSh", border.rectTransform, new Vector2(0f, -(bandH * 0.5f - 2f)), new Vector2(bandW, 4f), new Color(0f, 0.02f, 0.05f, 0.45f));
+        // 左端の内側グロー帯。
+        CreatePanel("LeftStrip", border.rectTransform, new Vector2(-(bandW * 0.5f - 5f), 0f), new Vector2(3f, bandH - 16f), new Color(0.35f, 0.95f, 1f, 0.35f));
+        // 右上に小さなマゼンタの斜めアクセント。
+        Image accent = CreatePanel("Accent", border.rectTransform, new Vector2(bandW * 0.5f - 18f, bandH * 0.5f - 12f), new Vector2(16f, 3f), new Color(1f, 0.12f, 0.62f, 0.55f));
+        accent.rectTransform.localEulerAngles = new Vector3(0f, 0f, -18f);
+        // 背面のシアン疑似グロー文字(本体文字の一回り大きいコピー)。
+        // 4文字を1帯に並べるので characterSpacing で字間を広げて読みやすくする。
+        TMP_Text glowText = CreateText("TextGlow", border.rectTransform, Vector2.zero, bandSize, 46f, new Color(0.15f, 0.95f, 1f, 0.145f), TextAlignmentOptions.Center);
+        if (codeFont != null) glowText.font = codeFont;
+        glowText.fontStyle = FontStyles.Bold;
+        glowText.characterSpacing = 20f;
+        glowText.rectTransform.localScale = Vector3.one * 1.05f;
+        transferCodeBlockShadows[0] = glowText;
+        TMP_Text bt = CreateText("Text", border.rectTransform, Vector2.zero, bandSize, 46f, new Color(0.62f, 0.98f, 1f), TextAlignmentOptions.Center);
+        if (codeFont != null) bt.font = codeFont;
+        bt.fontStyle = FontStyles.Bold;
+        bt.characterSpacing = 20f;
+        transferCodeBlockTexts[0] = bt;
         // 履歴なしのときだけ出すメッセージ(ブロックと同じ位置)。
         transferCodeText = CreateText("Code", rootRect, new Vector2(0f, 48f), new Vector2(900f, 80f), 30f, CyanDim, TextAlignmentOptions.Center);
 
