@@ -1,5 +1,6 @@
 using System.Collections;
 using System.IO;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Video;
@@ -147,6 +148,23 @@ public class JsabStageSelect : MonoBehaviour
     private Coroutine diffFadeCo;
     private const float DiffPanelBaseScale = 0.8f;  // style0 準拠のパネル表示スケール
     private const float DiffFadeDuration = 0.18f;
+    // プレイ決定時の退場演出(第30便): 行がタイトルのスタート演出と同系で右へ
+    // スライドアウトしてからホワイトアウトへ渡す。退場中は Tick の行アニメ/
+    // マウス選択を止める(Tick が whiteBar の X を 0 に固定し続けるため)。
+    private bool diffExiting;
+    private readonly RectTransform[] exitRowRects = new RectTransform[3];
+    private readonly Vector2[] exitRowBasePos = new Vector2[3];
+    private readonly Vector3[] exitRowBaseScale = new Vector3[3];
+    private RectTransform exitWhiteRect;
+    private Vector2 exitWhiteBasePos;
+    private Image exitBarImg;
+    private Color exitBarColor;
+    // 退場中にフェードで消す付随要素(見出し/ルビ/説明/プロンプト/装飾ライン)。
+    // 見出しを残すとホワイトアウト中に黒い文字だけが最後まで浮いて見える。
+    private TMP_Text[] exitFadeTexts = new TMP_Text[0];
+    private float[] exitFadeTextAlphas = new float[0];
+    private Image[] exitFadeImages = new Image[0];
+    private float[] exitFadeImageAlphas = new float[0];
 
     public bool DifficultyOpen => difficultyOpen;
     public int DifficultyIndex => diffBar != null ? diffBar.index : 1;
@@ -955,10 +973,173 @@ public class JsabStageSelect : MonoBehaviour
     {
         difficultyOpen = false;
         if (diffRoot == null || !diffRoot.gameObject.activeSelf) return;
+        RestoreDifficultyExit();
         if (diffFadeCo != null) { StopCoroutine(diffFadeCo); diffFadeCo = null; }
         // 開く時と対称のフェードアウト。完了後に非アクティブ化する。
         if (gameObject.activeInHierarchy) diffFadeCo = StartCoroutine(FadeDifficulty(false));
         else diffRoot.gameObject.SetActive(false);
+    }
+
+    // プレイ決定時の退場: 選択行が白フラッシュ+小ポップの一拍を置いて先頭で
+    // 右へ飛び去り、残りの行が追従する(タイトルの PlayStartExit と同系)。
+    // 完了後にホワイトアウトが始まる前提なので、行が画面外へ出た時点で返る。
+    public async Task PlayDifficultyExit()
+    {
+        if (diffRoot == null || !diffRoot.gameObject.activeSelf || diffPanel == null || diffExiting) return;
+        diffExiting = true;
+
+        const float flashDur = 0.10f;
+        const float rowDur = 0.18f;
+        const float slideDistance = 1700f;
+        const float exitTotal = 0.32f;
+
+        string[] rowNames = { "Easy", "Normal", "Lunatic" };
+        for (int i = 0; i < rowNames.Length; i++)
+        {
+            exitRowRects[i] = diffPanel.Find("List/" + rowNames[i]) as RectTransform;
+            if (exitRowRects[i] == null) continue;
+            exitRowBasePos[i] = exitRowRects[i].anchoredPosition;
+            exitRowBaseScale[i] = exitRowRects[i].localScale;
+        }
+        exitWhiteRect = diffPanel.Find("White") as RectTransform;
+        exitWhiteBasePos = exitWhiteRect != null ? exitWhiteRect.anchoredPosition : Vector2.zero;
+
+        int selected = Mathf.Clamp(DifficultyIndex, 0, 2);
+        exitBarImg = exitRowRects[selected] != null
+            ? exitRowRects[selected].Find("StageBar")?.GetComponent<Image>()
+            : null;
+        exitBarColor = exitBarImg != null ? exitBarImg.color : Color.white;
+        TMP_Text selectedLabel = exitRowRects[selected] != null
+            ? exitRowRects[selected].Find("StageName")?.GetComponent<TMP_Text>()
+            : null;
+        Color labelColor = selectedLabel != null ? selectedLabel.color : Color.white;
+        // 見出し・説明文・プロンプト(ルビ含む)・装飾ラインは行より先にすっと消す。
+        exitFadeTexts = new[]
+        {
+            diffPanel.Find("Title")?.GetComponent<TMP_Text>(),
+            diffPanel.Find("TitleRubyN")?.GetComponent<TMP_Text>(),
+            diffPanel.Find("TitleRubyS")?.GetComponent<TMP_Text>(),
+            diffPanel.Find("DescText")?.GetComponent<TMP_Text>(),
+            diffPanel.Find("Prompt")?.GetComponent<TMP_Text>(),
+            diffPanel.Find("PromptRubyO")?.GetComponent<TMP_Text>(),
+            diffPanel.Find("PromptRubyK")?.GetComponent<TMP_Text>(),
+        };
+        exitFadeTextAlphas = new float[exitFadeTexts.Length];
+        for (int i = 0; i < exitFadeTexts.Length; i++)
+        {
+            exitFadeTextAlphas[i] = exitFadeTexts[i] != null ? exitFadeTexts[i].alpha : 1f;
+        }
+        exitFadeImages = new[]
+        {
+            diffPanel.Find("LineT")?.GetComponent<Image>(),
+            diffPanel.Find("LineB")?.GetComponent<Image>(),
+        };
+        exitFadeImageAlphas = new float[exitFadeImages.Length];
+        for (int i = 0; i < exitFadeImages.Length; i++)
+        {
+            exitFadeImageAlphas[i] = exitFadeImages[i] != null ? exitFadeImages[i].color.a : 1f;
+        }
+
+        void StepExit(float time)
+        {
+            // 決定の一拍: 選択バナーが白く光って元色へ戻る(文字は白地に飛ば
+            // ないようネイビーへ反転してから戻す)。
+            float flashP = Mathf.Clamp01(time / flashDur);
+            if (exitBarImg != null) exitBarImg.color = Color.Lerp(Color.white, exitBarColor, flashP * flashP);
+            if (selectedLabel != null) selectedLabel.color = Color.Lerp(Navy, labelColor, flashP * flashP);
+
+            float fadeKeep = 1f - Mathf.Clamp01(time / 0.12f);
+            for (int i = 0; i < exitFadeTexts.Length; i++)
+            {
+                if (exitFadeTexts[i] != null)
+                {
+                    exitFadeTexts[i].alpha = Mathf.Min(exitFadeTexts[i].alpha, exitFadeTextAlphas[i] * fadeKeep);
+                }
+            }
+            for (int i = 0; i < exitFadeImages.Length; i++)
+            {
+                if (exitFadeImages[i] == null) continue;
+                Color ic = exitFadeImages[i].color;
+                ic.a = exitFadeImageAlphas[i] * fadeKeep;
+                exitFadeImages[i].color = ic;
+            }
+
+            // 行スライドアウト: ease-in cubic で緩→急。選択行が先頭で飛び出し、
+            // 白ブラケットは選択行と一体で飛ぶ。
+            for (int i = 0; i < exitRowRects.Length; i++)
+            {
+                if (exitRowRects[i] == null) continue;
+                float delay = i == selected ? 0.03f : 0.08f + 0.03f * i;
+                float p = Mathf.Clamp01((time - delay) / rowDur);
+                float x = p * p * p * slideDistance;
+                exitRowRects[i].anchoredPosition = exitRowBasePos[i] + new Vector2(x, 0f);
+                if (i == selected)
+                {
+                    float pop = Mathf.Sin(flashP * Mathf.PI) * 0.06f;
+                    exitRowRects[i].localScale = exitRowBaseScale[i] * (1f + pop);
+                    if (exitWhiteRect != null)
+                    {
+                        exitWhiteRect.anchoredPosition = exitWhiteBasePos + new Vector2(x, 0f);
+                    }
+                }
+            }
+        }
+
+        // 選択行が抜け切った時点(0.18s)で制御を返し、残りの行はホワイトアウト
+        // と重ねて飛ばせる(oracle 第30便: スライド→白の間で勢いが一瞬途切れる
+        // のを防ぎ、「決定の衝撃で白に飲み込まれる」つなぎにする)。
+        const float exitReturnTime = 0.18f;
+        float t = 0f;
+        while (t < exitReturnTime)
+        {
+            t += Mathf.Min(Time.unscaledDeltaTime, 1f / 30f);
+            StepExit(t);
+            await Task.Yield();
+            if (this == null) return;
+        }
+
+        async void ContinueExit()
+        {
+            float time = t;
+            while (time < exitTotal)
+            {
+                time += Mathf.Min(Time.unscaledDeltaTime, 1f / 30f);
+                // 白カバー完了後に CloseDifficulty が状態を復元したら手を引く。
+                if (this == null || !diffExiting) return;
+                StepExit(time);
+                await Task.Yield();
+            }
+        }
+        ContinueExit();
+    }
+
+    // 退場で動かした行/ブラケット/色を元へ戻す(ホワイトアウトで覆われた後の
+    // CloseDifficulty から呼ばれるので見た目には出ない)。次回 OpenDifficulty の
+    // ResetSelection が alpha/scale/説明文を整えるため、ここは位置と色だけ戻す。
+    private void RestoreDifficultyExit()
+    {
+        if (!diffExiting) return;
+        diffExiting = false;
+        for (int i = 0; i < exitRowRects.Length; i++)
+        {
+            if (exitRowRects[i] == null) continue;
+            exitRowRects[i].anchoredPosition = exitRowBasePos[i];
+            exitRowRects[i].localScale = exitRowBaseScale[i];
+        }
+        if (exitWhiteRect != null) exitWhiteRect.anchoredPosition = exitWhiteBasePos;
+        if (exitBarImg != null) exitBarImg.color = exitBarColor;
+        for (int i = 0; i < exitFadeTexts.Length; i++)
+        {
+            if (exitFadeTexts[i] != null) exitFadeTexts[i].alpha = exitFadeTextAlphas[i];
+        }
+        for (int i = 0; i < exitFadeImages.Length; i++)
+        {
+            if (exitFadeImages[i] == null) continue;
+            Color ic = exitFadeImages[i].color;
+            ic.a = exitFadeImageAlphas[i];
+            exitFadeImages[i].color = ic;
+        }
+        if (diffBar != null) diffBar.ResetSelection(diffBar.index);
     }
 
     // 開閉共通のフェード: alpha トゥイーン+パネルの軽いスケール(0.96→1.0)。
@@ -1495,7 +1676,7 @@ public class JsabStageSelect : MonoBehaviour
         // StageSelectManager; here we only translate pointer position/click.
         // Ignore the pointer for a beat after opening so the interaction that opened
         // the modal (or a focus click on the game view) cannot immediately confirm.
-        if (difficultyOpen)
+        if (difficultyOpen && !diffExiting)
         {
             if (diffBar != null) diffBar.Tick(dt);
             if (Time.unscaledTime - diffOpenTime >= 0.2f)

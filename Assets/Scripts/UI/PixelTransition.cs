@@ -18,9 +18,18 @@ public class PixelTransition : MonoBehaviour
     private const float coveredHoldTime = 0.08f;
 
     // プレイ開始(ステージ決定→プレイ画面)専用のホワイトアウト+モザイク解像。
+    // 全白ホールドは oracle 第30便の指摘(白の待ち時間が長くローディング風に
+    // 見える)で 0.10 → 0.05 に短縮。
     private const float whiteoutTime = 0.20f;
-    private const float whiteoutHoldTime = 0.10f;
+    private const float whiteoutHoldTime = 0.05f;
     private const float mosaicRevealTime = 0.55f;
+    // 解像順(中心からの正規化距離)の終盤圧縮指数。1 で等速。>1 で外周ほど
+    // 早めに欠け、最後に端の白ブロックだけが残って間延びするのを防ぐ
+    // (oracle 第30便: 終盤だけ締める)。
+    private const float mosaicTailCompress = 1.35f;
+    // ラジアル順に足す個別ジッタ。同心円の輪郭を崩して機械的な広がりを防ぐ
+    // (中心ワイプの jitterTime より大きめ。解像時間に対する比で見た目を合わせる)。
+    private const float mosaicJitterTime = 0.12f;
 
     private RectTransform[] cells;
     private Image[] cellImages;
@@ -244,35 +253,26 @@ public class PixelTransition : MonoBehaviour
         whiteSheet.color = c;
     }
 
-    // プレイ開始用: 白カバーがピクセルブロック単位で欠けていき、背後の
-    // プレイ画面がモザイク状に解像していく。順序は 4x4 Bayer ディザ+微小
-    // ジッターで、画面全体が均一に「ドット絵が細かくなる」ように見せる
-    // (中心からのワイプや純ランダムのノイズ感を避ける)。
+    // プレイ開始用: 白カバーがピクセルブロック単位で中央から外周の順に欠けて
+    // いき、背後のプレイ画面が画面中央から解像していく(第30便: Bayer ディザの
+    // 均一な欠け方はザラついて見えたため、ラジアル順+ジッタへ変更。プレイヤー
+    // の初期位置=画面中央から視界が開ける)。ジッタで同心円の輪郭を崩し、
+    // 機械的なワイプに見えないようにする。
     public async Task MosaicReveal()
     {
         if (fadeGroup != null) fadeGroup.alpha = 1f;
         if (whiteSheet != null) whiteSheet.gameObject.SetActive(false);
-        for (int r = 0; r < rows; r++)
+        for (int i = 0; i < delays.Length; i++)
         {
-            for (int c = 0; c < cols; c++)
-            {
-                int i = r * cols + c;
-                float order = Bayer4[(r & 3) * 4 + (c & 3)] / 16f;
-                delays[i] = order * mosaicRevealTime + Random.Range(0f, 0.02f);
-            }
+            // baseDelays は中心からの距離を spreadTime に正規化した値。
+            float order = baseDelays[i] / spreadTime;
+            // 終盤圧縮: 外周(order→1)ほど等速より前倒しになる凹型の写像。
+            order = 1f - Mathf.Pow(1f - order, mosaicTailCompress);
+            delays[i] = order * (mosaicRevealTime - mosaicJitterTime) + Random.Range(0f, mosaicJitterTime);
         }
         await Animate(coverIn: false);
         gameObject.SetActive(false);
     }
-
-    // 4x4 の Bayer 行列。小さい値のセルから先に欠ける。
-    private static readonly int[] Bayer4 =
-    {
-         0,  8,  2, 10,
-        12,  4, 14,  6,
-         3, 11,  1,  9,
-        15,  7, 13,  5,
-    };
 
     public void SetColor(Color color)
     {

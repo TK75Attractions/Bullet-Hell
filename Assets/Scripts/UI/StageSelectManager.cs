@@ -314,13 +314,18 @@ public class StageSelectManager : MonoBehaviour
         }
     }
 
-    // プレイ開始遷移: ホワイトアウトで画面を白く飛ばし、覆われている間に
-    // プレイ画面へ切り替え、白カバーがピクセル(モザイク)状に欠けながら
-    // プレイ画面が解像していく。
+    // プレイ開始遷移: 難易度ボタン群がスライドアウトしてからホワイトアウトで
+    // 画面を白く飛ばし、覆われている間にプレイ画面へ切り替え、白カバーが
+    // 中央からピクセル(モザイク)状に欠けながらプレイ画面が解像していく。
     private async void StartGameTransition(int stageIndex)
     {
         if (pixelTransition != null)
         {
+            // JSAB の難易度モーダルが開いていれば、行が右へ飛び去ってから白へ。
+            if (jsab != null && jsab.DifficultyOpen)
+            {
+                await jsab.PlayDifficultyExit();
+            }
             await pixelTransition.WhiteoutCover();
             // 画面が完全に覆われてから JSAB オーバーレイと難易度モーダルを隠す。
             if (jsab != null)
