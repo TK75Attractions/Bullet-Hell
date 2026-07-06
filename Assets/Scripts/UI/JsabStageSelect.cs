@@ -810,16 +810,26 @@ public class JsabStageSelect : MonoBehaviour
             {
                 NewKeyCap(group, key, 44f, 28f);
             }
-            TMP_Text label = NewText("Label", group, item.Label, 28f, Cyan, TextAlignmentOptions.Left);
-            AddLayoutElement((RectTransform)label.transform, label.GetPreferredValues().x, 44f);
+            // ラベルはレイアウトグループが位置を管理するため、直接ではなく
+            // コンテナを介して置き、内側の TMP をインク実測で光学中央へ寄せる
+            // (日本語がフォールバックフォントの行メトリクスで上に乗る対策)。
+            GameObject labelBox = new GameObject("LabelBox", typeof(RectTransform));
+            labelBox.transform.SetParent(group, false);
+            RectTransform labelBoxRect = (RectTransform)labelBox.transform;
+            TMP_Text label = NewText("Label", labelBoxRect, item.Label, 28f, Cyan, TextAlignmentOptions.Left);
+            AddLayoutElement(labelBoxRect, label.GetPreferredValues().x, 44f);
+            Stretch((RectTransform)label.transform);
+            TmpAlign.CenterInkVertically(label);
         }
     }
 
-    // A blue key-cap chip with a white centered label. The blue matches the
-    // top bar's gradient blue (sampled #4290DB) so the bar and chips read as one
-    // design; a slightly lighter edge keeps the cap silhouette visible.
-    private static readonly Color KeyCapBlue = new Color(0.259f, 0.565f, 0.859f, 1f);
-    private static readonly Color KeyCapEdge = new Color(0.42f, 0.69f, 0.93f, 1f);
+    // キーキャップは下部バー内の隣接要素(ラベル文字・上辺ライン)と同じ
+    // アクセントシアン(#38C2E0)に統一する。トップバーの青(#4290DB)は面の
+    // ブランド色で、チップは操作アクセント側なので、隣で並ぶラベルの色相に
+    // 合わせないと2色の青が並んで濁って見える。縁=ラベルと同一のシアン、
+    // 地=白文字が読めるよう同色相を一段暗くしたもの。
+    private static readonly Color KeyCapBlue = new Color(0.13f, 0.46f, 0.55f, 1f);
+    private static readonly Color KeyCapEdge = new Color(0.22f, 0.76f, 0.878f, 1f);
 
     private RectTransform NewKeyCap(RectTransform parent, string label, float height, float fontSize)
     {
@@ -838,6 +848,9 @@ public class JsabStageSelect : MonoBehaviour
 
         TMP_Text t = NewText("L", br, label, fontSize, Color.white, TextAlignmentOptions.Center);
         Stretch((RectTransform)t.transform);
+        // CJK フォールバックの行メトリクス(←/→ など)で文字が上に乗るため、
+        // インク実測で光学中央へ寄せる。
+        TmpAlign.CenterInkVertically(t);
         return br;
     }
 
