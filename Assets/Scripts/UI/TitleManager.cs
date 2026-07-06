@@ -13,6 +13,8 @@ public class TitleManager : MonoBehaviour
     private float logoBaseY;
     private float animTime;
     private bool dismissed;
+    // プレイ終了(シーン再読込)からの復帰専用のパンチイン演出の状態。設定画面を
+    // 閉じたときには使わない(タイトルは背後で動き続けているため演出不要)。
     private bool returnAnimating;
     private Image returnBackdrop;
 
@@ -45,17 +47,11 @@ public class TitleManager : MonoBehaviour
     private static readonly Color NavyDeep = new Color(0.015f, 0.028f, 0.06f, 0.98f);
     private static readonly Color ErrorRed = new Color(0.96f, 0.46f, 0.52f);
 
-    // Menu bars reuse the stage-select bar sprite and its color treatment so the
-    // title menu matches the stage list: dim tinted bar + faint text when idle,
-    // full bright bar + white text when selected (mirrors StageBox constants).
-    private static readonly Color BarDim = new Color(0.42f, 0.55f, 0.72f);
-    private static readonly Color BarSelected = Color.white;
-    private static readonly Color MenuTextDim = new Color(0.78f, 0.88f, 1f);
-
-    // Neon accents borrowed from the logo (cyan + magenta glitch) so the menu
-    // reads as part of the "JUST BEAT IT" title rather than a plain blue slab.
-    private static readonly Color NeonCyan = new Color(0.122f, 0.843f, 1f);
-    private static readonly Color NeonMagenta = new Color(1f, 0.106f, 0.471f);
+    // The title menu clones the difficulty-select rows (DefficultyBar) so both
+    // screens share one design language: slanted StageBar banner + StageName
+    // label + gliding white slash brackets. Colors mirror the NORMAL row.
+    private static readonly Color MenuBarBlue = new Color(0.055f, 0.525f, 0.91f);
+    private static readonly Color MenuTextBase = new Color(0.85f, 0.93f, 1f);
 
     // How far above its scene-authored position the logo is lifted.
     private const float LogoRaiseOffset = 80f;
@@ -64,23 +60,14 @@ public class TitleManager : MonoBehaviour
     private RectTransform menuRoot;
     private TMP_Text[] menuItems = new TMP_Text[0];
     private RectTransform[] menuItemRects = new RectTransform[0];
-    private Image[] menuBars = new Image[0];
-    private Sprite barSprite;
+    private CanvasGroup[] menuRowCG = new CanvasGroup[0];
     private float[] menuItemSel = new float[0];
+    private float[] menuRowY = new float[0];
     private int menuIndex;
 
-    // Per-row neon decoration (only visible on the selected row): a cyan halo and
-    // an offset magenta shadow behind the bar, small glitch chips on top of it,
-    // and inward-pointing triangle markers on either side.
-    private Image[] menuGlowCyan = new Image[0];
-    private Image[] menuGlowMagenta = new Image[0];
-    private Image[] menuTriLeft = new Image[0];
-    private Image[] menuTriRight = new Image[0];
-    private Image[][] menuChips = new Image[0][];
-    private Vector3[] menuTriLeftBase = new Vector3[0];
-    private Vector3[] menuTriRightBase = new Vector3[0];
-    private Vector2[][] menuChipBasePos = new Vector2[0][];
-    private Sprite triangleSprite;
+    // Cloned DefficultyBar "White" slash brackets; glide to the selected row.
+    private RectTransform menuWhite;
+    private float menuWhiteY;
 
     private GameObject transferRoot;
     private TMP_Text transferCodeText;
@@ -158,7 +145,16 @@ public class TitleManager : MonoBehaviour
 
         menuIndex = 0;
         transferOpen = false;
-        for (int i = 0; i < menuItemSel.Length; i++) menuItemSel[i] = i == 0 ? 1f : 0f;
+        for (int i = 0; i < menuItemSel.Length; i++)
+        {
+            menuItemSel[i] = i == 0 ? 1f : 0f;
+            ApplyMenuRowState(i, menuItemSel[i]);
+        }
+        if (menuWhite != null && menuRowY.Length > 0)
+        {
+            menuWhiteY = menuRowY[0];
+            menuWhite.anchoredPosition = new Vector2(0f, menuWhiteY);
+        }
         if (transferRoot != null) transferRoot.SetActive(false);
         if (menuRoot != null) menuRoot.gameObject.SetActive(true);
 
@@ -170,8 +166,9 @@ public class TitleManager : MonoBehaviour
         }
     }
 
-    // Returning from the option screen: the title rushes toward the viewer,
-    // overshoots slightly, then settles as the pixel cover clears.
+    // Returning from a quit-play scene reload: the title rushes toward the
+    // viewer, overshoots slightly, then settles as the pixel cover clears.
+    // (PixelTransition drives this; the title-options close path does not.)
     public void PrepareReturnEntrance()
     {
         EnsureReturnBackdrop();
@@ -343,8 +340,9 @@ public class TitleManager : MonoBehaviour
         if (menuRoot != null) menuRoot.gameObject.SetActive(false);
     }
 
-    // Navigate + animate the vertical menu. Selection pulses with the beat and
-    // brightens toward cyan; unselected items sit in a dim teal.
+    // Navigate + animate the vertical menu. Selection mirrors DefficultyBox
+    // exactly (alpha 0.4→1, scale 0.8→1, text toward white) and the cloned white
+    // slash brackets glide to the selected row like DefficultyBar.Tick.
     public void UpdateMenu(float dt, bool up, bool down)
     {
         if (transferOpen || menuItems.Length == 0) return;
@@ -352,50 +350,32 @@ public class TitleManager : MonoBehaviour
         if (up) menuIndex = Mathf.Max(0, menuIndex - 1);
         else if (down) menuIndex = Mathf.Min(menuItems.Length - 1, menuIndex + 1);
 
+        float follow = 1f - Mathf.Exp(-14f * dt);
         for (int i = 0; i < menuItems.Length; i++)
         {
-            bool selected = i == menuIndex;
-            menuItemSel[i] = Mathf.Lerp(menuItemSel[i], selected ? 1f : 0f, 1f - Mathf.Exp(-16f * dt));
-            float pulse = selected ? 1f + 0.05f * beatPulse : 1f;
-            float scale = Mathf.Lerp(0.94f, 1.06f, menuItemSel[i]) * pulse;
-            if (menuItemRects[i] != null) menuItemRects[i].localScale = Vector3.one * scale;
-            if (menuBars[i] != null) menuBars[i].color = Color.Lerp(BarDim, BarSelected, menuItemSel[i]);
-            if (menuItems[i] != null) menuItems[i].color = Color.Lerp(MenuTextDim, Color.white, menuItemSel[i]);
+            float target = i == menuIndex ? 1f : 0f;
+            menuItemSel[i] = Mathf.Abs(target - menuItemSel[i]) < 0.001f
+                ? target
+                : Mathf.Lerp(menuItemSel[i], target, follow);
+            ApplyMenuRowState(i, menuItemSel[i]);
+        }
 
-            float s = menuItemSel[i];
-            float beat = selected ? beatPulse : 0f;
-            if (i < menuGlowCyan.Length && menuGlowCyan[i] != null)
-                SetAlpha(menuGlowCyan[i], s * (0.52f + 0.25f * beat));
-            if (i < menuGlowMagenta.Length && menuGlowMagenta[i] != null)
-                SetAlpha(menuGlowMagenta[i], s * 0.50f);
-            if (i < menuChips.Length && menuChips[i] != null)
-            {
-                for (int c = 0; c < menuChips[i].Length; c++)
-                {
-                    if (menuChips[i][c] == null) continue;
-                    SetAlpha(menuChips[i][c], c == 1 ? s * 0.55f : s);
-                    // Nudge one chip sideways on the beat for a glitch flicker.
-                    Vector2 bp = menuChipBasePos[i][c];
-                    float dx = c == 1 ? beat * 4f : 0f;
-                    menuChips[i][c].rectTransform.anchoredPosition = bp + new Vector2(dx, 0f);
-                }
-            }
-            if (i < menuTriLeft.Length && menuTriLeft[i] != null)
-            {
-                SetAlpha(menuTriLeft[i], s);
-                menuTriLeft[i].rectTransform.localScale = menuTriLeftBase[i] * (1f + 0.18f * beat);
-            }
-            if (i < menuTriRight.Length && menuTriRight[i] != null)
-            {
-                SetAlpha(menuTriRight[i], s);
-                menuTriRight[i].rectTransform.localScale = menuTriRightBase[i] * (1f + 0.18f * beat);
-            }
+        if (menuWhite != null && menuRowY.Length > menuIndex)
+        {
+            float targetY = menuRowY[menuIndex];
+            menuWhiteY = Mathf.Abs(targetY - menuWhiteY) < 0.5f
+                ? targetY
+                : Mathf.Lerp(menuWhiteY, targetY, 1f - Mathf.Exp(-16f * dt));
+            menuWhite.anchoredPosition = new Vector2(0f, menuWhiteY);
         }
     }
 
-    private static void SetAlpha(Graphic g, float a)
+    // Same visual state math as DefficultyBox.SetPosition.
+    private void ApplyMenuRowState(int i, float progress)
     {
-        Color c = g.color; c.a = a; g.color = c;
+        if (menuRowCG[i] != null) menuRowCG[i].alpha = 0.4f + 0.6f * progress;
+        if (menuItemRects[i] != null) menuItemRects[i].localScale = Vector3.one * (0.8f + 0.2f * progress);
+        if (menuItems[i] != null) menuItems[i].color = Color.Lerp(MenuTextBase, Color.white, progress);
     }
 
     private void BuildMenu()
@@ -408,174 +388,79 @@ public class TitleManager : MonoBehaviour
         menuRoot.anchoredPosition = Vector2.zero;
         menuRoot.sizeDelta = new Vector2(700f, 500f);
 
-        barSprite = FindStageBarSprite();
-
         string[] labels = { "スタート", "設定", "引き継ぎ" };
         float[] rowY = { -178f, -303f, -428f };
-        Vector2 barSize = new Vector2(600f, 104f);
-        triangleSprite = GetTriangleSprite();
+
+        // The real difficulty-select column lives next to the title in the same
+        // canvas; clone its row (banner + label) and white brackets so the title
+        // menu is literally the same parts, not a lookalike.
+        Transform diffSrc = transform.parent != null ? transform.parent.Find("StageBoxParent/DefficultyBar") : null;
+        Transform rowSrc = diffSrc != null ? diffSrc.Find("List/Normal") : null;
+        Transform whiteSrc = diffSrc != null ? diffSrc.Find("White") : null;
 
         menuItems = new TMP_Text[labels.Length];
         menuItemRects = new RectTransform[labels.Length];
-        menuBars = new Image[labels.Length];
+        menuRowCG = new CanvasGroup[labels.Length];
         menuItemSel = new float[labels.Length];
-        menuGlowCyan = new Image[labels.Length];
-        menuGlowMagenta = new Image[labels.Length];
-        menuTriLeft = new Image[labels.Length];
-        menuTriRight = new Image[labels.Length];
-        menuChips = new Image[labels.Length][];
-        menuTriLeftBase = new Vector3[labels.Length];
-        menuTriRightBase = new Vector3[labels.Length];
-        menuChipBasePos = new Vector2[labels.Length][];
+        menuRowY = rowY;
 
-        // Chip layout (relative to the bar centre): a few small rectangles that
-        // echo the pixel/glitch shards in the logo. white / magenta / cyan.
-        Vector2[] chipPos = { new Vector2(-232f, 42f), new Vector2(6f, 48f), new Vector2(214f, -44f) };
-        Vector2[] chipSize = { new Vector2(36f, 6f), new Vector2(20f, 7f), new Vector2(30f, 5f) };
-        Color[] chipCol = { Color.white, NeonMagenta, NeonCyan };
-
-        float barHalf = barSize.x * 0.5f;
         for (int i = 0; i < labels.Length; i++)
         {
-            bool sel = i == 0;
-            // Each row is a container so the bar and its label scale together on
-            // selection / beat, exactly like a stage-select box.
-            RectTransform row = CreateRow("Item" + i, menuRoot, new Vector2(0f, rowY[i]), barSize);
-
-            // Behind the bar: a cyan halo and an offset magenta shadow (a faux
-            // chromatic-aberration glow). Only lit on the selected row.
-            Image glowCyan = CreateBarCopy("GlowCyan", row, Vector2.zero, barSize + new Vector2(20f, 16f), NeonCyan, sel ? 0.6f : 0f);
-            Image glowMagenta = CreateBarCopy("GlowMagenta", row, new Vector2(7f, -6f), barSize + new Vector2(12f, 10f), NeonMagenta, sel ? 0.5f : 0f);
-            menuGlowCyan[i] = glowCyan;
-            menuGlowMagenta[i] = glowMagenta;
-
-            Image bar = CreatePanel("Bar", row, Vector2.zero, barSize, sel ? BarSelected : BarDim);
-            if (barSprite != null)
+            RectTransform row;
+            TMP_Text label;
+            if (rowSrc != null)
             {
-                bar.sprite = barSprite;
-                bar.type = Image.Type.Simple;
-                bar.preserveAspect = false;
+                GameObject rowObj = Instantiate(rowSrc.gameObject, menuRoot);
+                rowObj.name = "Item" + i;
+                rowObj.SetActive(true);
+                row = (RectTransform)rowObj.transform;
+                Image bar = rowObj.transform.Find("StageBar")?.GetComponent<Image>();
+                if (bar != null) bar.color = MenuBarBlue;
+                label = rowObj.transform.Find("StageName")?.GetComponent<TMP_Text>();
             }
-            menuBars[i] = bar;
-
-            // Glitch chips on top of the bar.
-            menuChips[i] = new Image[chipPos.Length];
-            menuChipBasePos[i] = new Vector2[chipPos.Length];
-            for (int c = 0; c < chipPos.Length; c++)
+            else
             {
-                Image chip = CreatePanel("Chip" + c, row, chipPos[c], chipSize[c], chipCol[c]);
-                Color cc = chip.color; cc.a = sel ? 1f : 0f; chip.color = cc;
-                menuChips[i][c] = chip;
-                menuChipBasePos[i][c] = chipPos[c];
+                // Degraded fallback (scene layout changed): plain banner + label.
+                row = new GameObject("Item" + i, typeof(RectTransform)).GetComponent<RectTransform>();
+                row.SetParent(menuRoot, false);
+                CreatePanel("StageBar", row, Vector2.zero, new Vector2(583f, 109f), MenuBarBlue);
+                label = CreateText("StageName", row, Vector2.zero, new Vector2(583f, 109f), 52f, MenuTextBase, TextAlignmentOptions.Center);
             }
 
-            TMP_Text item = CreateText("Label", row, Vector2.zero, barSize, 52f,
-                sel ? Color.white : MenuTextDim, TextAlignmentOptions.Center);
-            item.text = labels[i];
-            item.fontStyle = FontStyles.Bold;
-            item.characterSpacing = 6f;
-            // The Japanese labels ride high in the bar under Middle alignment
-            // (Latin UI font + CJK fallback metrics); optically center them.
-            TmpAlign.CenterInkVertically(item);
-            menuItems[i] = item;
+            row.anchorMin = row.anchorMax = new Vector2(0.5f, 0.5f);
+            row.pivot = new Vector2(0.5f, 0.5f);
+            row.anchoredPosition = new Vector2(0f, rowY[i]);
+
+            CanvasGroup cg = row.GetComponent<CanvasGroup>();
+            if (cg == null) cg = row.gameObject.AddComponent<CanvasGroup>();
+
+            if (label != null)
+            {
+                label.text = labels[i];
+                // Japanese labels ride high under Middle alignment (Latin UI font
+                // + CJK fallback metrics); optically center them in the banner.
+                TmpAlign.CenterInkVertically(label);
+            }
+
+            menuItems[i] = label;
             menuItemRects[i] = row;
-            menuItemSel[i] = sel ? 1f : 0f;
-
-            // Inward-pointing triangle markers echoing the logo's play mark.
-            Vector2 triSize = new Vector2(24f, 27f);
-            Image triLeft = CreateTriangle("TriLeft", row, new Vector2(-(barHalf + 30f), 0f), triSize, NeonCyan, sel ? 1f : 0f);
-            Image triRight = CreateTriangle("TriRight", row, new Vector2(barHalf + 30f, 0f), triSize, NeonMagenta, sel ? 1f : 0f);
-            triRight.rectTransform.localScale = new Vector3(-1f, 1f, 1f); // point left
-            menuTriLeft[i] = triLeft;
-            menuTriRight[i] = triRight;
-            menuTriLeftBase[i] = Vector3.one;
-            menuTriRightBase[i] = new Vector3(-1f, 1f, 1f);
+            menuRowCG[i] = cg;
+            menuItemSel[i] = i == 0 ? 1f : 0f;
+            ApplyMenuRowState(i, menuItemSel[i]);
         }
-    }
 
-    // A small right-pointing triangle sprite generated once at runtime (no asset
-    // needed). The right-side marker flips it horizontally to point left.
-    private Sprite GetTriangleSprite()
-    {
-        if (triangleSprite != null) return triangleSprite;
-        const int n = 64;
-        Texture2D tex = new Texture2D(n, n, TextureFormat.RGBA32, false);
-        tex.wrapMode = TextureWrapMode.Clamp;
-        Color32 clear = new Color32(255, 255, 255, 0);
-        Color32 solid = new Color32(255, 255, 255, 255);
-        for (int y = 0; y < n; y++)
+        if (whiteSrc != null)
         {
-            // Apex at the right-centre; base along the left edge.
-            float t = Mathf.Abs(y - (n - 1) * 0.5f) / ((n - 1) * 0.5f); // 0 centre .. 1 edge
-            float maxX = (n - 1) * (1f - t);
-            for (int x = 0; x < n; x++)
-                tex.SetPixel(x, y, x <= maxX ? (Color)solid : (Color)clear);
+            GameObject whiteObj = Instantiate(whiteSrc.gameObject, menuRoot);
+            whiteObj.name = "White";
+            whiteObj.SetActive(true);
+            menuWhite = (RectTransform)whiteObj.transform;
+            CanvasGroup whiteCG = whiteObj.GetComponent<CanvasGroup>();
+            if (whiteCG != null) whiteCG.alpha = 1f;
+            menuWhite.SetAsLastSibling();
+            menuWhiteY = rowY[0];
+            menuWhite.anchoredPosition = new Vector2(0f, menuWhiteY);
         }
-        tex.Apply();
-        triangleSprite = Sprite.Create(tex, new Rect(0, 0, n, n), new Vector2(0.5f, 0.5f), 100f);
-        return triangleSprite;
-    }
-
-    private Image CreateBarCopy(string objectName, Transform parent, Vector2 pos, Vector2 size, Color color, float alpha)
-    {
-        Image img = CreatePanel(objectName, parent, pos, size, color);
-        if (barSprite != null)
-        {
-            img.sprite = barSprite;
-            img.type = Image.Type.Simple;
-            img.preserveAspect = false;
-        }
-        Color c = img.color; c.a = alpha; img.color = c;
-        return img;
-    }
-
-    private Image CreateTriangle(string objectName, Transform parent, Vector2 pos, Vector2 size, Color color, float alpha)
-    {
-        Image img = CreatePanel(objectName, parent, pos, size, color);
-        img.sprite = triangleSprite;
-        img.type = Image.Type.Simple;
-        img.preserveAspect = true;
-        Color c = img.color; c.a = alpha; img.color = c;
-        return img;
-    }
-
-    // The stage-select boxes are created before the title during startup, so we
-    // can borrow the exact bar sprite they use (Box prefab's "StageBar" image)
-    // without touching the scene or hard-coding an asset path.
-    private Sprite FindStageBarSprite()
-    {
-        StageBox[] boxes = transform.root.GetComponentsInChildren<StageBox>(true);
-        foreach (StageBox box in boxes)
-        {
-            Image[] images = box.GetComponentsInChildren<Image>(true);
-            foreach (Image img in images)
-            {
-                if (img != null && img.sprite != null && img.gameObject.name == "StageBar")
-                    return img.sprite;
-            }
-        }
-        // Fallback: any sprited image on a box.
-        foreach (StageBox box in boxes)
-        {
-            Image[] images = box.GetComponentsInChildren<Image>(true);
-            foreach (Image img in images)
-            {
-                if (img != null && img.sprite != null) return img.sprite;
-            }
-        }
-        return null;
-    }
-
-    private RectTransform CreateRow(string objectName, Transform parent, Vector2 pos, Vector2 size)
-    {
-        GameObject go = new GameObject(objectName, typeof(RectTransform));
-        go.layer = gameObject.layer;
-        RectTransform rect = (RectTransform)go.transform;
-        rect.SetParent(parent, false);
-        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.anchoredPosition = pos;
-        rect.sizeDelta = size;
-        return rect;
     }
 
     // ---- Transfer panel ---------------------------------------------------

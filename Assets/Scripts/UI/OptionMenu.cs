@@ -472,6 +472,38 @@ public class OptionMenu : MonoBehaviour
         if (GManager.Control != null) GManager.Control.SetPaused(false);
     }
 
+    // タイトル画面から開いた設定用のクローズ。BeginResume と違いカウントダウンや
+    // SetPaused を伴わず、短いフェードアウトだけで閉じる(背後ではタイトルが動き
+    // 続けているので、閉じた後の追加演出は不要)。
+    public async void CloseForTitle(System.Action onClosed)
+    {
+        if (quitting) return;
+        if (closing) { onClosed?.Invoke(); return; }
+        EnsureInit();
+        closing = true;
+
+        const float closeDuration = 0.18f;
+        float time = 0f;
+        while (time < closeDuration)
+        {
+            time += Time.unscaledDeltaTime;
+            float p = Mathf.Clamp01(time / closeDuration);
+            float ease = p * p * (3f - 2f * p);
+            if (group != null) group.alpha = 1f - ease;
+            transform.localScale = Vector3.one * Mathf.Lerp(1f, 0.985f, ease);
+            await Task.Yield();
+            if (this == null) return;
+            // フェード中に再オープンされたら中断する(Open が状態を作り直す)。
+            if (!closing) return;
+        }
+
+        closing = false;
+        gameObject.SetActive(false);
+        transform.localScale = Vector3.one;
+        if (group != null) group.alpha = 1f;
+        onClosed?.Invoke();
+    }
+
     private async Task ShowCountdownNumber(string value)
     {
         countdownText.text = value;

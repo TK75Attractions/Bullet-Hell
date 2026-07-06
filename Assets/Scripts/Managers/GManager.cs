@@ -383,7 +383,12 @@ public class GManager : MonoBehaviour
         // while it is open, then restore its order on close.
         if (optionScreenObj != null)
         {
-            optionScreenSiblingIndex = optionScreenObj.transform.GetSiblingIndex();
+            // 直前のクローズフェード中の再オープンでは、退避済みの元位置を保持する
+            // (現在位置は最前面に持ち上げた後の値なので上書きしない)。
+            if (optionScreenSiblingIndex < 0)
+            {
+                optionScreenSiblingIndex = optionScreenObj.transform.GetSiblingIndex();
+            }
             optionScreenObj.transform.SetAsLastSibling();
             optionScreenObj.SetActive(true);
             optionMenu?.Open();
@@ -416,15 +421,6 @@ public class GManager : MonoBehaviour
 
     private void CloseTitleOptions()
     {
-        if (optionScreenObj != null)
-        {
-            optionScreenObj.SetActive(false);
-            if (optionScreenSiblingIndex >= 0)
-            {
-                optionScreenObj.transform.SetSiblingIndex(optionScreenSiblingIndex);
-                optionScreenSiblingIndex = -1;
-            }
-        }
         titlePhase = TitlePhase.Menu;
         // Require the confirm button to be released again before the menu accepts
         // a press, so the input used to dismiss the option screen (or a button
@@ -432,7 +428,30 @@ public class GManager : MonoBehaviour
         // item on the frame the title regains control.
         titleArmed = false;
         TManager?.ShowMenu();
-        TManager?.PlayReturnEntrance();
+
+        // 設定画面は瞬時に消さず短いフェードで閉じる。背後のタイトルは走り続けて
+        // いるので、以前の PlayReturnEntrance(0.78→1 の急ズーム)のような復帰演出は
+        // 行わない(「カメラが変な動きをする」の原因だった)。重ね順はフェードが
+        // 消え切ってから元に戻す。
+        if (optionScreenObj == null) return;
+        if (optionScreenObj.activeSelf && optionMenu != null)
+        {
+            optionMenu.CloseForTitle(RestoreOptionScreenOrder);
+        }
+        else
+        {
+            optionScreenObj.SetActive(false);
+            RestoreOptionScreenOrder();
+        }
+    }
+
+    private void RestoreOptionScreenOrder()
+    {
+        if (optionScreenObj != null && optionScreenSiblingIndex >= 0)
+        {
+            optionScreenObj.transform.SetSiblingIndex(optionScreenSiblingIndex);
+            optionScreenSiblingIndex = -1;
+        }
     }
 
     private void UpdateTitleTransfer()
