@@ -228,6 +228,10 @@ public class StageSelectManager : MonoBehaviour
                     if (back)
                     {
                         jsab.CloseDifficulty();
+                        // Returning to the carousel restarts the music-select
+                        // countdown, same as TransitionToMusic on the default screen.
+                        remainingTime = musicSelectTime;
+                        phaseTotalTime = musicSelectTime;
                     }
                     else if (button || jsab.ConsumeMouseConfirm())
                     {
@@ -247,9 +251,13 @@ public class StageSelectManager : MonoBehaviour
                 if (button)
                 {
                     // On the JSAB screen the decision opens the in-screen difficulty
-                    // modal; the default screen slides to the difficulty list.
+                    // modal; the default screen slides to the difficulty list. The
+                    // modal gets the same fresh countdown as the difficulty screen,
+                    // otherwise a music-phase timeout would auto-confirm it instantly.
                     if (jsab != null && stageSelectStyle == 1)
                     {
+                        remainingTime = difficultySelectTime;
+                        phaseTotalTime = difficultySelectTime;
                         jsab.OpenDifficulty();
                         break;
                     }
@@ -319,7 +327,10 @@ public class StageSelectManager : MonoBehaviour
             }
 
             StageData data = GManager.Control.SDB.GetStage(stageIndex);
-            string diffName = defficultyBar.index == 0 ? "EASY" : defficultyBar.index == 2 ? "LUNATIC" : "NORMAL";
+            // selectedDifficulty is the single source of truth; the JSAB modal sets
+            // it without touching defficultyBar.index.
+            int diff = GManager.Control.selectedDifficulty;
+            string diffName = diff == 0 ? "EASY" : diff == 2 ? "LUNATIC" : "NORMAL";
             if (!skipPreStage && tutorialManager != null)
             {
                 await tutorialManager.ShowSongIntro(data != null ? data.stageName : "", diffName, defficultyBar.index);

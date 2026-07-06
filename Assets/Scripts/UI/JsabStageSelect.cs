@@ -17,8 +17,6 @@ public class JsabStageSelect : MonoBehaviour
     private static readonly Color CyanDim = new Color(0.22f, 0.76f, 0.878f, 0.55f);
     private static readonly Color Navy = new Color(0.043f, 0.106f, 0.169f, 1f);      // #0B1B2B
     private static readonly Color NavyDeep = new Color(0.02f, 0.05f, 0.09f, 1f);
-    private static readonly Color HeaderCyan = new Color(0.16f, 0.62f, 0.73f, 1f);
-    private static readonly Color Ink = new Color(0.03f, 0.09f, 0.12f, 1f);
 
     private CanvasGroup rootCG;
     private TMP_FontAsset font;
@@ -45,6 +43,27 @@ public class JsabStageSelect : MonoBehaviour
 
     // Page indicator (rebuilt when the stage count is known)
     private RectTransform progressRow;
+    // Persistent player marker on the indicator; tweens between nodes.
+    private RectTransform markerRect;
+    private float markerToX;
+    private float markerFromX;
+    private float markerTweenTime = -1f;    // <0 == not animating
+    private const float markerTweenDuration = 0.25f;
+
+    // Cloned style-0 top bar pieces that must mirror the live originals
+    // (StageSelectManager keeps updating them even while alpha-hidden).
+    private TMP_Text topBarTimerText;
+    private RectTransform topBarTimeDim;
+    private TMP_Text origTimerText;
+    private RectTransform origTimeDim;
+
+    // Carousel band that slides together on stage change.
+    private RectTransform stageNameRect;
+    private Vector2 stageNameBasePos;
+    private RectTransform leftCardRect;
+    private Vector2 leftCardBasePos;
+    private RectTransform rightCardRect;
+    private Vector2 rightCardBasePos;
 
     // Vertical divider color between the center and side columns.
     private static readonly Color Divider = new Color(0.22f, 0.76f, 0.878f, 0.4f);
@@ -63,29 +82,19 @@ public class JsabStageSelect : MonoBehaviour
     private Vector2 cardBasePos;
 
     // --- In-screen difficulty overlay (built once, hidden until a stage is decided) ---
-    private static readonly string[] DifficultyNames = { "EASY", "NORMAL", "LUNATIC" };
-    private static readonly Color[] DifficultyTints =
-    {
-        new Color(0.42f, 0.85f, 0.55f, 1f),   // EASY: calm green
-        new Color(0.90f, 0.94f, 0.97f, 1f),   // NORMAL: clean white
-        new Color(0.95f, 0.35f, 0.40f, 1f),   // LUNATIC: hot red
-    };
     private RectTransform diffRoot;      // container for blur + scrim + panel
     private RawImage diffBlur;           // frozen, downsampled snapshot of the carousel
     private Image diffScrim;             // dark wash for text contrast
-    private RectTransform diffPanel;     // the buttons + title
-    private readonly Image[] diffButtons = new Image[3];
-    private readonly Image[] diffButtonBorders = new Image[3];
-    private readonly TMP_Text[] diffButtonLabels = new TMP_Text[3];
-    private static readonly Color SelectBorder = new Color(0.78f, 0.97f, 1f, 1f); // bright cyan-white
-    private int diffIndex = 1;           // default NORMAL
+    private RectTransform diffPanel;     // cloned style-0 difficulty column
+    private DefficultyBar diffBar;       // the cloned component (style-0 look & animation)
+    private readonly RectTransform[] diffBoxRects = new RectTransform[3]; // Easy/Normal/Lunatic bar rects (mouse hit areas)
     private bool difficultyOpen;
     private float diffOpenTime;           // unscaled time the modal opened (mouse debounce)
     private RenderTexture blurRT;
     private bool mouseConfirm;           // set when a difficulty button is left-clicked
 
     public bool DifficultyOpen => difficultyOpen;
-    public int DifficultyIndex => diffIndex;
+    public int DifficultyIndex => diffBar != null ? diffBar.index : 1;
 
     // Returns (and clears) whether the mouse just clicked a difficulty button.
     public bool ConsumeMouseConfirm()
@@ -131,28 +140,10 @@ public class JsabStageSelect : MonoBehaviour
         Image bg = NewImage("Background", root, Color.black);
         Stretch(bg.rectTransform);
 
-        // --- Header band ---
-        Image header = NewImage("Header", root, HeaderCyan);
-        RectTransform hr = header.rectTransform;
-        hr.anchorMin = new Vector2(0f, 1f);
-        hr.anchorMax = new Vector2(1f, 1f);
-        hr.pivot = new Vector2(0.5f, 1f);
-        hr.anchoredPosition = Vector2.zero;
-        hr.sizeDelta = new Vector2(0f, 96f);
-        TMP_Text headerText = NewText("HeaderText", header.rectTransform, "♪  ステージ選択", 48f, Ink, TextAlignmentOptions.Left);
-        RectTransform htr = (RectTransform)headerText.transform;
-        htr.anchorMin = new Vector2(0f, 0f);
-        htr.anchorMax = new Vector2(1f, 1f);
-        htr.offsetMin = new Vector2(60f, 0f);
-        htr.offsetMax = new Vector2(-60f, 0f);
-        // thin accent line under the header
-        Image accent = NewImage("HeaderAccent", root, Cyan);
-        RectTransform ar = accent.rectTransform;
-        ar.anchorMin = new Vector2(0f, 1f);
-        ar.anchorMax = new Vector2(1f, 1f);
-        ar.pivot = new Vector2(0.5f, 1f);
-        ar.anchoredPosition = new Vector2(0f, -96f);
-        ar.sizeDelta = new Vector2(0f, 3f);
+        // --- Top bar: clone of the default (style 0) header so both styles share
+        // the exact same design. The timer text and the red time-dim panel mirror
+        // the live originals every frame in Tick.
+        CloneTopBar(root);
 
         // --- Thin vertical dividers between the center column and the side columns ---
         BuildDivider(root, -480f);
@@ -202,14 +193,20 @@ public class JsabStageSelect : MonoBehaviour
         videoPlayer.waitForFirstFrame = true;
         videoPlayer.audioOutputMode = VideoAudioOutputMode.None;
         videoPlayer.skipOnDrop = true;
+        // The RenderTexture keeps the previous stage's frame while the next clip
+        // prepares; visuals only swap once the new clip is ready (no flash).
+        videoPlayer.prepareCompleted += OnMainVideoPrepared;
 
         // Stage name above the card.
         stageNameText = NewText("StageName", root, "", 60f, Cyan, TextAlignmentOptions.Center);
         RectTransform snr = (RectTransform)stageNameText.transform;
         snr.anchorMin = snr.anchorMax = new Vector2(0.5f, 0.5f);
         snr.pivot = new Vector2(0.5f, 0.5f);
+        // +46f keeps the name clear of the 120px-tall top bar (bottom edge y=420).
         snr.sizeDelta = new Vector2(1000f, 80f);
-        snr.anchoredPosition = new Vector2(0f, 70f + 528f * 0.5f + 56f);
+        snr.anchoredPosition = new Vector2(0f, 70f + 528f * 0.5f + 46f);
+        stageNameRect = snr;
+        stageNameBasePos = snr.anchoredPosition;
 
         // --- Progress indicator (player -> dashes -> ring) ---
         BuildProgressIndicator(root);
@@ -221,6 +218,52 @@ public class JsabStageSelect : MonoBehaviour
         BuildDifficultyOverlay(root);
     }
 
+    // Clones the two scene "Head" subtrees (base graphics from StaticCanvas, text
+    // layer from StageCanvas) into this canvas. The clones are passive visuals;
+    // dynamic parts (timer text, TimeDim width) are mirrored from the originals.
+    private void CloneTopBar(RectTransform root)
+    {
+        Transform canvases = transform.parent;
+        if (canvases == null) return;
+
+        Transform staticHead = canvases.Find("StaticCanvas/StageBoxParent/Head");
+        if (staticHead != null)
+        {
+            GameObject clone = Instantiate(staticHead.gameObject, root);
+            clone.name = "TopBarBase";
+            clone.SetActive(true);
+            CopyRect((RectTransform)clone.transform, (RectTransform)staticHead);
+            topBarTimeDim = clone.transform.Find("TimeDim") as RectTransform;
+            origTimeDim = staticHead.Find("TimeDim") as RectTransform;
+        }
+
+        Transform textHead = canvases.Find("StageCanvas/StageBoxParent/Head");
+        if (textHead != null)
+        {
+            GameObject clone = Instantiate(textHead.gameObject, root);
+            clone.name = "TopBarText";
+            clone.SetActive(true);
+            CopyRect((RectTransform)clone.transform, (RectTransform)textHead);
+            // The clone must not react to state transitions; it is a static copy.
+            Header dupHeader = clone.GetComponent<Header>();
+            if (dupHeader != null) Destroy(dupHeader);
+            Transform cloneTimer = clone.transform.Find("TimerText");
+            topBarTimerText = cloneTimer != null ? cloneTimer.GetComponent<TMP_Text>() : null;
+            Transform srcTimer = textHead.Find("TimerText");
+            origTimerText = srcTimer != null ? srcTimer.GetComponent<TMP_Text>() : null;
+        }
+    }
+
+    private static void CopyRect(RectTransform dst, RectTransform src)
+    {
+        dst.anchorMin = src.anchorMin;
+        dst.anchorMax = src.anchorMax;
+        dst.pivot = src.pivot;
+        dst.anchoredPosition = src.anchoredPosition;
+        dst.sizeDelta = src.sizeDelta;
+        dst.localScale = src.localScale;
+    }
+
     private void BuildDivider(RectTransform root, float x)
     {
         Image line = NewImage("Divider", root, Divider);
@@ -228,9 +271,9 @@ public class JsabStageSelect : MonoBehaviour
         r.anchorMin = new Vector2(0.5f, 0f);
         r.anchorMax = new Vector2(0.5f, 1f);
         r.pivot = new Vector2(0.5f, 0.5f);
-        // Span between the header accent and the bottom hint bar.
+        // Span between the top bar (120px) and the bottom hint bar.
         r.offsetMin = new Vector2(x - 1f, 78f);
-        r.offsetMax = new Vector2(x + 1f, -99f);
+        r.offsetMax = new Vector2(x + 1f, -120f);
         r.sizeDelta = new Vector2(2f, r.sizeDelta.y);
     }
 
@@ -309,11 +352,13 @@ public class JsabStageSelect : MonoBehaviour
         {
             leftName = name; leftThumb = thumb; leftThumbFallback = fallback;
             leftVP = vp; leftRT = rt;
+            leftCardRect = r; leftCardBasePos = r.anchoredPosition;
         }
         else
         {
             rightName = name; rightThumb = thumb; rightThumbFallback = fallback;
             rightVP = vp; rightRT = rt;
+            rightCardRect = r; rightCardBasePos = r.anchoredPosition;
         }
     }
 
@@ -330,15 +375,41 @@ public class JsabStageSelect : MonoBehaviour
         progressRow.sizeDelta = new Vector2(0f, 60f);
         progressRow.anchoredPosition = new Vector2(0f, 70f - 528f * 0.5f - 60f);
         ringSprite = CreateRingSprite();
+
+        // Persistent player marker; RefreshProgress never destroys it so its
+        // position can tween smoothly between nodes.
+        Image marker = NewImage("Marker", progressRow, Color.white);
+        if (playerSprite != null)
+        {
+            marker.sprite = playerSprite;
+            marker.preserveAspect = true;
+            Rect sr = playerSprite.rect;
+            float h = 40f;
+            float scale = sr.height <= 32f ? Mathf.Max(1f, Mathf.Floor(h / sr.height)) : h / sr.height;
+            marker.rectTransform.sizeDelta = new Vector2(sr.width * scale, sr.height * scale);
+        }
+        else
+        {
+            marker.color = Cyan;
+            marker.rectTransform.sizeDelta = new Vector2(26f, 26f);
+        }
+        marker.rectTransform.anchorMin = marker.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        marker.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        markerRect = marker.rectTransform;
     }
 
-    // Rebuilds the node/dash chain: current stage = filled cyan node, others =
-    // hollow rings, connected by dashes. Centered horizontally on the card.
-    private void RefreshProgress()
+    // Rebuilds the node/dash chain: hollow rings connected by dashes, one node per
+    // stage. The current stage's ring is omitted; the persistent player marker
+    // (tweened in Tick) sits/lands there instead.
+    private void RefreshProgress(bool animate)
     {
         if (progressRow == null) return;
         for (int i = progressRow.childCount - 1; i >= 0; i--)
-            Destroy(progressRow.GetChild(i).gameObject);
+        {
+            Transform child = progressRow.GetChild(i);
+            if (markerRect != null && child == markerRect) continue;
+            Destroy(child.gameObject);
+        }
 
         int n = Mathf.Max(1, totalStages);
         const float nodeSize = 26f;
@@ -364,29 +435,29 @@ public class JsabStageSelect : MonoBehaviour
                 }
             }
 
-            bool cur = i == currentIndex;
-            if (cur && playerSprite != null)
+            if (i == currentIndex) continue; // marker lands here
+            Image node = NewImage("Node", progressRow, Cyan);
+            node.sprite = ringSprite;
+            node.type = Image.Type.Simple;
+            node.rectTransform.anchorMin = node.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            node.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            node.rectTransform.sizeDelta = new Vector2(nodeSize, nodeSize);
+            node.rectTransform.anchoredPosition = new Vector2(x, 0f);
+        }
+
+        markerToX = x0 + currentIndex * dashGap;
+        if (markerRect != null)
+        {
+            markerRect.SetAsLastSibling(); // draw above rings while sliding over them
+            if (animate && !Mathf.Approximately(markerRect.anchoredPosition.x, markerToX))
             {
-                // Current stage marker = the player sprite, sized to the node.
-                Image marker = NewImage("Node_Player", progressRow, Color.white);
-                marker.sprite = playerSprite;
-                marker.preserveAspect = true;
-                Rect sr = playerSprite.rect;
-                float h = 40f;
-                float scale = sr.height <= 32f ? Mathf.Max(1f, Mathf.Floor(h / sr.height)) : h / sr.height;
-                marker.rectTransform.sizeDelta = new Vector2(sr.width * scale, sr.height * scale);
-                marker.rectTransform.anchorMin = marker.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-                marker.rectTransform.pivot = new Vector2(0.5f, 0.5f);
-                marker.rectTransform.anchoredPosition = new Vector2(x, 0f);
+                markerFromX = markerRect.anchoredPosition.x;
+                markerTweenTime = 0f;
             }
             else
             {
-                Image node = NewImage(cur ? "Node_Cur" : "Node", progressRow, Cyan);
-                if (!cur) { node.sprite = ringSprite; node.type = Image.Type.Simple; }
-                node.rectTransform.anchorMin = node.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-                node.rectTransform.pivot = new Vector2(0.5f, 0.5f);
-                node.rectTransform.sizeDelta = new Vector2(nodeSize, nodeSize);
-                node.rectTransform.anchoredPosition = new Vector2(x, 0f);
+                markerTweenTime = -1f;
+                markerRect.anchoredPosition = new Vector2(markerToX, 0f);
             }
         }
     }
@@ -431,13 +502,8 @@ public class JsabStageSelect : MonoBehaviour
         public HintItem(string[] keys, string label) { Keys = keys; Label = label; }
     }
 
-    // Lays out a centered horizontal row of "[key][key] label" groups using nested
-    // layout groups so the whole row self-centers regardless of content width.
-    private void BuildHintRow(RectTransform parent, float y, HintItem[] items)
-    {
-        BuildHintRowAt(parent, 0.5f, 0.5f, 0f, y, items);
-    }
-
+    // Lays out a horizontal row of "[key][key] label" groups using nested layout
+    // groups so the row self-sizes regardless of content width.
     // anchorX/pivotX let the row hang from the left (0), center (0.5) or right (1).
     private void BuildHintRowAt(RectTransform parent, float anchorX, float pivotX, float x, float y, HintItem[] items)
     {
@@ -527,81 +593,36 @@ public class JsabStageSelect : MonoBehaviour
         diffScrim = NewImage("DiffScrim", diffRoot, new Color(0.01f, 0.03f, 0.06f, 0.55f));
         Stretch(diffScrim.rectTransform);
 
-        // Compact centered panel: a thin cyan border with a translucent dark body
-        // (rgba ~10,20,30,0.92) so the blurred carousel bleeds through subtly. Sized
-        // to fit its contents (~55% screen width), not a big empty cyan block.
-        Image panel = NewImage("DiffPanel", diffRoot, Cyan);
-        diffPanel = panel.rectTransform;
-        diffPanel.anchorMin = diffPanel.anchorMax = new Vector2(0.5f, 0.5f);
-        diffPanel.pivot = new Vector2(0.5f, 0.5f);
-        diffPanel.sizeDelta = new Vector2(1000f, 360f);
-        diffPanel.anchoredPosition = new Vector2(0f, 20f);
-
-        Image body = NewImage("DiffPanelBody", diffPanel, new Color(0.039f, 0.078f, 0.118f, 0.92f));
-        RectTransform bodyR = body.rectTransform;
-        bodyR.anchorMin = Vector2.zero;
-        bodyR.anchorMax = Vector2.one;
-        bodyR.offsetMin = new Vector2(2f, 2f);
-        bodyR.offsetMax = new Vector2(-2f, -2f);
-
-        // Title: bold cyan heading with an EN subtitle.
-        TMP_Text title = NewText("DiffTitle", diffPanel, "難易度  /  DIFFICULTY", 40f, Cyan, TextAlignmentOptions.Center);
-        RectTransform tr = (RectTransform)title.transform;
-        tr.anchorMin = new Vector2(0f, 1f);
-        tr.anchorMax = new Vector2(1f, 1f);
-        tr.pivot = new Vector2(0.5f, 1f);
-        tr.sizeDelta = new Vector2(0f, 56f);
-        tr.anchoredPosition = new Vector2(0f, -26f);
-        // thin cyan rule under the title
-        Image titleRule = NewImage("DiffTitleRule", diffPanel, CyanDim);
-        RectTransform trr = titleRule.rectTransform;
-        trr.anchorMin = new Vector2(0.5f, 1f);
-        trr.anchorMax = new Vector2(0.5f, 1f);
-        trr.pivot = new Vector2(0.5f, 1f);
-        trr.sizeDelta = new Vector2(320f, 2f);
-        trr.anchoredPosition = new Vector2(0f, -84f);
-
-        // Three difficulty buttons, evenly spaced and color-coded.
-        const float bw = 268f;
-        const float bh = 132f;
-        const float bgap = 40f;
-        float startX = -(bw + bgap);
-        for (int i = 0; i < 3; i++)
+        // The panel itself is a clone of the default (style 0) difficulty column so
+        // the design and its animations (white brackets, staggered rows, blinking
+        // prompt) are exactly the original component's. Only the backdrop (frozen
+        // blur + scrim) is JSAB-specific.
+        Transform canvases = transform.parent;
+        Transform src = canvases != null ? canvases.Find("StageCanvas/StageBoxParent/DefficultyBar") : null;
+        if (src != null)
         {
-            Vector2 pos = new Vector2(startX + i * (bw + bgap), -34f);
-
-            // Bright cyan selection outline behind the fill; shown only when selected.
-            Image border = NewImage("DiffBtnSel_" + DifficultyNames[i], diffPanel, SelectBorder);
-            RectTransform bdr = border.rectTransform;
-            bdr.anchorMin = bdr.anchorMax = new Vector2(0.5f, 0.5f);
-            bdr.pivot = new Vector2(0.5f, 0.5f);
-            bdr.sizeDelta = new Vector2(bw + 8f, bh + 8f);
-            bdr.anchoredPosition = pos;
-            diffButtonBorders[i] = border;
-
-            Image btn = NewImage("DiffBtn_" + DifficultyNames[i], diffPanel, Navy);
-            RectTransform btr = btn.rectTransform;
-            btr.anchorMin = btr.anchorMax = new Vector2(0.5f, 0.5f);
-            btr.pivot = new Vector2(0.5f, 0.5f);
-            btr.sizeDelta = new Vector2(bw, bh);
-            btr.anchoredPosition = pos;
-            diffButtons[i] = btn;
-
-            TMP_Text lbl = NewText("Lbl", btr, DifficultyNames[i], 38f, Cyan, TextAlignmentOptions.Center);
-            Stretch((RectTransform)lbl.transform);
-            diffButtonLabels[i] = lbl;
+            GameObject clone = Instantiate(src.gameObject, diffRoot);
+            clone.name = "DifficultyColumn";
+            clone.SetActive(true);
+            diffPanel = (RectTransform)clone.transform;
+            diffPanel.anchorMin = diffPanel.anchorMax = new Vector2(0.5f, 0.5f);
+            diffPanel.pivot = new Vector2(0.5f, 0.5f);
+            diffPanel.anchoredPosition = new Vector2(0f, 30f);
+            diffPanel.localScale = Vector3.one * 0.8f; // matches the original's on-screen scale
+            diffBar = clone.GetComponent<DefficultyBar>();
+            if (diffBar != null)
+            {
+                diffBar.Init();
+                diffBar.SetAlpha(1f);
+                diffBar.SetEntranceProgress(1f);
+            }
+            // Mouse hit areas = the visible bar sprites (583x109), not the tiny row roots.
+            string[] rows = { "Easy", "Normal", "Lunatic" };
+            for (int i = 0; i < rows.Length; i++)
+                diffBoxRects[i] = clone.transform.Find("List/" + rows[i] + "/StageBar") as RectTransform;
         }
 
-        // Small key hints along the bottom of the panel.
-        BuildHintRow(diffPanel, -150f, new[]
-        {
-            new HintItem(new[] { "←", "→" }, "選択"),
-            new HintItem(new[] { "SPACE" }, "決定"),
-            new HintItem(new[] { "ESC" }, "戻る"),
-        });
-
         diffRoot.gameObject.SetActive(false);
-        RefreshDifficultyVisual();
     }
 
     // ---- Public difficulty API (driven by StageSelectManager) ----
@@ -609,12 +630,11 @@ public class JsabStageSelect : MonoBehaviour
     public void OpenDifficulty()
     {
         if (diffRoot == null) return;
-        diffIndex = 1; // default NORMAL each time it opens
         difficultyOpen = true;
         diffOpenTime = Time.unscaledTime;
         mouseConfirm = false;
+        if (diffBar != null) diffBar.ResetSelection(1); // default NORMAL each time it opens
         diffRoot.gameObject.SetActive(true);
-        RefreshDifficultyVisual();
         StartCoroutine(CaptureBlurBackground());
     }
 
@@ -626,30 +646,9 @@ public class JsabStageSelect : MonoBehaviour
 
     public void MoveDifficulty(int dir)
     {
-        if (!difficultyOpen) return;
-        diffIndex = Mathf.Clamp(diffIndex + (dir > 0 ? 1 : -1), 0, DifficultyNames.Length - 1);
-        RefreshDifficultyVisual();
-    }
-
-    private void RefreshDifficultyVisual()
-    {
-        for (int i = 0; i < diffButtons.Length; i++)
-        {
-            if (diffButtons[i] == null) continue;
-            bool sel = i == diffIndex;
-            Color tint = DifficultyTints[i];
-            // Unselected: dim, hue-tinted fill so the color coding still reads.
-            Color dim = new Color(tint.r * 0.22f + 0.03f, tint.g * 0.22f + 0.05f, tint.b * 0.22f + 0.07f, 1f);
-            diffButtons[i].color = sel ? tint : dim;
-            diffButtons[i].rectTransform.localScale = Vector3.one * (sel ? 1.06f : 0.96f);
-            if (diffButtonBorders[i] != null)
-            {
-                diffButtonBorders[i].enabled = sel;
-                diffButtonBorders[i].rectTransform.localScale = diffButtons[i].rectTransform.localScale;
-            }
-            if (diffButtonLabels[i] != null)
-                diffButtonLabels[i].color = sel ? Ink : tint;
-        }
+        if (!difficultyOpen || diffBar == null) return;
+        if (dir > 0) diffBar.Down();
+        else diffBar.Up();
     }
 
     // Freezes the current screen into a downsampled (thus blurred) snapshot behind
@@ -731,19 +730,30 @@ public class JsabStageSelect : MonoBehaviour
         UpdateVideo(cur);
         UpdateThumb(leftVP, leftThumb, leftThumbFallback, left);
         UpdateThumb(rightVP, rightThumb, rightThumbFallback, right);
-        RefreshProgress();
+        RefreshProgress(animate && dir != 0);
 
         if (animate && dir != 0)
         {
-            // Slide the card in from the direction we moved.
+            // Slide the whole carousel band in from the direction we moved.
             slideFrom = dir > 0 ? 260f : -260f;
             slideTime = 0f;
         }
         else
         {
             slideTime = -1f;
-            if (cardRect != null) cardRect.anchoredPosition = cardBasePos;
+            ApplySlideOffset(0f);
         }
+    }
+
+    // Offsets the carousel band (center card, stage name, both neighbour cards)
+    // as one unit so the switch reads as a single smooth slide.
+    private void ApplySlideOffset(float x)
+    {
+        Vector2 off = new Vector2(x, 0f);
+        if (cardRect != null) cardRect.anchoredPosition = cardBasePos + off;
+        if (stageNameRect != null) stageNameRect.anchoredPosition = stageNameBasePos + off;
+        if (leftCardRect != null) leftCardRect.anchoredPosition = leftCardBasePos + off;
+        if (rightCardRect != null) rightCardRect.anchoredPosition = rightCardBasePos + off;
     }
 
     public void Tick(float dt)
@@ -755,52 +765,74 @@ public class JsabStageSelect : MonoBehaviour
         // StageSelectManager; here we only translate pointer position/click.
         // Ignore the pointer for a beat after opening so the interaction that opened
         // the modal (or a focus click on the game view) cannot immediately confirm.
-        if (difficultyOpen && Time.unscaledTime - diffOpenTime >= 0.2f)
+        if (difficultyOpen)
         {
-            Mouse mouse = Mouse.current;
-            if (mouse != null)
+            if (diffBar != null) diffBar.Tick(dt);
+            if (Time.unscaledTime - diffOpenTime >= 0.2f)
             {
-                Vector2 mp = mouse.position.ReadValue();
-                int hover = -1;
-                for (int i = 0; i < diffButtons.Length; i++)
+                Mouse mouse = Mouse.current;
+                if (mouse != null)
                 {
-                    if (diffButtons[i] == null) continue;
-                    if (RectTransformUtility.RectangleContainsScreenPoint(diffButtons[i].rectTransform, mp, null))
+                    Vector2 mp = mouse.position.ReadValue();
+                    int hover = -1;
+                    for (int i = 0; i < diffBoxRects.Length; i++)
                     {
-                        hover = i;
-                        break;
+                        if (diffBoxRects[i] == null) continue;
+                        if (RectTransformUtility.RectangleContainsScreenPoint(diffBoxRects[i], mp, null))
+                        {
+                            hover = i;
+                            break;
+                        }
+                    }
+                    if (hover >= 0 && diffBar != null)
+                    {
+                        // Route through Up/Down so the description/brackets update too.
+                        while (diffBar.index > hover) diffBar.Up();
+                        while (diffBar.index < hover) diffBar.Down();
+                        if (mouse.leftButton.wasPressedThisFrame) mouseConfirm = true;
                     }
                 }
-                if (hover >= 0 && hover != diffIndex)
-                {
-                    diffIndex = hover;
-                    RefreshDifficultyVisual();
-                }
-                if (hover >= 0 && mouse.leftButton.wasPressedThisFrame)
-                {
-                    mouseConfirm = true;
-                }
             }
+        }
+
+        // Mirror the live (alpha-hidden) top bar originals: timer text incl. the
+        // low-time warning pulse, and the red time-dim panel width.
+        if (topBarTimerText != null && origTimerText != null)
+        {
+            topBarTimerText.text = origTimerText.text;
+            topBarTimerText.color = origTimerText.color;
+            topBarTimerText.rectTransform.localScale = origTimerText.rectTransform.localScale;
+        }
+        if (topBarTimeDim != null && origTimeDim != null)
+        {
+            topBarTimeDim.sizeDelta = origTimeDim.sizeDelta;
+            topBarTimeDim.anchoredPosition = origTimeDim.anchoredPosition;
         }
 
         pulseTime += dt;
         // Breathing pulse on the selected card (matches StageBox.SetPulse feel).
         float pulse = 1f + 0.02f * (0.5f + 0.5f * Mathf.Sin(pulseTime * 3f));
 
-        if (slideTime >= 0f && cardRect != null)
+        // Carousel band slide (ease-out). The root CanvasGroup alpha is left alone:
+        // dipping it made the opaque overlay translucent for a few frames, which
+        // read as a full-screen flash on every switch.
+        if (slideTime >= 0f)
         {
             slideTime += dt;
             float p = Mathf.Clamp01(slideTime / slideDuration);
             float ease = 1f - Mathf.Pow(1f - p, 3f);
-            float x = Mathf.Lerp(slideFrom, 0f, ease);
-            cardRect.anchoredPosition = cardBasePos + new Vector2(x, 0f);
-            if (rootCG != null) rootCG.alpha = Mathf.Lerp(0.35f, 1f, ease);
-            if (p >= 1f)
-            {
-                slideTime = -1f;
-                cardRect.anchoredPosition = cardBasePos;
-                if (rootCG != null) rootCG.alpha = 1f;
-            }
+            ApplySlideOffset(p >= 1f ? 0f : Mathf.Lerp(slideFrom, 0f, ease));
+            if (p >= 1f) slideTime = -1f;
+        }
+
+        // Page-indicator marker tween (ease-out between nodes).
+        if (markerTweenTime >= 0f && markerRect != null)
+        {
+            markerTweenTime += dt;
+            float p = Mathf.Clamp01(markerTweenTime / markerTweenDuration);
+            float ease = 1f - Mathf.Pow(1f - p, 3f);
+            markerRect.anchoredPosition = new Vector2(Mathf.Lerp(markerFromX, markerToX, ease), 0f);
+            if (p >= 1f) markerTweenTime = -1f;
         }
 
         if (cardRect != null) cardRect.localScale = Vector3.one * pulse;
@@ -820,13 +852,20 @@ public class JsabStageSelect : MonoBehaviour
         bool hasVideo = !string.IsNullOrEmpty(path) && File.Exists(path);
         if (hasVideo)
         {
-            if (cardVideo != null) cardVideo.enabled = true;
-            if (cardFallback != null) cardFallback.gameObject.SetActive(false);
-            if (videoPlayer != null)
+            if (videoPlayer == null) return;
+            if (videoPlayer.url == path && videoPlayer.isPrepared)
             {
-                videoPlayer.url = path;
-                videoPlayer.Play();
+                if (!videoPlayer.isPlaying) videoPlayer.Play();
+                return;
             }
+            // Keep whatever is on the RenderTexture (the previous stage's frame)
+            // visible while the new clip prepares; OnMainVideoPrepared swaps it in.
+            // Only when there is no previous frame (first show, or coming from a
+            // stage without video) does the fallback card cover the wait.
+            if (cardVideo != null && !cardVideo.enabled && cardFallback != null)
+                cardFallback.gameObject.SetActive(true);
+            videoPlayer.url = path;
+            videoPlayer.Prepare();
         }
         else
         {
@@ -838,6 +877,13 @@ public class JsabStageSelect : MonoBehaviour
                 videoPlayer.url = null;
             }
         }
+    }
+
+    private void OnMainVideoPrepared(VideoPlayer vp)
+    {
+        if (cardVideo != null) cardVideo.enabled = true;
+        if (cardFallback != null) cardFallback.gameObject.SetActive(false);
+        vp.Play();
     }
 
     // Prepares a neighbour's preview video into its RenderTexture (paused on the
