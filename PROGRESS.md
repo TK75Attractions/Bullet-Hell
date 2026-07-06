@@ -1,5 +1,35 @@
 # PROGRESS
 
+## 2026-07-06 深夜・第31便(自律セッション・Opus: タイトル/設定/引き継ぎ/遷移の調整4点+通し録画)
+
+### 今回やったこと(コミット `3eb43a8` / `97176f6` / `47876cd` / `de8c99a`)
+
+**(3) 設定の「再開する」「プレイを終了」ボタン修正+タイトル文脈で終了非表示**(`3eb43a8`) — 原因特定: タイトルから開いた設定は GManager.UpdateTitleOptions が確定ボタンを `false` で全抑止しており、「再開する」「プレイを終了」が無反応だった(=報告の「効かない」の主因)。OptionMenu にタイトル文脈(`Open(bool fromTitle, Action onResume)`)を追加。タイトル文脈では終了行(row3: プレイを終了)を丸ごと非表示にし選択を row2 までにクランプ、「再開する」はポーズ解除(カウントダウン)ではなく onResume コールバック(設定を閉じてタイトルへ戻る)にした。in-game 文脈は従来どおり(再開=BeginResume/終了=確認ポップ)。GManager は UpdateTitleOptions で確定ボタンを通し、OpenTitleOptions で `Open(true, CloseTitleOptions)` を渡す。
+
+**(1) 設定/引き継ぎで背景のメニュー・ロゴを退場させずぼかして残す**(`97176f6`) — 設定: OpenTitleOptions の `HideMenu()` を廃止。OptionMenu の背景キャプチャ(WaitForEndOfFrame)がメニュー・ロゴを含む完成フレームを撮るので、退場させず凍結ぼかしの背景になる。引き継ぎ: menu/logo の `SetActive(false)` を廃止し、難易度オーバーレイと同構成(完成フレームのぼかしスナップショット RawImage + tint 0.55,0.62,0.72 + 既存スクリム)を追加。BackdropBlur マテリアルを使用。撮影は 1 フレーム パネルを alpha0 にして背景のみ撮り、その後 0.14s フェードイン。CanvasGroup/テクスチャは CloseTransfer/OnDestroy で解放。
+
+**(4) スタート演出をゆっくり柔らかく+ピクセル解像を中央発ワイプへ**(`47876cd`) — (4a) タイトル→ステージ選択の PlayStartExit: 白フラッシュのピークを純白→バナー青と白の中間(MenuFlashPeak)に弱め、尺を約1.25倍に(StartExitTotal 0.60→0.75, CoverDelay 0.30→0.375, flash/row/logo/fade 各尺と行スライド遅延も同率)。(4b) プレイ開始の MosaicReveal: 第30便の終盤圧縮(外周前倒し)+大ジッタ(=ラジアル消去に見える)を撤回し、従来 Reveal と同じ中心距離に線形な順序+小ジッタ(0.07)へ。中央から広がるブロック状ピクセルワイプに復帰(尺 0.55→0.62)。
+
+**(2) 引き継ぎコードを可読フォント化+チップを oracle でネオン化**(`de8c99a`) — (2a) コードチップ・入力欄・プレースホルダを等幅コードフォント **MPLUS1Code-Medium SDF** に変更(0/O・1/I が紛れない)。TitleManager に `[SerializeField] codeFont` を追加しシーンで割当(Dynamic atlas・sourceFont から実行時グリフ追加を確認)。(2b) チップデザインを oracle(browser gpt-5.5, chip-review 2周・**8.9/10 合格**)で改善: 外グロー→シアン外枠2px→本体(alpha0.92)→上辺ハイライト線→下辺影→左端グロー帯→右上マゼンタ斜めアクセント→背面シアン疑似グロー文字の層構成。高さ64→58、文字41→38px・字間10→4。oracle 微調整(グロー-12%/アクセント16x3/背面グロー-20%)も反映。
+
+**(5) 石工ステージの音声付き通し録画** — style=0(V キー相当・PlayerPrefs stageSelectStyle=0)に戻してから Start+Record 一括フローで撮影。`Recordings/stone_20260706_192145.mp4`(**85.13s / h264+aac / 1280x720**)。撮影後 style=1 に復帰。
+
+### 検証結果(すべて Play Mode 実測。証跡: `Assets/Screenshots/bin31_*`=非コミット)
+
+- (3) execute_code で全経路を実測: タイトル文脈=終了行非表示(Item3.active False)/index が row2 で停止/「再開する」でコールバック発火。in-game 文脈=終了行表示/index3 で確認ポップ/「再開する」→BeginResume で isPaused False・timeScale1 に復帰。
+- (1) Play Mode スクショ `bin31_transfer.png` / `bin31_options.png`: 両画面ともロゴ+メニューボタン(スタート/設定/引き継ぎ)が背景にぼけて残るのを確認。設定は「プレイを終了」非表示も同スクショで確認。
+- (4) 解像途中フレーム `bin31_reveal_mid.png` で中央からブロック状に広がるワイプを確認。閃光ピーク色=中間青(≈0.53,0.76,0.96)で純白でないことを実測。
+- (2) `bin31_chip_v2.png`(チップ C4D7)/`bin31_input_font.png`(入力 70IO)で MPLUS1Code の等幅・0/O・1/I 区別とネオンチップ化を確認。入力の適用点灯も確認。oracle 2周で 8.9/10 合格。
+- (5) ffprobe: duration 85.13s・video h264・audio aac。ffmpeg 抽出フレーム t0.37s(M1 開始)/t42s(M13/M14 本編)/t83s(M31 Clear)で t0 からクリアまでのフル録画・箱型でない実ステージを確認。音声 mean_volume -11.3dB(無音でない)。
+- **EditMode 109/109 green**(3回: (3)後/(4)後/(2)後)。弾データ(JSON)不変、差分は .cs 4ファイル+シーン(codeFont 割当+既存改称の再シリアライズ)のみ。console は既知の color primaries warning のみ。
+
+### 未解決と次の一手
+
+- 引き継ぎ表示コードが `C4D7`(0/1/O/I を含まない)だったため、フォントの 0/O・1/I 区別は入力欄に `70IO` を流し込んで確認(適用はしていない=PlayHistory 破壊回避)。実運用でそれらを含むコードが出た際の見え方は未確認だが、MPLUS1Code は元々コード用で区別が設計されている。
+- (4a) の柔らかさ・尺は主観調整。タイトル→選択→プレイの通し録画での客観確認は今便未実施(石工本編の通し録画のみ実施)。次便で遷移の通し録画を撮ると安心。
+- 遷移の音(ホワイトアウトに合わせる SE)は引き続き未着手。
+- 設定/引き継ぎ背景ぼかしは実キーボードでの通し一周ではなく合成呼び出しで検証。人手確認を推奨。
+
 ## 2026-07-06 夜・第30便(自律セッション・Fable: プレイ開始遷移調整+光学中央の根治+引き継ぎコード4桁化)
 
 ### 今回やったこと(コミット `5678a95` / `a61ae6d` / `90657a6`)
