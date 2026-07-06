@@ -94,14 +94,7 @@ public class TitleManager : MonoBehaviour
     private TMP_Text[] transferCodeBlockShadows = new TMP_Text[0];
     private Image transferInputBorder;
     private bool transferInputError;
-    private Sprite bannerSprite;
 
-    // キーチップ(青地+白文字)。JSAB ステージ選択の下部バーと同じ配色
-    // (トップバーのグラデ青 #4290DB 実測値)で全画面のチップ意匠を揃える。
-    // キーキャップはコードチップと競合しないよう一段暗く(oracle 第2周)。
-    private static readonly Color KeyCapBlue = new Color(0.357f, 0.663f, 0.91f, 0.8f);
-    private static readonly Color KeyCapEdge = new Color(0.741f, 0.933f, 1f, 0.75f);
-    private static readonly Color HintLabelCyan = new Color(0.259f, 0.847f, 0.91f, 0.8f);
     private static readonly Color InputBorderIdle = new Color(0.118f, 0.812f, 0.878f, 0.65f);
     // 適用ボタンは入力が空だと沈み、入力があると点灯する(oracle 指摘: 常時
     // 最明度のボタンが主役のコード表示より目立っていた)。点灯時も主役の
@@ -696,9 +689,11 @@ public class TitleManager : MonoBehaviour
     public void TickTransfer()
     {
         if (!transferOpen || transferInputBorder == null || transferInput == null) return;
+        // フォーカス枠も最明度にはせず、主役のコードチップ(枠 alpha 0.85)より
+        // わずかに抑える(oracle 第29便: 主従の明確化)。
         transferInputBorder.color = transferInputError
             ? ErrorRed
-            : (transferInput.isFocused ? Cyan : InputBorderIdle);
+            : (transferInput.isFocused ? new Color(Cyan.r, Cyan.g, Cyan.b, 0.75f) : InputBorderIdle);
         if (applyButton != null)
         {
             bool ready = transferInput.text.Length > 0;
@@ -738,8 +733,9 @@ public class TitleManager : MonoBehaviour
         }
     }
 
-    // 引き継ぎ画面(oracle レビュー反映版): 斜めバナーヘッダー、コード4ブロック、
-    // 2カード構成(発行済み/入力)、斜めバナー適用ボタン、下部操作ヒントバー。
+    // 引き継ぎ画面(第29便: ミニマル再設計)。装飾(バナー/スラッシュ/カード枠/
+    // ヒントバー)を取り払い、1枚の暗いパネルの上にタイポグラフィと余白だけで
+    // 階層を作る。コードチップも一段小さくして画面の主張を抑える。
     private void BuildTransferPanel()
     {
         GameObject rootObj = new GameObject("TransferPanel", typeof(RectTransform));
@@ -752,113 +748,85 @@ public class TitleManager : MonoBehaviour
         rootRect.offsetMin = Vector2.zero;
         rootRect.offsetMax = Vector2.zero;
 
-        // oracle 第28便レビュー反映: スクリムは薄く保ちつつ中央 UI の背面だけ
-        // 暗いプレートで締める(背景図形は周縁でうっすら動き続ける)。
+        // 背景: 薄いスクリム+中央の無枠パネル1枚のみ。パネルはわずかに透けさせ
+        // (0.90)、上辺ハイライト+下辺シャドウの各1pxで「ただの黒い板」感を消す
+        // (oracle 第29便)。
         CreatePanel("Scrim", rootRect, Vector2.zero, new Vector2(4000f, 4000f), new Color(0.008f, 0.027f, 0.075f, 0.45f));
-        CreatePanel("Panel", rootRect, Vector2.zero, new Vector2(1120f, 780f), new Color(0.008f, 0.035f, 0.078f, 0.97f));
-        CreatePanel("PanelEdge", rootRect, new Vector2(0f, 342f), new Vector2(1120f, 4f), Cyan);
+        CreatePanel("Panel", rootRect, Vector2.zero, new Vector2(940f, 600f), new Color(0.008f, 0.031f, 0.078f, 0.90f));
+        CreatePanel("PanelTopHi", rootRect, new Vector2(0f, 299.5f), new Vector2(940f, 1f), new Color(0.043f, 0.165f, 0.227f, 0.35f));
+        CreatePanel("PanelBottomSh", rootRect, new Vector2(0f, -299.5f), new Vector2(940f, 1f), new Color(0f, 0f, 0f, 0.35f));
 
-        // ヘッダー: 斜めバナー+ずらし影+白スラッシュ(シアン影付き)。
-        CreateBanner("HeaderShadow", rootRect, new Vector2(14f, 272f), new Vector2(720f, 82f), new Color(0.043f, 0.09f, 0.145f, 0.75f));
-        CreateBanner("HeaderBanner", rootRect, new Vector2(0f, 282f), new Vector2(720f, 82f), new Color(0.024f, 0.169f, 0.286f, 0.96f));
-        CreateSlash("HeaderSlashL", rootRect, new Vector2(-408f, 282f));
-        CreateSlash("HeaderSlashR", rootRect, new Vector2(408f, 282f));
-        TMP_Text heading = CreateText("Heading", rootRect, new Vector2(0f, 284f), new Vector2(700f, 70f), 56f, Cyan, TextAlignmentOptions.Center);
+        // 見出しはタイポグラフィのみ(バナー・スラッシュなし)。
+        TMP_Text heading = CreateText("Heading", rootRect, new Vector2(0f, 232f), new Vector2(700f, 56f), 44f, Cyan, TextAlignmentOptions.Center);
         heading.fontStyle = FontStyles.Bold;
-        TMP_Text headingSub = CreateText("HeadingSub", rootRect, new Vector2(0f, 228f), new Vector2(700f, 30f), 20f, new Color(0.62f, 0.91f, 0.906f, 0.85f), TextAlignmentOptions.Center);
+        TMP_Text headingSub = CreateText("HeadingSub", rootRect, new Vector2(0f, 190f), new Vector2(700f, 24f), 16f, new Color(0.62f, 0.91f, 0.906f, 0.5f), TextAlignmentOptions.Center);
         headingSub.characterSpacing = 9f;
         headingSub.text = "TRANSFER CODE";
 
-        // 主役カード: 発行済みコード(明るいシアン枠+内側の暗線+上辺の強調ライン)。
-        CreateCard("CodeCard", rootRect, new Vector2(0f, 85f), new Vector2(1002f, 260f),
-            new Color(0.157f, 0.918f, 0.949f, 0.9f), 3f, new Color(0.02f, 0.125f, 0.184f, 0.8f),
-            new Color(0f, 0.09f, 0.133f, 0.75f));
-        CreatePanel("CodeCardTopLine", rootRect, new Vector2(0f, 213f), new Vector2(1002f, 4f), new Color(0.216f, 0.937f, 1f, 0.95f));
-        TMP_Text codeLabel = CreateText("CodeLabel", rootRect, new Vector2(-257f, 172f), new Vector2(440f, 40f), 24f, new Color(0.388f, 0.867f, 0.91f, 0.62f), TextAlignmentOptions.Left);
+        // コード表示: ラベル+小ぶりなチップ4個(細枠+暗地のみ、影/ハイライトなし)。
+        // 主役として入力欄より一段強く(高さ64/枠2px/文字41px。oracle 第29便)。
+        const float blockW = 150f;
+        const float blockH = 64f;
+        const float blockGap = 18f;
+        float contentHalf = (blockW * 4f + blockGap * 3f) * 0.5f; // = 327
+        TMP_Text codeLabel = CreateText("CodeLabel", rootRect, new Vector2(-contentHalf + 180f, 112f), new Vector2(360f, 30f), 20f, new Color(0.388f, 0.867f, 0.91f, 0.5f), TextAlignmentOptions.Left);
         codeLabel.characterSpacing = 3f;
-        TMP_Text copyLabel = CreateText("CopyLabel", rootRect, new Vector2(300f, 178f), new Vector2(360f, 36f), 20f, new Color(0.345f, 0.863f, 0.922f, 0.8f), TextAlignmentOptions.Right);
-        copyLabel.text = "CTRL+C でコピー";
 
-        // コード4ブロック(チップ質感: シアン枠+内側の淡いヘアライン+濃い地+影付き文字)。
         transferCodeBlocksRoot = new GameObject("CodeBlocks", typeof(RectTransform));
         transferCodeBlocksRoot.layer = gameObject.layer;
         RectTransform blocksRect = (RectTransform)transferCodeBlocksRoot.transform;
         blocksRect.SetParent(rootRect, false);
         blocksRect.anchorMin = blocksRect.anchorMax = new Vector2(0.5f, 0.5f);
-        blocksRect.anchoredPosition = new Vector2(0f, 55f);
+        blocksRect.anchoredPosition = new Vector2(0f, 48f);
         transferCodeBlockTexts = new TMP_Text[4];
-        transferCodeBlockShadows = new TMP_Text[4];
-        const float blockW = 200f;
-        const float blockH = 84f;
-        const float blockGap = 26f;
+        transferCodeBlockShadows = new TMP_Text[0];
         float x0 = -(blockW * 3f + blockGap * 3f) * 0.5f;
         for (int i = 0; i < 4; i++)
         {
             float bx = x0 + i * (blockW + blockGap);
-            Image border = CreatePanel("Block" + i, blocksRect, new Vector2(bx, 0f), new Vector2(blockW, blockH), new Color(0.192f, 0.945f, 0.965f, 0.9f));
-            Image hairline = CreatePanel("Hairline", border.rectTransform, Vector2.zero, Vector2.zero, new Color(0.749f, 0.984f, 1f, 0.22f));
-            hairline.rectTransform.anchorMin = Vector2.zero;
-            hairline.rectTransform.anchorMax = Vector2.one;
-            hairline.rectTransform.offsetMin = new Vector2(3f, 3f);
-            hairline.rectTransform.offsetMax = new Vector2(-3f, -3f);
-            Image fill = CreatePanel("Fill", border.rectTransform, Vector2.zero, Vector2.zero, new Color(0.016f, 0.098f, 0.145f, 0.96f));
+            Image border = CreatePanel("Block" + i, blocksRect, new Vector2(bx, 0f), new Vector2(blockW, blockH), new Color(0.212f, 0.875f, 0.949f, 0.85f));
+            Image fill = CreatePanel("Fill", border.rectTransform, Vector2.zero, Vector2.zero, new Color(0.024f, 0.094f, 0.153f, 0.85f));
             fill.rectTransform.anchorMin = Vector2.zero;
             fill.rectTransform.anchorMax = Vector2.one;
-            fill.rectTransform.offsetMin = new Vector2(4.5f, 4.5f);
-            fill.rectTransform.offsetMax = new Vector2(-4.5f, -4.5f);
-            // 部品感を出す上辺ハイライトと下辺の落ち影(oracle 第2周)。
-            Image topHi = CreatePanel("TopHi", border.rectTransform, Vector2.zero, Vector2.zero, new Color(0.455f, 1f, 1f, 0.35f));
-            topHi.rectTransform.anchorMin = new Vector2(0f, 1f);
-            topHi.rectTransform.anchorMax = Vector2.one;
-            topHi.rectTransform.offsetMin = new Vector2(4.5f, -6f);
-            topHi.rectTransform.offsetMax = new Vector2(-4.5f, -4.5f);
-            Image bottomSh = CreatePanel("BottomShadow", border.rectTransform, Vector2.zero, Vector2.zero, new Color(0f, 0f, 0f, 0.35f));
-            bottomSh.rectTransform.anchorMin = Vector2.zero;
-            bottomSh.rectTransform.anchorMax = new Vector2(1f, 0f);
-            bottomSh.rectTransform.offsetMin = new Vector2(4.5f, 4.5f);
-            bottomSh.rectTransform.offsetMax = new Vector2(-4.5f, 6f);
-            TMP_Text sh = CreateText("Shadow", border.rectTransform, new Vector2(3f, -3f), new Vector2(blockW, blockH), 60f, new Color(0f, 0.227f, 0.29f, 0.75f), TextAlignmentOptions.Center);
-            sh.fontStyle = FontStyles.Bold;
-            sh.characterSpacing = 20f;
-            TMP_Text bt = CreateText("Text", border.rectTransform, Vector2.zero, new Vector2(blockW, blockH), 60f, new Color(0.247f, 0.918f, 1f), TextAlignmentOptions.Center);
+            fill.rectTransform.offsetMin = new Vector2(2f, 2f);
+            fill.rectTransform.offsetMax = new Vector2(-2f, -2f);
+            TMP_Text bt = CreateText("Text", border.rectTransform, Vector2.zero, new Vector2(blockW, blockH), 41f, new Color(0.333f, 0.945f, 1f), TextAlignmentOptions.Center);
             bt.fontStyle = FontStyles.Bold;
-            bt.characterSpacing = 20f;
+            bt.characterSpacing = 10f;
             transferCodeBlockTexts[i] = bt;
-            transferCodeBlockShadows[i] = sh;
             if (i < 3)
             {
-                TMP_Text hy = CreateText("Hyphen" + i, blocksRect, new Vector2(bx + (blockW + blockGap) * 0.5f, 0f), new Vector2(26f, 48f), 44f, new Color(0.345f, 0.863f, 0.922f, 0.65f), TextAlignmentOptions.Center);
+                TMP_Text hy = CreateText("Hyphen" + i, blocksRect, new Vector2(bx + (blockW + blockGap) * 0.5f, 0f), new Vector2(22f, 36f), 30f, new Color(0.345f, 0.863f, 0.922f, 0.5f), TextAlignmentOptions.Center);
                 hy.text = "-";
                 TmpAlign.CenterInkVertically(hy);
             }
         }
         // 履歴なしのときだけ出すメッセージ(ブロックと同じ位置)。
-        transferCodeText = CreateText("Code", rootRect, new Vector2(0f, 55f), new Vector2(1002f, 110f), 40f, CyanDim, TextAlignmentOptions.Center);
+        transferCodeText = CreateText("Code", rootRect, new Vector2(0f, 48f), new Vector2(900f, 80f), 30f, CyanDim, TextAlignmentOptions.Center);
 
-        // 副役カード: コード入力(弱い枠で主役より一段引く)+横並び操作ストリップ。
-        CreateCard("InputCard", rootRect, new Vector2(0f, -165f), new Vector2(1002f, 190f),
-            new Color(0.106f, 0.651f, 0.769f, 0.45f), 1.5f, new Color(0.016f, 0.125f, 0.192f, 0.55f));
-        TMP_Text inputLabel = CreateText("InputLabel", rootRect, new Vector2(-257f, -104f), new Vector2(440f, 36f), 24f, new Color(0.388f, 0.867f, 0.91f, 0.55f), TextAlignmentOptions.Left);
+        // 入力: ラベル+入力欄+適用ボタン(行の左右端はチップ列に揃える)。
+        TMP_Text inputLabel = CreateText("InputLabel", rootRect, new Vector2(-contentHalf + 180f, -66f), new Vector2(360f, 30f), 20f, new Color(0.388f, 0.867f, 0.91f, 0.5f), TextAlignmentOptions.Left);
         inputLabel.characterSpacing = 3f;
 
-        BuildInputField(rootRect, new Vector2(-120f, -192f), new Vector2(726f, 74f));
+        const float inputW = 504f;
+        const float applyW = 138f;
+        const float rowH = 64f;
+        BuildInputField(rootRect, new Vector2(-contentHalf + inputW * 0.5f, -134f), new Vector2(inputW, rowH));
 
-        // 適用ボタンは入力欄の右に添える(中央の大ボタンはフォーム臭さの元)。
-        applyButton = CreateBanner("ApplyButton", rootRect, new Vector2(350f, -192f), new Vector2(200f, 74f), ApplyIdle);
-        TMP_Text applyLabel = CreateText("ApplyLabel", applyButton.rectTransform, Vector2.zero, new Vector2(200f, 74f), 32f, ApplyLabelIdle, TextAlignmentOptions.Center);
+        applyButton = CreatePanel("ApplyButton", rootRect, new Vector2(contentHalf - applyW * 0.5f, -134f), new Vector2(applyW, rowH), ApplyIdle);
+        TMP_Text applyLabel = CreateText("ApplyLabel", applyButton.rectTransform, Vector2.zero, new Vector2(applyW, rowH), 26f, ApplyLabelIdle, TextAlignmentOptions.Center);
         StretchToParent(applyLabel.rectTransform);
         applyLabel.fontStyle = FontStyles.Bold;
         applyLabelText = applyLabel;
 
-        transferMessageText = CreateText("Message", rootRect, new Vector2(0f, -294f), new Vector2(1002f, 44f), 26f, Cyan, TextAlignmentOptions.Center);
+        transferMessageText = CreateText("Message", rootRect, new Vector2(0f, -202f), new Vector2(900f, 36f), 22f, Cyan, TextAlignmentOptions.Center);
 
-        // 下部の操作ヒントバー(開始位置は主役カードの左端 x=-501 に揃える)。
-        Image hintBar = CreatePanel("HintBar", rootRect, new Vector2(0f, -350f), new Vector2(1120f, 46f), new Color(0.012f, 0.094f, 0.153f, 0.82f));
-        CreatePanel("HintBarLine", rootRect, new Vector2(0f, -326f), new Vector2(1120f, 2f), new Color(0.137f, 0.91f, 0.949f, 0.8f));
-        float hx = -501f;
-        hx = AddHintChip(hintBar.rectTransform, hx, "ENTER", "適用");
-        hx = AddHintChip(hintBar.rectTransform, hx, "CTRL+C", "コピー");
-        AddHintChip(hintBar.rectTransform, hx, "ESC", "戻る");
+        // 操作ヒントはチップを使わず1行のテキストのみ。キー=中立のグレー青、
+        // アクション=シアンで統一し、少し上げて小さく・字間広めに(oracle 第29便)。
+        TMP_Text hints = CreateText("Hints", rootRect, new Vector2(0f, -240f), new Vector2(900f, 26f), 16f, new Color(0.333f, 0.867f, 0.922f, 0.75f), TextAlignmentOptions.Center);
+        hints.characterSpacing = 4f;
+        hints.text = "<color=#B8C9D2>ENTER</color> 適用      <color=#B8C9D2>CTRL+C</color> コピー      <color=#B8C9D2>ESC</color> 戻る";
+        TmpAlign.CenterInkVertically(hints);
 
         // Fill the label texts.
         SetChildText(rootRect, "Heading", "引き継ぎ");
@@ -868,90 +836,6 @@ public class TitleManager : MonoBehaviour
         transferMessageText.text = string.Empty;
 
         transferRoot.SetActive(false);
-    }
-
-    // 枠付きの区分カード。枠の明度と太さで主役/副役の階層を付ける。
-    // innerLineColor を渡すと枠のすぐ内側に 1.5px の暗線を敷き、明るい枠が
-    // 地に直接触れる「ワイヤーフレーム感」を消す(oracle 第2周)。
-    private void CreateCard(string objectName, Transform parent, Vector2 pos, Vector2 size,
-        Color borderColor, float borderWidth, Color fillColor, Color? innerLineColor = null)
-    {
-        Image border = CreatePanel(objectName, parent, pos, size, borderColor);
-        RectTransform fillParent = border.rectTransform;
-        float fillInset = borderWidth;
-        if (innerLineColor.HasValue)
-        {
-            Image line = CreatePanel("InnerLine", border.rectTransform, Vector2.zero, Vector2.zero, innerLineColor.Value);
-            line.rectTransform.anchorMin = Vector2.zero;
-            line.rectTransform.anchorMax = Vector2.one;
-            line.rectTransform.offsetMin = new Vector2(borderWidth, borderWidth);
-            line.rectTransform.offsetMax = new Vector2(-borderWidth, -borderWidth);
-            fillParent = line.rectTransform;
-            fillInset = 1.5f;
-        }
-        Image fill = CreatePanel("Fill", fillParent, Vector2.zero, Vector2.zero, fillColor);
-        fill.rectTransform.anchorMin = Vector2.zero;
-        fill.rectTransform.anchorMax = Vector2.one;
-        fill.rectTransform.offsetMin = new Vector2(fillInset, fillInset);
-        fill.rectTransform.offsetMax = new Vector2(-fillInset, -fillInset);
-    }
-
-    // タイトルメニュー行と同じ StageBar スプライトの斜めバナー。
-    private Image CreateBanner(string objectName, Transform parent, Vector2 pos, Vector2 size, Color color)
-    {
-        Image img = CreatePanel(objectName, parent, pos, size, color);
-        if (bannerSprite == null)
-        {
-            Transform bar = transform.parent != null ? transform.parent.Find("StageBoxParent/DefficultyBar/List/Normal/StageBar") : null;
-            Image src = bar != null ? bar.GetComponent<Image>() : null;
-            bannerSprite = src != null ? src.sprite : null;
-        }
-        if (bannerSprite != null)
-        {
-            img.sprite = bannerSprite;
-            img.type = Image.Type.Simple;
-            img.preserveAspect = false;
-        }
-        return img;
-    }
-
-    // タイトルメニューの White ブラケットと同じ向きの白スラッシュ(シアン影付き)。
-    private void CreateSlash(string objectName, Transform parent, Vector2 pos)
-    {
-        Image shadow = CreatePanel(objectName + "Shadow", parent, pos + new Vector2(3f, -3f), new Vector2(24f, 92f), new Color(0.208f, 0.91f, 1f, 0.35f));
-        shadow.rectTransform.localEulerAngles = new Vector3(0f, 0f, -14f);
-        Image s = CreatePanel(objectName, parent, pos, new Vector2(24f, 92f), new Color(1f, 1f, 1f, 0.95f));
-        s.rectTransform.localEulerAngles = new Vector3(0f, 0f, -14f);
-    }
-
-    // ヒントバーへ「[キー] ラベル」を1組追加し、次の x カーソルを返す。
-    private float AddHintChip(RectTransform parent, float x, string key, string label)
-    {
-        const float capH = 34f;
-        const float capFont = 20f;
-        float capW = Mathf.Max(capH, 18f + key.Length * capFont * 0.66f);
-
-        Image cap = CreatePanel("Key_" + key, parent, Vector2.zero, new Vector2(capW, capH), KeyCapEdge);
-        cap.rectTransform.pivot = new Vector2(0f, 0.5f);
-        cap.rectTransform.anchoredPosition = new Vector2(x, 0f);
-        Image fill = CreatePanel("Fill", cap.rectTransform, Vector2.zero, Vector2.zero, KeyCapBlue);
-        fill.rectTransform.anchorMin = Vector2.zero;
-        fill.rectTransform.anchorMax = Vector2.one;
-        fill.rectTransform.offsetMin = new Vector2(2f, 2f);
-        fill.rectTransform.offsetMax = new Vector2(-2f, -2f);
-        TMP_Text keyText = CreateText("L", cap.rectTransform, Vector2.zero, new Vector2(capW, capH), capFont, Color.white, TextAlignmentOptions.Center);
-        StretchToParent(keyText.rectTransform);
-        keyText.text = key;
-        TmpAlign.CenterInkVertically(keyText);
-        x += capW + 10f;
-
-        TMP_Text labelText = CreateText("Hint_" + label, parent, Vector2.zero, new Vector2(300f, capH), 24f, HintLabelCyan, TextAlignmentOptions.Left);
-        labelText.rectTransform.pivot = new Vector2(0f, 0.5f);
-        labelText.rectTransform.anchoredPosition = new Vector2(x, 0f);
-        labelText.text = label;
-        TmpAlign.CenterInkVertically(labelText);
-        x += labelText.GetPreferredValues(label).x + 40f;
-        return x;
     }
 
     private void BuildInputField(RectTransform parent, Vector2 pos, Vector2 size)
@@ -982,24 +866,24 @@ public class TitleManager : MonoBehaviour
         areaRect.anchorMax = Vector2.one;
         // プレースホルダーと入力文字は左基準で揃える(中央寄せだと入力開始時に
         // 文字位置が跳ねる。oracle 第2周)。
-        areaRect.offsetMin = new Vector2(52f, 8f);
-        areaRect.offsetMax = new Vector2(-24f, -8f);
+        areaRect.offsetMin = new Vector2(24f, 6f);
+        areaRect.offsetMax = new Vector2(-16f, -6f);
 
-        TMP_Text placeholder = CreateText("Placeholder", areaRect, Vector2.zero, size, 38f, new Color(0.498f, 0.682f, 0.722f, 0.5f), TextAlignmentOptions.Left);
+        TMP_Text placeholder = CreateText("Placeholder", areaRect, Vector2.zero, size, 28f, new Color(0.498f, 0.682f, 0.722f, 0.5f), TextAlignmentOptions.Left);
         StretchToParent(placeholder.rectTransform);
         placeholder.text = "XXXX-XXXX-XXXX-XXXX";
 
-        TMP_Text textComp = CreateText("Text", areaRect, Vector2.zero, size, 42f, new Color(0.953f, 0.984f, 1f, 0.95f), TextAlignmentOptions.Left);
+        TMP_Text textComp = CreateText("Text", areaRect, Vector2.zero, size, 30f, new Color(0.953f, 0.984f, 1f, 0.95f), TextAlignmentOptions.Left);
         StretchToParent(textComp.rectTransform);
         textComp.fontStyle = FontStyles.Bold;
-        textComp.characterSpacing = 8f;
+        textComp.characterSpacing = 6f;
 
         transferInput = fieldObj.GetComponent<TMP_InputField>();
         transferInput.textViewport = areaRect;
         transferInput.textComponent = textComp;
         transferInput.placeholder = placeholder;
         transferInput.fontAsset = uiFont;
-        transferInput.pointSize = 42f;
+        transferInput.pointSize = 30f;
         transferInput.characterLimit = 19; // 16 symbols + 3 grouping hyphens
         transferInput.lineType = TMP_InputField.LineType.SingleLine;
         transferInput.richText = false;
