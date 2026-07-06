@@ -69,6 +69,9 @@ public class JsabStageSelect : MonoBehaviour
     private static readonly Vector2 SideSlotSize = new Vector2(456f, 304f);
     private static readonly Color ThumbDim = new Color(0.5f, 0.55f, 0.62f, 1f);
     private static readonly Color ThumbScrimColor = new Color(0.02f, 0.05f, 0.09f, 0.4f);
+    // CyanDim(alpha0.55)を黒背景に合成した不透明色。サイドパネルの枠帯用。
+    // 半透明のままだと CanvasGroup フェード中に帯同士の重なりが濃く見える。
+    private static readonly Color CyanDimRim = new Color(0.121f, 0.418f, 0.483f, 1f);
 
     private RectTransform stageNameRect;
     private RectTransform leftCardRect;
@@ -77,8 +80,11 @@ public class JsabStageSelect : MonoBehaviour
     private CanvasGroup rightCG;
     private CanvasGroup leftDecorCG;      // 隣パネルの名前+キーチップ(飛行中はフェードアウト)
     private CanvasGroup rightDecorCG;
-    private Image leftFrame;              // 隣パネルの枠(飛行中に色を Cyan へ寄せる)
-    private Image rightFrame;
+    // 隣パネルの枠(飛行中に色を Cyan へ寄せる)。全面塗り+内側かぶせ方式だと
+    // CanvasGroup フェード中に body が半透明になり、下の明るい塗りが中身全体
+    // から透けて「フェード中だけ明るく光る」フラッシュになるため、4辺の帯で描く。
+    private Image[] leftFrame;
+    private Image[] rightFrame;
     private RectTransform leftBody;
     private RectTransform rightBody;
     private Image leftScrim;
@@ -90,6 +96,10 @@ public class JsabStageSelect : MonoBehaviour
     // 端のステージで存在しない側のパネルを隠すためのフェード目標値
     private float leftAlphaTarget = 1f;
     private float rightAlphaTarget = 1f;
+    // サムネイル(or fallback)の準備が終わるまでフェードインを保留するフラグ。
+    // 枠だけ先に出て、動画準備完了の瞬間に絵が瞬時ポップする「フラッシュ」を防ぐ。
+    private bool leftContentReady = true;
+    private bool rightContentReady = true;
 
     // Vertical divider color between the center and side columns.
     private static readonly Color Divider = new Color(0.22f, 0.76f, 0.878f, 0.4f);
@@ -310,20 +320,24 @@ public class JsabStageSelect : MonoBehaviour
         // side = -1 (left) or +1 (right). A dim thumbnail preview of the adjacent
         // stage with the stage name above and a key chip in the corner.
 
-        // Thin cyan frame around the thumbnail.
-        Image frame = NewImage(side < 0 ? "LeftCard" : "RightCard", root, CyanDim);
-        RectTransform r = frame.rectTransform;
+        // Thin cyan frame around the thumbnail (4 rim strips, see leftFrame note).
+        GameObject frameGO = new GameObject(side < 0 ? "LeftCard" : "RightCard", typeof(RectTransform));
+        frameGO.transform.SetParent(root, false);
+        RectTransform r = (RectTransform)frameGO.transform;
         r.anchorMin = r.anchorMax = new Vector2(0.5f, 0.5f);
         r.pivot = new Vector2(0.5f, 0.5f);
         r.sizeDelta = SideSlotSize;
         r.anchoredPosition = new Vector2(side * SideSlotX, SideSlotY);
         // 端のステージで丸ごとフェードアウトさせるための CanvasGroup。
-        CanvasGroup cg = frame.gameObject.AddComponent<CanvasGroup>();
+        CanvasGroup cg = frameGO.AddComponent<CanvasGroup>();
 
         Image body = NewImage("ThumbBody", r, new Color(0.02f, 0.05f, 0.08f, 1f));
         RectTransform bodyR = body.rectTransform;
         Stretch(bodyR);
         SetInset(bodyR, 2f);
+
+        Image[] rim = BuildRim(r);
+        SetRim(rim, CyanDimRim, 2f);
 
         // Fallback tile (stage name on navy) when the stage has no preview video.
         Image fallback = NewImage("ThumbFallback", bodyR, new Color(0.04f, 0.09f, 0.14f, 1f));
@@ -355,7 +369,18 @@ public class JsabStageSelect : MonoBehaviour
         vp.audioOutputMode = VideoAudioOutputMode.None;
         vp.skipOnDrop = true;
         // Show a still first frame instead of a busy looping clip.
-        vp.prepareCompleted += v => { if (thumb != null) thumb.enabled = true; v.Pause(); };
+        vp.prepareCompleted += v =>
+        {
+            if (thumb != null) thumb.enabled = true;
+            v.Pause();
+            SetThumbReady(side, true);
+        };
+        // 準備に失敗した場合も fallback タイルでフェードインを解放する。
+        vp.errorReceived += (v, msg) =>
+        {
+            if (fallback != null) fallback.gameObject.SetActive(true);
+            SetThumbReady(side, true);
+        };
 
         // Decor (stage name + key chip) sits in its own CanvasGroup so it can
         // fade out while the panel flies into the center slot.
@@ -374,26 +399,66 @@ public class JsabStageSelect : MonoBehaviour
         nr.anchoredPosition = new Vector2(0f, 14f);
         nr.sizeDelta = new Vector2(0f, 48f);
 
-        // Key chip in the top-inner corner (reference LB/RB placement).
-        string keyLabel = side < 0 ? "← A" : "D →";
-        RectTransform chip = NewKeyCap(decorR, keyLabel, 42f, 26f);
-        chip.anchorMin = chip.anchorMax = new Vector2(side < 0 ? 0f : 1f, 1f);
-        chip.pivot = new Vector2(side < 0 ? 0f : 1f, 1f);
-        chip.anchoredPosition = new Vector2(side < 0 ? 12f : -12f, -12f);
+        // 山括弧型の矢印(キーチップ廃止)。サムネイル外側の縁に上下中央で重ね、
+        // カルーセルの進行方向を示す。decor 配下なので飛行中は名前ごとフェードする。
+        TMP_Text arrow = NewText(side < 0 ? "LeftArrow" : "RightArrow", decorR,
+            side < 0 ? "<" : ">", 64f, Cyan, TextAlignmentOptions.Center);
+        RectTransform ar = (RectTransform)arrow.transform;
+        ar.anchorMin = ar.anchorMax = new Vector2(side < 0 ? 0f : 1f, 0.5f);
+        ar.pivot = new Vector2(0.5f, 0.5f);
+        ar.anchoredPosition = new Vector2(side < 0 ? 34f : -34f, 0f);
+        ar.sizeDelta = new Vector2(64f, 90f);
+        TmpAlign.CenterInkVertically(arrow);
 
         if (side < 0)
         {
             leftName = name; leftThumb = thumb; leftThumbFallback = fallback;
             leftVP = vp; leftRT = rt;
             leftCardRect = r; leftCG = cg; leftDecorCG = decorCG;
-            leftFrame = frame; leftBody = bodyR; leftScrim = scrim; leftFbName = fbName;
+            leftFrame = rim; leftBody = bodyR; leftScrim = scrim; leftFbName = fbName;
         }
         else
         {
             rightName = name; rightThumb = thumb; rightThumbFallback = fallback;
             rightVP = vp; rightRT = rt;
             rightCardRect = r; rightCG = cg; rightDecorCG = decorCG;
-            rightFrame = frame; rightBody = bodyR; rightScrim = scrim; rightFbName = fbName;
+            rightFrame = rim; rightBody = bodyR; rightScrim = scrim; rightFbName = fbName;
+        }
+    }
+
+    // 4辺の帯(上/下/左/右)でパネルの枠線を作る。面で塗らないので、
+    // CanvasGroup の中間 alpha でも中身の下から枠色が透けない。
+    private Image[] BuildRim(RectTransform parent)
+    {
+        Image[] rim = new Image[4];
+        for (int i = 0; i < 4; i++)
+        {
+            Image s = NewImage("Rim" + i, parent, CyanDimRim);
+            RectTransform rt = s.rectTransform;
+            switch (i)
+            {
+                case 0: rt.anchorMin = new Vector2(0f, 1f); rt.anchorMax = new Vector2(1f, 1f); rt.pivot = new Vector2(0.5f, 1f); break;   // top
+                case 1: rt.anchorMin = new Vector2(0f, 0f); rt.anchorMax = new Vector2(1f, 0f); rt.pivot = new Vector2(0.5f, 0f); break;   // bottom
+                case 2: rt.anchorMin = new Vector2(0f, 0f); rt.anchorMax = new Vector2(0f, 1f); rt.pivot = new Vector2(0f, 0.5f); break;   // left
+                default: rt.anchorMin = new Vector2(1f, 0f); rt.anchorMax = new Vector2(1f, 1f); rt.pivot = new Vector2(1f, 0.5f); break;  // right
+            }
+            rt.anchoredPosition = Vector2.zero;
+            rim[i] = s;
+        }
+        return rim;
+    }
+
+    // 帯4本の色と太さをまとめて更新する(遷移中の補間もここを通す)。
+    private static void SetRim(Image[] rim, Color color, float thickness)
+    {
+        if (rim == null) return;
+        for (int i = 0; i < rim.Length; i++)
+        {
+            if (rim[i] == null) continue;
+            rim[i].color = color;
+            RectTransform rt = rim[i].rectTransform;
+            // 縦帯は上下の横帯ぶんを避けて角の二重描画を防ぐ。
+            rt.sizeDelta = i < 2 ? new Vector2(0f, thickness) : new Vector2(thickness, -2f * thickness);
         }
     }
 
@@ -815,7 +880,7 @@ public class JsabStageSelect : MonoBehaviour
         // 到着パネル: 隣スロット → 中央スロットへ、拡大しながら移動。
         // 装飾(名前/チップ)と減光は先行してフェードし、中央カードの見た目へ寄せる。
         RectTransform arrive = transDir > 0 ? rightCardRect : leftCardRect;
-        Image arriveFrame = transDir > 0 ? rightFrame : leftFrame;
+        Image[] arriveFrame = transDir > 0 ? rightFrame : leftFrame;
         RectTransform arriveBody = transDir > 0 ? rightBody : leftBody;
         RawImage arriveThumb = transDir > 0 ? rightThumb : leftThumb;
         Image arriveScrim = transDir > 0 ? rightScrim : leftScrim;
@@ -827,7 +892,7 @@ public class JsabStageSelect : MonoBehaviour
             arrive.anchoredPosition = Vector2.Lerp(fromSide, CenterSlotPos, e);
             arrive.sizeDelta = Vector2.Lerp(SideSlotSize, CenterSlotSize, e);
         }
-        if (arriveFrame != null) arriveFrame.color = Color.Lerp(CyanDim, Cyan, e);
+        SetRim(arriveFrame, Color.Lerp(CyanDimRim, Cyan, e), Mathf.Lerp(2f, 6f, e));
         if (arriveBody != null) SetInset(arriveBody, Mathf.Lerp(2f, 6f, e));
         if (arriveThumb != null) arriveThumb.color = Color.Lerp(ThumbDim, Color.white, e);
         if (arriveScrim != null)
@@ -907,8 +972,8 @@ public class JsabStageSelect : MonoBehaviour
             rightCardRect.anchoredPosition = new Vector2(SideSlotX, SideSlotY);
             rightCardRect.sizeDelta = SideSlotSize;
         }
-        if (leftFrame != null) leftFrame.color = CyanDim;
-        if (rightFrame != null) rightFrame.color = CyanDim;
+        SetRim(leftFrame, CyanDimRim, 2f);
+        SetRim(rightFrame, CyanDimRim, 2f);
         if (leftBody != null) SetInset(leftBody, 2f);
         if (rightBody != null) SetInset(rightBody, 2f);
         if (leftThumb != null) leftThumb.color = ThumbDim;
@@ -925,8 +990,10 @@ public class JsabStageSelect : MonoBehaviour
         rightAlphaTarget = GetStage(currentIndex + 1) != null ? 1f : 0f;
         if (instantAlpha)
         {
-            if (leftCG != null) leftCG.alpha = leftAlphaTarget;
-            if (rightCG != null) rightCG.alpha = rightAlphaTarget;
+            // 初期表示でもサムネイル未準備なら 0 から始め、Tick 側で
+            // 準備完了後にフェードインさせる(絵の瞬時ポップ防止)。
+            if (leftCG != null) leftCG.alpha = leftContentReady ? leftAlphaTarget : 0f;
+            if (rightCG != null) rightCG.alpha = rightContentReady ? rightAlphaTarget : 0f;
         }
         else
         {
@@ -955,8 +1022,8 @@ public class JsabStageSelect : MonoBehaviour
         if (rightName != null) { rightName.text = right != null ? SafeName(right) : ""; TmpAlign.CenterInkVertically(rightName); }
 
         UpdateVideo(cur, keepBlittedFrame);
-        UpdateThumb(leftVP, leftThumb, leftThumbFallback, left);
-        UpdateThumb(rightVP, rightThumb, rightThumbFallback, right);
+        UpdateThumb(-1, leftVP, leftThumb, leftThumbFallback, left);
+        UpdateThumb(1, rightVP, rightThumb, rightThumbFallback, right);
     }
 
     public void Tick(float dt)
@@ -1029,9 +1096,15 @@ public class JsabStageSelect : MonoBehaviour
         else
         {
             // 端フェード / 着地後のフェードイン。存在しない側は 0 に向かう。
-            float step = dt / 0.15f;
-            if (leftCG != null) leftCG.alpha = Mathf.MoveTowards(leftCG.alpha, leftAlphaTarget, step);
-            if (rightCG != null) rightCG.alpha = Mathf.MoveTowards(rightCG.alpha, rightAlphaTarget, step);
+            // サムネイル未準備の側は 0 のまま待機し、準備完了後に枠+絵を
+            // ひとかたまりで 0.15s フェードイン(絵だけ後からポップさせない)。
+            // 動画 Prepare 直後は dt がスパイクするため 1/30s にクランプし、
+            // フェードが1フレームに潰れて瞬時ポップに見えるのを防ぐ。
+            float step = Mathf.Min(dt, 1f / 30f) / 0.15f;
+            float lTarget = leftContentReady ? leftAlphaTarget : 0f;
+            float rTarget = rightContentReady ? rightAlphaTarget : 0f;
+            if (leftCG != null) leftCG.alpha = Mathf.MoveTowards(leftCG.alpha, lTarget, step);
+            if (rightCG != null) rightCG.alpha = Mathf.MoveTowards(rightCG.alpha, rTarget, step);
         }
 
         // Page-indicator marker tween (ease-out between nodes).
@@ -1110,9 +1183,15 @@ public class JsabStageSelect : MonoBehaviour
         vp.Play();
     }
 
+    private void SetThumbReady(int side, bool ready)
+    {
+        if (side < 0) leftContentReady = ready;
+        else rightContentReady = ready;
+    }
+
     // Prepares a neighbour's preview video into its RenderTexture (paused on the
     // first frame = a still, dim thumbnail). Falls back to a navy tile if missing.
-    private void UpdateThumb(VideoPlayer vp, RawImage thumb, Image fallback, StageData data)
+    private void UpdateThumb(int side, VideoPlayer vp, RawImage thumb, Image fallback, StageData data)
     {
         if (vp == null) return;
         string dir = data != null ? data.stageDirectoryName : null;
@@ -1127,6 +1206,8 @@ public class JsabStageSelect : MonoBehaviour
             // thumb.enabled is flipped on in prepareCompleted so we never show a
             // stale texture from the previous stage.
             if (thumb != null) thumb.enabled = false;
+            // 準備完了(prepareCompleted)までパネルのフェードインを保留する。
+            SetThumbReady(side, false);
             vp.url = path;
             vp.Prepare();
         }
@@ -1136,6 +1217,7 @@ public class JsabStageSelect : MonoBehaviour
             if (fallback != null) fallback.gameObject.SetActive(true);
             vp.Stop();
             vp.url = null;
+            SetThumbReady(side, true); // fallback タイルは即表示できる
         }
     }
 
