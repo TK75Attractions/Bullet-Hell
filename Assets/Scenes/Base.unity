@@ -1624,6 +1624,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TitleManager
   bpm: 128
+  codeFont: {fileID: 11400000, guid: 191b61a0296928548af68ca23e643298, type: 2}
 --- !u!225 &188042991
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -13491,8 +13492,7 @@ MonoBehaviour:
   separateLevel: 6
   cellCount: 0
   boss: {fileID: 2046423800}
-  multiBullets: []
-  bossDisplays: []
+  enemyEntries: []
   bulletEvents: []
   inactiveCleanupInterval: 6
   drawLaserCollisionGizmos: 0
@@ -13557,7 +13557,6 @@ MonoBehaviour:
   EDB: {fileID: 11400000, guid: 8df51ad6b15942041bbc8e71d4685d05, type: 2}
   BRS: {fileID: 1890939112}
   gameTime: 0
-  ready: 0
   musicOn: 0
   playerHitCount: 0
   counterHitBossCount: 0
@@ -13603,6 +13602,7 @@ MonoBehaviour:
     enemyVisuals: []
     enemySpawners: []
     bulletSpawners: []
+    patternEvents: []
   spawnEvents: []
   time: 0
   enemyCount: 0

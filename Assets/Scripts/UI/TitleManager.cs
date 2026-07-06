@@ -7,6 +7,9 @@ using TMPro;
 public class TitleManager : MonoBehaviour
 {
     [SerializeField] private float bpm = 128f;
+    // 引き継ぎコード表示・入力用の可読フォント(等幅コードフォント。0/O・1/I が
+    // 紛れない)。未割当なら uiFont にフォールバック(第31便)。
+    [SerializeField] private TMP_FontAsset codeFont;
 
     private CanvasGroup group;
     private TMP_Text promptText;
@@ -876,7 +879,7 @@ public class TitleManager : MonoBehaviour
         // コード表示: ラベル+小ぶりなチップ4個(細枠+暗地のみ、影/ハイライトなし)。
         // 主役として入力欄より一段強く(高さ64/枠2px/文字41px。oracle 第29便)。
         const float blockW = 150f;
-        const float blockH = 64f;
+        const float blockH = 58f;
         const float blockGap = 18f;
         float contentHalf = (blockW * 4f + blockGap * 3f) * 0.5f; // = 327
         TMP_Text codeLabel = CreateText("CodeLabel", rootRect, new Vector2(-contentHalf + 180f, 112f), new Vector2(360f, 30f), 20f, new Color(0.388f, 0.867f, 0.91f, 0.5f), TextAlignmentOptions.Left);
@@ -889,21 +892,43 @@ public class TitleManager : MonoBehaviour
         blocksRect.anchorMin = blocksRect.anchorMax = new Vector2(0.5f, 0.5f);
         blocksRect.anchoredPosition = new Vector2(0f, 48f);
         transferCodeBlockTexts = new TMP_Text[4];
-        transferCodeBlockShadows = new TMP_Text[0];
+        transferCodeBlockShadows = new TMP_Text[4]; // 背面のシアン疑似グロー文字
         transferHyphenTexts = new TMP_Text[3];
         float x0 = -(blockW * 3f + blockGap * 3f) * 0.5f;
+        Vector2 chipSize = new Vector2(blockW, blockH);
         for (int i = 0; i < 4; i++)
         {
             float bx = x0 + i * (blockW + blockGap);
-            Image border = CreatePanel("Block" + i, blocksRect, new Vector2(bx, 0f), new Vector2(blockW, blockH), new Color(0.212f, 0.875f, 0.949f, 0.85f));
-            Image fill = CreatePanel("Fill", border.rectTransform, Vector2.zero, Vector2.zero, new Color(0.024f, 0.094f, 0.153f, 0.85f));
+            // oracle 第31便: 単なる4分割入力欄に見えないよう「外グロー→外枠→本体→
+            // ハイライト/影/帯/アクセント」の層で組む(角丸は不可のため矩形のまま)。
+            // 外グロー(本体より一回り大きい半透明シアン。ブラー代替)。
+            CreatePanel("Glow" + i, blocksRect, new Vector2(bx, 0f), new Vector2(blockW + 8f, blockH + 8f), new Color(0.04f, 0.85f, 1f, 0.14f));
+            // 外枠(シアン)。fill を 2px 内側に入れて枠を残す。
+            Image border = CreatePanel("Block" + i, blocksRect, new Vector2(bx, 0f), chipSize, new Color(0.25f, 0.95f, 1f, 0.95f));
+            Image fill = CreatePanel("Fill", border.rectTransform, Vector2.zero, Vector2.zero, new Color(0.018f, 0.075f, 0.125f, 0.92f));
             fill.rectTransform.anchorMin = Vector2.zero;
             fill.rectTransform.anchorMax = Vector2.one;
             fill.rectTransform.offsetMin = new Vector2(2f, 2f);
             fill.rectTransform.offsetMax = new Vector2(-2f, -2f);
-            TMP_Text bt = CreateText("Text", border.rectTransform, Vector2.zero, new Vector2(blockW, blockH), 41f, new Color(0.333f, 0.945f, 1f), TextAlignmentOptions.Center);
+            // 上辺ハイライト・下辺影で「入力欄」ではなく小型ネオンプレートに見せる。
+            CreatePanel("TopHi", border.rectTransform, new Vector2(0f, blockH * 0.5f - 3f), new Vector2(blockW - 20f, 2f), new Color(0.55f, 1f, 1f, 0.55f));
+            CreatePanel("BottomSh", border.rectTransform, new Vector2(0f, -(blockH * 0.5f - 2f)), new Vector2(blockW, 4f), new Color(0f, 0.02f, 0.05f, 0.45f));
+            // 左端の内側グロー帯。
+            CreatePanel("LeftStrip", border.rectTransform, new Vector2(-(blockW * 0.5f - 4f), 0f), new Vector2(3f, blockH - 12f), new Color(0.35f, 0.95f, 1f, 0.35f));
+            // 右上に小さなマゼンタの斜めアクセント(各チップ1つだけ)。
+            Image accent = CreatePanel("Accent" + i, border.rectTransform, new Vector2(blockW * 0.5f - 16f, blockH * 0.5f - 11f), new Vector2(16f, 3f), new Color(1f, 0.12f, 0.62f, 0.55f));
+            accent.rectTransform.localEulerAngles = new Vector3(0f, 0f, -18f);
+            // 背面のシアン疑似グロー文字(本体文字の一回り大きいコピー)。
+            TMP_Text glowText = CreateText("TextGlow", border.rectTransform, Vector2.zero, chipSize, 38f, new Color(0.15f, 0.95f, 1f, 0.145f), TextAlignmentOptions.Center);
+            if (codeFont != null) glowText.font = codeFont;
+            glowText.fontStyle = FontStyles.Bold;
+            glowText.characterSpacing = 4f;
+            glowText.rectTransform.localScale = Vector3.one * 1.06f;
+            transferCodeBlockShadows[i] = glowText;
+            TMP_Text bt = CreateText("Text", border.rectTransform, Vector2.zero, chipSize, 38f, new Color(0.62f, 0.98f, 1f), TextAlignmentOptions.Center);
+            if (codeFont != null) bt.font = codeFont;
             bt.fontStyle = FontStyles.Bold;
-            bt.characterSpacing = 10f;
+            bt.characterSpacing = 4f;
             transferCodeBlockTexts[i] = bt;
             if (i < 3)
             {
@@ -983,11 +1008,13 @@ public class TitleManager : MonoBehaviour
 
         TMP_Text placeholder = CreateText("Placeholder", areaRect, Vector2.zero, size, 28f, new Color(0.498f, 0.682f, 0.722f, 0.5f), TextAlignmentOptions.Left);
         StretchToParent(placeholder.rectTransform);
+        if (codeFont != null) placeholder.font = codeFont;
         // 発行コードは4文字(v2)。旧16文字コードも引き続き入力・適用できる。
         placeholder.text = "XXXX";
 
         TMP_Text textComp = CreateText("Text", areaRect, Vector2.zero, size, 30f, new Color(0.953f, 0.984f, 1f, 0.95f), TextAlignmentOptions.Left);
         StretchToParent(textComp.rectTransform);
+        if (codeFont != null) textComp.font = codeFont;
         textComp.fontStyle = FontStyles.Bold;
         textComp.characterSpacing = 6f;
 
@@ -995,7 +1022,7 @@ public class TitleManager : MonoBehaviour
         transferInput.textViewport = areaRect;
         transferInput.textComponent = textComp;
         transferInput.placeholder = placeholder;
-        transferInput.fontAsset = uiFont;
+        transferInput.fontAsset = codeFont != null ? codeFont : uiFont;
         transferInput.pointSize = 30f;
         transferInput.characterLimit = 19; // 16 symbols + 3 grouping hyphens
         transferInput.lineType = TMP_InputField.LineType.SingleLine;
