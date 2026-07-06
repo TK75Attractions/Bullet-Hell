@@ -53,6 +53,9 @@ public class TitleManager : MonoBehaviour
     // label + gliding white slash brackets. Colors mirror the NORMAL row.
     private static readonly Color MenuBarBlue = new Color(0.055f, 0.525f, 0.91f);
     private static readonly Color MenuTextBase = new Color(0.85f, 0.93f, 1f);
+    // スタート決定のバナー閃光のピーク色。純白だと「フラッシュ」が強すぎるため、
+    // バナー青から白へ半分だけ寄せた柔らかい輝きにする(第31便)。
+    private static readonly Color MenuFlashPeak = Color.Lerp(MenuBarBlue, Color.white, 0.5f);
 
     // How far above its scene-authored position the logo is lifted.
     private const float LogoRaiseOffset = 130f;
@@ -64,8 +67,10 @@ public class TitleManager : MonoBehaviour
     // スタート決定からステージ選択を重ね始めるまでの時間。GManager がこの時間
     // 経過後に state を切り替えて SSManager.PlayEntrance を呼ぶ(演出は総尺
     // StartExitTotal まで続き、選択画面のフェードインと交差する)。
-    public const float StartExitCoverDelay = 0.30f;
-    private const float StartExitTotal = 0.60f;
+    // 第31便: スタート演出が「フラッシュみたい」に速く感じるため約1.25倍に伸ばす
+    // (0.30→0.375 / 0.60→0.75)。CoverDelay はステージ選択が重なり始める時刻。
+    public const float StartExitCoverDelay = 0.375f;
+    private const float StartExitTotal = 0.75f;
 
     private TMP_FontAsset uiFont;
     private RectTransform menuRoot;
@@ -391,12 +396,12 @@ public class TitleManager : MonoBehaviour
         if (dismissed) return;
         dismissed = true;
 
-        const float flashDur = 0.14f;
-        const float rowDur = 0.26f;
+        const float flashDur = 0.175f;
+        const float rowDur = 0.325f;
         const float slideDistance = 1500f;
-        const float logoDelay = 0.10f;
-        const float logoDur = 0.38f;
-        const float fadeStart = 0.38f;
+        const float logoDelay = 0.125f;
+        const float logoDur = 0.475f;
+        const float fadeStart = 0.475f;
 
         int selected = Mathf.Clamp(menuIndex, 0, menuItemRects.Length > 0 ? menuItemRects.Length - 1 : 0);
         beatPulse = 1f; // 決定と同時に図形をひと光りさせる
@@ -434,7 +439,7 @@ public class TitleManager : MonoBehaviour
             float flashP = Mathf.Clamp01(time / flashDur);
             if (selected < menuRowBars.Length && menuRowBars[selected] != null)
             {
-                menuRowBars[selected].color = Color.Lerp(Color.white, MenuBarBlue, flashP * flashP);
+                menuRowBars[selected].color = Color.Lerp(MenuFlashPeak, MenuBarBlue, flashP * flashP);
             }
             if (selected < menuItems.Length && menuItems[selected] != null)
             {
@@ -445,7 +450,7 @@ public class TitleManager : MonoBehaviour
             for (int i = 0; i < menuItemRects.Length; i++)
             {
                 if (menuItemRects[i] == null) continue;
-                float delay = i == selected ? 0.10f : 0.17f + 0.05f * i;
+                float delay = i == selected ? 0.125f : 0.2125f + 0.0625f * i;
                 float p = Mathf.Clamp01((time - delay) / rowDur);
                 float x = p * p * p * slideDistance;
                 menuItemRects[i].anchoredPosition = new Vector2(x, menuRowY[i]);

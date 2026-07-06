@@ -22,14 +22,7 @@ public class PixelTransition : MonoBehaviour
     // 見える)で 0.10 → 0.05 に短縮。
     private const float whiteoutTime = 0.20f;
     private const float whiteoutHoldTime = 0.05f;
-    private const float mosaicRevealTime = 0.55f;
-    // 解像順(中心からの正規化距離)の終盤圧縮指数。1 で等速。>1 で外周ほど
-    // 早めに欠け、最後に端の白ブロックだけが残って間延びするのを防ぐ
-    // (oracle 第30便: 終盤だけ締める)。
-    private const float mosaicTailCompress = 1.35f;
-    // ラジアル順に足す個別ジッタ。同心円の輪郭を崩して機械的な広がりを防ぐ
-    // (中心ワイプの jitterTime より大きめ。解像時間に対する比で見た目を合わせる)。
-    private const float mosaicJitterTime = 0.12f;
+    private const float mosaicRevealTime = 0.62f;
 
     private RectTransform[] cells;
     private Image[] cellImages;
@@ -253,22 +246,21 @@ public class PixelTransition : MonoBehaviour
         whiteSheet.color = c;
     }
 
-    // プレイ開始用: 白カバーがピクセルブロック単位で中央から外周の順に欠けて
-    // いき、背後のプレイ画面が画面中央から解像していく(第30便: Bayer ディザの
-    // 均一な欠け方はザラついて見えたため、ラジアル順+ジッタへ変更。プレイヤー
-    // の初期位置=画面中央から視界が開ける)。ジッタで同心円の輪郭を崩し、
-    // 機械的なワイプに見えないようにする。
+    // プレイ開始用: 白カバーがピクセルブロック単位で中央から外周へ順に欠けて
+    // いき、背後のプレイ画面が画面中央から広がって現れる(このゲームに従来から
+    // ある中央発のピクセルワイプ)。第30便で入れた終盤圧縮(外周を前倒し)と
+    // 大きめジッタは「ラジアル消去」に見えたため撤回し、従来の Reveal と同じ
+    // 中心距離に線形な順序+小さめジッタに戻す(第31便)。
     public async Task MosaicReveal()
     {
         if (fadeGroup != null) fadeGroup.alpha = 1f;
         if (whiteSheet != null) whiteSheet.gameObject.SetActive(false);
+        float span = mosaicRevealTime - jitterTime;
         for (int i = 0; i < delays.Length; i++)
         {
             // baseDelays は中心からの距離を spreadTime に正規化した値。
-            float order = baseDelays[i] / spreadTime;
-            // 終盤圧縮: 外周(order→1)ほど等速より前倒しになる凹型の写像。
-            order = 1f - Mathf.Pow(1f - order, mosaicTailCompress);
-            delays[i] = order * (mosaicRevealTime - mosaicJitterTime) + Random.Range(0f, mosaicJitterTime);
+            float order = baseDelays[i] / spreadTime; // 0(中心)→1(隅)
+            delays[i] = order * span + Random.Range(0f, jitterTime);
         }
         await Animate(coverIn: false);
         gameObject.SetActive(false);
