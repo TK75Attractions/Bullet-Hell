@@ -461,11 +461,24 @@ public class StageSelectManager : MonoBehaviour
         RectTransform staticRect = (RectTransform)staticCG.transform;
         variableCG.alpha = 0;
         staticCG.alpha = 0;
-        // JSAB スタイルは不透明カルーセルを即座に出す(デフォルト UI のズーム
-        // 入場を見せてから終端で JSAB に切り替わるポップを防ぐ)。
+        // JSAB スタイルは不透明カルーセルを短いフェードで重ねる(即時 alpha=1
+        // だとタイトル退場演出の途中にハードカットで割り込んでしまう)。
         if (jsab != null && stageSelectStyle == 1 && state == State.Music)
         {
             RefreshStyleVisibility();
+            jsab.SetEntranceAlpha(0f);
+            const float fadeDur = 0.25f;
+            float ft = 0f;
+            while (ft < fadeDur)
+            {
+                if (state == State.InGame) return;
+                ft += Time.deltaTime;
+                jsab.SetEntranceAlpha(Mathf.Clamp01(ft / fadeDur));
+                await Task.Yield();
+            }
+            // V トグル等で途中から状態が変わっていても最終状態はここで正す。
+            RefreshStyleVisibility();
+            return;
         }
 
         float delay = 0.16f;

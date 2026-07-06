@@ -47,8 +47,11 @@ public class GManager : MonoBehaviour
     private bool titleArmed = false;
 
     // Which layer of the title screen currently owns input.
-    private enum TitlePhase { Menu, Options, Transfer }
+    // Starting はスタート決定後、タイトル退場演出がステージ選択に覆われる
+    // までの待ち(入力は消費し、時間経過で ChoosingStage へ切り替える)。
+    private enum TitlePhase { Menu, Options, Transfer, Starting }
     private TitlePhase titlePhase = TitlePhase.Menu;
+    private float titleStartTimer;
     private int optionScreenSiblingIndex = -1;
     public BulletBufferManager BClipManager;
     public QuadOrder QOrder;
@@ -335,6 +338,19 @@ public class GManager : MonoBehaviour
                 UpdateTitleTransfer();
                 return true;
 
+            case TitlePhase.Starting:
+                // タイトル退場演出中。覆いどきが来たらステージ選択を重ねて出す
+                // (演出の残りは選択画面のフェードインと交差して続く)。
+                titleStartTimer -= t;
+                if (titleStartTimer <= 0f)
+                {
+                    titlePhase = TitlePhase.Menu;
+                    state = GameState.ChoosingStage;
+                    SSManager.ResetTimer();
+                    SSManager.PlayEntrance();
+                }
+                return true;
+
             default: // Menu
                 stageSelectButton = false;
                 TManager?.UpdateMenu(t, IManager.upPressedThisFrame, IManager.downPressedThisFrame);
@@ -355,11 +371,11 @@ public class GManager : MonoBehaviour
                     switch (action)
                     {
                         case TitleManager.TitleMenuAction.Start:
-                            state = GameState.ChoosingStage;
-                            TManager?.Dismiss();
-                            SSManager.ResetTimer();
-                            SSManager.PlayEntrance();
-                            break;
+                            // 即座に切り替えず、タイトル側の退場演出を先に走らせる。
+                            titlePhase = TitlePhase.Starting;
+                            titleStartTimer = TManager != null ? TitleManager.StartExitCoverDelay : 0f;
+                            TManager?.PlayStartExit();
+                            return true;
                         case TitleManager.TitleMenuAction.Options:
                             OpenTitleOptions();
                             return true;

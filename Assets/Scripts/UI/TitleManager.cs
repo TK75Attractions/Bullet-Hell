@@ -54,13 +54,24 @@ public class TitleManager : MonoBehaviour
     private static readonly Color MenuTextBase = new Color(0.85f, 0.93f, 1f);
 
     // How far above its scene-authored position the logo is lifted.
-    private const float LogoRaiseOffset = 80f;
+    private const float LogoRaiseOffset = 130f;
+
+    // メニュー横の白スラッシュ(DefficultyBar クローン)のひと回り縮小率。
+    // 等倍だとバナー高(109px)に対して159pxと主張が強すぎる。
+    private const float MenuSlashScale = 0.78f;
+
+    // スタート決定からステージ選択を重ね始めるまでの時間。GManager がこの時間
+    // 経過後に state を切り替えて SSManager.PlayEntrance を呼ぶ(演出は総尺
+    // StartExitTotal まで続き、選択画面のフェードインと交差する)。
+    public const float StartExitCoverDelay = 0.30f;
+    private const float StartExitTotal = 0.60f;
 
     private TMP_FontAsset uiFont;
     private RectTransform menuRoot;
     private TMP_Text[] menuItems = new TMP_Text[0];
     private RectTransform[] menuItemRects = new RectTransform[0];
     private CanvasGroup[] menuRowCG = new CanvasGroup[0];
+    private Image[] menuRowBars = new Image[0];
     private float[] menuItemSel = new float[0];
     private float[] menuRowY = new float[0];
     private int menuIndex;
@@ -341,6 +352,113 @@ public class TitleManager : MonoBehaviour
         gameObject.SetActive(false);
     }
 
+    // スタート決定の遷移演出: 選択バナーが白フラッシュ+小ポップ→行が右へ
+    // 加速して飛び去り(選択行が先頭)、ロゴは上へ抜け、背景図形は加速する。
+    // タイトルの背景は StartExitCoverDelay 経過後にステージ選択が重なって
+    // くるまで残し、終盤で全体をフェードして交差させる(ハードカット防止)。
+    public async void PlayStartExit()
+    {
+        if (dismissed) return;
+        dismissed = true;
+
+        const float flashDur = 0.14f;
+        const float rowDur = 0.26f;
+        const float slideDistance = 1500f;
+        const float logoDelay = 0.10f;
+        const float logoDur = 0.38f;
+        const float fadeStart = 0.38f;
+
+        int selected = Mathf.Clamp(menuIndex, 0, menuItemRects.Length > 0 ? menuItemRects.Length - 1 : 0);
+        beatPulse = 1f; // 決定と同時に図形をひと光りさせる
+
+        float time = 0f;
+        while (time < StartExitTotal)
+        {
+            float dt = Time.deltaTime;
+            time += dt;
+
+            // 背景図形は加速しながら流れ続ける(dismissed 中は UpdateTitle が
+            // 止まるので、同じ式をここで加速倍率付きで駆動する)。
+            float speedMul = Mathf.Lerp(1f, 6f, Mathf.Clamp01(time / StartExitTotal));
+            animTime += dt * speedMul;
+            beatPulse = Mathf.Max(0f, beatPulse - dt * 5f);
+            for (int i = 0; i < shapeGraphics.Length; i++)
+            {
+                if (shapeGraphics[i] == null) continue;
+                Color c = shapeGraphics[i].color;
+                c.a = Mathf.Min(1f, shapeBaseAlphas[i] * (1f + 0.65f * beatPulse));
+                shapeGraphics[i].color = c;
+            }
+            for (int i = 0; i < shapes.Length; i++)
+            {
+                ShapeAnim s = shapes[i];
+                if (s.rect == null) continue;
+                s.rect.anchoredPosition = s.basePos + new Vector2(
+                    (Mathf.Sin(animTime * s.speedX + s.phase) - Mathf.Sin(s.phase)) * s.ampX,
+                    (Mathf.Cos(animTime * s.speedY + s.phase * 1.3f) - Mathf.Cos(s.phase * 1.3f)) * s.ampY);
+                s.rect.Rotate(0f, 0f, s.rotSpeed * dt * speedMul);
+            }
+
+            // 選択バナーのフラッシュ(白→元色)+小ポップ(1→1.06→1)。
+            float flashP = Mathf.Clamp01(time / flashDur);
+            if (selected < menuRowBars.Length && menuRowBars[selected] != null)
+            {
+                menuRowBars[selected].color = Color.Lerp(Color.white, MenuBarBlue, flashP * flashP);
+            }
+
+            // 行スライドアウト: ease-in cubic で緩→急。選択行が先頭で飛び出す。
+            for (int i = 0; i < menuItemRects.Length; i++)
+            {
+                if (menuItemRects[i] == null) continue;
+                float delay = i == selected ? 0.10f : 0.17f + 0.05f * i;
+                float p = Mathf.Clamp01((time - delay) / rowDur);
+                float x = p * p * p * slideDistance;
+                menuItemRects[i].anchoredPosition = new Vector2(x, menuRowY[i]);
+                if (i == selected)
+                {
+                    float pop = Mathf.Sin(flashP * Mathf.PI) * 0.06f;
+                    menuItemRects[i].localScale = Vector3.one * ((0.8f + 0.2f * menuItemSel[i]) + pop);
+                    // 白ブラケットは選択行と一体で飛ぶ。
+                    if (menuWhite != null) menuWhite.anchoredPosition = new Vector2(x, menuWhiteY);
+                }
+            }
+
+            // ロゴは上へ加速して画面外に抜ける。
+            if (logoRect != null)
+            {
+                float lp = Mathf.Clamp01((time - logoDelay) / logoDur);
+                logoRect.anchoredPosition = new Vector2(
+                    logoRect.anchoredPosition.x, logoBaseY + lp * lp * lp * 520f);
+            }
+
+            // 覆われ始めてから全体をフェード(選択画面側のフェードインと交差)。
+            float fade = Mathf.Clamp01((time - fadeStart) / (StartExitTotal - fadeStart));
+            group.alpha = 1f - fade * fade;
+
+            await Task.Yield();
+            if (this == null || group == null) return;
+        }
+
+        group.alpha = 0f;
+        gameObject.SetActive(false);
+        // 非表示中に退場前の配置へ戻し、次回 Init(再表示)を無傷にする。
+        for (int i = 0; i < menuItemRects.Length; i++)
+        {
+            if (menuItemRects[i] == null) continue;
+            menuItemRects[i].anchoredPosition = new Vector2(0f, menuRowY[i]);
+            ApplyMenuRowState(i, menuItemSel[i]);
+        }
+        if (selected < menuRowBars.Length && menuRowBars[selected] != null)
+        {
+            menuRowBars[selected].color = MenuBarBlue;
+        }
+        if (menuWhite != null) menuWhite.anchoredPosition = new Vector2(0f, menuWhiteY);
+        if (logoRect != null)
+        {
+            logoRect.anchoredPosition = new Vector2(logoRect.anchoredPosition.x, logoBaseY);
+        }
+    }
+
     // ---- Menu -------------------------------------------------------------
 
     public void ShowMenu()
@@ -414,6 +532,7 @@ public class TitleManager : MonoBehaviour
         menuItems = new TMP_Text[labels.Length];
         menuItemRects = new RectTransform[labels.Length];
         menuRowCG = new CanvasGroup[labels.Length];
+        menuRowBars = new Image[labels.Length];
         menuItemSel = new float[labels.Length];
         menuRowY = rowY;
 
@@ -429,6 +548,7 @@ public class TitleManager : MonoBehaviour
                 row = (RectTransform)rowObj.transform;
                 Image bar = rowObj.transform.Find("StageBar")?.GetComponent<Image>();
                 if (bar != null) bar.color = MenuBarBlue;
+                menuRowBars[i] = bar;
                 label = rowObj.transform.Find("StageName")?.GetComponent<TMP_Text>();
             }
             else
@@ -436,7 +556,7 @@ public class TitleManager : MonoBehaviour
                 // Degraded fallback (scene layout changed): plain banner + label.
                 row = new GameObject("Item" + i, typeof(RectTransform)).GetComponent<RectTransform>();
                 row.SetParent(menuRoot, false);
-                CreatePanel("StageBar", row, Vector2.zero, new Vector2(583f, 109f), MenuBarBlue);
+                menuRowBars[i] = CreatePanel("StageBar", row, Vector2.zero, new Vector2(583f, 109f), MenuBarBlue);
                 label = CreateText("StageName", row, Vector2.zero, new Vector2(583f, 109f), 52f, MenuTextBase, TextAlignmentOptions.Center);
             }
 
@@ -470,6 +590,15 @@ public class TitleManager : MonoBehaviour
             menuWhite = (RectTransform)whiteObj.transform;
             CanvasGroup whiteCG = whiteObj.GetComponent<CanvasGroup>();
             if (whiteCG != null) whiteCG.alpha = 1f;
+            // 白スラッシュ本体だけ縮小(バナー上を掃く Shine はバナーサイズのまま)。
+            // 縮小した分だけ内側に寄せ、バナー端との間隔を保つ。
+            foreach (string slashName in new[] { "White_L", "White_R" })
+            {
+                RectTransform slash = menuWhite.Find(slashName) as RectTransform;
+                if (slash == null) continue;
+                slash.localScale = Vector3.one * MenuSlashScale;
+                slash.anchoredPosition = new Vector2(slash.anchoredPosition.x * 0.96f, slash.anchoredPosition.y);
+            }
             menuWhite.SetAsLastSibling();
             menuWhiteY = rowY[0];
             menuWhite.anchoredPosition = new Vector2(0f, menuWhiteY);

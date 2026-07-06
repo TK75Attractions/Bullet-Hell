@@ -1031,6 +1031,14 @@ public class JsabStageSelect : MonoBehaviour
 
     // ---- Public API used by StageSelectManager ----
 
+    // タイトル→ステージ選択の入場フェード用。表示中のみ全体 alpha を上書きする
+    // (最終状態は呼び出し側が SetVisible / RefreshStyleVisibility で確定させる)。
+    public void SetEntranceAlpha(float alpha)
+    {
+        if (!Visible || rootCG == null) return;
+        rootCG.alpha = Mathf.Clamp01(alpha);
+    }
+
     public void SetVisible(bool visible)
     {
         Visible = visible;
