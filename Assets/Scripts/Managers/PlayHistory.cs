@@ -11,7 +11,21 @@ using UnityEngine;
 //   { "v":1, "stages":[ {"k":"stone","p":3,"c":1}, ... ] }
 // per-stage p = play count, c = clear count, both clamped 0..15 (4 bits each).
 //
-// Code bit layout (MSB-first):
+// Code formats:
+//
+// v2 (第30便から発行する4文字コード。展示で書き写しやすい長さ):
+//   totalPlays  : 6 bits (0..63 clamp)
+//   totalClears : 6 bits (0..63 clamp)
+//   crc8        : 8 bits (poly 0x07, init 0x00) — CRC はバージョンニブル(=2)+
+//                 ペイロード12bitの計16bitに対して計算する(コード文字を消費
+//                 せずにフォーマットをバージョン管理するため)
+//   ---------------------------------------------------------------
+//   total 20 bits -> 4 Base32 symbols (no grouping)
+//   ステージ別の内訳(64bit)は20bitに収まらないため、v2 は合計値のみを運ぶ。
+//   ゲームが現在参照するのは TotalPlays / TotalClears だけなので実用上等価。
+//   ランダムな4文字が通る確率は CRC8 により 1/256(v1 と同じ保証)。
+//
+// v1 (legacy 16文字。読み込みのみ維持、発行は v2):
 //   version   : 4 bits (=1)
 //   slot0..7  : 8 slots x (p:4bit + c:4bit) = 64 bits   (slot order = stage order)
 //   crc8      : 8 bits  (poly 0x07, init 0x00, over the preceding 68 bits)
@@ -23,6 +37,11 @@ public static class PlayHistory
     private const string PrefsKey = "playHistory.v1";
     private const int MaxSlots = 8;
     private const int Version = 1;
+    private const int VersionV2 = 2;
+    // v2 コードの取り込み結果を保持する合成キー。先頭アンダースコアは実ステージ
+    // の stageDirectoryName では使わない予約とする(v1 スロットにも決して入らない)。
+    private const string AggregateKey = "_total";
+    private const int AggregateCap = 63;
 
     // Crockford Base32 alphabet (excludes I, L, O, U for legibility).
     private const string Alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
@@ -128,47 +147,34 @@ public static class PlayHistory
 
     // ---- Transfer code ------------------------------------------------------
 
-    // Always returns a valid 16-symbol code (even for empty history). Callers
+    // Always returns a valid 4-symbol v2 code (even for empty history). Callers
     // that want to hide an empty code should test HasHistory first.
     public static string ExportCode()
     {
         Load();
-        List<string> order = GetStageOrder();
+        int p = Mathf.Min(AggregateCap, TotalPlays);
+        int c = Mathf.Min(AggregateCap, TotalClears);
 
-        List<int> bits = new List<int>(80);
-        WriteBits(bits, Version, 4);
-        for (int i = 0; i < MaxSlots; i++)
-        {
-            int p = 0, c = 0;
-            if (i < order.Count && cache.TryGetValue(order[i], out int[] v))
-            {
-                p = Mathf.Clamp(v[0], 0, 15);
-                c = Mathf.Clamp(v[1], 0, 15);
-            }
-            WriteBits(bits, p, 4);
-            WriteBits(bits, c, 4);
-        }
+        // CRC はバージョンニブルを先頭に含めて計算する(格納はしない)。
+        List<int> crcInput = new List<int>(16);
+        WriteBits(crcInput, VersionV2, 4);
+        WriteBits(crcInput, p, 6);
+        WriteBits(crcInput, c, 6);
+        int crc = Crc8(crcInput);
 
-        int crc = Crc8(bits); // over the 68 payload bits
+        List<int> bits = new List<int>(20);
+        WriteBits(bits, p, 6);
+        WriteBits(bits, c, 6);
         WriteBits(bits, crc, 8);
 
-        while (bits.Count % 5 != 0) bits.Add(0); // 76 -> 80
-
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < bits.Count; i += 5)
-        {
-            int value = 0;
-            for (int b = 0; b < 5; b++) value = (value << 1) | bits[i + b];
-            sb.Append(Alphabet[value]);
-        }
-
-        return FormatCode(sb.ToString());
+        return BitsToBase32(bits);
     }
 
     public static bool TryImportCode(string input, out string error)
     {
         error = null;
         string normalized = Normalize(input);
+        if (normalized.Length == 4) return TryImportV2(normalized, out error);
         if (normalized.Length != 16)
         {
             error = "コードが正しくありません";
@@ -219,7 +225,58 @@ public static class PlayHistory
         return true;
     }
 
+    // v2: 4 symbols = 20 bits (p:6 + c:6 + crc:8)。合計値のみを運ぶため、取り
+    // 込みは合成キー1件として保存する(以後の Record* は実ステージ側へ加算され、
+    // Total* は両者の和になる)。
+    private static bool TryImportV2(string normalized, out string error)
+    {
+        error = null;
+        List<int> bits = new List<int>(20);
+        foreach (char ch in normalized)
+        {
+            int value = Alphabet.IndexOf(ch);
+            if (value < 0)
+            {
+                error = "コードが正しくありません";
+                return false;
+            }
+            for (int b = 4; b >= 0; b--) bits.Add((value >> b) & 1);
+        }
+
+        int p = ReadBits(bits, 0, 6);
+        int c = ReadBits(bits, 6, 6);
+        int storedCrc = ReadBits(bits, 12, 8);
+
+        List<int> crcInput = new List<int>(16);
+        WriteBits(crcInput, VersionV2, 4);
+        WriteBits(crcInput, p, 6);
+        WriteBits(crcInput, c, 6);
+        if (storedCrc != Crc8(crcInput))
+        {
+            error = "コードが正しくありません";
+            return false;
+        }
+
+        Dictionary<string, int[]> imported = new Dictionary<string, int[]>();
+        if (p > 0 || c > 0) imported[AggregateKey] = new int[] { p, c };
+        cache = imported;
+        Save();
+        return true;
+    }
+
     // ---- Internals ----------------------------------------------------------
+
+    private static string BitsToBase32(List<int> bits)
+    {
+        StringBuilder sb = new StringBuilder(bits.Count / 5);
+        for (int i = 0; i < bits.Count; i += 5)
+        {
+            int value = 0;
+            for (int b = 0; b < 5; b++) value = (value << 1) | bits[i + b];
+            sb.Append(Alphabet[value]);
+        }
+        return sb.ToString();
+    }
 
     private static int[] GetOrCreate(string key)
     {
@@ -246,7 +303,10 @@ public static class PlayHistory
             foreach (SlotJson slot in model.stages)
             {
                 if (slot == null || string.IsNullOrEmpty(slot.k)) continue;
-                cache[slot.k] = new int[] { Mathf.Clamp(slot.p, 0, 15), Mathf.Clamp(slot.c, 0, 15) };
+                // 合成キー(v2 取り込みの合計値)は 63 まで、実ステージは従来通り
+                // 15 まで(v1 コードの 4bit スロットに収まる範囲)。
+                int cap = slot.k == AggregateKey ? AggregateCap : 15;
+                cache[slot.k] = new int[] { Mathf.Clamp(slot.p, 0, cap), Mathf.Clamp(slot.c, 0, cap) };
             }
         }
         catch (Exception ex)
@@ -330,17 +390,6 @@ public static class PlayHistory
                 sb.Append(ch);
             }
             // Everything else (hyphen, space, etc.) is dropped.
-        }
-        return sb.ToString();
-    }
-
-    private static string FormatCode(string raw)
-    {
-        StringBuilder sb = new StringBuilder(raw.Length + 3);
-        for (int i = 0; i < raw.Length; i++)
-        {
-            if (i > 0 && i % 4 == 0) sb.Append('-');
-            sb.Append(raw[i]);
         }
         return sb.ToString();
     }
