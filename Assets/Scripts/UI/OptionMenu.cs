@@ -56,8 +56,7 @@ public class OptionMenu : MonoBehaviour
     private Image noButton;
 
     private RawImage confirmBackdrop;
-    private Material blurMaterial;
-    private Texture2D confirmTexture;
+    private RenderTexture confirmBlurRT;
     private Coroutine confirmCaptureRoutine;
     private CanvasGroup confirmCanvasGroup;
     private Coroutine confirmOpenAnimationRoutine;
@@ -65,8 +64,7 @@ public class OptionMenu : MonoBehaviour
 
     private RawImage menuBackdrop;
     private GameObject menuShade;
-    private Material menuBlurMaterial;
-    private Texture2D menuTexture;
+    private RenderTexture menuBlurRT;
     private Coroutine menuCaptureRoutine;
     private bool waitingForMenuCapture;
 
@@ -139,17 +137,9 @@ public class OptionMenu : MonoBehaviour
 
     private void BuildFriendlyVisuals()
     {
-        Shader blurShader = Shader.Find("UI/BulletHell/BackdropBlur");
-        if (blurShader != null)
-        {
-            blurMaterial = new Material(blurShader);
-            // The menu background is already blurred once. A smaller second
-            // Gaussian pass keeps the confirmation strong without smearing text.
-            blurMaterial.SetFloat("_Radius", 3.5f);
-            menuBlurMaterial = new Material(blurShader);
-            menuBlurMaterial.SetFloat("_Radius", 4f);
-        }
-
+        // 背景ぼかしは難易度オーバーレイと同じダウンサンプルピラミッド方式
+        // (BackdropBlurUtil)で作るため、シェーダマテリアルは使わない。RawImage は
+        // 既定マテリアルで 1/4 解像度のぼかし RT をバイリニア拡大表示する。
         GameObject menuBlurObject = new GameObject("MenuBackdrop", typeof(RectTransform), typeof(CanvasRenderer), typeof(RawImage));
         menuBlurObject.layer = gameObject.layer;
         RectTransform menuBlurRect = (RectTransform)menuBlurObject.transform;
@@ -157,7 +147,6 @@ public class OptionMenu : MonoBehaviour
         Stretch(menuBlurRect);
         menuBlurRect.SetAsFirstSibling();
         menuBackdrop = menuBlurObject.GetComponent<RawImage>();
-        menuBackdrop.material = menuBlurMaterial;
         menuBackdrop.color = Color.white;
         menuBackdrop.raycastTarget = false;
         menuBackdrop.gameObject.SetActive(false);
@@ -252,7 +241,6 @@ public class OptionMenu : MonoBehaviour
         Stretch(confirmBlurRect);
         confirmBlurRect.SetAsFirstSibling();
         confirmBackdrop = confirmBlurObject.GetComponent<RawImage>();
-        confirmBackdrop.material = blurMaterial;
         confirmBackdrop.color = Color.white;
         confirmBackdrop.raycastTarget = false;
 
@@ -312,7 +300,7 @@ public class OptionMenu : MonoBehaviour
         transform.localScale = Vector3.one * 0.97f;
 
         if (menuCaptureRoutine != null) StopCoroutine(menuCaptureRoutine);
-        ReleaseTexture(ref menuTexture);
+        BackdropBlurUtil.ReleaseRT(ref menuBlurRT);
         menuBackdrop.texture = null;
         menuBackdrop.gameObject.SetActive(false);
         menuShade.SetActive(false);
@@ -560,9 +548,9 @@ public class OptionMenu : MonoBehaviour
         menuCaptureRoutine = null;
         if (!gameObject.activeInHierarchy) yield break;
 
-        ReleaseTexture(ref menuTexture);
-        menuTexture = ScreenCapture.CaptureScreenshotAsTexture();
-        menuBackdrop.texture = menuTexture;
+        BackdropBlurUtil.ReleaseRT(ref menuBlurRT);
+        menuBlurRT = BackdropBlurUtil.CapturePyramidBlur();
+        menuBackdrop.texture = menuBlurRT;
         menuBackdrop.gameObject.SetActive(true);
         menuShade.SetActive(true);
         waitingForMenuCapture = false;
@@ -578,9 +566,9 @@ public class OptionMenu : MonoBehaviour
         confirmCaptureRoutine = null;
         if (!confirmOpen) yield break;
 
-        ReleaseTexture(ref confirmTexture);
-        confirmTexture = ScreenCapture.CaptureScreenshotAsTexture();
-        confirmBackdrop.texture = confirmTexture;
+        BackdropBlurUtil.ReleaseRT(ref confirmBlurRT);
+        confirmBlurRT = BackdropBlurUtil.CapturePyramidBlur();
+        confirmBackdrop.texture = confirmBlurRT;
         confirmGroup.SetActive(true);
         confirmGroup.transform.SetAsLastSibling();
         confirmGroup.transform.localScale = Vector3.one;
@@ -632,7 +620,7 @@ public class OptionMenu : MonoBehaviour
             confirmCaptureRoutine = null;
         }
         confirmGroup.SetActive(false);
-        ReleaseTexture(ref confirmTexture);
+        BackdropBlurUtil.ReleaseRT(ref confirmBlurRT);
         confirmBackdrop.texture = null;
     }
 
@@ -740,12 +728,6 @@ public class OptionMenu : MonoBehaviour
         rect.offsetMax = Vector2.zero;
     }
 
-    private static void ReleaseTexture(ref Texture2D texture)
-    {
-        if (texture != null) Object.Destroy(texture);
-        texture = null;
-    }
-
     private void OnDisable()
     {
         waitingForMenuCapture = false;
@@ -764,15 +746,15 @@ public class OptionMenu : MonoBehaviour
             StopCoroutine(confirmCaptureRoutine);
             confirmCaptureRoutine = null;
         }
-        ReleaseTexture(ref confirmTexture);
+        BackdropBlurUtil.ReleaseRT(ref confirmBlurRT);
         if (confirmBackdrop != null) confirmBackdrop.texture = null;
-        ReleaseTexture(ref menuTexture);
+        BackdropBlurUtil.ReleaseRT(ref menuBlurRT);
         if (menuBackdrop != null) menuBackdrop.texture = null;
     }
 
     private void OnDestroy()
     {
-        if (blurMaterial != null) Object.Destroy(blurMaterial);
-        if (menuBlurMaterial != null) Object.Destroy(menuBlurMaterial);
+        BackdropBlurUtil.ReleaseRT(ref confirmBlurRT);
+        BackdropBlurUtil.ReleaseRT(ref menuBlurRT);
     }
 }

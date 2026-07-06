@@ -94,8 +94,7 @@ public class TitleManager : MonoBehaviour
     // 引き継ぎ画面の背景ぼかし(難易度オーバーレイと同構成: 完成フレームの
     // スナップショット+暗スクリム)。メニュー・ロゴを退場させず背景に残す。
     private RawImage transferBackdrop;
-    private Material transferBlurMaterial;
-    private Texture2D transferBackdropTex;
+    private RenderTexture transferBlurRT;
     private Coroutine transferCaptureRoutine;
     private TMP_Text transferCodeText;          // 履歴なしメッセージ(コードはブロック表示)
     private TMP_InputField transferInput;
@@ -711,10 +710,10 @@ public class TitleManager : MonoBehaviour
         transferCaptureRoutine = null;
         if (!transferOpen) yield break;
         ReleaseBackdropTexture();
-        transferBackdropTex = ScreenCapture.CaptureScreenshotAsTexture();
+        transferBlurRT = BackdropBlurUtil.CapturePyramidBlur();
         if (transferBackdrop != null)
         {
-            transferBackdrop.texture = transferBackdropTex;
+            transferBackdrop.texture = transferBlurRT;
             transferBackdrop.gameObject.SetActive(true);
         }
         // パネルをふわりと出す(急な表示を防ぐ。難易度オーバーレイと同傾向)。
@@ -730,8 +729,7 @@ public class TitleManager : MonoBehaviour
 
     private void ReleaseBackdropTexture()
     {
-        if (transferBackdropTex != null) Destroy(transferBackdropTex);
-        transferBackdropTex = null;
+        BackdropBlurUtil.ReleaseRT(ref transferBlurRT);
     }
 
     public void ApplyTransfer()
@@ -851,13 +849,9 @@ public class TitleManager : MonoBehaviour
         // メニュー・ロゴを退場させず、その凍結ぼかしを背景として敷く(第31便)。
         transferBackdrop = CreateRawImage("Backdrop", rootRect);
         StretchToParent(transferBackdrop.rectTransform);
-        Shader blurShader = Shader.Find("UI/BulletHell/BackdropBlur");
-        if (blurShader != null)
-        {
-            transferBlurMaterial = new Material(blurShader);
-            transferBlurMaterial.SetFloat("_Radius", 4f);
-            transferBackdrop.material = transferBlurMaterial;
-        }
+        // ぼかしは難易度オーバーレイと同じダウンサンプルピラミッド方式(BackdropBlurUtil)で
+        // 作るため、シェーダマテリアルは使わない。既定マテリアルで 1/4 解像度のぼかし RT を
+        // バイリニア拡大表示する。
         transferBackdrop.color = new Color(0.55f, 0.62f, 0.72f, 1f); // 難易度オーバーレイと同じ軽い減光
         transferBackdrop.gameObject.SetActive(false);
 
@@ -1059,7 +1053,6 @@ public class TitleManager : MonoBehaviour
     private void OnDestroy()
     {
         ReleaseBackdropTexture();
-        if (transferBlurMaterial != null) Destroy(transferBlurMaterial);
     }
 
     private RawImage CreateRawImage(string objectName, Transform parent)
