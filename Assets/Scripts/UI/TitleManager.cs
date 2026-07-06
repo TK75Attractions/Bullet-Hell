@@ -96,6 +96,7 @@ public class TitleManager : MonoBehaviour
     private RawImage transferBackdrop;
     private RenderTexture transferBlurRT;
     private Coroutine transferCaptureRoutine;
+    private Coroutine transferCloseRoutine; // 閉じるときのフェードアウト(第34便)
     private TMP_Text transferCodeText;          // 履歴なしメッセージ(コードはブロック表示)
     private TMP_InputField transferInput;
     private TMP_Text transferMessageText;
@@ -652,6 +653,8 @@ public class TitleManager : MonoBehaviour
     public void OpenTransfer()
     {
         if (transferRoot == null) return;
+        if (transferCloseRoutine != null) { StopCoroutine(transferCloseRoutine); transferCloseRoutine = null; }
+        transferRoot.transform.localScale = Vector3.one; // 閉じるアニメの縮小をリセット
         transferOpen = true;
         transferInputError = false;
         // メニュー・ロゴは退場させない。難易度オーバーレイと同様、完成フレーム
@@ -671,7 +674,7 @@ public class TitleManager : MonoBehaviour
         {
             RectTransform rootRect = (RectTransform)transferRoot.transform;
             bool all = true;
-            foreach (string n in new[] { "Heading", "HeadingSub", "CodeLabel", "InputLabel", "Hints" })
+            foreach (string n in new[] { "Heading", "HeadingSub", "CodeLabel", "InputLabel" })
             {
                 TMP_Text label = rootRect.Find(n)?.GetComponent<TMP_Text>();
                 if (label != null) all &= TmpAlign.CenterInkVertically(label);
@@ -693,7 +696,47 @@ public class TitleManager : MonoBehaviour
         transferOpen = false;
         if (transferInput != null) transferInput.DeactivateInputField();
         if (transferCaptureRoutine != null) { StopCoroutine(transferCaptureRoutine); transferCaptureRoutine = null; }
-        if (transferRoot != null) transferRoot.SetActive(false);
+        // 開くとき(0.14sフェードイン)と対称に、パネル+ぼかし背景をフェードアウト
+        // (+わずかに縮小)して閉じる。メニュー・ロゴは隠していないので、フェードの
+        // 裏に生きたタイトルが現れて自然に戻る(第34便: 従来は即 SetActive(false)で
+        // アニメーション無しだった)。
+        if (transferCloseRoutine != null) StopCoroutine(transferCloseRoutine);
+        if (transferRoot != null && transferRoot.activeInHierarchy && gameObject.activeInHierarchy)
+        {
+            transferCloseRoutine = StartCoroutine(CloseTransferRoutine());
+        }
+        else
+        {
+            FinishCloseTransfer();
+        }
+    }
+
+    private IEnumerator CloseTransferRoutine()
+    {
+        RectTransform rootRect = transferRoot != null ? (RectTransform)transferRoot.transform : null;
+        float startAlpha = transferCG != null ? transferCG.alpha : 1f;
+        float t = 0f;
+        const float dur = 0.14f;
+        while (t < dur)
+        {
+            t += Time.unscaledDeltaTime;
+            float p = Mathf.Clamp01(t / dur);
+            if (transferCG != null) transferCG.alpha = startAlpha * (1f - p);
+            if (rootRect != null) rootRect.localScale = Vector3.one * Mathf.Lerp(1f, 0.98f, p);
+            yield return null;
+        }
+        transferCloseRoutine = null;
+        FinishCloseTransfer();
+    }
+
+    private void FinishCloseTransfer()
+    {
+        if (transferRoot != null)
+        {
+            transferRoot.transform.localScale = Vector3.one;
+            transferRoot.SetActive(false);
+        }
+        if (transferCG != null) transferCG.alpha = 1f; // 次回オープンは OpenTransfer が 0 から再フェード
         if (transferBackdrop != null) transferBackdrop.texture = null;
         ReleaseBackdropTexture();
         // メニュー・ロゴはそもそも隠していないので再表示は不要(念のため確認)。
@@ -847,26 +890,45 @@ public class TitleManager : MonoBehaviour
         // 背景: 薄いスクリム+中央の無枠パネル1枚のみ。パネルはわずかに透けさせ
         // (0.90)、上辺ハイライト+下辺シャドウの各1pxで「ただの黒い板」感を消す
         // (oracle 第29便)。
-        CreatePanel("Scrim", rootRect, Vector2.zero, new Vector2(4000f, 4000f), new Color(0.008f, 0.027f, 0.075f, 0.45f));
-        CreatePanel("Panel", rootRect, Vector2.zero, new Vector2(940f, 600f), new Color(0.008f, 0.031f, 0.078f, 0.90f));
-        CreatePanel("PanelTopHi", rootRect, new Vector2(0f, 299.5f), new Vector2(940f, 1f), new Color(0.043f, 0.165f, 0.227f, 0.35f));
-        CreatePanel("PanelBottomSh", rootRect, new Vector2(0f, -299.5f), new Vector2(940f, 1f), new Color(0f, 0f, 0f, 0.35f));
+        // 第34便(oracle bin34): 幅を絞り(940→800)、ヒント行削除に合わせ高さも詰める
+        // (600→480)。「黒い板」感を消すため、単色板の上に薄い青の内側レイヤー・
+        // 上下の締め・辺ハイライトを重ねる(明るいシアン全周枠はコード帯のネオンと
+        // 競合するため使わない)。
+        const float panelW = 800f;
+        const float panelH = 480f;
+        const float panelHalfW = panelW * 0.5f;
+        const float panelHalfH = panelH * 0.5f;
+        Vector2 panelSize = new Vector2(panelW, panelH);
+        CreatePanel("Scrim", rootRect, Vector2.zero, new Vector2(4000f, 4000f), new Color(0f, 0.024f, 0.071f, 0.22f));
+        // 背面の影板(わずかに右下へずらす。ぼかし無しでも黒板の浮きが和らぐ)。
+        CreatePanel("PanelShadow", rootRect, new Vector2(6f, -8f), panelSize, new Color(0f, 0f, 0f, 0.24f));
+        CreatePanel("Panel", rootRect, Vector2.zero, panelSize, new Color(0.008f, 0.031f, 0.078f, 0.90f));
+        // 上部の薄い青かぶせ・下部の締め(内側グラデの代替)。
+        CreatePanel("PanelTopWash", rootRect, new Vector2(0f, panelHalfH - 45f), new Vector2(panelW, 90f), new Color(0.078f, 0.373f, 0.471f, 0.10f));
+        CreatePanel("PanelBottomDark", rootRect, new Vector2(0f, -(panelHalfH - 45f)), new Vector2(panelW, 90f), new Color(0f, 0f, 0f, 0.16f));
+        // 辺ハイライト(上辺だけ少し明るいシアン、他辺は控えめ)。
+        CreatePanel("EdgeTop", rootRect, new Vector2(0f, panelHalfH - 1f), new Vector2(panelW, 2f), new Color(0.282f, 0.902f, 1f, 0.28f));
+        CreatePanel("EdgeBottom", rootRect, new Vector2(0f, -(panelHalfH - 0.5f)), new Vector2(panelW, 1f), new Color(0f, 0f, 0f, 0.55f));
+        CreatePanel("EdgeLeft", rootRect, new Vector2(-(panelHalfW - 0.5f), 0f), new Vector2(1f, panelH), new Color(0.282f, 0.902f, 1f, 0.12f));
+        CreatePanel("EdgeRight", rootRect, new Vector2(panelHalfW - 0.5f, 0f), new Vector2(1f, panelH), new Color(0.282f, 0.902f, 1f, 0.08f));
 
-        // 見出しはタイポグラフィのみ(バナー・スラッシュなし)。
-        TMP_Text heading = CreateText("Heading", rootRect, new Vector2(0f, 232f), new Vector2(700f, 56f), 44f, Cyan, TextAlignmentOptions.Center);
+        // 見出しはタイポグラフィのみ(バナー・スラッシュなし)。見出しの下に短い
+        // 区切り線を1本だけ入れ、見出しをタイトルブロックとして締める(oracle bin34)。
+        TMP_Text heading = CreateText("Heading", rootRect, new Vector2(0f, 182f), new Vector2(700f, 56f), 44f, Cyan, TextAlignmentOptions.Center);
         heading.fontStyle = FontStyles.Bold;
-        TMP_Text headingSub = CreateText("HeadingSub", rootRect, new Vector2(0f, 190f), new Vector2(700f, 24f), 16f, new Color(0.62f, 0.91f, 0.906f, 0.5f), TextAlignmentOptions.Center);
+        TMP_Text headingSub = CreateText("HeadingSub", rootRect, new Vector2(0f, 152f), new Vector2(700f, 24f), 16f, new Color(0.62f, 0.91f, 0.906f, 0.5f), TextAlignmentOptions.Center);
         headingSub.characterSpacing = 9f;
         headingSub.text = "TRANSFER CODE";
+        CreatePanel("HeadingRule", rootRect, new Vector2(0f, 128f), new Vector2(260f, 1f), new Color(0.275f, 0.863f, 0.941f, 0.30f));
 
         // コード表示: ラベル+1枚のネオン帯(第33便: 1文字=1チップの4分割をやめ、
         // 「C4D7」のように連続した1フィールドにまとめる。可読フォントは維持)。
         // 装飾層(外グロー→外枠→本体→ハイライト/影/帯/アクセント)はチップ時代の
         // 見た目を踏襲しつつ、帯1枚に集約する。
-        const float contentHalf = 327f; // 入力行の左右端を揃える基準(旧チップ4個分の半幅)
-        const float bandW = 460f;
-        const float bandH = 74f;
-        TMP_Text codeLabel = CreateText("CodeLabel", rootRect, new Vector2(-contentHalf + 180f, 112f), new Vector2(360f, 30f), 20f, new Color(0.388f, 0.867f, 0.91f, 0.5f), TextAlignmentOptions.Left);
+        const float contentHalf = 272f; // 入力行の左右端を揃える基準(第34便 oracle: 幅を絞る)
+        const float bandW = 420f;
+        const float bandH = 64f;
+        TMP_Text codeLabel = CreateText("CodeLabel", rootRect, new Vector2(-contentHalf + 180f, 92f), new Vector2(360f, 30f), 20f, new Color(0.388f, 0.867f, 0.91f, 0.5f), TextAlignmentOptions.Left);
         codeLabel.characterSpacing = 3f;
 
         transferCodeBlocksRoot = new GameObject("CodeBlocks", typeof(RectTransform));
@@ -874,7 +936,7 @@ public class TitleManager : MonoBehaviour
         RectTransform blocksRect = (RectTransform)transferCodeBlocksRoot.transform;
         blocksRect.SetParent(rootRect, false);
         blocksRect.anchorMin = blocksRect.anchorMax = new Vector2(0.5f, 0.5f);
-        blocksRect.anchoredPosition = new Vector2(0f, 48f);
+        blocksRect.anchoredPosition = new Vector2(0f, 44f);
         transferCodeBlockTexts = new TMP_Text[1];
         transferCodeBlockShadows = new TMP_Text[1]; // 背面のシアン疑似グロー文字
         transferHyphenTexts = new TMP_Text[0];       // 分割しないのでハイフンは無し
@@ -893,9 +955,7 @@ public class TitleManager : MonoBehaviour
         CreatePanel("BottomSh", border.rectTransform, new Vector2(0f, -(bandH * 0.5f - 2f)), new Vector2(bandW, 4f), new Color(0f, 0.02f, 0.05f, 0.45f));
         // 左端の内側グロー帯。
         CreatePanel("LeftStrip", border.rectTransform, new Vector2(-(bandW * 0.5f - 5f), 0f), new Vector2(3f, bandH - 16f), new Color(0.35f, 0.95f, 1f, 0.35f));
-        // 右上に小さなマゼンタの斜めアクセント。
-        Image accent = CreatePanel("Accent", border.rectTransform, new Vector2(bandW * 0.5f - 18f, bandH * 0.5f - 12f), new Vector2(16f, 3f), new Color(1f, 0.12f, 0.62f, 0.55f));
-        accent.rectTransform.localEulerAngles = new Vector3(0f, 0f, -18f);
+        // (第34便: 右上のマゼンタ斜めアクセントを削除し、帯全体をシアン系に統一)
         // 背面のシアン疑似グロー文字(本体文字の一回り大きいコピー)。
         // 4文字を1帯に並べるので characterSpacing で字間を広げて読みやすくする。
         TMP_Text glowText = CreateText("TextGlow", border.rectTransform, Vector2.zero, bandSize, 46f, new Color(0.15f, 0.95f, 1f, 0.145f), TextAlignmentOptions.Center);
@@ -910,31 +970,27 @@ public class TitleManager : MonoBehaviour
         bt.characterSpacing = 20f;
         transferCodeBlockTexts[0] = bt;
         // 履歴なしのときだけ出すメッセージ(ブロックと同じ位置)。
-        transferCodeText = CreateText("Code", rootRect, new Vector2(0f, 48f), new Vector2(900f, 80f), 30f, CyanDim, TextAlignmentOptions.Center);
+        transferCodeText = CreateText("Code", rootRect, new Vector2(0f, 44f), new Vector2(720f, 80f), 30f, CyanDim, TextAlignmentOptions.Center);
 
         // 入力: ラベル+入力欄+適用ボタン(行の左右端はチップ列に揃える)。
-        TMP_Text inputLabel = CreateText("InputLabel", rootRect, new Vector2(-contentHalf + 180f, -66f), new Vector2(360f, 30f), 20f, new Color(0.388f, 0.867f, 0.91f, 0.5f), TextAlignmentOptions.Left);
+        TMP_Text inputLabel = CreateText("InputLabel", rootRect, new Vector2(-contentHalf + 180f, -36f), new Vector2(360f, 30f), 20f, new Color(0.388f, 0.867f, 0.91f, 0.5f), TextAlignmentOptions.Left);
         inputLabel.characterSpacing = 3f;
 
-        const float inputW = 504f;
-        const float applyW = 138f;
-        const float rowH = 64f;
-        BuildInputField(rootRect, new Vector2(-contentHalf + inputW * 0.5f, -134f), new Vector2(inputW, rowH));
+        const float inputW = 420f;
+        const float applyW = 108f;
+        const float rowH = 56f;
+        BuildInputField(rootRect, new Vector2(-contentHalf + inputW * 0.5f, -92f), new Vector2(inputW, rowH));
 
-        applyButton = CreatePanel("ApplyButton", rootRect, new Vector2(contentHalf - applyW * 0.5f, -134f), new Vector2(applyW, rowH), ApplyIdle);
+        applyButton = CreatePanel("ApplyButton", rootRect, new Vector2(contentHalf - applyW * 0.5f, -92f), new Vector2(applyW, rowH), ApplyIdle);
         TMP_Text applyLabel = CreateText("ApplyLabel", applyButton.rectTransform, Vector2.zero, new Vector2(applyW, rowH), 26f, ApplyLabelIdle, TextAlignmentOptions.Center);
         StretchToParent(applyLabel.rectTransform);
         applyLabel.fontStyle = FontStyles.Bold;
         applyLabelText = applyLabel;
 
-        transferMessageText = CreateText("Message", rootRect, new Vector2(0f, -202f), new Vector2(900f, 36f), 22f, Cyan, TextAlignmentOptions.Center);
+        transferMessageText = CreateText("Message", rootRect, new Vector2(0f, -168f), new Vector2(720f, 36f), 22f, Cyan, TextAlignmentOptions.Center);
 
-        // 操作ヒントはチップを使わず1行のテキストのみ。キー=中立のグレー青、
-        // アクション=シアンで統一し、少し上げて小さく・字間広めに(oracle 第29便)。
-        TMP_Text hints = CreateText("Hints", rootRect, new Vector2(0f, -240f), new Vector2(900f, 26f), 16f, new Color(0.333f, 0.867f, 0.922f, 0.75f), TextAlignmentOptions.Center);
-        hints.characterSpacing = 4f;
-        hints.text = "<color=#B8C9D2>ENTER</color> 適用      <color=#B8C9D2>CTRL+C</color> コピー      <color=#B8C9D2>ESC</color> 戻る";
-        TmpAlign.CenterInkVertically(hints);
+        // 操作ヒント行(ENTER 適用 / CTRL+C コピー / ESC 戻る)は第34便で削除。
+        // 操作自体は有効なまま、画面の主張を抑える。
 
         // Fill the label texts.
         SetChildText(rootRect, "Heading", "引き継ぎ");
