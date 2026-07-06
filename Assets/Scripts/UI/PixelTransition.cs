@@ -24,7 +24,10 @@ public class PixelTransition : MonoBehaviour
     // プレイ開始(ステージ決定→プレイ画面)専用のホワイトアウト+モザイク解像。
     // 全白ホールドは oracle 第30便の指摘(白の待ち時間が長くローディング風に
     // 見える)で 0.10 → 0.05 に短縮。
-    private const float whiteoutTime = 0.20f;
+    // カバー工程は均一フェード(白飛び)ではなく、白いピクセルブロックが中央から
+    // 外周へ広がって覆う中央発モザイクにする(第34便: ユーザー3回目の再指摘)。
+    // リビールは従来どおり中央発で欠けていく。
+    private const float mosaicCoverTime = 0.42f;
     private const float whiteoutHoldTime = 0.05f;
     private const float mosaicRevealTime = 0.76f;
 
@@ -213,41 +216,38 @@ public class PixelTransition : MonoBehaviour
         await Hold(coveredHoldTime);
     }
 
-    // プレイ開始用: モザイクのポップインではなく、一様な白フェードで画面を
-    // 覆う(ホワイトアウト)。フェードは白シート1枚で行い、覆い切ってから
-    // セル群(白ベタ)に引き継ぐので、そのまま MosaicReveal へつなげられる。
+    // プレイ開始用: 白いピクセルブロックが画面中央から外周へ広がって覆う(中央発
+    // モザイクカバー)。従来は白シート1枚の均一フェード(白飛び)だったが、
+    // ユーザーの3回目の再指摘「白が中央から広がるようにして」に合わせ、カバー
+    // 工程そのものを中央発のセルポップインにする(このゲームに元からあった旧
+    // Cover の中央発挙動を踏襲)。覆い切ったら白ベタのまま MosaicReveal へ渡す。
     public async Task WhiteoutCover()
     {
         Build();
         EnsureTopmost();
         gameObject.SetActive(true);
         fadeGroup.alpha = 1f;
-        for (int i = 0; i < cells.Length; i++) cells[i].localScale = Vector3.zero;
-        whiteSheet.gameObject.SetActive(true);
-        whiteSheet.transform.SetAsLastSibling();
-        SetSheetAlpha(0f);
-        float t = 0f;
-        while (t < whiteoutTime)
-        {
-            t += AnimationDelta();
-            float p = Mathf.Clamp01(t / whiteoutTime);
-            SetSheetAlpha(p * p); // 白へ向かって加速する(決定の瞬間の白飛び)
-            await Task.Yield();
-            if (this == null) return;
-        }
-        SetSheetAlpha(1f);
-        // 画面が完全に白になってからセル群へバトンタッチ(見た目は変わらない)。
-        for (int i = 0; i < cells.Length; i++) cells[i].localScale = Vector3.one;
+        if (whiteSheet != null) whiteSheet.gameObject.SetActive(false);
+        // 全セルを白ベタに戻す(色替え演出後などでも確実に白でカバーする)。
+        for (int i = 0; i < cellImages.Length; i++)
+            if (cellImages[i] != null) cellImages[i].color = Color.white;
+        SetCenterOutDelays(mosaicCoverTime);
+        // coverIn: セルが scale0→1 でポップイン。中央発の順序で外周へ広がる。
+        await Animate(coverIn: true);
         await Hold(whiteoutHoldTime);
-        if (this == null) return;
-        whiteSheet.gameObject.SetActive(false);
     }
 
-    private void SetSheetAlpha(float a)
+    // 中心からの距離に線形な遅延(中央=0→隅=最大)を各セルに割り当てる。カバーと
+    // 解像の両方でこの中央発順序を使う。span は全体の所要時間。
+    private void SetCenterOutDelays(float span)
     {
-        Color c = whiteSheet.color;
-        c.a = a;
-        whiteSheet.color = c;
+        float usable = span - mosaicJitterTime;
+        for (int i = 0; i < delays.Length; i++)
+        {
+            // baseDelays は中心からの距離を spreadTime に正規化した値。
+            float order = baseDelays[i] / spreadTime; // 0(中心)→1(隅)
+            delays[i] = order * usable + Random.Range(0f, mosaicJitterTime);
+        }
     }
 
     // プレイ開始用: 白カバーがピクセルブロック単位で中央から外周へ順に欠けて
@@ -259,13 +259,7 @@ public class PixelTransition : MonoBehaviour
     {
         if (fadeGroup != null) fadeGroup.alpha = 1f;
         if (whiteSheet != null) whiteSheet.gameObject.SetActive(false);
-        float span = mosaicRevealTime - mosaicJitterTime;
-        for (int i = 0; i < delays.Length; i++)
-        {
-            // baseDelays は中心からの距離を spreadTime に正規化した値。
-            float order = baseDelays[i] / spreadTime; // 0(中心)→1(隅)
-            delays[i] = order * span + Random.Range(0f, mosaicJitterTime);
-        }
+        SetCenterOutDelays(mosaicRevealTime);
         await Animate(coverIn: false);
         gameObject.SetActive(false);
     }
