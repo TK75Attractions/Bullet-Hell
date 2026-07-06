@@ -774,7 +774,7 @@ public class TitleManager : MonoBehaviour
             new Color(0.157f, 0.918f, 0.949f, 0.9f), 3f, new Color(0.02f, 0.125f, 0.184f, 0.8f),
             new Color(0f, 0.09f, 0.133f, 0.75f));
         CreatePanel("CodeCardTopLine", rootRect, new Vector2(0f, 213f), new Vector2(1002f, 4f), new Color(0.216f, 0.937f, 1f, 0.95f));
-        TMP_Text codeLabel = CreateText("CodeLabel", rootRect, new Vector2(-257f, 172f), new Vector2(440f, 40f), 26f, new Color(0.388f, 0.867f, 0.91f, 0.7f), TextAlignmentOptions.Left);
+        TMP_Text codeLabel = CreateText("CodeLabel", rootRect, new Vector2(-257f, 172f), new Vector2(440f, 40f), 24f, new Color(0.388f, 0.867f, 0.91f, 0.62f), TextAlignmentOptions.Left);
         codeLabel.characterSpacing = 3f;
         TMP_Text copyLabel = CreateText("CopyLabel", rootRect, new Vector2(300f, 178f), new Vector2(360f, 36f), 20f, new Color(0.345f, 0.863f, 0.922f, 0.8f), TextAlignmentOptions.Right);
         copyLabel.text = "CTRL+C でコピー";
@@ -819,10 +819,10 @@ public class TitleManager : MonoBehaviour
             bottomSh.rectTransform.offsetMax = new Vector2(-4.5f, 6f);
             TMP_Text sh = CreateText("Shadow", border.rectTransform, new Vector2(3f, -3f), new Vector2(blockW, blockH), 60f, new Color(0f, 0.227f, 0.29f, 0.75f), TextAlignmentOptions.Center);
             sh.fontStyle = FontStyles.Bold;
-            sh.characterSpacing = 14f;
+            sh.characterSpacing = 20f;
             TMP_Text bt = CreateText("Text", border.rectTransform, Vector2.zero, new Vector2(blockW, blockH), 60f, new Color(0.247f, 0.918f, 1f), TextAlignmentOptions.Center);
             bt.fontStyle = FontStyles.Bold;
-            bt.characterSpacing = 14f;
+            bt.characterSpacing = 20f;
             transferCodeBlockTexts[i] = bt;
             transferCodeBlockShadows[i] = sh;
             if (i < 3)
@@ -837,7 +837,7 @@ public class TitleManager : MonoBehaviour
 
         // 副役カード: コード入力(弱い枠で主役より一段引く)+横並び操作ストリップ。
         CreateCard("InputCard", rootRect, new Vector2(0f, -165f), new Vector2(1002f, 190f),
-            new Color(0.106f, 0.651f, 0.769f, 0.5f), 1.5f, new Color(0.02f, 0.149f, 0.227f, 0.63f));
+            new Color(0.106f, 0.651f, 0.769f, 0.45f), 1.5f, new Color(0.016f, 0.125f, 0.192f, 0.55f));
         TMP_Text inputLabel = CreateText("InputLabel", rootRect, new Vector2(-257f, -104f), new Vector2(440f, 36f), 24f, new Color(0.388f, 0.867f, 0.91f, 0.55f), TextAlignmentOptions.Left);
         inputLabel.characterSpacing = 3f;
 
