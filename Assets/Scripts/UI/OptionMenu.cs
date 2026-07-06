@@ -82,6 +82,11 @@ public class OptionMenu : MonoBehaviour
     private float openAnimT = 1f;
     private float headerAnimT = 1f;
 
+    // タイトルから開いた設定では「プレイを終了」行を隠し、「再開する」は
+    // ポーズ解除(カウントダウン)ではなくタイトルへ戻る動作にする。
+    private bool titleContext;
+    private System.Action titleResumeRequest;
+
     private void EnsureInit()
     {
         if (initialized) return;
@@ -274,9 +279,15 @@ public class OptionMenu : MonoBehaviour
         noText.transform.SetAsLastSibling();
     }
 
-    public void Open()
+    // fromTitle=true でタイトルから開いた設定として振る舞う(終了行を隠し、
+    // 再開する=タイトルへ戻る)。onResume はタイトル文脈での「再開する」押下時に
+    // 呼ばれる(GManager が設定画面を閉じる)。
+    public void Open(bool fromTitle = false, System.Action onResume = null)
     {
+        titleContext = fromTitle;
+        titleResumeRequest = onResume;
         EnsureInit();
+        ApplyContextVisibility();
         index = 0;
         confirmOpen = false;
         confirmIndex = 1;
@@ -307,6 +318,15 @@ public class OptionMenu : MonoBehaviour
         menuShade.SetActive(false);
         waitingForMenuCapture = true;
         menuCaptureRoutine = StartCoroutine(CaptureMenuBackdrop());
+    }
+
+    // タイトル文脈では終了行(row 3: プレイを終了)を丸ごと隠す。
+    private void ApplyContextVisibility()
+    {
+        bool showQuit = !titleContext;
+        if (items[3] != null) items[3].gameObject.SetActive(showQuit);
+        if (badges[3] != null) badges[3].gameObject.SetActive(showQuit);
+        if (rubyRects[3] != null) rubyRects[3].gameObject.SetActive(showQuit);
     }
 
     public bool HandleBack()
@@ -356,8 +376,10 @@ public class OptionMenu : MonoBehaviour
         }
         else
         {
+            // タイトル文脈では終了行を隠しているので、選択は row 2 までに留める。
+            int maxIndex = titleContext ? 2 : rowY.Length - 1;
             if (up && index > 0) index--;
-            else if (down && index < rowY.Length - 1) index++;
+            else if (down && index < maxIndex) index++;
 
             if (index == 1 && (leftHeld || rightHeld))
             {
@@ -381,8 +403,12 @@ public class OptionMenu : MonoBehaviour
 
             if (button)
             {
-                if (index == 0) BeginResume();
-                else if (index == 3) OpenConfirm();
+                if (index == 0)
+                {
+                    if (titleContext) titleResumeRequest?.Invoke();
+                    else BeginResume();
+                }
+                else if (index == 3 && !titleContext) OpenConfirm();
             }
         }
 

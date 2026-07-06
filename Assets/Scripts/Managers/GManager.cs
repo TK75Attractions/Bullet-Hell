@@ -407,7 +407,8 @@ public class GManager : MonoBehaviour
             }
             optionScreenObj.transform.SetAsLastSibling();
             optionScreenObj.SetActive(true);
-            optionMenu?.Open();
+            // タイトル文脈: 終了行を隠し、再開する=設定を閉じてタイトルへ戻る。
+            optionMenu?.Open(true, CloseTitleOptions);
         }
     }
 
@@ -425,14 +426,14 @@ public class GManager : MonoBehaviour
             return;
         }
 
-        // Suppress the confirm button so the option menu's play-only rows
-        // (resume / quit) never fire from the title. Volume and effects are
-        // still adjustable via left/right.
+        // タイトル文脈: 終了行は隠してあり、確定ボタンは「再開する」= 設定を
+        // 閉じてタイトルへ戻る動作にのみ効く(OptionMenu 側で分岐)。音量・
+        // エフェクトは左右で調整できる。
         optionMenu?.UpdateMenu(Time.unscaledDeltaTime,
             IManager.upPressedThisFrame, IManager.downPressedThisFrame,
             IManager.leftPressedThisFrame, IManager.rightPressedThisFrame,
             IManager.leftPressed, IManager.rightPressed,
-            false);
+            IManager.buttonPressedThisFrame);
     }
 
     private void CloseTitleOptions()
