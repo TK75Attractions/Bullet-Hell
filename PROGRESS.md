@@ -1,5 +1,38 @@
 # PROGRESS
 
+## 2026-07-06 朝・第22便(自律セッション・Fable: JSABステージ選択の仕上げ — フラッシュ根治/従来デザイン回帰/トゥイーン)
+
+### 前提
+
+- 親の指摘3点(タスクプロンプト): (1)切り替え時の画面フラッシュ根治 (2)上部バーを従来(style 0)デザインに戻す (3)マーカー/カルーセルを easing トゥイーンに+難易度 UI も従来デザイン土台に。Opus 便の品質不満により Fable 指名。
+- 着手前に style 0 の実体を確認: 上部バー= scene の `Head` 2層(StaticCanvas=青バー+タイマー装飾+赤 TimeDim、StageCanvas=ルビ付きテキスト層、`Header.cs` が駆動)、難易度= `DefficultyBar.cs`(斜めバー3本+白ブラケット+説明文+点滅プロンプト)。execute_code で色/座標/スプライトを dump して把握。
+- 弾データ(chart/BulletBuffer JSON)不変。変更は `JsabStageSelect.cs` と `StageSelectManager.cs` の2本のみ。
+
+### 今回やったこと(コミット `44637c6`、直前に font asset 退避の仮コミット `e4ced5b`)
+
+1. **(1) フラッシュの根本原因を特定して除去**: `Tick` のスライド中に `rootCG.alpha` を 0.35→1 に振っていたのが原因。JSAB は不透明フルスクリーンキャンバスなので、alpha が下がった数フレームだけ背後(ゲームフィールド等)が透けて発光に見えた。alpha 操作を全廃。あわせて中央カードの動画も `url 変更→即 Play`(古フレーム/黒が出る)をやめ、`Prepare()` 完了コールバックまで前ステージのフレームを RenderTexture に保持したまま差し替える方式に(前フレームが無い場合のみ fallback カードで待つ)。
+2. **(2) 上部バーを style 0 と完全同一に**: 独自のシアン帯ヘッダを廃止し、scene の `Head` 2層を実行時に `Instantiate` して JSAB キャンバス先頭に配置(`CloneTopBar`)。クローンは静的コピーとし、動く部分(タイマー文字の文字列/色/警告パルス scale、TimeDim の幅)は毎フレーム原本からミラー(原本は alpha=0 でも `StageSelectManager` が毎フレーム更新し続けている性質を利用)。クローン側の `Header` コンポーネントは Destroy して状態遷移に反応しないようにした。
+3. **(3a) カルーセルのトゥイーン**: カード単体スライド+全画面 alpha ではなく、カード+ステージ名+左右サムネ枠を1バンドとして 0.25s ease-out(cubic)で `ApplySlideOffset`。
+4. **(3b) マーカーのトゥイーン**: `RefreshProgress` の毎回全破棄をやめ、自機マーカーを永続オブジェクト化。ノード間を 0.25s ease-out で移動(移動先ノードのリングだけ省略し、マーカーが滑り込む)。中間フレームで移動が視認できる。
+5. **(3c) 難易度 UI を従来デザイン土台に**: 独自シアンパネルを全廃し、scene の `DefficultyBar` を丸ごと clone して中央配置(scale 0.8)。`Init`/`Tick`/`Up`/`Down`/`ResetSelection` を本家コンポーネントのまま駆動するので、白ブラケットの滑り・説明文スライドイン・ルビ付き点滅プロンプトまで style 0 と同一。blur+scrim(同画面オーバーレイ+背景ぼかし)は維持。マウス hover/クリックは各バーの `StageBar` rect 判定+ `Up/Down` 経由で反映。
+6. **付随修正2件**: JSAB モーダルを開く時に選択タイマーを 30s にリセット(従来の難易度画面遷移と同等。music 残 0 のままだと開いた瞬間に自動決定される実挙動を検証中に確認したため)。ESC で戻ったら 90s に再リセット。曲イントロの難易度名表示を `defficultyBar.index` 固定参照→`selectedDifficulty` 参照に修正(JSAB 経由だと常に NORMAL 表示になる既存バグ)。
+
+### 検証結果(Play Mode 実挙動、スクショは `Backups/shots22/`=非コミット)
+
+- コンパイルエラー0、**EditMode 99/99 green**、console は既知の動画 color primaries warning のみ。
+- **(a) フラッシュ消失**: →キー合成直後から23フレーム連写(`burst_00..22`)の平均輝度が 41.8〜44.2 でスパイクなし(修正前は全画面 alpha 0.35 で必ず輝度が跳ねる構造)。目視でも背景は完全不透明のまま。
+- **(b) トゥイーンの中間フレーム**: `burst_03` でマーカーがノード間の中間位置、カード+名前+サムネのバンドが右オフセット状態で撮れており、スナップでなく補間で動いている。
+- **(c) 従来準拠**: `10_initial.png`=青バー+♪+ルビ付き「曲選択 / MUSIC SELECT」+残り時間+赤ゲージが style 0 と同一。`20_difficulty.png`〜`23_diff_lunatic.png`=「難易度を選択」+斜めバー3本+白ブラケット+説明文+プロンプトがぼかし背景上に表示、↑↓で EASY/LUNATIC 移動も本家挙動。
+- **style 0 非破壊**: 強制 style 切替で曲選択画面(`42`)と難易度遷移(`43`、state=Difficulty 到達)を確認。タイマーは reflection 読みで modal open→29.9s / ESC→89.9s を実測。
+- 検証手法メモ: editor update フックからの `CaptureScreenshotAsTexture` はエディタ UI の RT を拾ってズレる。`ScreenCapture.CaptureScreenshot(パス)`(end of frame 撮影)なら正確。
+
+### 未解決と次の一手
+
+- **音声なし・実キー入力なしの合成検証**: `UpdateSelect` 合成+スクショであり、実キーボード連打での体感(連続切り替え時のリズム)は親の実操作で最終確認してほしい。録画(動画)は今回未取得。
+- 素早い連続切り替え中のサムネ空白(第21便からの持ち越し)は残存。マーカートゥイーン中に再度切り替えた場合は現在位置から新目標へ繋ぐので破綻はしない。
+- 難易度モーダルの clone は `DefficultyBar` の scene 構造(List/Easy|Normal|Lunatic/StageBar 等)に依存。scene 側をリネームしたら `JsabStageSelect.BuildDifficultyOverlay`/`CloneTopBar` のパスも追随が必要。
+- PlayerPrefs `stageSelectStyle` は検証のため 1(JSAB)のまま。石工の通し録画時は 0 に戻す既知の注意([[project_stone_verify_pitfalls]])。
+
 ## 2026-07-06 朝・第21便(自律セッション・Opus: JSAB風ステージ選択のデザイン詰め — 参考画像との6差分を実装)
 
 ### 前提
