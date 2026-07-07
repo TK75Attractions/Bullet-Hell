@@ -25,10 +25,6 @@ public class BulletType : ScriptableObject
     [Header("Collider")]
     public float2[] verts = new float2[0];
 
-    [Header("Rendering behavior")]
-    [Tooltip("If true, this type is exempt from the end-of-life disappear fade (e.g. solid stone blocks that should vanish instantly on landing/despawn).")]
-    public bool skipDisappearFade;
-
     public void Init()
     {
         if (verts == null || verts.Length < 3)

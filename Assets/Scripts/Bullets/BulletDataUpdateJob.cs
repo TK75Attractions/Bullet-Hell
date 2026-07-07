@@ -2,20 +2,16 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine;
 
 [BurstCompile]
 public struct BulletDataUpdateJob : IJobParallelFor
 {
     private const float NoiseFrequency = 1f;
     private const float AngleVelocityEpsilonSq = 1e-10f;
-    private const float CullingMargin = 2f;
 
     public NativeArray<BulletData> bullets;
     public float dt;
-    public float cellSize;
-    public int cellCount;
-    public int totalCellCount;
+    public QuadGrid grid;
     public float2 playerVelocity;
 
     public void Execute(int index)
@@ -46,7 +42,7 @@ public struct BulletDataUpdateJob : IJobParallelFor
             // appearDuration == 0 の場合は time が appearTime に達するまで位置を更新しない
             if (bullet.appearDuration >= 0f)
             {
-                bullet = Update(bullet, index, dt * 0.0001f);
+                bullet = Update(bullet, index, dt * 0.008f);
             }
             if (bullet.isClearing && (bullet.clearDuration <= 0f || bullet.clearTime >= bullet.clearDuration))
             {
@@ -60,7 +56,7 @@ public struct BulletDataUpdateJob : IJobParallelFor
         bullet = Update(bullet, index, dt);
 
         //四分木秩序に変換
-        int n = GetTreeNum(new float2(bullet.position.x, bullet.position.y));
+        int n = grid.GetTreeNum(bullet.position);
         bullet.areaNum = n;
 
         //範囲外の弾を非アクティブに設定
@@ -109,19 +105,24 @@ public struct BulletDataUpdateJob : IJobParallelFor
         bullet.nowCalculateVlc = vec / magnitude * bullet.speed;
 
         //算出したベクトルの回転計算
-        bullet.polarForm = new float2(bullet.radiusVlc * dt, bullet.thetaVlc * dt) + bullet.polarForm;
-        float cos = math.cos(bullet.polarForm.y);
-        float sin = math.sin(bullet.polarForm.y);
-        float2 rotatedVector = bullet.polarForm.x * new float2(disVector.x * cos - disVector.y * sin, disVector.x * sin + disVector.y * cos);
+        float2 polarVelocity = new float2(bullet.radiusVlc, bullet.thetaVlc);
+        float2 polarAccel = new float2(bullet.radiusAccel, bullet.thetaAccel);
+        bullet.polarForm += polarVelocity * dt + 0.5f * polarAccel * dt * dt;
+        bullet.radiusVlc += bullet.radiusAccel * dt;
+        bullet.thetaVlc += bullet.thetaAccel * dt;
+        double cos = math.cos(bullet.polarForm.y);
+        double sin = math.sin(bullet.polarForm.y);
+        float2 rotatedVector = bullet.polarForm.x * new float2((float)(disVector.x * cos - disVector.y * sin), (float)(disVector.x * sin + disVector.y * cos));
 
         //位置を計算
         float2 unGravitatedPos = rotatedVector + noisyOriginPos;
 
         //重力の影響を加算
-        if (bullet.gravity != 0 && lapse > 0)
+        if (bullet.gravity.x != 0f && lapse > 0f)
         {
-            float h = bullet.gravity * lapse * lapse / 2;
-            float2 gravitatedPos = unGravitatedPos - new float2(0, h);
+            float h = bullet.gravity.x * lapse * lapse / 2f;
+            float2 gravityDirection = new float2(math.cos(bullet.gravity.y), math.sin(bullet.gravity.y));
+            float2 gravitatedPos = unGravitatedPos + gravityDirection * h;
             bullet.velocity = gravitatedPos - bullet.position;
             bullet.position = gravitatedPos;
         }
@@ -132,7 +133,7 @@ public struct BulletDataUpdateJob : IJobParallelFor
         }
 
         //角度を計算
-        if (!bullet.lockRotation && math.lengthsq(bullet.velocity) > AngleVelocityEpsilonSq)
+        if (math.lengthsq(bullet.velocity) > AngleVelocityEpsilonSq)
         {
             float a = GetAngleRad(bullet.velocity.x, bullet.velocity.y);
             bullet.angle = a + bullet.angleSpeed * lapse;
@@ -140,29 +141,9 @@ public struct BulletDataUpdateJob : IJobParallelFor
 
         return bullet;
     }
-    public int GetTreeNum(float2 pos)
-    {
-        if (pos.x < -CullingMargin || pos.y < -CullingMargin) return -1;
-        int nx = Mathf.Max(0, Mathf.FloorToInt(pos.x / cellSize));
-        int ny = Mathf.Max(0, Mathf.FloorToInt(pos.y / cellSize));
-
-        int result = BitSeparate32(nx) | (BitSeparate32(ny) << 1);
-        int maxCellCount = totalCellCount > 0 ? totalCellCount : cellCount;
-        if (result >= 0 && result < maxCellCount) return result;
-        return -1;
-    }
-
-    public int BitSeparate32(int n)
-    {
-        n = (n | n << 8) & 0x00ff00ff;
-        n = (n | n << 4) & 0x0f0f0f0f;
-        n = (n | n << 2) & 0x33333333;
-        return (n | n << 1) & 0x55555555;
-    }
-
     public float GetAngleRad(float x, float y)
     {
-        double rad = math.atan2(y, x);
+        float rad = math.atan2(y, x);
         if (rad < 0) rad += 2 * math.PI;
         return (float)rad;
     }

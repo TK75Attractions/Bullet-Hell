@@ -2,7 +2,6 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
-using UnityEngine;
 
 [BurstCompile]
 public struct WarpBulletJob : IJobParallelFor
@@ -14,8 +13,9 @@ public struct WarpBulletJob : IJobParallelFor
 
     public float dt;
     public float warpCooldown;
-    public float cellSize;
-    public int totalCellCount;
+    public QuadGrid grid;
+    public int reflectXTypeId;
+    public int reflectYTypeId;
 
     public void Execute(int index)
     {
@@ -46,6 +46,7 @@ public struct WarpBulletJob : IJobParallelFor
         float2 local = bullet.position - sourceZone.position;
         float2 exitPosition = targetZone.position + local;
         float2 exitVelocity = dt > 1e-5f ? bullet.velocity / dt : new float2(0f, 0f);
+        exitVelocity = TransformVelocity(exitVelocity, sourceZone);
 
         bullet.position = exitPosition;
         bullet.velocity = exitVelocity * dt;
@@ -53,9 +54,11 @@ public struct WarpBulletJob : IJobParallelFor
         bullet.originVlc = exitVelocity;
 
         bullet.speed = 0f;
-        bullet.gravity = 0f;
+        bullet.gravity = new float2(0f, 0f);
         bullet.radiusVlc = 0f;
         bullet.thetaVlc = 0f;
+        bullet.radiusAccel = 0f;
+        bullet.thetaAccel = 0f;
         bullet.playerInfluence = new float2(0f, 0f);
         bullet.random = 0f;
 
@@ -68,7 +71,7 @@ public struct WarpBulletJob : IJobParallelFor
 
         bullet.warpCooldown = math.max(0f, warpCooldown);
         bullet.angle = GetAngleRad(exitVelocity.x, exitVelocity.y);
-        bullet.areaNum = GetTreeNum(exitPosition);
+        bullet.areaNum = grid.GetTreeNum(exitPosition);
 
         if (bullet.areaNum == -1)
         {
@@ -79,36 +82,37 @@ public struct WarpBulletJob : IJobParallelFor
     private bool Contains(BulletData zone, float2 position)
     {
         float2 halfSize = math.abs(zone.scale) * 0.5f;
-        float2 min = zone.position - halfSize;
-        float2 max = zone.position + halfSize;
-        return position.x >= min.x
-            && position.x <= max.x
-            && position.y >= min.y
-            && position.y <= max.y;
+        float angle = zone.GetRotationAngle();
+        float cos = math.cos(angle);
+        float sin = math.sin(angle);
+        float2 delta = position - zone.position;
+        float2 local = new float2(
+            delta.x * cos + delta.y * sin,
+            -delta.x * sin + delta.y * cos
+        );
+
+        return math.abs(local.x) <= halfSize.x
+            && math.abs(local.y) <= halfSize.y;
     }
 
-    private int GetTreeNum(float2 pos)
+    private float2 TransformVelocity(float2 velocity, BulletData sourceZone)
     {
-        if (pos.x < 0 || pos.y < 0) return -1;
-        int nx = Mathf.FloorToInt(pos.x / cellSize);
-        int ny = Mathf.FloorToInt(pos.y / cellSize);
+        if (reflectXTypeId >= 0 && sourceZone.typeId == reflectXTypeId)
+        {
+            velocity.x = -velocity.x;
+        }
 
-        int result = BitSeparate32(nx) | (BitSeparate32(ny) << 1);
-        if (result >= 0 && result < totalCellCount) return result;
-        return -1;
-    }
+        if (reflectYTypeId >= 0 && sourceZone.typeId == reflectYTypeId)
+        {
+            velocity.y = -velocity.y;
+        }
 
-    private int BitSeparate32(int n)
-    {
-        n = (n | n << 8) & 0x00ff00ff;
-        n = (n | n << 4) & 0x0f0f0f0f;
-        n = (n | n << 2) & 0x33333333;
-        return (n | n << 1) & 0x55555555;
+        return velocity;
     }
 
     private float GetAngleRad(float x, float y)
     {
-        double rad = math.atan2(y, x);
+        float rad = math.atan2(y, x);
         if (rad < 0) rad += 2 * math.PI;
         return (float)rad;
     }

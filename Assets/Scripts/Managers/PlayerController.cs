@@ -14,6 +14,7 @@ public class PlayerController
     private SpriteRenderer main;
     private SpriteRenderer spell;
     private Transform spellTransform;
+    private float2 initialPos;
     private readonly float margin = 0.3f;
     private float2 xRange = new float2(0, 0);
     private float2 yRange = new float2(0, 0);
@@ -31,6 +32,8 @@ public class PlayerController
     public void Init(GameObject playerObj)
     {
         playerTransform = playerObj.transform;
+        initialPos = new float2(playerTransform.position.x, playerTransform.position.y);
+        pos = initialPos;
         main = playerObj.GetComponent<SpriteRenderer>();
         spellTransform = playerTransform.Find("Spell");
         if (spellTransform != null)
@@ -39,22 +42,6 @@ public class PlayerController
         }
         xRange = new float2(margin, 32 - margin);
         yRange = new float2(margin, 18 - margin);
-        ResetToCenter();
-    }
-
-    public void ResetToCenter()
-    {
-        // Stages begin horizontally centered and low enough to give the player
-        // a clear view of incoming patterns.
-        pos = new float2(
-            (xRange.x + xRange.y) * 0.5f,
-            math.lerp(yRange.x, yRange.y, 0.22f));
-        velocity = float2.zero;
-        dash = -dashCooldown * 1.4f;
-        if (playerTransform != null)
-        {
-            playerTransform.position = new Vector3(pos.x, pos.y, 0f);
-        }
     }
 
     // Update is called once per frame
@@ -74,10 +61,22 @@ public class PlayerController
         hitInvincibleTimer = hitInvincibleDuration;
         if (main != null)
         {
+            //固定赤色
             main.color = new Color(1f, 0.35f, 0.35f, 1f);
         }
 
         return true;
+    }
+
+    public void ResetForStage()
+    {
+        pos = initialPos;
+        velocity = float2.zero;
+        hitInvincibleTimer = 0f;
+        dash = -dashCooldown * 1.4f;
+        if (main != null) main.color = GManager.Control.playerColor;
+        if (spell != null) spell.color = Color.clear;
+        if (playerTransform != null) playerTransform.position = new Vector3(pos.x, pos.y, 0f);
     }
 
     private void Move(float dt)
@@ -110,11 +109,16 @@ public class PlayerController
         if (dash > 0)
         {
             float alpha = GetAlpha(dash);
-            if (spell != null) spell.color = new Color(0.6f, 1, 0.6f, alpha);
+            if (spell != null)
+            {
+                Color c = GManager.Control.playerColor;
+                c.a = alpha;
+                spell.color = c;
+            }
         }
         else
         {
-            if (spell != null) spell.color = new Color(0.6f, 1, 0.6f, 0);
+            if (spell != null) spell.color = new Color(0, 0, 0, 0);
         }
 
         if (spellTransform != null) spellTransform.rotation = Quaternion.Euler(0, 0, Time.time * 30);
@@ -125,14 +129,14 @@ public class PlayerController
     {
         if (hitInvincibleTimer <= 0f)
         {
-            if (main != null) main.color = Color.white;
+            if (main != null) main.color = GManager.Control.playerColor;
             return;
         }
 
         hitInvincibleTimer = math.max(0f, hitInvincibleTimer - dt);
         if (hitInvincibleTimer <= 0f && main != null)
         {
-            main.color = Color.white;
+            main.color = GManager.Control.playerColor;
         }
     }
 

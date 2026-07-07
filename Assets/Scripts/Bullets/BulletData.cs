@@ -7,7 +7,11 @@ using UnityEngine.UIElements;
 public struct BulletData
 {
     public const float DefaultAppearDuration = 1.2f;
+    private const float DefaultGravityDirection = -1.57079632679f;
     public const string WarpZoneTypeName = "warp_zone";
+    public const string WarpZoneReflectXTypeName = "warp_zone_reflect_x";
+    public const string WarpZoneReflectYTypeName = "warp_zone_reflect_y";
+    public const string AttentionTypeName = "attention";
     public const string ScreenNoiseTypeName = "ScreenNoise";
     public const int ScreenNoiseTypeId = -1000;
 
@@ -20,7 +24,14 @@ public struct BulletData
 
     public static bool IsWarpZoneTypeName(string typeName)
     {
-        return string.Equals(typeName, WarpZoneTypeName, StringComparison.Ordinal);
+        return string.Equals(typeName, WarpZoneTypeName, StringComparison.Ordinal)
+            || string.Equals(typeName, WarpZoneReflectXTypeName, StringComparison.Ordinal)
+            || string.Equals(typeName, WarpZoneReflectYTypeName, StringComparison.Ordinal);
+    }
+
+    public static bool IsAttentionTypeName(string typeName)
+    {
+        return string.Equals(typeName, AttentionTypeName, StringComparison.Ordinal);
     }
 
     public static bool IsScreenNoiseTypeName(string typeName)
@@ -36,6 +47,7 @@ public struct BulletData
     public float2 position;//弾の位置
     public float2 velocity;//弾の変位
     public float angle;//弾の角度
+    public bool useVelocityAngle;//描画/衝突判定の角度に velocity 由来の angle を使うか
 
     public float2 originPos; //原点位置
     public float2 originVlc; //原点の移動速度
@@ -43,13 +55,15 @@ public struct BulletData
 
     public float startX;
     public float speed; //弾丸の速度
-    public float gravity;//弾丸にかかる重力加速度
+    public float2 gravity;//弾丸にかかる重力加速度
     public float angleSpeed;//弾丸の角速度
     public float initialAngle;//弾丸の初期角度
 
     public float2 polarForm; //原点中心に回転させる虚数(r0,theta0);
     public float radiusVlc; //r の速さ R(t) = r0 + radiusVlc * t 
+    public float radiusAccel; //r の加速度 R(t) = r0 + radiusVlc * t + 0.5 * radiusAccel * t^2
     public float thetaVlc; //theta の速さ Theta(t) = theta0 + thetaVlc * t
+    public float thetaAccel; //theta の加速度 Theta(t) = theta0 + thetaVlc * t + 0.5 * thetaAccel * t^2
 
     public float2 startPos; //多項式の計算を始める x 座標（見かけの原点）
     public float2 nowCalculateVlc;//接線速度
@@ -72,7 +86,6 @@ public struct BulletData
     public float clearTime;
     public float clearDuration;
     public bool unCounterable;
-    public bool lockRotation;
 
     /// <summary>
     /// 弾幕のデータ
@@ -95,10 +108,21 @@ public struct BulletData
     /// <param name="_life">弾の寿命 life</param>
     /// <param name="_unCounterable">カウンター不可かどうか unCounterable</param>
     public BulletData(float2 _pos, float2 _vlc, float _s, float _g, float _as, float _initialAngle, float2 _polar, float _absV, float _theV, float _start, float4 _poly, int type, float4 _color, float2 _scale = default, float _random = 0, float _appear = 0, float _appearDuration = DefaultAppearDuration, float _life = 255, bool _unCounterable = false, float2 _playerInfluence = default)
+        : this(_pos, _vlc, _s, new float2(_g, DefaultGravityDirection), _as, _initialAngle, _polar, _absV, _theV, 0f, 0f, _start, _poly, type, _color, _scale, _random, _appear, _appearDuration, _life, _unCounterable, _playerInfluence)
+    {
+    }
+
+    public BulletData(float2 _pos, float2 _vlc, float _s, float2 _g, float _as, float _initialAngle, float2 _polar, float _absV, float _theV, float _start, float4 _poly, int type, float4 _color, float2 _scale = default, float _random = 0, float _appear = 0, float _appearDuration = DefaultAppearDuration, float _life = 255, bool _unCounterable = false, float2 _playerInfluence = default)
+        : this(_pos, _vlc, _s, _g, _as, _initialAngle, _polar, _absV, _theV, 0f, 0f, _start, _poly, type, _color, _scale, _random, _appear, _appearDuration, _life, _unCounterable, _playerInfluence)
+    {
+    }
+
+    public BulletData(float2 _pos, float2 _vlc, float _s, float2 _g, float _as, float _initialAngle, float2 _polar, float _absV, float _theV, float _radiusAccel, float _thetaAccel, float _start, float4 _poly, int type, float4 _color, float2 _scale = default, float _random = 0, float _appear = 0, float _appearDuration = DefaultAppearDuration, float _life = 255, bool _unCounterable = false, float2 _playerInfluence = default)
     {
         position = _pos;
         velocity = new(0, 0);
         angle = 0;
+        useVelocityAngle = true;
         originPos = position;
         originVlc = _vlc;
         playerInfluence = _playerInfluence;
@@ -109,6 +133,8 @@ public struct BulletData
         polarForm = _polar;
         radiusVlc = _absV;
         thetaVlc = _theV;
+        radiusAccel = _radiusAccel;
+        thetaAccel = _thetaAccel;
         polynomial = _poly;
         nowCalculateX = _start;
         random = _random;
@@ -127,7 +153,6 @@ public struct BulletData
         clearDuration = 0f;
         color = _color;
         unCounterable = _unCounterable;
-        lockRotation = false;
 
         float x = _start;
         startX = x;
@@ -147,6 +172,8 @@ public struct BulletData
         float2 vec = new float2(1, tan);
         float magnitude = math.sqrt(1 + tan * tan);
         nowCalculateVlc = vec / magnitude * speed;
+        position = GetInitialPosition();
+        velocity = new float2(0f, 0f);
     }
 
     private static float2 Rotate(float2 value, float theta)
@@ -159,11 +186,46 @@ public struct BulletData
         );
     }
 
+    public void ResetTrajectoryState(bool syncPosition)
+    {
+        float x = startX;
+        nowCalculateX = x;
+
+        float tan = 0;
+        tan += 1 * polynomial.x;
+        tan += 2 * polynomial.y * x;
+        tan += 3 * polynomial.z * x * x;
+        tan += 4 * polynomial.w * x * x * x;
+
+        float2 vec = new float2(1, tan);
+        float magnitude = math.sqrt(1 + tan * tan);
+        nowCalculateVlc = vec / magnitude * speed;
+
+        if (syncPosition)
+        {
+            position = GetInitialPosition();
+            velocity = new float2(0f, 0f);
+        }
+    }
+
+    public float2 GetInitialPosition()
+    {
+        float x = startX;
+        float y = 0;
+        y += polynomial.x * x;
+        y += polynomial.y * x * x;
+        y += polynomial.z * x * x * x;
+        y += polynomial.w * x * x * x * x;
+        float2 disVector = new float2(x, y) - startPos;
+        return originPos + polarForm.x * Rotate(disVector, polarForm.y);
+    }
+
     public BulletData(BulletData data, float2 _pos, float2 _vlc, float _theta, float4 _color = new float4(), bool _unCounterable = false)
     {
         position = _pos;
         velocity = data.velocity;
         angle = data.angle + _theta;
+        useVelocityAngle = data.useVelocityAngle;
         originPos = _pos + Rotate(data.originPos, _theta);
         originVlc = _vlc + Rotate(data.originVlc, _theta);
         playerInfluence = data.playerInfluence;
@@ -174,6 +236,8 @@ public struct BulletData
         polarForm = new float2(data.polarForm.x, data.polarForm.y + _theta);
         radiusVlc = data.radiusVlc;
         thetaVlc = data.thetaVlc;
+        radiusAccel = data.radiusAccel;
+        thetaAccel = data.thetaAccel;
         nowCalculateX = data.startX;
         polynomial = data.polynomial;
         typeId = data.typeId;
@@ -184,7 +248,6 @@ public struct BulletData
         life = data.life;
         // Keep source flag when cloning; optional arg can force uncounterable.
         unCounterable = data.unCounterable || _unCounterable;
-        lockRotation = data.lockRotation;
 
         areaNum = 0;
         time = 0;
@@ -213,6 +276,8 @@ public struct BulletData
         float2 vec = new float2(1, tan);
         float magnitude = math.sqrt(1 + tan * tan);
         nowCalculateVlc = vec / magnitude * speed;
+        position = GetInitialPosition();
+        velocity = new float2(0f, 0f);
     }
 
     public void Init(float2 _pos)
@@ -245,6 +310,15 @@ public struct BulletData
         float2 vec = new float2(1, tan);
         float magnitude = math.sqrt(1 + tan * tan);
         nowCalculateVlc = vec / magnitude * speed;
+        position = GetInitialPosition();
+        velocity = new float2(0f, 0f);
+    }
+
+    public float GetRotationAngle()
+    {
+        return useVelocityAngle
+            ? angle + initialAngle
+            : polarForm.y + initialAngle;
     }
 
     public void BeginClearFade(float duration)

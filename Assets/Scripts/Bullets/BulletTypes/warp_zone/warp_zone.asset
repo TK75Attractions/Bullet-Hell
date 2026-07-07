@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: warp_zone
   m_EditorClassIdentifier: Assembly-CSharp::BulletType
   typeName: warp_zone
-  baseSprite: {fileID: 2800000, guid: 0674f6df271b09c439ad1a9f8d929c52, type: 3}
-  maskSprite: {fileID: 2800000, guid: 24224e2e11aa8bb4b87067d03f5c860e, type: 3}
+  baseSprite: {fileID: 2800000, guid: 0985968ea2ef59f44b898714026206b5, type: 3}
+  maskSprite: {fileID: 2800000, guid: a28964507c8fa7a42b5c81af170acf4e, type: 3}
   baseColor: {r: 1, g: 1, b: 1, a: 1}
   baseSize: 1
-  renderPriority: 0
+  renderPriority: -10
   counterPower: 0
   verts: []

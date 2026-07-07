@@ -3,36 +3,27 @@ using Unity.Mathematics;
 using System.Collections.Generic;
 using System;
 
-public class MultiBullet : MonoBehaviour
+public class MultiBullet
 {
-    public int id = 0;
     public int arrayIndex = 0;
-    public Transform trans;
-    private float interval = 0;
-    private float startInterval = 1.6f;
-    private int bulletCount = 0;
     public bool isActive = false;
-    private bool isReady = false;
-    private int count = 0;
+    private bool hasEmittedInitial = false;
+    private float2 pos;
 
-    public BulletClip bulletClip = new BulletClip();
-    public List<BulletChangeClip> bulletChangeClips = new List<BulletChangeClip>();
-    public bool keepVisualUpright;
+    public BulletBufferEmission bulletEmission = new BulletBufferEmission();
+    public List<BulletBufferEmission> bulletBufferTriggers = new List<BulletBufferEmission>();
     private List<BulletChache> bulletChaches = new List<BulletChache>();
 
     [Serializable]
     private class BulletChache
     {
-        // Generation-stamped handles (S4): after a ClearManagedEnemyDanmaku the
-        // handles resolve as stale and UpdateBulletDataByHandle drops them, instead
-        // of mutating raw indices that may point at faded/cleared bullets.
-        public List<BulletHandle> indexes = new List<BulletHandle>();
+        public List<ManagedBulletHandle> handles = new List<ManagedBulletHandle>();
         public float time = 0;
         public int clipCount;
 
-        public BulletChache(List<BulletHandle> _ind, float _time, int _clipCount)
+        public BulletChache(List<ManagedBulletHandle> _handles, float _time, int _clipCount)
         {
-            indexes = _ind;
+            handles = _handles;
             time = _time;
             clipCount = _clipCount;
         }
@@ -41,23 +32,16 @@ public class MultiBullet : MonoBehaviour
     public float time = 0;
 
 
-    public void Init(int index, EnemySpawner spawner)
+    public void Init(int index, MultiBulletSpawner spawner)
     {
-        id = spawner.id;
         arrayIndex = index;
         time = 0f;
-        count = 0;
-        isReady = false;
+        hasEmittedInitial = false;
+        pos = spawner.pos;
 
-        interval = spawner.bulletInterval;
-        bulletCount = spawner.bulletCount;
-        bulletClip = spawner.bulletClip;
-        bulletChangeClips = spawner.bulletChangeClips;
-        keepVisualUpright = !string.IsNullOrWhiteSpace(spawner.visualId) && spawner.bulletCount == 0;
-
-        trans = transform;
-        trans.localScale = new Vector3(spawner.orbit.scale.x, spawner.orbit.scale.y, 1);
-        startInterval = spawner.bulletEmitTime;
+        bulletEmission = spawner.bulletEmission ?? new BulletBufferEmission();
+        bulletBufferTriggers = spawner.bulletBufferTriggers ?? new List<BulletBufferEmission>();
+        bulletChaches.Clear();
 
         isActive = true;
     }
@@ -66,44 +50,47 @@ public class MultiBullet : MonoBehaviour
     {
         time += dt;
 
-        if (isActive)
+        if (!isActive) return;
+
+        Shot(dt);
+        UpdateChache(dt);
+
+        if (hasEmittedInitial && bulletChaches.Count == 0)
         {
-            Shot();
-            UpdateChache(dt);
+            isActive = false;
         }
     }
 
-    private void Shot()
+    private void Shot(float dt)
     {
-        if (!isReady)
+        if (hasEmittedInitial) return;
+
+        hasEmittedInitial = true;
+        List<ManagedBulletHandle> emitted = EmitInitialBullets(dt);
+        QueueNextBufferTrigger(emitted, 0);
+    }
+
+    private List<ManagedBulletHandle> EmitInitialBullets(float dt)
+    {
+        if (bulletEmission != null && bulletEmission.HasResolvedClip)
         {
-            if (time > startInterval)
-            {
-                isReady = true;
-                time = 0;
-            }
+            BulletData source = default;
+            source.position = pos;
+            source.velocity = new float2(0f, 0f);
+            source.angle = 0f;
+            source.isActive = true;
+            return GManager.Control.QOrder.EmitManagedBulletBuffer(bulletEmission, source, dt);
         }
-        else
-        {
-            if (time > interval)
-            {
-                time = 0;
-                if (count < bulletCount)
-                {
-                    List<int> emitted = GManager.Control.QOrder.EmitEnemyBullet(bulletClip, arrayIndex);
-                    if (bulletChangeClips != null && bulletChangeClips.Count > 0)
-                    {
-                        List<BulletHandle> handles = GManager.Control.QOrder.ToHandles(emitted);
-                        BulletChache chache = new BulletChache(handles, bulletChangeClips[0].time, 0);
-                        bulletChaches.Add(chache);
-                    }
-                    count++;
-                }
-            }
-        }
+
+        return new List<ManagedBulletHandle>();
     }
 
     private void UpdateChache(float dt)
+    {
+        UpdateBufferChache(dt);
+    }
+
+    private void UpdateBufferChache(float dt)
     {
         for (int i = bulletChaches.Count - 1; i >= 0; i--)
         {
@@ -111,24 +98,15 @@ public class MultiBullet : MonoBehaviour
             chache.time -= dt;
             if (chache.time <= 0)
             {
-                if (bulletChangeClips != null && chache.clipCount >= 0 && chache.clipCount < bulletChangeClips.Count)
+                if (chache.clipCount >= 0 && chache.clipCount < bulletBufferTriggers.Count)
                 {
-                    List<BulletHandle> updatedIndexes = GManager.Control.QOrder.UpdateBulletDataByHandle(chache.indexes, bulletChangeClips[chache.clipCount].clip);
+                    BulletBufferEmission trigger = bulletBufferTriggers[chache.clipCount];
+                    List<ManagedBulletHandle> updatedHandles = EmitFromCachedBullets(chache.handles, trigger, dt);
                     int nextClip = chache.clipCount + 1;
 
-                    if (updatedIndexes != null && updatedIndexes.Count > 0 && nextClip < bulletChangeClips.Count)
+                    if (updatedHandles != null && updatedHandles.Count > 0 && nextClip < bulletBufferTriggers.Count)
                     {
-                        float nextTime = bulletChangeClips[chache.clipCount].time;
-                        if (nextTime <= 0)
-                        {
-                            nextTime = bulletChangeClips[nextClip].time;
-                        }
-
-                        if (nextTime > 0)
-                        {
-                            BulletChache nextChache = new BulletChache(updatedIndexes, nextTime, nextClip);
-                            bulletChaches.Add(nextChache);
-                        }
+                        QueueNextBufferTrigger(updatedHandles, nextClip);
                     }
                 }
                 bulletChaches.RemoveAt(i);
@@ -136,8 +114,41 @@ public class MultiBullet : MonoBehaviour
         }
     }
 
-    public void Destroy()
+    private List<ManagedBulletHandle> EmitFromCachedBullets(List<ManagedBulletHandle> handles, BulletBufferEmission trigger, float dt)
     {
-        Destroy(this.gameObject);
+        List<ManagedBulletHandle> emittedHandles = new List<ManagedBulletHandle>();
+        if (handles == null || trigger == null || !trigger.HasResolvedClip) return emittedHandles;
+
+        if (trigger.applyBulletOrbit)
+        {
+            GManager.Control.QOrder.ApplyBulletOrbit(handles, trigger);
+            return handles;
+        }
+
+        for (int i = 0; i < handles.Count; i++)
+        {
+            ManagedBulletHandle handle = handles[i];
+            if (!GManager.Control.QOrder.TryGetManagedBulletData(handle, out BulletData source)) continue;
+            if (!source.isActive || source.isClearing) continue;
+
+            List<ManagedBulletHandle> emitted = GManager.Control.QOrder.EmitManagedBulletBuffer(trigger, source, dt);
+            if (emitted != null && emitted.Count > 0) emittedHandles.AddRange(emitted);
+
+            if (trigger.deactivateSource)
+            {
+                GManager.Control.QOrder.SetManagedBulletActive(handle, false);
+            }
+        }
+
+        return emittedHandles;
+    }
+
+    private void QueueNextBufferTrigger(List<ManagedBulletHandle> handles, int triggerIndex)
+    {
+        if (handles == null || handles.Count == 0) return;
+        if (bulletBufferTriggers == null || triggerIndex < 0 || triggerIndex >= bulletBufferTriggers.Count) return;
+
+        BulletChache chache = new BulletChache(handles, bulletBufferTriggers[triggerIndex].time, triggerIndex);
+        bulletChaches.Add(chache);
     }
 }

@@ -47,12 +47,6 @@ public class BulletBufferManager
         }
     }
 
-    public void Init()
-    {
-        ResetBuffers();
-        ReadCommonBulletBuffersFromDirectory();
-    }
-
     public async Task InitAsync()
     {
         await LoadBaseBulletBuffersAsync();
@@ -70,32 +64,11 @@ public class BulletBufferManager
         LoadModStageBulletBuffers(stageData);
     }
 
-    public void ReadBulletBufferFromDirectory()
+    public void UnloadAllBulletBuffers()
     {
-        string directoryPath = Path.Combine(Application.dataPath, BulletBufferDirectoryName);
-        if (!Directory.Exists(directoryPath))
-        {
-            Debug.LogWarning($"Bullet buffer directory not found: {directoryPath}");
-            return;
-        }
-
-        string[] jsonFiles = Directory.GetFiles(directoryPath, "*.json", SearchOption.AllDirectories);
-        int loadedCount = 0;
-
-        for (int i = 0; i < jsonFiles.Length; i++)
-        {
-            BulletBuffer buffer = ReadBulletBufferFromFile(jsonFiles[i]);
-            if (buffer == null)
-            {
-                continue;
-            }
-
-            AddOrReplaceBulletBuffer(buffer);
-
-            loadedCount++;
-        }
-
-        Debug.Log($"Loaded {loadedCount}/{jsonFiles.Length} bullet buffer json files from {directoryPath}");
+        bulletBuffers.Clear();
+        EnsureLoadedDirectorySet();
+        loadedDirectoryNames.Clear();
     }
 
     public async Task LoadStageBulletBuffersAsync(string stageDirectoryName)
@@ -391,6 +364,7 @@ public class BulletBufferManager
             Debug.LogWarning($"Failed to parse bullet buffer json: {sourceName}");
             return null;
         }
+        ApplyBulletDataJsonDefaults(data, json);
 
         if (string.IsNullOrWhiteSpace(data.name))
         {
@@ -406,9 +380,148 @@ public class BulletBufferManager
         return new BulletBuffer(data.name, data.bullets.ConvertAll(b => b.ToBulletData()), data.homing, data.isLaser);
     }
 
+    private static void ApplyBulletDataJsonDefaults(BulletBufferJson data, string json)
+    {
+        if (data == null || data.bullets == null || data.bullets.Count == 0) return;
+
+        List<string> bulletJsonObjects = ExtractJsonArrayObjects(json, "bullets");
+        if (bulletJsonObjects.Count != data.bullets.Count)
+        {
+            if (!ContainsJsonProperty(json, nameof(BulletDataJson.useVelocityAngle)))
+            {
+                SetDefaultUseVelocityAngle(data.bullets);
+            }
+            return;
+        }
+
+        for (int i = 0; i < data.bullets.Count; i++)
+        {
+            if (data.bullets[i] == null) continue;
+
+            if (!ContainsJsonProperty(bulletJsonObjects[i], nameof(BulletDataJson.useVelocityAngle)))
+            {
+                data.bullets[i].useVelocityAngle = true;
+            }
+        }
+    }
+
+    private static void SetDefaultUseVelocityAngle(List<BulletDataJson> bullets)
+    {
+        for (int i = 0; i < bullets.Count; i++)
+        {
+            if (bullets[i] == null) continue;
+            bullets[i].useVelocityAngle = true;
+        }
+    }
+
+    private static List<string> ExtractJsonArrayObjects(string json, string arrayPropertyName)
+    {
+        List<string> objects = new List<string>();
+        if (string.IsNullOrEmpty(json)) return objects;
+
+        int propertyIndex = FindJsonPropertyIndex(json, arrayPropertyName);
+        if (propertyIndex < 0) return objects;
+
+        int colonIndex = json.IndexOf(':', propertyIndex);
+        if (colonIndex < 0) return objects;
+
+        int arrayStart = json.IndexOf('[', colonIndex + 1);
+        if (arrayStart < 0) return objects;
+
+        bool inString = false;
+        bool escaped = false;
+        int objectDepth = 0;
+        int objectStart = -1;
+
+        for (int i = arrayStart + 1; i < json.Length; i++)
+        {
+            char c = json[i];
+            if (inString)
+            {
+                if (escaped)
+                {
+                    escaped = false;
+                }
+                else if (c == '\\')
+                {
+                    escaped = true;
+                }
+                else if (c == '"')
+                {
+                    inString = false;
+                }
+                continue;
+            }
+
+            if (c == '"')
+            {
+                inString = true;
+                continue;
+            }
+
+            if (c == '{')
+            {
+                if (objectDepth == 0) objectStart = i;
+                objectDepth++;
+                continue;
+            }
+
+            if (c == '}')
+            {
+                objectDepth--;
+                if (objectDepth == 0 && objectStart >= 0)
+                {
+                    objects.Add(json.Substring(objectStart, i - objectStart + 1));
+                    objectStart = -1;
+                }
+                continue;
+            }
+
+            if (c == ']' && objectDepth == 0)
+            {
+                break;
+            }
+        }
+
+        return objects;
+    }
+
+    private static bool ContainsJsonProperty(string json, string propertyName)
+    {
+        return FindJsonPropertyIndex(json, propertyName) >= 0;
+    }
+
+    private static int FindJsonPropertyIndex(string json, string propertyName)
+    {
+        if (string.IsNullOrEmpty(json) || string.IsNullOrEmpty(propertyName)) return -1;
+
+        string quotedPropertyName = $"\"{propertyName}\"";
+        int searchIndex = 0;
+        while (searchIndex < json.Length)
+        {
+            int propertyIndex = json.IndexOf(quotedPropertyName, searchIndex, StringComparison.Ordinal);
+            if (propertyIndex < 0) return -1;
+
+            int afterPropertyName = propertyIndex + quotedPropertyName.Length;
+            while (afterPropertyName < json.Length && char.IsWhiteSpace(json[afterPropertyName]))
+            {
+                afterPropertyName++;
+            }
+
+            if (afterPropertyName < json.Length && json[afterPropertyName] == ':')
+            {
+                return propertyIndex;
+            }
+
+            searchIndex = propertyIndex + quotedPropertyName.Length;
+        }
+
+        return -1;
+    }
+
     private void AddOrReplaceBulletBuffer(BulletBuffer buffer)
     {
-        if (TryGetBulletClipIndex(buffer.name, out int existingIndex))
+        if (TryGetBulletBufferIndex(buffer.name, out int existingIndex))
         {
             bulletBuffers[existingIndex] = buffer;
         }
@@ -566,7 +679,7 @@ public class BulletBufferManager
     }
     #endregion
 
-    public bool TryGetBulletClipIndex(string name, out int index)
+    public bool TryGetBulletBufferIndex(string name, out int index)
     {
         index = -1;
         for (int i = 0; i < bulletBuffers.Count; i++)
@@ -580,56 +693,12 @@ public class BulletBufferManager
         return false;
     }
 
-#if UNITY_EDITOR
-    /// <summary>
-    /// Read-only snapshot of a loaded buffer for editor tooling (golden dumper,
-    /// linter, tests). Does not exist in player builds and does not alter any
-    /// runtime behavior.
-    /// </summary>
-    public struct EditorBufferView
-    {
-        public string name;
-        public bool homing;
-        public bool isLaser;
-        public List<BulletData> bullets;
-    }
-
-    /// <summary>Enumerates the currently loaded buffers in registration order.</summary>
-    public List<EditorBufferView> GetLoadedBuffersForEditor()
-    {
-        List<EditorBufferView> views = new List<EditorBufferView>(bulletBuffers.Count);
-        for (int i = 0; i < bulletBuffers.Count; i++)
-        {
-            BulletBuffer b = bulletBuffers[i];
-            views.Add(new EditorBufferView { name = b.name, homing = b.homing, isLaser = b.isLaser, bullets = b.bullets });
-        }
-        return views;
-    }
-
-    /// <summary>Looks up a single loaded buffer by its registration name.</summary>
-    public bool TryGetLoadedBufferForEditor(string bufferName, out EditorBufferView view)
-    {
-        if (TryGetBulletClipIndex(bufferName, out int index))
-        {
-            BulletBuffer b = bulletBuffers[index];
-            view = new EditorBufferView { name = b.name, homing = b.homing, isLaser = b.isLaser, bullets = b.bullets };
-            return true;
-        }
-
-        view = default;
-        return false;
-    }
-#endif
-
-    // thinN (P5 difficulty decimation, 0 => keep all) drops every N-th template
-    // bullet by index in the copy loop, so a lower difficulty fires fewer bullets
-    // deterministically. Default 0 leaves the legacy spawn path unchanged.
-    public List<BulletData> GetBulletClip(int index, float2 pPos, float2 emitPos, float2 _vlc, float angle, float4 _color, out bool isLaser, int thinN = 0)
+    public List<BulletData> CreateSpawnedBullets(int index, float2 pPos, float2 emitPos, float2 _vlc, float angle, float4 _color, out bool isLaser)
     {
         isLaser = false;
         if (bulletBuffers.Count == 0)
         {
-            Debug.LogError("BulletClipManager is not initialized.");
+            Debug.LogError("BulletBufferManager is not initialized.");
             return default;
         }
 
@@ -644,12 +713,13 @@ public class BulletBufferManager
             {
                 for (int i = 0; i < templateBullets.Count; i++)
                 {
-                    if (!DifficultyResolver.ShouldEmitBullet(i, thinN)) continue;
                     angle = math.atan2(pPos.y - emitPos.y, pPos.x - emitPos.x);
                     BulletData template = templateBullets[i];
                     float2 dis = -template.startPos;
                     BulletData spawned = new BulletData(template, emitPos, _vlc, angle, _color);
                     spawned.startPos -= dis;
+                    spawned.position = spawned.GetInitialPosition();
+                    spawned.velocity = new float2(0f, 0f);
                     spawnedBullets.Add(spawned);
                 }
 
@@ -660,13 +730,12 @@ public class BulletBufferManager
             {
                 for (int i = 0; i < templateBullets.Count; i++)
                 {
-                    if (!DifficultyResolver.ShouldEmitBullet(i, thinN)) continue;
                     BulletData template = templateBullets[i];
                     float2 dis = -template.startPos;
-                    // Unit boundary: stage spawner `angle` is in DEGREES; the bullet
-                    // constructor expects RADIANS, so convert here (deg/180*PI).
                     BulletData spawned = new BulletData(template, emitPos, _vlc, angle / 180 * math.PI, _color);
                     spawned.startPos -= dis;
+                    spawned.position = spawned.GetInitialPosition();
+                    spawned.velocity = new float2(0f, 0f);
                     spawnedBullets.Add(spawned);
                 }
 
@@ -677,10 +746,20 @@ public class BulletBufferManager
         }
         else
         {
-            if (index == StageScheduleExpander.ClearEventIndex) return default; // "Clear" という特別なインデックスは、空の弾リストを返す
+            if (index == -3) return default; // "Clear" という特別なインデックスは、空の弾リストを返す
             Debug.LogError($"Bullet clip index out of range: {index}");
             return default;
         }
     }
 
+    public bool TryGetBulletBuffer(int index, out BulletData buffer)
+    {
+        buffer = new();
+        if (index >= 0 && index < bulletBuffers.Count && bulletBuffers[index].bullets != null && bulletBuffers[index].bullets.Count > 0)
+        {
+            buffer = bulletBuffers[index].bullets[0];
+            return true;
+        }
+        return false;
+    }
 }

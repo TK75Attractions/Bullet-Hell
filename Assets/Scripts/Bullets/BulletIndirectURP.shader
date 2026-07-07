@@ -4,6 +4,14 @@ Shader "Custom/BulletIndirectURP"
     {
         _MainArray("Main Texture Array", 2DArray) = "" {}
         _MaskArray("Mask Texture Array", 2DArray) = "" {}
+        _AttentionBorderWidth("Attention Border Width", Float) = 0.08
+        _AttentionMarkScale("Attention Mark Scale", Range(0, 1)) = 1
+        _AttentionMarkSourceMin("Attention Mark Source Min", Vector) = (0.35, 0.2, 0, 0)
+        _AttentionMarkSourceMax("Attention Mark Source Max", Vector) = (0.65, 0.8, 0, 0)
+        _CounterMaskTexelSize("Counter Mask Texel Size", Float) = 0.0078125
+        _CounterGlowRadius("Counter Glow Radius", Float) = 1.5
+        _CounterGlowStrength("Counter Glow Strength", Float) = 0.42
+        _CounterRimBoost("Counter Rim Boost", Float) = 1.25
     }
 
     SubShader
@@ -38,10 +46,14 @@ Shader "Custom/BulletIndirectURP"
             TEXTURE2D_ARRAY(_MaskArray);
             SAMPLER(sampler_MaskArray);
 
-            // 石工ベルト帯のスリット模様スクロール量(UV)。ベルト上をブロックが流れて
-            // いる区間だけ StoneBeltScrollDriver が進める(停止中は据え置き=模様も静止)。
-            // 未設定時は 0(静止)。第33便: 常時 _Time.y スクロールから切替。
-            float _StoneBeltScroll;
+            float _AttentionBorderWidth;
+            float _AttentionMarkScale;
+            float4 _AttentionMarkSourceMin;
+            float4 _AttentionMarkSourceMax;
+            float _CounterMaskTexelSize;
+            float _CounterGlowRadius;
+            float _CounterGlowStrength;
+            float _CounterRimBoost;
 
             struct BulletData
             {
@@ -53,6 +65,7 @@ Shader "Custom/BulletIndirectURP"
                 float appear;
                 float4 color;
                 int renderPriority;
+                float renderMode;
             };
 
             StructuredBuffer<BulletData> _BulletBuffer;
@@ -71,7 +84,8 @@ Shader "Custom/BulletIndirectURP"
                 float maskIndex : TEXCOORD2;
                 float appear : TEXCOORD3;
                 float4 color : TEXCOORD4;
-                float2 scale : TEXCOORD5;
+                float renderMode : TEXCOORD5;
+                float2 scale : TEXCOORD6;
             };
 
             Varyings vert(Attributes input, uint instanceID : SV_InstanceID)
@@ -102,36 +116,170 @@ Shader "Custom/BulletIndirectURP"
                 output.maskIndex = b.maskIndex;
                 output.appear = b.appear;
                 output.color = b.color;
-                output.scale = b.scale;
+                output.renderMode = b.renderMode;
+                output.scale = abs(b.scale);
 
                 return output;
             }
 
+            half4 fragAttention(Varyings input)
+            {
+                float appear = saturate(input.appear);
+                float2 size = max(input.scale, float2(1e-4, 1e-4));
+                float minSize = min(size.x, size.y);
+
+                float borderWidth = min(max(_AttentionBorderWidth, 0.0), minSize * 0.45);
+                float2 edgeDistances = min(input.uv, 1.0 - input.uv) * size;
+                float edgeDistance = min(edgeDistances.x, edgeDistances.y);
+                float aa = max(fwidth(edgeDistance), 1e-4);
+                float borderAlpha = (1.0 - smoothstep(borderWidth, borderWidth + aa, edgeDistance))
+                    * saturate(input.color.a)
+                    * appear;
+
+                float markSize = max(minSize * saturate(_AttentionMarkScale), 1e-4);
+                float2 markUv = ((input.uv - 0.5) * size) / markSize + 0.5;
+
+                float2 sourceMin = min(_AttentionMarkSourceMin.xy, _AttentionMarkSourceMax.xy);
+                float2 sourceMax = max(_AttentionMarkSourceMin.xy, _AttentionMarkSourceMax.xy);
+                float2 inSquare = step(float2(0.0, 0.0), markUv) * step(markUv, float2(1.0, 1.0));
+                float2 inSource = step(sourceMin, markUv) * step(markUv, sourceMax);
+                float sourceMask = inSquare.x * inSquare.y * inSource.x * inSource.y;
+
+                half4 markBase = SAMPLE_TEXTURE2D_ARRAY(_MainArray, sampler_MainArray,
+                    markUv, input.texIndex);
+                half markMask = SAMPLE_TEXTURE2D_ARRAY(_MaskArray, sampler_MaskArray,
+                    markUv, input.maskIndex).r * sourceMask;
+                // color.a is opacity, not tint strength. Keeping it out of the RGB
+                // blend prevents low-alpha bullets from fading back to white.
+                half markTintStrength = saturate(markMask);
+                half3 markRgb = lerp(markBase.rgb, input.color.rgb, markTintStrength);
+                half markAlpha = max(markBase.a * sourceMask, markMask) * saturate(input.color.a) * appear;
+
+                half3 borderRgb = input.color.rgb;
+                half outAlpha = saturate(markAlpha + borderAlpha * (1.0 - markAlpha));
+                half3 outRgb = outAlpha > 1e-4
+                    ? (markRgb * markAlpha + borderRgb * borderAlpha * (1.0 - markAlpha)) / outAlpha
+                    : half3(0.0, 0.0, 0.0);
+
+                return half4(outRgb, outAlpha);
+            }
+
+            half SampleCounterMask(float2 uv, float maskIndex)
+            {
+                return SAMPLE_TEXTURE2D_ARRAY(_MaskArray, sampler_MaskArray, uv, maskIndex).r;
+            }
+
+            half4 fragCounter(Varyings input)
+            {
+                half appear = saturate(input.appear);
+                half colorAlpha = saturate(input.color.a);
+
+                half4 baseCol = SAMPLE_TEXTURE2D_ARRAY(_MainArray, sampler_MainArray,
+                    input.uv, input.texIndex);
+                half mask = SampleCounterMask(input.uv, input.maskIndex);
+
+                float2 glowStep = float2(_CounterMaskTexelSize, _CounterMaskTexelSize)
+                    * max(_CounterGlowRadius, 0.0);
+                half glowMask = mask;
+                glowMask = max(glowMask, SampleCounterMask(input.uv + float2(glowStep.x, 0.0), input.maskIndex));
+                glowMask = max(glowMask, SampleCounterMask(input.uv + float2(-glowStep.x, 0.0), input.maskIndex));
+                glowMask = max(glowMask, SampleCounterMask(input.uv + float2(0.0, glowStep.y), input.maskIndex));
+                glowMask = max(glowMask, SampleCounterMask(input.uv + float2(0.0, -glowStep.y), input.maskIndex));
+                glowMask = max(glowMask, SampleCounterMask(input.uv + glowStep, input.maskIndex));
+                glowMask = max(glowMask, SampleCounterMask(input.uv - glowStep, input.maskIndex));
+                glowMask = max(glowMask, SampleCounterMask(input.uv + float2(glowStep.x, -glowStep.y), input.maskIndex));
+                glowMask = max(glowMask, SampleCounterMask(input.uv + float2(-glowStep.x, glowStep.y), input.maskIndex));
+
+                half rimAlpha = saturate(mask * colorAlpha * _CounterRimBoost);
+                half glowAlpha = saturate(max(glowMask - mask, 0.0) * colorAlpha * _CounterGlowStrength);
+                half tintAlpha = saturate(rimAlpha + glowAlpha * (1.0 - rimAlpha));
+                half baseAlpha = saturate(baseCol.a);
+                half outAlpha = saturate(baseAlpha + tintAlpha * (1.0 - baseAlpha));
+                half3 outRgb = outAlpha > 1e-4
+                    ? (baseCol.rgb * baseAlpha + input.color.rgb * tintAlpha * (1.0 - baseAlpha)) / outAlpha
+                    : half3(0.0, 0.0, 0.0);
+
+                return half4(outRgb, outAlpha * appear);
+            }
+
+            half4 fragCounterTrail(Varyings input)
+            {
+                half appear = saturate(input.appear);
+                half colorAlpha = saturate(input.color.a);
+                half2 centeredUv = abs(input.uv - 0.5) * 2.0;
+                half cross = centeredUv.y;
+                half cap = smoothstep(0.0, 0.22, input.uv.x)
+                    * smoothstep(0.0, 0.22, 1.0 - input.uv.x);
+                half core = 1.0 - smoothstep(0.05, 0.48, cross);
+                half glow = 1.0 - smoothstep(0.16, 1.0, cross);
+                half headBoost = lerp(0.72, 1.12, saturate(input.uv.x));
+                half alpha = saturate((core * 0.68 + glow * 0.34) * cap * headBoost * colorAlpha);
+
+                return half4(input.color.rgb, alpha * appear);
+            }
+
+            half4 fragCounterSpawnFlash(Varyings input)
+            {
+                half appear = saturate(input.appear);
+                half colorAlpha = saturate(input.color.a);
+                float2 centeredUv = input.uv - 0.5;
+                float distanceFromCenter = length(centeredUv) * 2.0;
+                float ringDistance = abs(distanceFromCenter - 0.62);
+                half ring = (1.0 - smoothstep(0.018, 0.06, ringDistance)) * 0.6;
+                half innerGlow = (1.0 - smoothstep(0.0, 0.9, distanceFromCenter)) * 0.08;
+                half alpha = saturate((ring + innerGlow) * colorAlpha);
+
+                return half4(input.color.rgb, alpha * appear);
+            }
+
             half4 frag(Varyings input) : SV_Target
             {
-                float2 uv = input.uv;
-                if (input.scale.x > 20.0 && input.scale.y < 3.5)
+                if (input.renderMode > 4.5)
                 {
-                // ベルト帯(scale.x36.5)のスリット模様を UV スクロール。
-                // 速度は帯上を流れるブロック(belt_flow ov.x=-9.5)と厳密一致させる:
-                // 0.26 UV/s * 36.5 world/UV = 9.49 world/s ≒ 9.5(REVIEW @6.3 速度一致)
-                // 第33便: _Time.y(常時)ではなく _StoneBeltScroll(flow 窓だけ進む)で
-                // スクロール。ブロックが流れていない区間では模様も静止する。
-                uv.x = frac(uv.x + _StoneBeltScroll);
+                    return fragCounterSpawnFlash(input);
+                }
+
+                if (input.renderMode > 3.5)
+                {
+                    return fragCounterTrail(input);
+                }
+
+                if (input.renderMode > 2.5)
+                {
+                    return fragCounter(input);
+                }
+
+                if (input.renderMode > 1.5)
+                {
+                    return fragAttention(input);
                 }
 
                 // テクスチャ配列からサンプリング
                 half4 baseCol = SAMPLE_TEXTURE2D_ARRAY(_MainArray, sampler_MainArray, 
-                    uv, input.texIndex);
+                    input.uv, input.texIndex);
 
                 half mask = SAMPLE_TEXTURE2D_ARRAY(_MaskArray, sampler_MaskArray, 
-                    uv, input.maskIndex).r;
+                    input.uv, input.maskIndex).r;
                 half appear = saturate(input.appear);
-                half tintStrength = saturate(mask * input.color.a);
 
-                // マスク値に color.a を掛けて色の掛かり方を 0-1 で制御する
-                baseCol.rgb = lerp(baseCol.rgb, input.color.rgb, tintStrength);
-                baseCol.a = max(baseCol.a, tintStrength) * appear;
+                if (input.renderMode > 0.5)
+                {
+                    baseCol.rgb = lerp(baseCol.rgb, input.color.rgb, saturate(mask));
+                    baseCol.a *= saturate(input.color.a) * appear;
+                    return baseCol;
+                }
+
+                // Compose the texture and tint independently from opacity so that
+                // color.a only controls the transparency of the finished bullet.
+                half tintAlpha = saturate(mask);
+                half baseAlpha = saturate(baseCol.a);
+                half outAlpha = saturate(baseAlpha + tintAlpha * (1.0 - baseAlpha));
+                half3 outRgb = outAlpha > 1e-4
+                    ? (baseCol.rgb * baseAlpha * (1.0 - tintAlpha) + input.color.rgb * tintAlpha) / outAlpha
+                    : half3(0.0, 0.0, 0.0);
+
+                baseCol.rgb = outRgb;
+                baseCol.a = outAlpha * saturate(input.color.a) * appear;
 
                 return baseCol;
             }

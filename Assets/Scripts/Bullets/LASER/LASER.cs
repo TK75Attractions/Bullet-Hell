@@ -1,8 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
-using Unity.Burst;
 using Unity.Collections;
-using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -47,7 +44,11 @@ public class LASER : MonoBehaviour
     private MeshRenderer meshRenderer = null;
     private MaterialPropertyBlock propertyBlock = null;
 
-    private List<List<int>> quadVerts = new List<List<int>>();
+    private List<int>[] quadVerts = new List<int>[0];
+    private readonly List<int> touchedCells = new List<int>();
+
+    public bool NeedsCellUpdate { get; private set; }
+    public int CollisionVertexCount => vertsSet.IsCreated ? vertsSet.Length : 0;
 
     public void AwakeSetting(float2 _pos, float2 _vlc, float _t, float _s, float2 _polar, float _startX, float2 _startPos, float[] _poly, float _len, float _w, float _life, float4 _color, int cellCount)
     {
@@ -63,10 +64,6 @@ public class LASER : MonoBehaviour
         speed = _s;
         theta = _polar.y;
         poly = _poly;
-
-        string s = "";
-        for (int i = 0; i < poly.Length; i++) s += poly[i] + " ";
-        Debug.Log("LASER Poly: " + s);
 
         initialCalculateX = _startX;
         startPos = _startPos;
@@ -102,8 +99,8 @@ public class LASER : MonoBehaviour
         if (vertsSet.IsCreated) vertsSet.Dispose();
         vertsSet = new NativeList<float2>(math.max(maxCount * 2, 1), Allocator.Persistent);
 
-        quadVerts.Clear();
-        for (int i = 0; i < cellCount; i++) quadVerts.Add(new List<int>());
+        ClearCollisionCells();
+        quadVerts = new List<int>[math.max(cellCount, 0)];
     }
 
     private void ApplyColor()
@@ -137,6 +134,7 @@ public class LASER : MonoBehaviour
         clearElapsed = 0f;
         clearDuration = duration > 0f ? duration : 0.0001f;
         clearFade01 = 1f;
+        ClearCollisionCells();
     }
 
     private void OnDestroy()
@@ -151,7 +149,7 @@ public class LASER : MonoBehaviour
             clearElapsed += deltaT;
             clearFade01 = math.saturate(1f - clearElapsed / clearDuration);
             ApplyColor(clearFade01);
-            GetVerts();
+            GetVerts(false);
 
             if (clearFade01 <= 0f)
             {
@@ -170,11 +168,16 @@ public class LASER : MonoBehaviour
             timeCarry -= dt;
         }
 
+        if (proc == 0)
+        {
+            life -= deltaT;
+            return life < 0;
+        }
+
         Procede(proc);
         GetVerts();
         life -= deltaT;
 
-        GManager.Control.QOrder.UpdateLASERVerts(vertsSet, ref quadVerts);
         return life < 0;
     }
 
@@ -233,12 +236,13 @@ public class LASER : MonoBehaviour
         }
     }
 
-    private void GetVerts()
+    private void GetVerts(bool markCollisionDirty = true)
     {
         if (nowCount < 2)
         {
             if (vertsSet.IsCreated) vertsSet.Clear();
             mesh.Clear();
+            if (markCollisionDirty) NeedsCellUpdate = true;
             return;
         }
 
@@ -290,16 +294,82 @@ public class LASER : MonoBehaviour
         mesh.SetVertices(vs, 0, activeVertCount);
         mesh.SetIndices(tris, 0, targetTriLength, MeshTopology.Triangles, 0, false);
         mesh.bounds = new Bounds(Vector3.zero, new Vector3(100, 100, 100));
+        if (markCollisionDirty) NeedsCellUpdate = true;
+    }
+
+    public void CopyCollisionVertsTo(NativeArray<float2> destination, int startIndex)
+    {
+        if (!vertsSet.IsCreated) return;
+
+        for (int i = 0; i < vertsSet.Length; i++)
+        {
+            destination[startIndex + i] = vertsSet[i];
+        }
+    }
+
+    public void ApplyCellIndices(NativeArray<int> cellIndices, int startIndex, int count)
+    {
+        ClearTouchedCells();
+
+        if (quadVerts == null || quadVerts.Length == 0)
+        {
+            NeedsCellUpdate = false;
+            return;
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            int cellIndex = cellIndices[startIndex + i];
+            if (cellIndex < 0 || cellIndex >= quadVerts.Length) continue;
+
+            List<int> list = quadVerts[cellIndex];
+            if (list == null)
+            {
+                list = new List<int>();
+                quadVerts[cellIndex] = list;
+            }
+
+            if (list.Count == 0) touchedCells.Add(cellIndex);
+            list.Add(i);
+        }
+
+        NeedsCellUpdate = false;
+    }
+
+    public void ClearCollisionCells()
+    {
+        ClearTouchedCells();
+        NeedsCellUpdate = false;
+    }
+
+    private void ClearTouchedCells()
+    {
+        if (quadVerts == null)
+        {
+            touchedCells.Clear();
+            return;
+        }
+
+        for (int i = 0; i < touchedCells.Count; i++)
+        {
+            int cellIndex = touchedCells[i];
+            if (cellIndex >= 0 && cellIndex < quadVerts.Length)
+            {
+                quadVerts[cellIndex]?.Clear();
+            }
+        }
+
+        touchedCells.Clear();
     }
 
     public NativeArray<LASERCell> GetQuadVerts(int index)
     {
         if (isClearing) return new NativeArray<LASERCell>(0, Allocator.TempJob);
-        if (index < 0 || index >= quadVerts.Count) return new NativeArray<LASERCell>(0, Allocator.TempJob);
+        if (quadVerts == null || index < 0 || index >= quadVerts.Length) return new NativeArray<LASERCell>(0, Allocator.TempJob);
         if (!vertsSet.IsCreated || vertsSet.Length < 4 || nowCount < 2) return new NativeArray<LASERCell>(0, Allocator.TempJob);
 
         List<int> ints = quadVerts[index];
-        if (ints.Count == 0) return new NativeArray<LASERCell>(0, Allocator.TempJob);
+        if (ints == null || ints.Count == 0) return new NativeArray<LASERCell>(0, Allocator.TempJob);
 
         int minLine = int.MaxValue;
         int maxLine = int.MinValue;

@@ -13,7 +13,7 @@ public class BulletRenderSystem : MonoBehaviour
     private const float disappearDuration = 0.1f; // 弾が完全に消えるまでの時間（秒）
     private const float appearBeatBaseAlpha = 0.2f; // a
     private const float appearBeatSinCoeff = 0.3f; // k
-
+    private static readonly int CounterMaskTexelSizeId = Shader.PropertyToID("_CounterMaskTexelSize");
 
     private ComputeBuffer bulletBuffer;
     private ComputeBuffer argsBuffer;
@@ -57,7 +57,7 @@ public class BulletRenderSystem : MonoBehaviour
             false
         );
         textureArray.filterMode = FilterMode.Point;
-        textureArray.wrapMode = TextureWrapMode.Repeat;
+        textureArray.wrapMode = TextureWrapMode.Clamp;
 
         for (int i = 0; i < textures.Length; i++)
         {
@@ -91,7 +91,7 @@ public class BulletRenderSystem : MonoBehaviour
             false
         );
         maskArray.filterMode = FilterMode.Point;
-        maskArray.wrapMode = TextureWrapMode.Repeat;
+        maskArray.wrapMode = TextureWrapMode.Clamp;
 
         for (int i = 0; i < maskTextures.Length; i++)
         {
@@ -126,6 +126,7 @@ public class BulletRenderSystem : MonoBehaviour
         maskArray.Apply(false);
 
         material.SetTexture("_MaskArray", maskArray);
+        material.SetFloat(CounterMaskTexelSizeId, 1f / Mathf.Max(w, h));
         Debug.Log("MaskArray initialized and set to material");
     }
 
@@ -214,7 +215,7 @@ public class BulletRenderSystem : MonoBehaviour
         int safeEnemyCount = math.max(0, enemyCount);
         int safeWarpZoneCount = math.max(0, warpZoneCount);
         int safeCounterCount = math.max(0, counterCount);
-        int totalCount = safeEnemyCount + safeWarpZoneCount + safeCounterCount * (CounterBullet.TrailCapacity + 1);
+        int totalCount = safeEnemyCount + safeWarpZoneCount + safeCounterCount * (CounterBullet.TrailCapacity + 2);
 
         if (totalCount == 0)
         {
@@ -287,8 +288,7 @@ public class BulletRenderSystem : MonoBehaviour
                 fadeIn = 0f;
             }
 
-            bool skipDisappearFade = type.skipDisappearFade;
-            if (b.life > 0f && !skipDisappearFade)
+            if (b.life > 0f)
             {
                 if (disappearDuration > 0f)
                 {
@@ -307,13 +307,14 @@ public class BulletRenderSystem : MonoBehaviour
             {
                 // position は BulletDataUpdateJob でノイズ込みに更新済みの値を使う
                 pos = b.position,
-                angle = b.angle + b.initialAngle,
+                angle = b.GetRotationAngle(),
                 scale = b.scale * type.baseSize,
                 texIndex = b.typeId,
                 maskIndex = b.typeId,
                 appear = appear,
                 color = new float4(b.color.x, b.color.y, b.color.z, b.color.w * clearFade),
                 renderPriority = type.renderPriority,
+                renderMode = GetRenderMode(type),
             };
             writeIndex++;
             activeCount++;
@@ -321,6 +322,14 @@ public class BulletRenderSystem : MonoBehaviour
         }
 
         return writeIndex;
+    }
+
+    private static float GetRenderMode(BulletType type)
+    {
+        if (type == null) return BulletRenderData.DefaultRenderMode;
+        if (BulletData.IsWarpZoneTypeName(type.typeName)) return BulletRenderData.WarpZoneRenderMode;
+        if (BulletData.IsAttentionTypeName(type.typeName)) return BulletRenderData.AttentionRenderMode;
+        return BulletRenderData.DefaultRenderMode;
     }
 
     private float GetBeatValueSin()
@@ -343,55 +352,203 @@ public class BulletRenderSystem : MonoBehaviour
             if (!b.isActive) continue;
 
             float headSize = CounterBullet.GetSize(b.damage);
-            float appear = 1f;
             int renderPriority = GetRenderPriority(CounterBullet.TypeId);
+            if (!b.launched)
+            {
+                writeIndex = AppendCounterSpawnRenderData(b, headSize, renderPriority, writeIndex, maxCount);
+                continue;
+            }
+
+            float appear = CounterBullet.HeadAlpha;
+            float4 counterColor = GetCounterBulletColor(1f);
             renderArray[writeIndex] = new BulletRenderData
             {
                 pos = b.position,
-                angle = math.atan2(b.velocity.y, b.velocity.x),
+                angle = GetCounterBulletAngle(b),
                 scale = new float2(headSize, headSize),
                 texIndex = CounterBullet.TypeId,
                 maskIndex = CounterBullet.TypeId,
                 appear = appear,
-                color = CounterBullet.Color,
+                color = counterColor,
                 renderPriority = renderPriority,
+                renderMode = BulletRenderData.CounterBulletRenderMode,
             };
             writeIndex++;
 
-            float2 previousPoint = b.position;
-            for (int trailIndex = 0; trailIndex < b.trailCount && writeIndex < maxCount; trailIndex++)
-            {
-                if (!b.TryGetTrailPoint(trailIndex, out float2 currentPoint)) break;
-
-                float2 segment = previousPoint - currentPoint;
-                float segmentLength = math.length(segment);
-                if (segmentLength <= 1e-4f)
-                {
-                    previousPoint = currentPoint;
-                    continue;
-                }
-
-                float tNorm = (trailIndex + 1f) / (b.trailCount + 1f);
-                float taper = math.pow(1f - tNorm, 0.45f);
-                float fade = math.pow(1f - tNorm, 1.8f);
-                float segmentSize = math.max(headSize * (0.85f * taper + 0.08f), segmentLength * 1.4f);
-                renderArray[writeIndex] = new BulletRenderData
-                {
-                    pos = (previousPoint + currentPoint) * 0.5f,
-                    angle = math.atan2(segment.y, segment.x),
-                    scale = new float2(segmentSize, segmentSize),
-                    texIndex = CounterBullet.TypeId,
-                    maskIndex = CounterBullet.TypeId,
-                    appear = fade,
-                    color = new float4(CounterBullet.Color.x, CounterBullet.Color.y, CounterBullet.Color.z, CounterBullet.Color.w * fade),
-                    renderPriority = renderPriority,
-                };
-                writeIndex++;
-                previousPoint = currentPoint;
-            }
+            writeIndex = AppendCounterTrailRenderData(b, headSize, renderPriority, writeIndex, maxCount);
         }
 
         return writeIndex;
+    }
+
+    private int AppendCounterTrailRenderData(CounterBullet bullet, float headSize, int renderPriority, int startIndex, int maxCount)
+    {
+        int writeIndex = startIndex;
+        float curveProgress = GetCounterCurveProgress(bullet);
+        if (curveProgress <= 1e-4f) return writeIndex;
+
+        int trailCount = (int)math.ceil(curveProgress * CounterBullet.TrailCapacity);
+        trailCount = math.min(CounterBullet.TrailCapacity, math.max(1, trailCount));
+        float trailSpan = math.min(curveProgress, CounterBullet.TrailProgressSpan);
+        float2 previousPoint = bullet.position;
+
+        for (int trailIndex = 0; trailIndex < trailCount && writeIndex < maxCount; trailIndex++)
+        {
+            float sampleRatio = (trailIndex + 1f) / trailCount;
+            float sampleProgress = math.max(0f, curveProgress - trailSpan * sampleRatio);
+            float2 currentPoint = EvaluateCounterCurve(bullet, sampleProgress);
+
+            float2 segment = previousPoint - currentPoint;
+            float segmentLength = math.length(segment);
+            if (segmentLength <= 1e-4f)
+            {
+                previousPoint = currentPoint;
+                continue;
+            }
+
+            float tNorm = (trailIndex + 1f) / (trailCount + 1f);
+            float taper = math.pow(1f - tNorm, 0.75f);
+            float fade = math.pow(1f - tNorm, 1.8f);
+            float trailWidth = headSize * (0.05f + 0.23f * taper) * CounterBullet.TrailWidthScale;
+            float trailLength = math.max(segmentLength + trailWidth * 2.4f, headSize * (0.08f + 0.36f * taper));
+            float4 trailColor = GetCounterBulletColor(fade * CounterBullet.TrailAlpha);
+            int trailRenderPriority = renderPriority - 1;
+            renderArray[writeIndex] = new BulletRenderData
+            {
+                pos = (previousPoint + currentPoint) * 0.5f,
+                angle = math.atan2(segment.y, segment.x),
+                scale = new float2(trailLength, trailWidth),
+                texIndex = CounterBullet.TypeId,
+                maskIndex = CounterBullet.TypeId,
+                appear = 1f,
+                color = trailColor,
+                renderPriority = trailRenderPriority,
+                renderMode = BulletRenderData.CounterTrailRenderMode,
+            };
+            writeIndex++;
+            previousPoint = currentPoint;
+        }
+
+        return writeIndex;
+    }
+
+    private int AppendCounterSpawnRenderData(CounterBullet bullet, float headSize, int renderPriority, int startIndex, int maxCount)
+    {
+        int writeIndex = startIndex;
+        float progress = bullet.spawnDelay > 1e-5f
+            ? math.saturate(bullet.spawnElapsed / bullet.spawnDelay)
+            : 1f;
+        float eased = math.smoothstep(0f, 1f, progress);
+
+        BulletType sourceType = GetBulletType(bullet.sourceTypeId);
+        float sourceBaseSize = sourceType != null ? sourceType.baseSize : 1f;
+        float2 sourceScale = bullet.sourceScale * sourceBaseSize * math.max(0f, 1f - eased);
+        if (sourceType != null && math.cmax(math.abs(sourceScale)) > 0.02f && writeIndex < maxCount)
+        {
+            float sourceAppear = 1f - math.smoothstep(0.72f, 1f, progress);
+            renderArray[writeIndex] = new BulletRenderData
+            {
+                pos = bullet.position,
+                angle = bullet.sourceAngle,
+                scale = sourceScale,
+                texIndex = bullet.sourceTypeId,
+                maskIndex = bullet.sourceTypeId,
+                appear = sourceAppear,
+                color = bullet.sourceColor,
+                renderPriority = sourceType.renderPriority,
+                renderMode = GetRenderMode(sourceType),
+            };
+            writeIndex++;
+        }
+
+        if (writeIndex < maxCount)
+        {
+            float sourceSize = math.max(headSize, math.cmax(math.abs(bullet.sourceScale)) * sourceBaseSize);
+            float ringSize = sourceSize * math.lerp(1.15f, 2.35f, eased);
+            float ringAlpha = math.pow(1f - progress, 0.55f);
+            renderArray[writeIndex] = new BulletRenderData
+            {
+                pos = bullet.position,
+                angle = 0f,
+                scale = new float2(ringSize, ringSize),
+                texIndex = CounterBullet.TypeId,
+                maskIndex = CounterBullet.TypeId,
+                appear = 1f,
+                color = GetCounterBulletColor(ringAlpha),
+                renderPriority = renderPriority - 1,
+                renderMode = BulletRenderData.CounterSpawnFlashRenderMode,
+            };
+            writeIndex++;
+        }
+
+        return writeIndex;
+    }
+
+    private static float GetCounterBulletAngle(CounterBullet bullet)
+    {
+        float2 heading = bullet.velocity;
+        if (math.dot(heading, heading) <= 1e-8f)
+        {
+            heading = EvaluateCounterCurveDerivative(bullet, GetCounterCurveProgress(bullet));
+        }
+
+        if (math.dot(heading, heading) <= 1e-8f)
+        {
+            heading = bullet.targetPosition - bullet.startPosition;
+        }
+
+        if (math.dot(heading, heading) <= 1e-8f)
+        {
+            heading = new float2(1f, 0f);
+        }
+
+        return math.atan2(heading.y, heading.x);
+    }
+
+    private static float GetCounterCurveProgress(CounterBullet bullet)
+    {
+        return bullet.curveDuration > 1e-5f
+            ? math.saturate(bullet.curveElapsed / bullet.curveDuration)
+            : 1f;
+    }
+
+    private static float2 EvaluateCounterCurve(CounterBullet bullet, float progress)
+    {
+        float easedProgress = math.smoothstep(0f, 1f, math.saturate(progress));
+        return EvaluateBezier(
+            bullet.startPosition,
+            bullet.controlPosition,
+            bullet.targetPosition,
+            easedProgress
+        );
+    }
+
+    private static float2 EvaluateCounterCurveDerivative(CounterBullet bullet, float progress)
+    {
+        float easedProgress = math.smoothstep(0f, 1f, math.saturate(progress));
+        return EvaluateBezierDerivative(
+            bullet.startPosition,
+            bullet.controlPosition,
+            bullet.targetPosition,
+            easedProgress
+        );
+    }
+
+    private static float2 EvaluateBezier(float2 start, float2 control, float2 target, float t)
+    {
+        float invT = 1f - t;
+        return invT * invT * start + 2f * invT * t * control + t * t * target;
+    }
+
+    private static float2 EvaluateBezierDerivative(float2 start, float2 control, float2 target, float t)
+    {
+        return 2f * (1f - t) * (control - start) + 2f * t * (target - control);
+    }
+
+    private static float4 GetCounterBulletColor(float alphaMultiplier)
+    {
+        Color color = GManager.Control != null ? GManager.Control.playerColor : Color.white;
+        return new float4(color.r, color.g, color.b, math.saturate(color.a * alphaMultiplier));
     }
 
     private void SortRenderData(int count)
@@ -440,12 +597,17 @@ public class BulletRenderSystem : MonoBehaviour
 
     private int GetRenderPriority(int typeId)
     {
-        BulletTypeDataBase typeDataBase = GManager.Control != null ? GManager.Control.BTDB : null;
-        if (typeDataBase == null || typeDataBase.types == null) return 0;
-        if (typeId < 0 || typeId >= typeDataBase.types.Length) return 0;
-
-        BulletType type = typeDataBase.types[typeId];
+        BulletType type = GetBulletType(typeId);
         return type != null ? type.renderPriority : 0;
+    }
+
+    private BulletType GetBulletType(int typeId)
+    {
+        BulletTypeDataBase typeDataBase = GManager.Control != null ? GManager.Control.BTDB : null;
+        if (typeDataBase == null || typeDataBase.types == null) return null;
+        if (typeId < 0 || typeId >= typeDataBase.types.Length) return null;
+
+        return typeDataBase.types[typeId];
     }
 
     private void UpdateInstanceCount(int count)
