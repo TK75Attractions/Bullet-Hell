@@ -29,8 +29,6 @@ public class GManager : MonoBehaviour
     public GameState state = GameState.Title;
 
     public GameObject PlayerObj;
-    [FormerlySerializedAs("EnemyObj")]
-    public GameObject MultiBulletObj;
     public PlayerController PController;
 
     public InputManager IManager;
@@ -129,7 +127,15 @@ public class GManager : MonoBehaviour
 
             BTDB.Init();
             // raymee CounterBullet は struct で TypeId=18 の定数を持つため、marron の
-            // 実行時 ResolveTypeId は不要(呼び出し削除)。
+            // 実行時 ResolveTypeId は不要(呼び出し削除)。ただし BulletTypeDataBase の並び順が
+            // 変わると TypeId=18 が別の弾を指しカウンター弾が無言で壊れるので、起動時に検証する。
+            if (BTDB.types == null || CounterBullet.TypeId >= BTDB.types.Length
+                || BTDB.types[CounterBullet.TypeId] == null
+                || BTDB.types[CounterBullet.TypeId].typeName != "counter_star")
+            {
+                Debug.LogError($"[GManager] CounterBullet.TypeId({CounterBullet.TypeId}) が 'counter_star' を指していません。" +
+                               "BulletTypeDataBase の並び順を確認してください(18番より前への挿入は禁止)。");
+            }
             LogStartup("Bullet types initialized");
             SDB = new();
             LogStartup("Stage database init start");
@@ -548,28 +554,39 @@ public class GManager : MonoBehaviour
     public async Task GoGameAsync(int index)
     {
         StageData stage = SDB.GetStage(index);
-        if (stage != null)
-        {
-            playerHitCount = 0;
-            counterHitBossCount = 0;
-            QOrder?.ClearManagedEnemyDanmaku();
-            PController?.ResetToCenter();
-            TManager?.Dismiss();
-            HideTitleBossBackdrop();
-            await SReader.Init(stage);
-            SReader.ResetStageClockToScheduledStart();
-            HideTitleBossBackdrop();
-            state = GameState.Playing;
-            string historyDir = string.IsNullOrWhiteSpace(stage.stageDirectoryName)
-                ? stage.stageName
-                : stage.stageDirectoryName;
-            PlayHistory.RecordPlay(historyDir);
-            Debug.Log($"Started Stage: {stage.stageName}");
-        }
-        else
+        if (stage == null)
         {
             Debug.LogError($"Stage with index {index} not found!");
+            return;
         }
+
+        // raymee ランタイム互換: 共有 StageData を直接 Init すると難易度が効かず、Init が
+        // 共有インスタンスを mutate(sort/index書込)してリプレイで状態が蓄積する。難易度
+        // 解決済みのランタイムコピーを渡す。当面は Lunatic 固定(難易度UI配線は Stage2)。
+        StageData runtimeStage = stage.CreateRuntimeCopy(Difficulty.Lunatic);
+
+        playerHitCount = 0;
+        counterHitBossCount = 0;
+        QOrder?.ClearManagedEnemyDanmaku();
+        PController?.ResetToCenter();
+        TManager?.Dismiss();
+        HideTitleBossBackdrop();
+
+        bool initialized = await SReader.Init(runtimeStage);
+        if (!initialized)
+        {
+            Debug.LogError($"Stage '{runtimeStage.stageName}' の初期化に失敗(endTime<=0 か難易度データ無し)。旧スキーマの石工は Stage3 のデータ変換まで起動しない想定。");
+            return;
+        }
+
+        SReader.ResetStageClockToScheduledStart();
+        HideTitleBossBackdrop();
+        state = GameState.Playing;
+        string historyDir = string.IsNullOrWhiteSpace(runtimeStage.stageDirectoryName)
+            ? runtimeStage.stageName
+            : runtimeStage.stageDirectoryName;
+        PlayHistory.RecordPlay(historyDir);
+        Debug.Log($"Started Stage: {runtimeStage.stageName} (Lunatic)");
     }
 
     // Opens/closes the pause (option) screen. Freezes game time and all audio.

@@ -16,6 +16,10 @@ public class StageReader : MonoBehaviour
     [SerializeField] private bool isReady = false;
     private EnemyVisualCatalog enemyVisualCatalog;
     private BossManager bossManager;
+    // 音ハメ用の BGM 同期クロック(marron 由来)。Init で PlayScheduled した BGM の
+    // 予定 DSP 時刻を保持し、UpdateStage で AudioSettings.dspTime に同期する。
+    private AudioSource stageBgmSource;
+    private double stageBgmScheduledDspTime = -1d;
 
     public float ElapsedTime => time;
     public float EndTime => stageData != null ? stageData.endTime : 0f;
@@ -57,6 +61,8 @@ public class StageReader : MonoBehaviour
         bulletCount = 0;
         spawnEvents.Clear();
         isReady = false;
+        stageBgmSource = null;
+        stageBgmScheduledDspTime = -1d;
 
         if (GManager.Control.SDB != null)
         {
@@ -96,6 +102,8 @@ public class StageReader : MonoBehaviour
             {
                 double scheduledDspTime = AudioSettings.dspTime + BgmLeadTime;
                 bgmSource.PlayScheduled(scheduledDspTime);
+                stageBgmSource = bgmSource;
+                stageBgmScheduledDspTime = scheduledDspTime;
                 GManager.Control.BManager.SetBeat(bgmSource, stageData.audioClip, stageData.MusicEvents, scheduledDspTime, stageData.delayTime);
                 GManager.Control.musicOn = true;
             }
@@ -211,7 +219,22 @@ public class StageReader : MonoBehaviour
     public void UpdateStage(float dt)
     {
         if (stageData == null || !isReady) return;
-        time = Mathf.Min(time + dt, stageData.endTime);
+        if (GManager.Control == null || GManager.Control.state != GManager.GameState.Playing) return;
+
+        // 音ハメ: BGM の DSP 時刻にステージクロックを同期させる(marron 由来)。
+        // scheduledDspTime は BGM の実発音予定時刻。delayTime だけ後ろへずらして t=0 を合わせる。
+        // BGM が無い(silent)ステージはフレーム加算にフォールバック。
+        if (stageBgmSource != null && stageData.audioClip != null && stageBgmScheduledDspTime > 0d)
+        {
+            double syncedTime = AudioSettings.dspTime - stageBgmScheduledDspTime - stageData.delayTime;
+            if (syncedTime < 0d) return; // まだ発音前(BgmLeadTime のリード中)
+            time = Mathf.Min(Mathf.Max(time, (float)syncedTime), stageData.endTime);
+        }
+        else
+        {
+            time = Mathf.Min(time + dt, stageData.endTime);
+        }
+
         bossManager?.UpdateBosses(dt, time);
 
         while (stageData.multiBulletSpawners.Count > multiBulletSpawnerCount && stageData.multiBulletSpawners[multiBulletSpawnerCount].time <= time)
