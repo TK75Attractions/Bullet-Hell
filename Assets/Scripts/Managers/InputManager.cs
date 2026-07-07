@@ -127,16 +127,27 @@ public class InputManager : MonoBehaviour
 
                         latestRawLine = message.Trim();
 
-                        if (latestRawLine.Contains("PRESSED"))
+                        // 新プロトコル(esp32-s3-serial-controller): JSON Lines を約60fpsで送る。
+                        //   {"x":0,"y":-1,"dash":false}
+                        // JSON 行はこちらで処理し、それ以外は旧プロトコル(Dir:/PRESSED)にフォールバック。
+                        if (TryParseJsonInput(latestRawLine, out Vector2 jsonMove, out bool jsonDash))
                         {
-                            serialButtonState = true;
+                            serialMove = jsonMove;
+                            serialButtonState = jsonDash;
                         }
-                        else if (latestRawLine.Contains("RELEASED"))
+                        else
                         {
-                            serialButtonState = false;
-                        }
+                            if (latestRawLine.Contains("PRESSED"))
+                            {
+                                serialButtonState = true;
+                            }
+                            else if (latestRawLine.Contains("RELEASED"))
+                            {
+                                serialButtonState = false;
+                            }
 
-                        ParseDirLine(latestRawLine);
+                            ParseDirLine(latestRawLine);
+                        }
                     }
                 }
             }
@@ -223,6 +234,47 @@ public class InputManager : MonoBehaviour
         }
 
         return readLineMethod.Invoke(serialPort, null) as string;
+    }
+
+    // esp32-s3-serial-controller のシリアル出力(JSON Lines)を表す。
+    //   {"x":0,"y":-1,"dash":false}
+    [Serializable]
+    private struct SerialInputJson
+    {
+        public int x;
+        public int y;
+        public bool dash;
+    }
+
+    /// <summary>
+    /// ESP32 の JSON 行を解釈して移動ベクトルとボタン(ダッシュ/決定)状態を得る。
+    /// x=右+、ジョイスティックの上下左右がそのまま選択/移動に対応する。
+    /// ファームは y = down - up(下が+1)で送るため、Unity の「上が+」に合わせて反転する。
+    /// JSON でない/壊れた行は false を返し、旧プロトコルにフォールバックさせる。
+    /// </summary>
+    private bool TryParseJsonInput(string line, out Vector2 move, out bool dash)
+    {
+        move = Vector2.zero;
+        dash = false;
+
+        if (string.IsNullOrEmpty(line) || line.Length < 2 || line[0] != '{' || line[line.Length - 1] != '}')
+        {
+            return false;
+        }
+
+        try
+        {
+            SerialInputJson data = JsonUtility.FromJson<SerialInputJson>(line);
+            float x = Mathf.Clamp(data.x, -1, 1);
+            float y = Mathf.Clamp(data.y, -1, 1);
+            move = new Vector2(x, -y);
+            dash = data.dash;
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private void ParseDirLine(string line)
