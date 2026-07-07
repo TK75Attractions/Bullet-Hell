@@ -79,6 +79,10 @@ public class PlayerController
         if (playerTransform != null) playerTransform.position = new Vector3(pos.x, pos.y, 0f);
     }
 
+    // marron keep コード(GManager / StageSelectManager)向け互換。開始位置(中央)への
+    // リセットは raymee の ResetForStage と同義。
+    public void ResetToCenter() => ResetForStage();
+
     private void Move(float dt)
     {
         float2 previousPos = pos;

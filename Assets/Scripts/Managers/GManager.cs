@@ -54,6 +54,11 @@ public class GManager : MonoBehaviour
     private float titleStartTimer;
     private int optionScreenSiblingIndex = -1;
     public BulletBufferManager BClipManager;
+    // raymee ランタイム互換: raymee 系(StageReader/QuadOrder/BulletRenderSystem)は
+    // バッファ管理を BulletBuffers、自機色を playerColor という名前で参照する。marron は
+    // 同じ BulletBufferManager を BClipManager として保持しているためエイリアスで橋渡し。
+    public BulletBufferManager BulletBuffers => BClipManager;
+    public Color playerColor = new Color(1f, 1f, 0.6f, 1f);
     public QuadOrder QOrder;
     public BulletTypeDataBase BTDB;
 
@@ -123,7 +128,8 @@ public class GManager : MonoBehaviour
             LogStartup("Core managers resolved");
 
             BTDB.Init();
-            CounterBullet.ResolveTypeId(BTDB);
+            // raymee CounterBullet は struct で TypeId=18 の定数を持つため、marron の
+            // 実行時 ResolveTypeId は不要(呼び出し削除)。
             LogStartup("Bullet types initialized");
             SDB = new();
             LogStartup("Stage database init start");

@@ -23,6 +23,15 @@ public class StageReader : MonoBehaviour
     public Boss CurrentBoss => bossManager != null ? bossManager.CurrentBoss : null;
     public bool IsBossDefeated => bossManager != null && bossManager.IsBossDefeated;
 
+    // marron keep コード(GManager / StageTimeOverlay / StoneBeltScrollDriver)向けの互換エイリアス。
+    public bool IsReady => isReady;
+    public StageData CurrentStage => stageData;
+    public float CurrentTime => time;
+
+    // marron 互換: raymee は Init 内で BGM を PlayScheduled + SetBeat してクロックを開始するため、
+    // Init 後に別途クロック開始を呼ぶ必要がない。呼び出し互換のための no-op。
+    public void ResetStageClockToScheduledStart() { }
+
     [Serializable]
     private struct BulletSpawnEvent
     {
