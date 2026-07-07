@@ -24,7 +24,8 @@ public class StageTimeOverlay : MonoBehaviour
     }
 
     private static StageTimeOverlay instance;
-    private bool visible = true;
+    // 既定は非表示。タイミング確認が必要なときだけ F1 で表示する。
+    private bool visible = false;
 
     private readonly List<Marker> stoneMarkers = new List<Marker>();
     private string loadedForStage;

@@ -176,6 +176,9 @@ public class GManager : MonoBehaviour
             QOrder.AwakeSetting();
             PController = new PlayerController();
             GameObject ptemp = Instantiate(PlayerObj);
+            // プレイエリア(32x18)の中央下をスタート位置にする。PlayerController.Init が
+            // ここでの transform 位置を initialPos として取り込み、リトライ時もここへ戻る。
+            ptemp.transform.position = new Vector3(16f, 3f, 0f);
             PController.Init(ptemp);
             // Keep the player readable on top of the GPU bullet layer (URP draws
             // the instanced bullets after the 2D sprite passes, otherwise burying it).

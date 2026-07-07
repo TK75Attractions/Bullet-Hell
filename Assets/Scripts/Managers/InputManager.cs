@@ -17,6 +17,8 @@ public class InputManager : MonoBehaviour
     private Vector2 serialMove;
     private string latestRawLine = "";
 
+    // true = シリアル(ESP32)を開かずキーボードのみ(COM4 未接続時の警告を避けたいとき)。
+    // false(既定)= シリアルも開いてキーボードと併用。いずれの場合もキーボードは常に有効。
     public bool isDebugMode = false;
     public bool buttonPressed;
     public bool buttonPressedThisFrame;
@@ -48,8 +50,8 @@ public class InputManager : MonoBehaviour
     {
         if (isDebugMode)
         {
-            InitStatus = "keyboard debug (serial disabled)";
-            Debug.Log("InputManager is in debug mode. Using keyboard input.");
+            InitStatus = "keyboard only (serial disabled)";
+            Debug.Log("InputManager: serial disabled. Keyboard input only.");
             return;
         }
 
@@ -77,35 +79,18 @@ public class InputManager : MonoBehaviour
         }
         catch (System.Exception e)
         {
-            InitStatus = "open failed: " + e.Message;
-            Debug.LogError("Failed to open serial port: " + e.Message);
+            // ESP32 未接続時はここに来るが、キーボードは常時有効なので致命的ではない。
+            InitStatus = "serial open failed (keyboard still works): " + e.Message;
+            Debug.LogWarning("Serial port open failed (ESP32 未接続?). Keyboard input still works: " + e.Message);
             CloseSerialPort();
         }
     }
 
     public void UpdateInput()
     {
+        // キーボードとシリアル(ESP32)を両方受け付ける。キーボードは常時有効、シリアルは
+        // ポートが開いているとき(接続時)だけマージする。どちらでも操作できる。
         Keyboard keyboard = Keyboard.current;
-        bool keyboardBackPressed = keyboard != null && keyboard.escapeKey.isPressed;
-        bool keyboardBackPressedThisFrame = keyboard != null && keyboard.escapeKey.wasPressedThisFrame;
-
-        if (isDebugMode)
-        {
-            buttonPressed = keyboard != null && keyboard.spaceKey.isPressed;
-            buttonPressedThisFrame = keyboard != null && keyboard.spaceKey.wasPressedThisFrame;
-            backPressed = keyboardBackPressed;
-            backPressedThisFrame = keyboardBackPressedThisFrame;
-            upPressed = keyboard != null && (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed);
-            downPressed = keyboard != null && (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed);
-            leftPressed = keyboard != null && (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed);
-            rightPressed = keyboard != null && (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed);
-
-            upPressedThisFrame = keyboard != null && (keyboard.wKey.wasPressedThisFrame || keyboard.upArrowKey.wasPressedThisFrame);
-            downPressedThisFrame = keyboard != null && (keyboard.sKey.wasPressedThisFrame || keyboard.downArrowKey.wasPressedThisFrame);
-            leftPressedThisFrame = keyboard != null && (keyboard.aKey.wasPressedThisFrame || keyboard.leftArrowKey.wasPressedThisFrame);
-            rightPressedThisFrame = keyboard != null && (keyboard.dKey.wasPressedThisFrame || keyboard.rightArrowKey.wasPressedThisFrame);
-            return;
-        }
 
         bool prevButtonState = buttonPressed;
         bool prevUpPressed = upPressed;
@@ -113,55 +98,49 @@ public class InputManager : MonoBehaviour
         bool prevLeftPressed = leftPressed;
         bool prevRightPressed = rightPressed;
 
-        buttonPressedThisFrame = false;
-        backPressed = keyboardBackPressed;
-        backPressedThisFrame = keyboardBackPressedThisFrame;
-        upPressed = false;
-        downPressed = false;
-        leftPressed = false;
-        rightPressed = false;
-        upPressedThisFrame = false;
-        downPressedThisFrame = false;
-        leftPressedThisFrame = false;
-        rightPressedThisFrame = false;
+        // --- キーボード(常時) ---
+        bool kbButton = keyboard != null && keyboard.spaceKey.isPressed;
+        bool kbUp = keyboard != null && (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed);
+        bool kbDown = keyboard != null && (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed);
+        bool kbLeft = keyboard != null && (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed);
+        bool kbRight = keyboard != null && (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed);
+        bool kbBack = keyboard != null && keyboard.escapeKey.isPressed;
 
+        // --- シリアル(接続時のみ)。serialMove/serialButtonState を更新 ---
         if (serialPort != null && IsSerialOpen())
         {
             try
             {
-                if (GetBytesToRead() > 0)
+                while (GetBytesToRead() > 0)
                 {
-                    while (GetBytesToRead() > 0)
+                    string message = ReadSerialLine();
+                    if (string.IsNullOrEmpty(message))
                     {
-                        string message = ReadSerialLine();
-                        if (string.IsNullOrEmpty(message))
+                        break;
+                    }
+
+                    latestRawLine = message.Trim();
+
+                    // 新プロトコル(esp32-s3-serial-controller): JSON Lines を約60fpsで送る。
+                    //   {"x":0,"y":-1,"dash":false}
+                    // JSON 行はこちらで処理し、それ以外は旧プロトコル(Dir:/PRESSED)にフォールバック。
+                    if (TryParseJsonInput(latestRawLine, out Vector2 jsonMove, out bool jsonDash))
+                    {
+                        serialMove = jsonMove;
+                        serialButtonState = jsonDash;
+                    }
+                    else
+                    {
+                        if (latestRawLine.Contains("PRESSED"))
                         {
-                            break;
+                            serialButtonState = true;
+                        }
+                        else if (latestRawLine.Contains("RELEASED"))
+                        {
+                            serialButtonState = false;
                         }
 
-                        latestRawLine = message.Trim();
-
-                        // 新プロトコル(esp32-s3-serial-controller): JSON Lines を約60fpsで送る。
-                        //   {"x":0,"y":-1,"dash":false}
-                        // JSON 行はこちらで処理し、それ以外は旧プロトコル(Dir:/PRESSED)にフォールバック。
-                        if (TryParseJsonInput(latestRawLine, out Vector2 jsonMove, out bool jsonDash))
-                        {
-                            serialMove = jsonMove;
-                            serialButtonState = jsonDash;
-                        }
-                        else
-                        {
-                            if (latestRawLine.Contains("PRESSED"))
-                            {
-                                serialButtonState = true;
-                            }
-                            else if (latestRawLine.Contains("RELEASED"))
-                            {
-                                serialButtonState = false;
-                            }
-
-                            ParseDirLine(latestRawLine);
-                        }
+                        ParseDirLine(latestRawLine);
                     }
                 }
             }
@@ -175,18 +154,25 @@ public class InputManager : MonoBehaviour
             }
         }
 
-        buttonPressed = serialButtonState;
+        bool serUp = serialMove.y > 0.5f;
+        bool serDown = serialMove.y < -0.5f;
+        bool serLeft = serialMove.x < -0.5f;
+        bool serRight = serialMove.x > 0.5f;
+
+        // --- キーボード OR シリアルをマージ ---
+        upPressed = kbUp || serUp;
+        downPressed = kbDown || serDown;
+        leftPressed = kbLeft || serLeft;
+        rightPressed = kbRight || serRight;
+        buttonPressed = kbButton || serialButtonState;
+        backPressed = kbBack;
+
         buttonPressedThisFrame = !prevButtonState && buttonPressed;
-
-        upPressed = serialMove.y > 0.5f;
-        downPressed = serialMove.y < -0.5f;
-        leftPressed = serialMove.x < -0.5f;
-        rightPressed = serialMove.x > 0.5f;
-
         upPressedThisFrame = !prevUpPressed && upPressed;
         downPressedThisFrame = !prevDownPressed && downPressed;
         leftPressedThisFrame = !prevLeftPressed && leftPressed;
         rightPressedThisFrame = !prevRightPressed && rightPressed;
+        backPressedThisFrame = keyboard != null && keyboard.escapeKey.wasPressedThisFrame;
     }
 
     private void OnDestroy()

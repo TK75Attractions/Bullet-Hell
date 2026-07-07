@@ -19,9 +19,8 @@ using UnityEngine.InputSystem;
 public class InputDebugOverlay : MonoBehaviour
 {
     private static InputDebugOverlay instance;
-    // Visible by default in the editor so input can be verified the moment Play
-    // starts; F2 hides it when it gets in the way.
-    private bool visible = true;
+    // 既定は非表示。入力確認が必要なときだけ F2 で表示する。
+    private bool visible = false;
 
     private const float PanelW = 340f;
     private const float PanelH = 198f;
