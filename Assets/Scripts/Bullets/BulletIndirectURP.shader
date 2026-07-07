@@ -54,6 +54,9 @@ Shader "Custom/BulletIndirectURP"
             float _CounterGlowRadius;
             float _CounterGlowStrength;
             float _CounterRimBoost;
+            // 石工ベルト帯のスリット模様スクロール量(UV)。StoneBeltScrollDriver が flow 窓の
+            // 間だけ進める(marron 由来。統合で shader から欠落していたのを復活)。
+            float _StoneBeltScroll;
 
             struct BulletData
             {
@@ -254,12 +257,20 @@ Shader "Custom/BulletIndirectURP"
                     return fragAttention(input);
                 }
 
-                // テクスチャ配列からサンプリング
-                half4 baseCol = SAMPLE_TEXTURE2D_ARRAY(_MainArray, sampler_MainArray, 
-                    input.uv, input.texIndex);
+                // 石工ベルト帯(scale.x>20, scale.y<3.5)のスリット模様を UV スクロール(marron 由来)。
+                // 帯上を流れる belt_flow ブロックと速度一致。StoneBeltScrollDriver が flow 窓だけ進める。
+                float2 uv = input.uv;
+                if (input.scale.x > 20.0 && input.scale.y < 3.5)
+                {
+                    uv.x = frac(uv.x + _StoneBeltScroll);
+                }
 
-                half mask = SAMPLE_TEXTURE2D_ARRAY(_MaskArray, sampler_MaskArray, 
-                    input.uv, input.maskIndex).r;
+                // テクスチャ配列からサンプリング
+                half4 baseCol = SAMPLE_TEXTURE2D_ARRAY(_MainArray, sampler_MainArray,
+                    uv, input.texIndex);
+
+                half mask = SAMPLE_TEXTURE2D_ARRAY(_MaskArray, sampler_MaskArray,
+                    uv, input.maskIndex).r;
                 half appear = saturate(input.appear);
 
                 if (input.renderMode > 0.5)
