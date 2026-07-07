@@ -25,7 +25,8 @@ public static class StageRecorderMenu
     // keeps the visual tail (clear effects, last fades) without running forever when
     // the game state never leaves Playing (debug-started stages stay in Playing after
     // the stage content ends, and the BGM clip can be much longer than the content).
-    private const double BulletsClearedTailSec = 5.0;
+    // 弾に切れ目のあるステージ(captain 等)で早期自動停止しないよう、無弾継続の許容を長めに。
+    private const double BulletsClearedTailSec = 20.0;
 
     private static RecorderController controller;
     private static RecorderControllerSettings controllerSettings;
