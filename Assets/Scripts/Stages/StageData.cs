@@ -399,6 +399,9 @@ public class StageData
                 startPos = spawner.startPos,
                 scale = spawner.scale,
                 angle = spawner.angle,
+                sortingOrder = spawner.sortingOrder,
+                fadeInSec = spawner.fadeInSec,
+                fadeOutSec = spawner.fadeOutSec,
                 animation = CloneBossAnimationPlan(spawner.animation),
                 moves = CloneBossMoveEvents(spawner.moves)
             });

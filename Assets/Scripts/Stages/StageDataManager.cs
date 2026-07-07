@@ -375,6 +375,12 @@ public class StageDataManager
 
         public float angle;
 
+        public int sortingOrder;
+
+        public float fadeInSec;
+
+        public float fadeOutSec;
+
         public BossAnimationPlan animation = new BossAnimationPlan();
 
         public List<BossMoveEventJson> moves = new List<BossMoveEventJson>();
@@ -436,6 +442,12 @@ public class StageDataManager
                 scale = resolvedScale,
 
                 angle = angle,
+
+                sortingOrder = sortingOrder,
+
+                fadeInSec = fadeInSec,
+
+                fadeOutSec = fadeOutSec,
 
                 animation = BossAnimationPlan.Normalize(animation),
 

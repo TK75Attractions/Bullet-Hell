@@ -48,6 +48,9 @@ def boss_from_enemy(e, warns, stage):
         "startPos": {"x": opos.get('x', 0), "y": opos.get('y', 0)},
         "scale": {"x": oscl.get('x', 1), "y": oscl.get('y', 1)},
         "angle": 0.0,
+        "sortingOrder": e.get('sortingOrder', 0),
+        "fadeInSec": e.get('fadeInSec', 0.0),
+        "fadeOutSec": e.get('fadeOutSec', 0.0),
         "animation": {
             "initialClip": anim.get('initialClip', 'idle'),
             "events": anim.get('events', []),
