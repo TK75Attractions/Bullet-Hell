@@ -38,7 +38,8 @@ public class GManager : MonoBehaviour
     public CManager CManager;
     public StageSelectManager SSManager;
     public TitleManager TManager;
-    public int selectedDifficulty = 1;
+    // 0=Easy / 1=Normal / 2=Lunatic。現状データは Lunatic のみのため既定を Lunatic に。
+    public int selectedDifficulty = 2;
     public bool isPaused = false;
     private GameObject optionScreenObj;
     private OptionMenu optionMenu;
@@ -562,8 +563,11 @@ public class GManager : MonoBehaviour
 
         // raymee ランタイム互換: 共有 StageData を直接 Init すると難易度が効かず、Init が
         // 共有インスタンスを mutate(sort/index書込)してリプレイで状態が蓄積する。難易度
-        // 解決済みのランタイムコピーを渡す。当面は Lunatic 固定(難易度UI配線は Stage2)。
-        StageData runtimeStage = stage.CreateRuntimeCopy(Difficulty.Lunatic);
+        // 解決済みのランタイムコピーを渡す。UI の selectedDifficulty(0=Easy/1=Normal/2=Lunatic)
+        // を反映。現状データは Lunatic のみ(legacy 自動ラップ)なので、Easy/Normal を選んでも
+        // CreateRuntimeCopy が top-level(Lunatic)へフォールバックして正常に起動する。
+        Difficulty selected = (Difficulty)Mathf.Clamp(selectedDifficulty, 0, 2);
+        StageData runtimeStage = stage.CreateRuntimeCopy(selected);
 
         playerHitCount = 0;
         counterHitBossCount = 0;
@@ -586,7 +590,7 @@ public class GManager : MonoBehaviour
             ? runtimeStage.stageName
             : runtimeStage.stageDirectoryName;
         PlayHistory.RecordPlay(historyDir);
-        Debug.Log($"Started Stage: {runtimeStage.stageName} (Lunatic)");
+        Debug.Log($"Started Stage: {runtimeStage.stageName} (requested={selected}, data={runtimeStage.resolvedDataDifficulty.displayName})");
     }
 
     // Opens/closes the pause (option) screen. Freezes game time and all audio.
