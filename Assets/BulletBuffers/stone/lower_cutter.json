@@ -16,7 +16,10 @@
             },
             "startX": 0,
             "speed": 14,
-            "gravity": 0,
+            "gravity": {
+                "x": 0,
+                "y": -1.5707963
+            },
             "angleSpeed": 10,
             "initialAngle": 0,
             "polarForm": {
@@ -50,8 +53,7 @@
             "appearDuration": 0,
             "life": 5.033333,
             "random": 0,
-            "unCounterable": true,
-            "lockRotation": false
+            "unCounterable": true
         },
         {
             "originPos": {
@@ -68,7 +70,10 @@
             },
             "startX": 0,
             "speed": 14,
-            "gravity": 0,
+            "gravity": {
+                "x": 0,
+                "y": -1.5707963
+            },
             "angleSpeed": 10,
             "initialAngle": 0,
             "polarForm": {
@@ -102,8 +107,7 @@
             "appearDuration": 0,
             "life": 5.033333,
             "random": 0,
-            "unCounterable": true,
-            "lockRotation": false
+            "unCounterable": true
         }
     ],
     "homing": false,

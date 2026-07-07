@@ -12,7 +12,10 @@
             },
             "startX": 0,
             "speed": 17.36789,
-            "gravity": 0,
+            "gravity": {
+                "x": 0,
+                "y": -1.5707963
+            },
             "angleSpeed": -6.28319,
             "initialAngle": 0,
             "polarForm": {
