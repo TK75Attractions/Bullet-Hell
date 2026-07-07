@@ -280,17 +280,13 @@ Shader "Custom/BulletIndirectURP"
                     return baseCol;
                 }
 
-                // Compose the texture and tint independently from opacity so that
-                // color.a only controls the transparency of the finished bullet.
-                half tintAlpha = saturate(mask);
-                half baseAlpha = saturate(baseCol.a);
-                half outAlpha = saturate(baseAlpha + tintAlpha * (1.0 - baseAlpha));
-                half3 outRgb = outAlpha > 1e-4
-                    ? (baseCol.rgb * baseAlpha * (1.0 - tintAlpha) + input.color.rgb * tintAlpha) / outAlpha
-                    : half3(0.0, 0.0, 0.0);
-
-                baseCol.rgb = outRgb;
-                baseCol.a = outAlpha * saturate(input.color.a) * appear;
+                // marron 由来の規約: color.w=0 の弾はスプライト本来の色/アルファをそのまま表示する
+                // (hammer/cutter/warn_box 等)。tint(mask×color.a)は sprite alpha と max で合成するので、
+                // color.a を 0 にしても sprite が消えない。raymee 版は alpha を color.a で乗じており
+                // color.w=0 の弾が不可視化していた(統合 regression)ため、marron 式に戻す。
+                half tintStrength = saturate(mask * input.color.a);
+                baseCol.rgb = lerp(baseCol.rgb, input.color.rgb, tintStrength);
+                baseCol.a = max(baseCol.a, tintStrength) * appear;
 
                 return baseCol;
             }

@@ -154,7 +154,10 @@ public static class EnemyVisualLoader
             Sprite sprite = Sprite.Create(texture, new Rect(0f, 0f, gif.width, gif.height), pivot, pixelsPerUnit);
             sprite.name = texture.name;
             sprites.Add(sprite);
-            durations.Add(frame.delaySeconds);
+            // GIF に焼き込まれた frame delay は export 時の高フレームレート産物で「アニメが速すぎる」
+            // 原因になる。作者が clip 定義で指定した frameDuration を優先し、未指定(0)のときだけ
+            // GIF の delay にフォールバックする。
+            durations.Add(clipDefinition.frameDuration > 0f ? clipDefinition.frameDuration : frame.delaySeconds);
         }
 
         return new EnemyVisualClipRuntime
