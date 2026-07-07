@@ -1,2431 +1,1552 @@
 {
-  "stageName": "Captain",
-  "MusicEvents": [
-    {
-      "barCount": 20,
-      "BPM": 110,
-      "beatTimings": [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5
-      ],
-      "measure": 6,
-      "barStartOffsetBeats": 0
-    }
-  ],
-  "delayTime": 3,
-  "stageDescription": "Stage Description Here",
-  "enemyVisuals": [
-    {
-      "id": "captain",
-      "source": "addressable",
-      "address": "enemy/captain",
-      "fallbackSpriteEnemyName": "demo"
-    }
-  ],
-  "enemySpawners": [
-    {
-      "enemyName": "demo",
-      "visualId": "captain",
-      "animation": {
-        "initialClip": "idle",
-        "triggers": [
-          {
-            "trigger": "shot",
-            "clip": "attack",
-            "next": "idle"
-          }
-        ]
-      },
-      "count": 1,
-      "enemyInterval": 0,
-      "enemyAppearTime": 22.09091,
-      "bulletEmitTime": 0.03,
-      "bulletCount": 1,
-      "life": 10,
-      "orbit": {
-        "originPos": {
-          "x": 16,
-          "y": 16
-        },
-        "originVlc": {
-          "x": 0,
-          "y": 0
-        },
-        "startX": 0,
-        "speed": 0,
-        "gravity": 0,
-        "angleSpeed": 0,
-        "initialAngle": 0,
-        "polarForm": {
-          "x": 0,
-          "y": 0
-        },
-        "radiusVlc": 0,
-        "thetaVlc": 0,
-        "startPos": {
-          "x": 0,
-          "y": 0
-        },
-        "polynomial": {
-          "x": 0,
-          "y": 0,
-          "z": 0,
-          "w": 0
-        },
-        "typeName": null,
-        "scale": {
-          "x": 0,
-          "y": 0
-        },
-        "color": {
-          "x": 0,
-          "y": 0,
-          "z": 0,
-          "w": 0
-        },
-        "appearTime": 0,
-        "appearDuration": 0,
-        "life": 0,
-        "random": 0,
-        "unCounterable": false
-      },
-      "bulletClip": {
-        "data": {
-          "originPos": {
-            "x": 0,
-            "y": 0
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "startX": 0,
-          "speed": 5,
-          "gravity": 0,
-          "angleSpeed": 0,
-          "initialAngle": 0,
-          "polarForm": {
-            "x": 1,
-            "y": 0
-          },
-          "radiusVlc": 0,
-          "thetaVlc": 0,
-          "startPos": {
-            "x": 0,
-            "y": 0
-          },
-          "polynomial": {
-            "x": 0,
-            "y": 0,
-            "z": 0,
-            "w": 0
-          },
-          "typeName": "normal",
-          "scale": {
-            "x": 1,
-            "y": 1
-          },
-          "color": {
-            "x": 1,
-            "y": 0,
-            "z": 0.3,
-            "w": 1
-          },
-          "appearTime": 0.05,
-          "appearDuration": 0,
-          "life": 4,
-          "random": 0,
-          "unCounterable": false
-        },
-        "number": 8,
-        "disRad": 40,
-        "homing": true
-      },
-      "bulletChangeClips": [
+    "stageName": "Captain",
+    "MusicEvents": [
         {
-          "clip": {
-            "data": {
-              "originPos": {
+            "barCount": 20,
+            "BPM": 110,
+            "beatTimings": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "measure": 6,
+            "barStartOffsetBeats": 0
+        }
+    ],
+    "delayTime": 3,
+    "endTime": 69.909,
+    "stageDescription": "Stage Description Here",
+    "enemyVisuals": [
+        {
+            "id": "captain",
+            "source": "addressable",
+            "address": "enemy/captain",
+            "fallbackSpriteEnemyName": "demo"
+        }
+    ],
+    "difficulties": [],
+    "multiBulletSpawners": [],
+    "bossSpawners": [
+        {
+            "bossId": "",
+            "bossName": "demo",
+            "visualId": "captain",
+            "appearTime": 22.09091,
+            "lifeTime": 10,
+            "maxHp": 100.0,
+            "startPos": {
+                "x": 16,
+                "y": 16
+            },
+            "scale": {
                 "x": 0,
                 "y": 0
-              },
-              "originVlc": {
+            },
+            "angle": 0.0,
+            "animation": {
+                "initialClip": "idle",
+                "events": [],
+                "triggers": [
+                    {
+                        "trigger": "shot",
+                        "clip": "attack",
+                        "next": "idle"
+                    }
+                ]
+            },
+            "moves": []
+        },
+        {
+            "bossId": "",
+            "bossName": "demo",
+            "visualId": "captain",
+            "appearTime": 24.272728,
+            "lifeTime": 10,
+            "maxHp": 100.0,
+            "startPos": {
+                "x": 16,
+                "y": 16
+            },
+            "scale": {
                 "x": 0,
                 "y": 0
-              },
-              "startX": 0,
-              "speed": 3,
-              "gravity": 2,
-              "angleSpeed": 0,
-              "initialAngle": 0,
-              "polarForm": {
-                "x": 1,
-                "y": 0
-              },
-              "radiusVlc": 0,
-              "thetaVlc": 0,
-              "startPos": {
+            },
+            "angle": 0.0,
+            "animation": {
+                "initialClip": "idle",
+                "events": [],
+                "triggers": [
+                    {
+                        "trigger": "shot",
+                        "clip": "attack",
+                        "next": "idle"
+                    }
+                ]
+            },
+            "moves": []
+        },
+        {
+            "bossId": "",
+            "bossName": "demo",
+            "visualId": "captain",
+            "appearTime": 26.454546,
+            "lifeTime": 10,
+            "maxHp": 100.0,
+            "startPos": {
+                "x": 16,
+                "y": 16
+            },
+            "scale": {
                 "x": 0,
                 "y": 0
-              },
-              "polynomial": {
+            },
+            "angle": 0.0,
+            "animation": {
+                "initialClip": "idle",
+                "events": [],
+                "triggers": [
+                    {
+                        "trigger": "shot",
+                        "clip": "attack",
+                        "next": "idle"
+                    }
+                ]
+            },
+            "moves": []
+        },
+        {
+            "bossId": "",
+            "bossName": "demo",
+            "visualId": "captain",
+            "appearTime": 28.636364,
+            "lifeTime": 10,
+            "maxHp": 100.0,
+            "startPos": {
+                "x": 16,
+                "y": 16
+            },
+            "scale": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0.0,
+            "animation": {
+                "initialClip": "idle",
+                "events": [],
+                "triggers": [
+                    {
+                        "trigger": "shot",
+                        "clip": "attack",
+                        "next": "idle"
+                    }
+                ]
+            },
+            "moves": []
+        },
+        {
+            "bossId": "",
+            "bossName": "demo",
+            "visualId": "captain",
+            "appearTime": 30.818182,
+            "lifeTime": 10,
+            "maxHp": 100.0,
+            "startPos": {
+                "x": 16,
+                "y": 16
+            },
+            "scale": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0.0,
+            "animation": {
+                "initialClip": "idle",
+                "events": [],
+                "triggers": [
+                    {
+                        "trigger": "shot",
+                        "clip": "attack",
+                        "next": "idle"
+                    }
+                ]
+            },
+            "moves": []
+        },
+        {
+            "bossId": "",
+            "bossName": "demo",
+            "visualId": "captain",
+            "appearTime": 33,
+            "lifeTime": 10,
+            "maxHp": 100.0,
+            "startPos": {
+                "x": 16,
+                "y": 16
+            },
+            "scale": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0.0,
+            "animation": {
+                "initialClip": "idle",
+                "events": [],
+                "triggers": [
+                    {
+                        "trigger": "shot",
+                        "clip": "attack",
+                        "next": "idle"
+                    }
+                ]
+            },
+            "moves": []
+        }
+    ],
+    "bulletSpawners": [
+        {
+            "clipName": "shellsplash",
+            "count": 1,
+            "interval": 6.545455,
+            "time": 9,
+            "pos": {
+                "x": 3.2,
+                "y": 0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0.05,
+                "y": 0.05,
+                "z": 0.9,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "shellsplash",
+            "count": 1,
+            "interval": 6.545455,
+            "time": 9,
+            "pos": {
+                "x": 28.8,
+                "y": 0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0.05,
+                "y": 0.05,
+                "z": 0.9,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "shellsplash",
+            "count": 1,
+            "interval": 6.545455,
+            "time": 12.272728,
+            "pos": {
+                "x": 9.6,
+                "y": 0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0.05,
+                "y": 0.05,
+                "z": 0.9,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "shellsplash",
+            "count": 1,
+            "interval": 6.545455,
+            "time": 12.272728,
+            "pos": {
+                "x": 22.4,
+                "y": 0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0.05,
+                "y": 0.05,
+                "z": 0.9,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "shellsplash",
+            "count": 1,
+            "interval": 6.545455,
+            "time": 15.545455,
+            "pos": {
+                "x": 16,
+                "y": 0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0.05,
+                "y": 0.05,
+                "z": 0.9,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "Clear",
+            "count": 1,
+            "interval": 0,
+            "time": 21.79091,
+            "pos": {
+                "x": 0,
+                "y": 0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
                 "x": 0,
                 "y": 0,
                 "z": 0,
                 "w": 0
-              },
-              "typeName": "tear",
-              "scale": {
+            }
+        },
+        {
+            "clipName": "sinwave_TR",
+            "count": 1,
+            "interval": 0,
+            "time": 22.09091,
+            "pos": {
                 "x": 1,
-                "y": 1
-              },
-              "color": {
+                "y": 2
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
                 "x": 1,
                 "y": 0,
                 "z": 0.3,
                 "w": 1
-              },
-              "appearTime": 0.05,
-              "appearDuration": 0,
-              "life": 12,
-              "random": 0,
-              "unCounterable": false
-            },
-            "number": 5,
-            "disRad": 60,
-            "homing": true
-          },
-          "time": 0.6
-        }
-      ]
-    },
-    {
-      "enemyName": "demo",
-      "visualId": "captain",
-      "animation": {
-        "initialClip": "idle",
-        "triggers": [
-          {
-            "trigger": "shot",
-            "clip": "attack",
-            "next": "idle"
-          }
-        ]
-      },
-      "count": 1,
-      "enemyInterval": 0,
-      "enemyAppearTime": 24.272728,
-      "bulletEmitTime": 0.03,
-      "bulletCount": 1,
-      "life": 10,
-      "orbit": {
-        "originPos": {
-          "x": 16,
-          "y": 16
+            }
         },
-        "originVlc": {
-          "x": 0,
-          "y": 0
-        },
-        "startX": 0,
-        "speed": 0,
-        "gravity": 0,
-        "angleSpeed": 0,
-        "initialAngle": 0,
-        "polarForm": {
-          "x": 0,
-          "y": 0
-        },
-        "radiusVlc": 0,
-        "thetaVlc": 0,
-        "startPos": {
-          "x": 0,
-          "y": 0
-        },
-        "polynomial": {
-          "x": 0,
-          "y": 0,
-          "z": 0,
-          "w": 0
-        },
-        "typeName": null,
-        "scale": {
-          "x": 0,
-          "y": 0
-        },
-        "color": {
-          "x": 0,
-          "y": 0,
-          "z": 0,
-          "w": 0
-        },
-        "appearTime": 0,
-        "appearDuration": 0,
-        "life": 0,
-        "random": 0,
-        "unCounterable": false
-      },
-      "bulletClip": {
-        "data": {
-          "originPos": {
-            "x": 0,
-            "y": 0
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "startX": 0,
-          "speed": 5,
-          "gravity": 0,
-          "angleSpeed": 0,
-          "initialAngle": 0,
-          "polarForm": {
-            "x": 1,
-            "y": 0
-          },
-          "radiusVlc": 0,
-          "thetaVlc": 0,
-          "startPos": {
-            "x": 0,
-            "y": 0
-          },
-          "polynomial": {
-            "x": 0,
-            "y": 0,
-            "z": 0,
-            "w": 0
-          },
-          "typeName": "normal",
-          "scale": {
-            "x": 1,
-            "y": 1
-          },
-          "color": {
-            "x": 1,
-            "y": 0,
-            "z": 0.3,
-            "w": 1
-          },
-          "appearTime": 0.05,
-          "appearDuration": 0,
-          "life": 4,
-          "random": 0,
-          "unCounterable": false
-        },
-        "number": 8,
-        "disRad": 40,
-        "homing": true
-      },
-      "bulletChangeClips": [
         {
-          "clip": {
-            "data": {
-              "originPos": {
+            "clipName": "sinwave_TL",
+            "count": 1,
+            "interval": 0,
+            "time": 23.727272,
+            "pos": {
+                "x": 31,
+                "y": 4
+            },
+            "originVlc": {
                 "x": 0,
                 "y": 0
-              },
-              "originVlc": {
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
                 "x": 0,
-                "y": 0
-              },
-              "startX": 0,
-              "speed": 3,
-              "gravity": 2,
-              "angleSpeed": 0,
-              "initialAngle": 0,
-              "polarForm": {
+                "y": 1,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TR",
+            "count": 1,
+            "interval": 0,
+            "time": 22.09091,
+            "pos": {
                 "x": 1,
-                "y": 0
-              },
-              "radiusVlc": 0,
-              "thetaVlc": 0,
-              "startPos": {
+                "y": 6
+            },
+            "originVlc": {
                 "x": 0,
                 "y": 0
-              },
-              "polynomial": {
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TL",
+            "count": 1,
+            "interval": 0,
+            "time": 23.727272,
+            "pos": {
+                "x": 31,
+                "y": 8
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0,
+                "y": 1,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TR",
+            "count": 1,
+            "interval": 0,
+            "time": 22.09091,
+            "pos": {
+                "x": 1,
+                "y": 10
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TL",
+            "count": 1,
+            "interval": 0,
+            "time": 23.727272,
+            "pos": {
+                "x": 31,
+                "y": 12
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0,
+                "y": 1,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TR",
+            "count": 1,
+            "interval": 0,
+            "time": 25.363636,
+            "pos": {
+                "x": 1,
+                "y": 2
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TL",
+            "count": 1,
+            "interval": 0,
+            "time": 27,
+            "pos": {
+                "x": 31,
+                "y": 4
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0,
+                "y": 1,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TR",
+            "count": 1,
+            "interval": 0,
+            "time": 25.363636,
+            "pos": {
+                "x": 1,
+                "y": 6
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TL",
+            "count": 1,
+            "interval": 0,
+            "time": 27,
+            "pos": {
+                "x": 31,
+                "y": 8
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0,
+                "y": 1,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TR",
+            "count": 1,
+            "interval": 0,
+            "time": 25.363636,
+            "pos": {
+                "x": 1,
+                "y": 10
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TL",
+            "count": 1,
+            "interval": 0,
+            "time": 27,
+            "pos": {
+                "x": 31,
+                "y": 12
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0,
+                "y": 1,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TR",
+            "count": 1,
+            "interval": 0,
+            "time": 28.636364,
+            "pos": {
+                "x": 1,
+                "y": 2
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TL",
+            "count": 1,
+            "interval": 0,
+            "time": 30.272728,
+            "pos": {
+                "x": 31,
+                "y": 4
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0,
+                "y": 1,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TR",
+            "count": 1,
+            "interval": 0,
+            "time": 28.636364,
+            "pos": {
+                "x": 1,
+                "y": 6
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TL",
+            "count": 1,
+            "interval": 0,
+            "time": 30.272728,
+            "pos": {
+                "x": 31,
+                "y": 8
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0,
+                "y": 1,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TR",
+            "count": 1,
+            "interval": 0,
+            "time": 28.636364,
+            "pos": {
+                "x": 1,
+                "y": 10
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TL",
+            "count": 1,
+            "interval": 0,
+            "time": 30.272728,
+            "pos": {
+                "x": 31,
+                "y": 12
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0,
+                "y": 1,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TR",
+            "count": 1,
+            "interval": 0,
+            "time": 31.909092,
+            "pos": {
+                "x": 1,
+                "y": 2
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TL",
+            "count": 1,
+            "interval": 0,
+            "time": 33.545456,
+            "pos": {
+                "x": 31,
+                "y": 4
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0,
+                "y": 1,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TR",
+            "count": 1,
+            "interval": 0,
+            "time": 31.909092,
+            "pos": {
+                "x": 1,
+                "y": 6
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TL",
+            "count": 1,
+            "interval": 0,
+            "time": 33.545456,
+            "pos": {
+                "x": 31,
+                "y": 8
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0,
+                "y": 1,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TR",
+            "count": 1,
+            "interval": 0,
+            "time": 31.909092,
+            "pos": {
+                "x": 1,
+                "y": 10
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "sinwave_TL",
+            "count": 1,
+            "interval": 0,
+            "time": 33.545456,
+            "pos": {
+                "x": 31,
+                "y": 12
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0,
+                "y": 1,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "Clear",
+            "count": 1,
+            "interval": 0,
+            "time": 34.88182,
+            "pos": {
+                "x": 0,
+                "y": 0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
                 "x": 0,
                 "y": 0,
                 "z": 0,
                 "w": 0
-              },
-              "typeName": "tear",
-              "scale": {
-                "x": 1,
-                "y": 1
-              },
-              "color": {
+            }
+        },
+        {
+            "clipName": "chainfall",
+            "count": 1,
+            "interval": 0,
+            "time": 35.18182,
+            "pos": {
+                "x": 10.666667,
+                "y": 18
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
                 "x": 1,
                 "y": 0,
                 "z": 0.3,
                 "w": 1
-              },
-              "appearTime": 0.05,
-              "appearDuration": 0,
-              "life": 12,
-              "random": 0,
-              "unCounterable": false
-            },
-            "number": 5,
-            "disRad": 60,
-            "homing": true
-          },
-          "time": 0.6
-        }
-      ]
-    },
-    {
-      "enemyName": "demo",
-      "visualId": "captain",
-      "animation": {
-        "initialClip": "idle",
-        "triggers": [
-          {
-            "trigger": "shot",
-            "clip": "attack",
-            "next": "idle"
-          }
-        ]
-      },
-      "count": 1,
-      "enemyInterval": 0,
-      "enemyAppearTime": 26.454546,
-      "bulletEmitTime": 0.03,
-      "bulletCount": 1,
-      "life": 10,
-      "orbit": {
-        "originPos": {
-          "x": 16,
-          "y": 16
+            }
         },
-        "originVlc": {
-          "x": 0,
-          "y": 0
-        },
-        "startX": 0,
-        "speed": 0,
-        "gravity": 0,
-        "angleSpeed": 0,
-        "initialAngle": 0,
-        "polarForm": {
-          "x": 0,
-          "y": 0
-        },
-        "radiusVlc": 0,
-        "thetaVlc": 0,
-        "startPos": {
-          "x": 0,
-          "y": 0
-        },
-        "polynomial": {
-          "x": 0,
-          "y": 0,
-          "z": 0,
-          "w": 0
-        },
-        "typeName": null,
-        "scale": {
-          "x": 0,
-          "y": 0
-        },
-        "color": {
-          "x": 0,
-          "y": 0,
-          "z": 0,
-          "w": 0
-        },
-        "appearTime": 0,
-        "appearDuration": 0,
-        "life": 0,
-        "random": 0,
-        "unCounterable": false
-      },
-      "bulletClip": {
-        "data": {
-          "originPos": {
-            "x": 0,
-            "y": 0
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "startX": 0,
-          "speed": 5,
-          "gravity": 0,
-          "angleSpeed": 0,
-          "initialAngle": 0,
-          "polarForm": {
-            "x": 1,
-            "y": 0
-          },
-          "radiusVlc": 0,
-          "thetaVlc": 0,
-          "startPos": {
-            "x": 0,
-            "y": 0
-          },
-          "polynomial": {
-            "x": 0,
-            "y": 0,
-            "z": 0,
-            "w": 0
-          },
-          "typeName": "normal",
-          "scale": {
-            "x": 1,
-            "y": 1
-          },
-          "color": {
-            "x": 1,
-            "y": 0,
-            "z": 0.3,
-            "w": 1
-          },
-          "appearTime": 0.05,
-          "appearDuration": 0,
-          "life": 4,
-          "random": 0,
-          "unCounterable": false
-        },
-        "number": 8,
-        "disRad": 40,
-        "homing": true
-      },
-      "bulletChangeClips": [
         {
-          "clip": {
-            "data": {
-              "originPos": {
+            "clipName": "chainfall",
+            "count": 1,
+            "interval": 0,
+            "time": 35.18182,
+            "pos": {
+                "x": 21.333332,
+                "y": 18
+            },
+            "originVlc": {
                 "x": 0,
                 "y": 0
-              },
-              "originVlc": {
-                "x": 0,
-                "y": 0
-              },
-              "startX": 0,
-              "speed": 3,
-              "gravity": 2,
-              "angleSpeed": 0,
-              "initialAngle": 0,
-              "polarForm": {
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
                 "x": 1,
-                "y": 0
-              },
-              "radiusVlc": 0,
-              "thetaVlc": 0,
-              "startPos": {
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "captain_bomb",
+            "count": 4,
+            "interval": 3.2727275,
+            "time": 37.36364,
+            "pos": {
+                "x": 10.666667,
+                "y": 16
+            },
+            "originVlc": {
                 "x": 0,
                 "y": 0
-              },
-              "polynomial": {
+            },
+            "angle": 0,
+            "angleInterval": 15,
+            "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "captain_bomb",
+            "count": 4,
+            "interval": 3.2727275,
+            "time": 37.36364,
+            "pos": {
+                "x": 21.333332,
+                "y": 16
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 15,
+            "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "captain_bomb",
+            "count": 4,
+            "interval": 3.2727275,
+            "time": 37.36364,
+            "pos": {
+                "x": 10.666667,
+                "y": 2
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 15,
+            "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "captain_bomb",
+            "count": 4,
+            "interval": 3.2727275,
+            "time": 37.36364,
+            "pos": {
+                "x": 21.333332,
+                "y": 2
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 15,
+            "color": {
+                "x": 1,
+                "y": 0,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "anchor_Down",
+            "count": 1,
+            "interval": 0,
+            "time": 35.18182,
+            "pos": {
+                "x": 16,
+                "y": 14
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0,
+                "y": 1,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "anchor_Down",
+            "count": 1,
+            "interval": 0,
+            "time": 38.454544,
+            "pos": {
+                "x": 5.3333335,
+                "y": 14
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0,
+                "y": 1,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "anchor_Down",
+            "count": 1,
+            "interval": 0,
+            "time": 38.454544,
+            "pos": {
+                "x": 26.666666,
+                "y": 14
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0,
+                "y": 1,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "anchor_Down",
+            "count": 1,
+            "interval": 0,
+            "time": 41.727272,
+            "pos": {
+                "x": 16,
+                "y": 14
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0,
+                "y": 1,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "anchor_Down",
+            "count": 1,
+            "interval": 0,
+            "time": 41.727272,
+            "pos": {
+                "x": 26.666666,
+                "y": 14
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0,
+                "y": 1,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "anchor_Down",
+            "count": 1,
+            "interval": 0,
+            "time": 45,
+            "pos": {
+                "x": 16,
+                "y": 14
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0,
+                "y": 1,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "anchor_Down",
+            "count": 1,
+            "interval": 0,
+            "time": 45,
+            "pos": {
+                "x": 5.3333335,
+                "y": 14
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0,
+                "y": 1,
+                "z": 0.3,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "Clear",
+            "count": 1,
+            "interval": 0,
+            "time": 47.97273,
+            "pos": {
+                "x": 0,
+                "y": 0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
                 "x": 0,
                 "y": 0,
                 "z": 0,
                 "w": 0
-              },
-              "typeName": "tear",
-              "scale": {
-                "x": 1,
-                "y": 1
-              },
-              "color": {
-                "x": 1,
-                "y": 0,
-                "z": 0.3,
-                "w": 1
-              },
-              "appearTime": 0.05,
-              "appearDuration": 0,
-              "life": 12,
-              "random": 0,
-              "unCounterable": false
-            },
-            "number": 5,
-            "disRad": 60,
-            "homing": true
-          },
-          "time": 0.6
-        }
-      ]
-    },
-    {
-      "enemyName": "demo",
-      "visualId": "captain",
-      "animation": {
-        "initialClip": "idle",
-        "triggers": [
-          {
-            "trigger": "shot",
-            "clip": "attack",
-            "next": "idle"
-          }
-        ]
-      },
-      "count": 1,
-      "enemyInterval": 0,
-      "enemyAppearTime": 28.636364,
-      "bulletEmitTime": 0.03,
-      "bulletCount": 1,
-      "life": 10,
-      "orbit": {
-        "originPos": {
-          "x": 16,
-          "y": 16
+            }
         },
-        "originVlc": {
-          "x": 0,
-          "y": 0
-        },
-        "startX": 0,
-        "speed": 0,
-        "gravity": 0,
-        "angleSpeed": 0,
-        "initialAngle": 0,
-        "polarForm": {
-          "x": 0,
-          "y": 0
-        },
-        "radiusVlc": 0,
-        "thetaVlc": 0,
-        "startPos": {
-          "x": 0,
-          "y": 0
-        },
-        "polynomial": {
-          "x": 0,
-          "y": 0,
-          "z": 0,
-          "w": 0
-        },
-        "typeName": null,
-        "scale": {
-          "x": 0,
-          "y": 0
-        },
-        "color": {
-          "x": 0,
-          "y": 0,
-          "z": 0,
-          "w": 0
-        },
-        "appearTime": 0,
-        "appearDuration": 0,
-        "life": 0,
-        "random": 0,
-        "unCounterable": false
-      },
-      "bulletClip": {
-        "data": {
-          "originPos": {
-            "x": 0,
-            "y": 0
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "startX": 0,
-          "speed": 5,
-          "gravity": 0,
-          "angleSpeed": 0,
-          "initialAngle": 0,
-          "polarForm": {
-            "x": 1,
-            "y": 0
-          },
-          "radiusVlc": 0,
-          "thetaVlc": 0,
-          "startPos": {
-            "x": 0,
-            "y": 0
-          },
-          "polynomial": {
-            "x": 0,
-            "y": 0,
-            "z": 0,
-            "w": 0
-          },
-          "typeName": "normal",
-          "scale": {
-            "x": 1,
-            "y": 1
-          },
-          "color": {
-            "x": 1,
-            "y": 0,
-            "z": 0.3,
-            "w": 1
-          },
-          "appearTime": 0.05,
-          "appearDuration": 0,
-          "life": 4,
-          "random": 0,
-          "unCounterable": false
-        },
-        "number": 8,
-        "disRad": 40,
-        "homing": true
-      },
-      "bulletChangeClips": [
         {
-          "clip": {
-            "data": {
-              "originPos": {
+            "clipName": "chainanchor_TR",
+            "count": 1,
+            "interval": 0,
+            "time": 48.272728,
+            "pos": {
+                "x": 16,
+                "y": 14
+            },
+            "originVlc": {
                 "x": 0,
                 "y": 0
-              },
-              "originVlc": {
-                "x": 0,
-                "y": 0
-              },
-              "startX": 0,
-              "speed": 3,
-              "gravity": 2,
-              "angleSpeed": 0,
-              "initialAngle": 0,
-              "polarForm": {
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
                 "x": 1,
-                "y": 0
-              },
-              "radiusVlc": 0,
-              "thetaVlc": 0,
-              "startPos": {
+                "y": 1,
+                "z": 1,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "anchorbomb",
+            "count": 1,
+            "interval": 0,
+            "time": 51.545456,
+            "pos": {
+                "x": 30,
+                "y": 2
+            },
+            "originVlc": {
                 "x": 0,
                 "y": 0
-              },
-              "polynomial": {
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0.05,
+                "y": 0.05,
+                "z": 0.9,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "anchorbomb",
+            "count": 1,
+            "interval": 0,
+            "time": 52.09091,
+            "pos": {
+                "x": 29,
+                "y": 9
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0.05,
+                "y": 0.05,
+                "z": 0.9,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "anchorbomb",
+            "count": 1,
+            "interval": 0,
+            "time": 52.636364,
+            "pos": {
+                "x": 26,
+                "y": 16
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0.05,
+                "y": 0.05,
+                "z": 0.9,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "chainanchor_TL",
+            "count": 1,
+            "interval": 0,
+            "time": 54.818184,
+            "pos": {
+                "x": 16,
+                "y": 14
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "anchorbomb",
+            "count": 1,
+            "interval": 0,
+            "time": 58.09091,
+            "pos": {
+                "x": 2,
+                "y": 2
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0.05,
+                "y": 0.05,
+                "z": 0.9,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "anchorbomb",
+            "count": 1,
+            "interval": 0,
+            "time": 58.636368,
+            "pos": {
+                "x": 3,
+                "y": 9
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0.05,
+                "y": 0.05,
+                "z": 0.9,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "anchorbomb",
+            "count": 1,
+            "interval": 0,
+            "time": 59.18182,
+            "pos": {
+                "x": 6,
+                "y": 16
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0.05,
+                "y": 0.05,
+                "z": 0.9,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "Clear",
+            "count": 1,
+            "interval": 0,
+            "time": 61.06364,
+            "pos": {
+                "x": 0,
+                "y": 0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
                 "x": 0,
                 "y": 0,
                 "z": 0,
                 "w": 0
-              },
-              "typeName": "tear",
-              "scale": {
-                "x": 1,
-                "y": 1
-              },
-              "color": {
-                "x": 1,
-                "y": 0,
-                "z": 0.3,
-                "w": 1
-              },
-              "appearTime": 0.05,
-              "appearDuration": 0,
-              "life": 12,
-              "random": 0,
-              "unCounterable": false
-            },
-            "number": 5,
-            "disRad": 60,
-            "homing": true
-          },
-          "time": 0.6
-        }
-      ]
-    },
-    {
-      "enemyName": "demo",
-      "visualId": "captain",
-      "animation": {
-        "initialClip": "idle",
-        "triggers": [
-          {
-            "trigger": "shot",
-            "clip": "attack",
-            "next": "idle"
-          }
-        ]
-      },
-      "count": 1,
-      "enemyInterval": 0,
-      "enemyAppearTime": 30.818182,
-      "bulletEmitTime": 0.03,
-      "bulletCount": 1,
-      "life": 10,
-      "orbit": {
-        "originPos": {
-          "x": 16,
-          "y": 16
+            }
         },
-        "originVlc": {
-          "x": 0,
-          "y": 0
-        },
-        "startX": 0,
-        "speed": 0,
-        "gravity": 0,
-        "angleSpeed": 0,
-        "initialAngle": 0,
-        "polarForm": {
-          "x": 0,
-          "y": 0
-        },
-        "radiusVlc": 0,
-        "thetaVlc": 0,
-        "startPos": {
-          "x": 0,
-          "y": 0
-        },
-        "polynomial": {
-          "x": 0,
-          "y": 0,
-          "z": 0,
-          "w": 0
-        },
-        "typeName": null,
-        "scale": {
-          "x": 0,
-          "y": 0
-        },
-        "color": {
-          "x": 0,
-          "y": 0,
-          "z": 0,
-          "w": 0
-        },
-        "appearTime": 0,
-        "appearDuration": 0,
-        "life": 0,
-        "random": 0,
-        "unCounterable": false
-      },
-      "bulletClip": {
-        "data": {
-          "originPos": {
-            "x": 0,
-            "y": 0
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "startX": 0,
-          "speed": 5,
-          "gravity": 0,
-          "angleSpeed": 0,
-          "initialAngle": 0,
-          "polarForm": {
-            "x": 1,
-            "y": 0
-          },
-          "radiusVlc": 0,
-          "thetaVlc": 0,
-          "startPos": {
-            "x": 0,
-            "y": 0
-          },
-          "polynomial": {
-            "x": 0,
-            "y": 0,
-            "z": 0,
-            "w": 0
-          },
-          "typeName": "normal",
-          "scale": {
-            "x": 1,
-            "y": 1
-          },
-          "color": {
-            "x": 1,
-            "y": 0,
-            "z": 0.3,
-            "w": 1
-          },
-          "appearTime": 0.05,
-          "appearDuration": 0,
-          "life": 4,
-          "random": 0,
-          "unCounterable": false
-        },
-        "number": 8,
-        "disRad": 40,
-        "homing": true
-      },
-      "bulletChangeClips": [
         {
-          "clip": {
-            "data": {
-              "originPos": {
-                "x": 0,
-                "y": 0
-              },
-              "originVlc": {
-                "x": 0,
-                "y": 0
-              },
-              "startX": 0,
-              "speed": 3,
-              "gravity": 2,
-              "angleSpeed": 0,
-              "initialAngle": 0,
-              "polarForm": {
-                "x": 1,
-                "y": 0
-              },
-              "radiusVlc": 0,
-              "thetaVlc": 0,
-              "startPos": {
-                "x": 0,
-                "y": 0
-              },
-              "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-              },
-              "typeName": "tear",
-              "scale": {
-                "x": 1,
-                "y": 1
-              },
-              "color": {
-                "x": 1,
-                "y": 0,
-                "z": 0.3,
-                "w": 1
-              },
-              "appearTime": 0.05,
-              "appearDuration": 0,
-              "life": 12,
-              "random": 0,
-              "unCounterable": false
+            "clipName": "captainwave_L",
+            "count": 4,
+            "interval": 3.2727275,
+            "time": 61.36364,
+            "pos": {
+                "x": 6,
+                "y": 14
             },
-            "number": 5,
-            "disRad": 60,
-            "homing": true
-          },
-          "time": 0.6
-        }
-      ]
-    },
-    {
-      "enemyName": "demo",
-      "visualId": "captain",
-      "animation": {
-        "initialClip": "idle",
-        "triggers": [
-          {
-            "trigger": "shot",
-            "clip": "attack",
-            "next": "idle"
-          }
-        ]
-      },
-      "count": 1,
-      "enemyInterval": 0,
-      "enemyAppearTime": 33,
-      "bulletEmitTime": 0.03,
-      "bulletCount": 1,
-      "life": 10,
-      "orbit": {
-        "originPos": {
-          "x": 16,
-          "y": 16
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0.05,
+                "y": 0.05,
+                "z": 0.9,
+                "w": 1
+            }
         },
-        "originVlc": {
-          "x": 0,
-          "y": 0
-        },
-        "startX": 0,
-        "speed": 0,
-        "gravity": 0,
-        "angleSpeed": 0,
-        "initialAngle": 0,
-        "polarForm": {
-          "x": 0,
-          "y": 0
-        },
-        "radiusVlc": 0,
-        "thetaVlc": 0,
-        "startPos": {
-          "x": 0,
-          "y": 0
-        },
-        "polynomial": {
-          "x": 0,
-          "y": 0,
-          "z": 0,
-          "w": 0
-        },
-        "typeName": null,
-        "scale": {
-          "x": 0,
-          "y": 0
-        },
-        "color": {
-          "x": 0,
-          "y": 0,
-          "z": 0,
-          "w": 0
-        },
-        "appearTime": 0,
-        "appearDuration": 0,
-        "life": 0,
-        "random": 0,
-        "unCounterable": false
-      },
-      "bulletClip": {
-        "data": {
-          "originPos": {
-            "x": 0,
-            "y": 0
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "startX": 0,
-          "speed": 5,
-          "gravity": 0,
-          "angleSpeed": 0,
-          "initialAngle": 0,
-          "polarForm": {
-            "x": 1,
-            "y": 0
-          },
-          "radiusVlc": 0,
-          "thetaVlc": 0,
-          "startPos": {
-            "x": 0,
-            "y": 0
-          },
-          "polynomial": {
-            "x": 0,
-            "y": 0,
-            "z": 0,
-            "w": 0
-          },
-          "typeName": "normal",
-          "scale": {
-            "x": 1,
-            "y": 1
-          },
-          "color": {
-            "x": 1,
-            "y": 0,
-            "z": 0.3,
-            "w": 1
-          },
-          "appearTime": 0.05,
-          "appearDuration": 0,
-          "life": 4,
-          "random": 0,
-          "unCounterable": false
-        },
-        "number": 8,
-        "disRad": 40,
-        "homing": true
-      },
-      "bulletChangeClips": [
         {
-          "clip": {
-            "data": {
-              "originPos": {
-                "x": 0,
-                "y": 0
-              },
-              "originVlc": {
-                "x": 0,
-                "y": 0
-              },
-              "startX": 0,
-              "speed": 3,
-              "gravity": 2,
-              "angleSpeed": 0,
-              "initialAngle": 0,
-              "polarForm": {
-                "x": 1,
-                "y": 0
-              },
-              "radiusVlc": 0,
-              "thetaVlc": 0,
-              "startPos": {
-                "x": 0,
-                "y": 0
-              },
-              "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-              },
-              "typeName": "tear",
-              "scale": {
-                "x": 1,
-                "y": 1
-              },
-              "color": {
-                "x": 1,
-                "y": 0,
-                "z": 0.3,
-                "w": 1
-              },
-              "appearTime": 0.05,
-              "appearDuration": 0,
-              "life": 12,
-              "random": 0,
-              "unCounterable": false
+            "clipName": "captainwave_R",
+            "count": 4,
+            "interval": 3.2727275,
+            "time": 61.36364,
+            "pos": {
+                "x": 26,
+                "y": 14
             },
-            "number": 5,
-            "disRad": 60,
-            "homing": true
-          },
-          "time": 0.6
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0.05,
+                "y": 0.05,
+                "z": 0.9,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "captain_sinfall",
+            "count": 1,
+            "interval": 0,
+            "time": 61.36364,
+            "pos": {
+                "x": 16,
+                "y": 16
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 1
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0,
+                "y": 0.9,
+                "z": 0.9,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "captain_sinfall",
+            "count": 1,
+            "interval": 0,
+            "time": 67.90909,
+            "pos": {
+                "x": 16,
+                "y": 16
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 1
+            },
+            "angle": 180,
+            "angleInterval": 0,
+            "color": {
+                "x": 0,
+                "y": 0.9,
+                "z": 0.9,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "captain_chase",
+            "count": 12,
+            "interval": 1.6363637,
+            "time": 61.36364,
+            "pos": {
+                "x": 6,
+                "y": 11
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0.05,
+                "y": 0.05,
+                "z": 0.9,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "captain_chase",
+            "count": 12,
+            "interval": 1.6363637,
+            "time": 61.36364,
+            "pos": {
+                "x": 16,
+                "y": 11
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0.05,
+                "y": 0.05,
+                "z": 0.9,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "captain_chase",
+            "count": 12,
+            "interval": 1.6363637,
+            "time": 61.36364,
+            "pos": {
+                "x": 26,
+                "y": 11
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0,
+            "angleInterval": 0,
+            "color": {
+                "x": 0.05,
+                "y": 0.05,
+                "z": 0.9,
+                "w": 1
+            }
         }
-      ]
-    }
-  ],
-  "bulletSpawners": [
-    {
-      "clipName": "shellsplash",
-      "count": 1,
-      "interval": 6.545455,
-      "time": 9,
-      "pos": {
-        "x": 3.2,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.9,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "shellsplash",
-      "count": 1,
-      "interval": 6.545455,
-      "time": 9,
-      "pos": {
-        "x": 28.8,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.9,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "shellsplash",
-      "count": 1,
-      "interval": 6.545455,
-      "time": 12.272728,
-      "pos": {
-        "x": 9.6,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.9,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "shellsplash",
-      "count": 1,
-      "interval": 6.545455,
-      "time": 12.272728,
-      "pos": {
-        "x": 22.4,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.9,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "shellsplash",
-      "count": 1,
-      "interval": 6.545455,
-      "time": 15.545455,
-      "pos": {
-        "x": 16,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.9,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "Clear",
-      "count": 1,
-      "interval": 0,
-      "time": 21.79091,
-      "pos": {
-        "x": 0,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 0,
-        "z": 0,
-        "w": 0
-      }
-    },
-    {
-      "clipName": "sinwave_TR",
-      "count": 1,
-      "interval": 0,
-      "time": 22.09091,
-      "pos": {
-        "x": 1,
-        "y": 2
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TL",
-      "count": 1,
-      "interval": 0,
-      "time": 23.727272,
-      "pos": {
-        "x": 31,
-        "y": 4
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TR",
-      "count": 1,
-      "interval": 0,
-      "time": 22.09091,
-      "pos": {
-        "x": 1,
-        "y": 6
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TL",
-      "count": 1,
-      "interval": 0,
-      "time": 23.727272,
-      "pos": {
-        "x": 31,
-        "y": 8
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TR",
-      "count": 1,
-      "interval": 0,
-      "time": 22.09091,
-      "pos": {
-        "x": 1,
-        "y": 10
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TL",
-      "count": 1,
-      "interval": 0,
-      "time": 23.727272,
-      "pos": {
-        "x": 31,
-        "y": 12
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TR",
-      "count": 1,
-      "interval": 0,
-      "time": 25.363636,
-      "pos": {
-        "x": 1,
-        "y": 2
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TL",
-      "count": 1,
-      "interval": 0,
-      "time": 27,
-      "pos": {
-        "x": 31,
-        "y": 4
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TR",
-      "count": 1,
-      "interval": 0,
-      "time": 25.363636,
-      "pos": {
-        "x": 1,
-        "y": 6
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TL",
-      "count": 1,
-      "interval": 0,
-      "time": 27,
-      "pos": {
-        "x": 31,
-        "y": 8
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TR",
-      "count": 1,
-      "interval": 0,
-      "time": 25.363636,
-      "pos": {
-        "x": 1,
-        "y": 10
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TL",
-      "count": 1,
-      "interval": 0,
-      "time": 27,
-      "pos": {
-        "x": 31,
-        "y": 12
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TR",
-      "count": 1,
-      "interval": 0,
-      "time": 28.636364,
-      "pos": {
-        "x": 1,
-        "y": 2
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TL",
-      "count": 1,
-      "interval": 0,
-      "time": 30.272728,
-      "pos": {
-        "x": 31,
-        "y": 4
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TR",
-      "count": 1,
-      "interval": 0,
-      "time": 28.636364,
-      "pos": {
-        "x": 1,
-        "y": 6
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TL",
-      "count": 1,
-      "interval": 0,
-      "time": 30.272728,
-      "pos": {
-        "x": 31,
-        "y": 8
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TR",
-      "count": 1,
-      "interval": 0,
-      "time": 28.636364,
-      "pos": {
-        "x": 1,
-        "y": 10
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TL",
-      "count": 1,
-      "interval": 0,
-      "time": 30.272728,
-      "pos": {
-        "x": 31,
-        "y": 12
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TR",
-      "count": 1,
-      "interval": 0,
-      "time": 31.909092,
-      "pos": {
-        "x": 1,
-        "y": 2
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TL",
-      "count": 1,
-      "interval": 0,
-      "time": 33.545456,
-      "pos": {
-        "x": 31,
-        "y": 4
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TR",
-      "count": 1,
-      "interval": 0,
-      "time": 31.909092,
-      "pos": {
-        "x": 1,
-        "y": 6
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TL",
-      "count": 1,
-      "interval": 0,
-      "time": 33.545456,
-      "pos": {
-        "x": 31,
-        "y": 8
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TR",
-      "count": 1,
-      "interval": 0,
-      "time": 31.909092,
-      "pos": {
-        "x": 1,
-        "y": 10
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "sinwave_TL",
-      "count": 1,
-      "interval": 0,
-      "time": 33.545456,
-      "pos": {
-        "x": 31,
-        "y": 12
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "Clear",
-      "count": 1,
-      "interval": 0,
-      "time": 34.88182,
-      "pos": {
-        "x": 0,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 0,
-        "z": 0,
-        "w": 0
-      }
-    },
-    {
-      "clipName": "chainfall",
-      "count": 1,
-      "interval": 0,
-      "time": 35.18182,
-      "pos": {
-        "x": 10.666667,
-        "y": 18
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "chainfall",
-      "count": 1,
-      "interval": 0,
-      "time": 35.18182,
-      "pos": {
-        "x": 21.333332,
-        "y": 18
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "captain_bomb",
-      "count": 4,
-      "interval": 3.2727275,
-      "time": 37.36364,
-      "pos": {
-        "x": 10.666667,
-        "y": 16
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 15,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "captain_bomb",
-      "count": 4,
-      "interval": 3.2727275,
-      "time": 37.36364,
-      "pos": {
-        "x": 21.333332,
-        "y": 16
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 15,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "captain_bomb",
-      "count": 4,
-      "interval": 3.2727275,
-      "time": 37.36364,
-      "pos": {
-        "x": 10.666667,
-        "y": 2
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 15,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "captain_bomb",
-      "count": 4,
-      "interval": 3.2727275,
-      "time": 37.36364,
-      "pos": {
-        "x": 21.333332,
-        "y": 2
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 15,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "anchor_Down",
-      "count": 1,
-      "interval": 0,
-      "time": 35.18182,
-      "pos": {
-        "x": 16,
-        "y": 14
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "anchor_Down",
-      "count": 1,
-      "interval": 0,
-      "time": 38.454544,
-      "pos": {
-        "x": 5.3333335,
-        "y": 14
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "anchor_Down",
-      "count": 1,
-      "interval": 0,
-      "time": 38.454544,
-      "pos": {
-        "x": 26.666666,
-        "y": 14
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "anchor_Down",
-      "count": 1,
-      "interval": 0,
-      "time": 41.727272,
-      "pos": {
-        "x": 16,
-        "y": 14
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "anchor_Down",
-      "count": 1,
-      "interval": 0,
-      "time": 41.727272,
-      "pos": {
-        "x": 26.666666,
-        "y": 14
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "anchor_Down",
-      "count": 1,
-      "interval": 0,
-      "time": 45,
-      "pos": {
-        "x": 16,
-        "y": 14
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "anchor_Down",
-      "count": 1,
-      "interval": 0,
-      "time": 45,
-      "pos": {
-        "x": 5.3333335,
-        "y": 14
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 1,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "Clear",
-      "count": 1,
-      "interval": 0,
-      "time": 47.97273,
-      "pos": {
-        "x": 0,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 0,
-        "z": 0,
-        "w": 0
-      }
-    },
-    {
-      "clipName": "chainanchor_TR",
-      "count": 1,
-      "interval": 0,
-      "time": 48.272728,
-      "pos": {
-        "x": 16,
-        "y": 14
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 1,
-        "z": 1,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "anchorbomb",
-      "count": 1,
-      "interval": 0,
-      "time": 51.545456,
-      "pos": {
-        "x": 30,
-        "y": 2
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.9,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "anchorbomb",
-      "count": 1,
-      "interval": 0,
-      "time": 52.09091,
-      "pos": {
-        "x": 29,
-        "y": 9
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.9,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "anchorbomb",
-      "count": 1,
-      "interval": 0,
-      "time": 52.636364,
-      "pos": {
-        "x": 26,
-        "y": 16
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.9,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "chainanchor_TL",
-      "count": 1,
-      "interval": 0,
-      "time": 54.818184,
-      "pos": {
-        "x": 16,
-        "y": 14
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 1,
-        "z": 1,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "anchorbomb",
-      "count": 1,
-      "interval": 0,
-      "time": 58.09091,
-      "pos": {
-        "x": 2,
-        "y": 2
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.9,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "anchorbomb",
-      "count": 1,
-      "interval": 0,
-      "time": 58.636368,
-      "pos": {
-        "x": 3,
-        "y": 9
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.9,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "anchorbomb",
-      "count": 1,
-      "interval": 0,
-      "time": 59.18182,
-      "pos": {
-        "x": 6,
-        "y": 16
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.9,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "Clear",
-      "count": 1,
-      "interval": 0,
-      "time": 61.06364,
-      "pos": {
-        "x": 0,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 0,
-        "z": 0,
-        "w": 0
-      }
-    },
-    {
-      "clipName": "captainwave_L",
-      "count": 4,
-      "interval": 3.2727275,
-      "time": 61.36364,
-      "pos": {
-        "x": 6,
-        "y": 14
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.9,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "captainwave_R",
-      "count": 4,
-      "interval": 3.2727275,
-      "time": 61.36364,
-      "pos": {
-        "x": 26,
-        "y": 14
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.9,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "captain_sinfall",
-      "count": 1,
-      "interval": 0,
-      "time": 61.36364,
-      "pos": {
-        "x": 16,
-        "y": 16
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 1
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 0.9,
-        "z": 0.9,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "captain_sinfall",
-      "count": 1,
-      "interval": 0,
-      "time": 67.90909,
-      "pos": {
-        "x": 16,
-        "y": 16
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 1
-      },
-      "angle": 180,
-      "angleInterval": 0,
-      "color": {
-        "x": 0,
-        "y": 0.9,
-        "z": 0.9,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "captain_chase",
-      "count": 12,
-      "interval": 1.6363637,
-      "time": 61.36364,
-      "pos": {
-        "x": 6,
-        "y": 11
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.9,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "captain_chase",
-      "count": 12,
-      "interval": 1.6363637,
-      "time": 61.36364,
-      "pos": {
-        "x": 16,
-        "y": 11
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.9,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "captain_chase",
-      "count": 12,
-      "interval": 1.6363637,
-      "time": 61.36364,
-      "pos": {
-        "x": 26,
-        "y": 11
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 0.05,
-        "y": 0.05,
-        "z": 0.9,
-        "w": 1
-      }
-    }
-  ]
+    ]
 }
