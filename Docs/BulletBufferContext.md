@@ -1,5 +1,15 @@
 # BulletBuffer Context
 
+## Naming convention
+
+- JSON properties use `lowerCamelCase`.
+- A BulletBuffer `name` and its JSON filename use the same `lower_snake_case` identifier.
+- Stage-specific identifiers start with the stage directory name, such as `captain_anchor_bomb`.
+- Direction and variant suffixes remain lowercase (`_tl`, `_tr`, `_l`, `_r`, `_e`, `_n`).
+- Generator methods use `Generate` plus `PascalCase`, such as `GenerateCaptainAnchorBomb`.
+- Every StageData `clipName` must exactly match a BulletBuffer `name`.
+- Captain uses unsuffixed buffers for Normal, `_easy` for Easy, and `_lunatic` for Lunatic.
+
 This is the recall note for creating BulletBuffer JSON assets in this project.
 Read this file first when the user asks to create or reason about BulletBuffer danmaku assets.
 After creating a BulletBuffer asset, also edit `Assets/StageData/debug/debug.json` under the `difficulties[]` entry whose `difficulty` is `Lunatic` so the new buffer runs in Unity debug playback.

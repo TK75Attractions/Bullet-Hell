@@ -14,6 +14,7 @@ public class PlayerController
     private SpriteRenderer main;
     private SpriteRenderer spell;
     private Transform spellTransform;
+    private float2 initialPos;
     private readonly float margin = 0.3f;
     private float2 xRange = new float2(0, 0);
     private float2 yRange = new float2(0, 0);
@@ -31,6 +32,8 @@ public class PlayerController
     public void Init(GameObject playerObj)
     {
         playerTransform = playerObj.transform;
+        initialPos = new float2(playerTransform.position.x, playerTransform.position.y);
+        pos = initialPos;
         main = playerObj.GetComponent<SpriteRenderer>();
         spellTransform = playerTransform.Find("Spell");
         if (spellTransform != null)
@@ -63,6 +66,17 @@ public class PlayerController
         }
 
         return true;
+    }
+
+    public void ResetForStage()
+    {
+        pos = initialPos;
+        velocity = float2.zero;
+        hitInvincibleTimer = 0f;
+        dash = -dashCooldown * 1.4f;
+        if (main != null) main.color = GManager.Control.playerColor;
+        if (spell != null) spell.color = Color.clear;
+        if (playerTransform != null) playerTransform.position = new Vector3(pos.x, pos.y, 0f);
     }
 
     private void Move(float dt)

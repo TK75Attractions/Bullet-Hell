@@ -1,4 +1,13 @@
 BulletBuffer JSON 仕様書
+命名規則:
+- JSON のプロパティ名は lowerCamelCase とする。例: originPos, useVelocityAngle, isLaser。
+- BulletBuffer の name と JSON ファイル名は一致させ、lower_snake_case とする。
+- ステージ固有の BulletBuffer は <stage>_ 接頭辞を付ける。Captain の例: captain_anchor_bomb。
+- 方向・難易度などのサフィックスも小文字で区切る。例: _tl, _tr, _l, _r, _e, _n。
+- BulletBufferMaker の生成メソッドは Generate + PascalCase とする。例: GenerateCaptainAnchorBomb。
+- StageData の clipName は BulletBuffer の name を完全一致で参照する。
+- Captain の Normal はサフィックスなしの基準 Buffer、Easy は _easy、Lunatic は _lunatic を付ける。
+
 作成日: 2026-06-10
 対象コード:
 - Assets/Scripts/Bullets/BulletData.cs

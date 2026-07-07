@@ -163,6 +163,8 @@ public class StageDataManager
 
         public float delayTime;
 
+        public float endTime;
+
         public string stageDescription = "";
 
         public List<EnemyVisualDefinition> enemyVisuals = new();
@@ -365,6 +367,8 @@ public class StageDataManager
 
         public float lifeTime = -1f;
 
+        public float maxHp = 100f;
+
         public Vector2 startPos;
 
         public Vector2 scale = Vector2.one;
@@ -424,6 +428,8 @@ public class StageDataManager
                 appearTime = appearTime,
 
                 lifeTime = lifeTime,
+
+                maxHp = Mathf.Max(0.01f, maxHp),
 
                 startPos = startPos,
 
@@ -1368,6 +1374,8 @@ public class StageDataManager
 
                 data.delayTime = jsonData.delayTime;
 
+                data.endTime = jsonData.endTime;
+
                 data.stageDescription = jsonData.stageDescription;
 
                 data.enemyVisuals = NormalizeEnemyVisualDefinitions(jsonData.enemyVisuals);
@@ -1606,6 +1614,8 @@ public class StageDataManager
 
         data.delayTime = jsonData.delayTime;
 
+        data.endTime = jsonData.endTime;
+
         data.stageDescription = jsonData.stageDescription;
 
         data.enemyVisuals = NormalizeEnemyVisualDefinitions(jsonData.enemyVisuals);
@@ -1683,6 +1693,7 @@ public class StageDataManager
 
         data.stageName = string.IsNullOrWhiteSpace(jsonData.stageName) ? fallbackStageName : jsonData.stageName;
         data.delayTime = jsonData.delayTime;
+        data.endTime = jsonData.endTime;
         data.stageDescription = jsonData.stageDescription;
         data.enemyVisuals = NormalizeEnemyVisualDefinitions(jsonData.enemyVisuals);
         data.MusicEvents = ConvertMusicEvents(jsonData.MusicEvents);

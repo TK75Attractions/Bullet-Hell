@@ -94,6 +94,20 @@ public class StageSelectManager : MonoBehaviour
         }
     }
 
+    public void ReturnToStageSelect()
+    {
+        isTransitioning = false;
+        state = State.Music;
+
+        variableCG.alpha = 1f;
+        staticCG.alpha = 1f;
+        stageDescription.Transition(0f);
+        header.TransitionNotes(0);
+        stageBar.SetAlpha(1f);
+        scroll.SetAlpha(1f);
+        defficultyBar.SetAlpha(0f);
+    }
+
     public async void TransitionToDifficulty()
     {
         if (!isTransitioning)

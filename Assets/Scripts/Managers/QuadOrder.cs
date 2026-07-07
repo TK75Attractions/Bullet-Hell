@@ -201,7 +201,17 @@ public class QuadOrder : MonoBehaviour
         }
         ResolveWarpZoneTypeId();
 
-        if (boss != null) boss.Init();
+        if (boss != null)
+        {
+            // Legacy scene boss. Runtime stages provide their target through BossManager.
+            boss.gameObject.SetActive(false);
+            boss = null;
+        }
+    }
+
+    public void SetBossTarget(Boss target)
+    {
+        boss = target;
     }
 
     private void OnDestroy()
@@ -886,27 +896,42 @@ public class QuadOrder : MonoBehaviour
         return count;
     }
 
-    private void SpawnCounterBullet(BulletData sourceBullet, float dt)
+    private float SumActiveCounterDamage(NativeList<CounterBullet> bullets)
+    {
+        if (!bullets.IsCreated || bullets.Length == 0) return 0f;
+
+        float damage = 0f;
+        for (int i = 0; i < bullets.Length; i++)
+        {
+            if (bullets[i].isActive) damage += math.max(0f, bullets[i].damage);
+        }
+
+        return damage;
+    }
+
+    private void SpawnCounterBullet(BulletData sourceBullet)
     {
         if (!counterBullets.IsCreated)
         {
             counterBullets = new NativeList<CounterBullet>(256, Allocator.Persistent);
         }
 
-        float invDt = dt > 1e-5f ? 1f / dt : 0f;
-
         CounterBullet counterBullet = new CounterBullet
         {
             position = sourceBullet.position,
-            velocity = sourceBullet.velocity * invDt,
+            velocity = new float2(0f, 0f),
+            startPosition = sourceBullet.position,
+            controlPosition = sourceBullet.position,
+            targetPosition = sourceBullet.position,
             damage = bulletPowers.IsCreated && sourceBullet.typeId >= 0 && sourceBullet.typeId < bulletPowers.Length
                 ? bulletPowers[sourceBullet.typeId] * math.cmax(math.abs(sourceBullet.scale))
                 : 0f,
             isActive = true,
             launched = false,
-            homingElapsed = 0f,
             spawnElapsed = 0f,
             spawnDelay = CounterBullet.SpawnDelay,
+            curveElapsed = 0f,
+            curveDuration = CounterBullet.CurveMinDuration,
             sourceTypeId = sourceBullet.typeId,
             sourceScale = sourceBullet.scale,
             sourceAngle = sourceBullet.GetRotationAngle(),
@@ -920,6 +945,7 @@ public class QuadOrder : MonoBehaviour
     {
         if (!counterBullets.IsCreated || counterBullets.Length == 0) return;
         int activeBeforeUpdate = CountActiveCounterBullets(counterBullets);
+        float activeDamageBeforeUpdate = SumActiveCounterDamage(counterBullets);
 
         float2 bossPos = boss != null
             ? new float2(boss.transform.position.x, boss.transform.position.y)
@@ -941,6 +967,8 @@ public class QuadOrder : MonoBehaviour
             int hitCount = activeBeforeUpdate - activeAfterUpdate;
             if (hitCount > 0)
             {
+                float activeDamageAfterUpdate = SumActiveCounterDamage(counterBullets);
+                boss.ApplyDamage(math.max(0f, activeDamageBeforeUpdate - activeDamageAfterUpdate));
                 GManager.Control?.AddCounterHitBossCount(hitCount);
             }
         }
@@ -1149,7 +1177,7 @@ public class QuadOrder : MonoBehaviour
             {
                 if (dashCollisionActiveFlags[i] == 0) continue;
                 if (enemyBullets[i].isActive) continue;
-                SpawnCounterBullet(enemyBullets[i], dt);
+                SpawnCounterBullet(enemyBullets[i]);
             }
         }
         else
@@ -1165,7 +1193,7 @@ public class QuadOrder : MonoBehaviour
 
         if (grazePower[0] > 0f && IsRaymeeDebugEnabled())
         {
-            Debug.Log($"Graze detected. Graze power: {grazePower[0]}");
+            //Debug.Log($"Graze detected. Graze power: {grazePower[0]}");
         }
     }
 
@@ -1311,6 +1339,36 @@ public class QuadOrder : MonoBehaviour
 
         ClearAllCells();
 
+        SyncNativeBulletDebugViews(forceRefresh: true);
+    }
+
+    public void ClearAllGameplayBulletsImmediate()
+    {
+        enemySpawnGeneration++;
+
+        if (enemyBullets.IsCreated) enemyBullets.Clear();
+        if (counterBullets.IsCreated) counterBullets.Clear();
+        if (warpZones.IsCreated) warpZones.Clear();
+
+        for (int i = allLASERs.Count - 1; i >= 0; i--)
+        {
+            allLASERs[i]?.Destroy();
+        }
+        allLASERs.Clear();
+
+        for (int i = 0; i < multiBullets.Count; i++)
+        {
+            if (multiBullets[i] != null) multiBullets[i].isActive = false;
+        }
+        multiBullets.Clear();
+
+        if (collisionCheckBullets.IsCreated) collisionCheckBullets.Clear();
+        if (laserBatchVerts.IsCreated) laserBatchVerts.Clear();
+        if (laserBatchCellIndices.IsCreated) laserBatchCellIndices.Clear();
+        if (dashCollisionActiveFlags.IsCreated) dashCollisionActiveFlags.Clear();
+
+        GManager.Control?.CManager?.StopScreenNoise();
+        ClearAllCells();
         SyncNativeBulletDebugViews(forceRefresh: true);
     }
 

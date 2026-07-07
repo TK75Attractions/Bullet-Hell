@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using Unity.Mathematics;
 
@@ -7,6 +8,14 @@ public class Boss : MonoBehaviour
     public string bossName;
     public Sprite bossImage;
     public float2 pos;
+
+    [SerializeField, Min(0.01f)] private float maxHp = 100f;
+    [SerializeField] private float currentHp = 100f;
+
+    public float MaxHp => maxHp;
+    public float CurrentHp => currentHp;
+    public bool IsDefeated => currentHp <= 0f;
+    public event Action<Boss> Defeated;
 
     private SpriteRenderer spriteRenderer;
     private EnemyVisualPlayer visualPlayer = new EnemyVisualPlayer();
@@ -18,6 +27,7 @@ public class Boss : MonoBehaviour
         initialized = true;
         visualTime = 0f;
         spriteRenderer = GetComponent<SpriteRenderer>();
+        InitializeHealth(maxHp);
         UpdatePosition();
         UpdateBossImage();
     }
@@ -27,7 +37,8 @@ public class Boss : MonoBehaviour
         EnemyAnimationPlan animationPlan = null,
         Sprite fallbackSprite = null,
         string bossId = "",
-        string bossName = "")
+        string bossName = "",
+        float maxHp = 100f)
     {
         initialized = true;
         this.bossId = bossId;
@@ -35,6 +46,7 @@ public class Boss : MonoBehaviour
         visualTime = 0f;
 
         spriteRenderer = GetComponent<SpriteRenderer>();
+        InitializeHealth(maxHp);
         visualPlayer = new EnemyVisualPlayer();
         visualPlayer.Init(spriteRenderer, visualSet, animationPlan, fallbackSprite);
         UpdatePosition();
@@ -52,6 +64,23 @@ public class Boss : MonoBehaviour
         visualTime += dt;
         visualPlayer?.Update(dt, visualTime);
         UpdateBossImage();
+    }
+
+    public void ApplyDamage(float damage)
+    {
+        if (damage <= 0f || IsDefeated) return;
+
+        currentHp = Mathf.Max(0f, currentHp - damage);
+        if (IsDefeated)
+        {
+            Defeated?.Invoke(this);
+        }
+    }
+
+    private void InitializeHealth(float value)
+    {
+        maxHp = Mathf.Max(0.01f, value);
+        currentHp = maxHp;
     }
 
     private void UpdatePosition()

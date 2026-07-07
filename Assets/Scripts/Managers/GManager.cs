@@ -14,12 +14,16 @@ using UnityEngine.InputSystem;
 public class GManager : MonoBehaviour
 {
     static public GManager Control;
+    [Header("Debug Time Scale")]
+    [SerializeField] private bool debugFastForwardTimeEnabled = true;
+    [SerializeField, Min(1f)] private float debugFastForwardTimeScale = 16f;
     public bool isRaymeeDebug = false; // デバッグ用のフラグ。これが true のとき、特定のデバッグコードが有効になる。
 
     public enum GameState
     {
         Title,
         ChoosingStage,
+        Loading,
         Playing,
         Result
     }
@@ -50,6 +54,19 @@ public class GManager : MonoBehaviour
     public int playerHitCount = 0;
     public int counterHitBossCount = 0;
 
+    private float currentNoHitDuration;
+    private float longestNoHitDuration;
+    private float defaultFixedDeltaTime;
+    private float appliedTimeScale = 1f;
+    private readonly List<GameResultData> resultHistory = new List<GameResultData>();
+
+    public GameResultData LastResult { get; private set; }
+    public IReadOnlyList<GameResultData> ResultHistory => resultHistory;
+    public event Action<GameResultData> ResultRecorded;
+    public float CurrentNoHitDuration => currentNoHitDuration;
+    public float LongestNoHitDuration => Mathf.Max(longestNoHitDuration, currentNoHitDuration);
+    public int CurrentScore => GetCurrentScoreBreakdown().totalScore;
+
     public Difficulty CurrentDifficulty { get; private set; } = Difficulty.Easy;
     public DifficultySelection RequestedDifficultySelection { get; private set; } = DifficultySelection.FromOfficial(Difficulty.Easy);
     public DifficultySelection CurrentDifficultySelection { get; private set; } = DifficultySelection.FromOfficial(Difficulty.Easy);
@@ -69,6 +86,8 @@ public class GManager : MonoBehaviour
         }
 
         ready = false;
+        defaultFixedDeltaTime = Time.fixedDeltaTime;
+        ApplyTimeScale(1f);
 
         IManager = GetComponent<InputManager>();
         IManager.Init();
@@ -116,16 +135,20 @@ public class GManager : MonoBehaviour
         float t = Time.deltaTime;
         gameTime += t;
 
-        if (PController != null)
+        if (state == GameState.Playing)
         {
-            if (state == GameState.Playing) PController.UpdatePos(t);
+            currentNoHitDuration += t;
+            PController?.UpdatePos(t);
+            SReader.UpdateStage(t);
+            QOrder.QuadUpdate(t);
+
+            if (SReader.HasReachedEndTime)
+            {
+                FinishCurrentStage();
+            }
         }
-
-        SReader.UpdateStage(t);
-
-        QOrder.QuadUpdate(t);
         IManager.UpdateInput();
-        if (musicOn)
+        if (musicOn && state == GameState.Playing)
         {
             BManager.UpdateBeat();
         }
@@ -139,6 +162,53 @@ public class GManager : MonoBehaviour
         }
 
         SSManager.UpdateSelect(IManager.upPressedThisFrame, IManager.downPressedThisFrame, t, stageSelectButton, IManager.backPressedThisFrame);
+        ApplyDebugTimeScale();
+    }
+
+    private void ApplyDebugTimeScale()
+    {
+        bool isFastForwarding = debugFastForwardTimeEnabled
+            && IManager != null
+            && IManager.isDebugMode
+            && IManager.debugFastForwardPressed;
+
+        ApplyTimeScale(isFastForwarding ? debugFastForwardTimeScale : 1f);
+    }
+
+    private void ApplyTimeScale(float timeScale)
+    {
+        if (defaultFixedDeltaTime <= 0f)
+        {
+            defaultFixedDeltaTime = Time.fixedDeltaTime;
+        }
+
+        timeScale = Mathf.Max(1f, timeScale);
+        float targetFixedDeltaTime = defaultFixedDeltaTime * timeScale;
+        if (Mathf.Approximately(appliedTimeScale, timeScale)
+            && Mathf.Approximately(Time.timeScale, timeScale)
+            && Mathf.Approximately(Time.fixedDeltaTime, targetFixedDeltaTime))
+        {
+            return;
+        }
+
+        Time.timeScale = timeScale;
+        Time.fixedDeltaTime = targetFixedDeltaTime;
+        appliedTimeScale = timeScale;
+    }
+
+    private void ResetDebugTimeScale()
+    {
+        ApplyTimeScale(1f);
+    }
+
+    private void OnDisable()
+    {
+        ResetDebugTimeScale();
+    }
+
+    private void OnDestroy()
+    {
+        ResetDebugTimeScale();
     }
 
     public void LateUpdate()
@@ -189,6 +259,15 @@ public class GManager : MonoBehaviour
         }
 
         StageData runtimeStage = stage.CreateRuntimeCopy(difficulty);
+        if (runtimeStage.endTime <= 0f)
+        {
+            Debug.LogError($"Stage '{runtimeStage.stageName}' has an invalid endTime: {runtimeStage.endTime}");
+            SSManager.ReturnToStageSelect();
+            state = GameState.ChoosingStage;
+            return;
+        }
+
+        state = GameState.Loading;
 
         CurrentStageIndex = index;
         CurrentStageData = runtimeStage;
@@ -201,7 +280,17 @@ public class GManager : MonoBehaviour
 
         playerHitCount = 0;
         counterHitBossCount = 0;
-        await SReader.Init(runtimeStage);
+        currentNoHitDuration = 0f;
+        longestNoHitDuration = 0f;
+        PController?.ResetForStage();
+
+        bool initialized = await SReader.Init(runtimeStage);
+        if (!initialized)
+        {
+            SSManager.ReturnToStageSelect();
+            state = GameState.ChoosingStage;
+            return;
+        }
         state = GameState.Playing;
         Debug.Log($"Started Stage: {runtimeStage.stageName}, Difficulty: {CurrentDifficultySelection.displayName} (Data: {CurrentDataDifficultySelection.displayName})");
     }
@@ -209,6 +298,8 @@ public class GManager : MonoBehaviour
     public void AddPlayerHitCount(int value = 1)
     {
         if (value <= 0) return;
+        longestNoHitDuration = Mathf.Max(longestNoHitDuration, currentNoHitDuration);
+        currentNoHitDuration = 0f;
         playerHitCount += value;
     }
 
@@ -216,6 +307,63 @@ public class GManager : MonoBehaviour
     {
         if (value <= 0) return;
         counterHitBossCount += value;
+    }
+
+    public GameScoreBreakdown GetCurrentScoreBreakdown()
+    {
+        bool bossDefeated = SReader != null && SReader.IsBossDefeated;
+        return GameScoreCalculator.Calculate(counterHitBossCount, LongestNoHitDuration, bossDefeated);
+    }
+
+    private void FinishCurrentStage()
+    {
+        if (state != GameState.Playing || CurrentStageData == null) return;
+
+        state = GameState.Result;
+        longestNoHitDuration = Mathf.Max(longestNoHitDuration, currentNoHitDuration);
+
+        GameResultData result = GameScoreCalculator.Create(
+            CurrentStageIndex,
+            CurrentStageData,
+            CurrentDifficultySelection,
+            SReader.ElapsedTime,
+            counterHitBossCount,
+            playerHitCount,
+            longestNoHitDuration,
+            SReader.CurrentBoss);
+
+        LastResult = result;
+        resultHistory.Add(result);
+
+        QOrder.ClearAllGameplayBulletsImmediate();
+        SReader.StopStage();
+        BulletBuffers.UnloadAllBulletBuffers();
+        AManager.StopBGM();
+        BManager.StopBeat();
+        CManager?.StopScreenNoise();
+        musicOn = false;
+
+        CurrentStageIndex = -1;
+        CurrentStageData = null;
+        SSManager.ReturnToStageSelect();
+        state = GameState.ChoosingStage;
+
+        NotifyResultUI(result);
+        ResultRecorded?.Invoke(result);
+        Debug.Log($"Stage finished. Clear={result.isClear}, Score={result.score.totalScore}");
+    }
+
+    private void NotifyResultUI(GameResultData result)
+    {
+        ResultUIManager[] resultUIs = FindObjectsByType<ResultUIManager>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+
+        for (int i = 0; i < resultUIs.Length; i++)
+        {
+            if (resultUIs[i] == null) continue;
+            resultUIs[i].ShowResult(result);
+        }
     }
 }
 

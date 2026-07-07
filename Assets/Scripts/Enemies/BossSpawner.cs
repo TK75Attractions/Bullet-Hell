@@ -10,6 +10,7 @@ public class BossSpawner
     public string visualId = "";
     public float appearTime;
     public float lifeTime = -1f;
+    [Min(0.01f)] public float maxHp = 100f;
     public Vector2 startPos;
     public Vector2 scale = Vector2.one;
     public float angle;

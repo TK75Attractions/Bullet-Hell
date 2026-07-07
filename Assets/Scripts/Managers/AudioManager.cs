@@ -52,6 +52,13 @@ public class AudioManager : MonoBehaviour
         return BGMSource;
     }
 
+    public void StopBGM()
+    {
+        if (BGMSource == null) return;
+        BGMSource.Stop();
+        BGMSource.clip = null;
+    }
+
     public int PlaySE(string seName)
     {
         if (!isready) return -1;

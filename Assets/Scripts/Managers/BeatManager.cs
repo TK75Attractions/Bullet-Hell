@@ -87,6 +87,14 @@ public class BeatManager : MonoBehaviour
         ready = false;
     }
 
+    public void StopBeat()
+    {
+        audioSource = null;
+        musicClip = null;
+        startDspTime = 0d;
+        ResetState();
+    }
+
     private static bool TryGetNormalizedBeatTimings(StageData.MusicEvent musicEvent, out List<int> normalizedBeatTimings)
     {
         normalizedBeatTimings = null;

@@ -9,6 +9,10 @@ public class InputManager : MonoBehaviour
     public string portName = "COM3";
     public int baudRate = 115200;
 
+    [Header("Debug Input")]
+    public bool isDebugMode = false;
+    public Key debugFastForwardKey = Key.F;
+
     private object serialPort;
     private PropertyInfo isOpenProperty;
     private PropertyInfo bytesToReadProperty;
@@ -17,7 +21,7 @@ public class InputManager : MonoBehaviour
     private Vector2 serialMove;
     private string latestRawLine = "";
 
-    public bool isDebugMode = false;
+    public bool debugFastForwardPressed;
     public bool buttonPressed;
     public bool buttonPressedThisFrame;
     public bool backPressed;
@@ -74,9 +78,13 @@ public class InputManager : MonoBehaviour
         Keyboard keyboard = Keyboard.current;
         bool keyboardBackPressed = keyboard != null && keyboard.escapeKey.isPressed;
         bool keyboardBackPressedThisFrame = keyboard != null && keyboard.escapeKey.wasPressedThisFrame;
+        bool keyboardFastForwardPressed = keyboard != null
+            && debugFastForwardKey != Key.None
+            && keyboard[debugFastForwardKey].isPressed;
 
         if (isDebugMode)
         {
+            debugFastForwardPressed = keyboardFastForwardPressed;
             buttonPressed = keyboard != null && keyboard.spaceKey.isPressed;
             buttonPressedThisFrame = keyboard != null && keyboard.spaceKey.wasPressedThisFrame;
             backPressed = keyboardBackPressed;
@@ -99,6 +107,7 @@ public class InputManager : MonoBehaviour
         bool prevLeftPressed = leftPressed;
         bool prevRightPressed = rightPressed;
 
+        debugFastForwardPressed = false;
         buttonPressedThisFrame = false;
         backPressed = keyboardBackPressed;
         backPressedThisFrame = keyboardBackPressedThisFrame;

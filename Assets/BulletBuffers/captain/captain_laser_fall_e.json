@@ -1,0 +1,471 @@
+{
+  "name": "captain_laser_fall_e",
+  "bullets": [
+    {
+      "originPos": {
+        "x": -23,
+        "y": -1.6
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 8,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "useVelocityAngle": true,
+      "polarForm": {
+        "x": 1,
+        "y": 4.712389
+      },
+      "radiusVlc": 0,
+      "radiusAccel": 0,
+      "thetaVlc": 0,
+      "thetaAccel": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "box",
+      "scale": {
+        "x": 0.5,
+        "y": 40
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 3,
+      "appearDuration": 3,
+      "life": 6,
+      "random": 0,
+      "warpCooldown": 0,
+      "unCounterable": true
+    },
+    {
+      "originPos": {
+        "x": 23,
+        "y": -1.6
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 8,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "useVelocityAngle": true,
+      "polarForm": {
+        "x": 1,
+        "y": 4.712389
+      },
+      "radiusVlc": 0,
+      "radiusAccel": 0,
+      "thetaVlc": 0,
+      "thetaAccel": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "box",
+      "scale": {
+        "x": 0.5,
+        "y": 40
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 3,
+      "appearDuration": 3,
+      "life": 6,
+      "random": 0,
+      "warpCooldown": 0,
+      "unCounterable": true
+    },
+    {
+      "originPos": {
+        "x": -23,
+        "y": -0.8
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 8,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "useVelocityAngle": true,
+      "polarForm": {
+        "x": 1,
+        "y": 4.712389
+      },
+      "radiusVlc": 0,
+      "radiusAccel": 0,
+      "thetaVlc": 0,
+      "thetaAccel": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "box",
+      "scale": {
+        "x": 0.5,
+        "y": 40
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 3,
+      "appearDuration": 3,
+      "life": 6,
+      "random": 0,
+      "warpCooldown": 0,
+      "unCounterable": true
+    },
+    {
+      "originPos": {
+        "x": 23,
+        "y": -0.8
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 8,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "useVelocityAngle": true,
+      "polarForm": {
+        "x": 1,
+        "y": 4.712389
+      },
+      "radiusVlc": 0,
+      "radiusAccel": 0,
+      "thetaVlc": 0,
+      "thetaAccel": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "box",
+      "scale": {
+        "x": 0.5,
+        "y": 40
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 3,
+      "appearDuration": 3,
+      "life": 6,
+      "random": 0,
+      "warpCooldown": 0,
+      "unCounterable": true
+    },
+    {
+      "originPos": {
+        "x": -23,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 8,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "useVelocityAngle": true,
+      "polarForm": {
+        "x": 1,
+        "y": 4.712389
+      },
+      "radiusVlc": 0,
+      "radiusAccel": 0,
+      "thetaVlc": 0,
+      "thetaAccel": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "box",
+      "scale": {
+        "x": 0.5,
+        "y": 40
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 3,
+      "appearDuration": 3,
+      "life": 6,
+      "random": 0,
+      "warpCooldown": 0,
+      "unCounterable": true
+    },
+    {
+      "originPos": {
+        "x": 23,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 8,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "useVelocityAngle": true,
+      "polarForm": {
+        "x": 1,
+        "y": 4.712389
+      },
+      "radiusVlc": 0,
+      "radiusAccel": 0,
+      "thetaVlc": 0,
+      "thetaAccel": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "box",
+      "scale": {
+        "x": 0.5,
+        "y": 40
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 3,
+      "appearDuration": 3,
+      "life": 6,
+      "random": 0,
+      "warpCooldown": 0,
+      "unCounterable": true
+    },
+    {
+      "originPos": {
+        "x": -23,
+        "y": 0.8
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 8,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "useVelocityAngle": true,
+      "polarForm": {
+        "x": 1,
+        "y": 4.712389
+      },
+      "radiusVlc": 0,
+      "radiusAccel": 0,
+      "thetaVlc": 0,
+      "thetaAccel": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "box",
+      "scale": {
+        "x": 0.5,
+        "y": 40
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 3,
+      "appearDuration": 3,
+      "life": 6,
+      "random": 0,
+      "warpCooldown": 0,
+      "unCounterable": true
+    },
+    {
+      "originPos": {
+        "x": 23,
+        "y": 0.8
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 8,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "useVelocityAngle": true,
+      "polarForm": {
+        "x": 1,
+        "y": 4.712389
+      },
+      "radiusVlc": 0,
+      "radiusAccel": 0,
+      "thetaVlc": 0,
+      "thetaAccel": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "box",
+      "scale": {
+        "x": 0.5,
+        "y": 40
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 3,
+      "appearDuration": 3,
+      "life": 6,
+      "random": 0,
+      "warpCooldown": 0,
+      "unCounterable": true
+    }
+  ],
+  "homing": false,
+  "isLaser": false
+}

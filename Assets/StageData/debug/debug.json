@@ -17,6 +17,7 @@
     }
   ],
   "delayTime": 3,
+  "endTime": 216.4,
   "stageDescription": "Stage Description Here",
   "enemyVisuals": [],
   "multiBulletSpawners": [],
@@ -29,10 +30,10 @@
       "bossSpawners": [],
       "bulletSpawners": [
         {
-          "clipName": "captainwave_L",
+          "clipName": "captain_wave_tl_e",
           "count": 2,
-          "interval": 3.2727275,
-          "time": 9,
+          "interval": 6.545455,
+          "time": 9.545455,
           "pos": {
             "x": 6,
             "y": 14
@@ -44,17 +45,17 @@
           "angle": 0,
           "angleInterval": 0,
           "color": {
-            "x": 0.05,
-            "y": 0.05,
-            "z": 0.9,
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
             "w": 1
           }
         },
         {
-          "clipName": "captainwave_L",
+          "clipName": "captain_wave_tl_e",
           "count": 2,
-          "interval": 3.2727275,
-          "time": 9,
+          "interval": 6.545455,
+          "time": 9.545455,
           "pos": {
             "x": 26,
             "y": 14
@@ -66,53 +67,9 @@
           "angle": 0,
           "angleInterval": 0,
           "color": {
-            "x": 0.05,
-            "y": 0.05,
-            "z": 0.9,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captainwave_R",
-          "count": 2,
-          "interval": 3.2727275,
-          "time": 15.545455,
-          "pos": {
-            "x": 6,
-            "y": 14
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 0.05,
-            "y": 0.05,
-            "z": 0.9,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captainwave_R",
-          "count": 2,
-          "interval": 3.2727275,
-          "time": 15.545455,
-          "pos": {
-            "x": 26,
-            "y": 14
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 0.05,
-            "y": 0.05,
-            "z": 0.9,
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
             "w": 1
           }
         }

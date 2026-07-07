@@ -17,6 +17,12 @@ public class StageReader : MonoBehaviour
     private EnemyVisualCatalog enemyVisualCatalog;
     private BossManager bossManager;
 
+    public float ElapsedTime => time;
+    public float EndTime => stageData != null ? stageData.endTime : 0f;
+    public bool HasReachedEndTime => isReady && stageData != null && time >= stageData.endTime;
+    public Boss CurrentBoss => bossManager != null ? bossManager.CurrentBoss : null;
+    public bool IsBossDefeated => bossManager != null && bossManager.IsBossDefeated;
+
     [Serializable]
     private struct BulletSpawnEvent
     {
@@ -30,6 +36,12 @@ public class StageReader : MonoBehaviour
 
     public async Task<bool> Init(StageData data)
     {
+        if (data == null || data.endTime <= 0f)
+        {
+            Debug.LogError("StageData.endTime must be greater than zero.");
+            return false;
+        }
+
         stageData = data;
         time = 0f;
         multiBulletSpawnerCount = 0;
@@ -190,7 +202,7 @@ public class StageReader : MonoBehaviour
     public void UpdateStage(float dt)
     {
         if (stageData == null || !isReady) return;
-        time += dt;
+        time = Mathf.Min(time + dt, stageData.endTime);
         bossManager?.UpdateBosses(dt, time);
 
         while (stageData.multiBulletSpawners.Count > multiBulletSpawnerCount && stageData.multiBulletSpawners[multiBulletSpawnerCount].time <= time)
@@ -215,6 +227,24 @@ public class StageReader : MonoBehaviour
             //Debug.Log($"Spawned bullet: {spawner.index}");
         }
 
+    }
+
+    public void StopStage()
+    {
+        isReady = false;
+        bossManager?.Clear();
+
+        if (stageData != null)
+        {
+            stageData.enemyVisualCatalog = null;
+        }
+
+        enemyVisualCatalog?.Release();
+        enemyVisualCatalog = null;
+        spawnEvents.Clear();
+        multiBulletSpawnerCount = 0;
+        bulletCount = 0;
+        stageData = null;
     }
 
     private void OnDestroy()

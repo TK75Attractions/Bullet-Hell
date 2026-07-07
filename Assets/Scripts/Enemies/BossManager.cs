@@ -9,6 +9,9 @@ public class BossManager : MonoBehaviour
     private int spawnIndex;
     private Transform bossParent;
 
+    public Boss CurrentBoss { get; private set; }
+    public bool IsBossDefeated => CurrentBoss != null && CurrentBoss.IsDefeated;
+
     private class ActiveBoss
     {
         public GameObject gameObject;
@@ -52,15 +55,19 @@ public class BossManager : MonoBehaviour
             ActiveBoss activeBoss = activeBosses[i];
             if (activeBoss == null || activeBoss.gameObject == null)
             {
+                bool wasCurrentBoss = activeBoss != null && activeBoss.boss == CurrentBoss;
                 activeBosses.RemoveAt(i);
+                if (wasCurrentBoss) RefreshCurrentBossTarget();
                 continue;
             }
 
             float elapsed = stageTime - activeBoss.spawnTime;
             if (activeBoss.lifeTime >= 0f && elapsed >= activeBoss.lifeTime)
             {
+                bool wasCurrentBoss = activeBoss.boss == CurrentBoss;
                 Destroy(activeBoss.gameObject);
                 activeBosses.RemoveAt(i);
+                if (wasCurrentBoss) RefreshCurrentBossTarget();
                 continue;
             }
 
@@ -82,6 +89,8 @@ public class BossManager : MonoBehaviour
         activeBosses.Clear();
         spawners.Clear();
         spawnIndex = 0;
+        CurrentBoss = null;
+        GManager.Control?.QOrder?.SetBossTarget(null);
     }
 
     private void Spawn(BossSpawner spawner, float stageTime)
@@ -109,7 +118,8 @@ public class BossManager : MonoBehaviour
             BossAnimationPlan.Normalize(spawner.animation).ToEnemyAnimationPlan(),
             fallbackSprite,
             spawner.bossId,
-            spawner.bossName);
+            spawner.bossName,
+            spawner.maxHp);
 
         BossMover mover = bossObject.AddComponent<BossMover>();
         mover.Init(spawner.moves);
@@ -122,6 +132,22 @@ public class BossManager : MonoBehaviour
             spawnTime = stageTime,
             lifeTime = spawner.lifeTime
         });
+
+        CurrentBoss = boss;
+        GManager.Control?.QOrder?.SetBossTarget(boss);
+    }
+
+    private void RefreshCurrentBossTarget()
+    {
+        CurrentBoss = null;
+        for (int i = activeBosses.Count - 1; i >= 0; i--)
+        {
+            if (activeBosses[i]?.boss == null) continue;
+            CurrentBoss = activeBosses[i].boss;
+            break;
+        }
+
+        GManager.Control?.QOrder?.SetBossTarget(CurrentBoss);
     }
 
     private void OnDestroy()
