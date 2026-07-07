@@ -26,7 +26,8 @@ public class LASER : MonoBehaviour
     public float timeCarry;
 
     private float length = 0;
-    private float width = 0;
+    private float renderWidth = 0;
+    private float collisionWidth = 0;
     private LASERvertex[] verts = new LASERvertex[0];
     private Vector3[] vs = new Vector3[0];
     public NativeList<float2> vertsSet;
@@ -50,7 +51,7 @@ public class LASER : MonoBehaviour
     public bool NeedsCellUpdate { get; private set; }
     public int CollisionVertexCount => vertsSet.IsCreated ? vertsSet.Length : 0;
 
-    public void AwakeSetting(float2 _pos, float2 _vlc, float _t, float _s, float2 _polar, float _startX, float2 _startPos, float[] _poly, float _len, float _w, float _life, float4 _color, int cellCount)
+    public void AwakeSetting(float2 _pos, float2 _vlc, float _t, float _s, float2 _polar, float _startX, float2 _startPos, float[] _poly, float _len, float _collisionWidth, float _renderWidth, float _life, float4 _color, int cellCount)
     {
         mesh = new Mesh();
         mesh.MarkDynamic();
@@ -69,7 +70,8 @@ public class LASER : MonoBehaviour
         startPos = _startPos;
         timeCarry = 0;
         length = _len;
-        width = _w;
+        collisionWidth = _collisionWidth;
+        renderWidth = _renderWidth;
         life = _life;
         color = _color;
         ApplyColor();
@@ -261,13 +263,15 @@ public class LASER : MonoBehaviour
 
             float2 dis = verts[i].point;// - startPos;
             float widthScale = isClearing ? clearFade01 : 1f;
-            float2 widthVec = width * widthScale * scale * new float2(-verts[i].nutral.y, verts[i].nutral.x) / verts[i].magnitude;
+            float2 normal = scale * new float2(-verts[i].nutral.y, verts[i].nutral.x) / verts[i].magnitude;
+            float2 renderWidthVec = renderWidth * widthScale * normal;
+            float2 collisionWidthVec = collisionWidth * widthScale * normal;
 
-            vs[n + 1] = new Vector3(dis.x + widthVec.x, dis.y + widthVec.y, 0);
-            vs[n] = new Vector3(dis.x - widthVec.x, dis.y - widthVec.y, 0);
+            vs[n + 1] = new Vector3(dis.x + renderWidthVec.x, dis.y + renderWidthVec.y, 0);
+            vs[n] = new Vector3(dis.x - renderWidthVec.x, dis.y - renderWidthVec.y, 0);
 
-            vertsSet.Add(verts[i].point - widthVec);
-            vertsSet.Add(verts[i].point + widthVec);
+            vertsSet.Add(verts[i].point - collisionWidthVec);
+            vertsSet.Add(verts[i].point + collisionWidthVec);
         }
 
         int targetTriLength = (nowCount - 1) * 6;

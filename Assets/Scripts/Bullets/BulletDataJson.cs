@@ -28,8 +28,8 @@ public class BulletDataJson
     public string typeName;
     public Vector2 scale;
     public Vector4 color;
-    public float appearTime;//弾幕を表示する時間、レーザーでは太さを指定
-    public float appearDuration;//appearTime直前に演出を適用する時間
+    public float appearTime;//Normal bullets: appear timing. Lasers: collision width.
+    public float appearDuration;//Normal bullets: pre-appear effect duration. Lasers: render width.
     public float life;
     public float random;
     public float warpCooldown;
