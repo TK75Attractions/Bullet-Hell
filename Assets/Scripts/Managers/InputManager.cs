@@ -34,10 +34,21 @@ public class InputManager : MonoBehaviour
     public Vector2 Move => serialMove;
     public string LatestRawLine => latestRawLine;
 
+    // True while the ESP32 serial port is actually open. Always false in
+    // keyboard debug mode (no port is opened). Consumed by InputDebugOverlay
+    // to show live connection status.
+    public bool IsConnected => IsSerialOpen();
+
+    // Human-readable outcome of the last Init(), surfaced by InputDebugOverlay so
+    // the reason serial is dead (esp. "SerialPort type unavailable") is visible
+    // in-game without digging through the Console.
+    public string InitStatus { get; private set; } = "not initialized";
+
     public void Init()
     {
         if (isDebugMode)
         {
+            InitStatus = "keyboard debug (serial disabled)";
             Debug.Log("InputManager is in debug mode. Using keyboard input.");
             return;
         }
@@ -47,6 +58,7 @@ public class InputManager : MonoBehaviour
             Type serialPortType = Type.GetType("System.IO.Ports.SerialPort, System") ?? Type.GetType("System.IO.Ports.SerialPort");
             if (serialPortType == null)
             {
+                InitStatus = "SerialPort type missing - set Api Compatibility Level to .NET Framework";
                 Debug.LogError("SerialPort is not available in this build/runtime.");
                 return;
             }
@@ -60,10 +72,12 @@ public class InputManager : MonoBehaviour
             readLineMethod = serialPortType.GetMethod("ReadLine");
 
             serialPortType.GetMethod("Open")?.Invoke(serialPort, null);
+            InitStatus = $"listening {portName} @ {baudRate}";
             Debug.Log($"Serial port opened: {portName} ({baudRate})");
         }
         catch (System.Exception e)
         {
+            InitStatus = "open failed: " + e.Message;
             Debug.LogError("Failed to open serial port: " + e.Message);
             CloseSerialPort();
         }
