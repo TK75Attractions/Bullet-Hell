@@ -126,10 +126,37 @@ raymee 変換ターゲット DTO（フィールド）:
 - **stone.json** を raymee top-level へ: `endTime=82` 追加(欠落が Init 失敗の直接原因)、`difficulties:[]` 空のまま(ローダが legacy top-level を Lunatic 自動ラップ: `StageDataManager.ApplyStageDataJson`/`HasLegacySpawnerData`)。`enemySpawners`(ゴーレム降下/スラム/老人)→ `bossSpawners`(降下 originVlc.y=-7.2 は `MoveTo(19.64→13.64, 0.833s, linear)` へ)。`_generatedFrom/enemySpawners/patternEvents` 削除。
 - **実機検証(runInBackground=true で通し)**: `Started Stage: 石工 (Lunatic)`、"Bullet clip not found"/endTime/NullRef **なし**。弾数が全区間で健全(9.7s:102, 60s:69, 63.5s:20, 77.8s:71)。落下ブロックが gravity で降下、老人ボス・**ゴーレムの形態変化(降下→出現、頭上に老人)**が正しく描画。DSP クロックでマーカー時刻と整合。
 
-### 残タスク / 既知の差分
-- **Stage 4(raymee 最小スペック追加)**: `EnemyVisualDefinition` に `transparentBackground`/`transparentTolerance`、`EnemyVisualClipDefinition` に `maxFrames` を復活(GIF 透過/フレーム制限)。`BossSpawner/BossManager/Boss` に `fadeInSec`/`fadeOutSec`/`sortingOrder` を追加(現状 stone.json 変換で一旦落としている。老人 sortingOrder=9/fadeOut=0.4 の前後関係・フェードが未反映)。
-- **弾スプライトの見え方の差**: raymee 描画で **ブロックがひび模様なしの平坦ネイビー**、**縁カッターが marron の大鋸刃より小さく**描画される。BulletRenderSystem/mask シェーダの挙動差か color.w=0 の扱い差の可能性。要調査(Stage4 か描画側)。
-- **Stage 2(難易度UI配線)**: `DefficultyBar`/`StageSelectManager` を raymee `Difficulty` に接続。Result UI は不採用。
-- **他ステージのデータ変換**: stone 以外の StageData/BulletBuffer は旧スキーマのまま(起動しない)。文化祭の主対象は石工。
-- **Fable 5 は利用枠上限に達した**(2026-07-07)。以降のレビューは Unity 実機検証を判断基準に。
-- **検証の罠**: エディタ非フォーカスだとゲームが一時停止(`Application.runInBackground=true` で回避)。UICamera 指定スクショは白画像トラップ→ `ScreenCapture.CaptureScreenshot` を使う。
+### task1 完了(描画差の調査 → ベルトスクロール復活)
+`c1ded20`: 描画差の根本原因は URP シェーダの分岐だった。統合で BulletIndirectURP.shader が
+raymee 版(_Attention/_Counter 追加)に置き換わり、marron の石工ベルト帯スクロール
+`_StoneBeltScroll` が欠落。C# の StoneBeltScrollDriver は残存し空振りしていた。frag() の
+既定弾パスに `if(scale.x>20 && scale.y<3.5) uv.x=frac(uv.x+_StoneBeltScroll)` を移植。flow 窓
+[11.25,37.60] 内で scroll +0.16/0.6s(0.26 UV/s)進行を確認。**ブロック平坦・カッターのサイズ・
+ベルトの 512x64→128x128 潰れは BulletRenderSystem/tint が marron と同一のため回帰ではない**。
+
+### 海ステージ captain も変換・起動確認(`f3b7304`)
+sea テーマは captain(船長、visual=captain、bulletSpawners=61/enemySpawners=6)。同じ2ツールで
+変換 → t=25 で船長ボス＋波状レーザー弾幕を確認。※ enemySpawner.bulletCount>0 の敵弾emit(6発)は
+BossSpawner が弾を撃たない仕様のため未変換(要 bulletSpawners/multiBulletSpawners 化。ツールが WARN)。
+
+### Stage 4 完了(sortingOrder / fade)`b02f277`
+`BossSpawner(runtime)/BossSpawnerJson` に sortingOrder/fadeInSec/fadeOutSec 追加、ToBossSpawner で
+マッピング、BossManager で SpriteRenderer.sortingOrder 設定＋UpdateBosses で fade alpha 適用。
+**罠: StageData.CloneBossSpawners が新3フィールドをコピーしておらず、SetActiveDifficultyForPreview/
+CreateRuntimeCopy のディープコピーで値が 0 に落ちていた**(JSON パースは正しかった。SDB は
+Addressables FastMode でライブ読みだが Clone が犯人)。修正後 t30 で老人 order=9 a=1.00、t63.10 で
+老人 a=0.59(退場フェード)を確認。transparentBackground/maxFrames は GIF が既に透過表示できて
+いるため未対応(raymee の GIF ローダが透過を扱う)。
+
+### 残タスク
+- **Stage 2(難易度UI配線)**: `DefficultyBar`/`StageSelectManager` を raymee `Difficulty` に接続、
+  Result UI は不採用。**ただし現状 stone/captain は legacy 自動ラップで Lunatic のみ**(Easy/Normal の
+  間引きデータが無い)。UI 配線と難易度別データ(thinEasy/thinNormal 展開)はセットで要検討。
+- **他ステージのデータ変換**: 25/mirror/debug 等は未変換。文化祭主対象は石工＋captain。
+  `convert_stagedata_to_raymee.py`(全ステージ dry-run 可)＋ `convert_bulletbuffers_to_raymee.py --path` で対応可。
+- **captain の敵弾emit(6発)** の bulletSpawner/multiBulletSpawner 化。
+- **Fable 5 は利用枠上限**(2026-07-07)。レビューは Unity 実機検証を判断基準に。
+- **検証の罠**: エディタ非フォーカスでゲーム一時停止(`Application.runInBackground=true` で回避)。
+  UICamera 指定スクショは白画像トラップ→`ScreenCapture.CaptureScreenshot`。StartStageByName は
+  stageName 一致(石工="石工"、captain="Captain")。**StageData は Addressables FastMode 経由で
+  ライブ読み**だが、稀にドメイン/キャッシュのズレがあるので値が反映されない時は Play 再起動。
