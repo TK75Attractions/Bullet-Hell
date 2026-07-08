@@ -133,7 +133,7 @@ def corpse_burst():
     """間奏: 中央付近の様々な位置で死体が破裂し skull を全周放射。位置・角度・弾数をずらして反復。
     1バッファに全破裂(appearTime で展開)を入れ、t=26.5 で1回発火する。"""
     bullets = []
-    n_burst = 12
+    n_burst = 11                             # 最後の破裂を t=41.5 に(2サビ 45.7 前に消えるよう)
     interval = 1.5
     for bi in range(n_burst):
         t = bi * interval
@@ -149,7 +149,7 @@ def corpse_burst():
                 polarForm={"x": 1, "y": round(ang, 5)}, gravity={"x": 0.0, "y": -1.5707963},
                 angleSpeed=60, typeName="skull", scale={"x": 0.8, "y": 0.8},
                 color={"x": 0, "y": 0, "z": 0, "w": 0},
-                appearTime=round(t, 3), life=round(t + 4.3, 3)))
+                appearTime=round(t, 3), life=round(t + 4.0, 3)))  # 残弾を早めに消す
     return buf("vagrant_corpse_burst", bullets)
 
 
