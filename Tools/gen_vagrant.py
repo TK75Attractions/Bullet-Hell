@@ -195,7 +195,66 @@ def main_section():
     return buf("vagrant_main", bullets)
 
 
-# ④幽霊 は次段で追加。
+# ---------------------------------------------------------------------------
+# ④ 幽霊 ghost(拍152 と 184、計2体)
+#   8オーブ(半径125)のリングが45°/s自転しつつ、中心が矩形(150,150)→(150,450)→
+#   (650,450)→(650,150)を16拍/辺で周回。4拍ごとに各オーブ位置から内向きの平行三角弾。
+#   本体orbs=辺ごとに originVlc(線形移動)+polarForm(startX=1,speed=0)で周回。
+#   三角弾=各fire時刻のオーブ位置を事前計算(center(t)+R*(cos,sin)(θ_g+j*45°))。
+# ---------------------------------------------------------------------------
+GHOST_PATH = [(150, 150), (150, 450), (650, 450), (650, 150)]   # 矩形の角(原典座標)
+GHOST_ATK = [0.0, math.pi / 2, math.pi, 3 * math.pi / 2]        # 各辺の内向きUnity角(右/上/左/下)
+
+
+def _ghost(t0_rel, n_sides):
+    bullets = []
+    R = ms(125); n_orbs = 8; d_orb = 2 * math.pi / n_orbs
+    theta_rate = math.radians(45)          # 自転(rad/s)
+    side_dur = 16 * BEAT
+    orb_sc = ms(50)                        # size_radius25 → 直径50
+    theta_g = 0.0
+    # 本体オーブ(辺ごとに再spawn)
+    for si in range(n_sides):
+        p = si % 4
+        c0 = GHOST_PATH[p]; c1 = GHOST_PATH[(p + 1) % 4]
+        cs = (mx(c0[0]), my(c0[1])); ce = (mx(c1[0]), my(c1[1]))
+        ovx = round((ce[0] - cs[0]) / side_dur, 4); ovy = round((ce[1] - cs[1]) / side_dur, 4)
+        st = t0_rel + si * side_dur
+        for j in range(n_orbs):
+            a0 = (theta_g + j * d_orb) % (2 * math.pi)
+            bullets.append(bullet(
+                originPos={"x": cs[0], "y": cs[1]}, originVlc={"x": ovx, "y": ovy},
+                startX=1, speed=0.0, polarForm={"x": R, "y": round(a0, 5)}, thetaVlc=round(theta_rate, 5),
+                gravity={"x": 0, "y": 0}, useVelocityAngle=False,
+                typeName="vcirc", scale={"x": orb_sc, "y": orb_sc}, color=dict(PINK),
+                appearTime=round(st, 3), appearDuration=(0.3 if si == 0 else 0.0),
+                life=round(st + side_dur + 0.03, 3)))
+        theta_g += theta_rate * side_dur
+    # 三角弾(4拍ごと、at_first=2拍)
+    total = n_sides * side_dur
+    ft = 2 * BEAT
+    while ft < total - 1e-6:
+        si = min(int(ft // side_dur), n_sides - 1); p = si % 4
+        tt = ft - si * side_dur
+        c0 = GHOST_PATH[p]; c1 = GHOST_PATH[(p + 1) % 4]
+        cx = mx(c0[0]) + (mx(c1[0]) - mx(c0[0])) * tt / side_dur
+        cy = my(c0[1]) + (my(c1[1]) - my(c0[1])) * tt / side_dur
+        th = theta_rate * ft
+        aang = GHOST_ATK[p]
+        for j in range(n_orbs):
+            a = th + j * d_orb
+            ox = cx + R * math.cos(a); oy = cy + R * math.sin(a)
+            bullets.append(bullet(
+                originPos={"x": round(ox, 3), "y": round(oy, 3)}, speed=ms(300),
+                polarForm={"x": 1, "y": round(aang, 5)}, useVelocityAngle=True, angleSpeed=120.0,
+                typeName="vtri", scale={"x": ms(30), "y": ms(30)}, color=dict(PINK),
+                appearTime=round(t0_rel + ft, 3), appearDuration=0.05, life=round(t0_rel + ft + 4.0, 3)))
+        ft += 4 * BEAT
+    return bullets
+
+
+def ghosts():
+    return buf("vagrant_ghosts", _ghost(0.0, 4) + _ghost(32 * BEAT, 2))
 
 
 def build():
@@ -203,6 +262,7 @@ def build():
     w_json(f"{BUFDIR}/intro_bars.json", intro_bars())
     w_json(f"{BUFDIR}/skeletons.json", skeletons())
     w_json(f"{BUFDIR}/main_section.json", main_section())
+    w_json(f"{BUFDIR}/ghosts.json", ghosts())
 
     WHITE = {"x": 1, "y": 1, "z": 1, "w": 1}
 
@@ -219,6 +279,8 @@ def build():
         spawner("vagrant_skeletons", 1, 0.0, round(56 * B, 3), {"x": 0, "y": 0}),
         # ③ 主部(拍88=26.47s で発火、バッファ内で拍88–152 を展開)
         spawner("vagrant_main", 1, 0.0, round(88 * B, 3), {"x": 0, "y": 0}),
+        # ④ 幽霊(拍152=45.71s で発火、幽霊1=1周・幽霊2=相対32拍後2辺)
+        spawner("vagrant_ghosts", 1, 0.0, round(152 * B, 3), {"x": 0, "y": 0}),
     ]
 
     stage = {
