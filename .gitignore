@@ -115,3 +115,8 @@ InitTestScene*.unity*
 
 # mp4 フレーム抽出などの一時ディレクトリ
 /.tmp_mp4_frames/
+
+# .md ファイルは github に上げない(CLAUDE.md, ハンドオフ, Docs 等はローカル運用)。2026-07-08
+*.md
+# .claude/(ローカル設定・discord webhook 等)
+/.claude/
