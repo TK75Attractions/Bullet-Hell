@@ -208,7 +208,7 @@ GHOST_ATK = [0.0, math.pi / 2, math.pi, 3 * math.pi / 2]        # 各辺の内�
 
 def _ghost(t0_rel, n_sides):
     bullets = []
-    R = ms(125); n_orbs = 8; d_orb = 2 * math.pi / n_orbs
+    R = ms(125) * 2.0; n_orbs = 8; d_orb = 2 * math.pi / n_orbs
     theta_rate = math.radians(45)          # 自転(rad/s)
     side_dur = 16 * BEAT
     orb_sc = ms(50)                        # size_radius25 → 直径50
