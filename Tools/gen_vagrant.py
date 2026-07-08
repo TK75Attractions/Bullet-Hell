@@ -84,12 +84,74 @@ def intro_bars():
     return buf("vagrant_intro_bars", bullets)
 
 
-# ②③④ は次段で追加(骨柱/主部/幽霊)。今は未実装。
+# ---------------------------------------------------------------------------
+# ② 骨柱 skeleton(拍56–88攻撃, 8体)
+#   30x100の縦長骨柱。左4(x=50,v=+100下)/右4(x=750,v=-100上)。y∈[100,500]で完全反射。
+#   2拍ごとに放物線の骨(50x10, 速さ400, gravity400)を内側へ。左at_first=0/右=1で交互。
+#   engine仕様: 本体もemergeするので、バウンドを事前計算し「反射ごとの線形区間」を弾として出す。
+# ---------------------------------------------------------------------------
+def _bounce_segs(py0, v0, lower, upper, t1):
+    """原典座標(px, 下向き)で t∈[0,t1] のバウンド経路を線形区間 (t0,y0,te,ye) の列で返す。v は px/s。"""
+    segs = []; y = py0; v = v0; t = 0.0
+    while t < t1 - 1e-6 and v != 0:
+        bound = upper if v > 0 else lower
+        dt = (bound - y) / v
+        te = min(t + dt, t1)
+        ye = y + v * (te - t)
+        segs.append((t, y, te, ye))
+        if te >= t1 - 1e-6:
+            break
+        y = ye; v = -v; t = te
+    return segs
+
+
+def _y_at(segs, t):
+    for (t0, y0, te, ye) in segs:
+        if t0 <= t <= te + 1e-6:
+            return y0 + (ye - y0) * (t - t0) / (te - t0) if te > t0 else y0
+    return segs[-1][3]
+
+
+def skeletons():
+    bullets = []
+    dur = 32 * BEAT                      # 拍56–88 = 9.6s
+    lower, upper = 100, 500
+    pillars = ([(50, py, +100, 0) for py in (225, 275, 325, 375)] +
+               [(750, py, -100, 1) for py in (375, 325, 275, 225)])
+    for (x, py0, v, atf) in pillars:
+        segs = _bounce_segs(py0, v, lower, upper, dur)
+        # 骨柱本体: 反射ごとの線形区間を縦移動の弾で(useVelocityAngle=速度=縦→長軸を縦に)
+        for (t0, y0, te, ye) in segs:
+            vy_u = (my(ye) - my(y0)) / (te - t0) if te > t0 else 0.0
+            bullets.append(bullet(
+                originPos={"x": mx(x), "y": my(y0)}, originVlc={"x": 0, "y": round(vy_u, 4)},
+                speed=0.0, gravity={"x": 0, "y": 0}, useVelocityAngle=True,
+                typeName="box", scale={"x": ms(100), "y": ms(30)},   # 長軸(100)を速度方向へ=縦3 x 幅0.9
+                color=dict(PINK), appearTime=round(t0, 3), appearDuration=0.0,
+                life=round(te + 0.05, 3)))
+        # 骨: 2拍ごとに現在のyから放物線射出
+        angle = 0.0 if x < 400 else math.pi
+        fb = atf
+        while fb < 32:
+            ft = fb * BEAT
+            y = _y_at(segs, ft)
+            bullets.append(bullet(
+                originPos={"x": mx(x), "y": my(y)}, speed=ms(400),
+                polarForm={"x": 1, "y": round(angle, 5)}, gravity={"x": ms(400), "y": DOWN},
+                useVelocityAngle=True, typeName="box", scale={"x": ms(50), "y": ms(10)},
+                color=dict(PINK), appearTime=round(ft, 3), appearDuration=0.05,
+                life=round(ft + 3.0, 3)))
+            fb += 2
+    return buf("vagrant_skeletons", bullets)
+
+
+# ③主部 ④幽霊 は次段で追加。
 
 
 def build():
     os.makedirs(BUFDIR, exist_ok=True)
     w_json(f"{BUFDIR}/intro_bars.json", intro_bars())
+    w_json(f"{BUFDIR}/skeletons.json", skeletons())
 
     WHITE = {"x": 1, "y": 1, "z": 1, "w": 1}
 
@@ -102,6 +164,8 @@ def build():
     sp = [
         # ① イントロ(拍23=6.917s で発火、バッファ内で拍23–82 を展開)
         spawner("vagrant_intro_bars", 1, 0.0, round(23 * B, 3), {"x": 0, "y": 0}),
+        # ② 骨柱(拍56=16.84s で発火、バッファ内で拍56–88 を展開)
+        spawner("vagrant_skeletons", 1, 0.0, round(56 * B, 3), {"x": 0, "y": 0}),
     ]
 
     stage = {
