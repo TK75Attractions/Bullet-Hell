@@ -15,7 +15,7 @@
         }
     ],
     "delayTime": 0.0,
-    "endTime": 71.0,
+    "endTime": 70.0,
     "stageDescription": "不死者・屍霊魔法",
     "enemyVisuals": [
         {
@@ -52,7 +52,7 @@
             "maxHp": 1000,
             "startPos": {
                 "x": 16,
-                "y": 13.6
+                "y": 15.5
             },
             "scale": {
                 "x": 2.2,
@@ -66,10 +66,10 @@
     ],
     "bulletSpawners": [
         {
-            "clipName": "vagrant_bone_rain",
+            "clipName": "vagrant_intro_bars",
             "count": 1,
             "interval": 0.0,
-            "time": 7.2,
+            "time": 6.917,
             "pos": {
                 "x": 0,
                 "y": 0
@@ -80,182 +80,6 @@
             },
             "angle": 0.0,
             "angleInterval": 0.0,
-            "color": {
-                "x": 1,
-                "y": 1,
-                "z": 1,
-                "w": 1
-            }
-        },
-        {
-            "clipName": "vagrant_skeleton_markers",
-            "count": 1,
-            "interval": 0.0,
-            "time": 16.8,
-            "pos": {
-                "x": 0,
-                "y": 0
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "angle": 0.0,
-            "angleInterval": 0.0,
-            "color": {
-                "x": 1,
-                "y": 1,
-                "z": 1,
-                "w": 1
-            }
-        },
-        {
-            "clipName": "vagrant_skeleton_volley",
-            "count": 1,
-            "interval": 0.0,
-            "time": 16.8,
-            "pos": {
-                "x": 0,
-                "y": 0
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "angle": 0.0,
-            "angleInterval": 0.0,
-            "color": {
-                "x": 1,
-                "y": 1,
-                "z": 1,
-                "w": 1
-            }
-        },
-        {
-            "clipName": "vagrant_corpse_burst",
-            "count": 1,
-            "interval": 0.0,
-            "time": 26.5,
-            "pos": {
-                "x": 0,
-                "y": 0
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "angle": 0.0,
-            "angleInterval": 0.0,
-            "color": {
-                "x": 1,
-                "y": 1,
-                "z": 1,
-                "w": 1
-            }
-        },
-        {
-            "clipName": "vagrant_tombstone_wall",
-            "count": 1,
-            "interval": 0.0,
-            "time": 28.0,
-            "pos": {
-                "x": 0,
-                "y": 0
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "angle": 0.0,
-            "angleInterval": 0.0,
-            "color": {
-                "x": 1,
-                "y": 1,
-                "z": 1,
-                "w": 1
-            }
-        },
-        {
-            "clipName": "vagrant_ghost_ring",
-            "count": 1,
-            "interval": 0.0,
-            "time": 45.7,
-            "pos": {
-                "x": 10,
-                "y": 10.5
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "angle": 0.0,
-            "angleInterval": 0.0,
-            "color": {
-                "x": 1,
-                "y": 1,
-                "z": 1,
-                "w": 1
-            }
-        },
-        {
-            "clipName": "vagrant_ghost_fire",
-            "count": 30,
-            "interval": 0.62,
-            "time": 46.0,
-            "pos": {
-                "x": 10,
-                "y": 10.5
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "angle": 0.0,
-            "angleInterval": 13.0,
-            "color": {
-                "x": 1,
-                "y": 1,
-                "z": 1,
-                "w": 1
-            }
-        },
-        {
-            "clipName": "vagrant_ghost_ring",
-            "count": 1,
-            "interval": 0.0,
-            "time": 50.5,
-            "pos": {
-                "x": 22,
-                "y": 10.5
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "angle": 0.0,
-            "angleInterval": 0.0,
-            "color": {
-                "x": 1,
-                "y": 1,
-                "z": 1,
-                "w": 1
-            }
-        },
-        {
-            "clipName": "vagrant_ghost_fire",
-            "count": 24,
-            "interval": 0.62,
-            "time": 50.5,
-            "pos": {
-                "x": 22,
-                "y": 10.5
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "angle": 7.0,
-            "angleInterval": -13.0,
             "color": {
                 "x": 1,
                 "y": 1,
