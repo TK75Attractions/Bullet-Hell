@@ -108,6 +108,24 @@ def _draw_necromancer(orb_r, orb_col, eye_col):
     return bg
 
 
+def vcirc():
+    # 原典の丸弾/オーブ用。白い塗り円(maskでピンクtint可)。normalは芯が白のままなので自作。
+    im = Image.new("RGBA", (S, S), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    d.ellipse([10, 10, S - 10, S - 10], fill=(255, 255, 255, 255))
+    save_with_mask(im, "vcirc")
+
+
+def vtri():
+    # 原典の三角弾(幽霊)用。白い正三角形(上向き)。
+    im = Image.new("RGBA", (S, S), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    import math as _m
+    cx = cy = S / 2; r = S / 2 - 8
+    pts = [(cx + r * _m.cos(-_m.pi / 2 + k * 2 * _m.pi / 3),
+            cy + r * _m.sin(-_m.pi / 2 + k * 2 * _m.pi / 3)) for k in range(3)]
+    d.polygon(pts, fill=(255, 255, 255, 255))
+    save_with_mask(im, "vtri")
+
+
 def magic_circle():
     # 死体破裂の予告(Oracleレビュー Must#3)。半透明の緑の魔法円+五芒星+ルーン。
     # 破裂地点に0.5s前からフェードインして「ここで弾が湧く」と伝える。
@@ -145,5 +163,5 @@ def necromancer_gif():
 
 
 if __name__ == "__main__":
-    bone(); skull(); ghost(); tombstone(); magic_circle(); necromancer_gif()
-    print("生成: bone/skull/ghost/tombstone/magic_circle(+mask) と vagrant_idle.gif")
+    bone(); skull(); ghost(); tombstone(); magic_circle(); vcirc(); vtri(); necromancer_gif()
+    print("生成: bone/skull/ghost/tombstone/magic_circle/vcirc/vtri(+mask) と vagrant_idle.gif")

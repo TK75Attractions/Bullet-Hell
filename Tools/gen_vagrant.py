@@ -145,13 +145,64 @@ def skeletons():
     return buf("vagrant_skeletons", bullets)
 
 
-# ③主部 ④幽霊 は次段で追加。
+# ---------------------------------------------------------------------------
+# ③ 主部(拍88–152)：水平壁 + 水平レーザー + オーブ落下→24方向リング
+#   壁: ブロック(拍88,104,120,136)ごとに 5/5/8/8 行、ランダムY の全幅横帯。予告後フラッシュ。
+#   レーザー: ブロック(拍96,112,128,144)ごとに 6/6/10/10 本、ランダムY の全幅細帯。
+#   オーブ: x=270/530 に拍8iで落下(4拍で着弾)、着弾点で 24方向リング爆発(拍8i+4)。
+#   バッファは拍88で発火、内部は拍88=相対0。
+# ---------------------------------------------------------------------------
+def main_section():
+    bullets = []
+    # --- オーブ落下 + 24方向リング ---
+    for i in range(8):
+        ob = 8 * i
+        for ox in (270, 530):
+            fall_t = ob * BEAT
+            land_t = (ob + 4) * BEAT
+            bullets.append(bullet(   # オーブ(大きい円が降ってくる)
+                originPos={"x": mx(ox), "y": my(-25)}, speed=ms(270), polarForm={"x": 1, "y": DOWN},
+                useVelocityAngle=False, typeName="vcirc", scale={"x": ms(60), "y": ms(60)},
+                color=dict(PINK), appearTime=round(fall_t, 3), appearDuration=0.1,
+                life=round(land_t + 0.12, 3)))
+            for k in range(24):      # 着弾点で24方向リング
+                ang = k * (2 * math.pi / 24)
+                bullets.append(bullet(
+                    originPos={"x": mx(ox), "y": my(300)}, speed=ms(400),
+                    polarForm={"x": 1, "y": round(ang, 5)}, useVelocityAngle=False,
+                    typeName="vcirc", scale={"x": ms(16), "y": ms(16)}, color=dict(PINK),
+                    appearTime=round(land_t, 3), appearDuration=0.03, life=round(land_t + 3.0, 3)))
+    # --- 水平壁(全幅横帯, ランダムY) ---
+    for bi, nrows in enumerate([5, 5, 8, 8]):
+        bt = (bi * 16) * BEAT
+        for _ in range(nrows):
+            py = random.uniform(20, 579)
+            bullets.append(bullet(
+                originPos={"x": 16, "y": my(py)}, speed=0.0, useVelocityAngle=False,
+                typeName="box", scale={"x": 32.0, "y": ms(25)}, color=dict(PINK),
+                appearTime=round(bt, 3), appearDuration=round(4 * BEAT, 3),   # 4拍予告
+                life=round(bt + 4 * BEAT + 1 * BEAT + 0.2, 3)))               # 判定1拍+余韻
+    # --- 水平レーザー(全幅細帯, ランダムY) ---
+    for bi, ncnt in enumerate([6, 6, 10, 10]):
+        bt = (8 + bi * 16) * BEAT
+        for _ in range(ncnt):
+            py = random.uniform(20, 579)
+            bullets.append(bullet(
+                originPos={"x": 16, "y": my(py)}, speed=0.0, useVelocityAngle=False,
+                typeName="box", scale={"x": 34.0, "y": ms(18)}, color=dict(PINK),
+                appearTime=round(bt, 3), appearDuration=round(4 * BEAT, 3),
+                life=round(bt + 4 * BEAT + 0.5 * BEAT + 0.15, 3)))
+    return buf("vagrant_main", bullets)
+
+
+# ④幽霊 は次段で追加。
 
 
 def build():
     os.makedirs(BUFDIR, exist_ok=True)
     w_json(f"{BUFDIR}/intro_bars.json", intro_bars())
     w_json(f"{BUFDIR}/skeletons.json", skeletons())
+    w_json(f"{BUFDIR}/main_section.json", main_section())
 
     WHITE = {"x": 1, "y": 1, "z": 1, "w": 1}
 
@@ -166,6 +217,8 @@ def build():
         spawner("vagrant_intro_bars", 1, 0.0, round(23 * B, 3), {"x": 0, "y": 0}),
         # ② 骨柱(拍56=16.84s で発火、バッファ内で拍56–88 を展開)
         spawner("vagrant_skeletons", 1, 0.0, round(56 * B, 3), {"x": 0, "y": 0}),
+        # ③ 主部(拍88=26.47s で発火、バッファ内で拍88–152 を展開)
+        spawner("vagrant_main", 1, 0.0, round(88 * B, 3), {"x": 0, "y": 0}),
     ]
 
     stage = {
