@@ -182,15 +182,23 @@ def main_section():
                 typeName="box", scale={"x": 32.0, "y": ms(25)}, color=dict(PINK),
                 appearTime=round(bt, 3), appearDuration=round(4 * BEAT, 3),   # 4拍予告
                 life=round(bt + 4 * BEAT + 1 * BEAT + 0.2, 3)))               # 判定1拍+余韻
-    # --- 水平レーザー(全幅細帯, ランダムY) ---
+    # --- 水平レーザー(原典: 細い予告線→全幅帯に「点灯」, ランダムY) ---
+    #   add_laser(1000x20, px=500, py=rand, t=96+16i+j, warn0.5/判定開始4拍/duration0.5)。
+    #   原典は太さ0→実寸に点灯するので、細い予告線(4拍・非致死フェードイン)→実寸帯(致死0.5拍)。
     for bi, ncnt in enumerate([6, 6, 10, 10]):
         bt = (8 + bi * 16) * BEAT
         for _ in range(ncnt):
             py = random.uniform(20, 579)
-            bullets.append(bullet(
-                originPos={"x": 16, "y": my(py)}, speed=0.0, useVelocityAngle=False,
-                typeName="box", scale={"x": 34.0, "y": ms(18)}, color=dict(PINK),
+            y = my(py)
+            bullets.append(bullet(   # 予告: 細い全幅線を4拍かけてフェードイン(非致死)
+                originPos={"x": 16, "y": y}, speed=0.0, useVelocityAngle=False,
+                typeName="box", scale={"x": 34.0, "y": ms(4)}, color=dict(PINK),
                 appearTime=round(bt, 3), appearDuration=round(4 * BEAT, 3),
+                life=round(bt + 4 * BEAT, 3)))
+            bullets.append(bullet(   # 点灯: 実寸(ry=20)の全幅帯が発火(致死0.5拍)
+                originPos={"x": 16, "y": y}, speed=0.0, useVelocityAngle=False,
+                typeName="box", scale={"x": 34.0, "y": ms(20)}, color=dict(PINK),
+                appearTime=round(bt + 4 * BEAT, 3), appearDuration=0.05,
                 life=round(bt + 4 * BEAT + 0.5 * BEAT + 0.15, 3)))
     return buf("vagrant_main", bullets)
 
