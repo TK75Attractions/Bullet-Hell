@@ -346,7 +346,9 @@ public class QuadOrder : MonoBehaviour
 
         UpdateMultiBullets(_dt);
 
-        if (boss != null) boss.UpdateBoss(_dt);
+        // boss のアニメ更新は BossManager.UpdateBosses が担当する(GManager が毎フレーム
+        // SReader.UpdateStage 経由で呼ぶ)。ここでも UpdateBoss すると統合で二重更新になり
+        // boss アニメが2倍速になっていたため削除。boss フィールドは当たり判定(下記)で使うので保持。
         UpdateCounterBullets(_dt);
     }
 
