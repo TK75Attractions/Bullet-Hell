@@ -17,10 +17,10 @@ from stone_edit_lib import load, dump
 # 内向き最大侵入 = SPEED*R0^2/(4*RVLC)。壁が近い(0.7u)ため一旦内側に見せてから外へ出す。
 SPEED = 4.0
 R0 = 1.5           # 初速係数(正=最初から射出方向へ)。刃の後方へ素直に噴出
-RADIUS_VLC = 4.5   # 加速(t^2 項)= 後方+外向きに加速して画面外へ抜ける
+RADIUS_VLC = 2.0   # 加速(t^2 項)。4.5→2.0 に下げて破片を遅くし滞留させる(密度up)
 OUTWARD_MIX = 0.35 # 射出方向 = 刃の後方(-d) + 壁方向(外向き法線)*OUTWARD_MIX
 SCALE = 0.55
-PER_EDGE = 10
+PER_EDGE = 16   # 各辺の破片数(密度)。10→16 に増量(@79.3 後方噴出で疎になった分)
 BLADE_SPEED = 24.0
 
 def accel_exit_lapse(ox, oy, theta, dt=0.002, maxt=6.0):
