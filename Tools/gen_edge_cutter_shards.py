@@ -16,8 +16,9 @@ from stone_edit_lib import load, dump
 # R0<0 で初速は内向き、RADIUS_VLC>0 の t^2 項が外向き加速。turn 時刻 t*=-R0/(2*RVLC)、
 # 内向き最大侵入 = SPEED*R0^2/(4*RVLC)。壁が近い(0.7u)ため一旦内側に見せてから外へ出す。
 SPEED = 4.0
-R0 = -3.5          # 初速係数(負=内向き初速 SPEED*R0)。一旦 arena 側へ散る
-RADIUS_VLC = 4.5   # 外向き加速(t^2 項)= 重力的に壁へ引かれる
+R0 = 1.5           # 初速係数(正=最初から射出方向へ)。刃の後方へ素直に噴出
+RADIUS_VLC = 4.5   # 加速(t^2 項)= 後方+外向きに加速して画面外へ抜ける
+OUTWARD_MIX = 0.35 # 射出方向 = 刃の後方(-d) + 壁方向(外向き法線)*OUTWARD_MIX
 SCALE = 0.55
 PER_EDGE = 10
 BLADE_SPEED = 24.0
@@ -74,19 +75,27 @@ def make_bullet(template, edge, variant, i):
     e = EDGES[edge]; b = blades(variant)[edge]
     frac = i / (PER_EDGE - 1)
     pos = e["lo"] + (e["hi"] - e["lo"]) * frac
+    # deterministic な沿辺ジッタ(+/-0.7)で等間隔の弧を崩す(@77.6 規則的すぎ対策)
+    pos += (((i * 53 + (0 if variant == 1 else 29)) % 21 - 10) / 10.0) * 0.7
     if edge in ("top", "bottom"):
         ox, oy = pos, e["y"]
     else:
         ox, oy = e["x"], pos
-    # velocity direction = 最寄りの壁へ向かう外向き法線(= -inward normal)。
-    # e["n"] は内向き法線なので符号反転で外向きにする。
+    # velocity direction = 刃の進行方向の逆(後方 -d)に、壁方向(外向き法線 -n)を少量ブレンド。
+    # 破片が刃の後ろへ噴き出し(trailing)、徐々に壁へ寄って画面外へ抜ける。
     n = e["n"]
-    ox_dir, oy_dir = -n[0], -n[1]
-    # deterministic small jitter (+/-15deg) で壁沿いに軽く散らす(過度な扇にしない)
-    jit = ((i * 37 + (0 if variant == 1 else 19)) % 31 - 15) * math.radians(1.0)
-    ang = math.atan2(oy_dir, ox_dir) + jit
+    d = b["d"]
+    back = (-d[0], -d[1])          # 刃の進行方向の逆 = 後方
+    outward = (-n[0], -n[1])       # 壁方向(外向き法線)
+    vx = back[0] + outward[0] * OUTWARD_MIX
+    vy = back[1] + outward[1] * OUTWARD_MIX
+    # deterministic small jitter (+/-12deg) で後方に軽く扇状
+    jit = ((i * 37 + (0 if variant == 1 else 19)) % 25 - 12) * math.radians(1.0)
+    ang = math.atan2(vy, vx) + jit
     appT = passage_time(edge, b, pos)
-    life = accel_exit_lapse(ox, oy, ang) + 0.15
+    # life は spawn からの絶対時刻。appearTime(刃の通過)+ 飛行時間(exit まで)+ 余白。
+    # appT を足さないと life<appearTime になり appear 前に死ぬ(死亡判定は spawn からの time>=life)。
+    life = appT + accel_exit_lapse(ox, oy, ang) + 0.15
     spin = 6 + (i % 5)
     if i % 2 == 0:
         spin = -spin
