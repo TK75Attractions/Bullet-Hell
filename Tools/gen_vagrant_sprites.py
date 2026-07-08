@@ -108,6 +108,30 @@ def _draw_necromancer(orb_r, orb_col, eye_col):
     return bg
 
 
+def magic_circle():
+    # 死体破裂の予告(Oracleレビュー Must#3)。半透明の緑の魔法円+五芒星+ルーン。
+    # 破裂地点に0.5s前からフェードインして「ここで弾が湧く」と伝える。
+    import math as _m
+    im = Image.new("RGBA", (S, S), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    cx = cy = S / 2
+    green = (110, 225, 140, 150); green_d = (90, 200, 120, 120)
+    d.ellipse([cx - 56, cy - 56, cx + 56, cy + 56], outline=green, width=5)   # 外円
+    d.ellipse([cx - 40, cy - 40, cx + 40, cy + 40], outline=green_d, width=2)  # 内円
+    # 五芒星(逆さ=屍霊/召喚)
+    pts = []
+    for k in range(5):
+        a = -_m.pi / 2 + k * (4 * _m.pi / 5)   # 星形になる順で頂点
+        pts.append((cx + 46 * _m.cos(a), cy + 46 * _m.sin(a)))
+    d.line(pts + [pts[0]], fill=green_d, width=2)
+    # ルーン風の刻み(外円上に8個)
+    for k in range(8):
+        a = k * (_m.pi / 4)
+        x0 = cx + 50 * _m.cos(a); y0 = cy + 50 * _m.sin(a)
+        x1 = cx + 56 * _m.cos(a); y1 = cy + 56 * _m.sin(a)
+        d.line([x0, y0, x1, y1], fill=green, width=3)
+    save_with_mask(im, "magic_circle")
+
+
 def necromancer_gif():
     """フード付き屍霊術師。杖玉が脈動する2フレーム idle。固定パレットで透過 idx=0 安定。"""
     palimg = _pal_image()
@@ -121,5 +145,5 @@ def necromancer_gif():
 
 
 if __name__ == "__main__":
-    bone(); skull(); ghost(); tombstone(); necromancer_gif()
-    print("生成: bone/skull/ghost/tombstone(+mask) と vagrant_idle.gif")
+    bone(); skull(); ghost(); tombstone(); magic_circle(); necromancer_gif()
+    print("生成: bone/skull/ghost/tombstone/magic_circle(+mask) と vagrant_idle.gif")

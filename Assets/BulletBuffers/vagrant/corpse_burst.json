@@ -10,6 +10,54 @@
                 "x": 0,
                 "y": 0
             },
+            "speed": 0.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 0.0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "magic_circle",
+            "scale": {
+                "x": 1.7,
+                "y": 1.7
+            },
+            "color": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "appearTime": 0.0,
+            "appearDuration": 0.4,
+            "life": 0.7,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 20.84,
+                "y": 9.9
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
             "speed": 4.4,
             "gravity": {
                 "x": 0.0,
@@ -43,9 +91,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 0.0,
+            "appearTime": 0.5,
             "appearDuration": 0.05,
-            "life": 4.0,
+            "life": 4.5,
             "random": 0,
             "unCounterable": true
         },
@@ -91,9 +139,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 0.0,
+            "appearTime": 0.5,
             "appearDuration": 0.05,
-            "life": 4.0,
+            "life": 4.5,
             "random": 0,
             "unCounterable": true
         },
@@ -139,9 +187,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 0.0,
+            "appearTime": 0.5,
             "appearDuration": 0.05,
-            "life": 4.0,
+            "life": 4.5,
             "random": 0,
             "unCounterable": true
         },
@@ -187,9 +235,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 0.0,
+            "appearTime": 0.5,
             "appearDuration": 0.05,
-            "life": 4.0,
+            "life": 4.5,
             "random": 0,
             "unCounterable": true
         },
@@ -235,9 +283,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 0.0,
+            "appearTime": 0.5,
             "appearDuration": 0.05,
-            "life": 4.0,
+            "life": 4.5,
             "random": 0,
             "unCounterable": true
         },
@@ -283,9 +331,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 0.0,
+            "appearTime": 0.5,
             "appearDuration": 0.05,
-            "life": 4.0,
+            "life": 4.5,
             "random": 0,
             "unCounterable": true
         },
@@ -331,9 +379,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 0.0,
+            "appearTime": 0.5,
             "appearDuration": 0.05,
-            "life": 4.0,
+            "life": 4.5,
             "random": 0,
             "unCounterable": true
         },
@@ -379,9 +427,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 0.0,
+            "appearTime": 0.5,
             "appearDuration": 0.05,
-            "life": 4.0,
+            "life": 4.5,
             "random": 0,
             "unCounterable": true
         },
@@ -427,9 +475,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 0.0,
+            "appearTime": 0.5,
             "appearDuration": 0.05,
-            "life": 4.0,
+            "life": 4.5,
             "random": 0,
             "unCounterable": true
         },
@@ -475,9 +523,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 0.0,
+            "appearTime": 0.5,
             "appearDuration": 0.05,
-            "life": 4.0,
+            "life": 4.5,
             "random": 0,
             "unCounterable": true
         },
@@ -523,9 +571,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 0.0,
+            "appearTime": 0.5,
             "appearDuration": 0.05,
-            "life": 4.0,
+            "life": 4.5,
             "random": 0,
             "unCounterable": true
         },
@@ -571,9 +619,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 0.0,
+            "appearTime": 0.5,
             "appearDuration": 0.05,
-            "life": 4.0,
+            "life": 4.5,
             "random": 0,
             "unCounterable": true
         },
@@ -619,9 +667,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 0.0,
+            "appearTime": 0.5,
             "appearDuration": 0.05,
-            "life": 4.0,
+            "life": 4.5,
             "random": 0,
             "unCounterable": true
         },
@@ -667,9 +715,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 0.0,
+            "appearTime": 0.5,
             "appearDuration": 0.05,
-            "life": 4.0,
+            "life": 4.5,
             "random": 0,
             "unCounterable": true
         },
@@ -715,9 +763,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 0.0,
+            "appearTime": 0.5,
             "appearDuration": 0.05,
-            "life": 4.0,
+            "life": 4.5,
             "random": 0,
             "unCounterable": true
         },
@@ -763,9 +811,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 0.0,
+            "appearTime": 0.5,
             "appearDuration": 0.05,
-            "life": 4.0,
+            "life": 4.5,
             "random": 0,
             "unCounterable": true
         },
@@ -811,9 +859,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 0.0,
+            "appearTime": 0.5,
             "appearDuration": 0.05,
-            "life": 4.0,
+            "life": 4.5,
             "random": 0,
             "unCounterable": true
         },
@@ -859,9 +907,57 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 0.0,
+            "appearTime": 0.5,
             "appearDuration": 0.05,
-            "life": 4.0,
+            "life": 4.5,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 14.58,
+                "y": 8.85
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "speed": 0.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 0.0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "magic_circle",
+            "scale": {
+                "x": 1.7,
+                "y": 1.7
+            },
+            "color": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "appearTime": 1.5,
+            "appearDuration": 0.4,
+            "life": 2.2,
             "random": 0,
             "unCounterable": true
         },
@@ -907,9 +1003,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
             "random": 0,
             "unCounterable": true
         },
@@ -955,9 +1051,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
             "random": 0,
             "unCounterable": true
         },
@@ -1003,9 +1099,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
             "random": 0,
             "unCounterable": true
         },
@@ -1051,9 +1147,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
             "random": 0,
             "unCounterable": true
         },
@@ -1099,9 +1195,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
             "random": 0,
             "unCounterable": true
         },
@@ -1147,9 +1243,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
             "random": 0,
             "unCounterable": true
         },
@@ -1195,9 +1291,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
             "random": 0,
             "unCounterable": true
         },
@@ -1243,9 +1339,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
             "random": 0,
             "unCounterable": true
         },
@@ -1291,9 +1387,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
             "random": 0,
             "unCounterable": true
         },
@@ -1339,9 +1435,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
             "random": 0,
             "unCounterable": true
         },
@@ -1387,9 +1483,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
             "random": 0,
             "unCounterable": true
         },
@@ -1435,9 +1531,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
             "random": 0,
             "unCounterable": true
         },
@@ -1483,9 +1579,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
             "random": 0,
             "unCounterable": true
         },
@@ -1531,9 +1627,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
             "random": 0,
             "unCounterable": true
         },
@@ -1579,9 +1675,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
             "random": 0,
             "unCounterable": true
         },
@@ -1627,9 +1723,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
             "random": 0,
             "unCounterable": true
         },
@@ -1675,9 +1771,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
             "random": 0,
             "unCounterable": true
         },
@@ -1723,9 +1819,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
             "random": 0,
             "unCounterable": true
         },
@@ -1771,9 +1867,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
             "random": 0,
             "unCounterable": true
         },
@@ -1819,9 +1915,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
             "random": 0,
             "unCounterable": true
         },
@@ -1867,9 +1963,57 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 1.5,
+            "appearTime": 2.0,
             "appearDuration": 0.05,
-            "life": 5.5,
+            "life": 6.0,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 11.25,
+                "y": 10.45
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "speed": 0.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 0.0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "magic_circle",
+            "scale": {
+                "x": 1.7,
+                "y": 1.7
+            },
+            "color": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "appearTime": 3.0,
+            "appearDuration": 0.4,
+            "life": 3.7,
             "random": 0,
             "unCounterable": true
         },
@@ -1915,9 +2059,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -1963,9 +2107,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2011,9 +2155,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2059,9 +2203,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2107,9 +2251,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2155,9 +2299,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2203,9 +2347,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2251,9 +2395,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2299,9 +2443,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2347,9 +2491,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2395,9 +2539,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2443,9 +2587,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2491,9 +2635,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2539,9 +2683,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2587,9 +2731,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2635,9 +2779,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2683,9 +2827,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2731,9 +2875,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2779,9 +2923,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2827,9 +2971,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2875,9 +3019,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2923,9 +3067,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -2971,9 +3115,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
             "random": 0,
             "unCounterable": true
         },
@@ -3019,9 +3163,57 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 3.0,
+            "appearTime": 3.5,
             "appearDuration": 0.05,
-            "life": 7.0,
+            "life": 7.5,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 23.21,
+                "y": 9.31
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "speed": 0.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 0.0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "magic_circle",
+            "scale": {
+                "x": 1.7,
+                "y": 1.7
+            },
+            "color": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "appearTime": 4.5,
+            "appearDuration": 0.4,
+            "life": 5.2,
             "random": 0,
             "unCounterable": true
         },
@@ -3067,9 +3259,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 4.5,
+            "appearTime": 5.0,
             "appearDuration": 0.05,
-            "life": 8.5,
+            "life": 9.0,
             "random": 0,
             "unCounterable": true
         },
@@ -3115,9 +3307,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 4.5,
+            "appearTime": 5.0,
             "appearDuration": 0.05,
-            "life": 8.5,
+            "life": 9.0,
             "random": 0,
             "unCounterable": true
         },
@@ -3163,9 +3355,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 4.5,
+            "appearTime": 5.0,
             "appearDuration": 0.05,
-            "life": 8.5,
+            "life": 9.0,
             "random": 0,
             "unCounterable": true
         },
@@ -3211,9 +3403,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 4.5,
+            "appearTime": 5.0,
             "appearDuration": 0.05,
-            "life": 8.5,
+            "life": 9.0,
             "random": 0,
             "unCounterable": true
         },
@@ -3259,9 +3451,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 4.5,
+            "appearTime": 5.0,
             "appearDuration": 0.05,
-            "life": 8.5,
+            "life": 9.0,
             "random": 0,
             "unCounterable": true
         },
@@ -3307,9 +3499,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 4.5,
+            "appearTime": 5.0,
             "appearDuration": 0.05,
-            "life": 8.5,
+            "life": 9.0,
             "random": 0,
             "unCounterable": true
         },
@@ -3355,9 +3547,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 4.5,
+            "appearTime": 5.0,
             "appearDuration": 0.05,
-            "life": 8.5,
+            "life": 9.0,
             "random": 0,
             "unCounterable": true
         },
@@ -3403,9 +3595,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 4.5,
+            "appearTime": 5.0,
             "appearDuration": 0.05,
-            "life": 8.5,
+            "life": 9.0,
             "random": 0,
             "unCounterable": true
         },
@@ -3451,9 +3643,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 4.5,
+            "appearTime": 5.0,
             "appearDuration": 0.05,
-            "life": 8.5,
+            "life": 9.0,
             "random": 0,
             "unCounterable": true
         },
@@ -3499,9 +3691,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 4.5,
+            "appearTime": 5.0,
             "appearDuration": 0.05,
-            "life": 8.5,
+            "life": 9.0,
             "random": 0,
             "unCounterable": true
         },
@@ -3547,9 +3739,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 4.5,
+            "appearTime": 5.0,
             "appearDuration": 0.05,
-            "life": 8.5,
+            "life": 9.0,
             "random": 0,
             "unCounterable": true
         },
@@ -3595,9 +3787,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 4.5,
+            "appearTime": 5.0,
             "appearDuration": 0.05,
-            "life": 8.5,
+            "life": 9.0,
             "random": 0,
             "unCounterable": true
         },
@@ -3643,9 +3835,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 4.5,
+            "appearTime": 5.0,
             "appearDuration": 0.05,
-            "life": 8.5,
+            "life": 9.0,
             "random": 0,
             "unCounterable": true
         },
@@ -3691,9 +3883,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 4.5,
+            "appearTime": 5.0,
             "appearDuration": 0.05,
-            "life": 8.5,
+            "life": 9.0,
             "random": 0,
             "unCounterable": true
         },
@@ -3739,9 +3931,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 4.5,
+            "appearTime": 5.0,
             "appearDuration": 0.05,
-            "life": 8.5,
+            "life": 9.0,
             "random": 0,
             "unCounterable": true
         },
@@ -3787,9 +3979,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 4.5,
+            "appearTime": 5.0,
             "appearDuration": 0.05,
-            "life": 8.5,
+            "life": 9.0,
             "random": 0,
             "unCounterable": true
         },
@@ -3835,9 +4027,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 4.5,
+            "appearTime": 5.0,
             "appearDuration": 0.05,
-            "life": 8.5,
+            "life": 9.0,
             "random": 0,
             "unCounterable": true
         },
@@ -3883,9 +4075,57 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 4.5,
+            "appearTime": 5.0,
             "appearDuration": 0.05,
-            "life": 8.5,
+            "life": 9.0,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 14.79,
+                "y": 10.96
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "speed": 0.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 0.0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "magic_circle",
+            "scale": {
+                "x": 1.7,
+                "y": 1.7
+            },
+            "color": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "appearTime": 6.0,
+            "appearDuration": 0.4,
+            "life": 6.7,
             "random": 0,
             "unCounterable": true
         },
@@ -3931,9 +4171,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
             "random": 0,
             "unCounterable": true
         },
@@ -3979,9 +4219,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
             "random": 0,
             "unCounterable": true
         },
@@ -4027,9 +4267,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
             "random": 0,
             "unCounterable": true
         },
@@ -4075,9 +4315,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
             "random": 0,
             "unCounterable": true
         },
@@ -4123,9 +4363,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
             "random": 0,
             "unCounterable": true
         },
@@ -4171,9 +4411,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
             "random": 0,
             "unCounterable": true
         },
@@ -4219,9 +4459,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
             "random": 0,
             "unCounterable": true
         },
@@ -4267,9 +4507,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
             "random": 0,
             "unCounterable": true
         },
@@ -4315,9 +4555,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
             "random": 0,
             "unCounterable": true
         },
@@ -4363,9 +4603,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
             "random": 0,
             "unCounterable": true
         },
@@ -4411,9 +4651,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
             "random": 0,
             "unCounterable": true
         },
@@ -4459,9 +4699,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
             "random": 0,
             "unCounterable": true
         },
@@ -4507,9 +4747,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
             "random": 0,
             "unCounterable": true
         },
@@ -4555,9 +4795,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
             "random": 0,
             "unCounterable": true
         },
@@ -4603,9 +4843,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
             "random": 0,
             "unCounterable": true
         },
@@ -4651,9 +4891,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
             "random": 0,
             "unCounterable": true
         },
@@ -4699,9 +4939,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
             "random": 0,
             "unCounterable": true
         },
@@ -4747,9 +4987,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
             "random": 0,
             "unCounterable": true
         },
@@ -4795,9 +5035,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
             "random": 0,
             "unCounterable": true
         },
@@ -4843,9 +5083,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
             "random": 0,
             "unCounterable": true
         },
@@ -4891,9 +5131,57 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 6.0,
+            "appearTime": 6.5,
             "appearDuration": 0.05,
-            "life": 10.0,
+            "life": 10.5,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 19.81,
+                "y": 12.59
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "speed": 0.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 0.0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "magic_circle",
+            "scale": {
+                "x": 1.7,
+                "y": 1.7
+            },
+            "color": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "appearTime": 7.5,
+            "appearDuration": 0.4,
+            "life": 8.2,
             "random": 0,
             "unCounterable": true
         },
@@ -4939,9 +5227,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -4987,9 +5275,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5035,9 +5323,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5083,9 +5371,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5131,9 +5419,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5179,9 +5467,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5227,9 +5515,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5275,9 +5563,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5323,9 +5611,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5371,9 +5659,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5419,9 +5707,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5467,9 +5755,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5515,9 +5803,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5563,9 +5851,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5611,9 +5899,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5659,9 +5947,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5707,9 +5995,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5755,9 +6043,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5803,9 +6091,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5851,9 +6139,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5899,9 +6187,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5947,9 +6235,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -5995,9 +6283,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
             "random": 0,
             "unCounterable": true
         },
@@ -6043,9 +6331,57 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 7.5,
+            "appearTime": 8.0,
             "appearDuration": 0.05,
-            "life": 11.5,
+            "life": 12.0,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 22.6,
+                "y": 10.29
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "speed": 0.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 0.0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "magic_circle",
+            "scale": {
+                "x": 1.7,
+                "y": 1.7
+            },
+            "color": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "appearTime": 9.0,
+            "appearDuration": 0.4,
+            "life": 9.7,
             "random": 0,
             "unCounterable": true
         },
@@ -6091,9 +6427,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 9.0,
+            "appearTime": 9.5,
             "appearDuration": 0.05,
-            "life": 13.0,
+            "life": 13.5,
             "random": 0,
             "unCounterable": true
         },
@@ -6139,9 +6475,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 9.0,
+            "appearTime": 9.5,
             "appearDuration": 0.05,
-            "life": 13.0,
+            "life": 13.5,
             "random": 0,
             "unCounterable": true
         },
@@ -6187,9 +6523,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 9.0,
+            "appearTime": 9.5,
             "appearDuration": 0.05,
-            "life": 13.0,
+            "life": 13.5,
             "random": 0,
             "unCounterable": true
         },
@@ -6235,9 +6571,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 9.0,
+            "appearTime": 9.5,
             "appearDuration": 0.05,
-            "life": 13.0,
+            "life": 13.5,
             "random": 0,
             "unCounterable": true
         },
@@ -6283,9 +6619,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 9.0,
+            "appearTime": 9.5,
             "appearDuration": 0.05,
-            "life": 13.0,
+            "life": 13.5,
             "random": 0,
             "unCounterable": true
         },
@@ -6331,9 +6667,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 9.0,
+            "appearTime": 9.5,
             "appearDuration": 0.05,
-            "life": 13.0,
+            "life": 13.5,
             "random": 0,
             "unCounterable": true
         },
@@ -6379,9 +6715,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 9.0,
+            "appearTime": 9.5,
             "appearDuration": 0.05,
-            "life": 13.0,
+            "life": 13.5,
             "random": 0,
             "unCounterable": true
         },
@@ -6427,9 +6763,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 9.0,
+            "appearTime": 9.5,
             "appearDuration": 0.05,
-            "life": 13.0,
+            "life": 13.5,
             "random": 0,
             "unCounterable": true
         },
@@ -6475,9 +6811,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 9.0,
+            "appearTime": 9.5,
             "appearDuration": 0.05,
-            "life": 13.0,
+            "life": 13.5,
             "random": 0,
             "unCounterable": true
         },
@@ -6523,9 +6859,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 9.0,
+            "appearTime": 9.5,
             "appearDuration": 0.05,
-            "life": 13.0,
+            "life": 13.5,
             "random": 0,
             "unCounterable": true
         },
@@ -6571,9 +6907,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 9.0,
+            "appearTime": 9.5,
             "appearDuration": 0.05,
-            "life": 13.0,
+            "life": 13.5,
             "random": 0,
             "unCounterable": true
         },
@@ -6619,9 +6955,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 9.0,
+            "appearTime": 9.5,
             "appearDuration": 0.05,
-            "life": 13.0,
+            "life": 13.5,
             "random": 0,
             "unCounterable": true
         },
@@ -6667,9 +7003,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 9.0,
+            "appearTime": 9.5,
             "appearDuration": 0.05,
-            "life": 13.0,
+            "life": 13.5,
             "random": 0,
             "unCounterable": true
         },
@@ -6715,9 +7051,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 9.0,
+            "appearTime": 9.5,
             "appearDuration": 0.05,
-            "life": 13.0,
+            "life": 13.5,
             "random": 0,
             "unCounterable": true
         },
@@ -6763,9 +7099,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 9.0,
+            "appearTime": 9.5,
             "appearDuration": 0.05,
-            "life": 13.0,
+            "life": 13.5,
             "random": 0,
             "unCounterable": true
         },
@@ -6811,9 +7147,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 9.0,
+            "appearTime": 9.5,
             "appearDuration": 0.05,
-            "life": 13.0,
+            "life": 13.5,
             "random": 0,
             "unCounterable": true
         },
@@ -6859,9 +7195,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 9.0,
+            "appearTime": 9.5,
             "appearDuration": 0.05,
-            "life": 13.0,
+            "life": 13.5,
             "random": 0,
             "unCounterable": true
         },
@@ -6907,9 +7243,57 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 9.0,
+            "appearTime": 9.5,
             "appearDuration": 0.05,
-            "life": 13.0,
+            "life": 13.5,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 13.2,
+                "y": 10.67
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "speed": 0.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 0.0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "magic_circle",
+            "scale": {
+                "x": 1.7,
+                "y": 1.7
+            },
+            "color": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "appearTime": 10.5,
+            "appearDuration": 0.4,
+            "life": 11.2,
             "random": 0,
             "unCounterable": true
         },
@@ -6955,9 +7339,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
             "random": 0,
             "unCounterable": true
         },
@@ -7003,9 +7387,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
             "random": 0,
             "unCounterable": true
         },
@@ -7051,9 +7435,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
             "random": 0,
             "unCounterable": true
         },
@@ -7099,9 +7483,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
             "random": 0,
             "unCounterable": true
         },
@@ -7147,9 +7531,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
             "random": 0,
             "unCounterable": true
         },
@@ -7195,9 +7579,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
             "random": 0,
             "unCounterable": true
         },
@@ -7243,9 +7627,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
             "random": 0,
             "unCounterable": true
         },
@@ -7291,9 +7675,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
             "random": 0,
             "unCounterable": true
         },
@@ -7339,9 +7723,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
             "random": 0,
             "unCounterable": true
         },
@@ -7387,9 +7771,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
             "random": 0,
             "unCounterable": true
         },
@@ -7435,9 +7819,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
             "random": 0,
             "unCounterable": true
         },
@@ -7483,9 +7867,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
             "random": 0,
             "unCounterable": true
         },
@@ -7531,9 +7915,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
             "random": 0,
             "unCounterable": true
         },
@@ -7579,9 +7963,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
             "random": 0,
             "unCounterable": true
         },
@@ -7627,9 +8011,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
             "random": 0,
             "unCounterable": true
         },
@@ -7675,9 +8059,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
             "random": 0,
             "unCounterable": true
         },
@@ -7723,9 +8107,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
             "random": 0,
             "unCounterable": true
         },
@@ -7771,9 +8155,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
             "random": 0,
             "unCounterable": true
         },
@@ -7819,9 +8203,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
             "random": 0,
             "unCounterable": true
         },
@@ -7867,9 +8251,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
             "random": 0,
             "unCounterable": true
         },
@@ -7915,9 +8299,57 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 10.5,
+            "appearTime": 11.0,
             "appearDuration": 0.05,
-            "life": 14.5,
+            "life": 15.0,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 19.18,
+                "y": 8.71
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "speed": 0.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 0.0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "magic_circle",
+            "scale": {
+                "x": 1.7,
+                "y": 1.7
+            },
+            "color": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "appearTime": 12.0,
+            "appearDuration": 0.4,
+            "life": 12.7,
             "random": 0,
             "unCounterable": true
         },
@@ -7963,9 +8395,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8011,9 +8443,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8059,9 +8491,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8107,9 +8539,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8155,9 +8587,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8203,9 +8635,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8251,9 +8683,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8299,9 +8731,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8347,9 +8779,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8395,9 +8827,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8443,9 +8875,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8491,9 +8923,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8539,9 +8971,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8587,9 +9019,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8635,9 +9067,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8683,9 +9115,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8731,9 +9163,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8779,9 +9211,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8827,9 +9259,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8875,9 +9307,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8923,9 +9355,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -8971,9 +9403,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -9019,9 +9451,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
             "random": 0,
             "unCounterable": true
         },
@@ -9067,9 +9499,57 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 12.0,
+            "appearTime": 12.5,
             "appearDuration": 0.05,
-            "life": 16.0,
+            "life": 16.5,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 11.75,
+                "y": 10.27
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "speed": 0.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 0.0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "magic_circle",
+            "scale": {
+                "x": 1.7,
+                "y": 1.7
+            },
+            "color": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "appearTime": 13.5,
+            "appearDuration": 0.4,
+            "life": 14.2,
             "random": 0,
             "unCounterable": true
         },
@@ -9115,9 +9595,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 13.5,
+            "appearTime": 14.0,
             "appearDuration": 0.05,
-            "life": 17.5,
+            "life": 18.0,
             "random": 0,
             "unCounterable": true
         },
@@ -9163,9 +9643,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 13.5,
+            "appearTime": 14.0,
             "appearDuration": 0.05,
-            "life": 17.5,
+            "life": 18.0,
             "random": 0,
             "unCounterable": true
         },
@@ -9211,9 +9691,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 13.5,
+            "appearTime": 14.0,
             "appearDuration": 0.05,
-            "life": 17.5,
+            "life": 18.0,
             "random": 0,
             "unCounterable": true
         },
@@ -9259,9 +9739,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 13.5,
+            "appearTime": 14.0,
             "appearDuration": 0.05,
-            "life": 17.5,
+            "life": 18.0,
             "random": 0,
             "unCounterable": true
         },
@@ -9307,9 +9787,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 13.5,
+            "appearTime": 14.0,
             "appearDuration": 0.05,
-            "life": 17.5,
+            "life": 18.0,
             "random": 0,
             "unCounterable": true
         },
@@ -9355,9 +9835,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 13.5,
+            "appearTime": 14.0,
             "appearDuration": 0.05,
-            "life": 17.5,
+            "life": 18.0,
             "random": 0,
             "unCounterable": true
         },
@@ -9403,9 +9883,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 13.5,
+            "appearTime": 14.0,
             "appearDuration": 0.05,
-            "life": 17.5,
+            "life": 18.0,
             "random": 0,
             "unCounterable": true
         },
@@ -9451,9 +9931,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 13.5,
+            "appearTime": 14.0,
             "appearDuration": 0.05,
-            "life": 17.5,
+            "life": 18.0,
             "random": 0,
             "unCounterable": true
         },
@@ -9499,9 +9979,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 13.5,
+            "appearTime": 14.0,
             "appearDuration": 0.05,
-            "life": 17.5,
+            "life": 18.0,
             "random": 0,
             "unCounterable": true
         },
@@ -9547,9 +10027,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 13.5,
+            "appearTime": 14.0,
             "appearDuration": 0.05,
-            "life": 17.5,
+            "life": 18.0,
             "random": 0,
             "unCounterable": true
         },
@@ -9595,9 +10075,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 13.5,
+            "appearTime": 14.0,
             "appearDuration": 0.05,
-            "life": 17.5,
+            "life": 18.0,
             "random": 0,
             "unCounterable": true
         },
@@ -9643,9 +10123,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 13.5,
+            "appearTime": 14.0,
             "appearDuration": 0.05,
-            "life": 17.5,
+            "life": 18.0,
             "random": 0,
             "unCounterable": true
         },
@@ -9691,9 +10171,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 13.5,
+            "appearTime": 14.0,
             "appearDuration": 0.05,
-            "life": 17.5,
+            "life": 18.0,
             "random": 0,
             "unCounterable": true
         },
@@ -9739,9 +10219,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 13.5,
+            "appearTime": 14.0,
             "appearDuration": 0.05,
-            "life": 17.5,
+            "life": 18.0,
             "random": 0,
             "unCounterable": true
         },
@@ -9787,9 +10267,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 13.5,
+            "appearTime": 14.0,
             "appearDuration": 0.05,
-            "life": 17.5,
+            "life": 18.0,
             "random": 0,
             "unCounterable": true
         },
@@ -9835,9 +10315,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 13.5,
+            "appearTime": 14.0,
             "appearDuration": 0.05,
-            "life": 17.5,
+            "life": 18.0,
             "random": 0,
             "unCounterable": true
         },
@@ -9883,9 +10363,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 13.5,
+            "appearTime": 14.0,
             "appearDuration": 0.05,
-            "life": 17.5,
+            "life": 18.0,
             "random": 0,
             "unCounterable": true
         },
@@ -9931,1017 +10411,9 @@
                 "z": 0,
                 "w": 0
             },
-            "appearTime": 13.5,
+            "appearTime": 14.0,
             "appearDuration": 0.05,
-            "life": 17.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 0.06747
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 0.36667
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 0.66587
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 0.96507
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 1.26427
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 1.56347
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 1.86267
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 2.16187
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 2.46107
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 2.76027
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 3.05947
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 3.35867
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 3.65787
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 3.95707
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 4.25627
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 4.55546
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 4.85466
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 5.15386
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 5.45306
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 5.75226
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 9.68,
-                "y": 10.68
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "speed": 4.4,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "initialAngle": 0,
-            "angleSpeed": 60,
-            "useVelocityAngle": false,
-            "polarForm": {
-                "x": 1,
-                "y": 6.05146
-            },
-            "radiusVlc": 0,
-            "radiusAccel": 0,
-            "thetaVlc": 0,
-            "thetaAccel": 0,
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "skull",
-            "scale": {
-                "x": 0.8,
-                "y": 0.8
-            },
-            "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "appearTime": 15.0,
-            "appearDuration": 0.05,
-            "life": 19.0,
+            "life": 18.0,
             "random": 0,
             "unCounterable": true
         }

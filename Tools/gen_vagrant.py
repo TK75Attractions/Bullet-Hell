@@ -136,15 +136,21 @@ def corpse_burst():
     """間奏: 中央付近の様々な位置で死体が破裂し skull を全周放射。位置・角度・弾数をずらして反復。
     1バッファに全破裂(appearTime で展開)を入れ、t=26.5 で1回発火する。"""
     bullets = []
-    n_burst = 11                             # 最後の破裂を t=41.5 に(2サビ 45.7 前に消えるよう)
+    n_burst = 10                             # 破裂+予告0.5sで最後が 45.7 前に消えるよう
     interval = 1.5
     for bi in range(n_burst):
-        t = bi * interval
+        t = 0.5 + bi * interval             # 予告(t-0.5)が非負になるよう +0.5
         cx = round(random.uniform(8.0, 24.0), 2)
         cy = round(random.uniform(8.5, 13.0), 2)
         offset = random.uniform(0, math.pi / 8)
         rings = 18 + (bi % 3) * 3            # 18/21/24 と弾数を変える
         spd = 4.4 + (bi % 2) * 0.6
+        # 予告の魔法円(Must#3): 破裂0.5s前に地点へフェードイン、破裂直後に消す
+        bullets.append(bullet(
+            originPos={"x": cx, "y": cy}, speed=0.0, gravity={"x": 0.0, "y": 0.0},
+            typeName="magic_circle", scale={"x": 1.7, "y": 1.7},
+            color={"x": 0, "y": 0, "z": 0, "w": 0},
+            appearTime=round(t - 0.5, 3), appearDuration=0.4, life=round(t + 0.2, 3)))
         for i in range(rings):
             ang = offset + i * (2 * math.pi / rings)
             bullets.append(bullet(
