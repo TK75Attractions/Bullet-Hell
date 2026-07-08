@@ -130,17 +130,26 @@ def skeleton_markers():
 # 間奏: 死体破裂(中央から skull を全周放射)。2箇所で反復。
 # ---------------------------------------------------------------------------
 def corpse_burst():
+    """間奏: 中央付近の様々な位置で死体が破裂し skull を全周放射。位置・角度・弾数をずらして反復。
+    1バッファに全破裂(appearTime で展開)を入れ、t=26.5 で1回発火する。"""
     bullets = []
-    n = 20
-    for i in range(n):
-        ang = i * (2 * math.pi / n)
-        spd = 4.6
-        bullets.append(bullet(
-            originPos={"x": 0, "y": 0}, speed=spd,
-            polarForm={"x": 1, "y": round(ang, 5)}, gravity={"x": 0.0, "y": -1.5707963},
-            angleSpeed=60, typeName="skull", scale={"x": 0.8, "y": 0.8},
-            color={"x": 0, "y": 0, "z": 0, "w": 0},
-            appearTime=0.0, life=4.5))
+    n_burst = 12
+    interval = 1.5
+    for bi in range(n_burst):
+        t = bi * interval
+        cx = round(random.uniform(8.0, 24.0), 2)
+        cy = round(random.uniform(8.5, 13.0), 2)
+        offset = random.uniform(0, math.pi / 8)
+        rings = 18 + (bi % 3) * 3            # 18/21/24 と弾数を変える
+        spd = 4.4 + (bi % 2) * 0.6
+        for i in range(rings):
+            ang = offset + i * (2 * math.pi / rings)
+            bullets.append(bullet(
+                originPos={"x": cx, "y": cy}, speed=spd,
+                polarForm={"x": 1, "y": round(ang, 5)}, gravity={"x": 0.0, "y": -1.5707963},
+                angleSpeed=60, typeName="skull", scale={"x": 0.8, "y": 0.8},
+                color={"x": 0, "y": 0, "z": 0, "w": 0},
+                appearTime=round(t, 3), life=round(t + 4.3, 3)))
     return buf("vagrant_corpse_burst", bullets)
 
 
@@ -249,18 +258,17 @@ def build():
         # 1サビ後半: 両端の骸骨(目印 + 一斉射撃)
         spawner("vagrant_skeleton_markers", 1, 0.0, 16.8, {"x": 0, "y": 0}),
         spawner("vagrant_skeleton_volley", 1, 0.0, 16.8, {"x": 0, "y": 0}),
-        # 間奏: 死体破裂(2箇所, 交互) + 墓石の壁
-        spawner("vagrant_corpse_burst", 13, 1.5, 26.5, {"x": 10, "y": 10.5}),
-        spawner("vagrant_corpse_burst", 13, 1.5, 27.25, {"x": 22, "y": 10.5}),
+        # 間奏: 死体破裂(中央付近の様々な位置。バッファ内で12回展開) + 墓石の壁
+        spawner("vagrant_corpse_burst", 1, 0.0, 26.5, {"x": 0, "y": 0}),
         spawner("vagrant_tombstone_wall", 1, 0.0, 28.0, {"x": 0, "y": 0}),
         # レーザーは保留(BTDB に laser 型が無く、LASER は独自 Mesh 系統。要 laser 型追加+初期化調査)
         # spawner("vagrant_laser", 1, 0.0, 30.0, {"x": 0, "y": 0}),
         # 2サビ前半: 幽霊×1(左) 回転リング + 放射(spiral)
         spawner("vagrant_ghost_ring", 1, 0.0, 45.7, {"x": 10, "y": 10.5}),
         spawner("vagrant_ghost_fire", 30, 0.62, 46.0, {"x": 10, "y": 10.5}, angle=0.0, ainterval=13.0),
-        # 2サビ後半: 幽霊×2(右を追加)
+        # 2サビ後半: 幽霊×2(右を追加)。左右で逆回転の螺旋にして鏡像のクライマックスに
         spawner("vagrant_ghost_ring", 1, 0.0, 50.5, {"x": 22, "y": 10.5}),
-        spawner("vagrant_ghost_fire", 24, 0.62, 50.5, {"x": 22, "y": 10.5}, angle=7.0, ainterval=13.0),
+        spawner("vagrant_ghost_fire", 24, 0.62, 50.5, {"x": 22, "y": 10.5}, angle=7.0, ainterval=-13.0),
     ]
     stage = {
         "stageName": "浮浪者",
