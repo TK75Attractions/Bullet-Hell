@@ -57,7 +57,8 @@ def bone_rain():
     for beat in range(dur_beats):
         t = beat * BEAT
         second_half = beat >= 32
-        n = 2 if second_half else 1
+        # 後半は骸骨の一斉射撃が加わるので雨は 1本/拍に抑える(前半と同じ)
+        n = 1
         cols = random.sample(range(cells), n)
         for c in cols:
             x = c * cw + random.uniform(0.15, 0.85) * cw
@@ -81,10 +82,10 @@ def bone_rain():
 # ---------------------------------------------------------------------------
 def skeleton_volley():
     bullets = []
-    rows = 5
-    n_volley = 12
-    vol_interval = 2.6 * BEAT          # ~0.78s ごとに一斉射撃
-    ys = [3.2 + r * 3.0 for r in range(rows)]   # y=3.2,6.2,...,15.2
+    rows = 4
+    n_volley = 9
+    vol_interval = 3.0 * BEAT          # ~0.9s ごとに一斉射撃(密度を下げる)
+    ys = [3.6 + r * 3.7 for r in range(rows)]   # y=3.6,7.3,11.0,14.7(隙間を広く)
     for v in range(n_volley):
         t = v * vol_interval
         yshift = 1.4 * math.sin(v * 0.9)        # 骸骨の上下揺れ
@@ -174,15 +175,17 @@ def tombstone_wall():
 #   別途、中心から緑の魔法弾(tear)を放射状に連射する。
 # ---------------------------------------------------------------------------
 def ghost_ring():
+    # 固定半径の周回: disVector を単位ベクトルにするため startX=1・speed=0。
+    # 位置 = origin + polarForm.x(半径) * rotate((1,0), theta)。thetaVlc で周回。
     bullets = []
     n = 8
     for i in range(n):
         ang = i * (2 * math.pi / n)
         bullets.append(bullet(
-            originPos={"x": 0, "y": 0}, speed=0.0,
-            polarForm={"x": 2.9, "y": round(ang, 5)}, thetaVlc=2.4,
+            originPos={"x": 0, "y": 0}, startPos={"x": 0, "y": 0}, startX=1, speed=0.0,
+            polarForm={"x": 3.0, "y": round(ang, 5)}, thetaVlc=1.9,
             gravity={"x": 0.0, "y": 0.0},
-            typeName="ghost", scale={"x": 1.5, "y": 1.5},
+            typeName="ghost", scale={"x": 1.4, "y": 1.4},
             color={"x": 0, "y": 0, "z": 0, "w": 0},
             appearTime=0.0, appearDuration=0.4, life=20.0))
     return buf("vagrant_ghost_ring", bullets)
