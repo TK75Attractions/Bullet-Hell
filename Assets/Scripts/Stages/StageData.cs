@@ -304,6 +304,8 @@ public class StageData
                 basePath = definition.basePath,
                 fallbackSpriteEnemyName = definition.fallbackSpriteEnemyName,
                 pixelsPerUnit = definition.pixelsPerUnit,
+                transparentBackground = definition.transparentBackground,
+                transparentTolerance = definition.transparentTolerance,
                 pivot = definition.pivot,
                 clips = new List<EnemyVisualClipDefinition>()
             };
@@ -321,7 +323,8 @@ public class StageData
                         path = clip.path,
                         loop = clip.loop,
                         next = clip.next,
-                        frameDuration = clip.frameDuration
+                        frameDuration = clip.frameDuration,
+                        maxFrames = clip.maxFrames
                     });
                 }
             }
@@ -396,9 +399,14 @@ public class StageData
                 appearTime = spawner.appearTime,
                 lifeTime = spawner.lifeTime,
                 maxHp = spawner.maxHp,
+                targetable = spawner.targetable,
+                visualOnly = spawner.visualOnly,
                 startPos = spawner.startPos,
                 scale = spawner.scale,
                 angle = spawner.angle,
+                fadeInSec = spawner.fadeInSec,
+                fadeOutSec = spawner.fadeOutSec,
+                sortingOrder = spawner.sortingOrder,
                 animation = CloneBossAnimationPlan(spawner.animation),
                 moves = CloneBossMoveEvents(spawner.moves)
             });

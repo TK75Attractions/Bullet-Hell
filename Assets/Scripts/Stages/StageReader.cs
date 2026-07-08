@@ -20,6 +20,9 @@ public class StageReader : MonoBehaviour
     public float ElapsedTime => time;
     public float EndTime => stageData != null ? stageData.endTime : 0f;
     public bool HasReachedEndTime => isReady && stageData != null && time >= stageData.endTime;
+    public bool IsReady => isReady;
+    public float CurrentTime => time;
+    public StageData CurrentStage => stageData;
     public Boss CurrentBoss => bossManager != null ? bossManager.CurrentBoss : null;
     public bool IsBossDefeated => bossManager != null && bossManager.IsBossDefeated;
 
@@ -221,6 +224,7 @@ public class StageReader : MonoBehaviour
             {
                 GManager.Control.QOrder.ClearManagedEnemyDanmaku();
                 if (LogStageSchedule) Debug.Log($"Cleared enemy bullets");
+                continue;
             }
 
             GManager.Control.QOrder.AddEnemyBullets(spawner.index, spawner.pos, spawner.originVlc, spawner.angle, spawner.color);

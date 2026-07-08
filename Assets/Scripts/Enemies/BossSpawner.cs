@@ -11,9 +11,14 @@ public class BossSpawner
     public float appearTime;
     public float lifeTime = -1f;
     [Min(0.01f)] public float maxHp = 100f;
+    public bool targetable = true;
+    public bool visualOnly;
     public Vector2 startPos;
     public Vector2 scale = Vector2.one;
     public float angle;
+    public float fadeInSec;
+    public float fadeOutSec;
+    public int sortingOrder;
     public BossAnimationPlan animation = new BossAnimationPlan();
     public List<BossMoveEvent> moves = new List<BossMoveEvent>();
 }

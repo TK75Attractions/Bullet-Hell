@@ -54,6 +54,7 @@ Shader "Custom/BulletIndirectURP"
             float _CounterGlowRadius;
             float _CounterGlowStrength;
             float _CounterRimBoost;
+            float _StoneBeltScroll;
 
             struct BulletData
             {
@@ -234,6 +235,11 @@ Shader "Custom/BulletIndirectURP"
 
             half4 frag(Varyings input) : SV_Target
             {
+                if (input.scale.x > 20.0 && input.scale.y < 3.5)
+                {
+                    input.uv.x = frac(input.uv.x + _StoneBeltScroll);
+                }
+
                 if (input.renderMode > 4.5)
                 {
                     return fragCounterSpawnFlash(input);

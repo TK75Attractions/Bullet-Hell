@@ -14,7 +14,7 @@
       "speed": 17.36789,
       "gravity": {
         "x": 0,
-        "y": -1.5707964
+        "y": -1.5707963267948966
       },
       "angleSpeed": -6.28319,
       "initialAngle": 0,
@@ -49,7 +49,10 @@
       "appearDuration": 0,
       "life": 0.417,
       "random": 0,
-      "unCounterable": false
+      "unCounterable": true,
+      "useVelocityAngle": true,
+      "radiusAccel": 0.0,
+      "thetaAccel": 0.0
     }
   ],
   "homing": false,

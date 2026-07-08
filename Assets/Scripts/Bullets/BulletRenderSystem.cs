@@ -288,7 +288,8 @@ public class BulletRenderSystem : MonoBehaviour
                 fadeIn = 0f;
             }
 
-            if (b.life > 0f)
+            bool skipDisappearFade = type != null && type.skipDisappearFade;
+            if (b.life > 0f && !skipDisappearFade)
             {
                 if (disappearDuration > 0f)
                 {

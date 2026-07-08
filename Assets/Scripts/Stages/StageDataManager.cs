@@ -369,11 +369,21 @@ public class StageDataManager
 
         public float maxHp = 100f;
 
+        public bool targetable = true;
+
+        public bool visualOnly;
+
         public Vector2 startPos;
 
         public Vector2 scale = Vector2.one;
 
         public float angle;
+
+        public float fadeInSec;
+
+        public float fadeOutSec;
+
+        public int sortingOrder;
 
         public BossAnimationPlan animation = new BossAnimationPlan();
 
@@ -431,11 +441,21 @@ public class StageDataManager
 
                 maxHp = Mathf.Max(0.01f, maxHp),
 
+                targetable = !visualOnly,
+
+                visualOnly = visualOnly,
+
                 startPos = startPos,
 
                 scale = resolvedScale,
 
                 angle = angle,
+
+                fadeInSec = Mathf.Max(0f, fadeInSec),
+
+                fadeOutSec = Mathf.Max(0f, fadeOutSec),
+
+                sortingOrder = sortingOrder,
 
                 animation = BossAnimationPlan.Normalize(animation),
 

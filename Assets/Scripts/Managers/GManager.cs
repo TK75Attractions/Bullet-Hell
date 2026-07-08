@@ -10,6 +10,8 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
+using TMPro;
 
 public class GManager : MonoBehaviour
 {
@@ -38,6 +40,7 @@ public class GManager : MonoBehaviour
     public BeatManager BManager;
     public CManager CManager;
     public StageSelectManager SSManager;
+    public TitleManager TManager;
     public BulletBufferManager BulletBuffers;
     public QuadOrder QOrder;
     public BulletTypeDataBase BTDB;
@@ -58,6 +61,8 @@ public class GManager : MonoBehaviour
     private float longestNoHitDuration;
     private float defaultFixedDeltaTime;
     private float appliedTimeScale = 1f;
+    private bool titleArmed;
+    private bool titleTransferOpen;
     private readonly List<GameResultData> resultHistory = new List<GameResultData>();
 
     public GameResultData LastResult { get; private set; }
@@ -111,8 +116,12 @@ public class GManager : MonoBehaviour
 
         EDB.Init();
 
-        SSManager = transform.parent.Find("Canvases").Find("StageCanvas").Find("StageBoxParent").GetComponent<StageSelectManager>();
+        Transform stageCanvas = transform.parent.Find("Canvases").Find("StageCanvas");
+        SSManager = stageCanvas.Find("StageBoxParent").GetComponent<StageSelectManager>();
         SSManager.Init();
+
+        TManager = EnsureTitleManager(stageCanvas);
+        TManager?.Init();
 
         QOrder = GetComponent<QuadOrder>();
         QOrder.AwakeSetting();
@@ -155,14 +164,127 @@ public class GManager : MonoBehaviour
 
         bool stageSelectButton = IManager.buttonPressedThisFrame;
 
-        if (IManager.buttonPressed && state == GameState.Title)
+        if (state == GameState.Title)
         {
-            state = GameState.ChoosingStage;
-            stageSelectButton = false;
+            UpdateTitleScreen(t);
+            ApplyDebugTimeScale();
+            return;
         }
 
         SSManager.UpdateSelect(IManager.upPressedThisFrame, IManager.downPressedThisFrame, t, stageSelectButton, IManager.backPressedThisFrame);
         ApplyDebugTimeScale();
+    }
+
+    private void UpdateTitleScreen(float dt)
+    {
+        TManager?.UpdateTitle(dt);
+
+        if (titleTransferOpen)
+        {
+            TManager?.TickTransfer();
+            if (IManager.backPressedThisFrame)
+            {
+                TManager?.CloseTransfer();
+                titleTransferOpen = false;
+                titleArmed = false;
+            }
+            return;
+        }
+
+        TManager?.UpdateMenu(dt, IManager.upPressedThisFrame, IManager.downPressedThisFrame);
+
+        if (!titleArmed)
+        {
+            if (!IManager.buttonPressed)
+            {
+                titleArmed = true;
+            }
+            return;
+        }
+
+        if (!IManager.buttonPressedThisFrame)
+        {
+            return;
+        }
+
+        TitleManager.TitleMenuAction action = TManager != null
+            ? TManager.CurrentAction
+            : TitleManager.TitleMenuAction.Start;
+
+        switch (action)
+        {
+            case TitleManager.TitleMenuAction.Transfer:
+                titleTransferOpen = true;
+                titleArmed = false;
+                TManager?.OpenTransfer();
+                break;
+            case TitleManager.TitleMenuAction.Options:
+                titleArmed = false;
+                Debug.Log("Title options menu is not available in this runtime layout.");
+                break;
+            case TitleManager.TitleMenuAction.Start:
+            default:
+                titleArmed = false;
+                TManager?.PlayStartExit();
+                state = GameState.ChoosingStage;
+                break;
+        }
+    }
+
+    private TitleManager EnsureTitleManager(Transform stageCanvas)
+    {
+        if (stageCanvas == null) return null;
+
+        Transform titleTrans = stageCanvas.Find("Title");
+        if (titleTrans == null)
+        {
+            GameObject titleObj = new GameObject(
+                "Title",
+                typeof(RectTransform),
+                typeof(CanvasRenderer),
+                typeof(Image),
+                typeof(CanvasGroup),
+                typeof(TitleManager));
+            titleObj.layer = stageCanvas.gameObject.layer;
+            RectTransform titleRect = (RectTransform)titleObj.transform;
+            titleRect.SetParent(stageCanvas, false);
+            titleRect.anchorMin = Vector2.zero;
+            titleRect.anchorMax = Vector2.one;
+            titleRect.offsetMin = Vector2.zero;
+            titleRect.offsetMax = Vector2.zero;
+            titleRect.SetAsLastSibling();
+
+            Image background = titleObj.GetComponent<Image>();
+            background.color = new Color(0.006f, 0.014f, 0.032f, 0.96f);
+            background.raycastTarget = false;
+
+            CreateTitleText(titleRect, "Logo", "BULLET HELL", new Vector2(0f, 150f), new Vector2(980f, 130f), 88f, FontStyles.Bold);
+            CreateTitleText(titleRect, "Prompt", "PRESS START", new Vector2(0f, -255f), new Vector2(520f, 56f), 30f, FontStyles.Normal);
+            titleTrans = titleObj.transform;
+        }
+
+        TitleManager manager = titleTrans.GetComponent<TitleManager>();
+        if (manager == null) manager = titleTrans.gameObject.AddComponent<TitleManager>();
+        return manager;
+    }
+
+    private void CreateTitleText(RectTransform parent, string name, string text, Vector2 position, Vector2 size, float fontSize, FontStyles style)
+    {
+        GameObject textObj = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+        textObj.layer = parent.gameObject.layer;
+        RectTransform rect = (RectTransform)textObj.transform;
+        rect.SetParent(parent, false);
+        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = position;
+        rect.sizeDelta = size;
+
+        TextMeshProUGUI label = textObj.GetComponent<TextMeshProUGUI>();
+        label.text = text;
+        label.fontSize = fontSize;
+        label.fontStyle = style;
+        label.alignment = TextAlignmentOptions.Center;
+        label.color = Color.white;
+        label.raycastTarget = false;
     }
 
     private void ApplyDebugTimeScale()
@@ -268,6 +390,7 @@ public class GManager : MonoBehaviour
         }
 
         state = GameState.Loading;
+        TManager?.Dismiss();
 
         CurrentStageIndex = index;
         CurrentStageData = runtimeStage;
@@ -292,6 +415,10 @@ public class GManager : MonoBehaviour
             return;
         }
         state = GameState.Playing;
+        string historyDir = string.IsNullOrWhiteSpace(runtimeStage.stageDirectoryName)
+            ? runtimeStage.stageName
+            : runtimeStage.stageDirectoryName;
+        PlayHistory.RecordPlay(historyDir);
         Debug.Log($"Started Stage: {runtimeStage.stageName}, Difficulty: {CurrentDifficultySelection.displayName} (Data: {CurrentDataDifficultySelection.displayName})");
     }
 

@@ -141,14 +141,25 @@ public static class EnemyVisualLoader
         float pixelsPerUnit = definition.pixelsPerUnit > 0f ? definition.pixelsPerUnit : 100f;
         Vector2 pivot = definition.pivot == Vector2.zero ? new Vector2(0.5f, 0.5f) : definition.pivot;
 
-        for (int i = 0; i < gif.frames.Count; i++)
+        int frameCount = gif.frames.Count;
+        if (clipDefinition.maxFrames > 0)
+        {
+            frameCount = Mathf.Min(frameCount, clipDefinition.maxFrames);
+        }
+
+        for (int i = 0; i < frameCount; i++)
         {
             GifFrameData frame = gif.frames[i];
             Texture2D texture = new Texture2D(gif.width, gif.height, TextureFormat.RGBA32, false);
             texture.name = $"{definition.id}_{clipDefinition.name}_{i}";
             texture.filterMode = FilterMode.Point;
             texture.wrapMode = TextureWrapMode.Clamp;
-            texture.SetPixels32(ConvertTopLeftPixelsToUnityPixels(frame.pixels, gif.width, gif.height));
+            texture.SetPixels32(ConvertTopLeftPixelsToUnityPixels(
+                frame.pixels,
+                gif.width,
+                gif.height,
+                definition.transparentBackground,
+                definition.transparentTolerance));
             texture.Apply(false, false);
 
             Sprite sprite = Sprite.Create(texture, new Rect(0f, 0f, gif.width, gif.height), pivot, pixelsPerUnit);
@@ -234,16 +245,44 @@ public static class EnemyVisualLoader
         }
     }
 
-    public static Color32[] ConvertTopLeftPixelsToUnityPixels(Color32[] source, int width, int height)
+    public static Color32[] ConvertTopLeftPixelsToUnityPixels(
+        Color32[] source,
+        int width,
+        int height,
+        bool transparentBackground = false,
+        int transparentTolerance = 0)
     {
         Color32[] converted = new Color32[source.Length];
+        Color32 backgroundColor = source.Length > 0 ? source[0] : new Color32(0, 0, 0, 0);
+        int tolerance = Mathf.Max(0, transparentTolerance);
         for (int y = 0; y < height; y++)
         {
             int sourceRow = y * width;
             int destRow = (height - 1 - y) * width;
-            Array.Copy(source, sourceRow, converted, destRow, width);
+            for (int x = 0; x < width; x++)
+            {
+                Color32 color = source[sourceRow + x];
+                if (transparentBackground && IsKeyColor(color, backgroundColor, tolerance))
+                {
+                    color.a = 0;
+                }
+
+                converted[destRow + x] = color;
+            }
         }
 
         return converted;
+    }
+
+    private static bool IsKeyColor(Color32 color, Color32 key, int tolerance)
+    {
+        if (color.a == 0)
+        {
+            return true;
+        }
+
+        return Mathf.Abs(color.r - key.r) <= tolerance
+            && Mathf.Abs(color.g - key.g) <= tolerance
+            && Mathf.Abs(color.b - key.b) <= tolerance;
     }
 }

@@ -46,6 +46,7 @@ Shader "Custom/BulletIndirectMasked"
             float _CounterGlowRadius;
             float _CounterGlowStrength;
             float _CounterRimBoost;
+            float _StoneBeltScroll;
 
             //========================
             // GPU �\���́iC# �ƈ�v�K�{�j
@@ -244,6 +245,11 @@ Shader "Custom/BulletIndirectMasked"
             //========================
             fixed4 frag(v2f i) : SV_Target
             {
+                if (i.scale.x > 20.0 && i.scale.y < 3.5)
+                {
+                    i.uv.x = frac(i.uv.x + _StoneBeltScroll);
+                }
+
                 if (i.renderMode > 4.5)
                 {
                     return fragCounterSpawnFlash(i);

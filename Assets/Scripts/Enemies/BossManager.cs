@@ -105,6 +105,11 @@ public class BossManager : MonoBehaviour
         bossObject.transform.rotation = Quaternion.Euler(0f, 0f, spawner.angle);
 
         SpriteRenderer spriteRenderer = bossObject.AddComponent<SpriteRenderer>();
+        if (spawner.sortingOrder != 0)
+        {
+            spriteRenderer.sortingOrder = spawner.sortingOrder;
+        }
+
         EnemyVisualSetRuntime visualSet = stageReader != null ? stageReader.GetEnemyVisual(spawner.visualId) : null;
         Sprite fallbackSprite = visualSet != null ? visualSet.fallbackSprite : null;
         if (fallbackSprite != null)
@@ -119,7 +124,10 @@ public class BossManager : MonoBehaviour
             fallbackSprite,
             spawner.bossId,
             spawner.bossName,
-            spawner.maxHp);
+            spawner.maxHp,
+            spawner.lifeTime,
+            spawner.fadeInSec,
+            spawner.fadeOutSec);
 
         BossMover mover = bossObject.AddComponent<BossMover>();
         mover.Init(spawner.moves);
@@ -133,8 +141,11 @@ public class BossManager : MonoBehaviour
             lifeTime = spawner.lifeTime
         });
 
-        CurrentBoss = boss;
-        GManager.Control?.QOrder?.SetBossTarget(boss);
+        if (spawner.targetable && !spawner.visualOnly)
+        {
+            CurrentBoss = boss;
+            GManager.Control?.QOrder?.SetBossTarget(boss);
+        }
     }
 
     private void RefreshCurrentBossTarget()
