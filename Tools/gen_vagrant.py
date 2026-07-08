@@ -89,7 +89,10 @@ def skeleton_volley():
     for v in range(n_volley):
         t = v * vol_interval
         yshift = 1.4 * math.sin(v * 0.9)        # 骸骨の上下揺れ
+        skip_row = v % rows                     # 毎回1行だけ空ける=安全レーン(拍ごとに下→上へ移動)
         for r in range(rows):
+            if r == skip_row:                   # 安全レーンは撃たない
+                continue
             y = ys[r] + yshift
             spd = 8.2
             cross = (W + 3.0) / spd + 0.4

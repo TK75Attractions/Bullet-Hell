@@ -62,9 +62,10 @@ def ghost():
 
 
 def tombstone():
+    # 黒背景で埋もれないよう、明るい灰色で縁取り(Oracleレビュー Must#4: 視認性)
     im = Image.new("RGBA", (S, S), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
-    gray = (150, 150, 160, 255); gout = (92, 92, 104, 255)
-    d.rounded_rectangle([34, 24, 94, 112], radius=26, fill=gray, outline=gout, width=4)
+    gray = (150, 150, 160, 255); gbright = (198, 198, 212, 255); gout = (92, 92, 104, 255)
+    d.rounded_rectangle([34, 24, 94, 112], radius=26, fill=gray, outline=gbright, width=4)  # 明るい縁
     d.line([64, 40, 64, 64], fill=gout, width=5); d.line([52, 50, 76, 50], fill=gout, width=5)
     save_with_mask(im, "tombstone")
 
