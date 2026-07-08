@@ -1093,7 +1093,8 @@ public class QuadOrder : MonoBehaviour
         if (!collisionCheckBullets.IsCreated) collisionCheckBullets = new NativeList<BulletData>(256, Allocator.Persistent);
         if (!bulletPowers.IsCreated) bulletPowers = new NativeArray<float>(0, Allocator.Persistent);
 
-        bool isPlayerDash = GManager.Control.PController.invincible;
+        // カウンターはダッシュ中のみ(被弾後の無敵時間では出さない)。
+        bool isPlayerDash = GManager.Control.PController.IsDashing;
         NativeArray<BulletData> checkBullets;
 
         if (isPlayerDash)

@@ -25,6 +25,9 @@ public class PlayerController
         get => dash > 0 || hitInvincibleTimer > 0f;
         private set { }
     }
+    // カウンター判定用: ダッシュ中のみ true。被弾後の無敵時間(hitInvincibleTimer)は含めない
+    // ため、ダッシュしていないのにカウンターが出る問題を防ぐ。
+    public bool IsDashing => dash > 0;
     [SerializeField]
     private float dash = 0;
     private readonly float dashCooldown = 0.36f;
