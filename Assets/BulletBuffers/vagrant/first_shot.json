@@ -1,0 +1,53 @@
+{
+    "name": "vagrant_first_shot",
+    "bullets": [
+        {
+            "originPos": {
+                "x": 0,
+                "y": 0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "speed": 4.0,
+            "gravity": {
+                "x": 0.0,
+                "y": -1.5707963
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": true,
+            "polarForm": {
+                "x": 1,
+                "y": 0.0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "tear",
+            "scale": {
+                "x": 1.0,
+                "y": 1.0
+            },
+            "color": {
+                "x": 1,
+                "y": 0.3,
+                "z": 0.3,
+                "w": 1
+            },
+            "appearTime": 0.0,
+            "appearDuration": 0.05,
+            "life": 6.0,
+            "random": 0,
+            "unCounterable": true
+        }
+    ],
+    "homing": false,
+    "isLaser": false
+}
