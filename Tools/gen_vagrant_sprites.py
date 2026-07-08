@@ -69,36 +69,54 @@ def tombstone():
     save_with_mask(im, "tombstone")
 
 
-def necromancer_gif():
-    """フード付き屍霊術師。マゼンタ背景を GIF 透過キーにする。"""
+# 屍霊術師の固定パレット(idx0=マゼンタ=透過)。全フレーム共通で透過 idx を安定させる。
+KEY = (255, 0, 255)
+ROBE = (46, 36, 64); ROBE_D = (30, 22, 44); BONE_C = (226, 222, 206)
+GLOW = (120, 240, 150); GLOW2 = (180, 255, 205); EYEW = (220, 255, 230)
+DARKEYE = (20, 20, 28); STAFF = (90, 70, 50)
+NECRO_PAL = [KEY, ROBE, ROBE_D, BONE_C, GLOW, GLOW2, EYEW, DARKEYE, STAFF]
+
+
+def _pal_image():
+    flat = []
+    for c in NECRO_PAL:
+        flat += list(c)
+    flat += [0, 0, 0] * (256 - len(NECRO_PAL))
+    pi = Image.new("P", (1, 1)); pi.putpalette(flat)
+    return pi
+
+
+def _draw_necromancer(orb_r, orb_col, eye_col):
+    """1フレーム分を RGB(マゼンタ背景)で返す。orb_r=杖玉半径, 目/杖玉の色で詠唱脈動。"""
     N = 256
     im = Image.new("RGBA", (N, N), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
-    robe = (46, 36, 64, 255); robe_d = (30, 22, 44, 255); bone_c = (226, 222, 206, 255)
-    glow = (120, 240, 150, 255); darkeye = (20, 20, 28, 255)
-    d.polygon([(128, 40), (70, 120), (52, 236), (204, 236), (186, 120)], fill=robe)
-    d.ellipse([80, 24, 176, 120], fill=robe)
-    d.ellipse([98, 44, 158, 116], fill=robe_d)
-    d.ellipse([104, 54, 152, 104], fill=bone_c); d.rectangle([116, 98, 140, 116], fill=bone_c)
+    d.polygon([(128, 40), (70, 120), (52, 236), (204, 236), (186, 120)], fill=ROBE + (255,))
+    d.ellipse([80, 24, 176, 120], fill=ROBE + (255,))
+    d.ellipse([98, 44, 158, 116], fill=ROBE_D + (255,))
+    d.ellipse([104, 54, 152, 104], fill=BONE_C + (255,)); d.rectangle([116, 98, 140, 116], fill=BONE_C + (255,))
     for ex in (112, 134):
-        d.ellipse([ex, 68, ex + 14, 84], fill=glow); d.ellipse([ex + 3, 71, ex + 11, 81], fill=(220, 255, 230, 255))
-    d.polygon([(128, 84), (123, 94), (133, 94)], fill=darkeye)
-    d.ellipse([44, 150, 70, 176], fill=bone_c); d.ellipse([186, 150, 212, 176], fill=bone_c)
-    d.line([200, 60, 200, 180], fill=(90, 70, 50, 255), width=7)
-    d.ellipse([188, 44, 212, 68], fill=glow)
-    d.line([(70, 120), (52, 236)], fill=robe_d, width=4); d.line([(186, 120), (204, 236)], fill=robe_d, width=4)
-    key = (255, 0, 255)
-    bg = Image.new("RGB", (N, N), key)
+        d.ellipse([ex, 68, ex + 14, 84], fill=eye_col + (255,)); d.ellipse([ex + 3, 71, ex + 11, 81], fill=EYEW + (255,))
+    d.polygon([(128, 84), (123, 94), (133, 94)], fill=DARKEYE + (255,))
+    d.ellipse([44, 150, 70, 176], fill=BONE_C + (255,)); d.ellipse([186, 150, 212, 176], fill=BONE_C + (255,))
+    d.line([200, 60, 200, 180], fill=STAFF + (255,), width=7)
+    oc = (200, 56)  # 杖玉の中心
+    d.ellipse([oc[0] - orb_r, oc[1] - orb_r, oc[0] + orb_r, oc[1] + orb_r], fill=orb_col + (255,))
+    d.line([(70, 120), (52, 236)], fill=ROBE_D + (255,), width=4); d.line([(186, 120), (204, 236)], fill=ROBE_D + (255,), width=4)
+    bg = Image.new("RGB", (N, N), KEY)
     bg.paste(im.convert("RGB"), (0, 0), im.split()[3])
-    p = bg.convert("P", palette=Image.ADAPTIVE, colors=255)
-    pal = p.getpalette() or []
-    idx, best = 0, 1e9
-    for i in range(len(pal) // 3):
-        r, g, b = pal[i * 3:i * 3 + 3]
-        dd = (r - 255) ** 2 + g * g + (b - 255) ** 2
-        if dd < best:
-            best, idx = dd, i
+    return bg
+
+
+def necromancer_gif():
+    """フード付き屍霊術師。杖玉が脈動する2フレーム idle。固定パレットで透過 idx=0 安定。"""
+    palimg = _pal_image()
+    frames = []
+    for orb_r, orb_col, eye_col in [(12, GLOW, GLOW), (16, GLOW2, GLOW2)]:
+        rgb = _draw_necromancer(orb_r, orb_col, eye_col)
+        frames.append(rgb.quantize(palette=palimg, dither=Image.NONE))
     os.makedirs(VIS, exist_ok=True)
-    p.save(f"{VIS}/vagrant_idle.gif", transparency=idx)
+    frames[0].save(f"{VIS}/vagrant_idle.gif", save_all=True, append_images=frames[1:],
+                   transparency=0, duration=560, loop=0, disposal=2)
 
 
 if __name__ == "__main__":

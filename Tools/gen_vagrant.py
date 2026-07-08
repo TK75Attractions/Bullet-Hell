@@ -270,7 +270,7 @@ def build():
             "id": "vagrant", "source": "externalGif", "basePath": "Visuals",
             "pixelsPerUnit": 100, "transparentBackground": True, "transparentTolerance": 0,
             "pivot": {"x": 0.5, "y": 0.5},
-            "clips": [{"name": "idle", "path": "vagrant_idle.gif", "loop": True, "frameDuration": 0.1, "maxFrames": 1}]
+            "clips": [{"name": "idle", "path": "vagrant_idle.gif", "loop": True, "frameDuration": 0.56, "maxFrames": 0}]
         }],
         "difficulties": [], "multiBulletSpawners": [],
         "bossSpawners": [{
