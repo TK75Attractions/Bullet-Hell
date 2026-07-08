@@ -34,6 +34,8 @@ public class EnemyVisualClipDefinition
     public bool loop;
     public string next = "";
     public float frameDuration = 0.1f;
+    // GIF の先頭 maxFrames 枚だけ使う(0=全フレーム)。idle 等の maxFrames:1 で1枚静止に戻す。
+    public int maxFrames;
 }
 
 public static class EnemyVisualSource

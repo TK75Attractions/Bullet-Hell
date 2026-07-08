@@ -42,7 +42,7 @@ public struct BulletDataUpdateJob : IJobParallelFor
             // appearDuration == 0 の場合は time が appearTime に達するまで位置を更新しない
             if (bullet.appearDuration >= 0f)
             {
-                bullet = Update(bullet, index, dt * 0.008f);
+                bullet = Update(bullet, index, dt * 0.0001f);
             }
             if (bullet.isClearing && (bullet.clearDuration <= 0f || bullet.clearTime >= bullet.clearDuration))
             {
@@ -55,12 +55,16 @@ public struct BulletDataUpdateJob : IJobParallelFor
 
         bullet = Update(bullet, index, dt);
 
-        //四分木秩序に変換
+        //四分木秩序に変換(areaNum。生存域内でも grid 外の margin 弾は -1 になるが、
+        //当たり判定側は areaNum<0 をガード済みなので安全)
         int n = grid.GetTreeNum(bullet.position);
         bullet.areaNum = n;
 
-        //範囲外の弾を非アクティブに設定
-        if (n == -1) bullet.isActive = false;
+        //範囲外の弾を非アクティブに設定。collision grid の origin 由来のカリング域
+        //(x∈[0,36)/y∈[-9,27))だと左端・上端へ飛ぶ破片が marron より早く消える regression に
+        //なるため、marron 準拠の生存境界 [-2,36)² を明示適用する(grid の -1 では判定しない)。
+        float2 p = bullet.position;
+        if (p.x < -2f || p.y < -2f || p.x >= 36f || p.y >= 36f) bullet.isActive = false;
         if (bullet.isClearing && (bullet.clearDuration <= 0f || bullet.clearTime >= bullet.clearDuration))
         {
             bullet.isClearing = false;

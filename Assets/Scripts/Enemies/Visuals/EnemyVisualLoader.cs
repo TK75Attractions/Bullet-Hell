@@ -141,7 +141,14 @@ public static class EnemyVisualLoader
         float pixelsPerUnit = definition.pixelsPerUnit > 0f ? definition.pixelsPerUnit : 100f;
         Vector2 pivot = definition.pivot == Vector2.zero ? new Vector2(0.5f, 0.5f) : definition.pivot;
 
-        for (int i = 0; i < gif.frames.Count; i++)
+        // maxFrames 指定があれば先頭 N 枚に制限する(idle 等の maxFrames:1 で1枚静止に戻す)。
+        int frameCount = gif.frames.Count;
+        if (clipDefinition.maxFrames > 0)
+        {
+            frameCount = Mathf.Min(frameCount, clipDefinition.maxFrames);
+        }
+
+        for (int i = 0; i < frameCount; i++)
         {
             GifFrameData frame = gif.frames[i];
             Texture2D texture = new Texture2D(gif.width, gif.height, TextureFormat.RGBA32, false);
@@ -154,10 +161,9 @@ public static class EnemyVisualLoader
             Sprite sprite = Sprite.Create(texture, new Rect(0f, 0f, gif.width, gif.height), pivot, pixelsPerUnit);
             sprite.name = texture.name;
             sprites.Add(sprite);
-            // GIF に焼き込まれた frame delay は export 時の高フレームレート産物で「アニメが速すぎる」
-            // 原因になる。作者が clip 定義で指定した frameDuration を優先し、未指定(0)のときだけ
-            // GIF の delay にフォールバックする。
-            durations.Add(clipDefinition.frameDuration > 0f ? clipDefinition.frameDuration : frame.delaySeconds);
+            // GIF ネイティブの frame delay を尊重する(slam 着地の 0.4s 保持・cast の溜め等が生きる)。
+            // delay=0(単フレーム clip 等)のときだけ clip 定義の frameDuration にフォールバック。
+            durations.Add(frame.delaySeconds > 0f ? frame.delaySeconds : clipDefinition.frameDuration);
         }
 
         return new EnemyVisualClipRuntime
