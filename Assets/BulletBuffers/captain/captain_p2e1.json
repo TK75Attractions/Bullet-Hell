@@ -1,5 +1,5 @@
 {
-  "name": "captain_chase",
+  "name": "captain_p2e1",
   "bullets": [
     {
       "originPos": {
@@ -25,7 +25,7 @@
       "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
-        "y": -0.7853982
+        "y": 2.6179938
       },
       "radiusVlc": 0,
       "radiusAccel": 0,
@@ -41,10 +41,10 @@
         "z": 0,
         "w": 0
       },
-      "typeName": "slash",
+      "typeName": "normal",
       "scale": {
-        "x": 2.5,
-        "y": 2.5
+        "x": 1,
+        "y": 1
       },
       "color": {
         "x": 1,
@@ -53,11 +53,11 @@
         "w": 1
       },
       "appearTime": 0,
-      "appearDuration": 0,
-      "life": 10,
+      "appearDuration": 2,
+      "life": 30,
       "random": 0,
       "warpCooldown": 0,
-      "unCounterable": false
+      "unCounterable": true
     },
     {
       "originPos": {
@@ -83,7 +83,7 @@
       "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
-        "y": 0
+        "y": 3.1415927
       },
       "radiusVlc": 0,
       "radiusAccel": 0,
@@ -99,10 +99,10 @@
         "z": 0,
         "w": 0
       },
-      "typeName": "slash",
+      "typeName": "normal",
       "scale": {
-        "x": 2.5,
-        "y": 2.5
+        "x": 1,
+        "y": 1
       },
       "color": {
         "x": 1,
@@ -111,11 +111,11 @@
         "w": 1
       },
       "appearTime": 0,
-      "appearDuration": 0,
-      "life": 10,
+      "appearDuration": 2,
+      "life": 30,
       "random": 0,
       "warpCooldown": 0,
-      "unCounterable": false
+      "unCounterable": true
     },
     {
       "originPos": {
@@ -141,7 +141,7 @@
       "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
-        "y": 0.7853982
+        "y": 3.6651914
       },
       "radiusVlc": 0,
       "radiusAccel": 0,
@@ -157,10 +157,10 @@
         "z": 0,
         "w": 0
       },
-      "typeName": "slash",
+      "typeName": "normal",
       "scale": {
-        "x": 2.5,
-        "y": 2.5
+        "x": 1,
+        "y": 1
       },
       "color": {
         "x": 1,
@@ -169,13 +169,13 @@
         "w": 1
       },
       "appearTime": 0,
-      "appearDuration": 0,
-      "life": 10,
+      "appearDuration": 2,
+      "life": 30,
       "random": 0,
       "warpCooldown": 0,
-      "unCounterable": false
+      "unCounterable": true
     }
   ],
-  "homing": true,
+  "homing": false,
   "isLaser": false
 }

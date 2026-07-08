@@ -1,5 +1,5 @@
 {
-  "name": "captain_chase",
+  "name": "captain_p2n1",
   "bullets": [
     {
       "originPos": {
@@ -15,7 +15,7 @@
         "y": 0
       },
       "startX": 0,
-      "speed": 4,
+      "speed": 0,
       "gravity": {
         "x": 0,
         "y": 0
@@ -25,14 +25,14 @@
       "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
-        "y": -0.7853982
+        "y": 0
       },
       "radiusVlc": 0,
       "radiusAccel": 0,
       "thetaVlc": 0,
       "thetaAccel": 0,
       "startPos": {
-        "x": 0,
+        "x": -18,
         "y": 0
       },
       "polynomial": {
@@ -41,23 +41,23 @@
         "z": 0,
         "w": 0
       },
-      "typeName": "slash",
+      "typeName": "box",
       "scale": {
-        "x": 2.5,
-        "y": 2.5
+        "x": 36,
+        "y": 0.1
       },
       "color": {
         "x": 1,
         "y": 1,
         "z": 1,
-        "w": 1
+        "w": 0.2
       },
       "appearTime": 0,
-      "appearDuration": 0,
-      "life": 10,
+      "appearDuration": 0.5,
+      "life": 0.84,
       "random": 0,
       "warpCooldown": 0,
-      "unCounterable": false
+      "unCounterable": true
     },
     {
       "originPos": {
@@ -73,7 +73,7 @@
         "y": 0
       },
       "startX": 0,
-      "speed": 4,
+      "speed": 0,
       "gravity": {
         "x": 0,
         "y": 0
@@ -90,7 +90,7 @@
       "thetaVlc": 0,
       "thetaAccel": 0,
       "startPos": {
-        "x": 0,
+        "x": -18,
         "y": 0
       },
       "polynomial": {
@@ -99,23 +99,23 @@
         "z": 0,
         "w": 0
       },
-      "typeName": "slash",
+      "typeName": "box",
       "scale": {
-        "x": 2.5,
-        "y": 2.5
+        "x": 36,
+        "y": 0.3
       },
       "color": {
         "x": 1,
         "y": 1,
         "z": 1,
-        "w": 1
+        "w": 0.8
       },
-      "appearTime": 0,
-      "appearDuration": 0,
-      "life": 10,
+      "appearTime": 0.56,
+      "appearDuration": 0.2,
+      "life": 0.78,
       "random": 0,
       "warpCooldown": 0,
-      "unCounterable": false
+      "unCounterable": true
     },
     {
       "originPos": {
@@ -131,7 +131,7 @@
         "y": 0
       },
       "startX": 0,
-      "speed": 4,
+      "speed": 0,
       "gravity": {
         "x": 0,
         "y": 0
@@ -141,14 +141,14 @@
       "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
-        "y": 0.7853982
+        "y": 0
       },
       "radiusVlc": 0,
       "radiusAccel": 0,
       "thetaVlc": 0,
       "thetaAccel": 0,
       "startPos": {
-        "x": 0,
+        "x": -18,
         "y": 0
       },
       "polynomial": {
@@ -157,23 +157,23 @@
         "z": 0,
         "w": 0
       },
-      "typeName": "slash",
+      "typeName": "box",
       "scale": {
-        "x": 2.5,
-        "y": 2.5
+        "x": 36,
+        "y": 0.4
       },
       "color": {
         "x": 1,
         "y": 1,
         "z": 1,
-        "w": 1
+        "w": 0.8
       },
-      "appearTime": 0,
-      "appearDuration": 0,
-      "life": 10,
+      "appearTime": 0.64,
+      "appearDuration": 0.1,
+      "life": 0.83,
       "random": 0,
       "warpCooldown": 0,
-      "unCounterable": false
+      "unCounterable": true
     }
   ],
   "homing": true,
