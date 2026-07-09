@@ -54,6 +54,9 @@ Shader "Custom/BulletIndirectURP"
             float _CounterGlowRadius;
             float _CounterGlowStrength;
             float _CounterRimBoost;
+            // 石工ベルト帯のスリット模様スクロール量(UV)。StoneBeltScrollDriver が flow 窓の
+            // 間だけ進める(marron 由来。統合で shader から欠落していたのを復活)。
+            float _StoneBeltScroll;
 
             struct BulletData
             {
@@ -149,7 +152,9 @@ Shader "Custom/BulletIndirectURP"
                     markUv, input.texIndex);
                 half markMask = SAMPLE_TEXTURE2D_ARRAY(_MaskArray, sampler_MaskArray,
                     markUv, input.maskIndex).r * sourceMask;
-                half markTintStrength = saturate(markMask * input.color.a);
+                // color.a is opacity, not tint strength. Keeping it out of the RGB
+                // blend prevents low-alpha bullets from fading back to white.
+                half markTintStrength = saturate(markMask);
                 half3 markRgb = lerp(markBase.rgb, input.color.rgb, markTintStrength);
                 half markAlpha = max(markBase.a * sourceMask, markMask) * saturate(input.color.a) * appear;
 
@@ -223,8 +228,8 @@ Shader "Custom/BulletIndirectURP"
                 float2 centeredUv = input.uv - 0.5;
                 float distanceFromCenter = length(centeredUv) * 2.0;
                 float ringDistance = abs(distanceFromCenter - 0.62);
-                half ring = 1.0 - smoothstep(0.035, 0.11, ringDistance);
-                half innerGlow = (1.0 - smoothstep(0.0, 0.9, distanceFromCenter)) * 0.22;
+                half ring = (1.0 - smoothstep(0.018, 0.06, ringDistance)) * 0.6;
+                half innerGlow = (1.0 - smoothstep(0.0, 0.9, distanceFromCenter)) * 0.08;
                 half alpha = saturate((ring + innerGlow) * colorAlpha);
 
                 return half4(input.color.rgb, alpha * appear);
@@ -252,12 +257,20 @@ Shader "Custom/BulletIndirectURP"
                     return fragAttention(input);
                 }
 
-                // テクスチャ配列からサンプリング
-                half4 baseCol = SAMPLE_TEXTURE2D_ARRAY(_MainArray, sampler_MainArray, 
-                    input.uv, input.texIndex);
+                // 石工ベルト帯(scale.x>20, scale.y<3.5)のスリット模様を UV スクロール(marron 由来)。
+                // 帯上を流れる belt_flow ブロックと速度一致。StoneBeltScrollDriver が flow 窓だけ進める。
+                float2 uv = input.uv;
+                if (input.scale.x > 20.0 && input.scale.y < 3.5)
+                {
+                    uv.x = frac(uv.x + _StoneBeltScroll);
+                }
 
-                half mask = SAMPLE_TEXTURE2D_ARRAY(_MaskArray, sampler_MaskArray, 
-                    input.uv, input.maskIndex).r;
+                // テクスチャ配列からサンプリング
+                half4 baseCol = SAMPLE_TEXTURE2D_ARRAY(_MainArray, sampler_MainArray,
+                    uv, input.texIndex);
+
+                half mask = SAMPLE_TEXTURE2D_ARRAY(_MaskArray, sampler_MaskArray,
+                    uv, input.maskIndex).r;
                 half appear = saturate(input.appear);
 
                 if (input.renderMode > 0.5)
@@ -267,16 +280,13 @@ Shader "Custom/BulletIndirectURP"
                     return baseCol;
                 }
 
-                half tintAlpha = saturate(mask * input.color.a);
-                half baseAlpha = saturate(baseCol.a);
-                half outAlpha = saturate(baseAlpha + tintAlpha * (1.0 - baseAlpha));
-                half3 outRgb = outAlpha > 1e-4
-                    ? (baseCol.rgb * baseAlpha * (1.0 - tintAlpha) + input.color.rgb * tintAlpha) / outAlpha
-                    : half3(0.0, 0.0, 0.0);
-
-                // マスク値に color.a を掛けて色の掛かり方を 0-1 で制御する
-                baseCol.rgb = outRgb;
-                baseCol.a = outAlpha * appear;
+                // marron 由来の規約: color.w=0 の弾はスプライト本来の色/アルファをそのまま表示する
+                // (hammer/cutter/warn_box 等)。tint(mask×color.a)は sprite alpha と max で合成するので、
+                // color.a を 0 にしても sprite が消えない。raymee 版は alpha を color.a で乗じており
+                // color.w=0 の弾が不可視化していた(統合 regression)ため、marron 式に戻す。
+                half tintStrength = saturate(mask * input.color.a);
+                baseCol.rgb = lerp(baseCol.rgb, input.color.rgb, tintStrength);
+                baseCol.a = max(baseCol.a, tintStrength) * appear;
 
                 return baseCol;
             }

@@ -9,6 +9,9 @@ public class BossManager : MonoBehaviour
     private int spawnIndex;
     private Transform bossParent;
 
+    public Boss CurrentBoss { get; private set; }
+    public bool IsBossDefeated => CurrentBoss != null && CurrentBoss.IsDefeated;
+
     private class ActiveBoss
     {
         public GameObject gameObject;
@@ -16,6 +19,9 @@ public class BossManager : MonoBehaviour
         public BossMover mover;
         public float spawnTime;
         public float lifeTime;
+        public SpriteRenderer spriteRenderer;
+        public float fadeInSec;
+        public float fadeOutSec;
     }
 
     public void Init(StageData stageData, StageReader reader)
@@ -52,20 +58,52 @@ public class BossManager : MonoBehaviour
             ActiveBoss activeBoss = activeBosses[i];
             if (activeBoss == null || activeBoss.gameObject == null)
             {
+                bool wasCurrentBoss = activeBoss != null && activeBoss.boss == CurrentBoss;
                 activeBosses.RemoveAt(i);
+                if (wasCurrentBoss) RefreshCurrentBossTarget();
                 continue;
             }
 
             float elapsed = stageTime - activeBoss.spawnTime;
             if (activeBoss.lifeTime >= 0f && elapsed >= activeBoss.lifeTime)
             {
+                bool wasCurrentBoss = activeBoss.boss == CurrentBoss;
                 Destroy(activeBoss.gameObject);
                 activeBosses.RemoveAt(i);
+                if (wasCurrentBoss) RefreshCurrentBossTarget();
                 continue;
             }
 
             activeBoss.mover?.UpdateMover(dt, elapsed);
             activeBoss.boss?.UpdateBoss(dt);
+            ApplyBossFade(activeBoss, elapsed);
+        }
+    }
+
+    // 出現/退場フェード(marron の enemySpawner fadeInSec/fadeOutSec 相当、統合 Stage4 で復活)。
+    // アニメがフレーム毎に sprite を差し替えるため、boss 更新の後で alpha だけ上書きする。
+    // fadeIn/fadeOut が両方 0 の通常ボスは alpha=1 のまま(SpriteRenderer 既定色)で no-op。
+    private static void ApplyBossFade(ActiveBoss activeBoss, float elapsed)
+    {
+        if (activeBoss.spriteRenderer == null) return;
+        float alpha = 1f;
+        if (activeBoss.fadeInSec > 0f && elapsed < activeBoss.fadeInSec)
+        {
+            alpha = Mathf.Clamp01(elapsed / activeBoss.fadeInSec);
+        }
+        if (activeBoss.fadeOutSec > 0f && activeBoss.lifeTime > 0f)
+        {
+            float remaining = activeBoss.lifeTime - elapsed;
+            if (remaining < activeBoss.fadeOutSec)
+            {
+                alpha = Mathf.Min(alpha, Mathf.Clamp01(remaining / activeBoss.fadeOutSec));
+            }
+        }
+        Color c = activeBoss.spriteRenderer.color;
+        if (!Mathf.Approximately(c.a, alpha))
+        {
+            c.a = alpha;
+            activeBoss.spriteRenderer.color = c;
         }
     }
 
@@ -82,6 +120,8 @@ public class BossManager : MonoBehaviour
         activeBosses.Clear();
         spawners.Clear();
         spawnIndex = 0;
+        CurrentBoss = null;
+        GManager.Control?.QOrder?.SetBossTarget(null);
     }
 
     private void Spawn(BossSpawner spawner, float stageTime)
@@ -96,6 +136,7 @@ public class BossManager : MonoBehaviour
         bossObject.transform.rotation = Quaternion.Euler(0f, 0f, spawner.angle);
 
         SpriteRenderer spriteRenderer = bossObject.AddComponent<SpriteRenderer>();
+        spriteRenderer.sortingOrder = spawner.sortingOrder;
         EnemyVisualSetRuntime visualSet = stageReader != null ? stageReader.GetEnemyVisual(spawner.visualId) : null;
         Sprite fallbackSprite = visualSet != null ? visualSet.fallbackSprite : null;
         if (fallbackSprite != null)
@@ -109,7 +150,8 @@ public class BossManager : MonoBehaviour
             BossAnimationPlan.Normalize(spawner.animation).ToEnemyAnimationPlan(),
             fallbackSprite,
             spawner.bossId,
-            spawner.bossName);
+            spawner.bossName,
+            spawner.maxHp);
 
         BossMover mover = bossObject.AddComponent<BossMover>();
         mover.Init(spawner.moves);
@@ -120,8 +162,27 @@ public class BossManager : MonoBehaviour
             boss = boss,
             mover = mover,
             spawnTime = stageTime,
-            lifeTime = spawner.lifeTime
+            lifeTime = spawner.lifeTime,
+            spriteRenderer = spriteRenderer,
+            fadeInSec = spawner.fadeInSec,
+            fadeOutSec = spawner.fadeOutSec
         });
+
+        CurrentBoss = boss;
+        GManager.Control?.QOrder?.SetBossTarget(boss);
+    }
+
+    private void RefreshCurrentBossTarget()
+    {
+        CurrentBoss = null;
+        for (int i = activeBosses.Count - 1; i >= 0; i--)
+        {
+            if (activeBosses[i]?.boss == null) continue;
+            CurrentBoss = activeBosses[i].boss;
+            break;
+        }
+
+        GManager.Control?.QOrder?.SetBossTarget(CurrentBoss);
     }
 
     private void OnDestroy()
