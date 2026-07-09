@@ -93,15 +93,6 @@ public class CManager : MonoBehaviour
         debugCurrentJitterPixels = Vector2.zero;
     }
 
-    // marron keep コード(GManager)向け互換スタブ。marron のメニュー全面ブラーは UI 側の
-    // 機能で、raymee の CManager(弾ノイズブラー)には無い。Stage1(コンパイル)では状態
-    // 保持のみとし、実ブラー描画の復元は Stage2(UI)で行う。
-    public bool MenuBlurActive { get; private set; }
-    public void SetMenuBlur(bool enabled)
-    {
-        MenuBlurActive = enabled;
-    }
-
     private void UpdateScreenNoise(float dt)
     {
         Vector2 blurPixels = Vector2.zero;
