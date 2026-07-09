@@ -98,14 +98,7 @@ MonoBehaviour:
     - 0.099999994
     - 0.099999994
     loop: 0
-    next: idle
-  - name: attackHold1
-    frames:
-    - {fileID: 21300000, guid: 6a596328d79a2c44db4e89b90df68e10, type: 3}
-    frameDurations:
-    - 0.1
-    loop: 0
-    next: idle
+    next: attack2
   - name: attack2
     frames:
     - {fileID: 21300000, guid: 000bd9e939cde4a458d0b464bd48ac10, type: 3}
@@ -124,14 +117,7 @@ MonoBehaviour:
     - 0.099999994
     - 0.099999994
     loop: 0
-    next: idle
-  - name: attackHold2
-    frames:
-    - {fileID: 21300000, guid: daeea4fc22366db41b9dcacc034125ab, type: 3}
-    frameDurations:
-    - 0.1
-    loop: 0
-    next: idle
+    next: attack3
   - name: attack3
     frames:
     - {fileID: 21300000, guid: c6f9584bd040ff74a8319f005c20ffca, type: 3}
@@ -143,6 +129,20 @@ MonoBehaviour:
     - 0.099999994
     - 0.099999994
     - 0.099999994
+    loop: 0
+    next: idle
+  - name: attackHold1
+    frames:
+    - {fileID: 21300000, guid: 6a596328d79a2c44db4e89b90df68e10, type: 3}
+    frameDurations:
+    - 0.1
+    loop: 0
+    next: attackHold2
+  - name: attackHold2
+    frames:
+    - {fileID: 21300000, guid: daeea4fc22366db41b9dcacc034125ab, type: 3}
+    frameDurations:
+    - 0.1
     loop: 0
     next: idle
   - name: defeat

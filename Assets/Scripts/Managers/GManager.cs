@@ -10,7 +10,6 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine.InputSystem;
-using UnityEngine.Serialization;
 
 public class GManager : MonoBehaviour
 {
@@ -27,7 +26,6 @@ public class GManager : MonoBehaviour
     }
 
     public GameState state = GameState.Title;
-
     public GameObject PlayerObj;
     public PlayerController PController;
 
@@ -37,6 +35,7 @@ public class GManager : MonoBehaviour
     public BeatManager BManager;
     public CManager CManager;
     public StageSelectManager SSManager;
+<<<<<<< HEAD
     public TitleManager TManager;
     // 0=Easy / 1=Normal / 2=Lunatic。現状データは Lunatic のみのため既定を Lunatic に。
     public int selectedDifficulty = 2;
@@ -58,6 +57,9 @@ public class GManager : MonoBehaviour
     // 同じ BulletBufferManager を BClipManager として保持しているためエイリアスで橋渡し。
     public BulletBufferManager BulletBuffers => BClipManager;
     public Color playerColor = new Color(1f, 1f, 0.6f, 1f);
+=======
+    public BulletBufferManager BulletBuffers;
+>>>>>>> origin/main
     public QuadOrder QOrder;
     public BulletTypeDataBase BTDB;
 
@@ -66,6 +68,7 @@ public class GManager : MonoBehaviour
     public EnemyDataBase EDB;
     public BulletRenderSystem BRS;
 
+<<<<<<< HEAD
     public float gameTime;
     // Play Mode 中にドメインリロード(スクリプト再コンパイル等)が走ると static の
     // Control や非シリアライズの実行時状態(BClipManager 等)は消えるが、この
@@ -75,11 +78,16 @@ public class GManager : MonoBehaviour
     // 必ず false に戻し、Update/LateUpdate を安全に停止させる。
     [NonSerialized] public bool ready = false;
     private bool reloadDuringPlayWarned = false;
+=======
+    public float gameTime { get; private set; } = 0f;
+    public bool ready { get; private set; } = false;
+>>>>>>> origin/main
 
     public bool musicOn = false;
     public int playerHitCount = 0;
     public int counterHitBossCount = 0;
 
+<<<<<<< HEAD
     // --- Stone stage M21 landing shake ------------------------------------
     // The stone stage's golem slams down at M21 (stage clock 63.333s). A short,
     // decaying camera shake sells the landing weight. Event-driven and gated on
@@ -96,6 +104,16 @@ public class GManager : MonoBehaviour
     private const float StoneLandingShakeDuration = 0.34f;
     private const float StoneLandingShakeFrequency = 18f;
     private float prevStageClock = -1f;
+=======
+    public Difficulty CurrentDifficulty { get; private set; } = Difficulty.Easy;
+    public DifficultySelection RequestedDifficultySelection { get; private set; } = DifficultySelection.FromOfficial(Difficulty.Easy);
+    public DifficultySelection CurrentDifficultySelection { get; private set; } = DifficultySelection.FromOfficial(Difficulty.Easy);
+    public DifficultySelection CurrentDataDifficultySelection { get; private set; } = DifficultySelection.FromOfficial(Difficulty.Easy);
+    public int CurrentStageIndex { get; private set; } = -1;
+    public StageData CurrentStageData { get; private set; }
+    //ステージによって変化
+    public Color playerColor = new(1, 1, 0.6f, 1);
+>>>>>>> origin/main
 
     public async void Awake()
     {
@@ -213,6 +231,48 @@ public class GManager : MonoBehaviour
             ready = false;
             Debug.LogException(ex, this);
         }
+<<<<<<< HEAD
+=======
+
+        ready = false;
+
+        IManager = GetComponent<InputManager>();
+        IManager.Init();
+
+        AManager = transform.parent.Find("AManager").GetComponent<AudioManager>();
+        AManager.Init();
+
+        BManager = transform.parent.Find("BManager").GetComponent<BeatManager>();
+        CManager = GetComponent<CManager>();
+        if (CManager == null) CManager = FindAnyObjectByType<CManager>();
+        if (CManager == null) CManager = gameObject.AddComponent<CManager>();
+
+        BTDB.Init();
+        SDB = new();
+        await SDB.InitAsync();
+        BulletBuffers = new();
+        await BulletBuffers.InitAsync();
+
+        BRS = GetComponent<BulletRenderSystem>();
+        BRS.Init();
+
+        EDB.Init();
+
+        SSManager = transform.parent.Find("Canvases").Find("StageCanvas").Find("StageBoxParent").GetComponent<StageSelectManager>();
+        SSManager.Init();
+
+        QOrder = GetComponent<QuadOrder>();
+        QOrder.AwakeSetting();
+        PController = new PlayerController();
+        GameObject ptemp = Instantiate(PlayerObj);
+        PController.Init(ptemp);
+
+        SReader = GetComponent<StageReader>();
+
+        state = GameState.Title;
+
+        ready = true;
+>>>>>>> origin/main
     }
 
     [System.Diagnostics.Conditional("UNITY_EDITOR")]
@@ -550,7 +610,12 @@ public class GManager : MonoBehaviour
         return (float)deg;
     }
 
-    public async void GoGame(int index)
+    public void GoGame(int index, Difficulty difficulty)
+    {
+        GoGame(index, DifficultySelection.FromOfficial(difficulty));
+    }
+
+    public async void GoGame(int index, DifficultySelection difficulty)
     {
         await GoGameAsync(index);
     }
@@ -564,6 +629,7 @@ public class GManager : MonoBehaviour
             return;
         }
 
+<<<<<<< HEAD
         // raymee ランタイム互換: 共有 StageData を直接 Init すると難易度が効かず、Init が
         // 共有インスタンスを mutate(sort/index書込)してリプレイで状態が蓄積する。難易度
         // 解決済みのランタイムコピーを渡す。UI の selectedDifficulty(0=Easy/1=Normal/2=Lunatic)
@@ -635,6 +701,24 @@ public class GManager : MonoBehaviour
         AudioListener.pause = false;
         UnityEngine.SceneManagement.SceneManager.LoadScene(
             UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+=======
+        StageData runtimeStage = stage.CreateRuntimeCopy(difficulty);
+
+        CurrentStageIndex = index;
+        CurrentStageData = runtimeStage;
+        RequestedDifficultySelection = runtimeStage.requestedDifficulty;
+        CurrentDifficultySelection = runtimeStage.activeDifficulty;
+        CurrentDataDifficultySelection = runtimeStage.resolvedDataDifficulty;
+        CurrentDifficulty = CurrentDifficultySelection.isOfficial
+            ? CurrentDifficultySelection.officialDifficulty
+            : Difficulty.Normal;
+
+        playerHitCount = 0;
+        counterHitBossCount = 0;
+        await SReader.Init(runtimeStage);
+        state = GameState.Playing;
+        Debug.Log($"Started Stage: {runtimeStage.stageName}, Difficulty: {CurrentDifficultySelection.displayName} (Data: {CurrentDataDifficultySelection.displayName})");
+>>>>>>> origin/main
     }
 
     public void AddPlayerHitCount(int value = 1)

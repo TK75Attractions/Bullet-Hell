@@ -1,665 +1,707 @@
-﻿{
-    "name":  "ラグ円形連射_2_4",
-    "bullets":  [
-                    {
-                        "originPos":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "originVlc":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "startX":  0,
-                        "speed":  15.91699,
-                        "gravity":  0,
-                        "angleSpeed":  0,
-                        "initialAngle":  0,
-                        "polarForm":  {
-                                          "x":  1,
-                                          "y":  -1.66193
-                                      },
-                        "radiusVlc":  0,
-                        "thetaVlc":  0,
-                        "startPos":  {
-                                         "x":  0,
-                                         "y":  0
-                                     },
-                        "polynomial":  {
-                                           "x":  0,
-                                           "y":  0,
-                                           "z":  0,
-                                           "w":  0
-                                       },
-                        "typeName":  "normal",
-                        "scale":  {
-                                      "x":  0.20488,
-                                      "y":  0.20488
-                                  },
-                        "color":  {
-                                      "x":  1,
-                                      "y":  1,
-                                      "z":  1,
-                                      "w":  1
-                                  },
-                        "appearTime":  0,
-                        "appearDuration":  0,
-                        "life":  2.6,
-                        "random":  0,
-                        "unCounterable":  false
-                    },
-                    {
-                        "originPos":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "originVlc":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "startX":  0,
-                        "speed":  12.47452,
-                        "gravity":  0,
-                        "angleSpeed":  0,
-                        "initialAngle":  0,
-                        "polarForm":  {
-                                          "x":  1,
-                                          "y":  -1.83348
-                                      },
-                        "radiusVlc":  0,
-                        "thetaVlc":  0,
-                        "startPos":  {
-                                         "x":  0,
-                                         "y":  0
-                                     },
-                        "polynomial":  {
-                                           "x":  0,
-                                           "y":  0,
-                                           "z":  0,
-                                           "w":  0
-                                       },
-                        "typeName":  "normal",
-                        "scale":  {
-                                      "x":  0.20488,
-                                      "y":  0.20488
-                                  },
-                        "color":  {
-                                      "x":  1,
-                                      "y":  1,
-                                      "z":  1,
-                                      "w":  1
-                                  },
-                        "appearTime":  0,
-                        "appearDuration":  0,
-                        "life":  2.6,
-                        "random":  0,
-                        "unCounterable":  false
-                    },
-                    {
-                        "originPos":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "originVlc":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "startX":  0,
-                        "speed":  7.31816,
-                        "gravity":  0,
-                        "angleSpeed":  0,
-                        "initialAngle":  0,
-                        "polarForm":  {
-                                          "x":  1,
-                                          "y":  -2.21391
-                                      },
-                        "radiusVlc":  0,
-                        "thetaVlc":  0,
-                        "startPos":  {
-                                         "x":  0,
-                                         "y":  0
-                                     },
-                        "polynomial":  {
-                                           "x":  0,
-                                           "y":  0,
-                                           "z":  0,
-                                           "w":  0
-                                       },
-                        "typeName":  "normal",
-                        "scale":  {
-                                      "x":  0.20488,
-                                      "y":  0.20488
-                                  },
-                        "color":  {
-                                      "x":  1,
-                                      "y":  1,
-                                      "z":  1,
-                                      "w":  1
-                                  },
-                        "appearTime":  0,
-                        "appearDuration":  0,
-                        "life":  2.6,
-                        "random":  0,
-                        "unCounterable":  false
-                    },
-                    {
-                        "originPos":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "originVlc":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "startX":  0,
-                        "speed":  4.90185,
-                        "gravity":  0,
-                        "angleSpeed":  0,
-                        "initialAngle":  0,
-                        "polarForm":  {
-                                          "x":  1,
-                                          "y":  2.83188
-                                      },
-                        "radiusVlc":  0,
-                        "thetaVlc":  0,
-                        "startPos":  {
-                                         "x":  0,
-                                         "y":  0
-                                     },
-                        "polynomial":  {
-                                           "x":  0,
-                                           "y":  0,
-                                           "z":  0,
-                                           "w":  0
-                                       },
-                        "typeName":  "normal",
-                        "scale":  {
-                                      "x":  0.20488,
-                                      "y":  0.20488
-                                  },
-                        "color":  {
-                                      "x":  1,
-                                      "y":  1,
-                                      "z":  1,
-                                      "w":  1
-                                  },
-                        "appearTime":  0,
-                        "appearDuration":  0,
-                        "life":  2.6,
-                        "random":  0,
-                        "unCounterable":  false
-                    },
-                    {
-                        "originPos":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "originVlc":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "startX":  0,
-                        "speed":  9.44808,
-                        "gravity":  0,
-                        "angleSpeed":  0,
-                        "initialAngle":  0,
-                        "polarForm":  {
-                                          "x":  1,
-                                          "y":  2.01076
-                                      },
-                        "radiusVlc":  0,
-                        "thetaVlc":  0,
-                        "startPos":  {
-                                         "x":  0,
-                                         "y":  0
-                                     },
-                        "polynomial":  {
-                                           "x":  0,
-                                           "y":  0,
-                                           "z":  0,
-                                           "w":  0
-                                       },
-                        "typeName":  "normal",
-                        "scale":  {
-                                      "x":  0.20488,
-                                      "y":  0.20488
-                                  },
-                        "color":  {
-                                      "x":  1,
-                                      "y":  1,
-                                      "z":  1,
-                                      "w":  1
-                                  },
-                        "appearTime":  0,
-                        "appearDuration":  0,
-                        "life":  2.6,
-                        "random":  0,
-                        "unCounterable":  false
-                    },
-                    {
-                        "originPos":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "originVlc":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "startX":  0,
-                        "speed":  14.14723,
-                        "gravity":  0,
-                        "angleSpeed":  0,
-                        "initialAngle":  0,
-                        "polarForm":  {
-                                          "x":  1,
-                                          "y":  1.75436
-                                      },
-                        "radiusVlc":  0,
-                        "thetaVlc":  0,
-                        "startPos":  {
-                                         "x":  0,
-                                         "y":  0
-                                     },
-                        "polynomial":  {
-                                           "x":  0,
-                                           "y":  0,
-                                           "z":  0,
-                                           "w":  0
-                                       },
-                        "typeName":  "normal",
-                        "scale":  {
-                                      "x":  0.20488,
-                                      "y":  0.20488
-                                  },
-                        "color":  {
-                                      "x":  1,
-                                      "y":  1,
-                                      "z":  1,
-                                      "w":  1
-                                  },
-                        "appearTime":  0,
-                        "appearDuration":  0,
-                        "life":  2.6,
-                        "random":  0,
-                        "unCounterable":  false
-                    },
-                    {
-                        "originPos":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "originVlc":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "startX":  0,
-                        "speed":  16.52781,
-                        "gravity":  0,
-                        "angleSpeed":  0,
-                        "initialAngle":  0,
-                        "polarForm":  {
-                                          "x":  1,
-                                          "y":  1.60888
-                                      },
-                        "radiusVlc":  0,
-                        "thetaVlc":  0,
-                        "startPos":  {
-                                         "x":  0,
-                                         "y":  0
-                                     },
-                        "polynomial":  {
-                                           "x":  0,
-                                           "y":  0,
-                                           "z":  0,
-                                           "w":  0
-                                       },
-                        "typeName":  "normal",
-                        "scale":  {
-                                      "x":  0.20488,
-                                      "y":  0.20488
-                                  },
-                        "color":  {
-                                      "x":  1,
-                                      "y":  1,
-                                      "z":  1,
-                                      "w":  1
-                                  },
-                        "appearTime":  0,
-                        "appearDuration":  0,
-                        "life":  2.6,
-                        "random":  0,
-                        "unCounterable":  false
-                    },
-                    {
-                        "originPos":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "originVlc":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "startX":  0,
-                        "speed":  15.91699,
-                        "gravity":  0,
-                        "angleSpeed":  0,
-                        "initialAngle":  0,
-                        "polarForm":  {
-                                          "x":  1,
-                                          "y":  1.47967
-                                      },
-                        "radiusVlc":  0,
-                        "thetaVlc":  0,
-                        "startPos":  {
-                                         "x":  0,
-                                         "y":  0
-                                     },
-                        "polynomial":  {
-                                           "x":  0,
-                                           "y":  0,
-                                           "z":  0,
-                                           "w":  0
-                                       },
-                        "typeName":  "normal",
-                        "scale":  {
-                                      "x":  0.20488,
-                                      "y":  0.20488
-                                  },
-                        "color":  {
-                                      "x":  1,
-                                      "y":  1,
-                                      "z":  1,
-                                      "w":  1
-                                  },
-                        "appearTime":  0,
-                        "appearDuration":  0,
-                        "life":  2.6,
-                        "random":  0,
-                        "unCounterable":  false
-                    },
-                    {
-                        "originPos":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "originVlc":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "startX":  0,
-                        "speed":  12.47452,
-                        "gravity":  0,
-                        "angleSpeed":  0,
-                        "initialAngle":  0,
-                        "polarForm":  {
-                                          "x":  1,
-                                          "y":  1.30811
-                                      },
-                        "radiusVlc":  0,
-                        "thetaVlc":  0,
-                        "startPos":  {
-                                         "x":  0,
-                                         "y":  0
-                                     },
-                        "polynomial":  {
-                                           "x":  0,
-                                           "y":  0,
-                                           "z":  0,
-                                           "w":  0
-                                       },
-                        "typeName":  "normal",
-                        "scale":  {
-                                      "x":  0.20488,
-                                      "y":  0.20488
-                                  },
-                        "color":  {
-                                      "x":  1,
-                                      "y":  1,
-                                      "z":  1,
-                                      "w":  1
-                                  },
-                        "appearTime":  0,
-                        "appearDuration":  0,
-                        "life":  2.6,
-                        "random":  0,
-                        "unCounterable":  false
-                    },
-                    {
-                        "originPos":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "originVlc":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "startX":  0,
-                        "speed":  7.31816,
-                        "gravity":  0,
-                        "angleSpeed":  0,
-                        "initialAngle":  0,
-                        "polarForm":  {
-                                          "x":  1,
-                                          "y":  0.92769
-                                      },
-                        "radiusVlc":  0,
-                        "thetaVlc":  0,
-                        "startPos":  {
-                                         "x":  0,
-                                         "y":  0
-                                     },
-                        "polynomial":  {
-                                           "x":  0,
-                                           "y":  0,
-                                           "z":  0,
-                                           "w":  0
-                                       },
-                        "typeName":  "normal",
-                        "scale":  {
-                                      "x":  0.20488,
-                                      "y":  0.20488
-                                  },
-                        "color":  {
-                                      "x":  1,
-                                      "y":  1,
-                                      "z":  1,
-                                      "w":  1
-                                  },
-                        "appearTime":  0,
-                        "appearDuration":  0,
-                        "life":  2.6,
-                        "random":  0,
-                        "unCounterable":  false
-                    },
-                    {
-                        "originPos":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "originVlc":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "startX":  0,
-                        "speed":  4.90185,
-                        "gravity":  0,
-                        "angleSpeed":  0,
-                        "initialAngle":  0,
-                        "polarForm":  {
-                                          "x":  1,
-                                          "y":  -0.30971
-                                      },
-                        "radiusVlc":  0,
-                        "thetaVlc":  0,
-                        "startPos":  {
-                                         "x":  0,
-                                         "y":  0
-                                     },
-                        "polynomial":  {
-                                           "x":  0,
-                                           "y":  0,
-                                           "z":  0,
-                                           "w":  0
-                                       },
-                        "typeName":  "normal",
-                        "scale":  {
-                                      "x":  0.20488,
-                                      "y":  0.20488
-                                  },
-                        "color":  {
-                                      "x":  1,
-                                      "y":  1,
-                                      "z":  1,
-                                      "w":  1
-                                  },
-                        "appearTime":  0,
-                        "appearDuration":  0,
-                        "life":  2.6,
-                        "random":  0,
-                        "unCounterable":  false
-                    },
-                    {
-                        "originPos":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "originVlc":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "startX":  0,
-                        "speed":  9.44808,
-                        "gravity":  0,
-                        "angleSpeed":  0,
-                        "initialAngle":  0,
-                        "polarForm":  {
-                                          "x":  1,
-                                          "y":  -1.13084
-                                      },
-                        "radiusVlc":  0,
-                        "thetaVlc":  0,
-                        "startPos":  {
-                                         "x":  0,
-                                         "y":  0
-                                     },
-                        "polynomial":  {
-                                           "x":  0,
-                                           "y":  0,
-                                           "z":  0,
-                                           "w":  0
-                                       },
-                        "typeName":  "normal",
-                        "scale":  {
-                                      "x":  0.20488,
-                                      "y":  0.20488
-                                  },
-                        "color":  {
-                                      "x":  1,
-                                      "y":  1,
-                                      "z":  1,
-                                      "w":  1
-                                  },
-                        "appearTime":  0,
-                        "appearDuration":  0,
-                        "life":  2.6,
-                        "random":  0,
-                        "unCounterable":  false
-                    },
-                    {
-                        "originPos":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "originVlc":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "startX":  0,
-                        "speed":  14.14723,
-                        "gravity":  0,
-                        "angleSpeed":  0,
-                        "initialAngle":  0,
-                        "polarForm":  {
-                                          "x":  1,
-                                          "y":  -1.38723
-                                      },
-                        "radiusVlc":  0,
-                        "thetaVlc":  0,
-                        "startPos":  {
-                                         "x":  0,
-                                         "y":  0
-                                     },
-                        "polynomial":  {
-                                           "x":  0,
-                                           "y":  0,
-                                           "z":  0,
-                                           "w":  0
-                                       },
-                        "typeName":  "normal",
-                        "scale":  {
-                                      "x":  0.20488,
-                                      "y":  0.20488
-                                  },
-                        "color":  {
-                                      "x":  1,
-                                      "y":  1,
-                                      "z":  1,
-                                      "w":  1
-                                  },
-                        "appearTime":  0,
-                        "appearDuration":  0,
-                        "life":  2.6,
-                        "random":  0,
-                        "unCounterable":  false
-                    },
-                    {
-                        "originPos":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "originVlc":  {
-                                          "x":  0,
-                                          "y":  0
-                                      },
-                        "startX":  0,
-                        "speed":  16.52781,
-                        "gravity":  0,
-                        "angleSpeed":  0,
-                        "initialAngle":  0,
-                        "polarForm":  {
-                                          "x":  1,
-                                          "y":  -1.53272
-                                      },
-                        "radiusVlc":  0,
-                        "thetaVlc":  0,
-                        "startPos":  {
-                                         "x":  0,
-                                         "y":  0
-                                     },
-                        "polynomial":  {
-                                           "x":  0,
-                                           "y":  0,
-                                           "z":  0,
-                                           "w":  0
-                                       },
-                        "typeName":  "normal",
-                        "scale":  {
-                                      "x":  0.20488,
-                                      "y":  0.20488
-                                  },
-                        "color":  {
-                                      "x":  1,
-                                      "y":  1,
-                                      "z":  1,
-                                      "w":  1
-                                  },
-                        "appearTime":  0,
-                        "appearDuration":  0,
-                        "life":  2.6,
-                        "random":  0,
-                        "unCounterable":  false
-                    }
-                ],
-    "homing":  false,
-    "isLaser":  false
+{
+  "name": "ラグ円形連射_2_4",
+  "bullets": [
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 15.91699,
+      "gravity": {
+        "x": 0,
+        "y": -1.5707964
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": -1.66193
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "normal",
+      "scale": {
+        "x": 0.20488,
+        "y": 0.20488
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 0,
+      "appearDuration": 0,
+      "life": 2.6,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 12.47452,
+      "gravity": {
+        "x": 0,
+        "y": -1.5707964
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": -1.83348
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "normal",
+      "scale": {
+        "x": 0.20488,
+        "y": 0.20488
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 0,
+      "appearDuration": 0,
+      "life": 2.6,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 7.31816,
+      "gravity": {
+        "x": 0,
+        "y": -1.5707964
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": -2.21391
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "normal",
+      "scale": {
+        "x": 0.20488,
+        "y": 0.20488
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 0,
+      "appearDuration": 0,
+      "life": 2.6,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4.90185,
+      "gravity": {
+        "x": 0,
+        "y": -1.5707964
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 2.83188
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "normal",
+      "scale": {
+        "x": 0.20488,
+        "y": 0.20488
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 0,
+      "appearDuration": 0,
+      "life": 2.6,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 9.44808,
+      "gravity": {
+        "x": 0,
+        "y": -1.5707964
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 2.01076
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "normal",
+      "scale": {
+        "x": 0.20488,
+        "y": 0.20488
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 0,
+      "appearDuration": 0,
+      "life": 2.6,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 14.14723,
+      "gravity": {
+        "x": 0,
+        "y": -1.5707964
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 1.75436
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "normal",
+      "scale": {
+        "x": 0.20488,
+        "y": 0.20488
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 0,
+      "appearDuration": 0,
+      "life": 2.6,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 16.52781,
+      "gravity": {
+        "x": 0,
+        "y": -1.5707964
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 1.60888
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "normal",
+      "scale": {
+        "x": 0.20488,
+        "y": 0.20488
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 0,
+      "appearDuration": 0,
+      "life": 2.6,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 15.91699,
+      "gravity": {
+        "x": 0,
+        "y": -1.5707964
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 1.47967
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "normal",
+      "scale": {
+        "x": 0.20488,
+        "y": 0.20488
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 0,
+      "appearDuration": 0,
+      "life": 2.6,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 12.47452,
+      "gravity": {
+        "x": 0,
+        "y": -1.5707964
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 1.30811
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "normal",
+      "scale": {
+        "x": 0.20488,
+        "y": 0.20488
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 0,
+      "appearDuration": 0,
+      "life": 2.6,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 7.31816,
+      "gravity": {
+        "x": 0,
+        "y": -1.5707964
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": 0.92769
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "normal",
+      "scale": {
+        "x": 0.20488,
+        "y": 0.20488
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 0,
+      "appearDuration": 0,
+      "life": 2.6,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 4.90185,
+      "gravity": {
+        "x": 0,
+        "y": -1.5707964
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": -0.30971
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "normal",
+      "scale": {
+        "x": 0.20488,
+        "y": 0.20488
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 0,
+      "appearDuration": 0,
+      "life": 2.6,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 9.44808,
+      "gravity": {
+        "x": 0,
+        "y": -1.5707964
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": -1.13084
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "normal",
+      "scale": {
+        "x": 0.20488,
+        "y": 0.20488
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 0,
+      "appearDuration": 0,
+      "life": 2.6,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 14.14723,
+      "gravity": {
+        "x": 0,
+        "y": -1.5707964
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": -1.38723
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "normal",
+      "scale": {
+        "x": 0.20488,
+        "y": 0.20488
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 0,
+      "appearDuration": 0,
+      "life": 2.6,
+      "random": 0,
+      "unCounterable": false
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 16.52781,
+      "gravity": {
+        "x": 0,
+        "y": -1.5707964
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "polarForm": {
+        "x": 1,
+        "y": -1.53272
+      },
+      "radiusVlc": 0,
+      "thetaVlc": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "normal",
+      "scale": {
+        "x": 0.20488,
+        "y": 0.20488
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 0,
+      "appearDuration": 0,
+      "life": 2.6,
+      "random": 0,
+      "unCounterable": false
+    }
+  ],
+  "homing": false,
+  "isLaser": false
 }

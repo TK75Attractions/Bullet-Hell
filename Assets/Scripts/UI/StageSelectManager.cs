@@ -116,8 +116,12 @@ public class StageSelectManager : MonoBehaviour
         int initialStage = FindStageIndex(InitialStageName);
         if (initialStage >= 0) stageBar.SetCurrentStage(initialStage);
         stageDescription.Init();
+<<<<<<< HEAD
         stageDescription.Set(stageBar.currentStage);
         scroll.UpdateArea(stageBar.currentStage, GManager.Control.SDB.GetStageCount());
+=======
+        defficultyBar.SetStage(GManager.Control.SDB.GetStage(stageBar.currentStage));
+>>>>>>> origin/main
 
         state = State.Music;
         remainingTime = musicSelectTime;
@@ -260,6 +264,7 @@ public class StageSelectManager : MonoBehaviour
 
                 if (button)
                 {
+<<<<<<< HEAD
                     // On the JSAB screen the decision opens the in-screen difficulty
                     // modal; the default screen slides to the difficulty list. The
                     // modal gets the same fresh countdown as the difficulty screen,
@@ -271,6 +276,9 @@ public class StageSelectManager : MonoBehaviour
                         jsab.OpenDifficulty();
                         break;
                     }
+=======
+                    defficultyBar.SetStage(GManager.Control.SDB.GetStage(stageBar.currentStage));
+>>>>>>> origin/main
                     state = State.Difficulty;
                     RefreshStyleVisibility();
                     TransitionToDifficulty();
@@ -297,7 +305,11 @@ public class StageSelectManager : MonoBehaviour
                 }
                 else if (button)
                 {
+<<<<<<< HEAD
                     GManager.Control.selectedDifficulty = defficultyBar.index;
+=======
+                    GManager.Control.GoGame(stageBar.currentStage, defficultyBar.SelectedDifficulty);
+>>>>>>> origin/main
                     state = State.InGame;
                     StartGameTransition(stageBar.currentStage);
                 }

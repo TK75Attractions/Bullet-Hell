@@ -44,31 +44,22 @@ Shader "Hidden/BulletHell/ScreenNoiseBlur"
                 float2 jitterOffset = jitterPixels * texelSize;
                 float2 centerUv = uv + jitterOffset * strength;
 
-                float2 blurVectorPixels = jitterPixels * 0.65 + blurPixels * 0.25;
-                float blurLength = max(length(blurVectorPixels), 0.0001);
-                float2 blurDirection = blurVectorPixels / blurLength;
-                float2 sampleOffset = blurDirection * min(blurLength, 48.0) * texelSize * strength;
-
-                half4 color = SampleScreen(centerUv) * 0.30;
-                color += SampleScreen(centerUv + sampleOffset * 0.25) * 0.18;
-                color += SampleScreen(centerUv - sampleOffset * 0.25) * 0.18;
-                color += SampleScreen(centerUv + sampleOffset * 0.55) * 0.12;
-                color += SampleScreen(centerUv - sampleOffset * 0.55) * 0.12;
-                color += SampleScreen(centerUv + sampleOffset) * 0.05;
-                color += SampleScreen(centerUv - sampleOffset) * 0.05;
-                color += SampleScreen(centerUv + sampleOffset * 1.45) * 0.025;
-                color += SampleScreen(centerUv - sampleOffset * 1.45) * 0.025;
+                float jitterLength = length(jitterPixels);
+                float2 fallbackDirection = normalize(blurPixels + float2(0.0001, 0.0));
+                float2 blurDirection = jitterLength > 0.001 ? jitterPixels / jitterLength : fallbackDirection;
+                float blurLength = min(jitterLength * 0.85 + length(blurPixels) * 0.35, 48.0);
+                float2 sampleOffset = blurDirection * blurLength * texelSize * strength;
 
                 half4 original = SampleScreen(uv);
-                float chromaPixels = min(max(abs(jitterPixels.x), abs(jitterPixels.y)) * 0.75, 16.0);
-                float2 chromaOffset = blurDirection * chromaPixels * texelSize * strength;
-                half red = SampleScreen(centerUv + chromaOffset).r;
-                half blue = SampleScreen(centerUv - chromaOffset).b;
-                color.r = lerp(color.r, red, 0.45 * strength);
-                color.b = lerp(color.b, blue, 0.45 * strength);
-
-                float pixelNoise = frac(sin(dot(floor(uv * _ScreenParams.xy), float2(12.9898, 78.233)) + _Time.y * 17.0) * 43758.5453);
-                color.rgb += (pixelNoise - 0.5) * 0.025 * strength;
+                half4 color = SampleScreen(centerUv) * 0.30;
+                color += SampleScreen(centerUv + sampleOffset * 0.30) * 0.16;
+                color += SampleScreen(centerUv - sampleOffset * 0.30) * 0.16;
+                color += SampleScreen(centerUv + sampleOffset * 0.60) * 0.10;
+                color += SampleScreen(centerUv - sampleOffset * 0.60) * 0.10;
+                color += SampleScreen(centerUv + sampleOffset * 0.90) * 0.06;
+                color += SampleScreen(centerUv - sampleOffset * 0.90) * 0.06;
+                color += SampleScreen(centerUv + sampleOffset * 1.20) * 0.03;
+                color += SampleScreen(centerUv - sampleOffset * 1.20) * 0.03;
 
                 return lerp(original, color, strength);
             }

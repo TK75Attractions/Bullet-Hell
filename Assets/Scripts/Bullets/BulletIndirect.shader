@@ -156,9 +156,13 @@ Shader "Custom/BulletIndirectMasked"
                     UNITY_SAMPLE_TEX2DARRAY(_MainArray, float3(markUv, i.texIndex));
                 float markMask =
                     UNITY_SAMPLE_TEX2DARRAY(_MaskArray, float3(markUv, i.maskIndex)).r * sourceMask;
+<<<<<<< HEAD
                 // color.a is opacity, not tint strength. Keeping it out of the RGB
                 // blend prevents low-alpha bullets from fading back to white.
                 float markTintStrength = saturate(markMask);
+=======
+                float markTintStrength = saturate(markMask * i.color.a);
+>>>>>>> origin/main
                 fixed3 markRgb = lerp(markBase.rgb, i.color.rgb, markTintStrength);
                 float markAlpha = max(markBase.a * sourceMask, markMask) * saturate(i.color.a) * appear;
 
@@ -232,8 +236,13 @@ Shader "Custom/BulletIndirectMasked"
                 float2 centeredUv = i.uv - 0.5;
                 float distanceFromCenter = length(centeredUv) * 2.0;
                 float ringDistance = abs(distanceFromCenter - 0.62);
+<<<<<<< HEAD
                 float ring = (1.0 - smoothstep(0.018, 0.06, ringDistance)) * 0.6;
                 float innerGlow = (1.0 - smoothstep(0.0, 0.9, distanceFromCenter)) * 0.08;
+=======
+                float ring = 1.0 - smoothstep(0.035, 0.11, ringDistance);
+                float innerGlow = (1.0 - smoothstep(0.0, 0.9, distanceFromCenter)) * 0.22;
+>>>>>>> origin/main
                 float alpha = saturate((ring + innerGlow) * colorAlpha);
 
                 return fixed4(i.color.rgb, alpha * appear);
@@ -278,9 +287,13 @@ Shader "Custom/BulletIndirectMasked"
                     return baseCol;
                 }
 
+<<<<<<< HEAD
                 // Compose the texture and tint independently from opacity so that
                 // color.a only controls the transparency of the finished bullet.
                 float tintAlpha = saturate(mask);
+=======
+                float tintAlpha = saturate(mask * i.color.a);
+>>>>>>> origin/main
                 float baseAlpha = saturate(baseCol.a);
                 float outAlpha = saturate(baseAlpha + tintAlpha * (1.0 - baseAlpha));
                 fixed3 outRgb = outAlpha > 1e-4
@@ -290,8 +303,14 @@ Shader "Custom/BulletIndirectMasked"
                 // デバッグ: マスク値を可視化（一時的）
                 // return fixed4(mask, mask, mask, 1); // マスクをグレースケールで表示
                 
+<<<<<<< HEAD
                 baseCol.rgb = outRgb;
                 baseCol.a = outAlpha * saturate(i.color.a) * appear;
+=======
+                // マスク値に color.a を掛けて色の掛かり方を 0-1 で制御する
+                baseCol.rgb = outRgb;
+                baseCol.a = outAlpha * appear;
+>>>>>>> origin/main
 
                 return baseCol;
             }

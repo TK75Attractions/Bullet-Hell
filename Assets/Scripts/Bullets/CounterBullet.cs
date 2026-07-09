@@ -10,15 +10,22 @@ public struct CounterBullet
     public float damage;
     public bool isActive;
     public bool launched;
+<<<<<<< HEAD
     public float spawnElapsed;
     public float spawnDelay;
     public float curveElapsed;
     public float curveDuration;
+=======
+    public float homingElapsed;
+    public float spawnElapsed;
+    public float spawnDelay;
+>>>>>>> origin/main
     public int sourceTypeId;
     public float2 sourceScale;
     public float sourceAngle;
     public float4 sourceColor;
 
+<<<<<<< HEAD
     public const int TypeId = 18;
     public const int TrailCapacity = 16;
     public const float Speed = 20f;
@@ -32,6 +39,33 @@ public struct CounterBullet
     public const float HeadAlpha = 0.72f;
     public const float TrailWidthScale = 0.65f;
     public const float TrailAlpha = 0.6f;
+=======
+    public int trailCount;
+    public float2 trail0;
+    public float2 trail1;
+    public float2 trail2;
+    public float2 trail3;
+    public float2 trail4;
+    public float2 trail5;
+    public float2 trail6;
+    public float2 trail7;
+    public float2 trail8;
+    public float2 trail9;
+    public float2 trail10;
+    public float2 trail11;
+    public float2 trail12;
+    public float2 trail13;
+    public float2 trail14;
+    public float2 trail15;
+
+    public const int TypeId = 18;
+    public const int TrailCapacity = 16;
+    public const float Speed = 20f;
+    public const float HomingStrength = 8f;
+    public const float InitialHomingFactor = -0.3f;
+    public const float HomingRampDuration = 0.85f;
+    public const float SpawnDelay = 0.12f;
+>>>>>>> origin/main
 
     public static float GetSize(float damage)
     {

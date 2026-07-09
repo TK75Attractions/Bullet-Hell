@@ -100,7 +100,10 @@ public class StageData
             audioClip = audioClip,
             MusicEvents = CloneMusicEvents(MusicEvents),
             delayTime = delayTime,
+<<<<<<< HEAD
             endTime = endTime,
+=======
+>>>>>>> origin/main
             stageDescription = stageDescription,
             enemyVisuals = CloneEnemyVisuals(enemyVisuals),
             difficulties = CloneDifficultyDataList(difficulties),
@@ -395,6 +398,7 @@ public class StageData
                 visualId = spawner.visualId,
                 appearTime = spawner.appearTime,
                 lifeTime = spawner.lifeTime,
+<<<<<<< HEAD
                 maxHp = spawner.maxHp,
                 startPos = spawner.startPos,
                 scale = spawner.scale,
@@ -402,6 +406,11 @@ public class StageData
                 sortingOrder = spawner.sortingOrder,
                 fadeInSec = spawner.fadeInSec,
                 fadeOutSec = spawner.fadeOutSec,
+=======
+                startPos = spawner.startPos,
+                scale = spawner.scale,
+                angle = spawner.angle,
+>>>>>>> origin/main
                 animation = CloneBossAnimationPlan(spawner.animation),
                 moves = CloneBossMoveEvents(spawner.moves)
             });

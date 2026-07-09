@@ -15,7 +15,11 @@
         "y": 0
       },
       "startX": 0,
+<<<<<<< HEAD:Assets/BulletBuffers/captain/captain_p2l0.json
       "speed": 0,
+=======
+      "speed": 14,
+>>>>>>> origin/main:Assets/BulletBuffers/captain/anchor_Down.json
       "gravity": {
         "x": 0,
         "y": 0
@@ -27,9 +31,15 @@
         "x": 1,
         "y": 0
       },
+<<<<<<< HEAD:Assets/BulletBuffers/captain/captain_p2l0.json
       "radiusVlc": 4,
       "radiusAccel": 0,
       "thetaVlc": 4,
+=======
+      "radiusVlc": 0,
+      "radiusAccel": 0,
+      "thetaVlc": 0,
+>>>>>>> origin/main:Assets/BulletBuffers/captain/anchor_Down.json
       "thetaAccel": 0,
       "startPos": {
         "x": 0,
@@ -43,8 +53,13 @@
       },
       "typeName": "normal",
       "scale": {
+<<<<<<< HEAD:Assets/BulletBuffers/captain/captain_p2l0.json
         "x": 1,
         "y": 1
+=======
+        "x": 10,
+        "y": 10
+>>>>>>> origin/main:Assets/BulletBuffers/captain/anchor_Down.json
       },
       "color": {
         "x": 1,
@@ -57,7 +72,185 @@
       "life": 10,
       "random": 0,
       "warpCooldown": 0,
+<<<<<<< HEAD:Assets/BulletBuffers/captain/captain_p2l0.json
       "unCounterable": false
+=======
+      "unCounterable": true
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 4
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "useVelocityAngle": false,
+      "polarForm": {
+        "x": 1,
+        "y": 0
+      },
+      "radiusVlc": 0,
+      "radiusAccel": 0,
+      "thetaVlc": 0,
+      "thetaAccel": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "splash_0",
+      "scale": {
+        "x": 16,
+        "y": 16
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 1.6,
+      "appearDuration": 0,
+      "life": 1.4,
+      "random": 0,
+      "warpCooldown": 0,
+      "unCounterable": true
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 4
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "useVelocityAngle": false,
+      "polarForm": {
+        "x": 1,
+        "y": 0
+      },
+      "radiusVlc": 0,
+      "radiusAccel": 0,
+      "thetaVlc": 0,
+      "thetaAccel": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "splash_1",
+      "scale": {
+        "x": 16,
+        "y": 16
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 1.8,
+      "appearDuration": 0,
+      "life": 1.6,
+      "random": 0,
+      "warpCooldown": 0,
+      "unCounterable": true
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 4
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "useVelocityAngle": false,
+      "polarForm": {
+        "x": 1,
+        "y": 0
+      },
+      "radiusVlc": 0,
+      "radiusAccel": 0,
+      "thetaVlc": 0,
+      "thetaAccel": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "splash_2",
+      "scale": {
+        "x": 16,
+        "y": 16
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 2,
+      "appearDuration": 0,
+      "life": 1.8,
+      "random": 0,
+      "warpCooldown": 0,
+      "unCounterable": true
+>>>>>>> origin/main:Assets/BulletBuffers/captain/anchor_Down.json
     }
   ],
   "homing": false,

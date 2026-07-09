@@ -18,29 +18,105 @@
   ],
   "delayTime": 3,
   "stageDescription": "Stage Description Here",
-  "enemySpawners": [],
-  "bulletSpawners": [
+  "enemyVisuals": [],
+  "multiBulletSpawners": [],
+  "bossSpawners": [],
+  "bulletSpawners": [],
+  "difficulties": [
     {
-      "clipName": "mirror_Insane",
-      "count": 1,
-      "interval": 0,
-      "time": 9,
-      "pos": {
-        "x": 16,
-        "y": 12
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
+      "difficulty": "Lunatic",
+      "multiBulletSpawners": [],
+      "bossSpawners": [],
+      "bulletSpawners": [
+        {
+          "clipName": "captainwave_L",
+          "count": 2,
+          "interval": 3.2727275,
+          "time": 9,
+          "pos": {
+            "x": 6,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 0.05,
+            "y": 0.05,
+            "z": 0.9,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captainwave_L",
+          "count": 2,
+          "interval": 3.2727275,
+          "time": 9,
+          "pos": {
+            "x": 26,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 0.05,
+            "y": 0.05,
+            "z": 0.9,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captainwave_R",
+          "count": 2,
+          "interval": 3.2727275,
+          "time": 15.545455,
+          "pos": {
+            "x": 6,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 0.05,
+            "y": 0.05,
+            "z": 0.9,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captainwave_R",
+          "count": 2,
+          "interval": 3.2727275,
+          "time": 15.545455,
+          "pos": {
+            "x": 26,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 0.05,
+            "y": 0.05,
+            "z": 0.9,
+            "w": 1
+          }
+        }
+      ]
     }
   ]
 }

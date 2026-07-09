@@ -163,8 +163,11 @@ public class StageDataManager
 
         public float delayTime;
 
+<<<<<<< HEAD
         public float endTime;
 
+=======
+>>>>>>> origin/main
         public string stageDescription = "";
 
         public List<EnemyVisualDefinition> enemyVisuals = new();
@@ -367,20 +370,26 @@ public class StageDataManager
 
         public float lifeTime = -1f;
 
+<<<<<<< HEAD
         public float maxHp = 100f;
 
+=======
+>>>>>>> origin/main
         public Vector2 startPos;
 
         public Vector2 scale = Vector2.one;
 
         public float angle;
 
+<<<<<<< HEAD
         public int sortingOrder;
 
         public float fadeInSec;
 
         public float fadeOutSec;
 
+=======
+>>>>>>> origin/main
         public BossAnimationPlan animation = new BossAnimationPlan();
 
         public List<BossMoveEventJson> moves = new List<BossMoveEventJson>();
@@ -435,20 +444,26 @@ public class StageDataManager
 
                 lifeTime = lifeTime,
 
+<<<<<<< HEAD
                 maxHp = Mathf.Max(0.01f, maxHp),
 
+=======
+>>>>>>> origin/main
                 startPos = startPos,
 
                 scale = resolvedScale,
 
                 angle = angle,
 
+<<<<<<< HEAD
                 sortingOrder = sortingOrder,
 
                 fadeInSec = fadeInSec,
 
                 fadeOutSec = fadeOutSec,
 
+=======
+>>>>>>> origin/main
                 animation = BossAnimationPlan.Normalize(animation),
 
                 moves = moveEvents
@@ -1386,8 +1401,11 @@ public class StageDataManager
 
                 data.delayTime = jsonData.delayTime;
 
+<<<<<<< HEAD
                 data.endTime = jsonData.endTime;
 
+=======
+>>>>>>> origin/main
                 data.stageDescription = jsonData.stageDescription;
 
                 data.enemyVisuals = NormalizeEnemyVisualDefinitions(jsonData.enemyVisuals);
@@ -1624,6 +1642,87 @@ public class StageDataManager
 
         data.stageName = string.IsNullOrWhiteSpace(jsonData.stageName) ? directoryName : jsonData.stageName;
 
+<<<<<<< HEAD
+=======
+        data.delayTime = jsonData.delayTime;
+
+        data.stageDescription = jsonData.stageDescription;
+
+        data.enemyVisuals = NormalizeEnemyVisualDefinitions(jsonData.enemyVisuals);
+
+
+
+        if (jsonData.MusicEvents != null)
+
+        {
+
+            data.MusicEvents = new List<StageData.MusicEvent>(jsonData.MusicEvents.Count);
+
+            foreach (MusicEventJson musicEvent in jsonData.MusicEvents)
+
+            {
+
+                data.MusicEvents.Add(musicEvent.ToMusicEvent());
+
+            }
+
+        }
+
+
+
+        data.multiBulletSpawners = ConvertMultiBulletSpawners(jsonData);
+
+
+
+        data.bossSpawners = ConvertBossSpawners(jsonData.bossSpawners);
+
+
+
+        if (jsonData.bulletSpawners != null)
+
+        {
+
+            data.bulletSpawners = new List<BulletSpawner>(jsonData.bulletSpawners.Count);
+
+            foreach (BulletSpawnerJson spawner in jsonData.bulletSpawners)
+
+            {
+
+                data.bulletSpawners.Add(spawner.ToBulletSpawner());
+
+            }
+
+        }
+
+
+
+        ApplyStageDataJson(data, jsonData, directoryName);
+        return data;
+
+    }
+
+
+
+    private static void NormalizeStageDataJsonLists(StageDataJson jsonData)
+    {
+        if (jsonData == null) return;
+
+        if (jsonData.MusicEvents == null) jsonData.MusicEvents = new List<MusicEventJson>();
+        if (jsonData.enemyVisuals == null) jsonData.enemyVisuals = new List<EnemyVisualDefinition>();
+        if (jsonData.difficulties == null) jsonData.difficulties = new List<StageDifficultyDataJson>();
+        if (jsonData.multiBulletSpawners == null) jsonData.multiBulletSpawners = new List<MultiBulletSpawnerJson>();
+        if (jsonData.bossSpawners == null) jsonData.bossSpawners = new List<BossSpawnerJson>();
+        if (jsonData.bulletSpawners == null) jsonData.bulletSpawners = new List<BulletSpawnerJson>();
+    }
+
+    private static void ApplyStageDataJson(StageData data, StageDataJson jsonData, string fallbackStageName)
+    {
+        if (data == null || jsonData == null) return;
+
+        NormalizeStageDataJsonLists(jsonData);
+
+        data.stageName = string.IsNullOrWhiteSpace(jsonData.stageName) ? fallbackStageName : jsonData.stageName;
+>>>>>>> origin/main
         data.delayTime = jsonData.delayTime;
 
         data.endTime = jsonData.endTime;
@@ -1631,7 +1730,10 @@ public class StageDataManager
         data.stageDescription = jsonData.stageDescription;
 
         data.enemyVisuals = NormalizeEnemyVisualDefinitions(jsonData.enemyVisuals);
+        data.MusicEvents = ConvertMusicEvents(jsonData.MusicEvents);
+        data.difficulties = ConvertStageDifficulties(jsonData);
 
+<<<<<<< HEAD
 
 
         if (jsonData.MusicEvents != null)
@@ -1817,6 +1919,114 @@ public class StageDataManager
         return spawners;
     }
 
+=======
+        if (data.difficulties.Count == 0 && HasLegacySpawnerData(jsonData))
+        {
+            data.difficulties.Add(new StageDifficultyData
+            {
+                difficulty = Difficulty.Lunatic,
+                difficultyId = DifficultyUtility.GetId(Difficulty.Lunatic),
+                displayName = DifficultyUtility.GetDisplayName(Difficulty.Lunatic),
+                multiBulletSpawners = ConvertMultiBulletSpawners(jsonData.multiBulletSpawners),
+                bossSpawners = ConvertBossSpawners(jsonData.bossSpawners),
+                bulletSpawners = ConvertBulletSpawners(jsonData.bulletSpawners)
+            });
+        }
+
+        data.SetActiveDifficultyForPreview(Difficulty.Lunatic);
+    }
+
+    private static List<StageData.MusicEvent> ConvertMusicEvents(List<MusicEventJson> source)
+    {
+        List<StageData.MusicEvent> musicEvents = new List<StageData.MusicEvent>();
+        if (source == null) return musicEvents;
+
+        for (int i = 0; i < source.Count; i++)
+        {
+            MusicEventJson musicEvent = source[i];
+            if (musicEvent == null) continue;
+
+            musicEvents.Add(musicEvent.ToMusicEvent());
+        }
+
+        return musicEvents;
+    }
+
+    private static List<StageDifficultyData> ConvertStageDifficulties(StageDataJson jsonData)
+    {
+        List<StageDifficultyData> difficulties = new List<StageDifficultyData>();
+        if (jsonData == null || jsonData.difficulties == null) return difficulties;
+
+        for (int i = 0; i < jsonData.difficulties.Count; i++)
+        {
+            StageDifficultyDataJson difficultyJson = jsonData.difficulties[i];
+            if (difficultyJson == null) continue;
+
+            Difficulty difficulty = ParseDifficulty(difficultyJson.difficulty, Difficulty.Normal);
+            string difficultyId = DifficultyUtility.NormalizeId(difficultyJson.difficulty);
+            if (string.IsNullOrWhiteSpace(difficultyId))
+            {
+                difficultyId = DifficultyUtility.GetId(difficulty);
+            }
+
+            difficulties.Add(new StageDifficultyData
+            {
+                difficulty = difficulty,
+                difficultyId = difficultyId,
+                displayName = string.IsNullOrWhiteSpace(difficultyJson.displayName)
+                    ? DifficultyUtility.GetDisplayName(difficultyId)
+                    : difficultyJson.displayName.Trim(),
+                multiBulletSpawners = ConvertMultiBulletSpawners(difficultyJson.multiBulletSpawners),
+                bossSpawners = ConvertBossSpawners(difficultyJson.bossSpawners),
+                bulletSpawners = ConvertBulletSpawners(difficultyJson.bulletSpawners)
+            });
+        }
+
+        return difficulties;
+    }
+
+    private static Difficulty ParseDifficulty(string value, Difficulty fallback)
+    {
+        if (DifficultyUtility.TryParseOfficial(value, out Difficulty parsedDifficulty))
+        {
+            return parsedDifficulty;
+        }
+
+        return fallback;
+    }
+
+    private static bool HasLegacySpawnerData(StageDataJson jsonData)
+    {
+        if (jsonData == null) return false;
+
+        return (jsonData.multiBulletSpawners != null && jsonData.multiBulletSpawners.Count > 0)
+            || (jsonData.bossSpawners != null && jsonData.bossSpawners.Count > 0)
+            || (jsonData.bulletSpawners != null && jsonData.bulletSpawners.Count > 0);
+    }
+
+    private static List<MultiBulletSpawner> ConvertMultiBulletSpawners(List<MultiBulletSpawnerJson> source)
+    {
+        List<MultiBulletSpawner> spawners = new List<MultiBulletSpawner>();
+
+        if (source == null)
+        {
+            return spawners;
+        }
+
+        for (int i = 0; i < source.Count; i++)
+        {
+            MultiBulletSpawnerJson spawner = source[i];
+
+            if (spawner != null)
+            {
+                spawners.Add(spawner.ToMultiBulletSpawner());
+            }
+        }
+
+        return spawners;
+    }
+
+>>>>>>> origin/main
     private static List<BulletSpawner> ConvertBulletSpawners(List<BulletSpawnerJson> source)
     {
         List<BulletSpawner> spawners = new List<BulletSpawner>();

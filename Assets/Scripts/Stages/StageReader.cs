@@ -16,6 +16,7 @@ public class StageReader : MonoBehaviour
     [SerializeField] private bool isReady = false;
     private EnemyVisualCatalog enemyVisualCatalog;
     private BossManager bossManager;
+<<<<<<< HEAD
     // 音ハメ用の BGM 同期クロック(marron 由来)。Init で PlayScheduled した BGM の
     // 予定 DSP 時刻を保持し、UpdateStage で AudioSettings.dspTime に同期する。
     private AudioSource stageBgmSource;
@@ -35,6 +36,8 @@ public class StageReader : MonoBehaviour
     // marron 互換: raymee は Init 内で BGM を PlayScheduled + SetBeat してクロックを開始するため、
     // Init 後に別途クロック開始を呼ぶ必要がない。呼び出し互換のための no-op。
     public void ResetStageClockToScheduledStart() { }
+=======
+>>>>>>> origin/main
 
     [Serializable]
     private struct BulletSpawnEvent
@@ -219,6 +222,7 @@ public class StageReader : MonoBehaviour
     public void UpdateStage(float dt)
     {
         if (stageData == null || !isReady) return;
+<<<<<<< HEAD
         if (GManager.Control == null || GManager.Control.state != GManager.GameState.Playing) return;
 
         // 音ハメ: BGM の DSP 時刻にステージクロックを同期させる(marron 由来)。
@@ -239,6 +243,13 @@ public class StageReader : MonoBehaviour
 
         while (stageData.multiBulletSpawners.Count > multiBulletSpawnerCount && stageData.multiBulletSpawners[multiBulletSpawnerCount].time <= time)
         {
+=======
+        time += dt;
+        bossManager?.UpdateBosses(dt, time);
+
+        while (stageData.multiBulletSpawners.Count > multiBulletSpawnerCount && stageData.multiBulletSpawners[multiBulletSpawnerCount].time <= time)
+        {
+>>>>>>> origin/main
             MultiBulletSpawner spawner = stageData.multiBulletSpawners[multiBulletSpawnerCount];
             GManager.Control.QOrder.AddMultiBullet(spawner);
             //if (LogStageSchedule) Debug.Log($"Spawned multi bullet at {spawner.pos}");

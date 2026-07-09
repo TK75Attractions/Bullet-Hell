@@ -64,6 +64,7 @@ public class BulletBufferManager
         LoadModStageBulletBuffers(stageData);
     }
 
+<<<<<<< HEAD
     public void UnloadAllBulletBuffers()
     {
         bulletBuffers.Clear();
@@ -71,6 +72,8 @@ public class BulletBufferManager
         loadedDirectoryNames.Clear();
     }
 
+=======
+>>>>>>> origin/main
     public async Task LoadStageBulletBuffersAsync(string stageDirectoryName)
     {
         if (string.IsNullOrWhiteSpace(stageDirectoryName) || CommonDirectoryNames.Contains(stageDirectoryName))

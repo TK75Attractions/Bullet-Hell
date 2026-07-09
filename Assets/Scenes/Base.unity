@@ -3696,7 +3696,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b351146cb41590488be85d06279f653, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Boss
-  bossId: 0
+  bossId: 
   bossName: 
   bossImage: {fileID: 0}
   pos:
@@ -7558,7 +7558,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 04b2de4dfe176fd43a93a166db8e36d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CManager
-  noiseFrequency: 30
+  noiseFrequency: 16
   blurPixelsPerScaleUnit: 6
   debugScheduledNoiseCount: 0
   debugActiveNoiseCount: 0
@@ -8086,7 +8086,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b351146cb41590488be85d06279f653, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Boss
-  bossId: 0
+  bossId: 
   bossName: 
   bossImage: {fileID: 0}
   pos:
@@ -9690,9 +9690,15 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
+<<<<<<< HEAD
     x: 0
     y: 0
     width: 1
+=======
+    x: 0.010312706
+    y: 0
+    width: 0.9793746
+>>>>>>> origin/main
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -13022,9 +13028,15 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
+<<<<<<< HEAD
     x: 0
     y: 0
     width: 1
+=======
+    x: 0.010312706
+    y: 0
+    width: 0.9793746
+>>>>>>> origin/main
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -13290,9 +13302,15 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
+<<<<<<< HEAD
     x: 0
     y: 0
     width: 1
+=======
+    x: 0.010312706
+    y: 0
+    width: 0.9793746
+>>>>>>> origin/main
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -13488,19 +13506,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fb6985e78f0dfb478f33293c83e171d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QuadOrder
-  cellSize: 0.5625
+  cellSize: 0.725
   separateLevel: 6
+  quadOrigin: {x: -2, y: -9}
   cellCount: 0
   boss: {fileID: 2046423800}
+<<<<<<< HEAD
   enemyEntries: []
   bulletEvents: []
   inactiveCleanupInterval: 6
+=======
+  drawEnemyBulletCollisionGizmos: 1
+  enemyBulletCollisionGizmoColor: {r: 0.1, g: 1, b: 0.3, a: 0.9}
+  enemyBulletCollisionGizmoZ: 0
+>>>>>>> origin/main
   drawLaserCollisionGizmos: 0
   laserCollisionGizmoColor: {r: 1, g: 0.2, b: 0.2, a: 0.9}
   laserCollisionGizmoZ: 100
   warpZoneTypeId: -1
   warpZoneTypeName: warp_zone
-  defaultWarpCooldown: 3
+  warpZoneReflectXTypeId: -1
+  warpZoneReflectXTypeName: warp_zone_reflect_x
+  warpZoneReflectYTypeId: -1
+  warpZoneReflectYTypeName: warp_zone_reflect_y
+  defaultWarpCooldown: 0.1
   debugSyncNativeBulletListsToInspector: 0
   debugNativeBulletDisplayLimit: 128
   debugEnemyBulletSlotCount: 0
@@ -13526,7 +13555,10 @@ MonoBehaviour:
   isRaymeeDebug: 1
   state: 1
   PlayerObj: {fileID: 3602127599334733260, guid: 79cef28de94e46342ace55bfe592f674, type: 3}
+<<<<<<< HEAD
   MultiBulletObj: {fileID: 3602127599334733260, guid: 4feb5d1ec2b44f94c8ddc31c3594024a, type: 3}
+=======
+>>>>>>> origin/main
   PController:
     pos:
       x: 0
@@ -13539,6 +13571,7 @@ MonoBehaviour:
     hitInvincibleDuration: 0.2
     dash: 0
   IManager: {fileID: 1890939113}
+<<<<<<< HEAD
   SReader: {fileID: 0}
   AManager: {fileID: 0}
   BManager: {fileID: 0}
@@ -13548,6 +13581,14 @@ MonoBehaviour:
   selectedDifficulty: 1
   isPaused: 0
   BClipManager:
+=======
+  SReader: {fileID: 1890939117}
+  AManager: {fileID: 81251790}
+  BManager: {fileID: 336723600}
+  CManager: {fileID: 1034609574}
+  SSManager: {fileID: 1761555820}
+  BulletBuffers:
+>>>>>>> origin/main
     bulletBuffers: []
   QOrder: {fileID: 1890939114}
   BTDB: {fileID: 11400000, guid: 18e0dba5990fed9468c060d0a18757eb, type: 2}
@@ -13556,10 +13597,14 @@ MonoBehaviour:
   SEDB: {fileID: 0}
   EDB: {fileID: 11400000, guid: 8df51ad6b15942041bbc8e71d4685d05, type: 2}
   BRS: {fileID: 1890939112}
+<<<<<<< HEAD
   gameTime: 0
+=======
+>>>>>>> origin/main
   musicOn: 0
   playerHitCount: 0
   counterHitBossCount: 0
+  playerColor: {r: 0.41037738, g: 1, b: 0.69726324, a: 1}
 --- !u!114 &1890939116
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13600,12 +13645,18 @@ MonoBehaviour:
     delayTime: 0
     stageDescription: 
     enemyVisuals: []
+<<<<<<< HEAD
     enemySpawners: []
+=======
+    difficulties: []
+    multiBulletSpawners: []
+    bossSpawners: []
+>>>>>>> origin/main
     bulletSpawners: []
     patternEvents: []
   spawnEvents: []
   time: 0
-  enemyCount: 0
+  multiBulletSpawnerCount: 0
   bulletCount: 0
   isReady: 0
 --- !u!1 &1891834308
@@ -14871,9 +14922,15 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
+<<<<<<< HEAD
     x: 0
     y: 0
     width: 1
+=======
+    x: 0.010312706
+    y: 0
+    width: 0.9793746
+>>>>>>> origin/main
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
@@ -15163,7 +15220,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b351146cb41590488be85d06279f653, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Boss
-  bossId: 0
+  bossId: 
   bossName: 
   bossImage: {fileID: 0}
   pos:
