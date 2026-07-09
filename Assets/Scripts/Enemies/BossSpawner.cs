@@ -10,7 +10,6 @@ public class BossSpawner
     public string visualId = "";
     public float appearTime;
     public float lifeTime = -1f;
-<<<<<<< HEAD
     [Min(0.01f)] public float maxHp = 100f;
     public Vector2 startPos;
     public Vector2 scale = Vector2.one;
@@ -20,11 +19,6 @@ public class BossSpawner
     public int sortingOrder;
     public float fadeInSec;
     public float fadeOutSec;
-=======
-    public Vector2 startPos;
-    public Vector2 scale = Vector2.one;
-    public float angle;
->>>>>>> origin/main
     public BossAnimationPlan animation = new BossAnimationPlan();
     public List<BossMoveEvent> moves = new List<BossMoveEvent>();
 }

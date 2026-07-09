@@ -37,12 +37,8 @@ public class Boss : MonoBehaviour
         EnemyAnimationPlan animationPlan = null,
         Sprite fallbackSprite = null,
         string bossId = "",
-<<<<<<< HEAD
         string bossName = "",
         float maxHp = 100f)
-=======
-        string bossName = "")
->>>>>>> origin/main
     {
         initialized = true;
         this.bossId = bossId;
@@ -50,10 +46,7 @@ public class Boss : MonoBehaviour
         visualTime = 0f;
 
         spriteRenderer = GetComponent<SpriteRenderer>();
-<<<<<<< HEAD
         InitializeHealth(maxHp);
-=======
->>>>>>> origin/main
         visualPlayer = new EnemyVisualPlayer();
         visualPlayer.Init(spriteRenderer, visualSet, animationPlan, fallbackSprite);
         UpdatePosition();

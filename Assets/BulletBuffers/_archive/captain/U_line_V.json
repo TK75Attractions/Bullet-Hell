@@ -1,5 +1,5 @@
 {
-  "name": "mirror_rotateLASER",
+  "name": "U_line_V",
   "bullets": [
     {
       "originPos": {
@@ -12,20 +12,17 @@
       },
       "startX": 0,
       "speed": 0,
-      "gravity": {
-        "x": 0,
-        "y": -1.5707964
-      },
+      "gravity": 0,
       "angleSpeed": 0,
-      "initialAngle": 1.5707964,
+      "initialAngle": 0,
       "polarForm": {
-        "x": 1,
+        "x": 0,
         "y": 0
       },
       "radiusVlc": 0,
-      "thetaVlc": 0.9599311,
+      "thetaVlc": 0,
       "startPos": {
-        "x": -8,
+        "x": 0,
         "y": 0
       },
       "polynomial": {
@@ -36,8 +33,8 @@
       },
       "typeName": "box",
       "scale": {
-        "x": 60,
-        "y": 0.8
+        "x": 0.9,
+        "y": 20
       },
       "color": {
         "x": 1,
@@ -45,9 +42,9 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 0.54545456,
-      "appearDuration": 0.54545456,
-      "life": 2.7272727,
+      "appearTime": 0,
+      "appearDuration": 0,
+      "life": 0,
       "random": 0,
       "unCounterable": true
     }

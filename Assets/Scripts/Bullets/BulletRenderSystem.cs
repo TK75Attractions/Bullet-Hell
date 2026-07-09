@@ -359,11 +359,7 @@ public class BulletRenderSystem : MonoBehaviour
                 continue;
             }
 
-<<<<<<< HEAD
             float appear = CounterBullet.HeadAlpha;
-=======
-            float appear = 1f;
->>>>>>> origin/main
             float4 counterColor = GetCounterBulletColor(1f);
             renderArray[writeIndex] = new BulletRenderData
             {
@@ -379,51 +375,12 @@ public class BulletRenderSystem : MonoBehaviour
             };
             writeIndex++;
 
-<<<<<<< HEAD
             writeIndex = AppendCounterTrailRenderData(b, headSize, renderPriority, writeIndex, maxCount);
-=======
-            float2 previousPoint = b.position;
-            for (int trailIndex = 0; trailIndex < b.trailCount && writeIndex < maxCount; trailIndex++)
-            {
-                if (!b.TryGetTrailPoint(trailIndex, out float2 currentPoint)) break;
-
-                float2 segment = previousPoint - currentPoint;
-                float segmentLength = math.length(segment);
-                if (segmentLength <= 1e-4f)
-                {
-                    previousPoint = currentPoint;
-                    continue;
-                }
-
-                float tNorm = (trailIndex + 1f) / (b.trailCount + 1f);
-                float taper = math.pow(1f - tNorm, 0.75f);
-                float fade = math.pow(1f - tNorm, 1.8f);
-                float trailWidth = headSize * (0.05f + 0.23f * taper);
-                float trailLength = math.max(segmentLength + trailWidth * 2.4f, headSize * (0.08f + 0.36f * taper));
-                float4 trailColor = GetCounterBulletColor(fade);
-                int trailRenderPriority = renderPriority - 1;
-                renderArray[writeIndex] = new BulletRenderData
-                {
-                    pos = (previousPoint + currentPoint) * 0.5f,
-                    angle = math.atan2(segment.y, segment.x),
-                    scale = new float2(trailLength, trailWidth),
-                    texIndex = CounterBullet.TypeId,
-                    maskIndex = CounterBullet.TypeId,
-                    appear = 1f,
-                    color = trailColor,
-                    renderPriority = trailRenderPriority,
-                    renderMode = BulletRenderData.CounterTrailRenderMode,
-                };
-                writeIndex++;
-                previousPoint = currentPoint;
-            }
->>>>>>> origin/main
         }
 
         return writeIndex;
     }
 
-<<<<<<< HEAD
     private int AppendCounterTrailRenderData(CounterBullet bullet, float headSize, int renderPriority, int startIndex, int maxCount)
     {
         int writeIndex = startIndex;
@@ -475,8 +432,6 @@ public class BulletRenderSystem : MonoBehaviour
         return writeIndex;
     }
 
-=======
->>>>>>> origin/main
     private int AppendCounterSpawnRenderData(CounterBullet bullet, float headSize, int renderPriority, int startIndex, int maxCount)
     {
         int writeIndex = startIndex;
@@ -529,7 +484,6 @@ public class BulletRenderSystem : MonoBehaviour
         return writeIndex;
     }
 
-<<<<<<< HEAD
     private static float GetCounterBulletAngle(CounterBullet bullet)
     {
         float2 heading = bullet.velocity;
@@ -591,8 +545,6 @@ public class BulletRenderSystem : MonoBehaviour
         return 2f * (1f - t) * (control - start) + 2f * t * (target - control);
     }
 
-=======
->>>>>>> origin/main
     private static float4 GetCounterBulletColor(float alphaMultiplier)
     {
         Color color = GManager.Control != null ? GManager.Control.playerColor : Color.white;

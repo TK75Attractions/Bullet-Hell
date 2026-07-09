@@ -9,12 +9,9 @@ public class BossManager : MonoBehaviour
     private int spawnIndex;
     private Transform bossParent;
 
-<<<<<<< HEAD
     public Boss CurrentBoss { get; private set; }
     public bool IsBossDefeated => CurrentBoss != null && CurrentBoss.IsDefeated;
 
-=======
->>>>>>> origin/main
     private class ActiveBoss
     {
         public GameObject gameObject;
@@ -22,12 +19,9 @@ public class BossManager : MonoBehaviour
         public BossMover mover;
         public float spawnTime;
         public float lifeTime;
-<<<<<<< HEAD
         public SpriteRenderer spriteRenderer;
         public float fadeInSec;
         public float fadeOutSec;
-=======
->>>>>>> origin/main
     }
 
     public void Init(StageData stageData, StageReader reader)
@@ -64,34 +58,24 @@ public class BossManager : MonoBehaviour
             ActiveBoss activeBoss = activeBosses[i];
             if (activeBoss == null || activeBoss.gameObject == null)
             {
-<<<<<<< HEAD
                 bool wasCurrentBoss = activeBoss != null && activeBoss.boss == CurrentBoss;
                 activeBosses.RemoveAt(i);
                 if (wasCurrentBoss) RefreshCurrentBossTarget();
-=======
-                activeBosses.RemoveAt(i);
->>>>>>> origin/main
                 continue;
             }
 
             float elapsed = stageTime - activeBoss.spawnTime;
             if (activeBoss.lifeTime >= 0f && elapsed >= activeBoss.lifeTime)
             {
-<<<<<<< HEAD
                 bool wasCurrentBoss = activeBoss.boss == CurrentBoss;
                 Destroy(activeBoss.gameObject);
                 activeBosses.RemoveAt(i);
                 if (wasCurrentBoss) RefreshCurrentBossTarget();
-=======
-                Destroy(activeBoss.gameObject);
-                activeBosses.RemoveAt(i);
->>>>>>> origin/main
                 continue;
             }
 
             activeBoss.mover?.UpdateMover(dt, elapsed);
             activeBoss.boss?.UpdateBoss(dt);
-<<<<<<< HEAD
             ApplyBossFade(activeBoss, elapsed);
         }
     }
@@ -120,8 +104,6 @@ public class BossManager : MonoBehaviour
         {
             c.a = alpha;
             activeBoss.spriteRenderer.color = c;
-=======
->>>>>>> origin/main
         }
     }
 
@@ -138,11 +120,8 @@ public class BossManager : MonoBehaviour
         activeBosses.Clear();
         spawners.Clear();
         spawnIndex = 0;
-<<<<<<< HEAD
         CurrentBoss = null;
         GManager.Control?.QOrder?.SetBossTarget(null);
-=======
->>>>>>> origin/main
     }
 
     private void Spawn(BossSpawner spawner, float stageTime)
@@ -157,10 +136,7 @@ public class BossManager : MonoBehaviour
         bossObject.transform.rotation = Quaternion.Euler(0f, 0f, spawner.angle);
 
         SpriteRenderer spriteRenderer = bossObject.AddComponent<SpriteRenderer>();
-<<<<<<< HEAD
         spriteRenderer.sortingOrder = spawner.sortingOrder;
-=======
->>>>>>> origin/main
         EnemyVisualSetRuntime visualSet = stageReader != null ? stageReader.GetEnemyVisual(spawner.visualId) : null;
         Sprite fallbackSprite = visualSet != null ? visualSet.fallbackSprite : null;
         if (fallbackSprite != null)
@@ -174,12 +150,8 @@ public class BossManager : MonoBehaviour
             BossAnimationPlan.Normalize(spawner.animation).ToEnemyAnimationPlan(),
             fallbackSprite,
             spawner.bossId,
-<<<<<<< HEAD
             spawner.bossName,
             spawner.maxHp);
-=======
-            spawner.bossName);
->>>>>>> origin/main
 
         BossMover mover = bossObject.AddComponent<BossMover>();
         mover.Init(spawner.moves);
@@ -190,7 +162,6 @@ public class BossManager : MonoBehaviour
             boss = boss,
             mover = mover,
             spawnTime = stageTime,
-<<<<<<< HEAD
             lifeTime = spawner.lifeTime,
             spriteRenderer = spriteRenderer,
             fadeInSec = spawner.fadeInSec,
@@ -212,10 +183,6 @@ public class BossManager : MonoBehaviour
         }
 
         GManager.Control?.QOrder?.SetBossTarget(CurrentBoss);
-=======
-            lifeTime = spawner.lifeTime
-        });
->>>>>>> origin/main
     }
 
     private void OnDestroy()

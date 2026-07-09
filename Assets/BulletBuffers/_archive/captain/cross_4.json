@@ -1,5 +1,5 @@
 {
-  "name": "mirror_press_TR",
+  "name": "cross_4",
   "bullets": [
     {
       "originPos": {
@@ -11,12 +11,9 @@
         "y": 0
       },
       "startX": 0,
-      "speed": 2,
-      "gravity": {
-        "x": 0,
-        "y": -1.5707964
-      },
-      "angleSpeed": 0,
+      "speed": 0,
+      "gravity": 0,
+      "angleSpeed": 2,
       "initialAngle": 0,
       "polarForm": {
         "x": 1,
@@ -34,10 +31,10 @@
         "z": 0,
         "w": 0
       },
-      "typeName": "warp_reflect_x",
+      "typeName": "box",
       "scale": {
-        "x": 1,
-        "y": 18
+        "x": 0.4,
+        "y": 9
       },
       "color": {
         "x": 1,
@@ -45,11 +42,11 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 0,
-      "appearDuration": 0,
-      "life": 14,
+      "appearTime": 0.3,
+      "appearDuration": 0.3,
+      "life": 6.8,
       "random": 0,
-      "unCounterable": false
+      "unCounterable": true
     },
     {
       "originPos": {
@@ -61,13 +58,10 @@
         "y": 0
       },
       "startX": 0,
-      "speed": 2,
-      "gravity": {
-        "x": 0,
-        "y": -1.5707964
-      },
-      "angleSpeed": 0,
-      "initialAngle": 0,
+      "speed": 0,
+      "gravity": 0,
+      "angleSpeed": 2,
+      "initialAngle": 1.5707964,
       "polarForm": {
         "x": 1,
         "y": 0
@@ -84,22 +78,22 @@
         "z": 0,
         "w": 0
       },
-      "typeName": "warp_reflect_x",
+      "typeName": "box",
       "scale": {
-        "x": 1,
-        "y": 18
+        "x": 0.4,
+        "y": 9
       },
       "color": {
-        "x": 1,
+        "x": 0,
         "y": 1,
-        "z": 1,
+        "z": 0.4,
         "w": 1
       },
-      "appearTime": 0,
-      "appearDuration": 0,
-      "life": 14,
+      "appearTime": 0.3,
+      "appearDuration": 0.3,
+      "life": 6.8,
       "random": 0,
-      "unCounterable": false
+      "unCounterable": true
     }
   ],
   "homing": false,

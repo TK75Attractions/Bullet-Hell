@@ -201,7 +201,6 @@ public class QuadOrder : MonoBehaviour
         }
         ResolveWarpZoneTypeId();
 
-<<<<<<< HEAD
         if (boss != null)
         {
             // Legacy scene boss. Runtime stages provide their target through BossManager.
@@ -213,9 +212,6 @@ public class QuadOrder : MonoBehaviour
     public void SetBossTarget(Boss target)
     {
         boss = target;
-=======
-        if (boss != null) boss.Init();
->>>>>>> origin/main
     }
 
     private void OnDestroy()
@@ -350,13 +346,9 @@ public class QuadOrder : MonoBehaviour
 
         UpdateMultiBullets(_dt);
 
-<<<<<<< HEAD
         // boss のアニメ更新は BossManager.UpdateBosses が担当する(GManager が毎フレーム
         // SReader.UpdateStage 経由で呼ぶ)。ここでも UpdateBoss すると統合で二重更新になり
         // boss アニメが2倍速になっていたため削除。boss フィールドは当たり判定(下記)で使うので保持。
-=======
-        if (boss != null) boss.UpdateBoss(_dt);
->>>>>>> origin/main
         UpdateCounterBullets(_dt);
     }
 
@@ -938,16 +930,10 @@ public class QuadOrder : MonoBehaviour
                 : 0f,
             isActive = true,
             launched = false,
-<<<<<<< HEAD
             spawnElapsed = 0f,
             spawnDelay = CounterBullet.SpawnDelay,
             curveElapsed = 0f,
             curveDuration = CounterBullet.CurveMinDuration,
-=======
-            homingElapsed = 0f,
-            spawnElapsed = 0f,
-            spawnDelay = CounterBullet.SpawnDelay,
->>>>>>> origin/main
             sourceTypeId = sourceBullet.typeId,
             sourceScale = sourceBullet.scale,
             sourceAngle = sourceBullet.GetRotationAngle(),

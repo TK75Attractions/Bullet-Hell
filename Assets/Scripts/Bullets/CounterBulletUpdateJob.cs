@@ -16,30 +16,6 @@ public struct CounterBulletUpdateJob : IJobParallelFor
         if (!bullet.isActive) return;
 
         if (!bullet.launched)
-<<<<<<< HEAD
-=======
-        {
-            bullet.spawnElapsed += dt;
-            if (bullet.spawnElapsed < bullet.spawnDelay)
-            {
-                bullets[index] = bullet;
-                return;
-            }
-
-            bullet.launched = true;
-            bullet.homingElapsed = 0f;
-            bullet.trailCount = 0;
-            bullets[index] = bullet;
-            return;
-        }
-
-        bullet.homingElapsed += dt;
-        bullet.PushTrailSample(bullet.position);
-
-        float2 toBoss = bossPos - bullet.position;
-        float distanceSq = math.dot(toBoss, toBoss);
-        if (distanceSq < 0.25f * 0.25f)
->>>>>>> origin/main
         {
             bullet.spawnElapsed += dt;
             if (bullet.spawnElapsed < bullet.spawnDelay)
@@ -88,7 +64,6 @@ public struct CounterBulletUpdateJob : IJobParallelFor
 
         bullets[index] = bullet;
     }
-<<<<<<< HEAD
 
     private static void BeginCurve(ref CounterBullet bullet, int index, float2 targetPosition)
     {
@@ -143,6 +118,4 @@ public struct CounterBulletUpdateJob : IJobParallelFor
     {
         return 2f * (1f - t) * (control - start) + 2f * t * (target - control);
     }
-=======
->>>>>>> origin/main
 }

@@ -42,7 +42,7 @@ public struct BulletDataUpdateJob : IJobParallelFor
             // appearDuration == 0 の場合は time が appearTime に達するまで位置を更新しない
             if (bullet.appearDuration >= 0f)
             {
-                bullet = Update(bullet, index, dt * 0.008f);
+                bullet = Update(bullet, index, dt * 0.0001f);
             }
             if (bullet.isClearing && (bullet.clearDuration <= 0f || bullet.clearTime >= bullet.clearDuration))
             {
@@ -55,12 +55,8 @@ public struct BulletDataUpdateJob : IJobParallelFor
 
         bullet = Update(bullet, index, dt);
 
-<<<<<<< HEAD
         //四分木秩序に変換(areaNum。生存域内でも grid 外の margin 弾は -1 になるが、
         //当たり判定側は areaNum<0 をガード済みなので安全)
-=======
-        //四分木秩序に変換
->>>>>>> origin/main
         int n = grid.GetTreeNum(bullet.position);
         bullet.areaNum = n;
 
