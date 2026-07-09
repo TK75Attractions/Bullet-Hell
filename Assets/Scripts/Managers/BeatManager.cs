@@ -152,7 +152,8 @@ public class BeatManager : MonoBehaviour
 
     private void ValueUpdate(int currentSample)
     {
-        if (beatCount == 0) return;
+        if (beatCount == 0 || beatSamples.Count == 0) return;
+        if (beatCount > beatSamples.Count) beatCount = beatSamples.Count;
 
         int toleranceSamples = musicClip == null ? 0 : Mathf.RoundToInt(toleranceTime * musicClip.frequency);
         if (toleranceSamples <= 0)

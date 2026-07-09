@@ -17,6 +17,8 @@ public class InputManager : MonoBehaviour
     private Vector2 serialMove;
     private string latestRawLine = "";
 
+    // true = シリアル(ESP32)を開かずキーボードのみ(COM4 未接続時の警告を避けたいとき)。
+    // false(既定)= シリアルも開いてキーボードと併用。いずれの場合もキーボードは常に有効。
     public bool isDebugMode = false;
     public bool buttonPressed;
     public bool buttonPressedThisFrame;
@@ -34,11 +36,22 @@ public class InputManager : MonoBehaviour
     public Vector2 Move => serialMove;
     public string LatestRawLine => latestRawLine;
 
+    // True while the ESP32 serial port is actually open. Always false in
+    // keyboard debug mode (no port is opened). Consumed by InputDebugOverlay
+    // to show live connection status.
+    public bool IsConnected => IsSerialOpen();
+
+    // Human-readable outcome of the last Init(), surfaced by InputDebugOverlay so
+    // the reason serial is dead (esp. "SerialPort type unavailable") is visible
+    // in-game without digging through the Console.
+    public string InitStatus { get; private set; } = "not initialized";
+
     public void Init()
     {
         if (isDebugMode)
         {
-            Debug.Log("InputManager is in debug mode. Using keyboard input.");
+            InitStatus = "keyboard only (serial disabled)";
+            Debug.Log("InputManager: serial disabled. Keyboard input only.");
             return;
         }
 
@@ -47,6 +60,7 @@ public class InputManager : MonoBehaviour
             Type serialPortType = Type.GetType("System.IO.Ports.SerialPort, System") ?? Type.GetType("System.IO.Ports.SerialPort");
             if (serialPortType == null)
             {
+                InitStatus = "SerialPort type missing - set Api Compatibility Level to .NET Framework";
                 Debug.LogError("SerialPort is not available in this build/runtime.");
                 return;
             }
@@ -60,38 +74,23 @@ public class InputManager : MonoBehaviour
             readLineMethod = serialPortType.GetMethod("ReadLine");
 
             serialPortType.GetMethod("Open")?.Invoke(serialPort, null);
+            InitStatus = $"listening {portName} @ {baudRate}";
             Debug.Log($"Serial port opened: {portName} ({baudRate})");
         }
         catch (System.Exception e)
         {
-            Debug.LogError("Failed to open serial port: " + e.Message);
+            // ESP32 未接続時はここに来るが、キーボードは常時有効なので致命的ではない。
+            InitStatus = "serial open failed (keyboard still works): " + e.Message;
+            Debug.LogWarning("Serial port open failed (ESP32 未接続?). Keyboard input still works: " + e.Message);
             CloseSerialPort();
         }
     }
 
     public void UpdateInput()
     {
+        // キーボードとシリアル(ESP32)を両方受け付ける。キーボードは常時有効、シリアルは
+        // ポートが開いているとき(接続時)だけマージする。どちらでも操作できる。
         Keyboard keyboard = Keyboard.current;
-        bool keyboardBackPressed = keyboard != null && keyboard.escapeKey.isPressed;
-        bool keyboardBackPressedThisFrame = keyboard != null && keyboard.escapeKey.wasPressedThisFrame;
-
-        if (isDebugMode)
-        {
-            buttonPressed = keyboard != null && keyboard.spaceKey.isPressed;
-            buttonPressedThisFrame = keyboard != null && keyboard.spaceKey.wasPressedThisFrame;
-            backPressed = keyboardBackPressed;
-            backPressedThisFrame = keyboardBackPressedThisFrame;
-            upPressed = keyboard != null && (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed);
-            downPressed = keyboard != null && (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed);
-            leftPressed = keyboard != null && (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed);
-            rightPressed = keyboard != null && (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed);
-
-            upPressedThisFrame = keyboard != null && (keyboard.wKey.wasPressedThisFrame || keyboard.upArrowKey.wasPressedThisFrame);
-            downPressedThisFrame = keyboard != null && (keyboard.sKey.wasPressedThisFrame || keyboard.downArrowKey.wasPressedThisFrame);
-            leftPressedThisFrame = keyboard != null && (keyboard.aKey.wasPressedThisFrame || keyboard.leftArrowKey.wasPressedThisFrame);
-            rightPressedThisFrame = keyboard != null && (keyboard.dKey.wasPressedThisFrame || keyboard.rightArrowKey.wasPressedThisFrame);
-            return;
-        }
 
         bool prevButtonState = buttonPressed;
         bool prevUpPressed = upPressed;
@@ -99,34 +98,39 @@ public class InputManager : MonoBehaviour
         bool prevLeftPressed = leftPressed;
         bool prevRightPressed = rightPressed;
 
-        buttonPressedThisFrame = false;
-        backPressed = keyboardBackPressed;
-        backPressedThisFrame = keyboardBackPressedThisFrame;
-        upPressed = false;
-        downPressed = false;
-        leftPressed = false;
-        rightPressed = false;
-        upPressedThisFrame = false;
-        downPressedThisFrame = false;
-        leftPressedThisFrame = false;
-        rightPressedThisFrame = false;
+        // --- キーボード(常時) ---
+        bool kbButton = keyboard != null && keyboard.spaceKey.isPressed;
+        bool kbUp = keyboard != null && (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed);
+        bool kbDown = keyboard != null && (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed);
+        bool kbLeft = keyboard != null && (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed);
+        bool kbRight = keyboard != null && (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed);
+        bool kbBack = keyboard != null && keyboard.escapeKey.isPressed;
 
+        // --- シリアル(接続時のみ)。serialMove/serialButtonState を更新 ---
         if (serialPort != null && IsSerialOpen())
         {
             try
             {
-                if (GetBytesToRead() > 0)
+                while (GetBytesToRead() > 0)
                 {
-                    while (GetBytesToRead() > 0)
+                    string message = ReadSerialLine();
+                    if (string.IsNullOrEmpty(message))
                     {
-                        string message = ReadSerialLine();
-                        if (string.IsNullOrEmpty(message))
-                        {
-                            break;
-                        }
+                        break;
+                    }
 
-                        latestRawLine = message.Trim();
+                    latestRawLine = message.Trim();
 
+                    // 新プロトコル(esp32-s3-serial-controller): JSON Lines を約60fpsで送る。
+                    //   {"x":0,"y":-1,"dash":false}
+                    // JSON 行はこちらで処理し、それ以外は旧プロトコル(Dir:/PRESSED)にフォールバック。
+                    if (TryParseJsonInput(latestRawLine, out Vector2 jsonMove, out bool jsonDash))
+                    {
+                        serialMove = jsonMove;
+                        serialButtonState = jsonDash;
+                    }
+                    else
+                    {
                         if (latestRawLine.Contains("PRESSED"))
                         {
                             serialButtonState = true;
@@ -150,18 +154,25 @@ public class InputManager : MonoBehaviour
             }
         }
 
-        buttonPressed = serialButtonState;
+        bool serUp = serialMove.y > 0.5f;
+        bool serDown = serialMove.y < -0.5f;
+        bool serLeft = serialMove.x < -0.5f;
+        bool serRight = serialMove.x > 0.5f;
+
+        // --- キーボード OR シリアルをマージ ---
+        upPressed = kbUp || serUp;
+        downPressed = kbDown || serDown;
+        leftPressed = kbLeft || serLeft;
+        rightPressed = kbRight || serRight;
+        buttonPressed = kbButton || serialButtonState;
+        backPressed = kbBack;
+
         buttonPressedThisFrame = !prevButtonState && buttonPressed;
-
-        upPressed = serialMove.y > 0.5f;
-        downPressed = serialMove.y < -0.5f;
-        leftPressed = serialMove.x < -0.5f;
-        rightPressed = serialMove.x > 0.5f;
-
         upPressedThisFrame = !prevUpPressed && upPressed;
         downPressedThisFrame = !prevDownPressed && downPressed;
         leftPressedThisFrame = !prevLeftPressed && leftPressed;
         rightPressedThisFrame = !prevRightPressed && rightPressed;
+        backPressedThisFrame = keyboard != null && keyboard.escapeKey.wasPressedThisFrame;
     }
 
     private void OnDestroy()
@@ -223,6 +234,47 @@ public class InputManager : MonoBehaviour
         }
 
         return readLineMethod.Invoke(serialPort, null) as string;
+    }
+
+    // esp32-s3-serial-controller のシリアル出力(JSON Lines)を表す。
+    //   {"x":0,"y":-1,"dash":false}
+    [Serializable]
+    private struct SerialInputJson
+    {
+        public int x;
+        public int y;
+        public bool dash;
+    }
+
+    /// <summary>
+    /// ESP32 の JSON 行を解釈して移動ベクトルとボタン(ダッシュ/決定)状態を得る。
+    /// x=右+、ジョイスティックの上下左右がそのまま選択/移動に対応する。
+    /// ファームは y = down - up(下が+1)で送るため、Unity の「上が+」に合わせて反転する。
+    /// JSON でない/壊れた行は false を返し、旧プロトコルにフォールバックさせる。
+    /// </summary>
+    private bool TryParseJsonInput(string line, out Vector2 move, out bool dash)
+    {
+        move = Vector2.zero;
+        dash = false;
+
+        if (string.IsNullOrEmpty(line) || line.Length < 2 || line[0] != '{' || line[line.Length - 1] != '}')
+        {
+            return false;
+        }
+
+        try
+        {
+            SerialInputJson data = JsonUtility.FromJson<SerialInputJson>(line);
+            float x = Mathf.Clamp(data.x, -1, 1);
+            float y = Mathf.Clamp(data.y, -1, 1);
+            move = new Vector2(x, -y);
+            dash = data.dash;
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private void ParseDirLine(string line)

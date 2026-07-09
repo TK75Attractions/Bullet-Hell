@@ -14,6 +14,7 @@ public class PlayerController
     private SpriteRenderer main;
     private SpriteRenderer spell;
     private Transform spellTransform;
+    private float2 initialPos;
     private readonly float margin = 0.3f;
     private float2 xRange = new float2(0, 0);
     private float2 yRange = new float2(0, 0);
@@ -24,6 +25,9 @@ public class PlayerController
         get => dash > 0 || hitInvincibleTimer > 0f;
         private set { }
     }
+    // カウンター判定用: ダッシュ中のみ true。被弾後の無敵時間(hitInvincibleTimer)は含めない
+    // ため、ダッシュしていないのにカウンターが出る問題を防ぐ。
+    public bool IsDashing => dash > 0;
     [SerializeField]
     private float dash = 0;
     private readonly float dashCooldown = 0.36f;
@@ -31,6 +35,8 @@ public class PlayerController
     public void Init(GameObject playerObj)
     {
         playerTransform = playerObj.transform;
+        initialPos = new float2(playerTransform.position.x, playerTransform.position.y);
+        pos = initialPos;
         main = playerObj.GetComponent<SpriteRenderer>();
         spellTransform = playerTransform.Find("Spell");
         if (spellTransform != null)
@@ -64,6 +70,21 @@ public class PlayerController
 
         return true;
     }
+
+    public void ResetForStage()
+    {
+        pos = initialPos;
+        velocity = float2.zero;
+        hitInvincibleTimer = 0f;
+        dash = -dashCooldown * 1.4f;
+        if (main != null) main.color = GManager.Control.playerColor;
+        if (spell != null) spell.color = Color.clear;
+        if (playerTransform != null) playerTransform.position = new Vector3(pos.x, pos.y, 0f);
+    }
+
+    // marron keep コード(GManager / StageSelectManager)向け互換。開始位置(中央)への
+    // リセットは raymee の ResetForStage と同義。
+    public void ResetToCenter() => ResetForStage();
 
     private void Move(float dt)
     {
