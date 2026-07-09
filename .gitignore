@@ -2,6 +2,13 @@
 #
 # Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
 #
+.claude/settings.local.json
+/Assets/Screenshots/
+/Assets/Screenshots.meta
+/Assets/_Recovery/
+/Assets/_Recovery.meta
+/Recordings/
+/.oracle-output/
 .utmp/
 /[Ll]ibrary/
 /[Tt]emp/
@@ -22,6 +29,9 @@
 
 # Recordings can get excessive in size
 /[Rr]ecordings/
+
+# Local Oracle session cache/artifacts
+.oracle-output/
 
 # Uncomment this line if you wish to ignore the asset store tools plugin
 # /[Aa]ssets/AssetStoreTools*
@@ -97,3 +107,16 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+
+# Instructions/ は基本コミットしない方針(2026-07-04 確定)。
+# 既にトラック済みのファイルは影響を受けない(削除もしない)。
+/Instructions/
+
+# mp4 フレーム抽出などの一時ディレクトリ
+/.tmp_mp4_frames/
+
+# .md ファイルは github に上げない(CLAUDE.md, ハンドオフ, Docs 等はローカル運用)。2026-07-08
+*.md
+# .claude/(ローカル設定・discord webhook 等)
+/.claude/

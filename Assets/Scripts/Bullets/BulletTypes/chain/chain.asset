@@ -17,5 +17,14 @@ MonoBehaviour:
   maskSprite: {fileID: 2800000, guid: 3a879576f616dfd4bb72883482249cbd, type: 3}
   baseColor: {r: 1, g: 1, b: 1, a: 1}
   baseSize: 1.8
+  renderPriority: 0
   counterPower: 0
-  verts: []
+  verts:
+  - x: 0.4
+    y: 0.28
+  - x: -0.4
+    y: 0.28
+  - x: -0.4
+    y: -0.28
+  - x: 0.4
+    y: -0.28

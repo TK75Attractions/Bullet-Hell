@@ -10,9 +10,21 @@ public class BossSpawner
     public string visualId = "";
     public float appearTime;
     public float lifeTime = -1f;
+<<<<<<< HEAD
+    [Min(0.01f)] public float maxHp = 100f;
     public Vector2 startPos;
     public Vector2 scale = Vector2.one;
     public float angle;
+    // 前後関係(SpriteRenderer.sortingOrder)と出現/退場フェード(秒)。marron の
+    // enemySpawner が持っていた見た目要素を raymee BossSpawner に復活(統合 Stage4)。
+    public int sortingOrder;
+    public float fadeInSec;
+    public float fadeOutSec;
+=======
+    public Vector2 startPos;
+    public Vector2 scale = Vector2.one;
+    public float angle;
+>>>>>>> origin/main
     public BossAnimationPlan animation = new BossAnimationPlan();
     public List<BossMoveEvent> moves = new List<BossMoveEvent>();
 }

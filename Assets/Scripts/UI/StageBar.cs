@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using TMPro;
 
 
 public class StageBar : MonoBehaviour
@@ -14,11 +15,20 @@ public class StageBar : MonoBehaviour
     private bool isTransitioning = false;
     static private readonly float duration = 0.15f;
 
+    private TMP_Text arrowUp;
+    private TMP_Text arrowDown;
+    private RectTransform arrowUpRect;
+    private RectTransform arrowDownRect;
+    private float arrowUpBaseY;
+    private float arrowDownBaseY;
+    private float animTime;
+
     public void Init()
     {
         parent = transform.Find("List");
         canvasGroup = GetComponent<CanvasGroup>();
         whiteBar = transform.Find("White").GetComponent<CanvasGroup>();
+        whiteBar.alpha = 1f;
         isTransitioning = false;
         for (int i = 0; i < 6; i++)
         {
@@ -27,9 +37,67 @@ public class StageBar : MonoBehaviour
             stageBoxes[i].gameObject.name = "StageBox" + i;
         }
 
+        Transform up = transform.Find("ArrowUp");
+        Transform down = transform.Find("ArrowDown");
+        if (up != null)
+        {
+            arrowUp = up.GetComponent<TMP_Text>();
+            arrowUpRect = up.GetComponent<RectTransform>();
+            arrowUpBaseY = arrowUpRect.anchoredPosition.y;
+        }
+        if (down != null)
+        {
+            arrowDown = down.GetComponent<TMP_Text>();
+            arrowDownRect = down.GetComponent<RectTransform>();
+            arrowDownBaseY = arrowDownRect.anchoredPosition.y;
+        }
+
         int length = GManager.Control.SDB.GetStageCount();
         RefreshStageNames(length);
         SetStageBoxPositions(length);
+    }
+
+    public void SetCurrentStage(int index)
+    {
+        int length = GManager.Control.SDB.GetStageCount();
+        if (length <= 0)
+        {
+            currentStage = 0;
+            return;
+        }
+
+        currentStage = Mathf.Clamp(index, 0, length - 1);
+        RefreshStageNames(length);
+        SetStageBoxPositions(length);
+        Tick(0f);
+    }
+
+    // Per-frame idle animation: arrow hints bob, the selected box breathes.
+    public void Tick(float dt)
+    {
+        animTime += dt;
+        int length = GManager.Control.SDB.GetStageCount();
+        float bob = Mathf.Sin(animTime * 4f) * 6f;
+        float blink = 0.55f + 0.35f * Mathf.Sin(animTime * 4f);
+
+        if (arrowUp != null)
+        {
+            bool canUp = currentStage > 0;
+            arrowUpRect.anchoredPosition = new Vector2(arrowUpRect.anchoredPosition.x, arrowUpBaseY + (canUp ? bob : 0f));
+            arrowUp.alpha = canUp ? blink : 0.1f;
+        }
+        if (arrowDown != null)
+        {
+            bool canDown = currentStage < length - 1;
+            arrowDownRect.anchoredPosition = new Vector2(arrowDownRect.anchoredPosition.x, arrowDownBaseY - (canDown ? bob : 0f));
+            arrowDown.alpha = canDown ? blink : 0.1f;
+        }
+
+        if (!isTransitioning && stageBoxes.Count > 3)
+        {
+            float pulse = 1f + 0.02f * (0.5f + 0.5f * Mathf.Sin(animTime * 3f));
+            stageBoxes[3].SetPulse(pulse);
+        }
     }
 
     public async void Down()
@@ -63,12 +131,10 @@ public class StageBar : MonoBehaviour
                     else stageBoxes[i].SetPosition(0);
                 }
 
-                SetWhiteAlpha(t * t * t);
                 await Task.Yield();
             }
 
             SetStageBoxPositions(length);
-            SetWhiteAlpha(1);
             isTransitioning = false;
         }
     }
@@ -105,12 +171,10 @@ public class StageBar : MonoBehaviour
                     if (0 <= p && p < length) stageBoxes[i].SetPosition(k + 1 - progress);
                     else stageBoxes[i].SetPosition(0);
                 }
-                SetWhiteAlpha(t * t * t);
                 await Task.Yield();
             }
 
             SetStageBoxPositions(length);
-            SetWhiteAlpha(1);
 
             isTransitioning = false;
         }
@@ -119,12 +183,6 @@ public class StageBar : MonoBehaviour
     public void SetAlpha(float alpha)
     {
         canvasGroup.alpha = alpha;
-    }
-
-    private void SetWhiteAlpha(float progress)
-    {
-        if (progress < 0.5f) whiteBar.alpha = (0.5f - progress) * 2;
-        else whiteBar.alpha = (progress - 0.5f) * 2;
     }
 
     private void RefreshStageNames(int length)

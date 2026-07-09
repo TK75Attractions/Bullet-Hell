@@ -1,0 +1,157 @@
+{
+    "stageName": "浮浪者",
+    "MusicEvents": [
+        {
+            "barCount": 260,
+            "BPM": 199.5,
+            "beatTimings": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "measure": 4,
+            "barStartOffsetBeats": 0
+        }
+    ],
+    "delayTime": 0.0,
+    "endTime": 70.0,
+    "stageDescription": "不死者・屍霊魔法",
+    "enemyVisuals": [
+        {
+            "id": "vagrant",
+            "source": "externalGif",
+            "basePath": "Visuals",
+            "pixelsPerUnit": 100,
+            "transparentBackground": true,
+            "transparentTolerance": 0,
+            "pivot": {
+                "x": 0.5,
+                "y": 0.5
+            },
+            "clips": [
+                {
+                    "name": "idle",
+                    "path": "vagrant_idle.gif",
+                    "loop": true,
+                    "frameDuration": 0.56,
+                    "maxFrames": 0
+                }
+            ]
+        }
+    ],
+    "difficulties": [],
+    "multiBulletSpawners": [],
+    "bossSpawners": [
+        {
+            "bossId": "vagrant",
+            "bossName": "浮浪者",
+            "visualId": "vagrant",
+            "appearTime": 1.0,
+            "lifeTime": 68.0,
+            "maxHp": 1000,
+            "startPos": {
+                "x": 16,
+                "y": 15.0
+            },
+            "scale": {
+                "x": 5.0,
+                "y": 5.0
+            },
+            "angle": 0,
+            "sortingOrder": 5,
+            "fadeInSec": 1.2,
+            "fadeOutSec": 1.0
+        }
+    ],
+    "bulletSpawners": [
+        {
+            "clipName": "vagrant_intro_bars",
+            "count": 1,
+            "interval": 0.0,
+            "time": 6.917,
+            "pos": {
+                "x": 0,
+                "y": 0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "vagrant_skeletons",
+            "count": 1,
+            "interval": 0.0,
+            "time": 16.842,
+            "pos": {
+                "x": 0,
+                "y": 0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "vagrant_main",
+            "count": 1,
+            "interval": 0.0,
+            "time": 26.466,
+            "pos": {
+                "x": 0,
+                "y": 0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 1
+            }
+        },
+        {
+            "clipName": "vagrant_ghosts",
+            "count": 1,
+            "interval": 0.0,
+            "time": 45.714,
+            "pos": {
+                "x": 0,
+                "y": 0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 1
+            }
+        }
+    ]
+}

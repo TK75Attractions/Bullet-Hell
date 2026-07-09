@@ -1,0 +1,21 @@
+{
+  "stageDir": "mirror",
+  "stageName": "領主様の姿見",
+  "eventCount": 10,
+  "events": [
+    {"t": 8.3, "clip": "mirror_LASER_SUB", "idx": 30, "x": 4, "y": 12, "ovx": 0, "ovy": 0, "ang": 0, "col": [1, 0, 0.3, 1]},
+    {"t": 8.3, "clip": "mirror_LASER_SUB", "idx": 30, "x": 10, "y": 14.5, "ovx": 0, "ovy": 0, "ang": 0, "col": [1, 0, 0.3, 1]},
+    {"t": 8.3, "clip": "mirror_LASER_SUB", "idx": 30, "x": 16, "y": 16, "ovx": 0, "ovy": 0, "ang": 0, "col": [1, 0, 0.3, 1]},
+    {"t": 8.3, "clip": "mirror_LASER_SUB", "idx": 30, "x": 22, "y": 14.5, "ovx": 0, "ovy": 0, "ang": 0, "col": [1, 0, 0.3, 1]},
+    {"t": 8.3, "clip": "mirror_LASER_SUB", "idx": 30, "x": 28, "y": 12, "ovx": 0, "ovy": 0, "ang": 0, "col": [1, 0, 0.3, 1]},
+    {"t": 9, "clip": "mirror_LASER", "idx": 29, "x": 4, "y": 12, "ovx": 0, "ovy": 0, "ang": 0, "col": [1, 0, 0.3, 1]},
+    {"t": 9, "clip": "mirror_LASER", "idx": 29, "x": 10, "y": 14.5, "ovx": 0, "ovy": 0, "ang": 0, "col": [1, 0, 0.3, 1]},
+    {"t": 9, "clip": "mirror_LASER", "idx": 29, "x": 16, "y": 16, "ovx": 0, "ovy": 0, "ang": 0, "col": [1, 0, 0.3, 1]},
+    {"t": 9, "clip": "mirror_LASER", "idx": 29, "x": 22, "y": 14.5, "ovx": 0, "ovy": 0, "ang": 0, "col": [1, 0, 0.3, 1]},
+    {"t": 9, "clip": "mirror_LASER", "idx": 29, "x": 28, "y": 12, "ovx": 0, "ovy": 0, "ang": 0, "col": [1, 0, 0.3, 1]}
+  ],
+  "buffers": [
+    {"name": "mirror_LASER", "homing": true, "isLaser": true, "count": 3, "sha1": "2c4e305434feb5332f59b8c06e80c85e47c00152"},
+    {"name": "mirror_LASER_SUB", "homing": true, "isLaser": false, "count": 19, "sha1": "ba5885a4bf545d032b7a973f65c731ae740c4417"}
+  ]
+}

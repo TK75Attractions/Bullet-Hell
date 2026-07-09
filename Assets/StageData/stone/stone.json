@@ -1,3 +1,2551 @@
+<<<<<<< HEAD
+﻿{
+    "stageName": "石工",
+    "MusicEvents": [
+        {
+            "barCount": 91,
+            "BPM": 144.0,
+            "beatTimings": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "measure": 4,
+            "barStartOffsetBeats": 0
+        }
+    ],
+    "delayTime": 0.0,
+    "endTime": 82.0,
+    "stageDescription": "べにぐち",
+    "enemyVisuals": [
+        {
+            "id": "stone",
+            "source": "externalGif",
+            "basePath": "Visuals",
+            "pixelsPerUnit": 100,
+            "transparentBackground": true,
+            "transparentTolerance": 0,
+            "pivot": {
+                "x": 0.5,
+                "y": 0.5
+            },
+            "clips": [
+                {
+                    "name": "idle",
+                    "path": "stone_idle.gif",
+                    "loop": true,
+                    "frameDuration": 0.1,
+                    "maxFrames": 1
+                },
+                {
+                    "name": "cast1",
+                    "path": "stone_cast1.gif",
+                    "loop": false,
+                    "next": "idle",
+                    "frameDuration": 0.1
+                },
+                {
+                    "name": "cast2",
+                    "path": "stone_cast2.gif",
+                    "loop": false,
+                    "next": "idle",
+                    "frameDuration": 0.1
+                },
+                {
+                    "name": "cast3",
+                    "path": "stone_cast3.gif",
+                    "loop": false,
+                    "next": "idle",
+                    "frameDuration": 0.1
+                },
+                {
+                    "name": "cast4",
+                    "path": "stone_cast4.gif",
+                    "loop": false,
+                    "next": "idle",
+                    "frameDuration": 0.1
+                },
+                {
+                    "name": "cast5",
+                    "path": "stone_cast5.gif",
+                    "loop": false,
+                    "next": "idle",
+                    "frameDuration": 0.1
+                },
+                {
+                    "name": "cast6",
+                    "path": "stone_cast6.gif",
+                    "loop": false,
+                    "next": "idle",
+                    "frameDuration": 0.1
+                }
+            ]
+        },
+        {
+            "id": "golem",
+            "source": "externalGif",
+            "basePath": "Visuals",
+            "pixelsPerUnit": 100,
+            "transparentBackground": true,
+            "transparentTolerance": 0,
+            "pivot": {
+                "x": 0.5,
+                "y": 0.5
+            },
+            "clips": [
+                {
+                    "name": "idle",
+                    "path": "golem_idle.gif",
+                    "loop": true,
+                    "frameDuration": 0.1,
+                    "maxFrames": 1
+                },
+                {
+                    "name": "fall1",
+                    "path": "golem_fall1.gif",
+                    "loop": false,
+                    "next": "idle",
+                    "frameDuration": 0.1
+                },
+                {
+                    "name": "fall1_descend",
+                    "path": "golem_fall1_descend.gif",
+                    "loop": false,
+                    "next": "idle",
+                    "frameDuration": 0.1
+                },
+                {
+                    "name": "fall2",
+                    "path": "golem_fall2.gif",
+                    "loop": false,
+                    "next": "idle",
+                    "frameDuration": 0.1
+                },
+                {
+                    "name": "leftSlam",
+                    "path": "golem_left_slam.gif",
+                    "loop": false,
+                    "next": "idle",
+                    "frameDuration": 0.1
+                },
+                {
+                    "name": "rightSlam",
+                    "path": "golem_right_slam.gif",
+                    "loop": false,
+                    "next": "idle",
+                    "frameDuration": 0.1
+                },
+                {
+                    "name": "bothSlam",
+                    "path": "golem_both_slam.gif",
+                    "loop": false,
+                    "next": "idle",
+                    "frameDuration": 0.1
+                }
+            ]
+        }
+    ],
+    "difficulties": [],
+    "multiBulletSpawners": [],
+    "bossSpawners": [
+        {
+            "bossId": "",
+            "bossName": "demo",
+            "visualId": "golem",
+            "appearTime": 62.5,
+            "lifeTime": 0.833333,
+            "maxHp": 100.0,
+            "startPos": {
+                "x": 16,
+                "y": 19.64
+            },
+            "scale": {
+                "x": 2.8,
+                "y": 2.8
+            },
+            "angle": 0.0,
+            "sortingOrder": 0,
+            "fadeInSec": 0.0,
+            "fadeOutSec": 0.0,
+            "animation": {
+                "initialClip": "fall1_descend",
+                "events": [],
+                "triggers": []
+            },
+            "moves": [
+                {
+                    "time": 0.0,
+                    "duration": 0.833333,
+                    "type": "moveto",
+                    "to": {
+                        "x": 16.0,
+                        "y": 13.64
+                    },
+                    "control": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "easing": "linear",
+                    "relative": false
+                }
+            ]
+        },
+        {
+            "bossId": "",
+            "bossName": "demo",
+            "visualId": "golem",
+            "appearTime": 63.333333,
+            "lifeTime": 16.666667,
+            "maxHp": 100.0,
+            "startPos": {
+                "x": 16,
+                "y": 13.64
+            },
+            "scale": {
+                "x": 2.8,
+                "y": 2.8
+            },
+            "angle": 0.0,
+            "sortingOrder": 0,
+            "fadeInSec": 0.0,
+            "fadeOutSec": 0.0,
+            "animation": {
+                "initialClip": "fall2",
+                "events": [
+                    {
+                        "time": 3.333333,
+                        "clip": "leftSlam",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 4.166667,
+                        "clip": "rightSlam",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 5.0,
+                        "clip": "leftSlam",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 5.833333,
+                        "clip": "bothSlam",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 10.0,
+                        "clip": "leftSlam",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 10.833333,
+                        "clip": "rightSlam",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 11.666667,
+                        "clip": "bothSlam",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 13.333333,
+                        "clip": "bothSlam",
+                        "next": "idle"
+                    }
+                ],
+                "triggers": []
+            },
+            "moves": []
+        },
+        {
+            "bossId": "",
+            "bossName": "demo",
+            "visualId": "stone",
+            "appearTime": 5.2,
+            "lifeTime": 58.133333,
+            "maxHp": 100.0,
+            "startPos": {
+                "x": 16,
+                "y": 15.6
+            },
+            "scale": {
+                "x": 2.8,
+                "y": 2.8
+            },
+            "angle": 0.0,
+            "sortingOrder": 9,
+            "fadeInSec": 0.0,
+            "fadeOutSec": 0.4,
+            "animation": {
+                "initialClip": "idle",
+                "events": [
+                    {
+                        "time": 1.467,
+                        "clip": "cast1",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 4.8,
+                        "clip": "cast2",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 8.133,
+                        "clip": "cast1",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 11.467,
+                        "clip": "cast2",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 14.8,
+                        "clip": "cast3",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 21.467,
+                        "clip": "cast3",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 28.133,
+                        "clip": "cast4",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 29.383,
+                        "clip": "cast4",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 31.467,
+                        "clip": "cast5",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 36.05,
+                        "clip": "cast5",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 39.8,
+                        "clip": "cast6",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 47.467,
+                        "clip": "cast6",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 51.467,
+                        "clip": "cast1",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 54.383,
+                        "clip": "cast2",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 56.467,
+                        "clip": "cast4",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 57.3,
+                        "clip": "cast5",
+                        "next": "idle"
+                    }
+                ],
+                "triggers": []
+            },
+            "moves": []
+        }
+    ],
+    "bulletSpawners": [
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 0.5,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工ベルトコンベア_下部"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 58.333333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工ベルトコンベア_下部_2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 5.833333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工タイル予告_1_A"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 6.25,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工タイル予告_1_B"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 6.666667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工タイル出現_1_A"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 6.666667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工タイル予告_1_C"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 7.083333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工タイル出現_1_B"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 7.083333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工タイル予告_1_D"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 7.5,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工タイル出現_1_C"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 7.916667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工タイル出現_1_D"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 9.166667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工タイル一斉落下_1"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 9.166667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工タイル着地_1"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 10.416667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工ベルト流し_1"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 12.5,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工タイル予告_2_A"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 12.916667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工タイル予告_2_B"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 13.333333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工タイル出現_2_A"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 13.333333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工タイル予告_2_C"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 13.75,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工タイル出現_2_B"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 13.75,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工タイル予告_2_D"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 14.166667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工タイル出現_2_C"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 14.583333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工タイル出現_2_D"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 15.833333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工タイル一斉落下_2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 15.833333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工タイル着地_2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 17.083333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工ベルト流し_2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 20.0,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工ランダム落下予告_1_A"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 20.416667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工ランダム落下_1_A"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 20.833333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工ランダム落下予告_1_C"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 21.25,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工ランダム落下_1_C"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 20.416667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工ランダム落下着地_1_A"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 21.25,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工ランダム落下着地_1_C"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 24.583333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工落下後ベルト流し_1"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 26.666667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工ランダム落下予告_2_A"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 27.083333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工ランダム落下_2_A"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 27.5,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工ランダム落下予告_2_C"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 27.916667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工ランダム落下_2_C"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 27.083333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工ランダム落下着地_2_A"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 27.916667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工ランダム落下着地_2_C"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 31.25,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工落下後ベルト流し_2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 80.0,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "Clear"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 33.333333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工大ブロック予告_1"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 34.583333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工大ブロック出現_1"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 35.833333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工大ブロックハンマー_1"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 36.666667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工大ブロック破片_1",
+            "thinEasy": 2
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 40.0,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工大ブロック予告_2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 41.25,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工大ブロック出現_2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 42.5,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工大ブロックハンマー_2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 49.583333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工大ブロックハンマー_3"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 50.416667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工大ブロック破片_3",
+            "thinEasy": 2
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 50.416667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工大ブロック破裂フラッシュ_3"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 43.333333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工大ブロック破片_2",
+            "thinEasy": 2
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 44.166667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工連ブロック予告_1"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 45.0,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工連ブロック出現_1"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 46.666667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工大ブロック予告_3"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 47.916667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工大ブロック出現_3"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 52.5,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工ブロック予告_E"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 53.333333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工ブロック出現_E"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 54.166667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工ブロック予告_F"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 55.0,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工ブロック出現_F"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 55.833333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工連ブロック予告_2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 56.666667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工連ブロック出現_2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 58.75,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工落下予告明滅_3"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 59.583333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工一斉落下_3"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 59.583333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工着地_3"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 62.5,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工下部カッター"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 63.333333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工起動リング"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 63.750002,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工粉砕破片",
+            "thinEasy": 2
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 65.0,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工下部破裂予告_1"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 66.666667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工下部破裂_1",
+            "thinEasy": 2,
+            "thinNormal": 3
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 71.666667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工下部破裂予告_2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 73.333333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工下部破裂_2",
+            "thinEasy": 2,
+            "thinNormal": 3
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 69.166667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工走行カッター_1"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 70.0,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工走行カッター_2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 70.208333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工走行カッター予告"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 70.833333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工走行カッター_3"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 75.833333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工縁カッター_1"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 76.666667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工縁カッター_2",
+            "minDifficulty": "normal"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 77.5,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工縁カッター_1"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 78.333333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工縁カッター_2",
+            "minDifficulty": "normal"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 75.833333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工縁カッター破片",
+            "thinEasy": 2
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 77.5,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工縁カッター破片",
+            "thinEasy": 2
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 76.666667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工縁カッター破片_2",
+            "thinEasy": 2
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 78.333333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工縁カッター破片_2",
+            "thinEasy": 2
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 36.666667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工大ブロック破裂フラッシュ_1"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 43.333333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工大ブロック破裂フラッシュ_2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 47.916667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工消去フラッシュ_1"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 50.416667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工消去フラッシュ_2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 66.666667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工下部破裂フラッシュ_1"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 73.333333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工下部破裂フラッシュ_2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 9.166667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工着地ダスト_タイル1"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 15.833333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工着地ダスト_タイル2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 20.416667,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工着地ダスト_レイン1"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 27.083333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工着地ダスト_レイン2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 59.583333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工着地ダスト_一斉"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 60.0,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工形態変化ダスト"
+        }
+    ]
+}
+=======
 {
   "stageName": "石工",
   "MusicEvents": [
@@ -8455,3 +11003,4 @@
   ],
   "bossSpawners": []
 }
+>>>>>>> origin/main

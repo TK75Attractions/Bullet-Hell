@@ -359,12 +359,16 @@ public class BulletRenderSystem : MonoBehaviour
                 continue;
             }
 
+<<<<<<< HEAD
+            float appear = CounterBullet.HeadAlpha;
+=======
             float appear = 1f;
+>>>>>>> origin/main
             float4 counterColor = GetCounterBulletColor(1f);
             renderArray[writeIndex] = new BulletRenderData
             {
                 pos = b.position,
-                angle = math.atan2(b.velocity.y, b.velocity.x),
+                angle = GetCounterBulletAngle(b),
                 scale = new float2(headSize, headSize),
                 texIndex = CounterBullet.TypeId,
                 maskIndex = CounterBullet.TypeId,
@@ -375,6 +379,9 @@ public class BulletRenderSystem : MonoBehaviour
             };
             writeIndex++;
 
+<<<<<<< HEAD
+            writeIndex = AppendCounterTrailRenderData(b, headSize, renderPriority, writeIndex, maxCount);
+=======
             float2 previousPoint = b.position;
             for (int trailIndex = 0; trailIndex < b.trailCount && writeIndex < maxCount; trailIndex++)
             {
@@ -410,11 +417,66 @@ public class BulletRenderSystem : MonoBehaviour
                 writeIndex++;
                 previousPoint = currentPoint;
             }
+>>>>>>> origin/main
         }
 
         return writeIndex;
     }
 
+<<<<<<< HEAD
+    private int AppendCounterTrailRenderData(CounterBullet bullet, float headSize, int renderPriority, int startIndex, int maxCount)
+    {
+        int writeIndex = startIndex;
+        float curveProgress = GetCounterCurveProgress(bullet);
+        if (curveProgress <= 1e-4f) return writeIndex;
+
+        int trailCount = (int)math.ceil(curveProgress * CounterBullet.TrailCapacity);
+        trailCount = math.min(CounterBullet.TrailCapacity, math.max(1, trailCount));
+        float trailSpan = math.min(curveProgress, CounterBullet.TrailProgressSpan);
+        float2 previousPoint = bullet.position;
+
+        for (int trailIndex = 0; trailIndex < trailCount && writeIndex < maxCount; trailIndex++)
+        {
+            float sampleRatio = (trailIndex + 1f) / trailCount;
+            float sampleProgress = math.max(0f, curveProgress - trailSpan * sampleRatio);
+            float2 currentPoint = EvaluateCounterCurve(bullet, sampleProgress);
+
+            float2 segment = previousPoint - currentPoint;
+            float segmentLength = math.length(segment);
+            if (segmentLength <= 1e-4f)
+            {
+                previousPoint = currentPoint;
+                continue;
+            }
+
+            float tNorm = (trailIndex + 1f) / (trailCount + 1f);
+            float taper = math.pow(1f - tNorm, 0.75f);
+            float fade = math.pow(1f - tNorm, 1.8f);
+            float trailWidth = headSize * (0.05f + 0.23f * taper) * CounterBullet.TrailWidthScale;
+            float trailLength = math.max(segmentLength + trailWidth * 2.4f, headSize * (0.08f + 0.36f * taper));
+            float4 trailColor = GetCounterBulletColor(fade * CounterBullet.TrailAlpha);
+            int trailRenderPriority = renderPriority - 1;
+            renderArray[writeIndex] = new BulletRenderData
+            {
+                pos = (previousPoint + currentPoint) * 0.5f,
+                angle = math.atan2(segment.y, segment.x),
+                scale = new float2(trailLength, trailWidth),
+                texIndex = CounterBullet.TypeId,
+                maskIndex = CounterBullet.TypeId,
+                appear = 1f,
+                color = trailColor,
+                renderPriority = trailRenderPriority,
+                renderMode = BulletRenderData.CounterTrailRenderMode,
+            };
+            writeIndex++;
+            previousPoint = currentPoint;
+        }
+
+        return writeIndex;
+    }
+
+=======
+>>>>>>> origin/main
     private int AppendCounterSpawnRenderData(CounterBullet bullet, float headSize, int renderPriority, int startIndex, int maxCount)
     {
         int writeIndex = startIndex;
@@ -467,6 +529,70 @@ public class BulletRenderSystem : MonoBehaviour
         return writeIndex;
     }
 
+<<<<<<< HEAD
+    private static float GetCounterBulletAngle(CounterBullet bullet)
+    {
+        float2 heading = bullet.velocity;
+        if (math.dot(heading, heading) <= 1e-8f)
+        {
+            heading = EvaluateCounterCurveDerivative(bullet, GetCounterCurveProgress(bullet));
+        }
+
+        if (math.dot(heading, heading) <= 1e-8f)
+        {
+            heading = bullet.targetPosition - bullet.startPosition;
+        }
+
+        if (math.dot(heading, heading) <= 1e-8f)
+        {
+            heading = new float2(1f, 0f);
+        }
+
+        return math.atan2(heading.y, heading.x);
+    }
+
+    private static float GetCounterCurveProgress(CounterBullet bullet)
+    {
+        return bullet.curveDuration > 1e-5f
+            ? math.saturate(bullet.curveElapsed / bullet.curveDuration)
+            : 1f;
+    }
+
+    private static float2 EvaluateCounterCurve(CounterBullet bullet, float progress)
+    {
+        float easedProgress = math.smoothstep(0f, 1f, math.saturate(progress));
+        return EvaluateBezier(
+            bullet.startPosition,
+            bullet.controlPosition,
+            bullet.targetPosition,
+            easedProgress
+        );
+    }
+
+    private static float2 EvaluateCounterCurveDerivative(CounterBullet bullet, float progress)
+    {
+        float easedProgress = math.smoothstep(0f, 1f, math.saturate(progress));
+        return EvaluateBezierDerivative(
+            bullet.startPosition,
+            bullet.controlPosition,
+            bullet.targetPosition,
+            easedProgress
+        );
+    }
+
+    private static float2 EvaluateBezier(float2 start, float2 control, float2 target, float t)
+    {
+        float invT = 1f - t;
+        return invT * invT * start + 2f * invT * t * control + t * t * target;
+    }
+
+    private static float2 EvaluateBezierDerivative(float2 start, float2 control, float2 target, float t)
+    {
+        return 2f * (1f - t) * (control - start) + 2f * t * (target - control);
+    }
+
+=======
+>>>>>>> origin/main
     private static float4 GetCounterBulletColor(float alphaMultiplier)
     {
         Color color = GManager.Control != null ? GManager.Control.playerColor : Color.white;
