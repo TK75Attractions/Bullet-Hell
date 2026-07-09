@@ -163,6 +163,8 @@ public class StageDataManager
 
         public float delayTime;
 
+        public float endTime;
+
         public string stageDescription = "";
 
         public List<EnemyVisualDefinition> enemyVisuals = new();
@@ -365,11 +367,19 @@ public class StageDataManager
 
         public float lifeTime = -1f;
 
+        public float maxHp = 100f;
+
         public Vector2 startPos;
 
         public Vector2 scale = Vector2.one;
 
         public float angle;
+
+        public int sortingOrder;
+
+        public float fadeInSec;
+
+        public float fadeOutSec;
 
         public BossAnimationPlan animation = new BossAnimationPlan();
 
@@ -425,11 +435,19 @@ public class StageDataManager
 
                 lifeTime = lifeTime,
 
+                maxHp = Mathf.Max(0.01f, maxHp),
+
                 startPos = startPos,
 
                 scale = resolvedScale,
 
                 angle = angle,
+
+                sortingOrder = sortingOrder,
+
+                fadeInSec = fadeInSec,
+
+                fadeOutSec = fadeOutSec,
 
                 animation = BossAnimationPlan.Normalize(animation),
 
@@ -1368,6 +1386,8 @@ public class StageDataManager
 
                 data.delayTime = jsonData.delayTime;
 
+                data.endTime = jsonData.endTime;
+
                 data.stageDescription = jsonData.stageDescription;
 
                 data.enemyVisuals = NormalizeEnemyVisualDefinitions(jsonData.enemyVisuals);
@@ -1606,6 +1626,8 @@ public class StageDataManager
 
         data.delayTime = jsonData.delayTime;
 
+        data.endTime = jsonData.endTime;
+
         data.stageDescription = jsonData.stageDescription;
 
         data.enemyVisuals = NormalizeEnemyVisualDefinitions(jsonData.enemyVisuals);
@@ -1683,6 +1705,7 @@ public class StageDataManager
 
         data.stageName = string.IsNullOrWhiteSpace(jsonData.stageName) ? fallbackStageName : jsonData.stageName;
         data.delayTime = jsonData.delayTime;
+        data.endTime = jsonData.endTime;
         data.stageDescription = jsonData.stageDescription;
         data.enemyVisuals = NormalizeEnemyVisualDefinitions(jsonData.enemyVisuals);
         data.MusicEvents = ConvertMusicEvents(jsonData.MusicEvents);

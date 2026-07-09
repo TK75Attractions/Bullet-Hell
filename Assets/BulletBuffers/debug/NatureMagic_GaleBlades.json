@@ -1,0 +1,12 @@
+{
+  "name": "NatureMagic_GaleBlades",
+  "bullets": [
+    { "originPos": { "x": -7, "y": -3 }, "originVlc": { "x": 1.2, "y": 0.15 }, "speed": 5.4, "polarForm": { "x": 1, "y": 0.2 }, "polynomial": { "x": 0.12, "y": 0.018, "z": -0.001, "w": 0 }, "typeName": "slash", "scale": { "x": 0.75, "y": 0.75 }, "color": { "x": 0.7, "y": 1, "z": 0.85, "w": 1 }, "appearTime": 0, "life": 5.5, "random": 0.12 },
+    { "originPos": { "x": -7, "y": -1.5 }, "originVlc": { "x": 1.3, "y": 0.08 }, "speed": 5.6, "polarForm": { "x": 1, "y": 0.05 }, "polynomial": { "x": 0.08, "y": 0.014, "z": -0.0008, "w": 0 }, "typeName": "slash", "scale": { "x": 0.75, "y": 0.75 }, "color": { "x": 0.65, "y": 1, "z": 0.9, "w": 1 }, "appearTime": 0.25, "life": 5.5, "random": 0.12 },
+    { "originPos": { "x": -7, "y": 0 }, "originVlc": { "x": 1.4, "y": 0 }, "speed": 5.8, "polarForm": { "x": 1, "y": 0 }, "polynomial": { "x": 0, "y": 0.01, "z": 0, "w": 0 }, "typeName": "slash", "scale": { "x": 0.75, "y": 0.75 }, "color": { "x": 0.75, "y": 1, "z": 0.75, "w": 1 }, "appearTime": 0.5, "life": 5.5, "random": 0.12 },
+    { "originPos": { "x": -7, "y": 1.5 }, "originVlc": { "x": 1.3, "y": -0.08 }, "speed": 5.6, "polarForm": { "x": 1, "y": -0.05 }, "polynomial": { "x": -0.08, "y": 0.014, "z": 0.0008, "w": 0 }, "typeName": "slash", "scale": { "x": 0.75, "y": 0.75 }, "color": { "x": 0.65, "y": 1, "z": 0.9, "w": 1 }, "appearTime": 0.75, "life": 5.5, "random": 0.12 },
+    { "originPos": { "x": -7, "y": 3 }, "originVlc": { "x": 1.2, "y": -0.15 }, "speed": 5.4, "polarForm": { "x": 1, "y": -0.2 }, "polynomial": { "x": -0.12, "y": 0.018, "z": 0.001, "w": 0 }, "typeName": "slash", "scale": { "x": 0.75, "y": 0.75 }, "color": { "x": 0.7, "y": 1, "z": 0.85, "w": 1 }, "appearTime": 1, "life": 5.5, "random": 0.12 }
+  ],
+  "homing": false,
+  "isLaser": false
+}
