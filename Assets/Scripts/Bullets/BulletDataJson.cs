@@ -33,6 +33,10 @@ public class BulletDataJson
     public float life;
     public float random;
     public float warpCooldown;
+    // Omitted from legacy JSON is normalized to true by BulletBufferManager.
+    public bool warpable = true;
+    // true の弾は画面外に出ても画面外カリングで無効化しない。
+    public bool ignoreOutOfBoundsCulling;
     public bool unCounterable;
 
     public BulletData ToBulletData()
@@ -69,6 +73,8 @@ public class BulletDataJson
             life = this.life,
             random = this.random,
             warpCooldown = this.warpCooldown,
+            warpable = this.warpable,
+            ignoreOutOfBoundsCulling = this.ignoreOutOfBoundsCulling,
             unCounterable = this.unCounterable,
             isActive = true
         };

@@ -3,7 +3,7 @@
   "bullets": [
     {
       "originPos": {
-        "x": -5,
+        "x": -23,
         "y": -1.6
       },
       "originVlc": {
@@ -15,7 +15,7 @@
         "y": 0
       },
       "startX": 0,
-      "speed": 8,
+      "speed": 0,
       "gravity": {
         "x": -4,
         "y": 0
@@ -44,7 +44,7 @@
       "typeName": "box",
       "scale": {
         "x": 0.5,
-        "y": 6
+        "y": 40
       },
       "color": {
         "x": 1,
@@ -52,16 +52,18 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 3,
-      "appearDuration": 3,
+      "appearTime": 1,
+      "appearDuration": 1,
       "life": 6,
       "random": 0,
       "warpCooldown": 0,
+      "warpable": true,
+      "ignoreOutOfBoundsCulling": true,
       "unCounterable": true
     },
     {
       "originPos": {
-        "x": 5,
+        "x": 23,
         "y": -1.6
       },
       "originVlc": {
@@ -73,7 +75,7 @@
         "y": 0
       },
       "startX": 0,
-      "speed": 8,
+      "speed": 0,
       "gravity": {
         "x": -4,
         "y": 0
@@ -102,7 +104,7 @@
       "typeName": "box",
       "scale": {
         "x": 0.5,
-        "y": 6
+        "y": 40
       },
       "color": {
         "x": 1,
@@ -110,16 +112,18 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 3,
-      "appearDuration": 3,
+      "appearTime": 1,
+      "appearDuration": 1,
       "life": 6,
       "random": 0,
       "warpCooldown": 0,
+      "warpable": true,
+      "ignoreOutOfBoundsCulling": true,
       "unCounterable": true
     },
     {
       "originPos": {
-        "x": -5,
+        "x": -23,
         "y": -0.8
       },
       "originVlc": {
@@ -131,7 +135,7 @@
         "y": 0
       },
       "startX": 0,
-      "speed": 8,
+      "speed": 0,
       "gravity": {
         "x": -4,
         "y": 0
@@ -160,7 +164,7 @@
       "typeName": "box",
       "scale": {
         "x": 0.5,
-        "y": 6
+        "y": 40
       },
       "color": {
         "x": 1,
@@ -168,16 +172,18 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 3,
-      "appearDuration": 3,
+      "appearTime": 1,
+      "appearDuration": 1,
       "life": 6,
       "random": 0,
       "warpCooldown": 0,
+      "warpable": true,
+      "ignoreOutOfBoundsCulling": true,
       "unCounterable": true
     },
     {
       "originPos": {
-        "x": 5,
+        "x": 23,
         "y": -0.8
       },
       "originVlc": {
@@ -189,7 +195,7 @@
         "y": 0
       },
       "startX": 0,
-      "speed": 8,
+      "speed": 0,
       "gravity": {
         "x": -4,
         "y": 0
@@ -218,7 +224,7 @@
       "typeName": "box",
       "scale": {
         "x": 0.5,
-        "y": 6
+        "y": 40
       },
       "color": {
         "x": 1,
@@ -226,16 +232,18 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 3,
-      "appearDuration": 3,
+      "appearTime": 1,
+      "appearDuration": 1,
       "life": 6,
       "random": 0,
       "warpCooldown": 0,
+      "warpable": true,
+      "ignoreOutOfBoundsCulling": true,
       "unCounterable": true
     },
     {
       "originPos": {
-        "x": -5,
+        "x": -23,
         "y": 0
       },
       "originVlc": {
@@ -247,7 +255,7 @@
         "y": 0
       },
       "startX": 0,
-      "speed": 8,
+      "speed": 0,
       "gravity": {
         "x": -4,
         "y": 0
@@ -276,7 +284,7 @@
       "typeName": "box",
       "scale": {
         "x": 0.5,
-        "y": 6
+        "y": 40
       },
       "color": {
         "x": 1,
@@ -284,16 +292,18 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 3,
-      "appearDuration": 3,
+      "appearTime": 1,
+      "appearDuration": 1,
       "life": 6,
       "random": 0,
       "warpCooldown": 0,
+      "warpable": true,
+      "ignoreOutOfBoundsCulling": true,
       "unCounterable": true
     },
     {
       "originPos": {
-        "x": 5,
+        "x": 23,
         "y": 0
       },
       "originVlc": {
@@ -305,7 +315,7 @@
         "y": 0
       },
       "startX": 0,
-      "speed": 8,
+      "speed": 0,
       "gravity": {
         "x": -4,
         "y": 0
@@ -334,7 +344,7 @@
       "typeName": "box",
       "scale": {
         "x": 0.5,
-        "y": 6
+        "y": 40
       },
       "color": {
         "x": 1,
@@ -342,16 +352,18 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 3,
-      "appearDuration": 3,
+      "appearTime": 1,
+      "appearDuration": 1,
       "life": 6,
       "random": 0,
       "warpCooldown": 0,
+      "warpable": true,
+      "ignoreOutOfBoundsCulling": true,
       "unCounterable": true
     },
     {
       "originPos": {
-        "x": -5,
+        "x": -23,
         "y": 0.8
       },
       "originVlc": {
@@ -363,7 +375,7 @@
         "y": 0
       },
       "startX": 0,
-      "speed": 8,
+      "speed": 0,
       "gravity": {
         "x": -4,
         "y": 0
@@ -392,7 +404,7 @@
       "typeName": "box",
       "scale": {
         "x": 0.5,
-        "y": 6
+        "y": 40
       },
       "color": {
         "x": 1,
@@ -400,16 +412,18 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 3,
-      "appearDuration": 3,
+      "appearTime": 1,
+      "appearDuration": 1,
       "life": 6,
       "random": 0,
       "warpCooldown": 0,
+      "warpable": true,
+      "ignoreOutOfBoundsCulling": true,
       "unCounterable": true
     },
     {
       "originPos": {
-        "x": 5,
+        "x": 23,
         "y": 0.8
       },
       "originVlc": {
@@ -421,7 +435,7 @@
         "y": 0
       },
       "startX": 0,
-      "speed": 8,
+      "speed": 0,
       "gravity": {
         "x": -4,
         "y": 0
@@ -450,7 +464,7 @@
       "typeName": "box",
       "scale": {
         "x": 0.5,
-        "y": 6
+        "y": 40
       },
       "color": {
         "x": 1,
@@ -458,11 +472,13 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 3,
-      "appearDuration": 3,
+      "appearTime": 1,
+      "appearDuration": 1,
       "life": 6,
       "random": 0,
       "warpCooldown": 0,
+      "warpable": true,
+      "ignoreOutOfBoundsCulling": true,
       "unCounterable": true
     }
   ],
