@@ -71,8 +71,21 @@ public sealed class ResultScreen : MonoBehaviour
     private Image rankFlareCyan;
     private Material rankGlowMat;
     private RectTransform exitRect;
+    private TMP_Text exitLabel;
     private bool inputArmed;
     private bool entering;
+
+    // 効果音。SEDB(SEDataBase)がシーン未配線のため、リザルト画面ローカルの
+    // AudioSource で鳴らす最小構成。決定音が画面の SetActive(false) や
+    // Whiteout 遷移で切れないよう、ソースは兄弟 GO に常駐させる。
+    // クリップは効果音ラボ(soundeffect-lab.info)のフリー素材(加工可・クレジット不要)。
+    private AudioSource seSource;
+    private AudioClip seStampClear;
+    private AudioClip seStampFail;
+    private AudioClip seCount;
+    private AudioClip seCountDone;
+    private AudioClip seCardSwish;
+    private AudioClip seDecide;
 
     // --- 入場演出（溜め→開放のシーケンス）---
     // ヘッダー降下→カード左右スライド→数値カウントアップ→中央装飾→
@@ -96,6 +109,15 @@ public sealed class ResultScreen : MonoBehaviour
     private const float EnterButtonDelay = 0.16f;   // スタンプ着地からの遅延
     private const float EnterButtonDur = 0.32f;
     private const float EnterTail = 0.95f;          // 着地後に波紋・ボタンを収める残り尺
+
+    // SE 音量。リザルト中は BGM 停止済みなので、直前のプレイ音量に対して
+    // 控えめに聞こえる値にする(全体は AudioListener.volume でさらに減衰)。
+    private const float SeVolStampClear = 0.72f;
+    private const float SeVolStampFail = 0.78f;
+    private const float SeVolCount = 0.30f;
+    private const float SeVolCountDone = 0.38f;
+    private const float SeVolCard = 0.20f;
+    private const float SeVolDecide = 0.55f;
 
     private CanvasGroup headerGroup;
     private RectTransform headerGroupRect;
@@ -186,6 +208,30 @@ public sealed class ResultScreen : MonoBehaviour
         BuildEvaluation(evalGroupRect);
         BuildStats(contentRect);
         BuildExitButton(contentRect);
+        BuildAudio();
+    }
+
+    // SE 用の常駐 AudioSource(兄弟 GO)とクリップの読み込み。クリップが無い
+    // 環境では該当音だけ無音になり、他の動作には影響しない。
+    private void BuildAudio()
+    {
+        GameObject go = new GameObject("ResultScreenAudio");
+        go.transform.SetParent(transform.parent, false);
+        seSource = go.AddComponent<AudioSource>();
+        seSource.playOnAwake = false;
+        seSource.spatialBlend = 0f;
+
+        seStampClear = Resources.Load<AudioClip>("SE/result_stamp_clear");
+        seStampFail = Resources.Load<AudioClip>("SE/result_stamp_fail");
+        seCount = Resources.Load<AudioClip>("SE/result_count");
+        seCountDone = Resources.Load<AudioClip>("SE/result_count_done");
+        seCardSwish = Resources.Load<AudioClip>("SE/result_card");
+        seDecide = Resources.Load<AudioClip>("SE/result_decide");
+    }
+
+    private void PlaySe(AudioClip clip, float volume)
+    {
+        if (seSource != null && clip != null) seSource.PlayOneShot(clip, volume);
     }
 
     private void BuildBackgroundDecor(RectTransform root)
@@ -672,6 +718,10 @@ public sealed class ResultScreen : MonoBehaviour
         TMP_Text label = NewText("Label", rect, "プレイを終わる", 38f, Color.white,
             TextAlignmentOptions.Center);
         Stretch((RectTransform)label.transform);
+        exitLabel = label;
+        // 日本語は CJK フォールバックの行メトリクスで上に乗るため、インク実測で
+        // 光学中央へ補正する。ビルド時(非アクティブ)は空振りし得るので Prepare でも再実行。
+        TmpAlign.CenterInkVertically(label);
 
         Button button = buttonGo.AddComponent<Button>();
         button.targetGraphic = body;
@@ -699,6 +749,8 @@ public sealed class ResultScreen : MonoBehaviour
         inputArmed = false;
         entering = false;
         SetExitHover(false);
+        // 表示確定後の再実行(冪等)。非アクティブ時の空振り対策(既知の TMP の罠)。
+        TmpAlign.CenterInkVertically(exitLabel);
 
         string stageName = stage != null && !string.IsNullOrWhiteSpace(stage.stageName)
             ? stage.stageName
@@ -782,9 +834,11 @@ public sealed class ResultScreen : MonoBehaviour
     }
 
     // 入場中に決定/戻るが押されたときのスキップ。演出を省略して最終状態へ。
+    // 鳴っている途中の演出音(カウント駆動音など)も映像に合わせて打ち切る。
     private void FinishEntranceImmediate()
     {
         StopEntranceRoutine();
+        if (seSource != null) seSource.Stop();
         ApplyEntranceFrame(9999f);
     }
 
@@ -804,12 +858,38 @@ public sealed class ResultScreen : MonoBehaviour
         while (t < total)
         {
             yield return null;
+            float prev = t;
             t += Mathf.Min(Time.unscaledDeltaTime, 1f / 30f);
+            PlayEntranceSounds(prev, t);
             ApplyEntranceFrame(t);
         }
         ApplyEntranceFrame(9999f);
         entering = false;
         entranceRoutine = null;
+    }
+
+    // 入場演出の効果音。ApplyEntranceFrame は再入・スキップされる純関数なので、
+    // 音はコルーチン側の時刻区間 (prev, now] のイベント跨ぎ判定でだけ鳴らす。
+    private void PlayEntranceSounds(float prev, float now)
+    {
+        // カードのスライドイン: 4枚重なると騒がしいので左右1回ずつ(0枚目/2枚目)。
+        for (int i = 0; i < builtCardCount; i += 2)
+            if (Crossed(prev, now, EnterCardStart + i * EnterCardStagger))
+                PlaySe(seCardSwish, SeVolCard);
+
+        // 数値カウントアップ: 駆動音(電子カスケード)+確定パルス。
+        if (Crossed(prev, now, EnterCountStart)) PlaySe(seCount, SeVolCount);
+        if (Crossed(prev, now, EnterCountStart + EnterCountDur)) PlaySe(seCountDone, SeVolCountDone);
+
+        // ランクスタンプの着地。クリアは短い一撃、失敗は重い地響き。
+        if (Crossed(prev, now, StampImpactTime()))
+            PlaySe(resultCleared ? seStampClear : seStampFail,
+                resultCleared ? SeVolStampClear : SeVolStampFail);
+    }
+
+    private static bool Crossed(float prev, float now, float at)
+    {
+        return prev < at && now >= at;
     }
 
     // 入場シーケンスの時刻 t（秒）における全要素の状態を決める純関数。
@@ -1028,6 +1108,7 @@ public sealed class ResultScreen : MonoBehaviour
     private void RequestExit()
     {
         if (!gameObject.activeSelf) return;
+        PlaySe(seDecide, SeVolDecide);
         ActionRequested?.Invoke(Action.StageSelect);
     }
 
