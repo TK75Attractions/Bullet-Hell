@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -75,6 +74,50 @@ public sealed class ResultScreen : MonoBehaviour
     private bool inputArmed;
     private bool entering;
 
+    // --- 入場演出（溜め→開放のシーケンス）---
+    // ヘッダー降下→カード左右スライド→数値カウントアップ→中央装飾→
+    // ランクのスタンプ着地（一閃＋波紋＋揺れ）→ボタン。決定/戻るでスキップ可。
+    private const float EnterHeaderDur = 0.30f;
+    private const float EnterCardStart = 0.12f;
+    private const float EnterCardStagger = 0.09f;
+    private const float EnterCardDur = 0.34f;
+    private const float EnterCountStart = 0.42f;
+    private const float EnterCountDur = 0.60f;
+    private const float EnterEvalStart = 0.55f;
+    private const float EnterEvalDur = 0.35f;
+    private const float EnterStampStartClear = 1.02f;
+    private const float EnterStampDurClear = 0.34f;
+    private const float EnterStampStartFail = 1.06f;
+    private const float EnterStampDurFail = 0.50f;
+    private const float EnterFlashDur = 0.38f;
+    private const float EnterRippleDur = 0.55f;
+    private const float EnterButtonDelay = 0.16f;   // スタンプ着地からの遅延
+    private const float EnterButtonDur = 0.32f;
+    private const float EnterTail = 0.95f;          // 着地後に波紋・ボタンを収める残り尺
+
+    private CanvasGroup headerGroup;
+    private RectTransform headerGroupRect;
+    private CanvasGroup evalGroup;
+    private RectTransform evalGroupRect;
+    private CanvasGroup rankGroup;
+    private RectTransform rankGroupRect;
+    private CanvasGroup buttonGroup;
+    private readonly RectTransform[] cardRects = new RectTransform[4];
+    private readonly CanvasGroup[] cardGroups = new CanvasGroup[4];
+    private readonly Vector2[] cardHomes = new Vector2[4];
+    private int builtCardCount;
+    private Image rippleA;
+    private Image rippleB;
+    private Coroutine entranceRoutine;
+    private bool resultCleared = true;
+    private int finalScore;
+    private int finalHit;
+    private int finalCounter;
+    private float finalElapsed;
+    private Color flareBlueBase;
+    private Color flareCyanBase;
+    private Vector2 exitHome;
+
     // ランク文字のアンダーレイグロー色（クリア=青 / 失敗=赤）。
     private static readonly Color RankGlowBlue = new Color(0.20f, 0.60f, 1f, 0.55f);
     private static readonly Color RankGlowRed = new Color(1f, 0.25f, 0.35f, 0.52f);
@@ -133,8 +176,12 @@ public sealed class ResultScreen : MonoBehaviour
         Stretch(contentRect);
         contentGroup = content.AddComponent<CanvasGroup>();
 
-        BuildHeader(contentRect);
-        BuildEvaluation(contentRect);
+        // 入場演出でまとめて動かす単位ごとに全面コンテナへ分ける
+        // （カードとボタンは個別に動かすので直下のまま）。
+        headerGroup = NewGroup("HeaderGroup", contentRect, out headerGroupRect);
+        BuildHeader(headerGroupRect);
+        evalGroup = NewGroup("EvalGroup", contentRect, out evalGroupRect);
+        BuildEvaluation(evalGroupRect);
         BuildStats(contentRect);
         BuildExitButton(contentRect);
     }
@@ -377,15 +424,28 @@ public sealed class ResultScreen : MonoBehaviour
             34f, Color.white, TextAlignmentOptions.Center);
         SetRect((RectTransform)verdictText.transform, new Vector2(0f, 296f), new Vector2(500f, 96f));
 
+        // スタンプ着地時に外へ広がる波紋リング（通常時は透明）。
+        rippleA = NewImage("StampRippleA", root, Color.clear);
+        rippleA.sprite = diamondRingSprite;
+        rippleA.type = Image.Type.Simple;
+        SetRect(rippleA.rectTransform, ringCenter, Vector2.one * 320f);
+        rippleB = NewImage("StampRippleB", root, Color.clear);
+        rippleB.sprite = diamondRingSprite;
+        rippleB.type = Image.Type.Simple;
+        SetRect(rippleB.rectTransform, ringCenter, Vector2.one * 320f);
+
+        // ランク文字とフレアは入場のスタンプ演出でまとめて拡大→着地させる。
+        rankGroup = NewGroup("RankGroup", root, out rankGroupRect);
+
         // ランク文字の背後に青系フレア（8方向の光条＋コア）。グレースケールの
         // スターバーストを大=青・小=シアンで二重に敷き、シアン→青のグラデにする。
         // 背後の菱形リングが埋もれないよう控えめに（codex 指摘反映）。
-        rankFlareBlue = NewImage("RankFlareBlue", root, new Color(BrandBlue.r, BrandBlue.g, BrandBlue.b, 0.45f));
+        rankFlareBlue = NewImage("RankFlareBlue", rankGroupRect, new Color(BrandBlue.r, BrandBlue.g, BrandBlue.b, 0.45f));
         rankFlareBlue.sprite = flareSprite;
         rankFlareBlue.type = Image.Type.Simple;
         SetRect(rankFlareBlue.rectTransform, Vector2.zero, new Vector2(640f, 640f));
 
-        rankFlareCyan = NewImage("RankFlareCyan", root, new Color(Cyan.r, Cyan.g, Cyan.b, 0.52f));
+        rankFlareCyan = NewImage("RankFlareCyan", rankGroupRect, new Color(Cyan.r, Cyan.g, Cyan.b, 0.52f));
         rankFlareCyan.sprite = flareSprite;
         rankFlareCyan.type = Image.Type.Simple;
         SetRect(rankFlareCyan.rectTransform, Vector2.zero, new Vector2(400f, 400f));
@@ -393,7 +453,7 @@ public sealed class ResultScreen : MonoBehaviour
         // ランク文字。セリフ体（Playfair Display）でモック実測（字幅230 x 字高336・
         // 画面中心）に一致させる。Play 内レンダ実測でキャリブレーション済み:
         // fontSize 469 → h=340、素の Playfair はモックよりわずかに細いため x1.09。
-        rankText = NewText("Rank", root, "S", 469f, Color.white, TextAlignmentOptions.Center);
+        rankText = NewText("Rank", rankGroupRect, "S", 469f, Color.white, TextAlignmentOptions.Center);
         if (rankFont != null)
         {
             rankText.font = rankFont;
@@ -518,6 +578,15 @@ public sealed class ResultScreen : MonoBehaviour
         Vector2 size = new Vector2(430f, 248f);
         SetRect(rect, pos, size);
 
+        // 入場演出用: カード単位でフェード＋スライドできるよう控えておく。
+        if (builtCardCount < cardRects.Length)
+        {
+            cardRects[builtCardCount] = rect;
+            cardGroups[builtCardCount] = card.AddComponent<CanvasGroup>();
+            cardHomes[builtCardCount] = pos;
+            builtCardCount++;
+        }
+
         // 非対称八角形（外側=画面端の面取りが大きく、内側=中央寄りが小さい）を
         // 塗り・細枠・内側下辺の青アクセント・外側2隅の白ブラケットまで一体で
         // 焼き込んだ専用スプライト。左右でミラー。
@@ -584,6 +653,8 @@ public sealed class ResultScreen : MonoBehaviour
         RectTransform rect = (RectTransform)buttonGo.transform;
         SetRect(rect, new Vector2(0f, -433f), new Vector2(660f, 120f));
         exitRect = rect;
+        exitHome = rect.anchoredPosition;
+        buttonGroup = buttonGo.AddComponent<CanvasGroup>();
 
         // ボタン背後の淡い青グロー（モックの発光感）。
         SoftCircleGraphic glow = NewGraphic<SoftCircleGraphic>("ExitGlow", rect);
@@ -670,39 +741,223 @@ public sealed class ResultScreen : MonoBehaviour
         counterText.text = Mathf.Max(0, counterCount).ToString("00");
         timeText.text = FormatTime(elapsedSeconds);
 
-        contentGroup.alpha = 0f;
-        contentRect.anchoredPosition = new Vector2(0f, -18f);
-        contentRect.localScale = Vector3.one * 0.975f;
-    }
+        // 入場演出用に確定値と基準色を控え、全グループを隠した初期状態にする
+        // （PlayEntrance が t=0 から段階的に出す。背景装飾は contentGroup 外なので
+        // ピクセル遷移の開け中も見えている）。
+        resultCleared = cleared;
+        finalScore = provisionalScore;
+        finalHit = Mathf.Max(0, hitCount);
+        finalCounter = Mathf.Max(0, counterCount);
+        finalElapsed = elapsedSeconds;
+        flareBlueBase = flareBlue;
+        flareCyanBase = flareCyan;
 
-    public async void PlayEntrance()
-    {
-        if (!gameObject.activeSelf || entering) return;
-        entering = true;
-        const float duration = 0.34f;
-        float elapsed = 0f;
-        while (elapsed < duration && this != null && gameObject.activeSelf)
-        {
-            elapsed += Mathf.Min(Time.unscaledDeltaTime, 1f / 30f);
-            float p = Mathf.Clamp01(elapsed / duration);
-            float ease = 1f - Mathf.Pow(1f - p, 3f);
-            contentGroup.alpha = ease;
-            contentRect.anchoredPosition = Vector2.Lerp(new Vector2(0f, -18f), Vector2.zero, ease);
-            contentRect.localScale = Vector3.one * Mathf.Lerp(0.975f, 1f, ease);
-            await Task.Yield();
-        }
-
-        if (this == null) return;
         contentGroup.alpha = 1f;
         contentRect.anchoredPosition = Vector2.zero;
         contentRect.localScale = Vector3.one;
+        StopEntranceRoutine();
+        ApplyEntranceFrame(0f);
+    }
+
+    public void PlayEntrance()
+    {
+        if (!gameObject.activeSelf || entering) return;
+        StopEntranceRoutine();
+        entranceRoutine = StartCoroutine(EntranceRoutine());
+    }
+
+    // 録画デモ等の外部からスキップ可否を判定するための公開状態。
+    public bool Entering => entering;
+
+    private void StopEntranceRoutine()
+    {
+        if (entranceRoutine != null)
+        {
+            StopCoroutine(entranceRoutine);
+            entranceRoutine = null;
+        }
         entering = false;
+    }
+
+    // 入場中に決定/戻るが押されたときのスキップ。演出を省略して最終状態へ。
+    private void FinishEntranceImmediate()
+    {
+        StopEntranceRoutine();
+        ApplyEntranceFrame(9999f);
+    }
+
+    private float StampImpactTime()
+    {
+        return resultCleared
+            ? EnterStampStartClear + EnterStampDurClear
+            : EnterStampStartFail + EnterStampDurFail;
+    }
+
+    private IEnumerator EntranceRoutine()
+    {
+        entering = true;
+        float total = StampImpactTime() + EnterTail;
+        float t = 0f;
+        ApplyEntranceFrame(0f);
+        while (t < total)
+        {
+            yield return null;
+            t += Mathf.Min(Time.unscaledDeltaTime, 1f / 30f);
+            ApplyEntranceFrame(t);
+        }
+        ApplyEntranceFrame(9999f);
+        entering = false;
+        entranceRoutine = null;
+    }
+
+    // 入場シーケンスの時刻 t（秒）における全要素の状態を決める純関数。
+    // スキップは大きな t を渡すだけで最終状態になる（コルーチン停止と併用）。
+    private void ApplyEntranceFrame(float t)
+    {
+        bool cleared = resultCleared;
+        float stampStart = cleared ? EnterStampStartClear : EnterStampStartFail;
+        float stampDur = cleared ? EnterStampDurClear : EnterStampDurFail;
+        float impact = stampStart + stampDur;
+        float postT = t - impact;
+
+        // (1) ヘッダー: 上から降りながらフェードイン。
+        float hp = EaseOutCubic(t / EnterHeaderDur);
+        headerGroup.alpha = hp;
+        headerGroupRect.anchoredPosition = new Vector2(0f, 26f * (1f - hp));
+
+        // (2) 情報カード: 左列は左から・右列は右から時差スライドイン。
+        for (int i = 0; i < builtCardCount; i++)
+        {
+            float cp = EaseOutCubic((t - (EnterCardStart + i * EnterCardStagger)) / EnterCardDur);
+            cardGroups[i].alpha = cp;
+            float dir = cardHomes[i].x < 0f ? -1f : 1f;
+            cardRects[i].anchoredPosition = cardHomes[i] + new Vector2(dir * 90f * (1f - cp), 0f);
+        }
+
+        // (3) 数値カウントアップ（下位桁が回って見えるよう毎フレーム再計算）。
+        float np = Mathf.Clamp01((t - EnterCountStart) / EnterCountDur);
+        float ne = 1f - (1f - np) * (1f - np);
+        scoreText.text = Mathf.RoundToInt(finalScore * ne).ToString("N0");
+        hitText.text = Mathf.RoundToInt(finalHit * ne).ToString("00");
+        counterText.text = Mathf.RoundToInt(finalCounter * ne).ToString("00");
+        timeText.text = FormatTime(finalElapsed * ne);
+        float pulse = ValuePulse(t - (EnterCountStart + EnterCountDur));
+        scoreText.rectTransform.localScale = Vector3.one * pulse;
+        hitText.rectTransform.localScale = Vector3.one * pulse;
+        counterText.rectTransform.localScale = Vector3.one * pulse;
+        timeText.rectTransform.localScale = Vector3.one * pulse;
+
+        // (4) 中央装飾: わずかに縮みながらフェードイン。
+        float ep = EaseOutCubic((t - EnterEvalStart) / EnterEvalDur);
+        evalGroup.alpha = ep;
+        evalGroupRect.localScale = Vector3.one * Mathf.Lerp(1.06f, 1f, ep);
+
+        // (5) ランクのスタンプ: 大きく淡い状態から加速して着地。
+        //     失敗時は開始倍率を抑え、時間を掛けて重く落とす。
+        float sp = Mathf.Clamp01((t - stampStart) / stampDur);
+        float se = cleared ? sp * sp * sp : sp * sp * sp * sp;
+        rankGroup.alpha = Mathf.Clamp01(sp / 0.30f);
+        float stampScale = Mathf.Lerp(cleared ? 2.4f : 1.9f, 1f, se);
+        // 着地直後の沈み込み（紙へ押し込む感触）。
+        if (postT > 0f && postT < 0.18f)
+            stampScale = 1f - 0.015f * Mathf.Sin(Mathf.PI * postT / 0.18f);
+        rankGroupRect.localScale = Vector3.one * stampScale;
+
+        // (6) 着地の一閃: フレアのアルファを持ち上げて減衰させる。
+        float boost = 0f;
+        if (postT > 0f)
+        {
+            float flashP = Mathf.Clamp01(postT / EnterFlashDur);
+            boost = (1f - flashP) * (1f - flashP);
+        }
+        float flashGain = cleared ? 1.1f : 1.4f;
+        rankFlareBlue.color = WithAlpha(flareBlueBase,
+            Mathf.Min(1f, flareBlueBase.a * (1f + flashGain * boost)));
+        rankFlareCyan.color = WithAlpha(flareCyanBase,
+            Mathf.Min(1f, flareCyanBase.a * (1f + flashGain * boost)));
+
+        // (7) 波紋リング: クリアはシアン2重、失敗は暗い赤1重で控えめに。
+        Color rippleCol = cleared
+            ? new Color(Cyan.r, Cyan.g, Cyan.b, 1f)
+            : new Color(0.75f, 0.16f, 0.24f, 1f);
+        float rippleMax = cleared ? 800f : 600f;
+        float rippleAlpha = cleared ? 0.50f : 0.30f;
+        ApplyRipple(rippleA, postT, rippleCol, rippleMax, rippleAlpha);
+        ApplyRipple(rippleB, cleared ? postT - 0.12f : -1f, rippleCol, rippleMax, rippleAlpha * 0.8f);
+
+        // (8) 着地の揺れ（クリアは短く軽く、失敗は長く重く）。
+        float shakeDur = cleared ? 0.30f : 0.42f;
+        float shakeAmp = cleared ? 7f : 13f;
+        float qp = postT / shakeDur;
+        if (qp >= 0f && qp < 1f)
+        {
+            float decay = (1f - qp) * (1f - qp);
+            contentRect.anchoredPosition = new Vector2(
+                shakeAmp * decay * Mathf.Sin(qp * 43f),
+                shakeAmp * decay * Mathf.Sin(qp * 57f + 1.7f) * 0.8f);
+        }
+        else
+        {
+            contentRect.anchoredPosition = Vector2.zero;
+        }
+
+        // (9) ボタン: スタンプが落ち着いてから下からフェードイン。
+        float bp = EaseOutCubic((t - (impact + EnterButtonDelay)) / EnterButtonDur);
+        buttonGroup.alpha = bp;
+        exitRect.anchoredPosition = exitHome + new Vector2(0f, -14f * (1f - bp));
+        bool interactive = bp >= 0.999f;
+        buttonGroup.interactable = interactive;
+        buttonGroup.blocksRaycasts = interactive;
+    }
+
+    private static void ApplyRipple(Image img, float time, Color col, float maxSize, float baseAlpha)
+    {
+        if (img == null) return;
+        float p = time / EnterRippleDur;
+        if (p < 0f || p >= 1f)
+        {
+            img.color = Color.clear;
+            return;
+        }
+        img.rectTransform.sizeDelta = Vector2.one * Mathf.Lerp(320f, maxSize, EaseOutCubic(p));
+        img.color = new Color(col.r, col.g, col.b, baseAlpha * (1f - p));
+    }
+
+    private static float EaseOutCubic(float p)
+    {
+        p = Mathf.Clamp01(p);
+        return 1f - (1f - p) * (1f - p) * (1f - p);
+    }
+
+    // カウントアップ完了時の小さなパルス（1→1.06→1）。
+    private static float ValuePulse(float time)
+    {
+        const float dur = 0.14f;
+        if (time <= 0f || time >= dur) return 1f;
+        return 1f + 0.06f * Mathf.Sin(Mathf.PI * time / dur);
+    }
+
+    private static Color WithAlpha(Color c, float a)
+    {
+        return new Color(c.r, c.g, c.b, a);
     }
 
     // 単一ボタンのため左右選択は無い。決定/戻るのどちらでもステージ選択へ戻る。
     public void Tick(bool left, bool right, bool buttonHeld, bool buttonPressed, bool backPressed)
     {
-        if (!gameObject.activeSelf || entering) return;
+        if (!gameObject.activeSelf) return;
+
+        // 入場中は決定/戻るで演出をスキップして最終状態へ（押し直すまで
+        // 決定は発火させない）。他の入力は受けない。
+        if (entering)
+        {
+            if (buttonPressed || backPressed)
+            {
+                FinishEntranceImmediate();
+                inputArmed = false;
+            }
+            return;
+        }
 
         if (backPressed)
         {
@@ -721,7 +976,7 @@ public sealed class ResultScreen : MonoBehaviour
 
     public void HideImmediate()
     {
-        entering = false;
+        StopEntranceRoutine();
         gameObject.SetActive(false);
     }
 
@@ -1403,6 +1658,15 @@ public sealed class ResultScreen : MonoBehaviour
         GameObject go = new GameObject(name, typeof(RectTransform));
         go.transform.SetParent(parent, false);
         return go;
+    }
+
+    // 入場演出でまとめてフェード/スライドさせる全面コンテナ。
+    private static CanvasGroup NewGroup(string name, RectTransform parent, out RectTransform rect)
+    {
+        GameObject go = NewRect(name, parent);
+        rect = (RectTransform)go.transform;
+        Stretch(rect);
+        return go.AddComponent<CanvasGroup>();
     }
 
     private static void SetRect(RectTransform rect, Vector2 position, Vector2 size)

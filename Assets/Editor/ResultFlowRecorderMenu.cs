@@ -180,6 +180,80 @@ public static class ResultFlowRecorderMenu
         }
     }
 
+    // ---- 入場アニメのショーケース録画 ----
+    // クリア→リザルト入場アニメ全編→再入場を途中スキップ→失敗版全編→退出、を
+    // 1本の音声付き動画に収める。実経路(StartGameTransition/ShowResult/Tick/
+    // HandleResultAction)のみを叩く。
+    public static IEnumerator EntranceShowcaseRoutine(string fileNameNoExt)
+    {
+        DemoRunning = true;
+        DemoOutput = null;
+        try
+        {
+            GManager g = GManager.Control;
+            if (g == null) { Debug.LogError("[ResultFlowRecorder] GManager.Control null"); yield break; }
+
+            Time.timeScale = 1f;
+            AudioListener.pause = false;
+
+            DemoOutput = StartManual(fileNameNoExt);
+            if (DemoOutput == null) yield break;
+            yield return new WaitForSeconds(0.6f);
+
+            int stoneIndex = FindStageIndex(g, "石工");
+            if (stoneIndex < 0) stoneIndex = 0;
+
+            // Phase A: ステージ選択→石工開始（実経路・BGM 付きプレイを少し見せる）。
+            if (g.TManager != null) g.TManager.Dismiss();
+            g.state = GManager.GameState.ChoosingStage;
+            g.SSManager.ResetTimer();
+            g.SSManager.PlayEntrance();
+            yield return new WaitForSeconds(2.0f);
+            SetSsState(g.SSManager, "InGame");
+            InvokePrivate(g.SSManager, "StartGameTransition", new object[] { stoneIndex });
+            yield return WaitForState(g, GManager.GameState.Playing, 12f);
+            yield return new WaitForSeconds(5.0f);
+
+            // Phase B: クリア→リザルト入場アニメ全編。
+            g.ShowResult(true);
+            yield return WaitForState(g, GManager.GameState.Result, 8f);
+            yield return new WaitForSeconds(4.5f);
+
+            // Phase C: もう一度入場させ、入場中に決定キー相当を注入してスキップ。
+            g.DebugShowResult(true);
+            yield return WaitForEntering(g, 10f);
+            yield return new WaitForSeconds(0.7f);
+            g.RManager.Tick(false, false, false, true, false); // 決定押下=スキップ
+            yield return new WaitForSeconds(2.0f);
+
+            // Phase D: 失敗版の入場アニメ全編。
+            g.DebugShowResult(false);
+            yield return WaitForEntering(g, 10f);
+            yield return new WaitForSeconds(5.0f);
+
+            // Phase E: ボタンでステージ選択へ戻って締め。
+            InvokePrivate(g, "HandleResultAction", new object[] { ResultScreen.Action.StageSelect });
+            yield return WaitForState(g, GManager.GameState.ChoosingStage, 8f);
+            yield return new WaitForSeconds(2.0f);
+        }
+        finally
+        {
+            DemoOutput = StopManual() ?? DemoOutput;
+            DemoRunning = false;
+        }
+    }
+
+    // リザルトの入場シーケンスが始まる（entering=true になる）まで待つ。
+    private static IEnumerator WaitForEntering(GManager g, float timeoutSec)
+    {
+        float t = timeoutSec;
+        while (t > 0f && (g.RManager == null || !g.RManager.Entering))
+        {
+            t -= Time.unscaledDeltaTime;
+            yield return null;
+        }
+    }
+
     private static IEnumerator WaitForState(GManager g, GManager.GameState target, float timeoutSec)
     {
         float t = timeoutSec;
