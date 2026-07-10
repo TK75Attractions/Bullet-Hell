@@ -841,19 +841,6 @@ public sealed class ResultScreen : MonoBehaviour
         AddQuad(card, "RuleEndR", DividerBright, new Vector2(pos.x + width * 0.5f, pos.y), new Vector2(5f, 5f), 45f);
     }
 
-    // ボタン脇の白スラッシュ用: 上下辺が水平な真の平行四辺形。
-    // sizeDelta.x は「線幅 + skew」で、視覚上の線幅が lineW になる。
-    private static ParallelogramGraphic AddButtonSlash(RectTransform parent, string name,
-        Color color, float x, float lineW, float height, float skew)
-    {
-        ParallelogramGraphic slash = NewGraphic<ParallelogramGraphic>(name, parent);
-        slash.Slant = skew;
-        slash.SlantRightEdge = true;
-        slash.color = color;
-        SetRect(slash.rectTransform, new Vector2(x, 0f), new Vector2(lineW + skew, height));
-        return slash;
-    }
-
     private static Image AddQuad(RectTransform parent, string name, Color color,
         Vector2 pos, Vector2 size, float rotDeg)
     {
@@ -890,17 +877,10 @@ public sealed class ResultScreen : MonoBehaviour
         Stretch(body.rectTransform);
         body.raycastTarget = true;
 
-        // 白スラッシュ（難易度選択/タイトルの White マーカーと同じ語彙）。
-        // v9 までは回転矩形(AddQuad)で上下端が水平にならず「平行四辺形に
-        // なっていない」指摘を受けた。ParallelogramGraphic による真の平行
-        // 四辺形（上下辺が水平・斜辺 19°=skew 43.4/高さ126）へ置き換え、
-        // 難易度バナーと同じ形状言語で右側にも対称配置（太線が外・細線が内）。
-        const float slashH = 126f;
-        const float slashSkew = 43.4f;                 // 126 * tan(19°)
-        AddButtonSlash(rect, "ButtonSlashA", Color.white, -317f, 11f, slashH, slashSkew);
-        AddButtonSlash(rect, "ButtonSlashB", new Color(1f, 1f, 1f, 0.5f), -299f, 2.5f, slashH, slashSkew);
-        AddButtonSlash(rect, "ButtonSlashC", new Color(1f, 1f, 1f, 0.5f), 299f, 2.5f, slashH, slashSkew);
-        AddButtonSlash(rect, "ButtonSlashD", Color.white, 317f, 11f, slashH, slashSkew);
+        // 白スラッシュ（難易度選択/タイトルの White マーカーと同じ語彙。
+        // 左右対称・4本とも 19° で平行）。焼き込み本体と共に UiButtonStyle に
+        // 共通化（統一便）。見た目の正は Docs/result-design-language.md。
+        UiButtonStyle.AddSlashPair(rect, 660f, 120f);
 
         TMP_Text label = NewText("Label", rect, "プレイを終わる", 38f, Color.white,
             TextAlignmentOptions.Center);
@@ -1648,97 +1628,13 @@ public sealed class ResultScreen : MonoBehaviour
         return across * along;
     }
 
-    // ボタンを一体で焼き込む: 青の縦グラデ本体（下辺ほど明るく、最下辺にシアンの
-    // 滲み）＋銀枠（上下辺は青く発光）。色はモック実測の視覚(sRGB)値を、ブランド青
-    // #4290DB へ 12% 寄せて他 UI と色を揃える。形状は難易度バナー系の平行四辺形
-    // （2026-07-10 の A/B 比較で採用。斜度 34 は ParallelogramGraphic の既定と一致）。
-    // 旧・両端ブラケットは白スラッシュマーカー（BuildExitButton 側）に置換済み。
+    // ボタン本体の焼き込み（青縦グラデ+銀枠+シアンリム）は UiButtonStyle に
+    // 共通化（統一便・全画面で同一ソースから同じ見た目を得る）。
+    // 見た目の正は Docs/result-design-language.md。
     private Sprite CreateExitButtonSprite()
     {
-        const int S = 2;
-        const int refW = 660, refH = 120;
-        int TW = refW * S, TH = refH * S;
-        Texture2D texture = new Texture2D(TW, TH, TextureFormat.RGBA32, false);
-        texture.name = "ResultExitButtonTexture";
-        texture.filterMode = FilterMode.Bilinear;
-        Color32[] px = new Color32[TW * TH];
-        float cx = (TW - 1) * 0.5f, cy = (TH - 1) * 0.5f;
-
-        // 枠（横 616 x 縦 98）と本体（内側へ 8・斜辺は平行を保つ）。
-        Vector2[] frame = ParallelogramVerts(616f * 0.5f * S, 98f * 0.5f * S, 34f * S);
-        Vector2[] body = ParallelogramVerts((616f * 0.5f - 8f) * S, (98f * 0.5f - 8f) * S, 28.5f * S);
-
-        // 本体の縦グラデ（モック実測: 上 (0,38,90) → 下 (0,63,150)、最下辺 (0,79,182)。
-        // ユーザー指摘 2026-07-10「背景をもう少し明るく」でブランド青への
-        // 混合率を 0.12 → 0.30 に引き上げ。銀枠・シアンリムは従来のまま）。
-        Color brand = new Color(0.259f, 0.565f, 0.859f);   // #4290DB(視覚)
-        Color topCol = Color.Lerp(new Color(0.000f, 0.149f, 0.353f), brand, 0.30f);
-        Color botCol = Color.Lerp(new Color(0.000f, 0.247f, 0.588f), brand, 0.30f);
-        Color rimCol = new Color(0.000f, 0.310f, 0.714f);
-        Color bloomCol = new Color(0.157f, 0.471f, 0.863f);
-        float bodyHalfH = (98f * 0.5f - 8f) * S;
-        for (int y = 0; y < TH; y++)
-        {
-            for (int x = 0; x < TW; x++)
-            {
-                Vector2 p = new Vector2(x - cx, y - cy);
-                float sdfB = ConvexSdf(body, p);
-                float inside = Mathf.Clamp01(0.5f - sdfB);
-                if (inside > 0f)
-                {
-                    float ty = Mathf.Clamp01(0.5f - p.y / (bodyHalfH * 2f)); // 0 上 .. 1 下
-                    Color grad = Color.Lerp(topCol, botCol, ty * ty);
-                    Blend(px, TW, TH, x, y, grad, inside);
-                    // 最下辺のシアン寄りの滲み（高さ 8ref 分）と上辺の細いハイライト。
-                    float rim = Mathf.Clamp01((p.y + bodyHalfH) / (8f * S));
-                    if (p.y < -bodyHalfH + 8f * S)
-                        Blend(px, TW, TH, x, y, rimCol, inside * (1f - rim) * 0.85f);
-                    if (p.y > bodyHalfH - 3f * S)
-                        Blend(px, TW, TH, x, y, new Color(0.30f, 0.68f, 0.88f), inside * 0.45f);
-                    // 中央下寄りの淡いブルーム（ガラス感）。
-                    float bd = Mathf.Sqrt((p.x / (250f * S)) * (p.x / (250f * S))
-                        + ((p.y + bodyHalfH * 0.4f) / (70f * S)) * ((p.y + bodyHalfH * 0.4f) / (70f * S)));
-                    Blend(px, TW, TH, x, y, bloomCol, inside * Mathf.Clamp01(1f - bd) * 0.18f);
-                    // 本体エッジ内側のシアン細線（三段構造の中間レール。oracle 指摘）。
-                    float railLine = Mathf.Clamp01(0.8f * S - Mathf.Abs(sdfB + 4f * S) + 0.5f);
-                    Blend(px, TW, TH, x, y, new Color(0.22f, 0.76f, 0.88f), railLine * 0.4f);
-                }
-                // 枠線（銀）。上辺・下辺は青の発光色を重ねる。
-                float sdfF = ConvexSdf(frame, p);
-                float line = Mathf.Clamp01(1.2f * S - Mathf.Abs(sdfF) + 0.5f);
-                if (line > 0f)
-                {
-                    Blend(px, TW, TH, x, y, new Color(0.412f, 0.400f, 0.447f), line * 0.9f);
-                    float frameHalfH = 98f * 0.5f * S;
-                    if (p.y > frameHalfH - 14f * S)
-                        Blend(px, TW, TH, x, y, new Color(0.000f, 0.220f, 0.565f), line * 0.9f);
-                    else if (p.y < -frameHalfH + 14f * S)
-                        Blend(px, TW, TH, x, y, new Color(0.000f, 0.298f, 0.714f), line * 0.9f);
-                }
-            }
-        }
-
-        texture.SetPixels32(px);
-        texture.Apply();
-        generatedTextures.Add(texture);
-        Sprite sprite = Sprite.Create(texture, new Rect(0f, 0f, TW, TH),
-            new Vector2(0.5f, 0.5f), 100f * S);
-        sprite.name = "ResultExitButton";
-        generatedSprites.Add(sprite);
-        return sprite;
-    }
-
-    // 中央原点の平行四辺形（上辺を skew だけ右へずらす。ParallelogramGraphic の
-    // slantRightEdge=true と同じ向き）。CW。
-    private static Vector2[] ParallelogramVerts(float hw, float hh, float skew)
-    {
-        return new[]
-        {
-            new Vector2(-hw + skew, hh),
-            new Vector2( hw, hh),
-            new Vector2( hw - skew, -hh),
-            new Vector2(-hw, -hh),
-        };
+        return UiButtonStyle.CreateBodySprite(660, 120,
+            generatedTextures, generatedSprites, "ResultExitButton");
     }
 
     // Material Symbols のスプライト読込。無ければ手続き生成へフォールバック。

@@ -53,12 +53,9 @@ public class TitleManager : MonoBehaviour
 
     // The title menu clones the difficulty-select rows (DefficultyBar) so both
     // screens share one design language: slanted StageBar banner + StageName
-    // label + gliding white slash brackets. Colors mirror the NORMAL row.
-    private static readonly Color MenuBarBlue = new Color(0.055f, 0.525f, 0.91f);
+    // label + gliding white slash brackets. 統一便: バナー本体はリザルト画面で
+    // 確立した焼き込み(銀枠+シアンリム+青縦グラデ・UiButtonStyle)へ差し替え。
     private static readonly Color MenuTextBase = new Color(0.85f, 0.93f, 1f);
-    // スタート決定のバナー閃光のピーク色。純白だと「フラッシュ」が強すぎるため、
-    // バナー青から白へ半分だけ寄せた柔らかい輝きにする(第31便)。
-    private static readonly Color MenuFlashPeak = Color.Lerp(MenuBarBlue, Color.white, 0.5f);
 
     // How far above its scene-authored position the logo is lifted.
     private const float LogoRaiseOffset = 130f;
@@ -81,6 +78,11 @@ public class TitleManager : MonoBehaviour
     private RectTransform[] menuItemRects = new RectTransform[0];
     private CanvasGroup[] menuRowCG = new CanvasGroup[0];
     private Image[] menuRowBars = new Image[0];
+    // 決定閃光用の白オーバーレイ(バナーと同形の平行四辺形・通常 alpha0)。
+    // 焼き込みスプライトは頂点色で白側へ飛ばせないため、色 lerp ではなく
+    // オーバーレイの減衰で閃光を出す。
+    private ParallelogramGraphic[] menuRowFlash = new ParallelogramGraphic[0];
+    private Sprite menuButtonSprite;
     private float[] menuItemSel = new float[0];
     private float[] menuRowY = new float[0];
     private int menuIndex;
@@ -437,12 +439,13 @@ public class TitleManager : MonoBehaviour
                 s.rect.Rotate(0f, 0f, s.rotSpeed * dt * speedMul);
             }
 
-            // 選択バナーのフラッシュ(白→元色)+小ポップ(1→1.06→1)。文字は白地に
-            // 飛ばないよう反転(ネイビー→白)させ、決定の一拍を読めるまま見せる。
+            // 選択バナーのフラッシュ(白オーバーレイ減衰)+小ポップ(1→1.06→1)。
+            // 文字は白地に飛ばないよう反転(ネイビー→白)させ、決定の一拍を
+            // 読めるまま見せる。ピーク0.5は旧「バナー青→白50%」相当。
             float flashP = Mathf.Clamp01(time / flashDur);
-            if (selected < menuRowBars.Length && menuRowBars[selected] != null)
+            if (selected < menuRowFlash.Length && menuRowFlash[selected] != null)
             {
-                menuRowBars[selected].color = Color.Lerp(MenuFlashPeak, MenuBarBlue, flashP * flashP);
+                menuRowFlash[selected].color = new Color(1f, 1f, 1f, 0.5f * (1f - flashP * flashP));
             }
             if (selected < menuItems.Length && menuItems[selected] != null)
             {
@@ -491,9 +494,9 @@ public class TitleManager : MonoBehaviour
             menuItemRects[i].anchoredPosition = new Vector2(0f, menuRowY[i]);
             ApplyMenuRowState(i, menuItemSel[i]);
         }
-        if (selected < menuRowBars.Length && menuRowBars[selected] != null)
+        if (selected < menuRowFlash.Length && menuRowFlash[selected] != null)
         {
-            menuRowBars[selected].color = MenuBarBlue;
+            menuRowFlash[selected].color = new Color(1f, 1f, 1f, 0f);
         }
         if (menuWhite != null) menuWhite.anchoredPosition = new Vector2(0f, menuWhiteY);
         if (logoRect != null)
@@ -576,8 +579,13 @@ public class TitleManager : MonoBehaviour
         menuItemRects = new RectTransform[labels.Length];
         menuRowCG = new CanvasGroup[labels.Length];
         menuRowBars = new Image[labels.Length];
+        menuRowFlash = new ParallelogramGraphic[labels.Length];
         menuItemSel = new float[labels.Length];
         menuRowY = rowY;
+
+        // リザルト様式のボタン本体(統一便)。行サイズ 583x109 は現状維持。
+        if (menuButtonSprite == null)
+            menuButtonSprite = UiButtonStyle.CreateBodySprite(583, 109, null, null, "TitleMenuButton");
 
         for (int i = 0; i < labels.Length; i++)
         {
@@ -590,7 +598,13 @@ public class TitleManager : MonoBehaviour
                 rowObj.SetActive(true);
                 row = (RectTransform)rowObj.transform;
                 Image bar = rowObj.transform.Find("StageBar")?.GetComponent<Image>();
-                if (bar != null) bar.color = MenuBarBlue;
+                if (bar != null)
+                {
+                    bar.sprite = menuButtonSprite;
+                    bar.type = Image.Type.Simple;
+                    bar.color = Color.white;
+                    menuRowFlash[i] = CreateRowFlash(bar.rectTransform);
+                }
                 menuRowBars[i] = bar;
                 label = rowObj.transform.Find("StageName")?.GetComponent<TMP_Text>();
             }
@@ -599,7 +613,9 @@ public class TitleManager : MonoBehaviour
                 // Degraded fallback (scene layout changed): plain banner + label.
                 row = new GameObject("Item" + i, typeof(RectTransform)).GetComponent<RectTransform>();
                 row.SetParent(menuRoot, false);
-                menuRowBars[i] = CreatePanel("StageBar", row, Vector2.zero, new Vector2(583f, 109f), MenuBarBlue);
+                menuRowBars[i] = CreatePanel("StageBar", row, Vector2.zero, new Vector2(583f, 109f), Color.white);
+                menuRowBars[i].sprite = menuButtonSprite;
+                menuRowFlash[i] = CreateRowFlash(menuRowBars[i].rectTransform);
                 label = CreateText("StageName", row, Vector2.zero, new Vector2(583f, 109f), 52f, MenuTextBase, TextAlignmentOptions.Center);
             }
 
@@ -646,6 +662,26 @@ public class TitleManager : MonoBehaviour
             menuWhiteY = rowY[0];
             menuWhite.anchoredPosition = new Vector2(0f, menuWhiteY);
         }
+    }
+
+    // 決定閃光用の白オーバーレイ。焼き込みバナーの枠(583x109 の内側 44/22
+    // マージン=539x87)と同じ平行四辺形で、通常は alpha0。閃光時のみ白く光らせる。
+    private static ParallelogramGraphic CreateRowFlash(RectTransform barRect)
+    {
+        GameObject go = new GameObject("Flash", typeof(RectTransform), typeof(CanvasRenderer), typeof(ParallelogramGraphic));
+        go.layer = barRect.gameObject.layer;
+        RectTransform rect = (RectTransform)go.transform;
+        rect.SetParent(barRect, false);
+        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = Vector2.zero;
+        rect.sizeDelta = new Vector2(539f, 87f);
+        ParallelogramGraphic flash = go.GetComponent<ParallelogramGraphic>();
+        flash.Slant = 87f * Mathf.Tan(UiButtonStyle.SlashAngleDeg * Mathf.Deg2Rad);
+        flash.SlantRightEdge = true;
+        flash.color = new Color(1f, 1f, 1f, 0f);
+        flash.raycastTarget = false;
+        return flash;
     }
 
     // ---- Transfer panel ---------------------------------------------------
