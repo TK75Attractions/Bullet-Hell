@@ -27,14 +27,14 @@ public sealed class ResultScreen : MonoBehaviour
     // 頂点色（Image.color / AddQuad）用の linear 値。表示時に sRGB エンコードされる。
     private static readonly Color BracketWhite = new Color(0.85f, 0.90f, 1f, 1f);        // 明るい白（枠・ブラケット）
     private static readonly Color AccentBlue = new Color(0.020f, 0.225f, 0.780f, 1f);    // 鮮やかな青（シェブロン等）
-    private static readonly Color DividerTan = new Color(0.046f, 0.040f, 0.043f, 0.9f);  // 区切り線本体（モック実測 #3C3739）
+    private static readonly Color DividerTan = new Color(0.092f, 0.086f, 0.080f, 0.95f); // 区切り線本体（縮小表示でも読める明度に）
     private static readonly Color DividerBright = new Color(0.32f, 0.35f, 0.38f, 0.95f); // 区切り線のノード/両端
 
     // 焼き込みテクスチャ用の視覚（sRGB）値。生成 Texture2D は sRGB サンプル→linear→
     // 表示 sRGB エンコードで書いた値がそのまま画面に出るため、頂点色と違い
     // pre-linear 化せず「モックアップで実測した見た目の値」をそのまま書く。
     // （v7 まで頂点用の linear 値を流用して枠線が実測 (52,47,32) と暗すぎた反省）
-    private static readonly Color TexOutlineTan = new Color(0.357f, 0.318f, 0.290f, 0.98f); // カード枠（実測 (91,81,74)）
+    private static readonly Color TexOutlineTan = new Color(0.314f, 0.280f, 0.255f, 0.98f); // カード枠（長辺は実測より12%沈め、角の白と差を付ける）
     private static readonly Color TexInnerGold = new Color(0.235f, 0.204f, 0.133f, 1f);     // 内側の鈍い金線
     private static readonly Color TexFillNavy = new Color(0.010f, 0.024f, 0.060f, 0.95f);   // カード塗り（実測 (0,5,14)）
     private static readonly Color TexInnerGlow = new Color(0.05f, 0.13f, 0.30f);            // カード内側の微光
@@ -70,9 +70,14 @@ public sealed class ResultScreen : MonoBehaviour
     private SoftCircleGraphic rankAuraInner;
     private Image rankFlareBlue;
     private Image rankFlareCyan;
+    private Material rankGlowMat;
     private RectTransform exitRect;
     private bool inputArmed;
     private bool entering;
+
+    // ランク文字のアンダーレイグロー色（クリア=青 / 失敗=赤）。
+    private static readonly Color RankGlowBlue = new Color(0.20f, 0.60f, 1f, 0.55f);
+    private static readonly Color RankGlowRed = new Color(1f, 0.25f, 0.35f, 0.52f);
 
     public event System.Action<Action> ActionRequested;
 
@@ -193,7 +198,7 @@ public sealed class ResultScreen : MonoBehaviour
         bandRect.sizeDelta = new Vector2(0f, 93f);
 
         // 底のシアン区切り線（全幅・モック実測 y=93）。
-        Image line = NewImage("HeaderLine", root, new Color(Cyan.r, Cyan.g, Cyan.b, 0.75f));
+        Image line = NewImage("HeaderLine", root, new Color(Cyan.r, Cyan.g, Cyan.b, 0.62f));
         RectTransform lineRect = line.rectTransform;
         lineRect.anchorMin = new Vector2(0f, 1f);
         lineRect.anchorMax = new Vector2(1f, 1f);
@@ -203,14 +208,14 @@ public sealed class ResultScreen : MonoBehaviour
 
         // 左端の二重スラッシュ（モック: 白は短く上、シアンは長く左下）。
         Image slashA = NewImage("HeaderSlashA", root, Color.white);
-        SetTopLeftSlash(slashA.rectTransform, new Vector2(58f, -30f), 4f, 44f);
+        SetTopLeftSlash(slashA.rectTransform, new Vector2(58f, -30f), 3.2f, 44f);
         Image slashB = NewImage("HeaderSlashB", root, new Color(Cyan.r, Cyan.g, Cyan.b, 1f));
-        SetTopLeftSlash(slashB.rectTransform, new Vector2(40f, -52f), 4f, 70f);
+        SetTopLeftSlash(slashB.rectTransform, new Vector2(40f, -52f), 3.2f, 70f);
 
         // 装飾的な十字アイコン（モックアップ準拠。先端に菱形フィニアル）。
         BuildCrossIcon(root, new Vector2(102f, -50f));
 
-        TMP_Text title = NewText("HeaderTitle", root, "結果  /  RESULT", 44f, Color.white,
+        TMP_Text title = NewText("HeaderTitle", root, "結果  /  RESULT", 40f, Color.white,
             TextAlignmentOptions.MidlineLeft);
         RectTransform titleRect = (RectTransform)title.transform;
         titleRect.anchorMin = titleRect.anchorMax = new Vector2(0f, 1f);
@@ -223,12 +228,12 @@ public sealed class ResultScreen : MonoBehaviour
         rs.anchorMin = rs.anchorMax = new Vector2(1f, 1f);
         rs.pivot = new Vector2(0.5f, 0.5f);
         rs.anchoredPosition = new Vector2(-28f, -45f);
-        rs.sizeDelta = new Vector2(5f, 70f);
+        rs.sizeDelta = new Vector2(4f, 64f);
         rs.localRotation = Quaternion.Euler(0f, 0f, -42f);
 
         // ステージ名と難易度はヘッダー右側へ（モックアップの中央領域は判定専用の
         // ため空けておく。機能情報として右寄せで残す）。
-        stageNameText = NewText("StageName", root, "STAGE", 26f, Color.white,
+        stageNameText = NewText("StageName", root, "STAGE", 24f, new Color(1f, 1f, 1f, 0.8f),
             TextAlignmentOptions.MidlineRight);
         RectTransform sn = (RectTransform)stageNameText.transform;
         sn.anchorMin = sn.anchorMax = new Vector2(1f, 1f);
@@ -247,19 +252,29 @@ public sealed class ResultScreen : MonoBehaviour
 
     // 装飾十字（ラテン十字・横木は上寄り）。縦木/横木＋4先端の菱形フィニアル＋
     // 中央のシアン宝石。pivot は横木と縦木の交点。
-    private void BuildCrossIcon(RectTransform root, Vector2 pivot)
+    // pos はヘッダー左上基準（AddQuad は中央アンカーのため、左上アンカーの
+    // コンテナを挟んで交点位置を固定する。v7 まで中央基準で解釈され
+    // ヘッダーに出ていなかった不具合の修正）。
+    private void BuildCrossIcon(RectTransform root, Vector2 pos)
     {
+        GameObject holder = NewRect("CrossIcon", root);
+        RectTransform hr = (RectTransform)holder.transform;
+        hr.anchorMin = hr.anchorMax = new Vector2(0f, 1f);
+        hr.pivot = new Vector2(0.5f, 0.5f);
+        hr.anchoredPosition = pos;
+        hr.sizeDelta = Vector2.zero;
+
         Color silver = new Color(0.92f, 0.95f, 1f, 1f);
         Color silverDim = new Color(0.66f, 0.74f, 0.88f, 1f);
-        const float up = 26f, down = 40f, halfW = 22f, thick = 7f, dia = 13f;
-        AddQuad(root, "CrossV", silver, pivot + new Vector2(0f, (up - down) * 0.5f),
+        const float up = 23f, down = 36f, halfW = 20f, thick = 6f, dia = 12f;
+        AddQuad(hr, "CrossV", silver, new Vector2(0f, (up - down) * 0.5f),
             new Vector2(thick, up + down), 0f);
-        AddQuad(root, "CrossH", silver, pivot, new Vector2(halfW * 2f, thick), 0f);
-        AddQuad(root, "CrossTip", silverDim, pivot + new Vector2(0f, up), new Vector2(dia, dia), 45f);
-        AddQuad(root, "CrossTip", silverDim, pivot + new Vector2(0f, -down), new Vector2(dia, dia), 45f);
-        AddQuad(root, "CrossTip", silverDim, pivot + new Vector2(-halfW, 0f), new Vector2(dia, dia), 45f);
-        AddQuad(root, "CrossTip", silverDim, pivot + new Vector2(halfW, 0f), new Vector2(dia, dia), 45f);
-        AddQuad(root, "CrossGem", new Color(Cyan.r, Cyan.g, Cyan.b, 0.95f), pivot,
+        AddQuad(hr, "CrossH", silver, Vector2.zero, new Vector2(halfW * 2f, thick), 0f);
+        AddQuad(hr, "CrossTip", silverDim, new Vector2(0f, up), new Vector2(dia, dia), 45f);
+        AddQuad(hr, "CrossTip", silverDim, new Vector2(0f, -down), new Vector2(dia, dia), 45f);
+        AddQuad(hr, "CrossTip", silverDim, new Vector2(-halfW, 0f), new Vector2(dia, dia), 45f);
+        AddQuad(hr, "CrossTip", silverDim, new Vector2(halfW, 0f), new Vector2(dia, dia), 45f);
+        AddQuad(hr, "CrossGem", new Color(Cyan.r, Cyan.g, Cyan.b, 0.95f), Vector2.zero,
             new Vector2(9f, 9f), 45f);
     }
 
@@ -269,24 +284,27 @@ public sealed class ResultScreen : MonoBehaviour
         // モックアップの紫グローに替えてユーザー指定の青フレアにする。
         // S はモック実測どおり画面中心 (0,0) に置く。
         rankAuraOuter = NewGraphic<SoftCircleGraphic>("RankAuraOuter", root);
-        rankAuraOuter.color = new Color(BrandBlue.r, BrandBlue.g, BrandBlue.b, 0.09f);
+        rankAuraOuter.color = new Color(BrandBlue.r, BrandBlue.g, BrandBlue.b, 0.07f);
         SetRect(rankAuraOuter.rectTransform, Vector2.zero, new Vector2(400f, 400f));
 
         rankAuraInner = NewGraphic<SoftCircleGraphic>("RankAuraInner", root);
-        rankAuraInner.color = new Color(Cyan.r, Cyan.g, Cyan.b, 0.13f);
+        rankAuraInner.color = new Color(Cyan.r, Cyan.g, Cyan.b, 0.10f);
         SetRect(rankAuraInner.rectTransform, Vector2.zero, new Vector2(250f, 250f));
 
         // 中央判定を囲む多重の菱形ライン（細いリングを層にして、外ほど暗く沈め、
         // 内ほどシアンで明るくする。サイズはモック実測の最大リング≈450 に合わせる）。
+        // 主リング（392）をモックの主菱形（実測≈390）に対応させる。白フレームより
+        // 目立たない明度に抑え、外側に暗いリングを重ねて奥行きを出す（oracle 指摘）。
         Vector2 ringCenter = new Vector2(0f, 25f);
-        float[] ringSizes = { 448f, 396f, 348f, 306f, 270f };
+        float[] ringSizes = { 500f, 448f, 392f, 344f, 300f, 268f };
         Color[] ringColors =
         {
-            new Color(0.070f, 0.085f, 0.120f, 0.20f),  // 最外・暗い鋼で沈める
-            new Color(0.050f, 0.130f, 0.280f, 0.26f),
-            new Color(0.050f, 0.165f, 0.345f, 0.32f),
-            new Color(Cyan.r, Cyan.g, Cyan.b, 0.28f),
-            new Color(Cyan.r, Cyan.g, Cyan.b, 0.42f),  // 内・シアンで明るく
+            new Color(0.070f, 0.085f, 0.120f, 0.12f),  // 最外・ごく暗く
+            new Color(0.070f, 0.085f, 0.120f, 0.22f),
+            new Color(Cyan.r, Cyan.g, Cyan.b, 0.36f),  // 主リング
+            new Color(Cyan.r, Cyan.g, Cyan.b, 0.30f),
+            new Color(0.050f, 0.165f, 0.345f, 0.30f),
+            new Color(0.070f, 0.085f, 0.120f, 0.26f),
         };
         for (int i = 0; i < ringSizes.Length; i++)
         {
@@ -295,6 +313,10 @@ public sealed class ResultScreen : MonoBehaviour
             ring.type = Image.Type.Simple;
             SetRect(ring.rectTransform, ringCenter, Vector2.one * ringSizes[i]);
         }
+        // 内リングの左右頂点に小さな菱形ノード（モックのリング頂点装飾）。
+        Color ringNode = new Color(Cyan.r, Cyan.g, Cyan.b, 0.7f);
+        AddQuad(root, "RingNode", ringNode, ringCenter + new Vector2(-135f, 0f), new Vector2(6f, 6f), 45f);
+        AddQuad(root, "RingNode", ringNode, ringCenter + new Vector2(135f, 0f), new Vector2(6f, 6f), 45f);
 
         // S の背後を薄く沈める菱形（不透明にすると重いので低アルファで浮かせる）。
         Image backdrop = NewImage("RankBackdrop", root, new Color(0.003f, 0.010f, 0.030f, 0.32f));
@@ -304,14 +326,12 @@ public sealed class ResultScreen : MonoBehaviour
         backdrop.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 45f);
 
         // 評価エリアの八角形フレーム（モック実測: 幅546 x 高さ604・中心(0,42)・
-        // 面取り脚58・左右辺はシェブロン部で途切れる）。
+        // 面取り脚58・各辺とも中央部で途切れる開放構造）。
         BuildOctagonFrame(root, new Vector2(0f, 42f), 273f, 302f, 58f);
 
-        // 左右の二重シェブロン（外向き。フレーム側辺の切れ目に置く）。
-        AddChevron(root, -1f, new Vector2(-273f, 30f));
-        AddChevron(root, -1f, new Vector2(-253f, 30f));
-        AddChevron(root, 1f, new Vector2(273f, 30f));
-        AddChevron(root, 1f, new Vector2(253f, 30f));
+        // 左右のシェブロン（モック実測: 細い白の開放シェブロン＋内側に青いソリッド）。
+        BuildSideChevrons(root, -1f, 25f);
+        BuildSideChevrons(root, 1f, 25f);
 
         // S 下の小さなノードクラスタ（モック準拠: 中空菱形＋芯）。
         Color nodeRing = new Color(0.52f, 0.58f, 0.70f, 0.8f);
@@ -323,19 +343,34 @@ public sealed class ResultScreen : MonoBehaviour
         AddQuad(root, "RankNodeCore", nodeCore, new Vector2(0f, -214f), new Vector2(7f, 7f), 45f);
         AddQuad(root, "RankNodeCore", nodeCore, new Vector2(0f, -230f), new Vector2(5f, 5f), 45f);
 
-        // 交点付近の tech 装飾（左=マゼンタ、右=青の小菱形。リング径に合わせ内寄せ）。
-        Color techMagenta = new Color(0.55f, 0.10f, 0.60f, 0.5f);
-        Color techBlue = new Color(0.10f, 0.35f, 0.85f, 0.5f);
-        Vector2[] techPos =
+        // シェブロン内側の tech 装飾（モック実測: 中空の正方形クラスタ。
+        // 左=マゼンタ、右=青。サイズ違いを散らす）。菱形リングスプライトを
+        // 45°回して軸平行の正方形アウトラインとして使う。
+        Color techMagenta = new Color(0.55f, 0.10f, 0.60f, 0.8f);
+        Color techBlue = new Color(0.10f, 0.35f, 0.85f, 0.8f);
+        Vector4[] techSq =   // x, y, サイズ, 塗り(0=中空/1=ソリッド)
         {
-            new Vector2(-152f, 63f), new Vector2(-183f, 25f), new Vector2(-160f, -33f),
-            new Vector2(152f, 63f), new Vector2(183f, 25f), new Vector2(160f, -33f),
+            new Vector4(-238f, 55f, 10f, 0f), new Vector4(-215f, 28f, 16f, 0f),
+            new Vector4(-241f, 2f, 8f, 1f), new Vector4(-212f, -22f, 12f, 0f),
+            new Vector4(238f, 55f, 10f, 0f), new Vector4(215f, 28f, 16f, 0f),
+            new Vector4(241f, 2f, 8f, 1f), new Vector4(212f, -22f, 12f, 0f),
         };
-        for (int i = 0; i < techPos.Length; i++)
+        for (int i = 0; i < techSq.Length; i++)
         {
-            Color tc = techPos[i].x < 0f ? techMagenta : techBlue;
-            float sz = (i % 3 == 1) ? 9f : 6f;
-            AddQuad(root, "TechDot", tc, ringCenter + techPos[i], new Vector2(sz, sz), 45f);
+            Color tc = techSq[i].x < 0f ? techMagenta : techBlue;
+            Vector2 pos = ringCenter + new Vector2(techSq[i].x, techSq[i].y);
+            if (techSq[i].w > 0.5f)
+            {
+                AddQuad(root, "TechSq", tc, pos, Vector2.one * techSq[i].z, 0f);
+            }
+            else
+            {
+                Image sq = NewImage("TechSq", root, tc);
+                sq.sprite = diamondRingSprite;
+                sq.type = Image.Type.Simple;
+                SetRect(sq.rectTransform, pos, Vector2.one * (techSq[i].z * 1.41f));
+                sq.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 45f);
+            }
         }
 
         verdictText = NewText("Verdict", root, "総合判定\n<size=19><color=#38C2E0>OVERALL EVALUATION</color></size>",
@@ -344,23 +379,37 @@ public sealed class ResultScreen : MonoBehaviour
 
         // ランク文字の背後に青系フレア（8方向の光条＋コア）。グレースケールの
         // スターバーストを大=青・小=シアンで二重に敷き、シアン→青のグラデにする。
-        rankFlareBlue = NewImage("RankFlareBlue", root, new Color(BrandBlue.r, BrandBlue.g, BrandBlue.b, 0.8f));
+        // 背後の菱形リングが埋もれないよう控えめに（codex 指摘反映）。
+        rankFlareBlue = NewImage("RankFlareBlue", root, new Color(BrandBlue.r, BrandBlue.g, BrandBlue.b, 0.45f));
         rankFlareBlue.sprite = flareSprite;
         rankFlareBlue.type = Image.Type.Simple;
-        SetRect(rankFlareBlue.rectTransform, Vector2.zero, new Vector2(700f, 700f));
+        SetRect(rankFlareBlue.rectTransform, Vector2.zero, new Vector2(640f, 640f));
 
-        rankFlareCyan = NewImage("RankFlareCyan", root, new Color(Cyan.r, Cyan.g, Cyan.b, 0.78f));
+        rankFlareCyan = NewImage("RankFlareCyan", root, new Color(Cyan.r, Cyan.g, Cyan.b, 0.52f));
         rankFlareCyan.sprite = flareSprite;
         rankFlareCyan.type = Image.Type.Simple;
-        SetRect(rankFlareCyan.rectTransform, Vector2.zero, new Vector2(430f, 430f));
+        SetRect(rankFlareCyan.rectTransform, Vector2.zero, new Vector2(400f, 400f));
 
-        // ランク文字。セリフ体（Playfair Display）でモック実測の
-        // 字高 337px（キャップハイト比≈0.71 → フォントサイズ≈475）に合わせる。
-        rankText = NewText("Rank", root, "S", 475f, Color.white, TextAlignmentOptions.Center);
+        // ランク文字。セリフ体（Playfair Display）でモック実測（字幅230 x 字高336・
+        // 画面中心）に一致させる。Play 内レンダ実測でキャリブレーション済み:
+        // fontSize 469 → h=340、素の Playfair はモックよりわずかに細いため x1.09。
+        rankText = NewText("Rank", root, "S", 469f, Color.white, TextAlignmentOptions.Center);
         if (rankFont != null)
         {
             rankText.font = rankFont;
             rankText.fontStyle = FontStyles.Normal;
+            rankText.rectTransform.localScale = new Vector3(1.09f, 1f, 1f);
+            // モックの発光する文字面を TMP アンダーレイで再現（青のソフトグロー。
+            // ScaleRatioC を明示しないと巨大サイズでアンダーレイが破綻する）。
+            rankGlowMat = rankText.fontMaterial;
+            rankGlowMat.EnableKeyword("UNDERLAY_ON");
+            rankGlowMat.SetFloat(ShaderUtilities.ID_ScaleRatio_C, 1f);
+            rankGlowMat.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0f);
+            rankGlowMat.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, 0f);
+            rankGlowMat.SetFloat(ShaderUtilities.ID_UnderlayDilate, 0.08f);
+            rankGlowMat.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0.42f);
+            rankGlowMat.SetColor(ShaderUtilities.ID_UnderlayColor, RankGlowBlue);
+            rankText.UpdateMeshPadding();
         }
         else
         {
@@ -369,9 +418,14 @@ public sealed class ResultScreen : MonoBehaviour
             rankText.rectTransform.localScale = new Vector3(0.92f, 1f, 1f);
         }
         rankText.enableAutoSizing = false;
-        rankText.outlineColor = new Color(Cyan.r, Cyan.g, Cyan.b, 0.6f);
-        rankText.outlineWidth = 0.05f;
-        SetRect((RectTransform)rankText.transform, Vector2.zero, new Vector2(560f, 480f));
+        rankText.outlineColor = new Color(Cyan.r, Cyan.g, Cyan.b, 0.5f);
+        rankText.outlineWidth = 0.03f;
+        // 塗りは純白一色でなく、下端をごく淡いシアン寄りに（モックの質感）。
+        rankText.enableVertexGradient = true;
+        rankText.colorGradient = new VertexGradient(
+            Color.white, Color.white,
+            new Color(0.86f, 0.94f, 1f, 1f), new Color(0.86f, 0.94f, 1f, 1f));
+        SetRect((RectTransform)rankText.transform, new Vector2(0f, 23f), new Vector2(560f, 480f));
     }
 
     // 評価エリアを囲む八角形の細いフレーム。上下辺＋45°面取り＋左右辺
@@ -379,15 +433,23 @@ public sealed class ResultScreen : MonoBehaviour
     // ノード菱形、上辺中央に中空菱形ノードを添える（モックアップ準拠）。
     private void BuildOctagonFrame(RectTransform root, Vector2 c, float hw, float hh, float leg)
     {
-        Color frameCol = new Color(BracketWhite.r, BracketWhite.g, BracketWhite.b, 0.92f);
-        const float thick = 2.6f;
+        Color frameCol = new Color(BracketWhite.r, BracketWhite.g, BracketWhite.b, 0.9f);
+        // 左右辺は淡く（モックは中央へ向けて消え込む。カードとの分離感も出る）。
+        Color sideCol = new Color(BracketWhite.r, BracketWhite.g, BracketWhite.b, 0.42f);
+        const float thick = 2.2f;
         float topY = c.y + hh, botY = c.y - hh;
         float edgeHalf = hw - leg;                  // 上下辺の半長
         float sideTop = topY - leg, sideBot = botY + leg;
 
-        // 上下の水平辺。
-        AddQuad(root, "OctFrameTop", frameCol, new Vector2(c.x, topY), new Vector2(edgeHalf * 2f, thick), 0f);
-        AddQuad(root, "OctFrameBottom", frameCol, new Vector2(c.x, botY), new Vector2(edgeHalf * 2f, thick), 0f);
+        // 上下の水平辺はモック実測どおり中央に大きな切れ目を置く
+        // （上辺は ±88..192、下辺は ±115..185 のみ。中央はノード菱形が浮かぶ）。
+        for (int s = -1; s <= 1; s += 2)
+        {
+            AddQuad(root, "OctFrameTop", frameCol,
+                new Vector2(c.x + s * 140f, topY), new Vector2(104f, thick), 0f);
+            AddQuad(root, "OctFrameBottom", frameCol,
+                new Vector2(c.x + s * 150f, botY), new Vector2(70f, thick), 0f);
+        }
 
         float diagLen = leg * 1.41421f;
         for (int s = -1; s <= 1; s += 2)
@@ -400,17 +462,17 @@ public sealed class ResultScreen : MonoBehaviour
                 new Vector2(c.x + s * (edgeHalf + leg * 0.5f), botY + leg * 0.5f),
                 new Vector2(diagLen, thick), s * 45f);
 
-            // 左右辺（シェブロン部 y=c.y±[?] に切れ目）。
-            float gapTop = c.y + 90f, gapBot = c.y - 90f;
-            AddQuad(root, "OctFrameSideU", frameCol,
+            // 左右辺（シェブロン部 y=c.y±110 に切れ目・淡色）。
+            float gapTop = c.y + 110f, gapBot = c.y - 110f;
+            AddQuad(root, "OctFrameSideU", sideCol,
                 new Vector2(c.x + s * hw, (sideTop + gapTop) * 0.5f),
                 new Vector2(thick, sideTop - gapTop), 0f);
-            AddQuad(root, "OctFrameSideL", frameCol,
+            AddQuad(root, "OctFrameSideL", sideCol,
                 new Vector2(c.x + s * hw, (gapBot + sideBot) * 0.5f),
                 new Vector2(thick, gapBot - sideBot), 0f);
 
-            // 面取り内側の青アクセント（平行線＋端ノード）。
-            Color accent = new Color(AccentBlue.r, AccentBlue.g, AccentBlue.b, 0.9f);
+            // 面取り内側の青アクセント（平行線＋端ノード。白フレームより控えめに）。
+            Color accent = new Color(AccentBlue.r, AccentBlue.g, AccentBlue.b, 0.65f);
             Vector2 inset = new Vector2(s * -13f, -13f);
             Vector2 chamMid = new Vector2(c.x + s * (edgeHalf + leg * 0.5f), topY - leg * 0.5f);
             AddQuad(root, "OctAccent", accent, chamMid + inset, new Vector2(diagLen * 0.9f, 3.2f), s * -45f);
@@ -428,15 +490,24 @@ public sealed class ResultScreen : MonoBehaviour
         SetRect(tring.rectTransform, new Vector2(c.x, topY), new Vector2(18f, 18f));
         AddQuad(root, "OctTopNodeCore", new Color(0.72f, 0.80f, 0.92f, 0.9f),
             new Vector2(c.x, topY - 22f), new Vector2(6f, 6f), 45f);
+
+        // 上下辺セグメントの内側端に置く小菱形（開放端のアクセント。oracle 指摘）。
+        Color endNode = new Color(0.52f, 0.58f, 0.70f, 0.7f);
+        for (int s = -1; s <= 1; s += 2)
+        {
+            AddQuad(root, "OctEdgeEnd", endNode, new Vector2(c.x + s * 82f, topY), new Vector2(5f, 5f), 45f);
+            AddQuad(root, "OctEdgeEnd", endNode, new Vector2(c.x + s * 109f, botY), new Vector2(5f, 5f), 45f);
+        }
     }
 
     private void BuildStats(RectTransform root)
     {
         // 位置・サイズはモックアップ実測（1080ref: 430x248・中心 ±487 / +185 / -175）。
-        scoreText = BuildStatCard(root, "Score", new Vector2(-487f, 185f), "スコア", "SCORE", "000,000", StatIcon.Crosshair);
-        hitText = BuildStatCard(root, "Hit", new Vector2(487f, 185f), "被弾回数", "HIT COUNT", "00", StatIcon.Shield);
-        counterText = BuildStatCard(root, "Counter", new Vector2(-487f, -175f), "カウンター回数", "COUNTER COUNT", "00", StatIcon.Swords);
-        timeText = BuildStatCard(root, "Time", new Vector2(487f, -175f), "時間", "TIME", "00:00", StatIcon.Clock);
+        // x は中央フレームとの分離感を出すため +8 外へ（codex 指摘反映）。
+        scoreText = BuildStatCard(root, "Score", new Vector2(-495f, 185f), "スコア", "SCORE", "000,000", StatIcon.Crosshair);
+        hitText = BuildStatCard(root, "Hit", new Vector2(495f, 185f), "被弾回数", "HIT COUNT", "00", StatIcon.Shield);
+        counterText = BuildStatCard(root, "Counter", new Vector2(-495f, -175f), "カウンター回数", "COUNTER COUNT", "00", StatIcon.Swords);
+        timeText = BuildStatCard(root, "Time", new Vector2(495f, -175f), "時間", "TIME", "00:00", StatIcon.Clock);
     }
 
     private TMP_Text BuildStatCard(RectTransform root, string name, Vector2 pos,
@@ -468,9 +539,10 @@ public sealed class ResultScreen : MonoBehaviour
 
         // ラベルはチップ右の領域で中央揃え（モック実測: スコア/カウンター回数とも
         // ブロック中心が card 中心から +11 付近）。
+        // 見出しは純白より一段落として数値を主役に（oracle 磨き込み案）。
         TMP_Text label = NewText("Label", rect,
             jp + "\n<size=20><color=#38C2E0>" + en + "</color></size>",
-            36f, Color.white, TextAlignmentOptions.Center);
+            34f, new Color(0.78f, 0.80f, 0.84f, 1f), TextAlignmentOptions.Center);
         SetRect((RectTransform)label.transform, new Vector2(11f, 44f), new Vector2(340f, 84f));
 
         // 見出し下の細い区切り線（中央ノード＋両端ターミナル付き）。
@@ -485,7 +557,7 @@ public sealed class ResultScreen : MonoBehaviour
     private void BuildDivider(RectTransform card, Vector2 pos, float width)
     {
         Image line = NewImage("Rule", card, DividerTan);
-        SetRect(line.rectTransform, pos, new Vector2(width, 1.6f));
+        SetRect(line.rectTransform, pos, new Vector2(width, 2f));
         AddQuad(card, "RuleNode", DividerBright, pos, new Vector2(8f, 8f), 45f);
         AddQuad(card, "RuleEndL", DividerBright, new Vector2(pos.x - width * 0.5f, pos.y), new Vector2(5f, 5f), 45f);
         AddQuad(card, "RuleEndR", DividerBright, new Vector2(pos.x + width * 0.5f, pos.y), new Vector2(5f, 5f), 45f);
@@ -524,7 +596,7 @@ public sealed class ResultScreen : MonoBehaviour
         Stretch(body.rectTransform);
         body.raycastTarget = true;
 
-        TMP_Text label = NewText("Label", rect, "プレイを終わる", 40f, Color.white,
+        TMP_Text label = NewText("Label", rect, "プレイを終わる", 38f, Color.white,
             TextAlignmentOptions.Center);
         Stretch((RectTransform)label.transform);
 
@@ -573,12 +645,15 @@ public sealed class ResultScreen : MonoBehaviour
 
         // クリア＝青系フレア、失敗＝赤系に切り替える（グレースケールのフレア
         // スプライトをティントで着色）。
-        Color flareBlue = cleared ? new Color(BrandBlue.r, BrandBlue.g, BrandBlue.b, 0.8f)
-                                  : new Color(0.72f, 0.12f, 0.20f, 0.78f);
-        Color flareCyan = cleared ? new Color(Cyan.r, Cyan.g, Cyan.b, 0.78f)
-                                  : new Color(0.95f, 0.30f, 0.38f, 0.72f);
+        Color flareBlue = cleared ? new Color(BrandBlue.r, BrandBlue.g, BrandBlue.b, 0.45f)
+                                  : new Color(0.72f, 0.12f, 0.20f, 0.45f);
+        Color flareCyan = cleared ? new Color(Cyan.r, Cyan.g, Cyan.b, 0.52f)
+                                  : new Color(0.95f, 0.30f, 0.38f, 0.5f);
         if (rankFlareBlue != null) rankFlareBlue.color = flareBlue;
         if (rankFlareCyan != null) rankFlareCyan.color = flareCyan;
+        if (rankGlowMat != null)
+            rankGlowMat.SetColor(ShaderUtilities.ID_UnderlayColor,
+                cleared ? RankGlowBlue : RankGlowRed);
         if (rankAuraOuter != null)
             rankAuraOuter.color = cleared ? new Color(BrandBlue.r, BrandBlue.g, BrandBlue.b, 0.09f)
                                           : new Color(0.6f, 0.08f, 0.14f, 0.10f);
@@ -694,20 +769,27 @@ public sealed class ResultScreen : MonoBehaviour
         return string.Format("{0:00}:{1:00}", total / 60, total % 60);
     }
 
-    private void AddChevron(RectTransform root, float sign, Vector2 center)
+    // モック実測のシェブロン: 外側=細い白の開放「〈」（高さ82・線3.2）、
+    // 内側=青いソリッドの「◀」型シェブロン（高さ50・腕厚13）。sign=-1 が左。
+    private void BuildSideChevrons(RectTransform root, float sign, float cy)
     {
-        const float ax = 12f, ay = 18f;
-        Vector2 point = center + new Vector2(sign * ax, 0f);
-        AddChevronArm(root, point, center + new Vector2(-sign * ax, ay));
-        AddChevronArm(root, point, center + new Vector2(-sign * ax, -ay));
+        Color white = new Color(0.95f, 0.97f, 1f, 0.92f);
+        Vector2 wApex = new Vector2(sign * 289f, cy);
+        AddChevronArm(root, wApex, wApex + new Vector2(-sign * 38f, 41f), 3.2f, white);
+        AddChevronArm(root, wApex, wApex + new Vector2(-sign * 38f, -41f), 3.2f, white);
+
+        Color blue = new Color(AccentBlue.r, AccentBlue.g, AccentBlue.b, 0.95f);
+        Vector2 bApex = new Vector2(sign * 288f, cy);
+        AddChevronArm(root, bApex, bApex + new Vector2(-sign * 26f, 25f), 13f, blue);
+        AddChevronArm(root, bApex, bApex + new Vector2(-sign * 26f, -25f), 13f, blue);
     }
 
-    private void AddChevronArm(RectTransform root, Vector2 a, Vector2 b)
+    private void AddChevronArm(RectTransform root, Vector2 a, Vector2 b, float thick, Color col)
     {
         Vector2 mid = (a + b) * 0.5f;
         float len = Vector2.Distance(a, b);
         float ang = Mathf.Atan2(b.y - a.y, b.x - a.x) * Mathf.Rad2Deg;
-        AddQuad(root, "Chevron", AccentBlue, mid, new Vector2(len, 4f), ang);
+        AddQuad(root, "Chevron", col, mid, new Vector2(len, thick), ang);
     }
 
     // 面取り八角形の 9-slice fill（大きめの面取りで、カード・中央菱形の土台に使う）。
@@ -770,25 +852,31 @@ public sealed class ResultScreen : MonoBehaviour
                 float sdf = ConvexSdf(v, p);         // +外側 / -内側（tex px）
                 float inside = Mathf.Clamp01(0.5f - sdf);
                 Blend(px, TW, TH, x, y, TexFillNavy, inside * TexFillNavy.a);
-                // カード内側の微かな明色グロー（上中央が最も明るく、外へ減衰。
-                // モック実測ではごく淡いので係数は控えめ）。
+                // カード内側のネイビー面勾配（中央上寄りが明るく外周へ沈む。
+                // oracle 指摘: 均一な黒だと平面的に見える）。
                 float gx = (x - cx) / hw;
                 float gy = (y - cy) / hh;
                 float gd = Mathf.Sqrt(gx * gx * 0.6f + (gy - 0.28f) * (gy - 0.28f));
-                float glow = Mathf.Clamp01(1f - gd);
-                Blend(px, TW, TH, x, y, TexInnerGlow, inside * glow * glow * 0.22f);
-                Blend(px, TW, TH, x, y, TexOutlineTan, Mathf.Clamp01(outlineHalf - Mathf.Abs(sdf) + 0.5f));
+                float glow = Mathf.Clamp01(1f - gd * 0.9f);
+                Blend(px, TW, TH, x, y, new Color(0.035f, 0.085f, 0.160f), inside * glow * glow * 0.45f);
+                // 枠は均一色でなく、上辺へ向けて明るい銀へ寄せる（モックの金属感）。
+                float topT = Mathf.Clamp01((y - cy) / hh);
+                Color outCol = Color.Lerp(TexOutlineTan,
+                    new Color(0.64f, 0.66f, 0.70f, 0.98f), topT * topT * 0.55f);
+                Blend(px, TW, TH, x, y, outCol, Mathf.Clamp01(outlineHalf - Mathf.Abs(sdf) + 0.5f));
                 Blend(px, TW, TH, x, y, TexInnerGold, Mathf.Clamp01(1.0f - Mathf.Abs(sdf + innerOffset)) * 0.7f);
             }
         }
 
-        // 内側下辺の面取りに沿った太い青アクセント（少し内側へ詰めて外周の枠を残す）。
+        // 内側下辺の面取りに沿った太い青アクセント（背後に淡い青の滲みを敷く）。
         Vector2 a0, a1;
         if (outerLeft) { a0 = v[3]; a1 = v[4]; }   // 右下面取り
         else { a0 = v[5]; a1 = v[6]; }             // 左下面取り
         Vector2 am = (a0 + a1) * 0.5f;
-        a0 = Vector2.Lerp(a0, am, 0.07f);
-        a1 = Vector2.Lerp(a1, am, 0.07f);
+        a0 = Vector2.Lerp(a0, am, 0.02f);
+        a1 = Vector2.Lerp(a1, am, 0.02f);
+        DrawLine(px, TW, TH, a0.x + cx, a0.y + cy, a1.x + cx, a1.y + cy, 26f * S,
+            new Color(TexAccentBlue.r, TexAccentBlue.g, TexAccentBlue.b, 0.16f));
         DrawLine(px, TW, TH, a0.x + cx, a0.y + cy, a1.x + cx, a1.y + cy, 12f * S, TexAccentBlue);
 
         // 外側 2 隅の明るい白ブラケット（面取り＋隣接辺の短いキャップ）。
@@ -1042,16 +1130,16 @@ public sealed class ResultScreen : MonoBehaviour
         Color32[] px = new Color32[TW * TH];
         float cx = (TW - 1) * 0.5f, cy = (TH - 1) * 0.5f;
 
-        // 枠八角形（横 616 x 縦 98・面取り 16）と本体（内側へ 7）。
+        // 枠八角形（横 616 x 縦 98・面取り 16）と本体（内側へ 8）。
         Vector2[] frame = OctagonVerts(616f * 0.5f * S, 98f * 0.5f * S, 16f * S);
-        Vector2[] body = OctagonVerts((616f * 0.5f - 7f) * S, (98f * 0.5f - 7f) * S, 12f * S);
+        Vector2[] body = OctagonVerts((616f * 0.5f - 8f) * S, (98f * 0.5f - 8f) * S, 12f * S);
 
         // 本体の縦グラデ（モック実測: 上 (0,38,90) → 下 (0,63,150)、最下辺 (0,79,182)）。
         Color topCol = new Color(0.000f, 0.149f, 0.353f);
         Color botCol = new Color(0.000f, 0.247f, 0.588f);
         Color rimCol = new Color(0.000f, 0.310f, 0.714f);
         Color bloomCol = new Color(0.157f, 0.471f, 0.863f);
-        float bodyHalfH = (98f * 0.5f - 7f) * S;
+        float bodyHalfH = (98f * 0.5f - 8f) * S;
         for (int y = 0; y < TH; y++)
         {
             for (int x = 0; x < TW; x++)
@@ -1068,12 +1156,15 @@ public sealed class ResultScreen : MonoBehaviour
                     float rim = Mathf.Clamp01((p.y + bodyHalfH) / (8f * S));
                     if (p.y < -bodyHalfH + 8f * S)
                         Blend(px, TW, TH, x, y, rimCol, inside * (1f - rim) * 0.85f);
-                    if (p.y > bodyHalfH - 4f * S)
-                        Blend(px, TW, TH, x, y, new Color(0.24f, 0.47f, 0.78f), inside * 0.35f);
-                    // 中央下寄りの淡いブルーム。
+                    if (p.y > bodyHalfH - 3f * S)
+                        Blend(px, TW, TH, x, y, new Color(0.30f, 0.68f, 0.88f), inside * 0.45f);
+                    // 中央下寄りの淡いブルーム（ガラス感）。
                     float bd = Mathf.Sqrt((p.x / (250f * S)) * (p.x / (250f * S))
                         + ((p.y + bodyHalfH * 0.4f) / (70f * S)) * ((p.y + bodyHalfH * 0.4f) / (70f * S)));
                     Blend(px, TW, TH, x, y, bloomCol, inside * Mathf.Clamp01(1f - bd) * 0.18f);
+                    // 本体エッジ内側のシアン細線（三段構造の中間レール。oracle 指摘）。
+                    float railLine = Mathf.Clamp01(0.8f * S - Mathf.Abs(sdfB + 4f * S) + 0.5f);
+                    Blend(px, TW, TH, x, y, new Color(0.22f, 0.76f, 0.88f), railLine * 0.4f);
                 }
                 // 枠線（銀）。上辺・下辺は青の発光色を重ねる。
                 float sdfF = ConvexSdf(frame, p);
@@ -1090,22 +1181,23 @@ public sealed class ResultScreen : MonoBehaviour
             }
         }
 
-        // 両端のブラケット（タン＋白の二重角マーク）。枠の左右頂点から外へ。
+        // 両端のブラケット。モックは針状の縦線ではなく「〈」「〉」型の面取りに
+        // 沿った角マーク（銀）＋タンの短い添え線（codex 指摘で作り直し）。
         float fx = 616f * 0.5f * S;      // 枠の半幅
-        float bh = 98f * 0.5f * S - 16f * S;
+        float bh = 98f * 0.5f * S - 16f * S;   // 面取り開始高さ
         Color tan = new Color(0.588f, 0.510f, 0.392f);
+        Color silver = new Color(0.78f, 0.83f, 0.93f);
         for (int s = -1; s <= 1; s += 2)
         {
-            float ox = s * (fx + 8f * S);
-            // タンの角マーク（frame 面取りに沿う「〈」型）。
-            DrawLine(px, TW, TH, cx + ox, cy + bh + 10f * S, cx + ox + s * 12f * S, cy + bh - 6f * S, 2.6f * S, tan);
-            DrawLine(px, TW, TH, cx + ox, cy - bh - 10f * S, cx + ox + s * 12f * S, cy - bh + 6f * S, 2.6f * S, tan);
-            DrawLine(px, TW, TH, cx + ox, cy + bh + 10f * S, cx + ox, cy - bh - 10f * S, 2.4f * S,
-                new Color(0.75f, 0.80f, 0.90f));
-            // 白の内側マーク。
-            float ix = s * (fx - 4f * S);
-            DrawLine(px, TW, TH, cx + ix, cy + bh + 4f * S, cx + ix, cy - bh - 4f * S, 2.0f * S,
-                new Color(0.88f, 0.92f, 1f, 0.85f));
+            // 銀の「〈」: 頂点が外、上下の腕が枠の面取り方向へ戻る。
+            float apex = s * (fx + 10f * S);
+            DrawLine(px, TW, TH, cx + apex, cy, cx + apex - s * 12f * S, cy + (bh + 7f * S), 2.6f * S, silver);
+            DrawLine(px, TW, TH, cx + apex, cy, cx + apex - s * 12f * S, cy - (bh + 7f * S), 2.6f * S, silver);
+            // タンの短い添え線（上下の角の外側に平行）。
+            DrawLine(px, TW, TH, cx + s * (fx - 2f * S), cy + bh + 14f * S,
+                cx + s * (fx - 14f * S), cy + bh + 20f * S, 2.2f * S, tan);
+            DrawLine(px, TW, TH, cx + s * (fx - 2f * S), cy - bh - 14f * S,
+                cx + s * (fx - 14f * S), cy - bh - 20f * S, 2.2f * S, tan);
         }
 
         texture.SetPixels32(px);
