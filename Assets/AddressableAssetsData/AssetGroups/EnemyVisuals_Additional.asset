@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: EnemyVisuals_Additional
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: EnemyVisuals_Additional
+  m_GUID: 8102b2027db571b43acb29100242138d
+  m_SerializeEntries:
+  - m_GUID: 085e2f5d215efa940aa104fd476415ca
+    m_Address: enemy/immortal
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - enemy-visual-immortal
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4de2835f5980ccc4b905db359a42aaf1
+    m_Address: enemy/scholar
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - enemy-visual-scholar
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 621d5ed0ed41c044cbc654790e110aba
+    m_Address: enemy/fifth-student
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - enemy-visual-fifth-student
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 68bb67aa7a4586e41bdcfde0ac0b6fdc
+    m_Address: enemy/scholar-gun
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - enemy-visual-scholar-gun
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bfa8c1b606ec5dd41a979a30ce232e67
+    m_Address: enemy/scholar-book
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - enemy-visual-scholar-book
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e4ebaff28e021f04fa21a6c4d1d775df
+    m_Address: enemy/immortal-magic-circle
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - enemy-visual-immortal-magic-circle
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f293eb1039f69684bab1fd8470f5cbcd
+    m_Address: enemy/fifth-student-magic-circle
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - enemy-visual-fifth-student-magic-circle
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 74e727200a544ea48b7e5cf70ac7590c, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 9ab037f068393de449816bb7dff7c9ce, type: 2}
+    - {fileID: 11400000, guid: 47a35ccf37a941747ad09cbc503bf000, type: 2}

@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03c85d5478bf4707910cc774c0c5edcc, type: 3}
+  m_Name: ImmortalVisualSet
+  m_EditorClassIdentifier: BulletHell.Core::EnemyVisualSetAsset
+  visualId: immortal
+  fallbackSprite: {fileID: 21300000, guid: b9522472389203d47a522d1ff9c14620, type: 3}
+  clips:
+  - name: idle
+    frames:
+    - {fileID: 21300000, guid: b9522472389203d47a522d1ff9c14620, type: 3}
+    frameDurations:
+    - 0.1
+    loop: 1
+    next: 
+  - name: idle2
+    frames:
+    - {fileID: 21300000, guid: 640f462c6741b4a4c965cd3a687c8907, type: 3}
+    frameDurations:
+    - 0.1
+    loop: 1
+    next: 
+  - name: blink
+    frames:
+    - {fileID: 21300000, guid: 7b0559b410302874faf620c3eac821dc, type: 3}
+    - {fileID: 21300000, guid: dd6d28cf82588454cb7c7885a0fff4bd, type: 3}
+    - {fileID: 21300000, guid: 6b4ee2fda20d4ae48975dcf23637f84e, type: 3}
+    - {fileID: 21300000, guid: 7f6f3edb6a9283b4eb032841660ef3fe, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 0
+    next: idle
+  - name: wake
+    frames:
+    - {fileID: 21300000, guid: 6605037d814340f4aa476ccf36b20076, type: 3}
+    - {fileID: 21300000, guid: 7ed87077c4585ef4098c18eb619d9ba0, type: 3}
+    - {fileID: 21300000, guid: f2f9ce5908fb4b84eac2563976c25864, type: 3}
+    - {fileID: 21300000, guid: 880f0aa60d4784c4e932cd6f2ca43fcd, type: 3}
+    - {fileID: 21300000, guid: c47fa8a3a389adc46a3969d2756a2640, type: 3}
+    - {fileID: 21300000, guid: 9d629a6bc6801064082dd181f3422dd8, type: 3}
+    - {fileID: 21300000, guid: 83d8d9d6ac470b944842cc8272417e9c, type: 3}
+    - {fileID: 21300000, guid: 4a584c50bc09a2645a44d10264f918d8, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 0
+    next: idle
+  - name: defeat
+    frames:
+    - {fileID: 21300000, guid: 76c575be44ac7304d946a36d7a0569ba, type: 3}
+    frameDurations:
+    - 0.1
+    loop: 0
+    next: 
