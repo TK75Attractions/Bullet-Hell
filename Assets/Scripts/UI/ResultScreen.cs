@@ -267,7 +267,7 @@ public sealed class ResultScreen : MonoBehaviour
         SetRect(rankAuraOuter.rectTransform, new Vector2(0f, 30f), new Vector2(400f, 400f));
 
         rankAuraInner = NewGraphic<SoftCircleGraphic>("RankAuraInner", root);
-        rankAuraInner.color = new Color(Cyan.r, Cyan.g, Cyan.b, 0.16f);
+        rankAuraInner.color = new Color(Cyan.r, Cyan.g, Cyan.b, 0.13f);
         SetRect(rankAuraInner.rectTransform, new Vector2(0f, 30f), new Vector2(250f, 250f));
 
         // 中央判定を囲む多重の菱形ライン（細いリングを層にして、外ほど暗く沈め、
@@ -368,9 +368,12 @@ public sealed class ResultScreen : MonoBehaviour
         rankText.enableAutoSizing = true;
         rankText.fontSizeMin = 210f;
         rankText.fontSizeMax = 384f;
-        rankText.outlineColor = new Color(Cyan.r, Cyan.g, Cyan.b, 0.9f);
-        rankText.outlineWidth = 0.11f;
+        rankText.outlineColor = new Color(Cyan.r, Cyan.g, Cyan.b, 0.74f);
+        rankText.outlineWidth = 0.09f;
         SetRect((RectTransform)rankText.transform, new Vector2(0f, 26f), new Vector2(460f, 410f));
+        // モックの端正なセリフに寄せる近似: 高さを保ったまま横幅を約8%細くする
+        // （プロジェクトにセリフ TMP 資産が無いため字形はスケールで近似）。oracle 指摘。
+        rankText.rectTransform.localScale = new Vector3(0.92f, 1f, 1f);
     }
 
     private void BuildStats(RectTransform root)
@@ -528,8 +531,8 @@ public sealed class ResultScreen : MonoBehaviour
         rankText.text = rank;
         rankText.color = cleared ? Color.white : new Color(1f, 0.52f, 0.65f, 1f);
         rankText.outlineColor = cleared
-            ? new Color(Cyan.r, Cyan.g, Cyan.b, 0.9f)
-            : new Color(0.85f, 0.08f, 0.22f, 0.9f);
+            ? new Color(Cyan.r, Cyan.g, Cyan.b, 0.74f)
+            : new Color(0.85f, 0.08f, 0.22f, 0.78f);
 
         // クリア＝青系フレア、失敗＝赤系に切り替える（グレースケールのフレア
         // スプライトをティントで着色）。
@@ -543,8 +546,8 @@ public sealed class ResultScreen : MonoBehaviour
             rankAuraOuter.color = cleared ? new Color(BrandBlue.r, BrandBlue.g, BrandBlue.b, 0.09f)
                                           : new Color(0.6f, 0.08f, 0.14f, 0.10f);
         if (rankAuraInner != null)
-            rankAuraInner.color = cleared ? new Color(Cyan.r, Cyan.g, Cyan.b, 0.16f)
-                                          : new Color(0.9f, 0.2f, 0.28f, 0.16f);
+            rankAuraInner.color = cleared ? new Color(Cyan.r, Cyan.g, Cyan.b, 0.13f)
+                                          : new Color(0.9f, 0.2f, 0.28f, 0.13f);
 
         // TODO: 専用のスコア加算系が実装されたら、その確定値へ差し替える。
         // 現状はクリア状況・被弾・カウンター・到達率という実データから暫定算出する。
