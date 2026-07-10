@@ -120,3 +120,7 @@ InitTestScene*.unity*
 *.md
 # .claude/(ローカル設定・discord webhook 等)
 /.claude/
+
+# 一時ディレクトリ全般(.tmp_frames, .tmp_oracle 等)。2026-07-10
+/.tmp_*/
+/.tmp_*
