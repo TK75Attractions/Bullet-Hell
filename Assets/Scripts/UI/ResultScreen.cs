@@ -55,6 +55,7 @@ public sealed class ResultScreen : MonoBehaviour
     private TMP_Text stageNameText;
     private TMP_Text difficultyText;
     private TMP_Text verdictText;
+    private TMP_Text verdictRubyText;
     private TMP_Text rankText;
     private TMP_Text scoreText;
     private TMP_Text hitText;
@@ -316,21 +317,32 @@ public sealed class ResultScreen : MonoBehaviour
         slash.color = Color.white;
         SetTopBand(slash.rectTransform, 1262f, 0f, 70f, bandH);
 
-        // 濃紺の副帯（右側・ステージ名/難易度の受け。真っ黒は避ける。
-        // 視覚 ≈ #021D3E → linear）。右端は画面外。
-        ParallelogramGraphic sub = NewGraphic<ParallelogramGraphic>("HeaderSub", root);
-        sub.SlantRightEdge = true;
-        sub.color = new Color(0.001f, 0.012f, 0.048f, 1f);
-        SetTopBand(sub.rectTransform, 1344f, 0f, 720f, bandH);
+        // 副帯（右側・ステージ名/難易度の受け）。ユーザー指摘(2026-07-10)の
+        // 「石工/LUNATIC 側にもバーを」反映: v9 の濃紺ベタ(ほぼ黒で背景に沈む)を
+        // やめ、主帯と同じ処理＝横グラデ焼き込み＋斜め端＋金属エッジを
+        // 一段暗いトーンで敷く。白スラッシュ仕切りは好評につき維持。
+        // 白スラッシュ両側の黒ギャップが対称(12px)になる位置に置く
+        // （主帯右端 1250/1216・スラッシュ 1262..1332/1296..1298 に対し 1310）。
+        Image sub = NewImage("HeaderSub", root, Color.white);
+        sub.sprite = CreateHeaderSubSprite();
+        sub.type = Image.Type.Simple;
+        SetTopBand(sub.rectTransform, 1310f, 0f, 640f, bandH);
 
-        // 金属質感: 主帯の上辺ハイライト（銀）と下辺の沈み。
+        // 金属質感: 主帯・副帯の上辺ハイライト（銀）と下辺の沈み。
         Image topEdge = NewImage("HeaderTopEdge", root, new Color(0.55f, 0.60f, 0.70f, 0.85f));
         SetTopBand(topEdge.rectTransform, -60f, 0f, 1298f, 2.5f);
         Image botEdge = NewImage("HeaderBotEdge", root, new Color(0.004f, 0.03f, 0.09f, 0.85f));
         SetTopBand(botEdge.rectTransform, -60f, -(bandH - 3f), 1264f, 3f);
+        Image subTopEdge = NewImage("HeaderSubTopEdge", root, new Color(0.55f, 0.60f, 0.70f, 0.7f));
+        SetTopBand(subTopEdge.rectTransform, 1344f, 0f, 576f, 2.5f);
+        Image subBotEdge = NewImage("HeaderSubBotEdge", root, new Color(0.004f, 0.03f, 0.09f, 0.7f));
+        SetTopBand(subBotEdge.rectTransform, 1310f, -(bandH - 3f), 610f, 3f);
 
         // 装飾的な十字アイコン＋タイトル（青帯の上に白・バー中心に合わせる）。
-        BuildCrossIcon(root, new Vector2(102f, -53f));
+        // ユーザー指摘(2026-07-10): 小さく・縦中央・白単色。十字は非対称
+        // (up18/down29・フィニアル込み全高57)なので、バウンディング中心が
+        // バー中央 y=-53 に来るよう交点を +5.5 上げる。
+        BuildCrossIcon(root, new Vector2(102f, -47.5f));
         BuildHeaderTitle(root);
     }
 
@@ -366,6 +378,40 @@ public sealed class ResultScreen : MonoBehaviour
         return sprite;
     }
 
+    // 副帯の横グラデ焼き込み（左端 34px 斜め＝白スラッシュと平行・
+    // 視覚 sRGB 値 #01356E → #011835。主帯より一段暗い青で主従を保ちつつ、
+    // 右端でも「石工/LUNATIC」の背後が帯として読める明度を確保する）。
+    private Sprite CreateHeaderSubSprite()
+    {
+        const int W = 640, H = 106;
+        const float skew = 34f;
+        Texture2D texture = new Texture2D(W, H, TextureFormat.RGBA32, false);
+        texture.name = "ResultHeaderSubTexture";
+        texture.filterMode = FilterMode.Bilinear;
+        Color32[] px = new Color32[W * H];
+        Color left = new Color(0.004f, 0.208f, 0.431f);
+        Color right = new Color(0.005f, 0.095f, 0.208f);
+        for (int y = 0; y < H; y++)
+        {
+            float t = y / (float)(H - 1);              // 0 下端 .. 1 上端
+            float edge = skew * t;                     // 左端の斜め境界
+            for (int x = 0; x < W; x++)
+            {
+                float a = Mathf.Clamp01(x - edge);
+                if (a <= 0f) continue;
+                Color c = Color.Lerp(left, right, x / (float)(W - 1));
+                px[y * W + x] = new Color(c.r, c.g, c.b, a);
+            }
+        }
+        texture.SetPixels32(px);
+        texture.Apply();
+        generatedTextures.Add(texture);
+        Sprite sprite = Sprite.Create(texture, new Rect(0f, 0f, W, H), new Vector2(0.5f, 0.5f), 100f);
+        sprite.name = "ResultHeaderSub";
+        generatedSprites.Add(sprite);
+        return sprite;
+    }
+
     private void BuildHeaderTitle(RectTransform root)
     {
         TMP_Text title = NewText("HeaderTitle", root, "結果  /  RESULT", 42f, Color.white,
@@ -373,8 +419,19 @@ public sealed class ResultScreen : MonoBehaviour
         RectTransform titleRect = (RectTransform)title.transform;
         titleRect.anchorMin = titleRect.anchorMax = new Vector2(0f, 1f);
         titleRect.pivot = new Vector2(0f, 1f);
-        titleRect.anchoredPosition = new Vector2(145f, -21f);
+        titleRect.anchoredPosition = new Vector2(145f, -27f);
         titleRect.sizeDelta = new Vector2(560f, 64f);
+
+        // 「結果」のルビ（曲選択ヘッダー「きょく/せんたく」と同じ様式:
+        // 白 α0.85・中央揃え・漢字ブロックの直上・本文比 ≈0.37）。
+        // タイトルは 42px 等幅全角 → 漢字2文字の中心は x=145+42=187。
+        TMP_Text ruby = NewText("HeaderRuby", root, "けっか", 15f,
+            new Color(1f, 1f, 1f, 0.85f), TextAlignmentOptions.Center);
+        RectTransform rubyRect = (RectTransform)ruby.transform;
+        rubyRect.anchorMin = rubyRect.anchorMax = new Vector2(0f, 1f);
+        rubyRect.pivot = new Vector2(0.5f, 0.5f);
+        rubyRect.anchoredPosition = new Vector2(187f, -28f);
+        rubyRect.sizeDelta = new Vector2(160f, 20f);
     }
 
     // ステージ名と難易度はヘッダー右側の副帯へ（モックアップの中央領域は判定専用
@@ -408,11 +465,12 @@ public sealed class ResultScreen : MonoBehaviour
         rect.sizeDelta = new Vector2(width, height);
     }
 
-    // 装飾十字（ラテン十字・横木は上寄り）。縦木/横木＋4先端の菱形フィニアル＋
-    // 中央のシアン宝石。pivot は横木と縦木の交点。
+    // 装飾十字（ラテン十字・横木は上寄り）。縦木/横木＋4先端の菱形フィニアル。
     // pos はヘッダー左上基準（AddQuad は中央アンカーのため、左上アンカーの
     // コンテナを挟んで交点位置を固定する。v7 まで中央基準で解釈され
     // ヘッダーに出ていなかった不具合の修正）。
+    // ユーザー指摘(2026-07-10)で全体を約2割縮小し、銀2色＋シアン宝石を
+    // やめて白の単色に統一（宝石は同色化で無意味になるため廃止）。
     private void BuildCrossIcon(RectTransform root, Vector2 pos)
     {
         GameObject holder = NewRect("CrossIcon", root);
@@ -422,18 +480,14 @@ public sealed class ResultScreen : MonoBehaviour
         hr.anchoredPosition = pos;
         hr.sizeDelta = Vector2.zero;
 
-        Color silver = new Color(0.92f, 0.95f, 1f, 1f);
-        Color silverDim = new Color(0.66f, 0.74f, 0.88f, 1f);
-        const float up = 23f, down = 36f, halfW = 20f, thick = 6f, dia = 12f;
-        AddQuad(hr, "CrossV", silver, new Vector2(0f, (up - down) * 0.5f),
+        const float up = 18f, down = 29f, halfW = 16f, thick = 5f, dia = 10f;
+        AddQuad(hr, "CrossV", Color.white, new Vector2(0f, (up - down) * 0.5f),
             new Vector2(thick, up + down), 0f);
-        AddQuad(hr, "CrossH", silver, Vector2.zero, new Vector2(halfW * 2f, thick), 0f);
-        AddQuad(hr, "CrossTip", silverDim, new Vector2(0f, up), new Vector2(dia, dia), 45f);
-        AddQuad(hr, "CrossTip", silverDim, new Vector2(0f, -down), new Vector2(dia, dia), 45f);
-        AddQuad(hr, "CrossTip", silverDim, new Vector2(-halfW, 0f), new Vector2(dia, dia), 45f);
-        AddQuad(hr, "CrossTip", silverDim, new Vector2(halfW, 0f), new Vector2(dia, dia), 45f);
-        AddQuad(hr, "CrossGem", new Color(Cyan.r, Cyan.g, Cyan.b, 0.95f), Vector2.zero,
-            new Vector2(9f, 9f), 45f);
+        AddQuad(hr, "CrossH", Color.white, Vector2.zero, new Vector2(halfW * 2f, thick), 0f);
+        AddQuad(hr, "CrossTip", Color.white, new Vector2(0f, up), new Vector2(dia, dia), 45f);
+        AddQuad(hr, "CrossTip", Color.white, new Vector2(0f, -down), new Vector2(dia, dia), 45f);
+        AddQuad(hr, "CrossTip", Color.white, new Vector2(-halfW, 0f), new Vector2(dia, dia), 45f);
+        AddQuad(hr, "CrossTip", Color.white, new Vector2(halfW, 0f), new Vector2(dia, dia), 45f);
     }
 
     private void BuildEvaluation(RectTransform root)
@@ -534,6 +588,12 @@ public sealed class ResultScreen : MonoBehaviour
         verdictText = NewText("Verdict", root, "総合判定\n<size=19><color=#38C2E0>OVERALL EVALUATION</color></size>",
             34f, Color.white, TextAlignmentOptions.Center);
         SetRect((RectTransform)verdictText.transform, new Vector2(0f, 296f), new Vector2(500f, 96f));
+
+        // 見出し漢字のルビ（曲選択様式）。読みはクリア/失敗で Prepare が差し替える。
+        // 漢字行のインク実測(中心 y≈313・34px)の直上に置く。
+        verdictRubyText = NewText("VerdictRuby", root, "そうごうはんてい", 13f,
+            new Color(1f, 1f, 1f, 0.85f), TextAlignmentOptions.Center);
+        SetRect((RectTransform)verdictRubyText.transform, new Vector2(0f, 338f), new Vector2(300f, 18f));
 
         // スタンプ着地時に外へ広がる波紋リング（通常時は透明）。
         rippleA = NewImage("StampRippleA", root, Color.clear);
@@ -653,14 +713,16 @@ public sealed class ResultScreen : MonoBehaviour
             AddQuad(root, "OctAccent", accent, chamMidB + insetB, new Vector2(diagLen * 0.7f, 3.2f), s * 45f);
         }
 
-        // 上辺中央のノード（中空菱形＋直下に小さな芯）。
+        // 上辺中央のノード（中空菱形＋小さな芯）。芯は v9 まで直下(topY-22)にあり
+        // 「総合判定」の漢字行と重なっていた（ユーザー指摘 2026-07-10）。ルビも
+        // 入るため、クラスタごと上辺の上側へ逃がして文字域から完全に外す。
         Color nodeRing = new Color(0.52f, 0.58f, 0.70f, 0.9f);
         Image tring = NewImage("OctTopNode", root, nodeRing);
         tring.sprite = diamondRingSprite;
         tring.type = Image.Type.Simple;
-        SetRect(tring.rectTransform, new Vector2(c.x, topY), new Vector2(18f, 18f));
+        SetRect(tring.rectTransform, new Vector2(c.x, topY + 18f), new Vector2(18f, 18f));
         AddQuad(root, "OctTopNodeCore", new Color(0.72f, 0.80f, 0.92f, 0.9f),
-            new Vector2(c.x, topY - 22f), new Vector2(6f, 6f), 45f);
+            new Vector2(c.x, topY + 40f), new Vector2(6f, 6f), 45f);
 
         // 上下辺セグメントの内側端に置く小菱形（開放端のアクセント。oracle 指摘）。
         Color endNode = new Color(0.52f, 0.58f, 0.70f, 0.7f);
@@ -675,17 +737,19 @@ public sealed class ResultScreen : MonoBehaviour
     {
         // 位置・サイズは 2026-07-10 のモック再実測（1080ref）:
         //   上段カード外周 x=-697..-333（幅366）→ 中心 ±515、
-        //   下段はモックの斜め構図どおり約31px 中央寄り（外周 -660..-303）→ 中心 ±484。
-        //   中央フレーム側辺 ±278 に対し内側間隔は上段 55 / 下段 25。
+        //   下段はモック実測では約31px 中央寄り（±484）だが、ユーザー指摘
+        //   (2026-07-10「下段を中央からもう少し離す」)で ±500 へ +16px 外出し。
+        //   中央フレーム側辺 ±278 に対し内側間隔は上段 54 / 下段 39。
         // 旧値(430x248・±495)は v8 の実測ミスで幅が広く、間隔が 7px しかなかった。
-        scoreText = BuildStatCard(root, "Score", new Vector2(-515f, 185f), "スコア", "SCORE", "000,000", StatIcon.Crosshair);
-        hitText = BuildStatCard(root, "Hit", new Vector2(515f, 185f), "被弾回数", "HIT COUNT", "00", StatIcon.Shield);
-        counterText = BuildStatCard(root, "Counter", new Vector2(-484f, -175f), "カウンター回数", "COUNTER COUNT", "00", StatIcon.Swords);
-        timeText = BuildStatCard(root, "Time", new Vector2(484f, -175f), "時間", "TIME", "00:00", StatIcon.Clock);
+        // ルビは曲選択ヘッダーの様式（白 α0.85・漢字ブロック直上・本文比 ≈0.37）。
+        scoreText = BuildStatCard(root, "Score", new Vector2(-515f, 185f), "スコア", "SCORE", "000,000", StatIcon.Crosshair, null, 0f);
+        hitText = BuildStatCard(root, "Hit", new Vector2(515f, 185f), "被弾回数", "HIT COUNT", "00", StatIcon.Shield, "ひだんかいすう", 50f);
+        counterText = BuildStatCard(root, "Counter", new Vector2(-500f, -175f), "カウンター回数", "COUNTER COUNT", "00", StatIcon.Swords, "かいすう", 110f);
+        timeText = BuildStatCard(root, "Time", new Vector2(500f, -175f), "時間", "TIME", "00:00", StatIcon.Clock, "じかん", 50f);
     }
 
     private TMP_Text BuildStatCard(RectTransform root, string name, Vector2 pos,
-        string jp, string en, string value, StatIcon icon)
+        string jp, string en, string value, StatIcon icon, string ruby, float rubyX)
     {
         GameObject card = NewRect(name + "Card", root);
         RectTransform rect = (RectTransform)card.transform;
@@ -731,6 +795,15 @@ public sealed class ResultScreen : MonoBehaviour
             30f, new Color(0.78f, 0.80f, 0.84f, 1f), TextAlignmentOptions.Center);
         SetRect((RectTransform)label.transform, new Vector2(50f, 44f), new Vector2(240f, 84f));
 
+        // 漢字部分のルビ。rubyX は漢字ブロックの中心 x（「カウンター回数」は
+        // 「回数」だけが漢字なので +60 のように部分位置を渡す）。
+        if (!string.IsNullOrEmpty(ruby))
+        {
+            TMP_Text rubyText = NewText("Ruby", rect, ruby, 11f,
+                new Color(1f, 1f, 1f, 0.85f), TextAlignmentOptions.Center);
+            SetRect((RectTransform)rubyText.transform, new Vector2(rubyX, 79f), new Vector2(220f, 16f));
+        }
+
         // 見出し下の細い区切り線（中央ノード＋両端ターミナル付き）。
         BuildDivider(rect, new Vector2(0f, -16f), 220f);
 
@@ -747,6 +820,19 @@ public sealed class ResultScreen : MonoBehaviour
         AddQuad(card, "RuleNode", DividerBright, pos, new Vector2(8f, 8f), 45f);
         AddQuad(card, "RuleEndL", DividerBright, new Vector2(pos.x - width * 0.5f, pos.y), new Vector2(5f, 5f), 45f);
         AddQuad(card, "RuleEndR", DividerBright, new Vector2(pos.x + width * 0.5f, pos.y), new Vector2(5f, 5f), 45f);
+    }
+
+    // ボタン脇の白スラッシュ用: 上下辺が水平な真の平行四辺形。
+    // sizeDelta.x は「線幅 + skew」で、視覚上の線幅が lineW になる。
+    private static ParallelogramGraphic AddButtonSlash(RectTransform parent, string name,
+        Color color, float x, float lineW, float height, float skew)
+    {
+        ParallelogramGraphic slash = NewGraphic<ParallelogramGraphic>(name, parent);
+        slash.Slant = skew;
+        slash.SlantRightEdge = true;
+        slash.color = color;
+        SetRect(slash.rectTransform, new Vector2(x, 0f), new Vector2(lineW + skew, height));
+        return slash;
     }
 
     private static Image AddQuad(RectTransform parent, string name, Color color,
@@ -785,16 +871,27 @@ public sealed class ResultScreen : MonoBehaviour
         Stretch(body.rectTransform);
         body.raycastTarget = true;
 
-        // 左端の白スラッシュ（難易度選択/タイトルの White マーカーと同じ語彙。
-        // 「選択中の行」を示す記号をリザルトの単一ボタンにも与える）。
-        // 傾きは平行四辺形の斜辺 atan(34/98)≈19°。oracle 指摘(線の過密)を受け、
-        // 太い主線1本+細い補助線1本に整理し、枠の斜辺から離して独立させる。
-        AddQuad(rect, "ButtonSlashA", Color.white, new Vector2(-317f, 0f), new Vector2(11f, 126f), -19f);
-        AddQuad(rect, "ButtonSlashB", new Color(1f, 1f, 1f, 0.5f), new Vector2(-299f, 0f), new Vector2(2.5f, 126f), -19f);
+        // 白スラッシュ（難易度選択/タイトルの White マーカーと同じ語彙）。
+        // v9 までは回転矩形(AddQuad)で上下端が水平にならず「平行四辺形に
+        // なっていない」指摘を受けた。ParallelogramGraphic による真の平行
+        // 四辺形（上下辺が水平・斜辺 19°=skew 43.4/高さ126）へ置き換え、
+        // 難易度バナーと同じ形状言語で右側にも対称配置（太線が外・細線が内）。
+        const float slashH = 126f;
+        const float slashSkew = 43.4f;                 // 126 * tan(19°)
+        AddButtonSlash(rect, "ButtonSlashA", Color.white, -317f, 11f, slashH, slashSkew);
+        AddButtonSlash(rect, "ButtonSlashB", new Color(1f, 1f, 1f, 0.5f), -299f, 2.5f, slashH, slashSkew);
+        AddButtonSlash(rect, "ButtonSlashC", new Color(1f, 1f, 1f, 0.5f), 299f, 2.5f, slashH, slashSkew);
+        AddButtonSlash(rect, "ButtonSlashD", Color.white, 317f, 11f, slashH, slashSkew);
 
         TMP_Text label = NewText("Label", rect, "プレイを終わる", 38f, Color.white,
             TextAlignmentOptions.Center);
         Stretch((RectTransform)label.transform);
+
+        // 「終」のルビ（曲選択様式）。label の子にして光学中央補正へ追従させる。
+        // 7文字等幅 38px・中央揃え → 「終」(5文字目)の中心は -133+4.5*38=+38。
+        TMP_Text exitRuby = NewText("Ruby", (RectTransform)label.transform, "お", 14f,
+            new Color(1f, 1f, 1f, 0.85f), TextAlignmentOptions.Center);
+        SetRect((RectTransform)exitRuby.transform, new Vector2(38f, 28f), new Vector2(40f, 18f));
         exitLabel = label;
         // 日本語は CJK フォールバックの行メトリクスで上に乗るため、インク実測で
         // 光学中央へ補正する。ビルド時(非アクティブ)は空振りし得るので Prepare でも再実行。
@@ -837,6 +934,8 @@ public sealed class ResultScreen : MonoBehaviour
         verdictText.text = cleared
             ? "総合判定\n<size=16><color=#38C2E0>OVERALL EVALUATION</color></size>"
             : "攻略失敗\n<size=16><color=#FF6C8B>STAGE FAILED</color></size>";
+        if (verdictRubyText != null)
+            verdictRubyText.text = cleared ? "そうごうはんてい" : "こうりゃくしっぱい";
 
         string rank = EvaluateRank(cleared, hitCount);
         rankText.text = rank;
@@ -1549,10 +1648,12 @@ public sealed class ResultScreen : MonoBehaviour
         Vector2[] frame = ParallelogramVerts(616f * 0.5f * S, 98f * 0.5f * S, 34f * S);
         Vector2[] body = ParallelogramVerts((616f * 0.5f - 8f) * S, (98f * 0.5f - 8f) * S, 28.5f * S);
 
-        // 本体の縦グラデ（モック実測: 上 (0,38,90) → 下 (0,63,150)、最下辺 (0,79,182)）。
+        // 本体の縦グラデ（モック実測: 上 (0,38,90) → 下 (0,63,150)、最下辺 (0,79,182)。
+        // ユーザー指摘 2026-07-10「背景をもう少し明るく」でブランド青への
+        // 混合率を 0.12 → 0.30 に引き上げ。銀枠・シアンリムは従来のまま）。
         Color brand = new Color(0.259f, 0.565f, 0.859f);   // #4290DB(視覚)
-        Color topCol = Color.Lerp(new Color(0.000f, 0.149f, 0.353f), brand, 0.12f);
-        Color botCol = Color.Lerp(new Color(0.000f, 0.247f, 0.588f), brand, 0.12f);
+        Color topCol = Color.Lerp(new Color(0.000f, 0.149f, 0.353f), brand, 0.30f);
+        Color botCol = Color.Lerp(new Color(0.000f, 0.247f, 0.588f), brand, 0.30f);
         Color rimCol = new Color(0.000f, 0.310f, 0.714f);
         Color bloomCol = new Color(0.157f, 0.471f, 0.863f);
         float bodyHalfH = (98f * 0.5f - 8f) * S;
