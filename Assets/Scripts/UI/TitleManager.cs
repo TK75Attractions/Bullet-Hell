@@ -743,7 +743,7 @@ public class TitleManager : MonoBehaviour
         {
             RectTransform rootRect = (RectTransform)transferRoot.transform;
             bool all = true;
-            foreach (string n in new[] { "Heading", "HeadingSub", "CodeLabel", "InputLabel" })
+            foreach (string n in new[] { "Heading", "HeadingSub", "HeadingRuby", "CodeLabel", "CodeLabelRuby", "InputLabel", "InputLabelRuby" })
             {
                 TMP_Text label = rootRect.Find(n)?.GetComponent<TMP_Text>();
                 if (label != null) all &= TmpAlign.CenterInkVertically(label);
@@ -974,42 +974,79 @@ public class TitleManager : MonoBehaviour
         // 背面の影板(わずかに右下へずらす。ぼかし無しでも黒板の浮きが和らぐ)。
         CreatePanel("PanelShadow", rootRect, new Vector2(6f, -8f), panelSize, new Color(0f, 0f, 0f, 0.24f));
         CreatePanel("Panel", rootRect, Vector2.zero, panelSize, new Color(0.008f, 0.031f, 0.078f, 0.90f));
-        // 上部の薄い青かぶせ・下部の締め(内側グラデの代替)。
-        CreatePanel("PanelTopWash", rootRect, new Vector2(0f, panelHalfH - 45f), new Vector2(panelW, 90f), new Color(0.078f, 0.373f, 0.471f, 0.10f));
+        // 下部の締め(内側グラデの代替)。
         CreatePanel("PanelBottomDark", rootRect, new Vector2(0f, -(panelHalfH - 45f)), new Vector2(panelW, 90f), new Color(0f, 0f, 0f, 0.16f));
-        // 辺ハイライト(上辺だけ少し明るいシアン、他辺は控えめ)。
-        CreatePanel("EdgeTop", rootRect, new Vector2(0f, panelHalfH - 1f), new Vector2(panelW, 2f), new Color(0.282f, 0.902f, 1f, 0.28f));
-        CreatePanel("EdgeBottom", rootRect, new Vector2(0f, -(panelHalfH - 0.5f)), new Vector2(panelW, 1f), new Color(0f, 0f, 0f, 0.55f));
-        CreatePanel("EdgeLeft", rootRect, new Vector2(-(panelHalfW - 0.5f), 0f), new Vector2(1f, panelH), new Color(0.282f, 0.902f, 1f, 0.12f));
-        CreatePanel("EdgeRight", rootRect, new Vector2(panelHalfW - 0.5f, 0f), new Vector2(1f, panelH), new Color(0.282f, 0.902f, 1f, 0.08f));
+        // 辺は銀(リザルトの金属エッジ視覚(0.55,0.60,0.70)の pre-linear 換算)で
+        // 全周統一し、4隅にリザルトカードの白ブラケットを置く(統一便2)。
+        Color edgeSilver = new Color(0.268f, 0.325f, 0.456f);
+        CreatePanel("EdgeTop", rootRect, new Vector2(0f, panelHalfH - 1f), new Vector2(panelW, 2f), new Color(edgeSilver.r, edgeSilver.g, edgeSilver.b, 0.80f));
+        CreatePanel("EdgeBottom", rootRect, new Vector2(0f, -(panelHalfH - 1f)), new Vector2(panelW, 2f), new Color(edgeSilver.r, edgeSilver.g, edgeSilver.b, 0.60f));
+        CreatePanel("EdgeLeft", rootRect, new Vector2(-(panelHalfW - 1f), 0f), new Vector2(2f, panelH), new Color(edgeSilver.r, edgeSilver.g, edgeSilver.b, 0.60f));
+        CreatePanel("EdgeRight", rootRect, new Vector2(panelHalfW - 1f, 0f), new Vector2(2f, panelH), new Color(edgeSilver.r, edgeSilver.g, edgeSilver.b, 0.60f));
+        // コンテンツ(ラベル・コード帯・入力行)の左右端を揃える基準
+        // (第34便 oracle: 幅を絞る)。帯上の見出しの左端もこれに揃える。
+        const float contentHalf = 272f;
 
-        // 見出しはタイポグラフィのみ(バナー・スラッシュなし)。見出しの下に短い
-        // 区切り線を1本だけ入れ、見出しをタイトルブロックとして締める(oracle bin34)。
-        TMP_Text heading = CreateText("Heading", rootRect, new Vector2(0f, 170f), new Vector2(700f, 56f), 44f, Cyan, TextAlignmentOptions.Center);
+        // 見出し: リザルトのヘッダー帯様式のミニ帯をパネル上部に敷く(統一便2、
+        // moracle モック transfer-restyle-mock 準拠)。主帯に白見出し+ルビ+
+        // シアン英字サブ、白スラッシュ仕切りの右は濃紺副帯。
+        const float bandTopH = 84f;
+        const float bandSlashX = 520f; // 帯左端基準(=パネル65%)
+        float bandCenterY = panelHalfH - bandTopH * 0.5f;
+        Image headerBand = CreatePanel("HeaderBand", rootRect, new Vector2(0f, bandCenterY), new Vector2(panelW, bandTopH), Color.white);
+        headerBand.sprite = UiButtonStyle.CreateHeaderBandSprite((int)panelW, (int)bandTopH, bandSlashX, null, null, "TransferHeaderBand");
+        headerBand.type = Image.Type.Simple;
+        UiButtonStyle.AddHeaderSlash(headerBand.rectTransform, panelW, bandTopH, bandSlashX);
+        // 4隅の白ブラケットは帯より後に生成し、帯の上にも描く(上2隅が帯に
+        // 隠れない)。
+        Color bracketWhite = new Color(0.85f, 0.90f, 1f, 0.92f);
+        foreach (Vector2 corner in new[] { new Vector2(-1f, 1f), new Vector2(1f, 1f), new Vector2(1f, -1f), new Vector2(-1f, -1f) })
+        {
+            float cx = corner.x * panelHalfW;
+            float cy = corner.y * panelHalfH;
+            CreatePanel("BracketH", rootRect, new Vector2(cx - corner.x * 13f, cy - corner.y * 1.5f), new Vector2(26f, 3f), bracketWhite);
+            CreatePanel("BracketV", rootRect, new Vector2(cx - corner.x * 1.5f, cy - corner.y * 13f), new Vector2(3f, 26f), bracketWhite);
+        }
+        // 帯の直下に細い影を落とし、リザルトヘッダーと同じ積層感を出す
+        // (oracle transfer-restyle-review 指摘5)。
+        CreatePanel("BandShadow", rootRect, new Vector2(0f, bandCenterY - bandTopH * 0.5f - 1.5f), new Vector2(panelW, 3f), new Color(0f, 0.008f, 0.02f, 0.55f));
+        // 帯上のテキストは左端をコンテンツ左端(-272)に揃える。ブロック全体は
+        // 帯の縦中央に(oracle 指摘: 4px 下寄りを補正)。
+        TMP_Text heading = CreateText("Heading", rootRect, new Vector2(-72f, bandCenterY), new Vector2(400f, 34f), 30f, Color.white, TextAlignmentOptions.Left);
         heading.fontStyle = FontStyles.Bold;
-        TMP_Text headingSub = CreateText("HeadingSub", rootRect, new Vector2(0f, 140f), new Vector2(700f, 24f), 16f, new Color(0.62f, 0.91f, 0.906f, 0.5f), TextAlignmentOptions.Center);
-        headingSub.characterSpacing = 9f;
+        TMP_Text headingRuby = CreateText("HeadingRuby", rootRect, new Vector2(-214f, bandCenterY + 24f), new Vector2(130f, 14f), 11f, new Color(1f, 1f, 1f, 0.85f), TextAlignmentOptions.Center);
+        headingRuby.text = "ひきつぎ";
+        TMP_Text headingSub = CreateText("HeadingSub", rootRect, new Vector2(-72f, bandCenterY - 24f), new Vector2(400f, 16f), 13f, Cyan, TextAlignmentOptions.Left);
+        headingSub.characterSpacing = 6f;
         headingSub.text = "TRANSFER CODE";
-        CreatePanel("HeadingRule", rootRect, new Vector2(0f, 116f), new Vector2(260f, 1f), new Color(0.275f, 0.863f, 0.941f, 0.30f));
+        // 帯直下の区切り線(中央ノード+両端ターミナル。リザルトカード様式)。
+        // 幅はパネル端から40px内側まで(oracle 指摘4: 本文幅に閉じない)。
+        // y はラベルのルビ(113)と帯影(133)の間。
+        BuildTransferDivider(rootRect, new Vector2(0f, 126f), panelW - 80f);
 
         // コード表示: ラベル+1枚のネオン帯(第33便: 1文字=1チップの4分割をやめ、
         // 「C4D7」のように連続した1フィールドにまとめる。可読フォントは維持)。
         // 装飾層(外グロー→外枠→本体→ハイライト/影/帯/アクセント)はチップ時代の
         // 見た目を踏襲しつつ、帯1枚に集約する。
-        const float contentHalf = 272f; // 入力行の左右端を揃える基準(第34便 oracle: 幅を絞る)
         // 第35便: コードチップ幅を入力行の全幅(contentHalf*2=544)に合わせ、チップだけ
         // 狭かったのを解消。ラベルの左端(-contentHalf)もチップ左端に一致する。
         const float bandW = contentHalf * 2f;
         const float bandH = 64f;
-        TMP_Text codeLabel = CreateText("CodeLabel", rootRect, new Vector2(-contentHalf + 180f, 80f), new Vector2(360f, 30f), 20f, new Color(0.388f, 0.867f, 0.91f, 0.5f), TextAlignmentOptions.Left);
-        codeLabel.characterSpacing = 3f;
+        // ラベルはリザルトカード様式(白グレー漢字+シアン英字サブの2行 rich text+
+        // 漢字ブロック上のルビ。本文はSetChildTextで流し込む。24px は oracle
+        // transfer-restyle-review 指摘3: 20px では階層が弱い)。
+        TMP_Text codeLabel = CreateText("CodeLabel", rootRect, new Vector2(-contentHalf + 200f, 84f), new Vector2(400f, 56f), 24f, new Color(0.78f, 0.80f, 0.84f), TextAlignmentOptions.TopLeft);
+        codeLabel.characterSpacing = 2f;
+        // 「あなたの引き継ぎコード」の 引き継ぎ(5〜8文字目、24px×4字)の直上。
+        TMP_Text codeLabelRuby = CreateText("CodeLabelRuby", rootRect, new Vector2(-128f, 113f), new Vector2(130f, 14f), 10f, new Color(1f, 1f, 1f, 0.85f), TextAlignmentOptions.Center);
+        codeLabelRuby.text = "ひきつぎ";
 
         transferCodeBlocksRoot = new GameObject("CodeBlocks", typeof(RectTransform));
         transferCodeBlocksRoot.layer = gameObject.layer;
         RectTransform blocksRect = (RectTransform)transferCodeBlocksRoot.transform;
         blocksRect.SetParent(rootRect, false);
         blocksRect.anchorMin = blocksRect.anchorMax = new Vector2(0.5f, 0.5f);
-        blocksRect.anchoredPosition = new Vector2(0f, 32f);
+        blocksRect.anchoredPosition = new Vector2(0f, 18f);
         transferCodeBlockTexts = new TMP_Text[1];
         transferCodeBlockShadows = new TMP_Text[1]; // 背面のシアン疑似グロー文字
         transferHyphenTexts = new TMP_Text[0];       // 分割しないのでハイフンは無し
@@ -1042,36 +1079,57 @@ public class TitleManager : MonoBehaviour
         bt.characterSpacing = 20f;
         transferCodeBlockTexts[0] = bt;
         // 履歴なしのときだけ出すメッセージ(ブロックと同じ位置)。
-        transferCodeText = CreateText("Code", rootRect, new Vector2(0f, 32f), new Vector2(720f, 80f), 30f, CyanDim, TextAlignmentOptions.Center);
+        transferCodeText = CreateText("Code", rootRect, new Vector2(0f, 18f), new Vector2(720f, 80f), 30f, CyanDim, TextAlignmentOptions.Center);
+
+        // コード表示と入力の間の区切り線(リザルトカード様式)。y はコード帯下端
+        // (-14)と入力ラベルのルビ(-39)の間。
+        BuildTransferDivider(rootRect, new Vector2(0f, -26f), panelW - 80f);
 
         // 入力: ラベル+入力欄+適用ボタン(行の左右端はチップ列に揃える)。
-        TMP_Text inputLabel = CreateText("InputLabel", rootRect, new Vector2(-contentHalf + 180f, -48f), new Vector2(360f, 30f), 20f, new Color(0.388f, 0.867f, 0.91f, 0.5f), TextAlignmentOptions.Left);
-        inputLabel.characterSpacing = 3f;
+        TMP_Text inputLabel = CreateText("InputLabel", rootRect, new Vector2(-contentHalf + 200f, -68f), new Vector2(400f, 56f), 24f, new Color(0.78f, 0.80f, 0.84f), TextAlignmentOptions.TopLeft);
+        inputLabel.characterSpacing = 2f;
+        // 「コードを入力」の 入力(5〜6文字目、24px×2字)の直上。
+        TMP_Text inputLabelRuby = CreateText("InputLabelRuby", rootRect, new Vector2(-152f, -39f), new Vector2(130f, 14f), 10f, new Color(1f, 1f, 1f, 0.85f), TextAlignmentOptions.Center);
+        inputLabelRuby.text = "にゅうりょく";
 
         const float inputW = 420f;
         const float applyW = 108f;
         const float rowH = 56f;
-        BuildInputField(rootRect, new Vector2(-contentHalf + inputW * 0.5f, -104f), new Vector2(inputW, rowH));
+        BuildInputField(rootRect, new Vector2(-contentHalf + inputW * 0.5f, -138f), new Vector2(inputW, rowH));
 
-        applyButton = CreatePanel("ApplyButton", rootRect, new Vector2(contentHalf - applyW * 0.5f, -104f), new Vector2(applyW, rowH), ApplyIdle);
+        applyButton = CreatePanel("ApplyButton", rootRect, new Vector2(contentHalf - applyW * 0.5f, -138f), new Vector2(applyW, rowH), ApplyIdle);
         TMP_Text applyLabel = CreateText("ApplyLabel", applyButton.rectTransform, Vector2.zero, new Vector2(applyW, rowH), 26f, ApplyLabelIdle, TextAlignmentOptions.Center);
         StretchToParent(applyLabel.rectTransform);
         applyLabel.fontStyle = FontStyles.Bold;
         applyLabelText = applyLabel;
 
-        transferMessageText = CreateText("Message", rootRect, new Vector2(0f, -180f), new Vector2(720f, 36f), 22f, Cyan, TextAlignmentOptions.Center);
+        transferMessageText = CreateText("Message", rootRect, new Vector2(0f, -194f), new Vector2(720f, 36f), 22f, Cyan, TextAlignmentOptions.Center);
 
         // 操作ヒント行(ENTER 適用 / CTRL+C コピー / ESC 戻る)は第34便で削除。
         // 操作自体は有効なまま、画面の主張を抑える。
 
         // Fill the label texts.
         SetChildText(rootRect, "Heading", "引き継ぎ");
-        SetChildText(rootRect, "CodeLabel", "あなたの引き継ぎコード");
-        SetChildText(rootRect, "InputLabel", "コードを入力");
+        SetChildText(rootRect, "CodeLabel", "あなたの引き継ぎコード\n<size=13><color=#38C2E0>YOUR TRANSFER CODE</color></size>");
+        SetChildText(rootRect, "InputLabel", "コードを入力\n<size=13><color=#38C2E0>ENTER CODE</color></size>");
         SetChildText(applyButton.rectTransform, "ApplyLabel", "適用");
         transferMessageText.text = string.Empty;
 
         transferRoot.SetActive(false);
+    }
+
+    // 細い区切り線(中央ノード+両端ターミナルの45°ダイヤ)。リザルトカードの
+    // BuildDivider と同様式・同色(DividerTan/DividerBright、pre-linear)。
+    private void BuildTransferDivider(RectTransform parent, Vector2 pos, float width)
+    {
+        CreatePanel("Rule", parent, pos, new Vector2(width, 2f), new Color(0.092f, 0.086f, 0.080f));
+        Color node = new Color(0.32f, 0.35f, 0.38f);
+        Image center = CreatePanel("RuleNode", parent, pos, new Vector2(8f, 8f), node);
+        center.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 45f);
+        Image endL = CreatePanel("RuleEndL", parent, new Vector2(pos.x - width * 0.5f, pos.y), new Vector2(5f, 5f), node);
+        endL.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 45f);
+        Image endR = CreatePanel("RuleEndR", parent, new Vector2(pos.x + width * 0.5f, pos.y), new Vector2(5f, 5f), node);
+        endR.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 45f);
     }
 
     private void BuildInputField(RectTransform parent, Vector2 pos, Vector2 size)

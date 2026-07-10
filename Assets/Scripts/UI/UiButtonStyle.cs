@@ -151,6 +151,89 @@ public static class UiButtonStyle
         return slash;
     }
 
+    // リザルトのヘッダー帯（ブランド青の横グラデ主帯→白スラッシュ仕切り→濃紺
+    // 副帯+上下金属エッジ）を任意サイズで1枚に焼き込む。幾何は帯高 106 基準の
+    // 比率（斜辺 34/106）で、主帯右端/副帯左端は slashCenterX からの距離を H 比で
+    // 縮尺する（リザルト実測: 主帯 -41.5・副帯 +11.5 @H=106）。白スラッシュ本体は
+    // 別描画（AddHeaderSlash）。色は視覚 sRGB 値（OptionMenu RestyleHeaderBand と
+    // 同値）。slashCenterX はテクスチャ左端基準。
+    public static Sprite CreateHeaderBandSprite(int W, int H, float slashCenterX,
+        List<Texture2D> texOwner, List<Sprite> spriteOwner, string spriteName)
+    {
+        Texture2D texture = new Texture2D(W, H, TextureFormat.RGBA32, false);
+        texture.name = spriteName + "Texture";
+        texture.filterMode = FilterMode.Bilinear;
+        Color32[] px = new Color32[W * H];
+        float k = H / 106f;
+        float skew = 34f * k;
+        float mainTopRight = slashCenterX - 41.5f * k;
+        float subBottomLeft = slashCenterX + 11.5f * k;
+        Color mainL = new Color(0.004f, 0.255f, 0.565f);
+        Color mainR = new Color(0.008f, 0.424f, 0.859f);
+        Color subL = new Color(0.004f, 0.208f, 0.431f);
+        Color subR = new Color(0.005f, 0.095f, 0.208f);
+        Color edgeHi = new Color(0.55f, 0.60f, 0.70f);
+        Color edgeLo = new Color(0.004f, 0.03f, 0.09f);
+        float edgeH = Mathf.Max(2f, 3f * k);
+        for (int y = 0; y < H; y++)
+        {
+            float t = y / (float)(H - 1);
+            float edgeMain = (mainTopRight - skew) + skew * t;
+            float edgeSub = subBottomLeft + skew * t;
+            for (int x = 0; x < W; x++)
+            {
+                float a;
+                Color c;
+                if (x < edgeMain + 1f)
+                {
+                    a = Mathf.Clamp01(edgeMain - x);
+                    c = Color.Lerp(mainL, mainR, Mathf.Clamp01(x / mainTopRight));
+                }
+                else if (x > edgeSub - 1f)
+                {
+                    a = Mathf.Clamp01(x - edgeSub);
+                    c = Color.Lerp(subL, subR, Mathf.Clamp01((x - subBottomLeft) / (W - subBottomLeft)));
+                }
+                else continue;
+                if (a <= 0f) continue;
+                if (y >= H - edgeH) c = Color.Lerp(c, edgeHi, 0.85f);
+                else if (y < edgeH) c = Color.Lerp(c, edgeLo, 0.85f);
+                px[y * W + x] = new Color(c.r, c.g, c.b, a);
+            }
+        }
+        texture.SetPixels32(px);
+        texture.Apply();
+        texOwner?.Add(texture);
+        Sprite sprite = Sprite.Create(texture, new Rect(0f, 0f, W, H), new Vector2(0.5f, 0.5f), 100f);
+        sprite.name = spriteName;
+        spriteOwner?.Add(sprite);
+        return sprite;
+    }
+
+    // ヘッダー帯の白スラッシュ仕切り（帯全高・角度 atan(34/106)=約17.8°。
+    // ボタン脇の 19° スラッシュとは別規格で、リザルト/設定のヘッダー帯と同一）。
+    // slashCenterX は帯左端基準（CreateHeaderBandSprite と同じ座標系）。
+    public static ParallelogramGraphic AddHeaderSlash(RectTransform band, float bandW, float bandH, float slashCenterX)
+    {
+        float k = bandH / 106f;
+        float skew = 34f * k;
+        float lineW = 36f * k;
+        GameObject go = new GameObject("HeaderSlash", typeof(RectTransform), typeof(CanvasRenderer), typeof(ParallelogramGraphic));
+        go.layer = band.gameObject.layer;
+        RectTransform rect = (RectTransform)go.transform;
+        rect.SetParent(band, false);
+        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = new Vector2(slashCenterX - bandW * 0.5f, 0f);
+        rect.sizeDelta = new Vector2(lineW + skew, bandH);
+        ParallelogramGraphic slash = go.GetComponent<ParallelogramGraphic>();
+        slash.Slant = skew;
+        slash.SlantRightEdge = true;
+        slash.color = Color.white;
+        slash.raycastTarget = false;
+        return slash;
+    }
+
     // 凸多角形の符号付き距離（+外側）。原点は内部にある前提。
     private static float ConvexSdf(Vector2[] v, Vector2 p)
     {
