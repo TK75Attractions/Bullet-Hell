@@ -106,4 +106,12 @@ public class AudioManager : MonoBehaviour
         SEPool.Add(so);
         return so;
     }
+
+
+public void StopBGM()
+    {
+        if (BGMSource == null) return;
+        BGMSource.Stop();
+        BGMSource.clip = null;
+    }
 }

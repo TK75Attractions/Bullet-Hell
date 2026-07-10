@@ -11,6 +11,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
+using TMPro;
 
 public class GManager : MonoBehaviour
 {
@@ -38,12 +39,15 @@ public class GManager : MonoBehaviour
     public CManager CManager;
     public StageSelectManager SSManager;
     public TitleManager TManager;
+    public ResultScreen RManager;
     // 0=Easy / 1=Normal / 2=Lunatic。現状データは Lunatic のみのため既定を Lunatic に。
     public int selectedDifficulty = 2;
     public bool isPaused = false;
     private GameObject optionScreenObj;
     private OptionMenu optionMenu;
     private bool titleArmed = false;
+    private bool resultTransitioning = false;
+    private int currentStageIndex = -1;
 
     // Which layer of the title screen currently owns input.
     // Starting はスタート決定後、タイトル退場演出がステージ選択に覆われる
@@ -157,6 +161,15 @@ public class GManager : MonoBehaviour
             SSManager = transform.parent.Find("Canvases").Find("StageCanvas").Find("StageBoxParent").GetComponent<StageSelectManager>();
             SSManager.Init();
             LogStartup("Stage select initialized");
+
+            Transform canvasesRoot = transform.parent.Find("Canvases");
+            TMP_Text fontSource = canvasesRoot != null
+                ? canvasesRoot.GetComponentInChildren<TMP_Text>(true)
+                : null;
+            RManager = ResultScreen.Create(canvasesRoot, fontSource != null ? fontSource.font : null);
+            RManager.ActionRequested += HandleResultAction;
+            currentStageIndex = SSManager.CurrentStageIndex;
+            LogStartup("Result screen initialized");
 
             Transform titleTrans = transform.parent.Find("Canvases").Find("StageCanvas").Find("Title");
             if (titleTrans != null)
@@ -279,8 +292,24 @@ public class GManager : MonoBehaviour
         SReader.UpdateStage(t);
         UpdateStoneLandingShake();
 
+        if (state == GameState.Playing && SReader.HasReachedEndTime && !resultTransitioning)
+        {
+            ShowResult(true);
+        }
+
         QOrder.QuadUpdate(t);
         IManager.UpdateInput();
+
+        if (state == GameState.Result)
+        {
+            RManager?.Tick(
+                IManager.leftPressedThisFrame,
+                IManager.rightPressedThisFrame,
+                IManager.buttonPressed,
+                IManager.buttonPressedThisFrame,
+                IManager.backPressedThisFrame);
+            return;
+        }
 
         // Esc during gameplay opens the option (pause) screen.
         if (state == GameState.Playing && IManager.backPressedThisFrame)
@@ -571,6 +600,7 @@ public class GManager : MonoBehaviour
         // CreateRuntimeCopy が top-level(Lunatic)へフォールバックして正常に起動する。
         Difficulty selected = (Difficulty)Mathf.Clamp(selectedDifficulty, 0, 2);
         StageData runtimeStage = stage.CreateRuntimeCopy(selected);
+        currentStageIndex = index;
 
         playerHitCount = 0;
         counterHitBossCount = 0;
@@ -595,6 +625,116 @@ public class GManager : MonoBehaviour
         PlayHistory.RecordPlay(historyDir);
         Debug.Log($"Started Stage: {runtimeStage.stageName} (requested={selected}, data={runtimeStage.resolvedDataDifficulty.displayName})");
     }
+    // ステージ終了条件の共通入口。現状は StageReader.endTime 到達をクリアとして
+    // 自動呼び出しする。TODO: ライフ制/失敗条件が追加されたら ShowResult(false)
+    // をその確定箇所から呼ぶ。
+    public async void ShowResult(bool cleared)
+    {
+        await ShowResultAsync(cleared, true);
+    }
+
+#if UNITY_EDITOR
+    // Play Mode で UI を単独確認するための入口。履歴は変更しない。
+    public async void DebugShowResult(bool cleared = true)
+    {
+        await ShowResultAsync(cleared, false);
+    }
+#endif
+
+    private async Task ShowResultAsync(bool cleared, bool recordHistory)
+    {
+        if (resultTransitioning || RManager == null) return;
+        resultTransitioning = true;
+
+        StageData stage = SReader != null && SReader.CurrentStage != null
+            ? SReader.CurrentStage
+            : ResolveSelectedStage();
+        if (stage == null) stage = ResolveSelectedStage();
+        float endTime = stage != null ? stage.endTime : 0f;
+        float elapsed = SReader != null && SReader.IsReady
+            ? SReader.CurrentTime
+            : (cleared ? endTime : endTime * 0.63f);
+
+        PixelTransition transition = FindPixelTransition();
+        if (transition != null)
+        {
+            transition.SetColor(Color.white);
+            await transition.WhiteoutCover();
+        }
+
+        state = GameState.Result;
+        musicOn = false;
+        AManager?.StopBGM();
+        QOrder?.ClearAllGameplayBulletsImmediate();
+
+        if (recordHistory && cleared && stage != null)
+        {
+            string historyDir = string.IsNullOrWhiteSpace(stage.stageDirectoryName)
+                ? stage.stageName
+                : stage.stageDirectoryName;
+            PlayHistory.RecordClear(historyDir);
+        }
+
+        RManager.Prepare(stage, selectedDifficulty, cleared, playerHitCount,
+            counterHitBossCount, elapsed, endTime);
+        SReader?.StopStage();
+
+        if (transition != null) await transition.MosaicReveal();
+        RManager.PlayEntrance();
+        resultTransitioning = false;
+    }
+
+    private StageData ResolveSelectedStage()
+    {
+        int index = currentStageIndex >= 0
+            ? currentStageIndex
+            : (SSManager != null ? SSManager.CurrentStageIndex : 0);
+        if (SDB == null || index < 0 || index >= SDB.GetStageCount()) return null;
+        currentStageIndex = index;
+        return SDB.GetStage(index);
+    }
+
+    private PixelTransition FindPixelTransition()
+    {
+        PixelTransition[] transitions = UnityEngine.Object.FindObjectsByType<PixelTransition>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None);
+        return transitions.Length > 0 ? transitions[0] : null;
+    }
+
+    private async void HandleResultAction(ResultScreen.Action action)
+    {
+        if (resultTransitioning || RManager == null || !RManager.Visible) return;
+        resultTransitioning = true;
+
+        PixelTransition transition = FindPixelTransition();
+        if (transition != null)
+        {
+            transition.SetColor(Color.white);
+            await transition.WhiteoutCover();
+        }
+
+        RManager.HideImmediate();
+        AudioListener.pause = false;
+        Time.timeScale = 1f;
+
+        if (action == ResultScreen.Action.Retry)
+        {
+            int retryIndex = currentStageIndex >= 0
+                ? currentStageIndex
+                : (SSManager != null ? SSManager.CurrentStageIndex : 0);
+            await GoGameAsync(retryIndex);
+        }
+        else
+        {
+            QOrder?.ClearAllGameplayBulletsImmediate();
+            state = GameState.ChoosingStage;
+            SSManager?.PrepareReturnFromResult();
+        }
+
+        if (transition != null) await transition.MosaicReveal();
+        resultTransitioning = false;
+    }
+
 
     // Opens/closes the pause (option) screen. Freezes game time and all audio.
     public void SetPaused(bool pause)

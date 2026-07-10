@@ -55,6 +55,8 @@ public class StageSelectManager : MonoBehaviour
     }
 
     private State state = State.Music;
+    public int CurrentStageIndex => stageBar != null ? stageBar.currentStage : 0;
+
 
     private bool isTransitioning = false;
 
@@ -164,6 +166,31 @@ public class StageSelectManager : MonoBehaviour
     {
         RefreshStyleVisibility();
     }
+    // リザルトから同一シーン内でステージ選択へ戻す。プレイ開始時に隠した
+    // CanvasGroup と JSAB オーバーレイを、Music フェーズの静止状態へ戻す。
+    public void PrepareReturnFromResult()
+    {
+        state = State.Music;
+        isTransitioning = false;
+        remainingTime = musicSelectTime;
+        phaseTotalTime = musicSelectTime;
+        ApplySlide(0f);
+        stageBar.SetAlpha(1f);
+        scroll.SetAlpha(1f);
+        defficultyBar.SetAlpha(0f);
+        defficultyBar.SetEntranceProgress(0f);
+        stageDescription.Transition(0f);
+        header.TransitionNotes(0);
+        if (playHUD != null) playHUD.alpha = 0f;
+        if (jsab != null)
+        {
+            jsab.CloseDifficulty();
+            jsab.SetStage(stageBar.currentStage, GManager.Control.SDB.GetStageCount(), false);
+            jsab.SetEntranceAlpha(1f);
+        }
+        RefreshStyleVisibility();
+    }
+
 
     private int FindStageIndex(string stageName)
     {
