@@ -14,7 +14,9 @@ public class OptionMenu : MonoBehaviour
     private const float sliderWidth = 660f;
     private const float selectedShiftX = 10f;
     private const float textBlockShiftY = -10f;
-    private const float confirmButtonTextOffsetY = -7f;
+    // CJK フォールバックの行メトリクスで上に乗る分の光学補正。フォントサイズに
+    // 比例する(32px 時 -7 → 25px 時 -5.5)。
+    private const float confirmButtonTextOffsetY = -5.5f;
     private static readonly Vector2 yesButtonPosition = new Vector2(-160f, -95f);
     private static readonly Vector2 noButtonPosition = new Vector2(160f, -95f);
 
@@ -458,9 +460,24 @@ public class OptionMenu : MonoBehaviour
         headerAnimT = 1f;
         ApplyHeaderEntrance(1f);
         confirmGroup.SetActive(false);
+        // 撮影フレームだけ明部ウィジェットを隠す。ぼかしに写った白いスライダー
+        // バー等はシェード(α0.94)越しでも知覚的に残り、「ダイアログの上に
+        // スライダーが貫通表示」に見える(2026-07-11 指摘)。撮影後に戻す。
+        SetControlWidgetsVisible(false);
         RefreshConfirm();
         if (confirmCaptureRoutine != null) StopCoroutine(confirmCaptureRoutine);
         confirmCaptureRoutine = StartCoroutine(CaptureConfirmBackdrop());
+    }
+
+    // 音量スライダーとエフェクトトグル(明るい前景ウィジェット)の表示切替。
+    // 確認ダイアログの背景ぼかし撮影中だけ false にする。
+    private void SetControlWidgetsVisible(bool visible)
+    {
+        if (sliderKnob != null && sliderKnob.parent != null)
+            sliderKnob.parent.gameObject.SetActive(visible);
+        if (toggleKnob != null && toggleKnob.parent != null && toggleKnob.parent.parent != null)
+            toggleKnob.parent.parent.gameObject.SetActive(visible);
+        if (toggleStateText != null) toggleStateText.gameObject.SetActive(visible);
     }
 
     public async void BeginResume()
@@ -579,10 +596,15 @@ public class OptionMenu : MonoBehaviour
         // this synchronously during input handling can return a white buffer.
         yield return new WaitForEndOfFrame();
         confirmCaptureRoutine = null;
-        if (!confirmOpen) yield break;
+        if (!confirmOpen)
+        {
+            SetControlWidgetsVisible(true);
+            yield break;
+        }
 
         BackdropBlurUtil.ReleaseRT(ref confirmBlurRT);
         confirmBlurRT = BackdropBlurUtil.CapturePyramidBlur();
+        SetControlWidgetsVisible(true);
         confirmBackdrop.texture = confirmBlurRT;
         confirmGroup.SetActive(true);
         confirmGroup.transform.SetAsLastSibling();
@@ -806,7 +828,9 @@ public class OptionMenu : MonoBehaviour
         text.rectTransform.anchoredPosition = position + new Vector2(0f, confirmButtonTextOffsetY);
         text.rectTransform.sizeDelta = new Vector2(260f, 86f);
         text.alignment = TextAlignmentOptions.Center;
-        text.fontSize = 32f;
+        // 共通ラベル則(UiButtonStyle)で枠との余白を確保する
+        // (2026-07-11 指摘「余白をもっと広く」。旧32px→25px)。
+        text.fontSize = UiButtonStyle.LabelSizeConfirm;
         text.fontStyle = FontStyles.Bold;
     }
 
@@ -846,6 +870,8 @@ public class OptionMenu : MonoBehaviour
         {
             StopCoroutine(confirmCaptureRoutine);
             confirmCaptureRoutine = null;
+            // 撮影中に閉じられた場合、隠した明部ウィジェットを戻しておく。
+            SetControlWidgetsVisible(true);
         }
         BackdropBlurUtil.ReleaseRT(ref confirmBlurRT);
         if (confirmBackdrop != null) confirmBackdrop.texture = null;

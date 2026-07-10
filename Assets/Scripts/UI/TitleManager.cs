@@ -60,10 +60,6 @@ public class TitleManager : MonoBehaviour
     // How far above its scene-authored position the logo is lifted.
     private const float LogoRaiseOffset = 130f;
 
-    // メニュー横の白スラッシュ(DefficultyBar クローン)のひと回り縮小率。
-    // 等倍だとバナー高(109px)に対して159pxと主張が強すぎる。
-    private const float MenuSlashScale = 0.78f;
-
     // スタート決定からステージ選択を重ね始めるまでの時間。GManager がこの時間
     // 経過後に state を切り替えて SSManager.PlayEntrance を呼ぶ(演出は総尺
     // StartExitTotal まで続き、選択画面のフェードインと交差する)。
@@ -626,9 +622,26 @@ public class TitleManager : MonoBehaviour
             CanvasGroup cg = row.GetComponent<CanvasGroup>();
             if (cg == null) cg = row.gameObject.AddComponent<CanvasGroup>();
 
+            // 行付属の灰スラッシュ(クローン元 sprite・角度約18°)はリザルト様式の
+            // 細スラッシュ(19°・2.5px・白α0.5)へ差し替え、上下端をボタンの
+            // 上下辺(焼き込み枠)に合わせる(2026-07-11 指摘)。x はクローン元
+            // (±320)を踏襲。行 CanvasGroup の減光には子としてそのまま追従する。
+            foreach (string grayName in new[] { "Gray_L", "Gray_R" })
+            {
+                Transform gray = row.Find(grayName);
+                if (gray != null) gray.gameObject.SetActive(false);
+            }
+            UiButtonStyle.AddSlash(row, "RowSlashL", new Color(1f, 1f, 1f, 0.5f),
+                -320f, 2.5f, UiButtonStyle.SlashHeight(109f));
+            UiButtonStyle.AddSlash(row, "RowSlashR", new Color(1f, 1f, 1f, 0.5f),
+                320f, 2.5f, UiButtonStyle.SlashHeight(109f));
+
             if (label != null)
             {
                 label.text = labels[i];
+                // 共通ラベル則(UiButtonStyle)で枠との余白を確保する
+                // (2026-07-11 指摘「余白をもっと広く」。旧60px→40px)。
+                label.fontSize = UiButtonStyle.LabelSizeTitleMenu;
                 // Japanese labels ride high under Middle alignment (Latin UI font
                 // + CJK fallback metrics); optically center them in the banner.
                 TmpAlign.CenterInkVertically(label);
@@ -649,14 +662,30 @@ public class TitleManager : MonoBehaviour
             menuWhite = (RectTransform)whiteObj.transform;
             CanvasGroup whiteCG = whiteObj.GetComponent<CanvasGroup>();
             if (whiteCG != null) whiteCG.alpha = 1f;
-            // 白スラッシュ本体だけ縮小(バナー上を掃く Shine はバナーサイズのまま)。
-            // 縮小した分だけ内側に寄せ、バナー端との間隔を保つ。
+            // 選択マーカーの白スラッシュ(クローン元 sprite・角度約21°)を
+            // リザルト様式の太スラッシュ(19°・11px)へ差し替え、上下端を
+            // ボタンの上下辺(焼き込み枠)に合わせる(2026-07-11 指摘)。
+            // x はクローン元の配置(バナー外側)を 0.96 倍で内寄せして踏襲。
             foreach (string slashName in new[] { "White_L", "White_R" })
             {
                 RectTransform slash = menuWhite.Find(slashName) as RectTransform;
                 if (slash == null) continue;
-                slash.localScale = Vector3.one * MenuSlashScale;
-                slash.anchoredPosition = new Vector2(slash.anchoredPosition.x * 0.96f, slash.anchoredPosition.y);
+                float slashX = slash.anchoredPosition.x * 0.96f;
+                slash.gameObject.SetActive(false);
+                UiButtonStyle.AddSlash(menuWhite, slashName + "19", Color.white,
+                    slashX, 11f, UiButtonStyle.SlashHeight(109f));
+            }
+            // Shine 用マスクの mask graphic は旧様式 SimpleBar(矩形枠)で、
+            // 選択行に「横方向の白い線」(矩形の上下辺)を描いてしまう。
+            // 描画を止め、マスク形状も焼き込みバナーの平行四辺形に合わせる
+            // (2026-07-11 指摘「横方向の白い線もリザルト様式に統一」)。
+            Transform shineMask = menuWhite.Find("ShineMask");
+            if (shineMask != null)
+            {
+                Image maskImage = shineMask.GetComponent<Image>();
+                if (maskImage != null) maskImage.sprite = menuButtonSprite;
+                Mask mask = shineMask.GetComponent<Mask>();
+                if (mask != null) mask.showMaskGraphic = false;
             }
             menuWhite.SetAsLastSibling();
             menuWhiteY = rowY[0];

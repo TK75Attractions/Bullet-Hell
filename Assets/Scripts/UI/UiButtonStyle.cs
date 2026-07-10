@@ -94,11 +94,26 @@ public static class UiButtonStyle
         return sprite;
     }
 
-    // ボタン両脇の白スラッシュ4本（外=太11px 白、内=細2.5px 白α0.5、19°、
-    // 高さはボタン高の105%、左右対称）。buttonW/buttonH は表示サイズ。
+    // スラッシュの標準高。CreateBodySprite の枠線は rect の上下 11px 内側に
+    // 焼かれるため、buttonH - 22 で枠線中心とスラッシュの上下端が一致する
+    // (2026-07-11 ユーザー指摘「線の上下端をボタンの上下辺と一致させる」)。
+    public static float SlashHeight(float buttonH) => buttonH - 22f;
+
+    // ボタン内ラベルの標準サイズ(2026-07-11 指摘「余白をもっと広く」の一括調整点)。
+    // リザルト 660x120=38 はユーザー承認済みの錨。タイトル 583x109=40 と
+    // 確認ダイアログ 260x86=25 は oracle レビュー(ui-unify-followup-review)の
+    // 推奨帯(38〜42 / 24〜26)で手調整した値。ボタンの役割(主導線かどうか)で
+    // 最適比が変わるため単一比率式にはしない。新規ボタンはここへ追記して使う。
+    public const float LabelSizeResult = 38f;
+    public const float LabelSizeTitleMenu = 40f;
+    public const float LabelSizeConfirm = 25f;
+
+    // ボタン両脇の白スラッシュ4本(外=太11px 白、内=細2.5px 白α0.5、19°、
+    // 左右対称)。高さは SlashHeight でボタンの上下辺に揃える。
+    // buttonW/buttonH は表示サイズ。
     public static void AddSlashPair(RectTransform parent, float buttonW, float buttonH)
     {
-        float h = buttonH * 1.05f;
+        float h = SlashHeight(buttonH);
         float thickX = buttonW * 0.5f - 13f;
         float thinX = buttonW * 0.5f - 31f;
         AddSlash(parent, "ButtonSlashA", Color.white, -thickX, 11f, h);

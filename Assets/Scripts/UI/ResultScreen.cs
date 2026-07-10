@@ -882,7 +882,10 @@ public sealed class ResultScreen : MonoBehaviour
         // 共通化（統一便）。見た目の正は Docs/result-design-language.md。
         UiButtonStyle.AddSlashPair(rect, 660f, 120f);
 
-        TMP_Text label = NewText("Label", rect, "プレイを終わる", 38f, Color.white,
+        // ラベルサイズは全ボタン共通則(UiButtonStyle)の錨。38px で従来値と
+        // 同一(見た目不変)。
+        TMP_Text label = NewText("Label", rect, "プレイを終わる",
+            UiButtonStyle.LabelSizeResult, Color.white,
             TextAlignmentOptions.Center);
         Stretch((RectTransform)label.transform);
 
