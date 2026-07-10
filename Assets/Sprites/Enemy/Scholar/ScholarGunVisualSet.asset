@@ -1,0 +1,89 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03c85d5478bf4707910cc774c0c5edcc, type: 3}
+  m_Name: ScholarGunVisualSet
+  m_EditorClassIdentifier: BulletHell.Core::EnemyVisualSetAsset
+  visualId: scholar-gun
+  fallbackSprite: {fileID: 21300000, guid: 52992d2b620559b4fbb29b2f7ce5913f, type: 3}
+  clips:
+  - name: idle
+    frames:
+    - {fileID: 21300000, guid: 52992d2b620559b4fbb29b2f7ce5913f, type: 3}
+    frameDurations:
+    - 0.1
+    loop: 1
+    next: 
+  - name: reload
+    frames:
+    - {fileID: 21300000, guid: 12c32c5ea00f29647ab7954535e66c6b, type: 3}
+    - {fileID: 21300000, guid: 1d6329bb3d12ed0468f7ae82eb4b1717, type: 3}
+    - {fileID: 21300000, guid: ed98a2d1502486e48b755efbca4d6ea4, type: 3}
+    - {fileID: 21300000, guid: c6c6657833e8fa24b8faac78c8ff2e63, type: 3}
+    - {fileID: 21300000, guid: 8319199f914372e45990841a488134cd, type: 3}
+    - {fileID: 21300000, guid: 13ac9e5984a2ddb42ae14a964d64981d, type: 3}
+    - {fileID: 21300000, guid: 87b43d64393f0c947977c2dbc832828a, type: 3}
+    - {fileID: 21300000, guid: d6583f95501cd9047ad345257d1c99e4, type: 3}
+    - {fileID: 21300000, guid: b9655c8d1235d884ca19f21f8e395555, type: 3}
+    - {fileID: 21300000, guid: ea2a750e6652afa4893df18cca1e4f40, type: 3}
+    - {fileID: 21300000, guid: db9bc657d6bee0349be6f26e346bf109, type: 3}
+    - {fileID: 21300000, guid: e7753b90ef21b5c489a21d557b42f89b, type: 3}
+    - {fileID: 21300000, guid: 1a0174a84523f5842a3dc5e378a8ae5c, type: 3}
+    - {fileID: 21300000, guid: 3febc273d6587564fb914457f81ed3ca, type: 3}
+    - {fileID: 21300000, guid: ec497c5888433f74cb6847b54cd5a806, type: 3}
+    - {fileID: 21300000, guid: 10984f0d9cbde314b9ffd3b46984158f, type: 3}
+    - {fileID: 21300000, guid: 85f036417371dbc4b9c0282a7a36403e, type: 3}
+    - {fileID: 21300000, guid: 6ed8601d8443bba42a117562601fe635, type: 3}
+    - {fileID: 21300000, guid: 21e7728962dec35469f37cf53216392f, type: 3}
+    - {fileID: 21300000, guid: f5559c05e9187db45b7ba194b6e20ff6, type: 3}
+    - {fileID: 21300000, guid: cc2619622236cfa46812061005545640, type: 3}
+    - {fileID: 21300000, guid: 7f679efe428f5e24bb3032e1f1eb2147, type: 3}
+    - {fileID: 21300000, guid: 70b459e799e6e0d4bbd9c534f73e8eab, type: 3}
+    - {fileID: 21300000, guid: 058f73ce454ad6c4bb652ce816c30a2f, type: 3}
+    - {fileID: 21300000, guid: 6194f5ddad528464f9576f99e58347ce, type: 3}
+    - {fileID: 21300000, guid: db4d969c5de4fa64cb65454047c96564, type: 3}
+    - {fileID: 21300000, guid: 48587ba1320dc114facf45883387f082, type: 3}
+    - {fileID: 21300000, guid: 775302b1706fe8f4792464eccf896aab, type: 3}
+    - {fileID: 21300000, guid: 2b10aa86b3630c9469739e3ce5a60552, type: 3}
+    - {fileID: 21300000, guid: 0839fcd44072b4446b1ec51e21e58bcc, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 0
+    next: idle

@@ -1,0 +1,120 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03c85d5478bf4707910cc774c0c5edcc, type: 3}
+  m_Name: ScholarVisualSet
+  m_EditorClassIdentifier: BulletHell.Core::EnemyVisualSetAsset
+  visualId: scholar
+  fallbackSprite: {fileID: 21300000, guid: 6ecdedfdce1bdad44bbea6eed599f397, type: 3}
+  clips:
+  - name: idle
+    frames:
+    - {fileID: 21300000, guid: 6ecdedfdce1bdad44bbea6eed599f397, type: 3}
+    frameDurations:
+    - 0.1
+    loop: 1
+    next: 
+  - name: reading
+    frames:
+    - {fileID: 21300000, guid: 19d7d69b54eede04c96329f0c00b180a, type: 3}
+    - {fileID: 21300000, guid: 014eae7de1fef134e97b36c8b046fc81, type: 3}
+    - {fileID: 21300000, guid: 52d71147f1680b545b146533e54dee61, type: 3}
+    - {fileID: 21300000, guid: 5c27b8f93ae5d4643963a63b8cf6ba42, type: 3}
+    - {fileID: 21300000, guid: 6a50ae92baa367c4bb0fda927956398e, type: 3}
+    - {fileID: 21300000, guid: 3c34434b9e8535c46bf8b7714dcac299, type: 3}
+    - {fileID: 21300000, guid: a843705a88bb112448bbf92378657c54, type: 3}
+    - {fileID: 21300000, guid: dc683bf4ada2fe543b7fc790f95205c7, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 1
+    next: 
+  - name: receiveGun
+    frames:
+    - {fileID: 21300000, guid: 6fec235ef80b3ab42bbf375b96cff4c7, type: 3}
+    - {fileID: 21300000, guid: d56980d6cc661ba4b878dee14ccf8e0e, type: 3}
+    - {fileID: 21300000, guid: d000afd2405b6ea4fa13f29aa4a5a021, type: 3}
+    - {fileID: 21300000, guid: 6ca136d477cdcd94282900f5c0dd5df7, type: 3}
+    - {fileID: 21300000, guid: d4de68a15db00224891c5e87cefaf9b8, type: 3}
+    - {fileID: 21300000, guid: 83ccd05d1526111449b9f073f8a43c7e, type: 3}
+    - {fileID: 21300000, guid: c42ee0d2af06c6748bea4cf9f16639ce, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.5
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 0
+    next: readyGun
+  - name: readyGun
+    frames:
+    - {fileID: 21300000, guid: 4a01c4976ed3e204b8ba84058a7df824, type: 3}
+    frameDurations:
+    - 0.1
+    loop: 1
+    next: 
+  - name: fireGun
+    frames:
+    - {fileID: 21300000, guid: 87141588ff8c8fa46a6940e6b78067e2, type: 3}
+    - {fileID: 21300000, guid: 794c68b11e05e604186749d659de7166, type: 3}
+    - {fileID: 21300000, guid: 5b00432b67fdfcc4ba58c1dc6b8a111f, type: 3}
+    - {fileID: 21300000, guid: aeee9873ce96dd84e8c2bab9f2481b76, type: 3}
+    - {fileID: 21300000, guid: 10ff995311cb98f4db0f6250dc8a406f, type: 3}
+    - {fileID: 21300000, guid: 9b8188784b81cb743abc32f42ed2efa1, type: 3}
+    - {fileID: 21300000, guid: 1952b3fd709c76847ab463795c6bb3de, type: 3}
+    - {fileID: 21300000, guid: 46bbae64992d4604cabf2ace4d457312, type: 3}
+    - {fileID: 21300000, guid: 50c2bd13ff10bf548ae4ebe25d91e6e1, type: 3}
+    - {fileID: 21300000, guid: 6a85d46893c58c44aa7cdf06075e794f, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 0
+    next: readyGun
+  - name: throwGun
+    frames:
+    - {fileID: 21300000, guid: a773dee3b34e66a4290181176bd913cc, type: 3}
+    - {fileID: 21300000, guid: 99ed4c49c892f9d498ea6bf806e0c361, type: 3}
+    - {fileID: 21300000, guid: ec3deddabe5f2814187d0c67264fa22c, type: 3}
+    - {fileID: 21300000, guid: dd4aac076875e204588e0b0f1915cfec, type: 3}
+    - {fileID: 21300000, guid: 54be8dc1e5379664d83e4791ad408f01, type: 3}
+    - {fileID: 21300000, guid: 389b5612e04b3a4439dff9a938b73b81, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 0
+    next: idle
+  - name: defeat
+    frames:
+    - {fileID: 21300000, guid: 741cc18b56f1fc84dbd78b19e2387321, type: 3}
+    frameDurations:
+    - 0.1
+    loop: 0
+    next: 

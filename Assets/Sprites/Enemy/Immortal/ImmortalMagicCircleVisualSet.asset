@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03c85d5478bf4707910cc774c0c5edcc, type: 3}
+  m_Name: ImmortalMagicCircleVisualSet
+  m_EditorClassIdentifier: BulletHell.Core::EnemyVisualSetAsset
+  visualId: immortal-magic-circle
+  fallbackSprite: {fileID: 21300000, guid: 90a597b92f860544a8a5142728609dea, type: 3}
+  clips:
+  - name: deploy
+    frames:
+    - {fileID: 21300000, guid: 90a597b92f860544a8a5142728609dea, type: 3}
+    - {fileID: 21300000, guid: 8c052c8770f888a43bc67c7ffc6b225d, type: 3}
+    - {fileID: 21300000, guid: 1b571a565ac40a641b654ebe5df53067, type: 3}
+    - {fileID: 21300000, guid: 75541448e164cfb40a2359a54ba7e5a7, type: 3}
+    - {fileID: 21300000, guid: 2d549e306a5f9fe4893487ab50f4557f, type: 3}
+    - {fileID: 21300000, guid: 3a1de1114d63da149abaf29cfea314a7, type: 3}
+    - {fileID: 21300000, guid: 8db8e7bc2b0080748b4d0498973e950c, type: 3}
+    - {fileID: 21300000, guid: f556953e569e49e4689e654beb0a6e10, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 0
+    next: chant
+  - name: chant
+    frames:
+    - {fileID: 21300000, guid: 5b01c49631505b04b8da168bd07a154a, type: 3}
+    - {fileID: 21300000, guid: 96f6411627cffef42b4dcf0cdfbcabf9, type: 3}
+    - {fileID: 21300000, guid: 146348f4bdf4b2a4b901292ced18fb65, type: 3}
+    - {fileID: 21300000, guid: 3ba054eb6d0c32d45ba91e2c2b4e8187, type: 3}
+    - {fileID: 21300000, guid: 90a14783fc24bf14d9552187c907ea1e, type: 3}
+    - {fileID: 21300000, guid: 68d67155206f7274b8f6ca229356a43d, type: 3}
+    - {fileID: 21300000, guid: 8dcecd2429f9beb47b30d911ebca48db, type: 3}
+    - {fileID: 21300000, guid: 82a4cd377dd5de944973a633320e2632, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 1
+    next: 

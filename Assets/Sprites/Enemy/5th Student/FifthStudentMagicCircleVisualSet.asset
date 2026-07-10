@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03c85d5478bf4707910cc774c0c5edcc, type: 3}
+  m_Name: FifthStudentMagicCircleVisualSet
+  m_EditorClassIdentifier: BulletHell.Core::EnemyVisualSetAsset
+  visualId: fifth-student-magic-circle
+  fallbackSprite: {fileID: 21300000, guid: 52ee4802b675f3d4da08cb76a5ee9ceb, type: 3}
+  clips:
+  - name: cast1
+    frames:
+    - {fileID: 21300000, guid: 52ee4802b675f3d4da08cb76a5ee9ceb, type: 3}
+    - {fileID: 21300000, guid: 35e2a0a0e78ee5f4d82173523c442a26, type: 3}
+    - {fileID: 21300000, guid: 472cbd526d3f7154183072fbf9790405, type: 3}
+    - {fileID: 21300000, guid: 7e40fbb762e81324db07b66a3cfbb9e6, type: 3}
+    - {fileID: 21300000, guid: 7cd9d8c1d49001b49b68ec14bb3654c7, type: 3}
+    - {fileID: 21300000, guid: 526366092fffc1c49a46b936267ddc13, type: 3}
+    - {fileID: 21300000, guid: 68e102b932ffd5042a019463593e24fd, type: 3}
+    - {fileID: 21300000, guid: a5c9bb035f5df4342869d044d1ee22fb, type: 3}
+    - {fileID: 21300000, guid: 3e6ec4c8454ee0549923f8e59189057f, type: 3}
+    - {fileID: 21300000, guid: cf342f3041427464a971da369b039b78, type: 3}
+    - {fileID: 21300000, guid: e9434cdbeef2f2349a3f06bc02ecb59a, type: 3}
+    - {fileID: 21300000, guid: 3fa06ebe600ddb54792c9199af287735, type: 3}
+    - {fileID: 21300000, guid: 2bcbabcfc254f1b4dafc73867beaf297, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 1
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 1
+    next: 
+  - name: cast2
+    frames:
+    - {fileID: 21300000, guid: b8590ac253a21794484e3077685ffc08, type: 3}
+    frameDurations:
+    - 0.1
+    loop: 1
+    next: 
+  - name: cast3
+    frames:
+    - {fileID: 21300000, guid: e561035cd5903b74fa4109fc5c849510, type: 3}
+    - {fileID: 21300000, guid: b816f42390710114b9f467a041781dcb, type: 3}
+    - {fileID: 21300000, guid: 72b120d2b35c9b246b3b47287753499c, type: 3}
+    - {fileID: 21300000, guid: 60a5e32cae5620e4799d4f48fb8ba759, type: 3}
+    - {fileID: 21300000, guid: 1de0266bbfdd19c438593df35103b2a8, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 1
+    next: 
