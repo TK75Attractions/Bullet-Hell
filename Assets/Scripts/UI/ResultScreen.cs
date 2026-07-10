@@ -435,25 +435,44 @@ public sealed class ResultScreen : MonoBehaviour
     }
 
     // ステージ名と難易度はヘッダー右側の副帯へ（モックアップの中央領域は判定専用
-    // のため空けておく。機能情報として右寄せで残す）。サイズと位置は oracle 指摘
-    // (副帯に対して小さすぎ・右に寄りすぎ)を反映して拡大+左へ。
+    // のため空けておく）。ユーザー指摘(2026-07-10): 2行積みをやめ
+    // 「石工 LUNATIC」の横並び1行にして文字を大きく。行は帯(高さ106)の
+    // 縦中央 y=-53。横位置は難易度語(EASY/NORMAL/LUNATIC)の描画幅で変わる
+    // ため LayoutHeaderStageRow(Prepare 内)で確定する。
+    private const float HeaderStageRowRight = -104f;  // 難易度の右端 x
+    private const float HeaderStageRowGap = 22f;      // ステージ名と難易度の間隔
+
     private void BuildHeaderTexts(RectTransform root)
     {
-        stageNameText = NewText("StageName", root, "STAGE", 28f, new Color(1f, 1f, 1f, 0.85f),
+        stageNameText = NewText("StageName", root, "STAGE", 44f, new Color(1f, 1f, 1f, 0.85f),
             TextAlignmentOptions.MidlineRight);
         RectTransform sn = (RectTransform)stageNameText.transform;
         sn.anchorMin = sn.anchorMax = new Vector2(1f, 1f);
-        sn.pivot = new Vector2(1f, 1f);
-        sn.anchoredPosition = new Vector2(-104f, -20f);
-        sn.sizeDelta = new Vector2(600f, 40f);
+        sn.pivot = new Vector2(1f, 0.5f);
+        sn.anchoredPosition = new Vector2(-260f, -53f);
+        sn.sizeDelta = new Vector2(600f, 62f);
 
-        difficultyText = NewText("Difficulty", root, "LUNATIC", 17f, Cyan,
+        difficultyText = NewText("Difficulty", root, "LUNATIC", 32f, Cyan,
             TextAlignmentOptions.MidlineRight);
         RectTransform df = (RectTransform)difficultyText.transform;
         df.anchorMin = df.anchorMax = new Vector2(1f, 1f);
-        df.pivot = new Vector2(1f, 1f);
-        df.anchoredPosition = new Vector2(-104f, -64f);
-        df.sizeDelta = new Vector2(300f, 24f);
+        df.pivot = new Vector2(1f, 0.5f);
+        df.anchoredPosition = new Vector2(HeaderStageRowRight, -53f);
+        df.sizeDelta = new Vector2(400f, 50f);
+    }
+
+    // 「石工 LUNATIC」1行の横組みを確定する。難易度の実測幅からステージ名の
+    // 右端を決め、和文が CJK フォールバックの行メトリクスで上に乗る分は
+    // 両ラベルともインク実測で帯の縦中央へ補正する(TmpAlign は冪等)。
+    private void LayoutHeaderStageRow()
+    {
+        float difficultyWidth = difficultyText.GetPreferredValues(difficultyText.text).x;
+        RectTransform sn = (RectTransform)stageNameText.transform;
+        sn.anchoredPosition = new Vector2(
+            HeaderStageRowRight - difficultyWidth - HeaderStageRowGap,
+            sn.anchoredPosition.y);
+        TmpAlign.CenterInkVertically(stageNameText);
+        TmpAlign.CenterInkVertically(difficultyText);
     }
 
     // ヘッダー帯セグメント用: 画面左上アンカーで x 位置と幅・高さを与える。
@@ -931,6 +950,7 @@ public sealed class ResultScreen : MonoBehaviour
             : "UNKNOWN STAGE";
         stageNameText.text = stageName;
         difficultyText.text = DifficultyName(difficulty);
+        LayoutHeaderStageRow();
         verdictText.text = cleared
             ? "総合判定\n<size=16><color=#38C2E0>OVERALL EVALUATION</color></size>"
             : "攻略失敗\n<size=16><color=#FF6C8B>STAGE FAILED</color></size>";
