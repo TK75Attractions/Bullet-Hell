@@ -81,6 +81,8 @@ public struct BulletData
     public float life;
     public float random;
     public float warpCooldown;
+    // false の弾はワープゾーンを通過してもワープしない。
+    public bool warpable;
     public bool isActive;
     public bool isClearing;
     public float clearTime;
@@ -139,6 +141,7 @@ public struct BulletData
         nowCalculateX = _start;
         random = _random;
         warpCooldown = 0f;
+        warpable = true;
         appearTime = _appear;
         appearDuration = _appearDuration >= 0f ? _appearDuration : DefaultAppearDuration;
         life = _life;
@@ -248,6 +251,7 @@ public struct BulletData
         life = data.life;
         // Keep source flag when cloning; optional arg can force uncounterable.
         unCounterable = data.unCounterable || _unCounterable;
+        warpable = data.warpable;
 
         areaNum = 0;
         time = 0;

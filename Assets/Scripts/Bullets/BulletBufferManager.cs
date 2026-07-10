@@ -391,6 +391,10 @@ public class BulletBufferManager
             {
                 SetDefaultUseVelocityAngle(data.bullets);
             }
+            if (!ContainsJsonProperty(json, nameof(BulletDataJson.warpable)))
+            {
+                SetDefaultWarpable(data.bullets);
+            }
             return;
         }
 
@@ -402,6 +406,10 @@ public class BulletBufferManager
             {
                 data.bullets[i].useVelocityAngle = true;
             }
+            if (!ContainsJsonProperty(bulletJsonObjects[i], nameof(BulletDataJson.warpable)))
+            {
+                data.bullets[i].warpable = true;
+            }
         }
     }
 
@@ -411,6 +419,15 @@ public class BulletBufferManager
         {
             if (bullets[i] == null) continue;
             bullets[i].useVelocityAngle = true;
+        }
+    }
+
+    private static void SetDefaultWarpable(List<BulletDataJson> bullets)
+    {
+        for (int i = 0; i < bullets.Count; i++)
+        {
+            if (bullets[i] == null) continue;
+            bullets[i].warpable = true;
         }
     }
 

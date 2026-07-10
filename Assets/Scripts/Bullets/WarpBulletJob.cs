@@ -21,6 +21,7 @@ public struct WarpBulletJob : IJobParallelFor
     {
         BulletData bullet = bullets[index];
         if (!bullet.isActive || bullet.isClearing) return;
+        if (!bullet.warpable) return;
         if (bullet.appearTime > bullet.time) return;
         if (bullet.warpCooldown > 0f) return;
         if (warpZones.Length < 2) return;

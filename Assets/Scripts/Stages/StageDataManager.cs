@@ -92,6 +92,8 @@ public class StageDataManager
 
         public float random;
 
+        public bool warpable = true;
+
         public bool unCounterable;
 
 
@@ -140,6 +142,8 @@ public class StageDataManager
                 life = life,
 
                 random = random,
+
+                warpable = warpable,
 
                 unCounterable = unCounterable
 
