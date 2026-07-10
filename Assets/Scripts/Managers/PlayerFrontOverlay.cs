@@ -24,6 +24,8 @@ public class PlayerFrontOverlay : MonoBehaviour
 
     private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
     private static readonly int ColorId = Shader.PropertyToID("_Color");
+    private static readonly int Color1Id = Shader.PropertyToID("_Color1");
+    private static readonly int Color2Id = Shader.PropertyToID("_Color2");
 
     private void Awake()
     {
@@ -47,6 +49,13 @@ public class PlayerFrontOverlay : MonoBehaviour
 
         mpb.SetTexture(MainTexId, sprite.texture);
         mpb.SetColor(ColorId, source.color);
+        Material sourceMaterial = source.sharedMaterial;
+        mpb.SetColor(Color1Id, sourceMaterial != null && sourceMaterial.HasProperty(Color1Id)
+            ? sourceMaterial.GetColor(Color1Id)
+            : PlayerPaletteDefaults.Color1Linear);
+        mpb.SetColor(Color2Id, sourceMaterial != null && sourceMaterial.HasProperty(Color2Id)
+            ? sourceMaterial.GetColor(Color2Id)
+            : PlayerPaletteDefaults.Color2Linear);
         Graphics.DrawMesh(quad, transform.localToWorldMatrix, overlayMat, gameObject.layer, null, 0, mpb);
     }
 
