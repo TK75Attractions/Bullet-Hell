@@ -58,7 +58,21 @@ public class GManager : MonoBehaviour
     // 同じ BulletBufferManager を BClipManager として保持しているためエイリアスで橋渡し。
     public BulletBufferManager BulletBuffers => BClipManager;
     public Color playerColor = new Color(1f, 1f, 0.6f, 1f);
+    [Header("Player Visual Palette")]
+    public Color playerColor1 = new Color(23f / 255f, 178f / 255f, 1f, 1f);
+    public Color playerColor2 = new Color(1f, 23f / 255f, 92f / 255f, 1f);
     public QuadOrder QOrder;
+
+    /// <summary>
+    /// 実行中のプレイヤーに 2 色パレットを即時反映する。
+    /// Inspector から playerColor1 / playerColor2 を変更した場合も、次フレームに同じ値が反映される。
+    /// </summary>
+    public void SetPlayerPalette(Color color1, Color color2)
+    {
+        playerColor1 = color1;
+        playerColor2 = color2;
+        PController?.SetVisualColors(color1, color2);
+    }
     public BulletTypeDataBase BTDB;
 
     public StageDataBase SDB;

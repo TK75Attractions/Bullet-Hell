@@ -1,11 +1,8 @@
-Shader "Custom/PlayerFrontOverlay"
+Shader "Custom/PlayerPaletteSwap"
 {
-    // Redraws the player sprite in the same URP unlit collection as the bullet
-    // shader (LightMode = SRPDefaultUnlit), but at Queue = Transparent+100 so it
-    // sorts AFTER the bullets and stays readable when shards/cutters overlap it.
     Properties
     {
-        _MainTex("Sprite", 2D) = "white" {}
+        [PerRendererData] _MainTex("Sprite Texture", 2D) = "white" {}
         _Color("Tint", Color) = (1,1,1,1)
         _Color1("Color 1", Color) = (0.09,0.70,1,1)
         _Color2("Color 2", Color) = (1,0.09,0.36,1)
@@ -15,9 +12,10 @@ Shader "Custom/PlayerFrontOverlay"
     {
         Tags
         {
+            "Queue" = "Transparent"
             "RenderType" = "Transparent"
-            "Queue" = "Transparent+100"
             "RenderPipeline" = "UniversalPipeline"
+            "CanUseSpriteAtlas" = "True"
         }
 
         Blend SrcAlpha OneMinusSrcAlpha
@@ -26,8 +24,8 @@ Shader "Custom/PlayerFrontOverlay"
 
         Pass
         {
-            Name "PlayerFrontPass"
-            Tags { "LightMode" = "SRPDefaultUnlit" }
+            Name "PlayerPaletteSwap"
+            Tags { "LightMode" = "Universal2D" }
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -70,8 +68,7 @@ Shader "Custom/PlayerFrontOverlay"
             {
                 half4 c = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
                 c.rgb = ApplyPlayerPalette(c.rgb, _Color1.rgb, _Color2.rgb);
-                c *= _Color;
-                return c;
+                return c * _Color;
             }
             ENDHLSL
         }

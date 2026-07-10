@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: cf3a7f81c787ca2449ace22b73bdeadc
+guid: c537a27bbeab582459c7180c759552f6
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 6080002830697078978
-    second: "\u4E3B\u4EBA\u516C\u30A2\u30CB\u30E1(\u5DE6)_0"
+      213: 4712530086858176965
+    second: neutral_01_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +37,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -46,7 +46,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -75,7 +75,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: "\u4E3B\u4EBA\u516C\u30A2\u30CB\u30E1(\u5DE6)_0"
+      name: neutral_01_0
       rect:
         serializedVersion: 2
-        x: 42
-        y: 32
+        x: 40
+        y: 28
         width: 61
-        height: 69
+        height: 74
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2c0a11d7c52806450800000000000000
-      internalID: 6080002830697078978
+      spriteID: 5c9b58c5525466140800000000000000
+      internalID: 4712530086858176965
       vertices: []
       indices: 
       edges: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      "\u4E3B\u4EBA\u516C\u30A2\u30CB\u30E1(\u5DE6)_0": 6080002830697078978
+      neutral_01_0: 4712530086858176965
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

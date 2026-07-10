@@ -13,6 +13,7 @@ public class PlayerController
     private Transform playerTransform;
     private SpriteRenderer main;
     private SpriteRenderer spell;
+    private PlayerVisualController visual;
     private Transform spellTransform;
     private float2 initialPos;
     private readonly float margin = 0.3f;
@@ -38,6 +39,15 @@ public class PlayerController
         initialPos = new float2(playerTransform.position.x, playerTransform.position.y);
         pos = initialPos;
         main = playerObj.GetComponent<SpriteRenderer>();
+        visual = playerObj.GetComponent<PlayerVisualController>();
+        if (visual == null)
+        {
+            visual = playerObj.AddComponent<PlayerVisualController>();
+        }
+        visual.Initialize(
+            main,
+            GManager.Control != null ? GManager.Control.playerColor1 : PlayerPaletteDefaults.Color1,
+            GManager.Control != null ? GManager.Control.playerColor2 : PlayerPaletteDefaults.Color2);
         spellTransform = playerTransform.Find("Spell");
         if (spellTransform != null)
         {
@@ -53,6 +63,11 @@ public class PlayerController
         Move(dt);
         Dash(dt);
         UpdateHitState(dt);
+        visual?.UpdateVisual(
+            dt,
+            velocity.x,
+            GManager.Control != null ? GManager.Control.playerColor1 : PlayerPaletteDefaults.Color1,
+            GManager.Control != null ? GManager.Control.playerColor2 : PlayerPaletteDefaults.Color2);
         playerTransform.position = new Vector3(pos.x, pos.y, 0);
 
     }
@@ -77,7 +92,8 @@ public class PlayerController
         velocity = float2.zero;
         hitInvincibleTimer = 0f;
         dash = -dashCooldown * 1.4f;
-        if (main != null) main.color = GManager.Control.playerColor;
+        if (main != null) main.color = Color.white;
+        visual?.ResetAnimation();
         if (spell != null) spell.color = Color.clear;
         if (playerTransform != null) playerTransform.position = new Vector3(pos.x, pos.y, 0f);
     }
@@ -85,6 +101,11 @@ public class PlayerController
     // marron keep コード(GManager / StageSelectManager)向け互換。開始位置(中央)への
     // リセットは raymee の ResetForStage と同義。
     public void ResetToCenter() => ResetForStage();
+
+    public void SetVisualColors(Color color1, Color color2)
+    {
+        visual?.SetColors(color1, color2);
+    }
 
     private void Move(float dt)
     {
@@ -136,14 +157,14 @@ public class PlayerController
     {
         if (hitInvincibleTimer <= 0f)
         {
-            if (main != null) main.color = GManager.Control.playerColor;
+            if (main != null) main.color = Color.white;
             return;
         }
 
         hitInvincibleTimer = math.max(0f, hitInvincibleTimer - dt);
         if (hitInvincibleTimer <= 0f && main != null)
         {
-            main.color = GManager.Control.playerColor;
+            main.color = Color.white;
         }
     }
 

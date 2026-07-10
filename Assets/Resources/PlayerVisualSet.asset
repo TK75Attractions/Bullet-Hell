@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ed2d91928c5aef47b5cb1cec58ece9e, type: 3}
+  m_Name: PlayerVisualSet
+  m_EditorClassIdentifier: BulletHell.Core::PlayerVisualSetAsset
+  neutral:
+    name: neutral
+    frames:
+    - {fileID: 21300000, guid: 5a0c81748cf0bb441a4b696fe82ad55f, type: 3}
+    - {fileID: 21300000, guid: c537a27bbeab582459c7180c759552f6, type: 3}
+    - {fileID: 21300000, guid: 62573423f41cfd440baaaa96dd6805e6, type: 3}
+    - {fileID: 21300000, guid: 878ab4af7961db445b0fef261d0e702e, type: 3}
+    - {fileID: 21300000, guid: cfb548b715ca626459e64583b51c17cf, type: 3}
+    - {fileID: 21300000, guid: 6d2b9fcbb5238f641acc31f7ea598434, type: 3}
+    - {fileID: 21300000, guid: 88acd0559c8ab744bbd833428e7d329a, type: 3}
+    - {fileID: 21300000, guid: adcf9fca5409a534cb5df91f4543107e, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+  left:
+    name: left
+    frames:
+    - {fileID: 21300000, guid: 04e37a08611878644bc565f241b4ec42, type: 3}
+    - {fileID: 21300000, guid: a19e189ee2bfd504193b58cbe261c7fa, type: 3}
+    - {fileID: 21300000, guid: 19f832203d221c84cbde57316eefdbff, type: 3}
+    - {fileID: 21300000, guid: f20f7cf92b08f6e4ab234f95ba720b6d, type: 3}
+    - {fileID: 21300000, guid: a962718335fd0804fb894593fedb5552, type: 3}
+    - {fileID: 21300000, guid: 8adcbd82ae52c204f98676aa2207ab23, type: 3}
+    - {fileID: 21300000, guid: 0b42fdc21043b7b47a128865e13b963f, type: 3}
+    - {fileID: 21300000, guid: 6288ac56609811c4fba327929be38ca6, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+  right:
+    name: right
+    frames:
+    - {fileID: 21300000, guid: 558513585cce5f7438b49b1a82787991, type: 3}
+    - {fileID: 21300000, guid: 4e237013adde21643b48375ecbac512e, type: 3}
+    - {fileID: 21300000, guid: 192c0344e4cde2d44a65a5fafc376090, type: 3}
+    - {fileID: 21300000, guid: 6873bfc3b4d00c7479c95ade874dfb3c, type: 3}
+    - {fileID: 21300000, guid: ddb83c3d49f38a64eb044335826f57d4, type: 3}
+    - {fileID: 21300000, guid: 4ceed0c4442d62947b187955e0aaf57f, type: 3}
+    - {fileID: 21300000, guid: d57a76d6b348ba940b7bf24be5353940, type: 3}
+    - {fileID: 21300000, guid: fc1714391a1d8a144aa3dafa59cd1fa4, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
