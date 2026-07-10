@@ -23,9 +23,18 @@ public sealed class ResultScreen : MonoBehaviour
     private static readonly Color BrandBlue = new Color(0.055f, 0.28f, 0.708f, 1f); // visual #4290DB
     private static readonly Color DeepNavy = new Color(0.001f, 0.003f, 0.008f, 1f);
     private static readonly Color PanelNavy = new Color(0.003f, 0.012f, 0.03f, 1f);
-    private static readonly Color Rim = new Color(0.20f, 0.45f, 0.65f, 0.52f);
     private static readonly Color DimText = new Color(0.29f, 0.48f, 0.64f, 0.9f);
     private static readonly Color Violet = new Color(0.35f, 0.05f, 1f, 1f);
+
+    // モックアップ実測に合わせた枠線・装飾色（いずれも linear 値）。
+    private static readonly Color OutlineTan = new Color(0.205f, 0.185f, 0.125f, 0.98f); // 細い暖色グレー枠 (#6b6656)
+    private static readonly Color BracketWhite = new Color(0.85f, 0.90f, 1f, 1f);        // 四隅の明るい白ブラケット
+    private static readonly Color AccentBlue = new Color(0.020f, 0.225f, 0.780f, 1f);    // 太い青アクセント (#1E7CE0)
+    private static readonly Color IconBlue = new Color(0.030f, 0.285f, 0.750f, 1f);      // チップ内アイコン (#2E90E0)
+    private static readonly Color DividerTan = new Color(0.100f, 0.093f, 0.066f, 0.9f);  // 区切り線本体
+    private static readonly Color DividerBright = new Color(0.32f, 0.35f, 0.38f, 0.95f); // 区切り線のノード/両端
+
+    private enum StatIcon { Crosshair, Shield, Swords, Clock }
 
     private TMP_FontAsset font;
     private CanvasGroup contentGroup;
@@ -46,6 +55,12 @@ public sealed class ResultScreen : MonoBehaviour
     private readonly List<Sprite> generatedSprites = new List<Sprite>();
     private Sprite chamferSprite;
     private Sprite buttonGradientSprite;
+    private Sprite cardFillSprite;
+    private Sprite cardSpriteLeft;
+    private Sprite cardSpriteRight;
+    private Sprite hexChipSprite;
+    private Sprite diamondRingSprite;
+    private readonly Sprite[] statIconSprites = new Sprite[4];
     private int selectedAction;
     private bool inputArmed;
     private bool entering;
@@ -81,6 +96,15 @@ public sealed class ResultScreen : MonoBehaviour
     {
         chamferSprite = CreateChamferSprite("ResultChamfer", false);
         buttonGradientSprite = CreateChamferSprite("ResultButtonGradient", true);
+        cardFillSprite = CreateOctagonSprite("ResultCardOct", 44f);
+        cardSpriteLeft = CreateHexCardSprite(true);
+        cardSpriteRight = CreateHexCardSprite(false);
+        hexChipSprite = CreateHexChipSprite();
+        diamondRingSprite = CreateDiamondRingSprite();
+        statIconSprites[(int)StatIcon.Crosshair] = CreateStatIconSprite(StatIcon.Crosshair);
+        statIconSprites[(int)StatIcon.Shield] = CreateStatIconSprite(StatIcon.Shield);
+        statIconSprites[(int)StatIcon.Swords] = CreateStatIconSprite(StatIcon.Swords);
+        statIconSprites[(int)StatIcon.Clock] = CreateStatIconSprite(StatIcon.Clock);
 
         Image background = NewImage("Background", root, DeepNavy);
         Stretch(background.rectTransform);
@@ -200,96 +224,157 @@ public sealed class ResultScreen : MonoBehaviour
     private void BuildEvaluation(RectTransform root)
     {
         SoftCircleGraphic aura = NewGraphic<SoftCircleGraphic>("RankAura", root);
-        aura.color = new Color(Violet.r, Violet.g, Violet.b, 0.13f);
+        aura.color = new Color(Violet.r, Violet.g, Violet.b, 0.10f);
         SetRect(aura.rectTransform, new Vector2(0f, 38f), new Vector2(430f, 430f));
 
-        for (int i = 0; i < 3; i++)
+        // 中央判定を囲む多重の菱形ライン（細いリングが層になって背景へ広がる）。
+        Vector2 rankCenter = new Vector2(0f, 38f);
+        float[] ringSizes = { 620f, 530f, 440f, 350f };
+        Color[] ringColors =
         {
-            Image diamond = NewImage("RankDiamond", root,
-                i == 0 ? new Color(0.002f, 0.012f, 0.035f, 0.99f) : new Color(0f, 0f, 0f, 0f));
-            diamond.sprite = chamferSprite;
-            diamond.type = Image.Type.Sliced;
-            SetRect(diamond.rectTransform, new Vector2(0f, 38f), Vector2.one * (390f - i * 58f));
-            diamond.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 45f);
-            if (i > 0)
+            new Color(0.090f, 0.100f, 0.140f, 0.28f),
+            new Color(0.050f, 0.160f, 0.340f, 0.34f),
+            new Color(Violet.r, Violet.g, Violet.b, 0.30f),
+            new Color(Cyan.r, Cyan.g, Cyan.b, 0.44f),
+        };
+        for (int i = 0; i < ringSizes.Length; i++)
+        {
+            Image ring = NewImage("RankRing", root, ringColors[i]);
+            ring.sprite = diamondRingSprite;
+            ring.type = Image.Type.Simple;
+            SetRect(ring.rectTransform, rankCenter, Vector2.one * ringSizes[i]);
+        }
+
+        // S の背後を薄く沈める菱形（不透明にすると重いので低アルファで浮かせる）。
+        Image backdrop = NewImage("RankBackdrop", root, new Color(0.003f, 0.010f, 0.030f, 0.42f));
+        backdrop.sprite = cardFillSprite;
+        backdrop.type = Image.Type.Sliced;
+        SetRect(backdrop.rectTransform, rankCenter, Vector2.one * 250f);
+        backdrop.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 45f);
+
+        // 評価エリア外周の白ブラケット（横キャップ＋斜めカット＋シアン差し色）。
+        const float bx = 345f, by = 225f, arm = 44f, thick = 3.4f;
+        Color evalCyan = new Color(Cyan.r, Cyan.g, Cyan.b, 0.95f);
+        for (int sxi = -1; sxi <= 1; sxi += 2)
+        {
+            for (int syi = -1; syi <= 1; syi += 2)
             {
-                // 透明な面に細い外周を重ねる代わりに、少し大きい色面と内側の
-                // 暗色面を対にして、解像度に依存しない幾何学リムを作る。
-                Image inner = NewImage("RankDiamondInner", root, DeepNavy);
-                inner.sprite = chamferSprite;
-                inner.type = Image.Type.Sliced;
-                SetRect(inner.rectTransform, new Vector2(0f, 38f), Vector2.one * (384f - i * 58f));
-                inner.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 45f);
-                diamond.color = i == 1
-                    ? new Color(Cyan.r, Cyan.g, Cyan.b, 0.28f)
-                    : new Color(Violet.r, Violet.g, Violet.b, 0.34f);
+                Vector2 corner = rankCenter + new Vector2(sxi * bx, syi * by);
+                float diagRot = (sxi * syi > 0f) ? 45f : -45f;
+                AddQuad(root, "EvalBracketH", BracketWhite,
+                    corner + new Vector2(-sxi * arm * 0.5f, 0f), new Vector2(arm, thick), 0f);
+                AddQuad(root, "EvalBracketDiag", BracketWhite,
+                    corner + new Vector2(-sxi * 14f, -syi * 14f), new Vector2(44f, thick), diagRot);
+                AddQuad(root, "EvalBracketDot", evalCyan,
+                    corner + new Vector2(-sxi * 26f, -syi * 26f), new Vector2(7f, 7f), 45f);
             }
+        }
+
+        // 上下のノードマーカーと左右のシェブロン。
+        Color nodeColor = new Color(0.55f, 0.60f, 0.72f, 0.9f);
+        AddQuad(root, "RankNodeTop", nodeColor, rankCenter + new Vector2(0f, 250f), new Vector2(15f, 15f), 45f);
+        AddQuad(root, "RankNodeBot", nodeColor, rankCenter + new Vector2(0f, -250f), new Vector2(15f, 15f), 45f);
+        AddChevron(root, -1f, rankCenter + new Vector2(-300f, 0f));
+        AddChevron(root, 1f, rankCenter + new Vector2(300f, 0f));
+
+        // 交点付近の tech 装飾（左=マゼンタ、右=青の小菱形）。
+        Color techMagenta = new Color(0.55f, 0.10f, 0.60f, 0.5f);
+        Color techBlue = new Color(0.10f, 0.35f, 0.85f, 0.5f);
+        Vector2[] techPos =
+        {
+            new Vector2(-215f, 58f), new Vector2(-238f, 18f), new Vector2(-200f, -28f),
+            new Vector2(215f, 58f), new Vector2(238f, 18f), new Vector2(200f, -28f),
+        };
+        for (int i = 0; i < techPos.Length; i++)
+        {
+            Color tc = techPos[i].x < 0f ? techMagenta : techBlue;
+            float sz = (i % 3 == 1) ? 9f : 6f;
+            AddQuad(root, "TechDot", tc, rankCenter + techPos[i], new Vector2(sz, sz), 45f);
         }
 
         verdictText = NewText("Verdict", root, "総合判定\n<size=18><color=#38C2E0>OVERALL EVALUATION</color></size>",
             32f, Color.white, TextAlignmentOptions.Center);
         SetRect((RectTransform)verdictText.transform, new Vector2(0f, 258f), new Vector2(500f, 90f));
 
-        rankText = NewText("Rank", root, "S", 250f, Color.white, TextAlignmentOptions.Center);
+        rankText = NewText("Rank", root, "S", 320f, Color.white, TextAlignmentOptions.Center);
         rankText.fontStyle = FontStyles.Bold;
         rankText.enableAutoSizing = true;
-        rankText.fontSizeMin = 130f;
-        rankText.fontSizeMax = 250f;
+        rankText.fontSizeMin = 190f;
+        rankText.fontSizeMax = 340f;
         rankText.outlineColor = new Color(Violet.r, Violet.g, Violet.b, 0.9f);
-        rankText.outlineWidth = 0.2f;
-        SetRect((RectTransform)rankText.transform, new Vector2(0f, 22f), new Vector2(330f, 310f));
+        rankText.outlineWidth = 0.14f;
+        SetRect((RectTransform)rankText.transform, new Vector2(0f, 26f), new Vector2(420f, 380f));
     }
 
     private void BuildStats(RectTransform root)
     {
-        scoreText = BuildStatCard(root, "Score", new Vector2(-610f, 150f), "スコア", "SCORE", "000,000", "01");
-        hitText = BuildStatCard(root, "Hit", new Vector2(610f, 150f), "被弾回数", "HIT COUNT", "00", "02");
-        counterText = BuildStatCard(root, "Counter", new Vector2(-610f, -115f), "カウンター回数", "COUNTER COUNT", "00", "03");
-        timeText = BuildStatCard(root, "Time", new Vector2(610f, -115f), "時間", "TIME", "00:00", "04");
+        scoreText = BuildStatCard(root, "Score", new Vector2(-610f, 150f), "スコア", "SCORE", "000,000", StatIcon.Crosshair);
+        hitText = BuildStatCard(root, "Hit", new Vector2(610f, 150f), "被弾回数", "HIT COUNT", "00", StatIcon.Shield);
+        counterText = BuildStatCard(root, "Counter", new Vector2(-610f, -115f), "カウンター回数", "COUNTER COUNT", "00", StatIcon.Swords);
+        timeText = BuildStatCard(root, "Time", new Vector2(610f, -115f), "時間", "TIME", "00:00", StatIcon.Clock);
     }
 
     private TMP_Text BuildStatCard(RectTransform root, string name, Vector2 pos,
-        string jp, string en, string value, string index)
+        string jp, string en, string value, StatIcon icon)
     {
         GameObject card = NewRect(name + "Card", root);
         RectTransform rect = (RectTransform)card.transform;
-        SetRect(rect, pos, new Vector2(470f, 205f));
+        Vector2 size = new Vector2(470f, 205f);
+        SetRect(rect, pos, size);
 
-        Image outer = NewImage("Rim", rect, Rim);
-        outer.sprite = chamferSprite;
-        outer.type = Image.Type.Sliced;
-        Stretch(outer.rectTransform);
+        // 非対称八角形（外側=画面端の面取りが大きく、内側=中央寄りが小さい）を
+        // 塗り・細枠・内側下辺の青アクセント・外側2隅の白ブラケットまで一体で
+        // 焼き込んだ専用スプライト。左右でミラー。
+        Image bg = NewImage("CardBg", rect, Color.white);
+        bg.sprite = pos.x < 0f ? cardSpriteLeft : cardSpriteRight;
+        bg.type = Image.Type.Simple;
+        Stretch(bg.rectTransform);
 
-        Image body = NewImage("Body", rect, PanelNavy);
-        body.sprite = chamferSprite;
-        body.type = Image.Type.Sliced;
-        Stretch(body.rectTransform);
-        body.rectTransform.offsetMin = new Vector2(3f, 3f);
-        body.rectTransform.offsetMax = new Vector2(-3f, -3f);
+        // 左の六角アイコンチップ＋図形アイコン（大きい外側面取りを避けて配置）。
+        Image chip = NewImage("Chip", rect, Color.white);
+        chip.sprite = hexChipSprite;
+        chip.type = Image.Type.Simple;
+        SetRect(chip.rectTransform, new Vector2(-133f, 38f), new Vector2(86f, 96f));
 
-        Image accent = NewImage("Accent", rect, BrandBlue);
-        RectTransform ar = accent.rectTransform;
-        ar.anchorMin = ar.anchorMax = new Vector2(pos.x < 0f ? 1f : 0f, 0f);
-        ar.pivot = new Vector2(0.5f, 0f);
-        ar.anchoredPosition = new Vector2(pos.x < 0f ? -31f : 31f, 4f);
-        ar.sizeDelta = new Vector2(12f, 76f);
-        ar.localRotation = Quaternion.Euler(0f, 0f, pos.x < 0f ? -30f : 30f);
-
-        TMP_Text number = NewText("Index", rect, index, 25f, Cyan, TextAlignmentOptions.Center);
-        SetRect((RectTransform)number.transform, new Vector2(-170f, 42f), new Vector2(64f, 54f));
+        Image iconImg = NewImage("Icon", rect, Color.white);
+        iconImg.sprite = statIconSprites[(int)icon];
+        iconImg.type = Image.Type.Simple;
+        SetRect(iconImg.rectTransform, new Vector2(-133f, 38f), new Vector2(52f, 52f));
 
         TMP_Text label = NewText("Label", rect,
             jp + "\n<size=15><color=#38C2E0>" + en + "</color></size>",
             27f, Color.white, TextAlignmentOptions.MidlineLeft);
-        SetRect((RectTransform)label.transform, new Vector2(28f, 43f), new Vector2(300f, 76f));
+        SetRect((RectTransform)label.transform, new Vector2(58f, 40f), new Vector2(290f, 76f));
 
-        Image rule = NewImage("Rule", rect, new Color(Rim.r, Rim.g, Rim.b, 0.42f));
-        SetRect(rule.rectTransform, new Vector2(0f, 3f), new Vector2(330f, 2f));
+        // 見出し下の細い区切り線（中央ノード＋両端ターミナル付き）。
+        BuildDivider(rect, new Vector2(0f, 3f), 360f);
 
         TMP_Text valueText = NewText("Value", rect, value, 48f, Color.white, TextAlignmentOptions.Center);
         valueText.characterSpacing = 4f;
         SetRect((RectTransform)valueText.transform, new Vector2(0f, -48f), new Vector2(390f, 70f));
         return valueText;
+    }
+
+    private void BuildDivider(RectTransform card, Vector2 pos, float width)
+    {
+        Image line = NewImage("Rule", card, DividerTan);
+        SetRect(line.rectTransform, pos, new Vector2(width, 1.6f));
+        AddQuad(card, "RuleNode", DividerBright, pos, new Vector2(8f, 8f), 45f);
+        AddQuad(card, "RuleEndL", DividerBright, new Vector2(pos.x - width * 0.5f, pos.y), new Vector2(5f, 5f), 45f);
+        AddQuad(card, "RuleEndR", DividerBright, new Vector2(pos.x + width * 0.5f, pos.y), new Vector2(5f, 5f), 45f);
+    }
+
+    private static Image AddQuad(RectTransform parent, string name, Color color,
+        Vector2 pos, Vector2 size, float rotDeg)
+    {
+        Image img = NewImage(name, parent, color);
+        RectTransform r = img.rectTransform;
+        r.anchorMin = r.anchorMax = new Vector2(0.5f, 0.5f);
+        r.pivot = new Vector2(0.5f, 0.5f);
+        r.anchoredPosition = pos;
+        r.sizeDelta = size;
+        r.localRotation = Quaternion.Euler(0f, 0f, rotDeg);
+        return img;
     }
 
     private void BuildActions(RectTransform root)
@@ -539,6 +624,388 @@ public sealed class ResultScreen : MonoBehaviour
         sprite.name = spriteName;
         generatedSprites.Add(sprite);
         return sprite;
+    }
+
+    private void AddChevron(RectTransform root, float sign, Vector2 center)
+    {
+        const float ax = 12f, ay = 18f;
+        Vector2 point = center + new Vector2(sign * ax, 0f);
+        AddChevronArm(root, point, center + new Vector2(-sign * ax, ay));
+        AddChevronArm(root, point, center + new Vector2(-sign * ax, -ay));
+    }
+
+    private void AddChevronArm(RectTransform root, Vector2 a, Vector2 b)
+    {
+        Vector2 mid = (a + b) * 0.5f;
+        float len = Vector2.Distance(a, b);
+        float ang = Mathf.Atan2(b.y - a.y, b.x - a.x) * Mathf.Rad2Deg;
+        AddQuad(root, "Chevron", AccentBlue, mid, new Vector2(len, 4f), ang);
+    }
+
+    // 面取り八角形の 9-slice fill（大きめの面取りで、カード・中央菱形の土台に使う）。
+    private Sprite CreateOctagonSprite(string spriteName, float chamfer)
+    {
+        const int size = 256;
+        const int border = 60;
+        Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        texture.name = spriteName + "Texture";
+        texture.filterMode = FilterMode.Bilinear;
+        Color32[] pixels = new Color32[size * size];
+        float half = (size - 1) * 0.5f;
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float ax = Mathf.Abs(x - half);
+                float ay = Mathf.Abs(y - half);
+                float d = Mathf.Max(ax - half, ay - half);
+                d = Mathf.Max(d, (ax + ay - (2f * half - chamfer)) * 0.7071f);
+                float a = Mathf.Clamp01(0.5f - d);
+                pixels[y * size + x] = new Color(1f, 1f, 1f, a);
+            }
+        }
+        texture.SetPixels32(pixels);
+        texture.Apply();
+        generatedTextures.Add(texture);
+        Sprite sprite = Sprite.Create(texture, new Rect(0f, 0f, size, size),
+            new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect,
+            new Vector4(border, border, border, border));
+        sprite.name = spriteName;
+        generatedSprites.Add(sprite);
+        return sprite;
+    }
+
+    // カード背景（非対称八角形）を塗り・細枠・青アクセント・白ブラケットまで
+    // 一体で焼き込んだ固定サイズスプライト。outerLeft=true で大面取りが左側。
+    private Sprite CreateHexCardSprite(bool outerLeft)
+    {
+        const int S = 2;                 // 2x で焼いて縮小 AA を稼ぐ
+        const int refW = 470, refH = 205;
+        int TW = refW * S, TH = refH * S;
+        // 面取り脚長（ref 単位）: 外側大・内側小。
+        float cOT = 60f, cOB = 60f, cIT = 24f, cIB = 44f;
+        float hw = refW * 0.5f * S, hh = refH * 0.5f * S;
+        Vector2[] v = HexCardVerts(outerLeft, hw, hh, cOT * S, cOB * S, cIT * S, cIB * S);
+
+        Texture2D texture = new Texture2D(TW, TH, TextureFormat.RGBA32, false);
+        texture.name = "ResultHexCard_" + (outerLeft ? "L" : "R");
+        texture.filterMode = FilterMode.Bilinear;
+        Color32[] px = new Color32[TW * TH];
+        Color fillCol = new Color(0.016f, 0.032f, 0.068f, 0.95f);
+        Color innerGold = new Color(0.095f, 0.082f, 0.052f, 1f); // 内側の鈍い金の細線
+        float cx = (TW - 1) * 0.5f, cy = (TH - 1) * 0.5f;
+        float outlineHalf = 1.6f * S;
+        float innerOffset = 10f * S;
+        for (int y = 0; y < TH; y++)
+        {
+            for (int x = 0; x < TW; x++)
+            {
+                Vector2 p = new Vector2(x - cx, y - cy);
+                float sdf = ConvexSdf(v, p);         // +外側 / -内側（tex px）
+                Blend(px, TW, TH, x, y, fillCol, Mathf.Clamp01(0.5f - sdf) * fillCol.a);
+                Blend(px, TW, TH, x, y, OutlineTan, Mathf.Clamp01(outlineHalf - Mathf.Abs(sdf) + 0.5f));
+                Blend(px, TW, TH, x, y, innerGold, Mathf.Clamp01(1.0f - Mathf.Abs(sdf + innerOffset)) * 0.7f);
+            }
+        }
+
+        // 内側下辺の面取りに沿った太い青アクセント（少し内側へ詰めて外周の枠を残す）。
+        Vector2 a0, a1;
+        if (outerLeft) { a0 = v[3]; a1 = v[4]; }   // 右下面取り
+        else { a0 = v[5]; a1 = v[6]; }             // 左下面取り
+        Vector2 am = (a0 + a1) * 0.5f;
+        a0 = Vector2.Lerp(a0, am, 0.07f);
+        a1 = Vector2.Lerp(a1, am, 0.07f);
+        DrawLine(px, TW, TH, a0.x + cx, a0.y + cy, a1.x + cx, a1.y + cy, 12f * S, AccentBlue);
+
+        // 外側 2 隅の明るい白ブラケット（面取り＋隣接辺の短いキャップ）。
+        if (outerLeft)
+        {
+            DrawBracket(px, TW, TH, cx, cy, v[7], v[0], v[6], v[1], S); // 左上
+            DrawBracket(px, TW, TH, cx, cy, v[5], v[6], v[4], v[7], S); // 左下
+        }
+        else
+        {
+            DrawBracket(px, TW, TH, cx, cy, v[1], v[2], v[0], v[3], S); // 右上
+            DrawBracket(px, TW, TH, cx, cy, v[3], v[4], v[2], v[5], S); // 右下
+        }
+
+        texture.SetPixels32(px);
+        texture.Apply();
+        generatedTextures.Add(texture);
+        Sprite sprite = Sprite.Create(texture, new Rect(0f, 0f, TW, TH),
+            new Vector2(0.5f, 0.5f), 100f * S);
+        sprite.name = texture.name;
+        generatedSprites.Add(sprite);
+        return sprite;
+    }
+
+    // 8 頂点（中央原点・CW・tex px）。outerLeft で大面取りを左へ。
+    private static Vector2[] HexCardVerts(bool outerLeft, float hw, float hh,
+        float cOT, float cOB, float cIT, float cIB)
+    {
+        if (outerLeft)
+        {
+            return new[]
+            {
+                new Vector2(-hw + cOT, hh),   // 0 上辺左
+                new Vector2( hw - cIT, hh),   // 1 上辺右
+                new Vector2( hw, hh - cIT),   // 2 右辺上
+                new Vector2( hw, -hh + cIB),  // 3 右辺下
+                new Vector2( hw - cIB, -hh),  // 4 下辺右
+                new Vector2(-hw + cOB, -hh),  // 5 下辺左
+                new Vector2(-hw, -hh + cOB),  // 6 左辺下
+                new Vector2(-hw, hh - cOT),   // 7 左辺上
+            };
+        }
+        return new[]
+        {
+            new Vector2(-hw + cIT, hh),   // 0 上辺左
+            new Vector2( hw - cOT, hh),   // 1 上辺右
+            new Vector2( hw, hh - cOT),   // 2 右辺上
+            new Vector2( hw, -hh + cOB),  // 3 右辺下
+            new Vector2( hw - cOB, -hh),  // 4 下辺右
+            new Vector2(-hw + cIB, -hh),  // 5 下辺左
+            new Vector2(-hw, -hh + cIB),  // 6 左辺下
+            new Vector2(-hw, hh - cIT),   // 7 左辺上
+        };
+    }
+
+    // 凸多角形の符号付き距離（+外側）。原点は内部にある前提。
+    private static float ConvexSdf(Vector2[] v, Vector2 p)
+    {
+        float d = -1e9f;
+        int n = v.Length;
+        for (int i = 0; i < n; i++)
+        {
+            Vector2 a = v[i];
+            Vector2 b = v[(i + 1) % n];
+            Vector2 e = b - a;
+            Vector2 nrm = new Vector2(e.y, -e.x);
+            if (Vector2.Dot(nrm, (a + b) * 0.5f) < 0f) nrm = -nrm;
+            nrm.Normalize();
+            d = Mathf.Max(d, Vector2.Dot(nrm, p - a));
+        }
+        return d;
+    }
+
+    // 白ブラケット: 面取り辺(a->b)＋a,b から隣接頂点方向への短いキャップ。
+    private static void DrawBracket(Color32[] px, int w, int h, float cx, float cy,
+        Vector2 a, Vector2 b, Vector2 aToward, Vector2 bToward, int scale)
+    {
+        float width = 3.4f * scale;
+        float cap = 17f * scale;
+        Vector2 ac = a + Vector2.ClampMagnitude(aToward - a, cap);
+        Vector2 bc = b + Vector2.ClampMagnitude(bToward - b, cap);
+        DrawLine(px, w, h, a.x + cx, a.y + cy, b.x + cx, b.y + cy, width, BracketWhite);
+        DrawLine(px, w, h, a.x + cx, a.y + cy, ac.x + cx, ac.y + cy, width, BracketWhite);
+        DrawLine(px, w, h, b.x + cx, b.y + cy, bc.x + cx, bc.y + cy, width, BracketWhite);
+    }
+
+    // 縦長六角形（pointy-top）のアイコンチップ。淡い青塗り＋細い外周。
+    private Sprite CreateHexChipSprite()
+    {
+        const int size = 128;
+        Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        texture.name = "ResultHexChipTexture";
+        texture.filterMode = FilterMode.Bilinear;
+        Color32[] px = new Color32[size * size];
+        float half = (size - 1) * 0.5f;
+        float radius = half - 7f;
+        const float k = 0.8660254f;   // sqrt(3)/2 -> 縦辺の半幅
+        const float s3 = 1.7320508f;  // sqrt(3)
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float ax = Mathf.Abs(x - half);
+                float ay = Mathf.Abs(y - half);
+                float dSide = ax - radius * k;
+                float dDiag = (ax + s3 * ay - s3 * radius) * 0.5f;
+                float d = Mathf.Max(dSide, dDiag);
+                float fill = Mathf.Clamp01(-d + 0.5f);
+                float ty = Mathf.Clamp01((y - half) / radius * 0.5f + 0.5f);
+                Color fillColor = Color.Lerp(new Color(0.010f, 0.045f, 0.115f),
+                    new Color(0.030f, 0.110f, 0.240f), ty);
+                Blend(px, size, size, x, y, fillColor, fill * 0.62f);
+                float ring = Mathf.Clamp01(1.5f - Mathf.Abs(d));
+                Blend(px, size, size, x, y, new Color(0.050f, 0.430f, 0.860f), ring * 0.75f);
+            }
+        }
+        texture.SetPixels32(px);
+        texture.Apply();
+        generatedTextures.Add(texture);
+        Sprite sprite = Sprite.Create(texture, new Rect(0f, 0f, size, size),
+            new Vector2(0.5f, 0.5f), 100f);
+        sprite.name = "ResultHexChip";
+        generatedSprites.Add(sprite);
+        return sprite;
+    }
+
+    // 細い菱形の輪郭リング（中央の多重ラインに使う。頂点はテクスチャ辺の中点）。
+    private Sprite CreateDiamondRingSprite()
+    {
+        const int size = 512;
+        Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        texture.name = "ResultDiamondRingTexture";
+        texture.filterMode = FilterMode.Bilinear;
+        Color32[] px = new Color32[size * size];
+        float half = (size - 1) * 0.5f;
+        float edge = half - 4f;
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float ax = Mathf.Abs(x - half);
+                float ay = Mathf.Abs(y - half);
+                float dist = Mathf.Abs((ax + ay) - edge) * 0.7071f;
+                float a = Mathf.Clamp01(1.2f - dist);
+                px[y * size + x] = new Color(1f, 1f, 1f, a);
+            }
+        }
+        texture.SetPixels32(px);
+        texture.Apply();
+        generatedTextures.Add(texture);
+        Sprite sprite = Sprite.Create(texture, new Rect(0f, 0f, size, size),
+            new Vector2(0.5f, 0.5f), 100f);
+        sprite.name = "ResultDiamondRing";
+        generatedSprites.Add(sprite);
+        return sprite;
+    }
+
+    // カード種別ごとの簡易ラインアイコン（クロスヘア/シールド/双剣/時計）。
+    private Sprite CreateStatIconSprite(StatIcon kind)
+    {
+        const int size = 96;
+        Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        texture.name = "ResultStatIcon_" + kind;
+        texture.filterMode = FilterMode.Bilinear;
+        Color32[] px = new Color32[size * size];
+        float c = (size - 1) * 0.5f;
+        Color col = IconBlue;
+        switch (kind)
+        {
+            case StatIcon.Crosshair:
+                DrawRing(px, size, size, c, c, 22f, 2.6f, col);
+                DrawLine(px, size, size, c, c + 15f, c, c + 31f, 2.0f, col);
+                DrawLine(px, size, size, c, c - 15f, c, c - 31f, 2.0f, col);
+                DrawLine(px, size, size, c + 15f, c, c + 31f, c, 2.0f, col);
+                DrawLine(px, size, size, c - 15f, c, c - 31f, c, 2.0f, col);
+                DrawDisc(px, size, size, c, c, 3f, col);
+                break;
+            case StatIcon.Clock:
+                DrawRing(px, size, size, c, c, 24f, 2.6f, col);
+                DrawLine(px, size, size, c, c, c, c + 17f, 2.4f, col);
+                DrawLine(px, size, size, c, c, c + 12f, c + 8f, 2.4f, col);
+                DrawDisc(px, size, size, c, c, 3f, col);
+                break;
+            case StatIcon.Swords:
+                DrawLine(px, size, size, c - 20f, c - 22f, c + 22f, c + 24f, 2.8f, col);
+                DrawLine(px, size, size, c + 20f, c - 22f, c - 22f, c + 24f, 2.8f, col);
+                DrawLine(px, size, size, c - 27f, c - 12f, c - 11f, c - 25f, 2.2f, col);
+                DrawLine(px, size, size, c + 27f, c - 12f, c + 11f, c - 25f, 2.2f, col);
+                DrawDisc(px, size, size, c - 21f, c - 24f, 2.6f, col);
+                DrawDisc(px, size, size, c + 21f, c - 24f, 2.6f, col);
+                break;
+            case StatIcon.Shield:
+                Vector2[] v =
+                {
+                    new Vector2(c - 19f, c + 24f), new Vector2(c + 19f, c + 24f),
+                    new Vector2(c + 19f, c + 2f), new Vector2(c, c - 26f),
+                    new Vector2(c - 19f, c + 2f),
+                };
+                for (int i = 0; i < v.Length; i++)
+                {
+                    Vector2 p = v[i];
+                    Vector2 q = v[(i + 1) % v.Length];
+                    DrawLine(px, size, size, p.x, p.y, q.x, q.y, 2.6f, col);
+                }
+                DrawRing(px, size, size, c, c + 4f, 7f, 2.0f, col);
+                DrawDisc(px, size, size, c, c + 4f, 2.0f, col);
+                break;
+        }
+        texture.SetPixels32(px);
+        texture.Apply();
+        generatedTextures.Add(texture);
+        Sprite sprite = Sprite.Create(texture, new Rect(0f, 0f, size, size),
+            new Vector2(0.5f, 0.5f), 100f);
+        sprite.name = "ResultStatIcon_" + kind;
+        generatedSprites.Add(sprite);
+        return sprite;
+    }
+
+    // --- 手続き描画の最小プリミティブ（Color32 バッファへ AA 付きでブレンド）---
+
+    private static void Blend(Color32[] buf, int w, int h, int x, int y, Color c, float cov)
+    {
+        if (x < 0 || x >= w || y < 0 || y >= h) return;
+        cov = Mathf.Clamp01(cov);
+        if (cov <= 0f) return;
+        int i = y * w + x;
+        Color32 d = buf[i];
+        float da = d.a / 255f;
+        float outA = cov + da * (1f - cov);
+        if (outA <= 0.0001f) { buf[i] = new Color32(0, 0, 0, 0); return; }
+        float r = (c.r * cov + (d.r / 255f) * da * (1f - cov)) / outA;
+        float g = (c.g * cov + (d.g / 255f) * da * (1f - cov)) / outA;
+        float b = (c.b * cov + (d.b / 255f) * da * (1f - cov)) / outA;
+        buf[i] = new Color(r, g, b, outA);
+    }
+
+    private static void DrawLine(Color32[] buf, int w, int h,
+        float x0, float y0, float x1, float y1, float width, Color col)
+    {
+        float ht = width * 0.5f;
+        int minx = Mathf.Max(0, Mathf.FloorToInt(Mathf.Min(x0, x1) - ht - 1f));
+        int maxx = Mathf.Min(w - 1, Mathf.CeilToInt(Mathf.Max(x0, x1) + ht + 1f));
+        int miny = Mathf.Max(0, Mathf.FloorToInt(Mathf.Min(y0, y1) - ht - 1f));
+        int maxy = Mathf.Min(h - 1, Mathf.CeilToInt(Mathf.Max(y0, y1) + ht + 1f));
+        float dx = x1 - x0, dy = y1 - y0;
+        float len2 = dx * dx + dy * dy;
+        for (int y = miny; y <= maxy; y++)
+        {
+            for (int x = minx; x <= maxx; x++)
+            {
+                float t = len2 > 1e-4f ? Mathf.Clamp01(((x - x0) * dx + (y - y0) * dy) / len2) : 0f;
+                float px = x0 + t * dx, py = y0 + t * dy;
+                float dist = Mathf.Sqrt((x - px) * (x - px) + (y - py) * (y - py));
+                Blend(buf, w, h, x, y, col, ht - dist + 0.5f);
+            }
+        }
+    }
+
+    private static void DrawRing(Color32[] buf, int w, int h,
+        float cx, float cy, float radius, float width, Color col)
+    {
+        float ht = width * 0.5f;
+        int minx = Mathf.Max(0, Mathf.FloorToInt(cx - radius - ht - 1f));
+        int maxx = Mathf.Min(w - 1, Mathf.CeilToInt(cx + radius + ht + 1f));
+        int miny = Mathf.Max(0, Mathf.FloorToInt(cy - radius - ht - 1f));
+        int maxy = Mathf.Min(h - 1, Mathf.CeilToInt(cy + radius + ht + 1f));
+        for (int y = miny; y <= maxy; y++)
+        {
+            for (int x = minx; x <= maxx; x++)
+            {
+                float dist = Mathf.Abs(Mathf.Sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy)) - radius);
+                Blend(buf, w, h, x, y, col, ht - dist + 0.5f);
+            }
+        }
+    }
+
+    private static void DrawDisc(Color32[] buf, int w, int h,
+        float cx, float cy, float radius, Color col)
+    {
+        int minx = Mathf.Max(0, Mathf.FloorToInt(cx - radius - 1f));
+        int maxx = Mathf.Min(w - 1, Mathf.CeilToInt(cx + radius + 1f));
+        int miny = Mathf.Max(0, Mathf.FloorToInt(cy - radius - 1f));
+        int maxy = Mathf.Min(h - 1, Mathf.CeilToInt(cy + radius + 1f));
+        for (int y = miny; y <= maxy; y++)
+        {
+            for (int x = minx; x <= maxx; x++)
+            {
+                float dist = Mathf.Sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
+                Blend(buf, w, h, x, y, col, radius - dist + 0.5f);
+            }
+        }
     }
 
     private TMP_Text NewText(string name, Transform parent, string value, float size,
