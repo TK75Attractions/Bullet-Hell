@@ -123,8 +123,8 @@ public static class ResultFlowRecorderMenu
 
     // ---- リザルト画面フローのデモ録画 ----
     // 実経路(StageSelectManager.StartGameTransition / GManager.ShowResult /
-    // HandleResultAction)だけを叩いて、選択→プレイ→クリア→リザルト→もう一度→
-    // リザルト→ステージ選択へ を通しで録る。GManager.StartCoroutine で起動する。
+    // HandleResultAction)だけを叩いて、選択→プレイ→クリア→リザルト→
+    // プレイを終わる→ステージ選択へ を通しで録る。GManager.StartCoroutine で起動する。
     // Recorder の captureFramerate 下では WaitForSeconds が動画秒と一致する。
 
     public static bool DemoRunning { get; private set; }
@@ -167,19 +167,8 @@ public static class ResultFlowRecorderMenu
             yield return WaitForState(g, GManager.GameState.Result, 8f);
             yield return new WaitForSeconds(4.0f); // 入場アニメ後、内容を見せる
 
-            // Phase D: 「もう一度」(既定で index0 選択済み)→リプレイ。
-            InvokePrivate(g, "HandleResultAction", new object[] { ResultScreen.Action.Retry });
-            yield return WaitForState(g, GManager.GameState.Playing, 12f);
-            yield return new WaitForSeconds(4.0f);
-
-            // Phase E: 再度クリア→リザルト。
-            g.ShowResult(true);
-            yield return WaitForState(g, GManager.GameState.Result, 8f);
-            yield return new WaitForSeconds(2.5f);
-
-            // Phase F: ハイライトを「ステージ選択へ」(index1)へ移してから確定。
-            InvokePrivate(g.RManager, "Select", new object[] { 1 });
-            yield return new WaitForSeconds(1.2f);
+            // Phase D: 単一ボタン「プレイを終わる」でステージ選択へ戻る
+            // (リザルト画面はボタン1つに変更。Retry はユーザー操作からは撤去済み)。
             InvokePrivate(g, "HandleResultAction", new object[] { ResultScreen.Action.StageSelect });
             yield return WaitForState(g, GManager.GameState.ChoosingStage, 8f);
             yield return new WaitForSeconds(3.0f);
