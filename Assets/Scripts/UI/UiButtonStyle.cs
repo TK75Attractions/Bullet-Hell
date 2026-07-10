@@ -99,6 +99,13 @@ public static class UiButtonStyle
     // (2026-07-11 ユーザー指摘「線の上下端をボタンの上下辺と一致させる」)。
     public static float SlashHeight(float buttonH) => buttonH - 22f;
 
+    // スラッシュの標準中心 x（ボタン中心基準）。焼き込み枠線(W/2-22)を挟んで
+    // 外9px=太、内9px=細で、枠・スラッシュ3本が平行に並ぶ密着レイアウト。
+    // ボタンから離すとリザルトの距離感と揃わない
+    // (2026-07-11 ユーザー指摘「白い線がボタンから離れすぎ」)。
+    public static float ThickSlashX(float buttonW) => buttonW * 0.5f - 13f;
+    public static float ThinSlashX(float buttonW) => buttonW * 0.5f - 31f;
+
     // ボタン内ラベルの標準サイズ(2026-07-11 指摘「余白をもっと広く」の一括調整点)。
     // リザルト 660x120=38 はユーザー承認済みの錨。タイトル 583x109=40 と
     // 確認ダイアログ 260x86=25 は oracle レビュー(ui-unify-followup-review)の
@@ -114,8 +121,8 @@ public static class UiButtonStyle
     public static void AddSlashPair(RectTransform parent, float buttonW, float buttonH)
     {
         float h = SlashHeight(buttonH);
-        float thickX = buttonW * 0.5f - 13f;
-        float thinX = buttonW * 0.5f - 31f;
+        float thickX = ThickSlashX(buttonW);
+        float thinX = ThinSlashX(buttonW);
         AddSlash(parent, "ButtonSlashA", Color.white, -thickX, 11f, h);
         AddSlash(parent, "ButtonSlashB", ThinSlashWhite, -thinX, 2.5f, h);
         AddSlash(parent, "ButtonSlashC", ThinSlashWhite, thinX, 2.5f, h);

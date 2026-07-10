@@ -624,17 +624,19 @@ public class TitleManager : MonoBehaviour
 
             // 行付属の灰スラッシュ(クローン元 sprite・角度約18°)はリザルト様式の
             // 細スラッシュ(19°・2.5px・白α0.5)へ差し替え、上下端をボタンの
-            // 上下辺(焼き込み枠)に合わせる(2026-07-11 指摘)。x はクローン元
-            // (±320)を踏襲。行 CanvasGroup の減光には子としてそのまま追従する。
+            // 上下辺(焼き込み枠)に合わせる(2026-07-11 指摘)。x は共通則
+            // ThinSlashX でボタン枠に密着させる(2026-07-11 指摘「離れすぎ」)。
+            // 行 CanvasGroup の減光には子としてそのまま追従する。
             foreach (string grayName in new[] { "Gray_L", "Gray_R" })
             {
                 Transform gray = row.Find(grayName);
                 if (gray != null) gray.gameObject.SetActive(false);
             }
+            float rowThinX = UiButtonStyle.ThinSlashX(583f);
             UiButtonStyle.AddSlash(row, "RowSlashL", new Color(1f, 1f, 1f, 0.5f),
-                -320f, 2.5f, UiButtonStyle.SlashHeight(109f));
+                -rowThinX, 2.5f, UiButtonStyle.SlashHeight(109f));
             UiButtonStyle.AddSlash(row, "RowSlashR", new Color(1f, 1f, 1f, 0.5f),
-                320f, 2.5f, UiButtonStyle.SlashHeight(109f));
+                rowThinX, 2.5f, UiButtonStyle.SlashHeight(109f));
 
             if (label != null)
             {
@@ -665,12 +667,14 @@ public class TitleManager : MonoBehaviour
             // 選択マーカーの白スラッシュ(クローン元 sprite・角度約21°)を
             // リザルト様式の太スラッシュ(19°・11px)へ差し替え、上下端を
             // ボタンの上下辺(焼き込み枠)に合わせる(2026-07-11 指摘)。
-            // x はクローン元の配置(バナー外側)を 0.96 倍で内寄せして踏襲。
+            // x は共通則 ThickSlashX でボタン枠のすぐ外に密着させる
+            // (2026-07-11 指摘「離れすぎ」。クローン元のバナー外側配置を廃止)。
             foreach (string slashName in new[] { "White_L", "White_R" })
             {
                 RectTransform slash = menuWhite.Find(slashName) as RectTransform;
                 if (slash == null) continue;
-                float slashX = slash.anchoredPosition.x * 0.96f;
+                float slashX = Mathf.Sign(slash.anchoredPosition.x)
+                    * UiButtonStyle.ThickSlashX(583f);
                 slash.gameObject.SetActive(false);
                 UiButtonStyle.AddSlash(menuWhite, slashName + "19", Color.white,
                     slashX, 11f, UiButtonStyle.SlashHeight(109f));
