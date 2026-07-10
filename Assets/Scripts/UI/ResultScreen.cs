@@ -81,13 +81,15 @@ public sealed class ResultScreen : MonoBehaviour
     private const float EnterCardStart = 0.12f;
     private const float EnterCardStagger = 0.09f;
     private const float EnterCardDur = 0.34f;
-    private const float EnterCountStart = 0.42f;
+    // カウント開始はカード整定の後ろへ 60ms、スタンプはカウント完了後に
+    // 80ms の溜めを置き、巨大状態の滞在を短縮（oracle 動画レビュー反映）。
+    private const float EnterCountStart = 0.48f;
     private const float EnterCountDur = 0.60f;
     private const float EnterEvalStart = 0.55f;
     private const float EnterEvalDur = 0.35f;
-    private const float EnterStampStartClear = 1.02f;
-    private const float EnterStampDurClear = 0.34f;
-    private const float EnterStampStartFail = 1.06f;
+    private const float EnterStampStartClear = 1.16f;
+    private const float EnterStampDurClear = 0.28f;
+    private const float EnterStampStartFail = 1.16f;
     private const float EnterStampDurFail = 0.50f;
     private const float EnterFlashDur = 0.38f;
     private const float EnterRippleDur = 0.55f;
@@ -120,7 +122,7 @@ public sealed class ResultScreen : MonoBehaviour
 
     // ランク文字のアンダーレイグロー色（クリア=青 / 失敗=赤）。
     private static readonly Color RankGlowBlue = new Color(0.20f, 0.60f, 1f, 0.55f);
-    private static readonly Color RankGlowRed = new Color(1f, 0.25f, 0.35f, 0.52f);
+    private static readonly Color RankGlowRed = new Color(1f, 0.25f, 0.35f, 0.45f);
 
     public event System.Action<Action> ActionRequested;
 
@@ -856,12 +858,32 @@ public sealed class ResultScreen : MonoBehaviour
         //     失敗時は開始倍率を抑え、時間を掛けて重く落とす。
         float sp = Mathf.Clamp01((t - stampStart) / stampDur);
         float se = cleared ? sp * sp * sp : sp * sp * sp * sp;
-        rankGroup.alpha = Mathf.Clamp01(sp / 0.30f);
+        // 接地の瞬間に最大発光が来るよう、落下中はやや暗く抑えて着地で 1.0 に
+        // 引き上げる（oracle 指摘: 発光ピークと接地感の分散を防ぐ）。
+        float appear = Mathf.Clamp01(sp / 0.30f);
+        rankGroup.alpha = postT >= 0f ? 1f : appear * 0.88f;
         float stampScale = Mathf.Lerp(cleared ? 2.4f : 1.9f, 1f, se);
-        // 着地直後の沈み込み（紙へ押し込む感触）。
-        if (postT > 0f && postT < 0.18f)
-            stampScale = 1f - 0.015f * Mathf.Sin(Mathf.PI * postT / 0.18f);
-        rankGroupRect.localScale = Vector3.one * stampScale;
+        Vector3 stampScaleVec;
+        if (cleared)
+        {
+            // クリア: 着地直後に小さな沈み込み→復帰（紙へ押し込む感触）。
+            if (postT > 0f && postT < 0.18f)
+                stampScale = 1f - 0.015f * Mathf.Sin(Mathf.PI * postT / 0.18f);
+            stampScaleVec = Vector3.one * stampScale;
+        }
+        else
+        {
+            // 失敗: 反発なし。接触の 0.1 秒だけ縦に潰れて戻る（重い着地）。
+            stampScaleVec = Vector3.one * stampScale;
+            if (postT > 0f && postT < 0.10f)
+            {
+                float sq = 1f - postT / 0.10f;
+                stampScaleVec = new Vector3(
+                    stampScale * (1f + 0.04f * sq),
+                    stampScale * (1f - 0.08f * sq), 1f);
+            }
+        }
+        rankGroupRect.localScale = stampScaleVec;
 
         // (6) 着地の一閃: フレアのアルファを持ち上げて減衰させる。
         float boost = 0f;
@@ -880,7 +902,8 @@ public sealed class ResultScreen : MonoBehaviour
         Color rippleCol = cleared
             ? new Color(Cyan.r, Cyan.g, Cyan.b, 1f)
             : new Color(0.75f, 0.16f, 0.24f, 1f);
-        float rippleMax = cleared ? 800f : 600f;
+        // 既存の多重菱形（最大500）より十分外まで広げて波紋を認識しやすく。
+        float rippleMax = cleared ? 920f : 680f;
         float rippleAlpha = cleared ? 0.50f : 0.30f;
         ApplyRipple(rippleA, postT, rippleCol, rippleMax, rippleAlpha);
         ApplyRipple(rippleB, cleared ? postT - 0.12f : -1f, rippleCol, rippleMax, rippleAlpha * 0.8f);
@@ -929,12 +952,12 @@ public sealed class ResultScreen : MonoBehaviour
         return 1f - (1f - p) * (1f - p) * (1f - p);
     }
 
-    // カウントアップ完了時の小さなパルス（1→1.06→1）。
+    // カウントアップ完了時のパルス（1→1.10→1。oracle 指摘で増幅）。
     private static float ValuePulse(float time)
     {
-        const float dur = 0.14f;
+        const float dur = 0.16f;
         if (time <= 0f || time >= dur) return 1f;
-        return 1f + 0.06f * Mathf.Sin(Mathf.PI * time / dur);
+        return 1f + 0.10f * Mathf.Sin(Mathf.PI * time / dur);
     }
 
     private static Color WithAlpha(Color c, float a)
