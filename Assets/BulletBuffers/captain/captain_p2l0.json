@@ -1,0 +1,67 @@
+{
+  "name": "captain_p2l0",
+  "bullets": [
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": 0,
+        "y": 0
+      },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "useVelocityAngle": true,
+      "polarForm": {
+        "x": 1,
+        "y": 0
+      },
+      "radiusVlc": 4,
+      "radiusAccel": 0,
+      "thetaVlc": 4,
+      "thetaAccel": 0,
+      "startPos": {
+        "x": 0,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "normal",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 0,
+      "appearDuration": 0,
+      "life": 10,
+      "random": 0,
+      "warpCooldown": 0,
+      "warpable": true,
+      "ignoreOutOfBoundsCulling": false,
+      "unCounterable": false
+    }
+  ],
+  "homing": false,
+  "isLaser": true
+}

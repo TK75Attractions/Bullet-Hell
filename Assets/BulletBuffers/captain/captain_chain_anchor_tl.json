@@ -1,5 +1,5 @@
 {
-  "name": "captain_anchor_obj_l",
+  "name": "captain_chain_anchor_tl",
   "bullets": [
     {
       "originPos": {
@@ -7,8 +7,8 @@
         "y": 0
       },
       "originVlc": {
-        "x": 0,
-        "y": 0
+        "x": -1.7320508,
+        "y": -1
       },
       "playerInfluence": {
         "x": 0,
@@ -21,258 +21,18 @@
         "y": 0
       },
       "angleSpeed": 0,
-      "initialAngle": 0,
-      "useVelocityAngle": false,
+      "initialAngle": 1.5707964,
+      "useVelocityAngle": true,
       "polarForm": {
-        "x": 2,
-        "y": 3.9269907
+        "x": 1,
+        "y": 0.5235988
       },
       "radiusVlc": 0,
       "radiusAccel": 0,
-      "thetaVlc": 0.6,
+      "thetaVlc": -1.1519173,
       "thetaAccel": 0,
       "startPos": {
-        "x": -1.2,
-        "y": 0
-      },
-      "polynomial": {
-        "x": 0,
-        "y": 0,
-        "z": 0,
-        "w": 0
-      },
-      "typeName": "chain",
-      "scale": {
-        "x": 1,
-        "y": 1
-      },
-      "color": {
-        "x": 1,
-        "y": 1,
-        "z": 1,
-        "w": 1
-      },
-      "appearTime": 1,
-      "appearDuration": 1,
-      "life": 12,
-      "random": 0,
-      "warpCooldown": 0,
-      "warpable": false,
-      "ignoreOutOfBoundsCulling": false,
-      "unCounterable": false
-    },
-    {
-      "originPos": {
-        "x": 0,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "playerInfluence": {
-        "x": 0,
-        "y": 0
-      },
-      "startX": 0,
-      "speed": 0,
-      "gravity": {
-        "x": 0,
-        "y": 0
-      },
-      "angleSpeed": 0,
-      "initialAngle": 0,
-      "useVelocityAngle": false,
-      "polarForm": {
-        "x": 4,
-        "y": 3.9269907
-      },
-      "radiusVlc": 0,
-      "radiusAccel": 0,
-      "thetaVlc": 0.6,
-      "thetaAccel": 0,
-      "startPos": {
-        "x": -1.2,
-        "y": 0
-      },
-      "polynomial": {
-        "x": 0,
-        "y": 0,
-        "z": 0,
-        "w": 0
-      },
-      "typeName": "chain",
-      "scale": {
-        "x": 1,
-        "y": 1
-      },
-      "color": {
-        "x": 1,
-        "y": 1,
-        "z": 1,
-        "w": 1
-      },
-      "appearTime": 1,
-      "appearDuration": 1,
-      "life": 12,
-      "random": 0,
-      "warpCooldown": 0,
-      "warpable": false,
-      "ignoreOutOfBoundsCulling": false,
-      "unCounterable": false
-    },
-    {
-      "originPos": {
-        "x": 0,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "playerInfluence": {
-        "x": 0,
-        "y": 0
-      },
-      "startX": 0,
-      "speed": 0,
-      "gravity": {
-        "x": 0,
-        "y": 0
-      },
-      "angleSpeed": 0,
-      "initialAngle": 0,
-      "useVelocityAngle": false,
-      "polarForm": {
-        "x": 6,
-        "y": 3.9269907
-      },
-      "radiusVlc": 0,
-      "radiusAccel": 0,
-      "thetaVlc": 0.6,
-      "thetaAccel": 0,
-      "startPos": {
-        "x": -1.2,
-        "y": 0
-      },
-      "polynomial": {
-        "x": 0,
-        "y": 0,
-        "z": 0,
-        "w": 0
-      },
-      "typeName": "chain",
-      "scale": {
-        "x": 1,
-        "y": 1
-      },
-      "color": {
-        "x": 1,
-        "y": 1,
-        "z": 1,
-        "w": 1
-      },
-      "appearTime": 1,
-      "appearDuration": 1,
-      "life": 12,
-      "random": 0,
-      "warpCooldown": 0,
-      "warpable": false,
-      "ignoreOutOfBoundsCulling": false,
-      "unCounterable": false
-    },
-    {
-      "originPos": {
-        "x": 0,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "playerInfluence": {
-        "x": 0,
-        "y": 0
-      },
-      "startX": 0,
-      "speed": 0,
-      "gravity": {
-        "x": 0,
-        "y": 0
-      },
-      "angleSpeed": 0,
-      "initialAngle": 0,
-      "useVelocityAngle": false,
-      "polarForm": {
-        "x": 8,
-        "y": 3.9269907
-      },
-      "radiusVlc": 0,
-      "radiusAccel": 0,
-      "thetaVlc": 0.6,
-      "thetaAccel": 0,
-      "startPos": {
-        "x": -1.2,
-        "y": 0
-      },
-      "polynomial": {
-        "x": 0,
-        "y": 0,
-        "z": 0,
-        "w": 0
-      },
-      "typeName": "chain",
-      "scale": {
-        "x": 1,
-        "y": 1
-      },
-      "color": {
-        "x": 1,
-        "y": 1,
-        "z": 1,
-        "w": 1
-      },
-      "appearTime": 1,
-      "appearDuration": 1,
-      "life": 12,
-      "random": 0,
-      "warpCooldown": 0,
-      "warpable": false,
-      "ignoreOutOfBoundsCulling": false,
-      "unCounterable": false
-    },
-    {
-      "originPos": {
-        "x": 0,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "playerInfluence": {
-        "x": 0,
-        "y": 0
-      },
-      "startX": 0,
-      "speed": 0,
-      "gravity": {
-        "x": 0,
-        "y": 0
-      },
-      "angleSpeed": 0,
-      "initialAngle": 0,
-      "useVelocityAngle": false,
-      "polarForm": {
-        "x": 9,
-        "y": 3.9269907
-      },
-      "radiusVlc": 0,
-      "radiusAccel": 0,
-      "thetaVlc": 0.6,
-      "thetaAccel": 0,
-      "startPos": {
-        "x": -1.2,
+        "x": -10,
         "y": 0
       },
       "polynomial": {
@@ -283,8 +43,8 @@
       },
       "typeName": "anchor",
       "scale": {
-        "x": 5,
-        "y": 5
+        "x": 8,
+        "y": 8
       },
       "color": {
         "x": 1,
@@ -292,14 +52,14 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 1,
-      "appearDuration": 1,
-      "life": 12,
+      "appearTime": 0.54545456,
+      "appearDuration": 0,
+      "life": 3.3727274,
       "random": 0,
       "warpCooldown": 0,
-      "warpable": false,
+      "warpable": true,
       "ignoreOutOfBoundsCulling": false,
-      "unCounterable": false
+      "unCounterable": true
     },
     {
       "originPos": {
@@ -307,8 +67,8 @@
         "y": 0
       },
       "originVlc": {
-        "x": 0,
-        "y": 0
+        "x": -1.7320508,
+        "y": -1
       },
       "playerInfluence": {
         "x": 0,
@@ -320,19 +80,19 @@
         "x": 0,
         "y": 0
       },
-      "angleSpeed": 3,
-      "initialAngle": 0,
-      "useVelocityAngle": false,
+      "angleSpeed": 0,
+      "initialAngle": -1.5707964,
+      "useVelocityAngle": true,
       "polarForm": {
-        "x": 9,
-        "y": 3.9269907
+        "x": 1,
+        "y": 0.5235988
       },
       "radiusVlc": 0,
       "radiusAccel": 0,
-      "thetaVlc": 0.6,
+      "thetaVlc": -1.1519173,
       "thetaAccel": 0,
       "startPos": {
-        "x": -1.2,
+        "x": -1.6,
         "y": 0
       },
       "polynomial": {
@@ -341,30 +101,270 @@
         "z": 0,
         "w": 0
       },
-      "typeName": "warp_zone",
+      "typeName": "chain",
       "scale": {
-        "x": 3.5,
-        "y": 3.5
+        "x": 1,
+        "y": 1
       },
       "color": {
         "x": 1,
         "y": 1,
         "z": 1,
-        "w": 0.2
+        "w": 1
       },
-      "appearTime": 1,
-      "appearDuration": 1,
-      "life": 12,
+      "appearTime": 0.54545456,
+      "appearDuration": 0,
+      "life": 3.3727274,
       "random": 0,
       "warpCooldown": 0,
       "warpable": true,
       "ignoreOutOfBoundsCulling": false,
-      "unCounterable": false
+      "unCounterable": true
     },
     {
       "originPos": {
         "x": 0,
-        "y": -44
+        "y": 0
+      },
+      "originVlc": {
+        "x": -1.7320508,
+        "y": -1
+      },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
+      "angleSpeed": 0,
+      "initialAngle": -1.5707964,
+      "useVelocityAngle": true,
+      "polarForm": {
+        "x": 1,
+        "y": 0.5235988
+      },
+      "radiusVlc": 0,
+      "radiusAccel": 0,
+      "thetaVlc": -1.1519173,
+      "thetaAccel": 0,
+      "startPos": {
+        "x": -3.2,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "chain",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 0.54545456,
+      "appearDuration": 0,
+      "life": 3.3727274,
+      "random": 0,
+      "warpCooldown": 0,
+      "warpable": true,
+      "ignoreOutOfBoundsCulling": false,
+      "unCounterable": true
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": -1.7320508,
+        "y": -1
+      },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
+      "angleSpeed": 0,
+      "initialAngle": -1.5707964,
+      "useVelocityAngle": true,
+      "polarForm": {
+        "x": 1,
+        "y": 0.5235988
+      },
+      "radiusVlc": 0,
+      "radiusAccel": 0,
+      "thetaVlc": -1.1519173,
+      "thetaAccel": 0,
+      "startPos": {
+        "x": -4.8,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "chain",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 0.54545456,
+      "appearDuration": 0,
+      "life": 3.3727274,
+      "random": 0,
+      "warpCooldown": 0,
+      "warpable": true,
+      "ignoreOutOfBoundsCulling": false,
+      "unCounterable": true
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": -1.7320508,
+        "y": -1
+      },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
+      "angleSpeed": 0,
+      "initialAngle": -1.5707964,
+      "useVelocityAngle": true,
+      "polarForm": {
+        "x": 1,
+        "y": 0.5235988
+      },
+      "radiusVlc": 0,
+      "radiusAccel": 0,
+      "thetaVlc": -1.1519173,
+      "thetaAccel": 0,
+      "startPos": {
+        "x": -6.4,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "chain",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 0.54545456,
+      "appearDuration": 0,
+      "life": 3.3727274,
+      "random": 0,
+      "warpCooldown": 0,
+      "warpable": true,
+      "ignoreOutOfBoundsCulling": false,
+      "unCounterable": true
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
+      },
+      "originVlc": {
+        "x": -1.7320508,
+        "y": -1
+      },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
+      "startX": 0,
+      "speed": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
+      "angleSpeed": 0,
+      "initialAngle": -1.5707964,
+      "useVelocityAngle": true,
+      "polarForm": {
+        "x": 1,
+        "y": 0.5235988
+      },
+      "radiusVlc": 0,
+      "radiusAccel": 0,
+      "thetaVlc": -1.1519173,
+      "thetaAccel": 0,
+      "startPos": {
+        "x": -8,
+        "y": 0
+      },
+      "polynomial": {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 0
+      },
+      "typeName": "chain",
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "color": {
+        "x": 1,
+        "y": 1,
+        "z": 1,
+        "w": 1
+      },
+      "appearTime": 0.54545456,
+      "appearDuration": 0,
+      "life": 3.3727274,
+      "random": 0,
+      "warpCooldown": 0,
+      "warpable": true,
+      "ignoreOutOfBoundsCulling": false,
+      "unCounterable": true
+    },
+    {
+      "originPos": {
+        "x": 0,
+        "y": 0
       },
       "originVlc": {
         "x": 0,
@@ -401,10 +401,10 @@
         "z": 0,
         "w": 0
       },
-      "typeName": "warp_zone",
+      "typeName": "ScreenNoise",
       "scale": {
-        "x": 3.5,
-        "y": 3.5
+        "x": 4,
+        "y": 1
       },
       "color": {
         "x": 1,
@@ -412,13 +412,13 @@
         "z": 1,
         "w": 1
       },
-      "appearTime": 0,
+      "appearTime": 3.2727275,
       "appearDuration": 0,
-      "life": 60,
+      "life": 5.4545455,
       "random": 0,
       "warpCooldown": 0,
       "warpable": true,
-      "ignoreOutOfBoundsCulling": true,
+      "ignoreOutOfBoundsCulling": false,
       "unCounterable": false
     }
   ],

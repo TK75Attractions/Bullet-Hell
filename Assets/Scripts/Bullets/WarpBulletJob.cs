@@ -74,7 +74,7 @@ public struct WarpBulletJob : IJobParallelFor
         bullet.angle = GetAngleRad(exitVelocity.x, exitVelocity.y);
         bullet.areaNum = grid.GetTreeNum(exitPosition);
 
-        if (bullet.areaNum == -1)
+        if (bullet.areaNum == -1 && !bullet.ignoreOutOfBoundsCulling)
         {
             bullet.isActive = false;
         }

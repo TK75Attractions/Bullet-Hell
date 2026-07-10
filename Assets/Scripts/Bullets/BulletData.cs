@@ -83,6 +83,8 @@ public struct BulletData
     public float warpCooldown;
     // false の弾はワープゾーンを通過してもワープしない。
     public bool warpable;
+    // true の弾は画面外カリングおよびワープ直後のグリッド外カリングで無効化しない。
+    public bool ignoreOutOfBoundsCulling;
     public bool isActive;
     public bool isClearing;
     public float clearTime;
@@ -142,6 +144,7 @@ public struct BulletData
         random = _random;
         warpCooldown = 0f;
         warpable = true;
+        ignoreOutOfBoundsCulling = false;
         appearTime = _appear;
         appearDuration = _appearDuration >= 0f ? _appearDuration : DefaultAppearDuration;
         life = _life;
@@ -252,6 +255,7 @@ public struct BulletData
         // Keep source flag when cloning; optional arg can force uncounterable.
         unCounterable = data.unCounterable || _unCounterable;
         warpable = data.warpable;
+        ignoreOutOfBoundsCulling = data.ignoreOutOfBoundsCulling;
 
         areaNum = 0;
         time = 0;
