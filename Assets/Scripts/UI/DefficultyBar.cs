@@ -8,10 +8,13 @@ public class DefficultyBar : MonoBehaviour
     // 行ボタンの表示サイズ。2026-07-11 指摘「もっと余白を大きく=ボタン自体を
     // 大きく」でリザルト標準(660x120)級へ拡大(シーンの StageBar 583x109 は
     // Init でこの寸法に上書きする)。ラベルは 40 のまま=枠内の余白が増える。
+    // 2026-07-11 夜の再指摘「余白を縦方向にさらに」で高さのみ 124→140
+    // (横幅は現状維持の指定)。
     private const float BarW = 660f;
-    private const float BarH = 124f;
-    // 行間(Easy/Normal/Lunatic の中心間隔)。ボタン拡大に合わせて一段広げる。
-    private const float RowSpacing = 158f;
+    private const float BarH = 140f;
+    // 行間(Easy/Normal/Lunatic の中心間隔)。ボタン拡大に合わせて一段広げる
+    // (158→180。行の隙間 34→40 で縦の抜けも一段増える)。
+    private const float RowSpacing = 180f;
 
     private CanvasGroup CG;
     private RectTransform whiteBar;
