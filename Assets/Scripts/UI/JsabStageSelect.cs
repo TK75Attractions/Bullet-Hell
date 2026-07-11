@@ -985,7 +985,10 @@ public class JsabStageSelect : MonoBehaviour
             diffPanel = (RectTransform)clone.transform;
             diffPanel.anchorMin = diffPanel.anchorMax = new Vector2(0.5f, 0.5f);
             diffPanel.pivot = new Vector2(0.5f, 0.5f);
-            diffPanel.anchoredPosition = new Vector2(0f, 30f);
+            // y は行群が背後のぼかしカードに対して視覚センターへ乗る値
+            // (ボタン縦拡大 140/180 の際、+30 だと行群が上寄りに見えると
+            // oracle レビュー指摘 → 14px 下げ)。
+            diffPanel.anchoredPosition = new Vector2(0f, 16f);
             diffPanel.localScale = Vector3.one * DiffPanelBaseScale; // matches the original's on-screen scale
             diffBar = clone.GetComponent<DefficultyBar>();
             if (diffBar != null)
