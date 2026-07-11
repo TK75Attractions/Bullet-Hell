@@ -101,6 +101,9 @@ public class StageSelectManager : MonoBehaviour
             Transform song = hud.Find("SongName");
             if (song != null) playHUDSongName = song.GetComponent<TMPro.TMP_Text>();
             if (playHUD != null) playHUD.alpha = 0;
+            // プレイ中 HUD の駆動役(曲進捗バー+スコア/被弾)を実行時に取り付ける。
+            if (hud.GetComponent<PlayHudController>() == null)
+                hud.gameObject.AddComponent<PlayHudController>();
         }
 
         stageBarRect = stageBar.GetComponent<RectTransform>();
