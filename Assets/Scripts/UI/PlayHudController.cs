@@ -40,6 +40,11 @@ public class PlayHudController : MonoBehaviour
     private static readonly Color BandNavy = new Color(0.010f, 0.028f, 0.055f, 0.45f);
     // 帯下辺の銀エッジ(視覚(0.55,0.60,0.70)相当の pre-linear)。
     private static readonly Color BandEdgeSilver = new Color(0.268f, 0.325f, 0.456f, 0.9f);
+    // プレイ領域の左右縦エッジ(額縁)。moracle レビュー(edge-compare)採用案 D:
+    // 帯の銀エッジと同じ材質だがグロー/シアン無しの静かな銀 1 本。帯銀より一段暗く
+    // 低アルファにし、非発光・低コントラストで弾のブルームより常に暗く保つ
+    // (画面端の弾の視認性を優先。発光する縦線は青系の弾・予告・残光と競合する指摘)。
+    private static readonly Color FrameEdgeSilver = new Color(0.193f, 0.234f, 0.328f, 0.55f);
     // 額縁の地色(pre-linear・不透明必須)。フィールド外の弾を隠しつつ、
     // リザルト背景 DeepNavy より一段だけ明るい紺でエッジ線が立つ暗さにする。
     private static readonly Color FrameNavy = new Color(0.006f, 0.014f, 0.030f, 1f);
@@ -47,6 +52,9 @@ public class PlayHudController : MonoBehaviour
     // レイアウト定数(1080p ref・キャンバス中心原点)。全要素は帯の中心線に乗せる。
     private const float BandH = 104f;
     private const float RowY = 488f;            // 540(上端) - BandH/2
+    // 登場時に HUD 全体(帯+曲名バー)を上から滑り込ませる距離(canvas px)。
+    // AnimateHUDIn の 70px を継ぎ、額縁フェード/カメラズームと同じ eased 値で降ろす。
+    private const float HudSlideY = 56f;
     private const float CardH = 72f;
     private const float HitCardW = 220f;
     private const float ScoreCardW = 320f;
@@ -97,12 +105,16 @@ public class PlayHudController : MonoBehaviour
     // ここはフィールド外を覆う不透明フィル+エッジ線の UI とフェード同期を持つ。
     // インセット値は FreezeAspectRate(単一ソース)から導出する。
     private FreezeAspectRate cameraRig;
+    // playHUD 自身の CanvasGroup / RectTransform。帯・曲名バーを一括で
+    // フェード+スライドさせ、額縁(frameGroup)・カメラズームと同じ eased 値で
+    // 一本の登場モーションに揃える(帯だけ即時ポップしていた退行の解消)。
+    private CanvasGroup hudGroup;
+    private RectTransform hudRect;
     private RectTransform frameRoot;
     private CanvasGroup frameGroup;
     private RectTransform frameTopFill, frameLeftFill, frameRightFill, frameBottomFill;
-    private RectTransform frameEdgeSilverL, frameEdgeSilverR, frameEdgeBlueL, frameEdgeBlueR;
-    private RectTransform frameEdgeSilverB, frameEdgeBlueB;
-    private RectTransform frameEdgeKeyL, frameEdgeKeyR, frameEdgeKeyB;
+    private RectTransform frameEdgeSilverL, frameEdgeSilverR;
+    private RectTransform frameEdgeSilverB, frameEdgeBlueB, frameEdgeKeyB;
     private float frameAppliedTop = -1f;
     private float frameAppliedBottom = -1f;
 
@@ -124,6 +136,12 @@ public class PlayHudController : MonoBehaviour
     private void Build()
     {
         if (built) return;
+
+        // playHUD 自身(帯+曲名バーの受け皿)の CanvasGroup / RectTransform。
+        // 登場アニメを額縁と同期させるため保持する。CanvasGroup が無ければ足す。
+        hudRect = (RectTransform)transform;
+        hudGroup = GetComponent<CanvasGroup>();
+        if (hudGroup == null) hudGroup = gameObject.AddComponent<CanvasGroup>();
 
         // フォントはシーンの曲名テキストから拝借(シーン既定 TMP)。
         Transform songName = transform.Find("SongName");
@@ -273,17 +291,14 @@ public class PlayHudController : MonoBehaviour
         frameRightFill = NewImage("RightFill", frameRoot, FrameNavy).rectTransform;
         frameBottomFill = NewImage("BottomFill", frameRoot, FrameNavy).rectTransform;
 
-        // エッジは3層(フィールド側から): 銀2px→青リム(控えめ)→暗キーライン1px。
-        // oracle レビュー(playframe-ab-review)の「銀主体+シアン控えめ+外側に
-        // 暗いキーラインでデバッグ境界線感を消す」を反映。
+        // 左右の縦エッジは静かな銀 1 本のみ(採用案 D)。以前の「銀+シアンリム+
+        // 暗キーライン」の 3 層はシアンが強く『左右のガイド線/当たり判定境界』に
+        // 見える指摘(ユーザー+moracle)を受けて撤去。下辺は額縁を閉じるため、
+        // 帯下辺と同じ銀+青アクセント+暗キーラインの 3 層を残す。
         Color accentBlue = new Color(FillBlue.r, FillBlue.g, FillBlue.b, 0.28f);
         Color keyline = new Color(0f, 0.004f, 0.010f, 0.9f);
-        frameEdgeBlueL = NewImage("EdgeBlueL", frameRoot, accentBlue).rectTransform;
-        frameEdgeSilverL = NewImage("EdgeSilverL", frameRoot, BandEdgeSilver).rectTransform;
-        frameEdgeKeyL = NewImage("EdgeKeyL", frameRoot, keyline).rectTransform;
-        frameEdgeBlueR = NewImage("EdgeBlueR", frameRoot, accentBlue).rectTransform;
-        frameEdgeSilverR = NewImage("EdgeSilverR", frameRoot, BandEdgeSilver).rectTransform;
-        frameEdgeKeyR = NewImage("EdgeKeyR", frameRoot, keyline).rectTransform;
+        frameEdgeSilverL = NewImage("EdgeSilverL", frameRoot, FrameEdgeSilver).rectTransform;
+        frameEdgeSilverR = NewImage("EdgeSilverR", frameRoot, FrameEdgeSilver).rectTransform;
         frameEdgeBlueB = NewImage("EdgeBlueB", frameRoot, accentBlue).rectTransform;
         frameEdgeSilverB = NewImage("EdgeSilverB", frameRoot, BandEdgeSilver).rectTransform;
         frameEdgeKeyB = NewImage("EdgeKeyB", frameRoot, keyline).rectTransform;
@@ -319,16 +334,13 @@ public class PlayHudController : MonoBehaviour
         frameBottomFill.gameObject.SetActive(hasBottom);
         PlaceRect(frameBottomFill, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, new Vector2(1920f, Mathf.Max(1f, bot)));
 
-        // 3層エッジ(フィールド側から銀2px→青リム1.5px→暗キーライン1px、計4.5px)。
-        // 下辺の横ラインは左右キーラインの外端まで伸ばして額縁を閉じる。
+        // 左右の縦エッジ = 静かな銀 1 本(1.5px、採用案 D)。フィールド際に置く。
+        // 下辺は帯下辺と同じ 3 層で額縁を閉じ、横ラインを左右の外側まで伸ばす。
         Vector2 center = new Vector2(0.5f, 0.5f);
         const float edgeOut = 4.5f;
-        PlaceRect(frameEdgeSilverL, center, new Vector2(1f, 0.5f), new Vector2(-halfW, edgeCy), new Vector2(2f, fieldH));
-        PlaceRect(frameEdgeBlueL, center, new Vector2(1f, 0.5f), new Vector2(-halfW - 2f, edgeCy), new Vector2(1.5f, fieldH));
-        PlaceRect(frameEdgeKeyL, center, new Vector2(1f, 0.5f), new Vector2(-halfW - 3.5f, edgeCy), new Vector2(1f, fieldH));
-        PlaceRect(frameEdgeSilverR, center, new Vector2(0f, 0.5f), new Vector2(halfW, edgeCy), new Vector2(2f, fieldH));
-        PlaceRect(frameEdgeBlueR, center, new Vector2(0f, 0.5f), new Vector2(halfW + 2f, edgeCy), new Vector2(1.5f, fieldH));
-        PlaceRect(frameEdgeKeyR, center, new Vector2(0f, 0.5f), new Vector2(halfW + 3.5f, edgeCy), new Vector2(1f, fieldH));
+        const float sideEdgeW = 1.5f;
+        PlaceRect(frameEdgeSilverL, center, new Vector2(1f, 0.5f), new Vector2(-halfW, edgeCy), new Vector2(sideEdgeW, fieldH));
+        PlaceRect(frameEdgeSilverR, center, new Vector2(0f, 0.5f), new Vector2(halfW, edgeCy), new Vector2(sideEdgeW, fieldH));
         frameEdgeSilverB.gameObject.SetActive(hasBottom);
         frameEdgeBlueB.gameObject.SetActive(hasBottom);
         frameEdgeKeyB.gameObject.SetActive(hasBottom);
@@ -438,20 +450,28 @@ public class PlayHudController : MonoBehaviour
         if (gm == null) return;
         bool playing = gm.state == GManager.GameState.Playing;
 
-        // 帯(カード/仕切り/曲名パネル込み)はプレイ中のみ表示。
-        if (bandRoot != null && bandRoot.gameObject.activeSelf != playing)
-            bandRoot.gameObject.SetActive(playing);
-
-        // 額装はプレイ中のみ。カメラのズームアウト(FreezeAspectRate)と
-        // 額縁のフェードを同じイーズ値で同期させる。
+        // 額装(カメラズームアウト)の適用度。HUD帯・曲名バー・額縁フェードを
+        // すべて同じ eased 値に乗せ、登場を一本のモーション(上からスライドイン+
+        // フェードで着地)に揃える。プレイ中は 1 へ、外れると 0 へ 0.35s で補間。
         if (cameraRig != null) cameraRig.SetPlayFrame(playing);
+        float eased = cameraRig != null ? cameraRig.PlayFrameEased : (playing ? 1f : 0f);
+        bool frameVisible = playing || eased > 0.001f;
+
+        // 帯・曲名バー(playHUD 全体)を eased でフェード+上からスライドイン。
+        // 帯だけ SetActive で瞬間ポップし、額縁は 0.35s フェード…という非対称を解消。
+        if (hudGroup != null) hudGroup.alpha = eased;
+        if (hudRect != null) hudRect.anchoredPosition = new Vector2(0f, HudSlideY * (1f - eased));
+        if (bandRoot != null && bandRoot.gameObject.activeSelf != frameVisible)
+            bandRoot.gameObject.SetActive(frameVisible);
+
+        // 額縁はズームで露出するフィールド外を覆う。帯と同じ eased でフェード。
         if (frameRoot != null)
         {
-            if (frameRoot.gameObject.activeSelf != playing)
-                frameRoot.gameObject.SetActive(playing);
-            if (playing && cameraRig != null)
+            if (frameRoot.gameObject.activeSelf != frameVisible)
+                frameRoot.gameObject.SetActive(frameVisible);
+            if (frameVisible && cameraRig != null)
             {
-                frameGroup.alpha = cameraRig.PlayFrameEased;
+                frameGroup.alpha = eased;
                 LayoutPlayFrame();
             }
         }

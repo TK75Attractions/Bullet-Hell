@@ -427,24 +427,19 @@ public class StageSelectManager : MonoBehaviour
         await AnimateHUDIn();
     }
 
-    // HUD slides down from above the screen edge while fading in.
-    private async Task AnimateHUDIn()
+    // HUD 帯の登場は PlayHudController が Playing 遷移で額縁フェード・カメラ
+    // ズームアウトと同じ eased 値に乗せて行う(上からスライドイン+フェードで着地)。
+    // ここで Tutorial 中に帯だけ単独スライドインさせると、後から出る額縁・カメラ
+    // ズームと別々の動きになり不自然だった(退行解消)。よって早期には見せず、
+    // 隠したまま帰す。実際のフェード/スライドは PlayHudController.Update が担う。
+    private Task AnimateHUDIn()
     {
-        RectTransform rect = (RectTransform)playHUD.transform;
-        Vector2 basePos = Vector2.zero;
-        float t = 0f;
-        const float duration = 0.35f;
-        while (t < duration)
+        if (playHUD != null)
         {
-            t += Time.deltaTime;
-            float p = Mathf.Clamp01(t / duration);
-            float ease = 1f - Mathf.Pow(1f - p, 3f);
-            playHUD.alpha = ease;
-            rect.anchoredPosition = basePos + new Vector2(0, 70f * (1f - ease));
-            await Task.Yield();
+            playHUD.alpha = 0f;
+            ((RectTransform)playHUD.transform).anchoredPosition = Vector2.zero;
         }
-        playHUD.alpha = 1f;
-        rect.anchoredPosition = basePos;
+        return Task.CompletedTask;
     }
 
     private void SetTutorialEnemiesVisible(bool visible)

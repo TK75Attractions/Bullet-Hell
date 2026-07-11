@@ -30,11 +30,14 @@ public class FreezeAspectRate : MonoBehaviour
     // ズームアウトで画面に入るフィールド外(弾の生存域 [-2,36)²)は、
     // PlayHudController 側の不透明額縁 UI が覆う前提。
     // インセットは 1080 基準 px。上は PlayHudController が BandH と同期させる。
-    // 下 20px は四辺クローズの額縁(oracle レビュー playframe-ab-review:
-    // Plan B 採用+下余白 18-20px 推奨)。
+    // 下 20px は額縁を四辺で閉じるための余白。左右の縦エッジは静かな銀 1 本
+    // (moracle レビュー edge-compare: 案 D 採用。発光シアンリムは撤去)、
+    // 下辺は銀+青+暗キーラインの 3 層で閉じる。
     [System.NonSerialized] public float playFrameTopPx = 104f;
     [System.NonSerialized] public float playFrameBottomPx = 20f;
-    private const float PlayFrameAnimDur = 0.35f; // StageSelectManager.AnimateHUDIn と同じ
+    // 登場の共通尺。カメラズーム・額縁フェード・HUD帯スライドインを 0.35s /
+    // ease-out cubic(PlayFrameEased)で一本化する(リザルト入場と同語彙)。
+    private const float PlayFrameAnimDur = 0.35f;
     private float playFrameBlend;
     private float playFrameTarget;
     private float appliedFrameEased = -1f;
@@ -75,8 +78,10 @@ public class FreezeAspectRate : MonoBehaviour
         main.ResetAspect();
     }
 
-    /// <summary>額装の適用度(0-1、イーズ済み)。額縁UIのフェードと同期させる。</summary>
-    public float PlayFrameEased => Mathf.SmoothStep(0f, 1f, playFrameBlend);
+    /// <summary>額装の適用度(0-1、イーズ済み)。額縁UI・HUD帯のフェード/スライドと同期させる。</summary>
+    // ease-out cubic。リザルト入場(EaseOutCubic)・AnimateHUDIn と同じ減速曲線にし、
+    // カメラズーム・額縁フェード・HUD帯の登場を一つの質感(着地して静止する感触)に揃える。
+    public float PlayFrameEased { get { float inv = 1f - playFrameBlend; return 1f - inv * inv * inv; } }
 
     /// <summary>プレイ領域の額装を有効/無効にする(0.35s で補間)。</summary>
     public void SetPlayFrame(bool on) => playFrameTarget = on ? 1f : 0f;
