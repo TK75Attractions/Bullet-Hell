@@ -17,6 +17,27 @@ public class GManager : MonoBehaviour
     static public GManager Control;
     public bool isRaymeeDebug = false; // デバッグ用のフラグ。これが true のとき、特定のデバッグコードが有効になる。
 
+    [Header("Raymee Debug Controls")]
+    [Tooltip("押している間だけゲーム全体の進行速度を上げるキー。isRaymeeDebug が true のときだけ有効です。")]
+    [SerializeField] private Key debugBulletFastForwardKey = Key.Digit1;
+    [Tooltip("自機の透過表示を切り替えるキー。isRaymeeDebug が true のときだけ有効です。")]
+    [SerializeField] private Key debugPlayerTransparencyToggleKey = Key.Digit2;
+    [Tooltip("自機の無敵状態を切り替えるキー。isRaymeeDebug が true のときだけ有効です。")]
+    [SerializeField] private Key debugPlayerInvincibilityToggleKey = Key.Digit3;
+    [FormerlySerializedAs("debugBulletTimeScale")]
+    [SerializeField, Min(1f)] private float debugGameTimeScale = 4f;
+    [SerializeField, Range(0f, 1f)] private float debugPlayerTransparencyAlpha = 0.35f;
+
+    private bool debugPlayerTransparent;
+    private bool debugPlayerInvincible;
+    private bool debugFastForwardActive;
+
+    /// <summary>
+    /// Raymee デバッグで有効化された自機無敵状態。<see cref="isRaymeeDebug"/> が false に
+    /// なった瞬間から必ず false になるため、通常プレイには影響しない。
+    /// </summary>
+    public bool IsRaymeeDebugPlayerInvincible => isRaymeeDebug && debugPlayerInvincible;
+
     public enum GameState
     {
         Title,
@@ -263,6 +284,7 @@ public class GManager : MonoBehaviour
         // (timeScale is 0 and all audio is paused via AudioListener).
         if (isPaused)
         {
+            UpdateRaymeeDebugControls();
             IManager.UpdateInput();
             if (IManager.backPressedThisFrame)
             {
@@ -281,6 +303,7 @@ public class GManager : MonoBehaviour
             return;
         }
 
+        UpdateRaymeeDebugControls();
         float t = Time.deltaTime;
         gameTime += t;
 
@@ -290,9 +313,11 @@ public class GManager : MonoBehaviour
             if (state == GameState.Playing || state == GameState.Tutorial) PController.UpdatePos(t);
         }
 
-        SReader.UpdateStage(t);
+        SReader.UpdateStage(t, debugFastForwardActive);
         UpdateStoneLandingShake();
 
+        // Time.timeScale により自機・ステージ・演出を含むゲーム全体が加速済みなので、
+        // 各ゲームロジックにはスケール済みの deltaTime をそのまま渡す。
         QOrder.QuadUpdate(t);
         IManager.UpdateInput();
 
@@ -352,6 +377,61 @@ public class GManager : MonoBehaviour
             CameraShake.Trigger(StoneLandingShakeAmplitude, StoneLandingShakeDuration, StoneLandingShakeFrequency);
         }
         prevStageClock = now;
+    }
+
+    /// <summary>
+    /// Raymee 専用デバッグキーを処理する。
+    /// 数字 1 は押している間だけ加速し、数字 2 / 3 は押すたびに透過 / 無敵を切り替える。
+    /// </summary>
+    private void UpdateRaymeeDebugControls()
+    {
+        if (!isRaymeeDebug)
+        {
+            // Inspector でデバッグをオフに戻した場合も、見た目・当たり判定を即座に
+            // 通常状態へ復帰させる。
+            debugPlayerTransparent = false;
+            debugPlayerInvincible = false;
+            debugFastForwardActive = false;
+            PController?.SetDebugTransparency(false, 1f);
+            ApplyDebugGameTimeScale();
+            return;
+        }
+
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard == null)
+        {
+            debugFastForwardActive = false;
+            PController?.SetDebugTransparency(debugPlayerTransparent, debugPlayerTransparencyAlpha);
+            ApplyDebugGameTimeScale();
+            return;
+        }
+
+        if (keyboard[debugPlayerTransparencyToggleKey].wasPressedThisFrame)
+        {
+            debugPlayerTransparent = !debugPlayerTransparent;
+        }
+
+        if (keyboard[debugPlayerInvincibilityToggleKey].wasPressedThisFrame)
+        {
+            debugPlayerInvincible = !debugPlayerInvincible;
+        }
+
+        PController?.SetDebugTransparency(debugPlayerTransparent, debugPlayerTransparencyAlpha);
+        debugFastForwardActive = keyboard[debugBulletFastForwardKey].isPressed;
+        ApplyDebugGameTimeScale();
+    }
+
+    private void ApplyDebugGameTimeScale()
+    {
+        if (isPaused)
+        {
+            Time.timeScale = 0f;
+            return;
+        }
+
+        Time.timeScale = isRaymeeDebug && debugFastForwardActive
+            ? Mathf.Max(1f, debugGameTimeScale)
+            : 1f;
     }
 
     // Drives the title menu / settings / transfer layers. Returns true when the
@@ -614,7 +694,7 @@ public class GManager : MonoBehaviour
     public void SetPaused(bool pause)
     {
         isPaused = pause;
-        Time.timeScale = pause ? 0f : 1f;
+        ApplyDebugGameTimeScale();
         AudioListener.pause = pause;
         // The option menu captures the completed game frame and applies a
         // full-resolution UI blur. Do not stack the gameplay noise blur over it.

@@ -62,8 +62,8 @@
             "deactivateSource": false,
             "color": {
               "x": 1,
-              "y": 0,
-              "z": 0.3,
+              "y": 0.09,
+              "z": 0.36,
               "w": 1
             }
           },
@@ -82,10 +82,10 @@
               "inheritSourceVelocity": true,
               "deactivateSource": false,
               "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
+                "x": 1,
+                "y": 0.09,
+                "z": 0.36,
+                "w": 1
               }
             }
           ]
@@ -111,8 +111,8 @@
             "deactivateSource": false,
             "color": {
               "x": 1,
-              "y": 0,
-              "z": 0.3,
+              "y": 0.09,
+              "z": 0.36,
               "w": 1
             }
           },
@@ -131,10 +131,10 @@
               "inheritSourceVelocity": true,
               "deactivateSource": false,
               "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
+                "x": 1,
+                "y": 0.09,
+                "z": 0.36,
+                "w": 1
               }
             }
           ]
@@ -378,6 +378,270 @@
           }
         },
         {
+          "clipName": "Clear",
+          "count": 1,
+          "interval": 0,
+          "time": 34.88182,
+          "pos": {
+            "x": 0,
+            "y": 0
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 0
+          }
+        },
+        {
+          "clipName": "captain_chain_fall",
+          "count": 1,
+          "interval": 0,
+          "time": 35.18182,
+          "pos": {
+            "x": 10.666667,
+            "y": 18
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 0.05,
+            "y": 0.05,
+            "z": 0.9,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_chain_fall",
+          "count": 1,
+          "interval": 0,
+          "time": 35.18182,
+          "pos": {
+            "x": 21.333332,
+            "y": 18
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 0.05,
+            "y": 0.05,
+            "z": 0.9,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_anchor_down_e",
+          "count": 1,
+          "interval": 0,
+          "time": 35.18182,
+          "pos": {
+            "x": 5.3333335,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_anchor_down_e",
+          "count": 1,
+          "interval": 0,
+          "time": 35.18182,
+          "pos": {
+            "x": 26.666666,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_anchor_down_e",
+          "count": 1,
+          "interval": 0,
+          "time": 38.454544,
+          "pos": {
+            "x": 5.3333335,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_anchor_down_e",
+          "count": 1,
+          "interval": 0,
+          "time": 38.454544,
+          "pos": {
+            "x": 26.666666,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_anchor_down_e",
+          "count": 1,
+          "interval": 0,
+          "time": 41.727272,
+          "pos": {
+            "x": 16,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_anchor_down_e",
+          "count": 1,
+          "interval": 0,
+          "time": 41.727272,
+          "pos": {
+            "x": 26.666666,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_anchor_down_e",
+          "count": 1,
+          "interval": 0,
+          "time": 45,
+          "pos": {
+            "x": 16,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_anchor_down_e",
+          "count": 1,
+          "interval": 0,
+          "time": 45,
+          "pos": {
+            "x": 5.3333335,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "Clear",
+          "count": 1,
+          "interval": 0,
+          "time": 47.97273,
+          "pos": {
+            "x": 0,
+            "y": 0
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 0
+          }
+        },
+        {
           "clipName": "captain_wave_tl_e",
           "count": 2,
           "interval": 6.545455,
@@ -462,6 +726,72 @@
             "x": 1,
             "y": 0.09,
             "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "Clear",
+          "count": 1,
+          "interval": 0,
+          "time": 61.06364,
+          "pos": {
+            "x": 0,
+            "y": 0
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 0
+          }
+        },
+        {
+          "clipName": "captain_anchor_obj_e",
+          "count": 20,
+          "interval": 3.2727275,
+          "time": 62,
+          "pos": {
+            "x": 16,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_last_e",
+          "count": 2,
+          "interval": 6.545455,
+          "time": 62.454548,
+          "pos": {
+            "x": 16,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 1,
+            "z": 1,
             "w": 1
           }
         }
@@ -616,55 +946,6 @@
               }
             }
           ]
-        },
-        {
-          "pos": {
-            "x": 16,
-            "y": 16
-          },
-          "time": 35.18182,
-          "bulletEmission": {
-            "clipName": "captain_p2n0",
-            "time": 0,
-            "originVlc": {
-              "x": 0,
-              "y": 0
-            },
-            "angleOffset": 0,
-            "angle": 0,
-            "angleMode": "",
-            "applyBulletOrbit": false,
-            "inheritSourceVelocity": false,
-            "deactivateSource": false,
-            "color": {
-              "x": 1,
-              "y": 0,
-              "z": 0.3,
-              "w": 1
-            }
-          },
-          "bulletBufferTriggers": [
-            {
-              "clipName": "captain_p2n1",
-              "time": 1,
-              "originVlc": {
-                "x": 0,
-                "y": 0
-              },
-              "angleOffset": 0,
-              "angle": 0,
-              "angleMode": "",
-              "applyBulletOrbit": false,
-              "inheritSourceVelocity": false,
-              "deactivateSource": true,
-              "color": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-              }
-            }
-          ]
         }
       ],
       "bossSpawners": [
@@ -702,7 +983,7 @@
       ],
       "bulletSpawners": [
         {
-          "clipName": "captain_shell_splash_n",
+          "clipName": "captain_shell_splash_e",
           "count": 1,
           "interval": 6.545455,
           "time": 8,
@@ -724,7 +1005,7 @@
           }
         },
         {
-          "clipName": "captain_shell_splash_n",
+          "clipName": "captain_shell_splash_e",
           "count": 1,
           "interval": 6.545455,
           "time": 8,
@@ -746,7 +1027,7 @@
           }
         },
         {
-          "clipName": "captain_shell_splash_n",
+          "clipName": "captain_shell_splash_e",
           "count": 1,
           "interval": 6.545455,
           "time": 11.272728,
@@ -768,7 +1049,7 @@
           }
         },
         {
-          "clipName": "captain_shell_splash_n",
+          "clipName": "captain_shell_splash_e",
           "count": 1,
           "interval": 6.545455,
           "time": 11.272728,
@@ -790,7 +1071,7 @@
           }
         },
         {
-          "clipName": "captain_shell_splash_n",
+          "clipName": "captain_shell_splash_e",
           "count": 1,
           "interval": 6.545455,
           "time": 14.545455,
@@ -839,7 +1120,7 @@
           "interval": 6.545455,
           "time": 22.09091,
           "pos": {
-            "x": 8,
+            "x": 16,
             "y": 16
           },
           "originVlc": {
@@ -856,13 +1137,35 @@
           }
         },
         {
-          "clipName": "captain_water_curtain_tr_en",
-          "count": 2,
-          "interval": 6.545455,
-          "time": 22.09091,
+          "clipName": "Clear",
+          "count": 1,
+          "interval": 0,
+          "time": 34.88182,
           "pos": {
-            "x": 24,
-            "y": 16
+            "x": 0,
+            "y": 0
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 0
+          }
+        },
+        {
+          "clipName": "captain_chain_fall",
+          "count": 1,
+          "interval": 0,
+          "time": 35.18182,
+          "pos": {
+            "x": 10.666667,
+            "y": 18
           },
           "originVlc": {
             "x": 0,
@@ -874,6 +1177,380 @@
             "x": 0.05,
             "y": 0.05,
             "z": 0.9,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_chain_fall",
+          "count": 1,
+          "interval": 0,
+          "time": 35.18182,
+          "pos": {
+            "x": 21.333332,
+            "y": 18
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 0.05,
+            "y": 0.05,
+            "z": 0.9,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_anchor_down_e",
+          "count": 1,
+          "interval": 0,
+          "time": 35.18182,
+          "pos": {
+            "x": 5.3333335,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_anchor_down_e",
+          "count": 1,
+          "interval": 0,
+          "time": 35.18182,
+          "pos": {
+            "x": 26.666666,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_anchor_down_e",
+          "count": 1,
+          "interval": 0,
+          "time": 38.454544,
+          "pos": {
+            "x": 5.3333335,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_anchor_down_e",
+          "count": 1,
+          "interval": 0,
+          "time": 38.454544,
+          "pos": {
+            "x": 26.666666,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_anchor_down_e",
+          "count": 1,
+          "interval": 0,
+          "time": 41.727272,
+          "pos": {
+            "x": 16,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_anchor_down_e",
+          "count": 1,
+          "interval": 0,
+          "time": 41.727272,
+          "pos": {
+            "x": 26.666666,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_anchor_down_e",
+          "count": 1,
+          "interval": 0,
+          "time": 45,
+          "pos": {
+            "x": 16,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_anchor_down_e",
+          "count": 1,
+          "interval": 0,
+          "time": 45,
+          "pos": {
+            "x": 5.3333335,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "Clear",
+          "count": 1,
+          "interval": 0,
+          "time": 47.97273,
+          "pos": {
+            "x": 0,
+            "y": 0
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 0
+          }
+        },
+        {
+          "clipName": "captain_wave_tl_e",
+          "count": 2,
+          "interval": 6.545455,
+          "time": 48.272728,
+          "pos": {
+            "x": 6,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_wave_tl_e",
+          "count": 2,
+          "interval": 6.545455,
+          "time": 48.272728,
+          "pos": {
+            "x": 26,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_e",
+          "count": 1,
+          "interval": 6.545455,
+          "time": 48.545456,
+          "pos": {
+            "x": 24,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_e",
+          "count": 1,
+          "interval": 6.545455,
+          "time": 55.09091,
+          "pos": {
+            "x": 8,
+            "y": 14
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "Clear",
+          "count": 1,
+          "interval": 0,
+          "time": 61.06364,
+          "pos": {
+            "x": 0,
+            "y": 0
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 0
+          }
+        },
+        {
+          "clipName": "captain_anchor_obj_e",
+          "count": 20,
+          "interval": 3.2727275,
+          "time": 62,
+          "pos": {
+            "x": 16,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_last_e",
+          "count": 2,
+          "interval": 6.545455,
+          "time": 62.454548,
+          "pos": {
+            "x": 16,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 1,
+            "z": 1,
             "w": 1
           }
         }
@@ -1616,251 +2293,6 @@
               }
             }
           ]
-        },
-        {
-          "pos": {
-            "x": 16,
-            "y": 16
-          },
-          "time": 35.18182,
-          "bulletEmission": {
-            "clipName": "captain_p2n0",
-            "time": 0,
-            "originVlc": {
-              "x": 0,
-              "y": 0
-            },
-            "angleOffset": 0,
-            "angle": 0,
-            "angleMode": "",
-            "applyBulletOrbit": false,
-            "inheritSourceVelocity": false,
-            "deactivateSource": false,
-            "color": {
-              "x": 1,
-              "y": 0.09,
-              "z": 0.36,
-              "w": 1
-            }
-          },
-          "bulletBufferTriggers": [
-            {
-              "clipName": "captain_p2n1",
-              "time": 1,
-              "originVlc": {
-                "x": 0,
-                "y": 0
-              },
-              "angleOffset": 0,
-              "angle": 0,
-              "angleMode": "",
-              "applyBulletOrbit": false,
-              "inheritSourceVelocity": false,
-              "deactivateSource": true,
-              "color": {
-                "x": 1,
-                "y": 0.09,
-                "z": 0.36,
-                "w": 1
-              }
-            }
-          ]
-        },
-        {
-          "pos": {
-            "x": 20,
-            "y": 14
-          },
-          "time": 35.38182,
-          "bulletEmission": {
-            "clipName": "captain_p2n0",
-            "time": 0,
-            "originVlc": {
-              "x": 0,
-              "y": 0
-            },
-            "angleOffset": 0,
-            "angle": 0,
-            "angleMode": "",
-            "applyBulletOrbit": false,
-            "inheritSourceVelocity": false,
-            "deactivateSource": false,
-            "color": {
-              "x": 1,
-              "y": 0.09,
-              "z": 0.36,
-              "w": 1
-            }
-          },
-          "bulletBufferTriggers": [
-            {
-              "clipName": "captain_p2n1",
-              "time": 1,
-              "originVlc": {
-                "x": 0,
-                "y": 0
-              },
-              "angleOffset": 0,
-              "angle": 0,
-              "angleMode": "",
-              "applyBulletOrbit": false,
-              "inheritSourceVelocity": false,
-              "deactivateSource": true,
-              "color": {
-                "x": 1,
-                "y": 0.09,
-                "z": 0.36,
-                "w": 1
-              }
-            }
-          ]
-        },
-        {
-          "pos": {
-            "x": 12,
-            "y": 14
-          },
-          "time": 35.38182,
-          "bulletEmission": {
-            "clipName": "captain_p2n0",
-            "time": 0,
-            "originVlc": {
-              "x": 0,
-              "y": 0
-            },
-            "angleOffset": 0,
-            "angle": 0,
-            "angleMode": "",
-            "applyBulletOrbit": false,
-            "inheritSourceVelocity": false,
-            "deactivateSource": false,
-            "color": {
-              "x": 1,
-              "y": 0.09,
-              "z": 0.36,
-              "w": 1
-            }
-          },
-          "bulletBufferTriggers": [
-            {
-              "clipName": "captain_p2n1",
-              "time": 1,
-              "originVlc": {
-                "x": 0,
-                "y": 0
-              },
-              "angleOffset": 0,
-              "angle": 0,
-              "angleMode": "",
-              "applyBulletOrbit": false,
-              "inheritSourceVelocity": false,
-              "deactivateSource": true,
-              "color": {
-                "x": 1,
-                "y": 0.09,
-                "z": 0.36,
-                "w": 1
-              }
-            }
-          ]
-        },
-        {
-          "pos": {
-            "x": 25,
-            "y": 12
-          },
-          "time": 35.58182,
-          "bulletEmission": {
-            "clipName": "captain_p2n0",
-            "time": 0,
-            "originVlc": {
-              "x": 0,
-              "y": 0
-            },
-            "angleOffset": 0,
-            "angle": 0,
-            "angleMode": "",
-            "applyBulletOrbit": false,
-            "inheritSourceVelocity": false,
-            "deactivateSource": false,
-            "color": {
-              "x": 1,
-              "y": 0.09,
-              "z": 0.36,
-              "w": 1
-            }
-          },
-          "bulletBufferTriggers": [
-            {
-              "clipName": "captain_p2n1",
-              "time": 1,
-              "originVlc": {
-                "x": 0,
-                "y": 0
-              },
-              "angleOffset": 0,
-              "angle": 0,
-              "angleMode": "",
-              "applyBulletOrbit": false,
-              "inheritSourceVelocity": false,
-              "deactivateSource": true,
-              "color": {
-                "x": 1,
-                "y": 0.09,
-                "z": 0.36,
-                "w": 1
-              }
-            }
-          ]
-        },
-        {
-          "pos": {
-            "x": 7,
-            "y": 12
-          },
-          "time": 35.58182,
-          "bulletEmission": {
-            "clipName": "captain_p2n0",
-            "time": 0,
-            "originVlc": {
-              "x": 0,
-              "y": 0
-            },
-            "angleOffset": 0,
-            "angle": 0,
-            "angleMode": "",
-            "applyBulletOrbit": false,
-            "inheritSourceVelocity": false,
-            "deactivateSource": false,
-            "color": {
-              "x": 1,
-              "y": 0.09,
-              "z": 0.36,
-              "w": 1
-            }
-          },
-          "bulletBufferTriggers": [
-            {
-              "clipName": "captain_p2n1",
-              "time": 1,
-              "originVlc": {
-                "x": 0,
-                "y": 0
-              },
-              "angleOffset": 0,
-              "angle": 0,
-              "angleMode": "",
-              "applyBulletOrbit": false,
-              "inheritSourceVelocity": false,
-              "deactivateSource": true,
-              "color": {
-                "x": 1,
-                "y": 0.09,
-                "z": 0.36,
-                "w": 1
-              }
-            }
-          ]
         }
       ],
       "bossSpawners": [
@@ -2404,116 +2836,6 @@
           }
         },
         {
-          "clipName": "captain_p2l0",
-          "count": 1,
-          "interval": 0,
-          "time": 35.18182,
-          "pos": {
-            "x": 16,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_p2l0",
-          "count": 1,
-          "interval": 0,
-          "time": 35.38182,
-          "pos": {
-            "x": 20,
-            "y": 14
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_p2l0",
-          "count": 1,
-          "interval": 0,
-          "time": 35.38182,
-          "pos": {
-            "x": 12,
-            "y": 14
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_p2l0",
-          "count": 1,
-          "interval": 0,
-          "time": 35.58182,
-          "pos": {
-            "x": 25,
-            "y": 12
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_p2l0",
-          "count": 1,
-          "interval": 0,
-          "time": 35.58182,
-          "pos": {
-            "x": 7,
-            "y": 12
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
           "clipName": "Clear",
           "count": 1,
           "interval": 0,
@@ -2580,7 +2902,7 @@
           }
         },
         {
-          "clipName": "captain_anchor_down",
+          "clipName": "captain_anchor_down_l",
           "count": 1,
           "interval": 0,
           "time": 35.18182,
@@ -2602,7 +2924,7 @@
           }
         },
         {
-          "clipName": "captain_anchor_down",
+          "clipName": "captain_anchor_down_l",
           "count": 1,
           "interval": 0,
           "time": 35.18182,
@@ -2624,7 +2946,7 @@
           }
         },
         {
-          "clipName": "captain_anchor_down",
+          "clipName": "captain_anchor_down_l",
           "count": 1,
           "interval": 0,
           "time": 38.454544,
@@ -2646,7 +2968,7 @@
           }
         },
         {
-          "clipName": "captain_anchor_down",
+          "clipName": "captain_anchor_down_l",
           "count": 1,
           "interval": 0,
           "time": 38.454544,
@@ -2668,7 +2990,7 @@
           }
         },
         {
-          "clipName": "captain_anchor_up",
+          "clipName": "captain_anchor_up_l",
           "count": 1,
           "interval": 0,
           "time": 38.454544,
@@ -2690,7 +3012,7 @@
           }
         },
         {
-          "clipName": "captain_anchor_down",
+          "clipName": "captain_anchor_down_l",
           "count": 1,
           "interval": 0,
           "time": 41.727272,
@@ -2712,7 +3034,7 @@
           }
         },
         {
-          "clipName": "captain_anchor_down",
+          "clipName": "captain_anchor_down_l",
           "count": 1,
           "interval": 0,
           "time": 41.727272,
@@ -2734,7 +3056,7 @@
           }
         },
         {
-          "clipName": "captain_anchor_down",
+          "clipName": "captain_anchor_down_l",
           "count": 1,
           "interval": 0,
           "time": 45,
@@ -2756,7 +3078,7 @@
           }
         },
         {
-          "clipName": "captain_anchor_down",
+          "clipName": "captain_anchor_down_l",
           "count": 1,
           "interval": 0,
           "time": 45,
@@ -2815,50 +3137,6 @@
           "angle": 0,
           "angleInterval": 0,
           "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_wave_tr_l",
-          "count": 4,
-          "interval": 3.2727275,
-          "time": 48.272728,
-          "pos": {
-            "x": 26,
-            "y": 14
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_wave_tr_l",
-          "count": 4,
-          "interval": 3.2727275,
-          "time": 48.272728,
-          "pos": {
-            "x": 6,
-            "y": 14
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
             "x": 0.05,
             "y": 0.05,
             "z": 0.9,
@@ -2866,7 +3144,7 @@
           }
         },
         {
-          "clipName": "captain_wave_tl_l",
+          "clipName": "captain_wave_tr_l",
           "count": 4,
           "interval": 3.2727275,
           "time": 48.272728,
@@ -2888,812 +3166,20 @@
           }
         },
         {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 16,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 17.305262,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 18.58819,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 19.826834,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 21,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 22.087614,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 23.071068,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 23.933533,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 24.660254,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 25.238796,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 25.659258,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 25.914448,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 26,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 25.914448,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 25.659258,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 25.238796,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 24.660254,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 23.933533,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 23.071068,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 22.087614,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 21,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 19.826834,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 18.58819,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 17.305262,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 16,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 14.694738,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 13.41181,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 12.173166,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 11,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 9.912386,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 8.928932,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 8.066467,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 7.3397465,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 6.7612047,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 6.340742,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 6.0855513,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
+          "clipName": "captain_p2l0",
+          "count": 8,
+          "interval": 1.6363637,
           "time": 48.272728,
           "pos": {
             "x": 6,
-            "y": 16
+            "y": 14
           },
           "originVlc": {
             "x": 0,
             "y": 0
           },
           "angle": 0,
-          "angleInterval": 0,
+          "angleInterval": 15,
           "color": {
             "x": 1,
             "y": 0.09,
@@ -3702,768 +3188,20 @@
           }
         },
         {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 6.0855513,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 6.340742,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 6.7612047,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 7.3397465,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 8.066467,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 8.928932,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 9.912386,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 11,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 12.173166,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 13.41181,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 14.694738,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 16,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 17.305262,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 18.58819,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 19.826834,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 21,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 22.087614,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 23.071068,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 23.933533,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 24.660254,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 25.238796,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 25.659258,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 25.914448,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
+          "clipName": "captain_p2l0",
+          "count": 8,
+          "interval": 1.6363637,
           "time": 48.272728,
           "pos": {
             "x": 26,
-            "y": 16
+            "y": 14
           },
           "originVlc": {
             "x": 0,
             "y": 0
           },
           "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 25.914448,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 25.659258,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 25.238796,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 24.660254,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 23.933533,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 23.071068,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 22.087614,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 21,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 19.826834,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 18.58819,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
-          "color": {
-            "x": 1,
-            "y": 0.09,
-            "z": 0.36,
-            "w": 1
-          }
-        },
-        {
-          "clipName": "captain_laser_fall_l",
-          "count": 1,
-          "interval": 0,
-          "time": 48.272728,
-          "pos": {
-            "x": 17.305262,
-            "y": 16
-          },
-          "originVlc": {
-            "x": 0,
-            "y": 0
-          },
-          "angle": 0,
-          "angleInterval": 0,
+          "angleInterval": 15,
           "color": {
             "x": 1,
             "y": 0.09,
@@ -4497,9 +3235,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 48.409092,
           "pos": {
-            "x": 14.694738,
+            "x": 16.882154,
             "y": 16
           },
           "originVlc": {
@@ -4519,9 +3257,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 48.545456,
           "pos": {
-            "x": 13.41181,
+            "x": 17.755814,
             "y": 16
           },
           "originVlc": {
@@ -4541,9 +3279,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 48.68182,
           "pos": {
-            "x": 12.173166,
+            "x": 18.612562,
             "y": 16
           },
           "originVlc": {
@@ -4563,9 +3301,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 48.818184,
           "pos": {
-            "x": 11,
+            "x": 19.44415,
             "y": 16
           },
           "originVlc": {
@@ -4585,9 +3323,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 48.954548,
           "pos": {
-            "x": 9.912386,
+            "x": 20.24257,
             "y": 16
           },
           "originVlc": {
@@ -4607,9 +3345,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 49.09091,
           "pos": {
-            "x": 8.928932,
+            "x": 21.000132,
             "y": 16
           },
           "originVlc": {
@@ -4629,9 +3367,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 49.227272,
           "pos": {
-            "x": 8.066467,
+            "x": 21.70954,
             "y": 16
           },
           "originVlc": {
@@ -4651,9 +3389,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 49.363636,
           "pos": {
-            "x": 7.3397465,
+            "x": 22.36396,
             "y": 16
           },
           "originVlc": {
@@ -4673,9 +3411,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 49.5,
           "pos": {
-            "x": 6.7612047,
+            "x": 22.957094,
             "y": 16
           },
           "originVlc": {
@@ -4695,9 +3433,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 49.636364,
           "pos": {
-            "x": 6.340742,
+            "x": 23.483227,
             "y": 16
           },
           "originVlc": {
@@ -4717,9 +3455,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 49.772728,
           "pos": {
-            "x": 6.0855513,
+            "x": 23.937292,
             "y": 16
           },
           "originVlc": {
@@ -4739,9 +3477,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 49.909092,
           "pos": {
-            "x": 6,
+            "x": 24.314915,
             "y": 16
           },
           "originVlc": {
@@ -4761,9 +3499,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 50.045456,
           "pos": {
-            "x": 6.0855513,
+            "x": 24.612463,
             "y": 16
           },
           "originVlc": {
@@ -4783,9 +3521,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 50.18182,
           "pos": {
-            "x": 6.340742,
+            "x": 24.827068,
             "y": 16
           },
           "originVlc": {
@@ -4805,9 +3543,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 50.318184,
           "pos": {
-            "x": 6.7612047,
+            "x": 24.956661,
             "y": 16
           },
           "originVlc": {
@@ -4827,9 +3565,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 50.454548,
           "pos": {
-            "x": 7.3397465,
+            "x": 25,
             "y": 16
           },
           "originVlc": {
@@ -4849,9 +3587,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 50.59091,
           "pos": {
-            "x": 8.066467,
+            "x": 24.956661,
             "y": 16
           },
           "originVlc": {
@@ -4871,9 +3609,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 50.727276,
           "pos": {
-            "x": 8.928932,
+            "x": 24.827068,
             "y": 16
           },
           "originVlc": {
@@ -4893,9 +3631,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 50.863636,
           "pos": {
-            "x": 9.912386,
+            "x": 24.612463,
             "y": 16
           },
           "originVlc": {
@@ -4915,9 +3653,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 51,
           "pos": {
-            "x": 11,
+            "x": 24.314915,
             "y": 16
           },
           "originVlc": {
@@ -4937,9 +3675,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 51.136364,
           "pos": {
-            "x": 12.173166,
+            "x": 23.937292,
             "y": 16
           },
           "originVlc": {
@@ -4959,9 +3697,9 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 51.272728,
           "pos": {
-            "x": 13.41181,
+            "x": 23.483227,
             "y": 16
           },
           "originVlc": {
@@ -4981,9 +3719,1329 @@
           "clipName": "captain_laser_fall_l",
           "count": 1,
           "interval": 0,
-          "time": 48.272728,
+          "time": 51.409092,
           "pos": {
-            "x": 14.694738,
+            "x": 22.957094,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 51.545456,
+          "pos": {
+            "x": 22.36396,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 51.68182,
+          "pos": {
+            "x": 21.70954,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 51.818184,
+          "pos": {
+            "x": 21.000132,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 51.954548,
+          "pos": {
+            "x": 20.24257,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 52.09091,
+          "pos": {
+            "x": 19.44415,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 52.227276,
+          "pos": {
+            "x": 18.612562,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 52.363636,
+          "pos": {
+            "x": 17.755814,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 52.5,
+          "pos": {
+            "x": 16.882154,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 52.636364,
+          "pos": {
+            "x": 16,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 52.772728,
+          "pos": {
+            "x": 15.117846,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 52.909092,
+          "pos": {
+            "x": 14.244187,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 53.045456,
+          "pos": {
+            "x": 13.387438,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 53.18182,
+          "pos": {
+            "x": 12.555849,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 53.318184,
+          "pos": {
+            "x": 11.757429,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 53.454548,
+          "pos": {
+            "x": 10.999868,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 53.59091,
+          "pos": {
+            "x": 10.290461,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 53.727276,
+          "pos": {
+            "x": 9.63604,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 53.863636,
+          "pos": {
+            "x": 9.042906,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 54,
+          "pos": {
+            "x": 8.516773,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 54.136364,
+          "pos": {
+            "x": 8.062708,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 54.272728,
+          "pos": {
+            "x": 7.6850843,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 54.409092,
+          "pos": {
+            "x": 7.387537,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 54.545456,
+          "pos": {
+            "x": 7.1729326,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 54.68182,
+          "pos": {
+            "x": 7.043338,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 54.818184,
+          "pos": {
+            "x": 7,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 54.954548,
+          "pos": {
+            "x": 7.043338,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 55.09091,
+          "pos": {
+            "x": 7.1729326,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 55.227276,
+          "pos": {
+            "x": 7.387537,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 55.363636,
+          "pos": {
+            "x": 7.6850843,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 55.5,
+          "pos": {
+            "x": 8.062708,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 55.636364,
+          "pos": {
+            "x": 8.516773,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 55.772728,
+          "pos": {
+            "x": 9.042906,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 55.909092,
+          "pos": {
+            "x": 9.63604,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 56.045456,
+          "pos": {
+            "x": 10.290461,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 56.18182,
+          "pos": {
+            "x": 10.999868,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 56.318184,
+          "pos": {
+            "x": 11.757429,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 56.454548,
+          "pos": {
+            "x": 12.555849,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 56.59091,
+          "pos": {
+            "x": 13.387438,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 56.727276,
+          "pos": {
+            "x": 14.244187,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 56.863636,
+          "pos": {
+            "x": 15.117846,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 57,
+          "pos": {
+            "x": 16,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 57.136364,
+          "pos": {
+            "x": 16.882154,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 57.272728,
+          "pos": {
+            "x": 17.755814,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 57.409092,
+          "pos": {
+            "x": 18.612562,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 57.545456,
+          "pos": {
+            "x": 19.44415,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 57.68182,
+          "pos": {
+            "x": 20.24257,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 57.818184,
+          "pos": {
+            "x": 21.000132,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 57.954548,
+          "pos": {
+            "x": 21.70954,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 58.09091,
+          "pos": {
+            "x": 22.36396,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 58.227276,
+          "pos": {
+            "x": 22.957094,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 58.363636,
+          "pos": {
+            "x": 23.483227,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 58.5,
+          "pos": {
+            "x": 23.937292,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 58.636364,
+          "pos": {
+            "x": 24.314915,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 58.772728,
+          "pos": {
+            "x": 24.612463,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 58.909092,
+          "pos": {
+            "x": 24.827068,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 59.045456,
+          "pos": {
+            "x": 24.956661,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 59.18182,
+          "pos": {
+            "x": 25,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 59.318184,
+          "pos": {
+            "x": 24.956661,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 59.454548,
+          "pos": {
+            "x": 24.827068,
+            "y": 16
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 0.09,
+            "z": 0.36,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "captain_laser_fall_l",
+          "count": 1,
+          "interval": 0,
+          "time": 59.59091,
+          "pos": {
+            "x": 24.612463,
             "y": 16
           },
           "originVlc": {
@@ -5023,12 +5081,12 @@
         },
         {
           "clipName": "captain_anchor_obj_l",
-          "count": 18,
+          "count": 20,
           "interval": 1.6363637,
           "time": 62,
           "pos": {
             "x": 16,
-            "y": 17
+            "y": 16
           },
           "originVlc": {
             "x": 0,
@@ -5045,12 +5103,12 @@
         },
         {
           "clipName": "captain_last_l",
-          "count": 4,
-          "interval": 3.2727275,
+          "count": 2,
+          "interval": 6.545455,
           "time": 62.454548,
           "pos": {
             "x": 16,
-            "y": 17
+            "y": 16
           },
           "originVlc": {
             "x": 0,

@@ -20,10 +20,15 @@ public class PlayerController
     private float2 xRange = new float2(0, 0);
     private float2 yRange = new float2(0, 0);
     private float hitInvincibleTimer = 0f;
+    private bool debugTransparent;
+    private float debugTransparencyAlpha = 1f;
+    private Color mainBaseColor = Color.white;
+    private Color spellBaseColor = Color.clear;
 
     public bool invincible
     {
-        get => dash > 0 || hitInvincibleTimer > 0f;
+        get => dash > 0 || hitInvincibleTimer > 0f
+            || (GManager.Control != null && GManager.Control.IsRaymeeDebugPlayerInvincible);
         private set { }
     }
     // カウンター判定用: ダッシュ中のみ true。被弾後の無敵時間(hitInvincibleTimer)は含めない
@@ -39,6 +44,7 @@ public class PlayerController
         initialPos = new float2(playerTransform.position.x, playerTransform.position.y);
         pos = initialPos;
         main = playerObj.GetComponent<SpriteRenderer>();
+        if (main != null) mainBaseColor = main.color;
         visual = playerObj.GetComponent<PlayerVisualController>();
         if (visual == null)
         {
@@ -52,6 +58,7 @@ public class PlayerController
         if (spellTransform != null)
         {
             spell = spellTransform.GetComponent<SpriteRenderer>();
+            if (spell != null) spellBaseColor = spell.color;
         }
         xRange = new float2(margin, 32 - margin);
         yRange = new float2(margin, 18 - margin);
@@ -77,11 +84,8 @@ public class PlayerController
         if (invincible) return false;
 
         hitInvincibleTimer = hitInvincibleDuration;
-        if (main != null)
-        {
-            //固定赤色
-            main.color = new Color(1f, 0.35f, 0.35f, 1f);
-        }
+        //固定赤色
+        SetMainColor(new Color(1f, 0.35f, 0.35f, 1f));
 
         return true;
     }
@@ -92,9 +96,9 @@ public class PlayerController
         velocity = float2.zero;
         hitInvincibleTimer = 0f;
         dash = -dashCooldown * 1.4f;
-        if (main != null) main.color = Color.white;
+        SetMainColor(Color.white);
         visual?.ResetAnimation();
-        if (spell != null) spell.color = Color.clear;
+        SetSpellColor(Color.clear);
         if (playerTransform != null) playerTransform.position = new Vector3(pos.x, pos.y, 0f);
     }
 
@@ -105,6 +109,20 @@ public class PlayerController
     public void SetVisualColors(Color color1, Color color2)
     {
         visual?.SetColors(color1, color2);
+    }
+
+    /// <summary>
+    /// Raymee デバッグ用の透過表示を切り替える。実際の描画色は基準色として保持するため、
+    /// 被弾演出やダッシュ演出による色・アルファの変化を壊さない。
+    /// </summary>
+    public void SetDebugTransparency(bool enabled, float alpha)
+    {
+        float clampedAlpha = Mathf.Clamp01(alpha);
+        if (debugTransparent == enabled && Mathf.Approximately(debugTransparencyAlpha, clampedAlpha)) return;
+
+        debugTransparent = enabled;
+        debugTransparencyAlpha = clampedAlpha;
+        ApplyDisplayColors();
     }
 
     private void Move(float dt)
@@ -141,12 +159,12 @@ public class PlayerController
             {
                 Color c = GManager.Control.playerColor;
                 c.a = alpha;
-                spell.color = c;
+                SetSpellColor(c);
             }
         }
         else
         {
-            if (spell != null) spell.color = new Color(0, 0, 0, 0);
+            SetSpellColor(Color.clear);
         }
 
         if (spellTransform != null) spellTransform.rotation = Quaternion.Euler(0, 0, Time.time * 30);
@@ -157,15 +175,39 @@ public class PlayerController
     {
         if (hitInvincibleTimer <= 0f)
         {
-            if (main != null) main.color = Color.white;
+            SetMainColor(Color.white);
             return;
         }
 
         hitInvincibleTimer = math.max(0f, hitInvincibleTimer - dt);
-        if (hitInvincibleTimer <= 0f && main != null)
+        if (hitInvincibleTimer <= 0f)
         {
-            main.color = Color.white;
+            SetMainColor(Color.white);
         }
+    }
+
+    private void SetMainColor(Color color)
+    {
+        mainBaseColor = color;
+        if (main != null) main.color = ApplyDebugTransparency(color);
+    }
+
+    private void SetSpellColor(Color color)
+    {
+        spellBaseColor = color;
+        if (spell != null) spell.color = ApplyDebugTransparency(color);
+    }
+
+    private void ApplyDisplayColors()
+    {
+        if (main != null) main.color = ApplyDebugTransparency(mainBaseColor);
+        if (spell != null) spell.color = ApplyDebugTransparency(spellBaseColor);
+    }
+
+    private Color ApplyDebugTransparency(Color color)
+    {
+        color.a *= debugTransparent ? debugTransparencyAlpha : 1f;
+        return color;
     }
 
     private float GetAlpha(float t)
