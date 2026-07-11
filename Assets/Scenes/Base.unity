@@ -591,8 +591,8 @@ Transform:
   m_GameObject: {fileID: 47708256}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -25, z: 0}
-  m_LocalScale: {x: 32, y: 32, z: 0}
+  m_LocalPosition: {x: 0, y: -11.67799, z: 0}
+  m_LocalScale: {x: 14.947827, y: 14.947827, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -721,8 +721,8 @@ Transform:
   m_GameObject: {fileID: 62090605}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 25, z: 0}
-  m_LocalScale: {x: 32, y: 32, z: 0}
+  m_LocalPosition: {x: 0, y: 11.67799, z: 0}
+  m_LocalScale: {x: 14.947827, y: 14.947827, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -7866,8 +7866,8 @@ Transform:
   m_GameObject: {fileID: 1068602616}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 25, y: 0, z: 0}
-  m_LocalScale: {x: 18, y: 18, z: 0}
+  m_LocalPosition: {x: 11.67799, y: 0, z: 0}
+  m_LocalScale: {x: 8.408153, y: 8.408153, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -9694,10 +9694,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.010312706
-    y: 0
-    width: 0.9793746
-    height: 1
+    x: 0
+    y: 0.2664402
+    width: 1
+    height: 0.46711957
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -13026,10 +13026,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.010312706
-    y: 0
-    width: 0.9793746
-    height: 1
+    x: 0
+    y: 0.2664402
+    width: 1
+    height: 0.46711957
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -13294,10 +13294,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.010312706
-    y: 0
-    width: 0.9793746
-    height: 1
+    x: 0
+    y: 0.2664402
+    width: 1
+    height: 0.46711957
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
@@ -13533,6 +13533,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GManager
   isRaymeeDebug: 1
+  debugBulletFastForwardKey: 41
+  debugPlayerTransparencyToggleKey: 42
+  debugPlayerInvincibilityToggleKey: 43
+  debugBulletTimeScale: 16
+  debugPlayerTransparencyAlpha: 0.35
   state: 1
   PlayerObj: {fileID: 3602127599334733260, guid: 79cef28de94e46342ace55bfe592f674, type: 3}
   PController:
@@ -13983,8 +13988,8 @@ Transform:
   m_GameObject: {fileID: 1928468751}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -25, y: 0, z: 0}
-  m_LocalScale: {x: 18, y: 18, z: 0}
+  m_LocalPosition: {x: -11.67799, y: 0, z: 0}
+  m_LocalScale: {x: 8.408153, y: 8.408153, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1634412150}
@@ -14884,10 +14889,10 @@ Camera:
   m_LensShift: {x: 0, y: 0}
   m_NormalizedViewPortRect:
     serializedVersion: 2
-    x: 0.010312706
-    y: 0
-    width: 0.9793746
-    height: 1
+    x: 0
+    y: 0.2664402
+    width: 1
+    height: 0.46711957
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
