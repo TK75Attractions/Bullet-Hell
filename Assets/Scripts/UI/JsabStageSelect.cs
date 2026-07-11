@@ -152,7 +152,9 @@ public class JsabStageSelect : MonoBehaviour
     // 開閉フェード(alpha + パネルの軽いスケール 0.96→1.0)。急な表示/消灯を防ぐ。
     private CanvasGroup diffCG;
     private Coroutine diffFadeCo;
-    private const float DiffPanelBaseScale = 0.8f;  // style0 準拠のパネル表示スケール
+    // 難易度パネルの表示スケール。2026-07-11 指摘「ボタンを大きく」で
+    // 0.8(style0 準拠) → 0.9 へ(ボタン自体の拡大 583→660 と合わせ実表示 +27%)。
+    private const float DiffPanelBaseScale = 0.9f;
     private const float DiffFadeDuration = 0.18f;
     // プレイ決定時の退場演出(第30便): 行がタイトルのスタート演出と同系で右へ
     // スライドアウトしてからホワイトアウトへ渡す。退場中は Tick の行アニメ/
@@ -992,7 +994,7 @@ public class JsabStageSelect : MonoBehaviour
                 diffBar.SetAlpha(1f);
                 diffBar.SetEntranceProgress(1f);
             }
-            // Mouse hit areas = the visible bar sprites (583x109), not the tiny row roots.
+            // Mouse hit areas = the visible bar sprites (660x124), not the tiny row roots.
             string[] rows = { "Easy", "Normal", "Lunatic" };
             for (int i = 0; i < rows.Length; i++)
                 diffBoxRects[i] = clone.transform.Find("List/" + rows[i] + "/StageBar") as RectTransform;

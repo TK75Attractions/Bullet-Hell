@@ -5,9 +5,13 @@ using TMPro;
 
 public class DefficultyBar : MonoBehaviour
 {
-    // 行ボタンの表示サイズ(シーンの StageBar 実寸。タイトルメニューと同寸)。
-    private const float BarW = 583f;
-    private const float BarH = 109f;
+    // 行ボタンの表示サイズ。2026-07-11 指摘「もっと余白を大きく=ボタン自体を
+    // 大きく」でリザルト標準(660x120)級へ拡大(シーンの StageBar 583x109 は
+    // Init でこの寸法に上書きする)。ラベルは 40 のまま=枠内の余白が増える。
+    private const float BarW = 660f;
+    private const float BarH = 124f;
+    // 行間(Easy/Normal/Lunatic の中心間隔)。ボタン拡大に合わせて一段広げる。
+    private const float RowSpacing = 158f;
 
     private CanvasGroup CG;
     private RectTransform whiteBar;
@@ -58,6 +62,8 @@ public class DefficultyBar : MonoBehaviour
             Image bar = trans.Find("StageBar").GetComponent<Image>();
             bar.sprite = bodySprite;
             bar.color = Color.white;
+            // シーンの旧寸法(583x109)を拡大寸法へ上書き(焼き込みと同寸で表示)。
+            ((RectTransform)bar.transform).sizeDelta = new Vector2(BarW, BarH);
             // 旧様式の灰色端キャップは廃止(斜め端は焼き込み枠が持つ)。
             Transform grayL = trans.Find("Gray_L");
             if (grayL != null) grayL.gameObject.SetActive(false);
@@ -89,20 +95,20 @@ public class DefficultyBar : MonoBehaviour
     public void Init()
     {
         Transform trans = transform.Find("List");
-        (trans.Find("Easy") as RectTransform).anchoredPosition = new Vector2(0f, 135f);
+        (trans.Find("Easy") as RectTransform).anchoredPosition = new Vector2(0f, RowSpacing);
         (trans.Find("Normal") as RectTransform).anchoredPosition = Vector2.zero;
-        (trans.Find("Lunatic") as RectTransform).anchoredPosition = new Vector2(0f, -135f);
+        (trans.Find("Lunatic") as RectTransform).anchoredPosition = new Vector2(0f, -RowSpacing);
         // ベース色は従来の難易度色(色分け)を維持し、様式だけ統一する。
         boxes[0] = new DefficultyBox(trans.Find("Easy"), "EASY",
-            UiButtonStyle.CreateBodySpriteTinted(583, 109, new Color(0.086f, 0.227f, 0.373f),
+            UiButtonStyle.CreateBodySpriteTinted((int)BarW, (int)BarH, new Color(0.086f, 0.227f, 0.373f),
                 ownedTextures, ownedSprites, "DiffButtonEasy"),
             new Color(0.56f, 0.72f, 0.91f));
         boxes[1] = new DefficultyBox(trans.Find("Normal"), "NORMAL",
-            UiButtonStyle.CreateBodySpriteTinted(583, 109, new Color(0.055f, 0.525f, 0.91f),
+            UiButtonStyle.CreateBodySpriteTinted((int)BarW, (int)BarH, new Color(0.055f, 0.525f, 0.91f),
                 ownedTextures, ownedSprites, "DiffButtonNormal"),
             new Color(0.85f, 0.93f, 1f));
         boxes[2] = new DefficultyBox(trans.Find("Lunatic"), "LUNATIC",
-            UiButtonStyle.CreateBodySpriteTinted(583, 109, new Color(0.36f, 0.078f, 0.188f),
+            UiButtonStyle.CreateBodySpriteTinted((int)BarW, (int)BarH, new Color(0.36f, 0.078f, 0.188f),
                 ownedTextures, ownedSprites, "DiffButtonLunatic"),
             new Color(0.91f, 0.6f, 0.69f));
         CG = GetComponent<CanvasGroup>();
