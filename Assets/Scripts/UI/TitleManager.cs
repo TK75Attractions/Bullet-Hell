@@ -751,6 +751,12 @@ public class TitleManager : MonoBehaviour
             if (applyLabelText != null) all &= TmpAlign.CenterInkVertically(applyLabelText);
             transferInkCentered = all;
         }
+        // ルビを漢字グリフの実測中心へ精密配置する(等幅全角前提の算術ではなく、
+        // TMP の実グリフ幅で「漢字の真上だけ」に乗せる。送り仮名の上には出さない)。
+        RectTransform tRoot = (RectTransform)transferRoot.transform;
+        PlaceTransferRuby(tRoot, "Heading", "HeadingRuby", 0, 4);        // 「引き継ぎ」→ 引..継
+        PlaceTransferRuby(tRoot, "CodeLabel", "CodeLabelRuby", 4, 4);    // 「あなたの引き継ぎコード」の 引き継ぎ
+        PlaceTransferRuby(tRoot, "InputLabel", "InputLabelRuby", 4, 2);  // 「コードを入力」の 入力
         RefreshTransferCode();
         if (transferMessageText != null) transferMessageText.text = string.Empty;
         if (transferInput != null)
@@ -1194,6 +1200,16 @@ public class TitleManager : MonoBehaviour
     }
 
     // ---- UI helpers -------------------------------------------------------
+
+    // ルビ(rubyName)を、本文(bodyName)の指定語範囲の漢字グリフ実測中心へ配置。
+    // 実配置は TmpAlign.PlaceRubyOverKanji が漢字だけに絞って行う。
+    private void PlaceTransferRuby(RectTransform rootRect, string bodyName, string rubyName, int start, int len)
+    {
+        TMP_Text body = rootRect.Find(bodyName)?.GetComponent<TMP_Text>();
+        Transform rubyT = rootRect.Find(rubyName);
+        if (body != null && rubyT != null)
+            TmpAlign.PlaceRubyOverKanji(body, (RectTransform)rubyT, start, len);
+    }
 
     private TMP_Text CreateText(string objectName, Transform parent, Vector2 pos, Vector2 size, float fontSize, Color color, TextAlignmentOptions align)
     {

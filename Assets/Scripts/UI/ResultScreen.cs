@@ -61,6 +61,12 @@ public sealed class ResultScreen : MonoBehaviour
     private TMP_Text hitText;
     private TMP_Text counterText;
     private TMP_Text timeText;
+    // ルビ(振り仮名)の実測配置バインディング。各ルビを対応本文の指定語範囲の
+    // 漢字グリフ実測中心へ Prepare で配置する(TmpAlign.PlaceRubyOverKanji)。
+    // 従来は等幅全角前提の算術 x で置いていたため CJK フォールバックの実アドバンス
+    // と数 px ずれた。start/len は本文文字列先頭からの語範囲(漢字だけに自動で絞る)。
+    private struct RubyBind { public TMP_Text body; public RectTransform ruby; public int start; public int len; }
+    private readonly List<RubyBind> rubyBinds = new List<RubyBind>();
     private readonly List<Texture2D> generatedTextures = new List<Texture2D>();
     private readonly List<Sprite> generatedSprites = new List<Sprite>();
     private Sprite cardFillSprite;
@@ -424,7 +430,8 @@ public sealed class ResultScreen : MonoBehaviour
 
         // 「結果」のルビ（曲選択ヘッダー「きょく/せんたく」と同じ様式:
         // 白 α0.85・中央揃え・漢字ブロックの直上・本文比 ≈0.37）。
-        // タイトルは 42px 等幅全角 → 漢字2文字の中心は x=145+42=187。
+        // x は算術（145+42=187）を初期値に置き、Prepare の PlaceAllRubies で
+        // 「結果」グリフの実測中心へ精密化する（CJK 実アドバンスのズレ補正）。
         TMP_Text ruby = NewText("HeaderRuby", root, "けっか", 15f,
             new Color(1f, 1f, 1f, 0.85f), TextAlignmentOptions.Center);
         RectTransform rubyRect = (RectTransform)ruby.transform;
@@ -432,6 +439,7 @@ public sealed class ResultScreen : MonoBehaviour
         rubyRect.pivot = new Vector2(0.5f, 0.5f);
         rubyRect.anchoredPosition = new Vector2(187f, -28f);
         rubyRect.sizeDelta = new Vector2(160f, 20f);
+        BindRuby(title, ruby, 0, 2); // 「結果」
     }
 
     // ステージ名と難易度はヘッダー右側の副帯へ（モックアップの中央領域は判定専用
@@ -613,6 +621,7 @@ public sealed class ResultScreen : MonoBehaviour
         verdictRubyText = NewText("VerdictRuby", root, "そうごうはんてい", 13f,
             new Color(1f, 1f, 1f, 0.85f), TextAlignmentOptions.Center);
         SetRect((RectTransform)verdictRubyText.transform, new Vector2(0f, 338f), new Vector2(300f, 18f));
+        BindRuby(verdictText, verdictRubyText, 0, 4); // 「総合判定」/「攻略失敗」
 
         // スタンプ着地時に外へ広がる波紋リング（通常時は透明）。
         rippleA = NewImage("StampRippleA", root, Color.clear);
@@ -814,13 +823,15 @@ public sealed class ResultScreen : MonoBehaviour
             30f, new Color(0.78f, 0.80f, 0.84f, 1f), TextAlignmentOptions.Center);
         SetRect((RectTransform)label.transform, new Vector2(50f, 44f), new Vector2(240f, 84f));
 
-        // 漢字部分のルビ。rubyX は漢字ブロックの中心 x（「カウンター回数」は
-        // 「回数」だけが漢字なので +60 のように部分位置を渡す）。
+        // 漢字部分のルビ。rubyX は算術による初期 x（フォールバック）。実配置は
+        // Prepare の PlaceAllRubies で label の JP 語範囲 [0, jp.Length) の漢字
+        // グリフ実測中心へ精密化する（「カウンター回数」は「回数」だけに乗る）。
         if (!string.IsNullOrEmpty(ruby))
         {
             TMP_Text rubyText = NewText("Ruby", rect, ruby, 11f,
                 new Color(1f, 1f, 1f, 0.85f), TextAlignmentOptions.Center);
             SetRect((RectTransform)rubyText.transform, new Vector2(rubyX, 79f), new Vector2(220f, 16f));
+            BindRuby(label, rubyText, 0, jp.Length);
         }
 
         // 見出し下の細い区切り線（中央ノード＋両端ターミナル付き）。
@@ -890,10 +901,12 @@ public sealed class ResultScreen : MonoBehaviour
         Stretch((RectTransform)label.transform);
 
         // 「終」のルビ（曲選択様式）。label の子にして光学中央補正へ追従させる。
-        // 7文字等幅 38px・中央揃え → 「終」(5文字目)の中心は -133+4.5*38=+38。
+        // x は算術（-133+4.5*38=+38）を初期値に、Prepare の PlaceAllRubies で
+        // 「プレイを終わる」の漢字「終」1字の実測中心へ精密化する。
         TMP_Text exitRuby = NewText("Ruby", (RectTransform)label.transform, "お", 14f,
             new Color(1f, 1f, 1f, 0.85f), TextAlignmentOptions.Center);
         SetRect((RectTransform)exitRuby.transform, new Vector2(38f, 28f), new Vector2(40f, 18f));
+        BindRuby(label, exitRuby, 0, 7); // 「プレイを終わる」→ 漢字「終」だけに乗る
         exitLabel = label;
         // 日本語は CJK フォールバックの行メトリクスで上に乗るため、インク実測で
         // 光学中央へ補正する。ビルド時(非アクティブ)は空振りし得るので Prepare でも再実行。
@@ -939,6 +952,10 @@ public sealed class ResultScreen : MonoBehaviour
             : "攻略失敗\n<size=16><color=#FF6C8B>STAGE FAILED</color></size>";
         if (verdictRubyText != null)
             verdictRubyText.text = cleared ? "そうごうはんてい" : "こうりゃくしっぱい";
+
+        // 全ルビを対応漢字グリフの実測中心へ精密配置(表示確定後・冪等)。
+        // 本文の text/サイズ確定後に呼ぶ必要があるためここで実行する。
+        PlaceAllRubies();
 
         string rank = EvaluateRank(cleared, hitCount);
         rankText.text = rank;
@@ -1782,6 +1799,29 @@ public sealed class ResultScreen : MonoBehaviour
                 float dist = Mathf.Sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
                 Blend(buf, w, h, x, y, col, radius - dist + 0.5f);
             }
+        }
+    }
+
+    // ルビと本文(漢字語範囲)を登録。実配置は PlaceAllRubies(Prepare)で行う。
+    private void BindRuby(TMP_Text body, TMP_Text ruby, int start, int len)
+    {
+        if (body == null || ruby == null) return;
+        rubyBinds.Add(new RubyBind
+        {
+            body = body,
+            ruby = (RectTransform)ruby.transform,
+            start = start,
+            len = len,
+        });
+    }
+
+    // 全ルビを対応漢字グリフの実測中心へ配置(表示確定後に呼ぶ)。
+    private void PlaceAllRubies()
+    {
+        for (int i = 0; i < rubyBinds.Count; i++)
+        {
+            RubyBind b = rubyBinds[i];
+            TmpAlign.PlaceRubyOverKanji(b.body, b.ruby, b.start, b.len);
         }
     }
 

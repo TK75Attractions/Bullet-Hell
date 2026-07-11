@@ -27,24 +27,31 @@ public class Header : MonoBehaviour
         if (rubyB != null) { notesRubyB = rubyB.GetComponent<TMP_Text>(); notesRubyBRect = rubyB.GetComponent<RectTransform>(); }
         currentState = 0;
         notesText.text = "曲選択 / MUSIC SELECT";
-        SetNotesRuby("きょく", -773f, "せんたく", -692f);
+        // 「曲選択」= 曲(0)・選択(1,2)。読みを各漢字の真上へ実測配置する。
+        SetNotesRuby("きょく", -773f, 0, 1, "せんたく", -692f, 1, 2);
         timerText.text = string.Empty;
         isready = true;
     }
 
-    // Readings sit exactly over their kanji: NotesText is left-aligned at x=-800
-    // with full-width glyphs 54px wide, so each kanji center is -800+27+54*i.
-    private void SetNotesRuby(string textA, float xA, string textB, float xB)
+    // 読みは対応漢字の真上に置く。従来は全角 54px 前提の算術 x(NotesText は
+    // 左揃え・x=-800、各漢字中心 -800+27+54*i)だったが、CJK フォールバックの
+    // 実アドバンスと数 px ずれ得るため、TmpAlign.PlaceRubyOverKanji で notesText の
+    // 指定漢字グリフの実測中心へ合わせる(算術 x はフォールバックとして残す)。
+    // startX/lenX は notesText 文字列先頭からの漢字範囲。
+    private void SetNotesRuby(string textA, float xA, int startA, int lenA,
+        string textB, float xB, int startB, int lenB)
     {
         if (notesRubyA != null)
         {
             notesRubyA.text = textA;
             notesRubyARect.anchoredPosition = new Vector2(xA, notesRubyARect.anchoredPosition.y);
+            TmpAlign.PlaceRubyOverKanji(notesText, notesRubyARect, startA, lenA);
         }
         if (notesRubyB != null)
         {
             notesRubyB.text = textB;
             notesRubyBRect.anchoredPosition = new Vector2(xB, notesRubyBRect.anchoredPosition.y);
+            TmpAlign.PlaceRubyOverKanji(notesText, notesRubyBRect, startB, lenB);
         }
     }
 
@@ -56,11 +63,13 @@ public class Header : MonoBehaviour
             {
                 case 0:
                     notesText.text = "曲選択 / MUSIC SELECT";
-                    SetNotesRuby("きょく", -773f, "せんたく", -692f);
+                    // 曲(0)・選択(1,2)
+                    SetNotesRuby("きょく", -773f, 0, 1, "せんたく", -692f, 1, 2);
                     break;
                 case 1:
                     notesText.text = "難易度選択 / DIFFICULTY SELECT";
-                    SetNotesRuby("なんいど", -719f, "せんたく", -584f);
+                    // 難易度(0,1,2)・選択(3,4)
+                    SetNotesRuby("なんいど", -719f, 0, 3, "せんたく", -584f, 3, 2);
                     break;
                 case 2:
                     // Transition to gameplay screen

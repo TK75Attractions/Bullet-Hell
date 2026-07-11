@@ -64,4 +64,76 @@ public static class TmpAlign
         rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, rest - inkCenter);
         return true;
     }
+
+    /// <summary>
+    /// ルビ(<paramref name="ruby"/>)を、本文(<paramref name="body"/>)の指定語範囲
+    /// [<paramref name="wordStart"/>, wordStart+<paramref name="wordLen"/>) に含まれる
+    /// <b>漢字グリフだけ</b>の実測 x 範囲の中心へ水平配置する。送り仮名・かな・
+    /// ラテン文字はスパンから除外するので、「終わる」に読み「お」を渡しても「終」の
+    /// 直上だけに乗る(かな部分の上には出さない)。
+    ///
+    /// 従来は「等幅全角 42/38/24px を仮定した算術 x + 幅広の中央ボックス」で置いて
+    /// いたため、フォールバック合成された CJK グリフの実アドバンスと数 px ずれ、
+    /// ルビが漢字の中心から外れて語全体へ広がって見えることがあった。ここでは
+    /// TMP の <see cref="TMP_TextInfo.characterInfo"/> から漢字グリフの左右端を実測し、
+    /// その中心にルビの中心(pivot.x=0.5 前提)をワールド座標で合わせる。y は呼び出し側の
+    /// 既定値を保持する。measure できなかったときは false を返し、呼び出し側の
+    /// 既定配置(算術)をそのまま残す。表示前(非アクティブ)でも測れるよう
+    /// ForceMeshUpdate(true,true) を使う。ルビは pivot.x=0.5・中央揃え前提。
+    /// </summary>
+    public static bool PlaceRubyOverKanji(TMP_Text body, RectTransform ruby, int wordStart, int wordLen)
+    {
+        if (body == null || ruby == null) return false;
+
+        body.ForceMeshUpdate(true, true);
+        TMP_TextInfo info = body.textInfo;
+        int total = info.characterCount;
+        if (total == 0) return false;
+
+        int lo = Mathf.Clamp(wordStart, 0, total);
+        int hi = Mathf.Clamp(wordStart + wordLen, 0, total);
+
+        // 範囲内の漢字グリフだけに絞る(送り仮名・かな・ラテンを除外)。
+        int firstK = -1, lastK = -1;
+        for (int i = lo; i < hi; i++)
+        {
+            if (IsKanji(info.characterInfo[i].character))
+            {
+                if (firstK < 0) firstK = i;
+                lastK = i;
+            }
+        }
+        // 漢字が無ければ(万一)範囲全体で測る。
+        int s = firstK >= 0 ? firstK : lo;
+        int e = firstK >= 0 ? lastK : hi - 1;
+        if (e < s) return false;
+
+        float minX = float.MaxValue, maxX = float.MinValue;
+        for (int i = s; i <= e; i++)
+        {
+            TMP_CharacterInfo ch = info.characterInfo[i];
+            if (!ch.isVisible) continue;
+            if (ch.bottomLeft.x < minX) minX = ch.bottomLeft.x;
+            if (ch.topRight.x > maxX) maxX = ch.topRight.x;
+        }
+        if (minX == float.MaxValue) return false;
+
+        // 漢字ブロックの中心(本文ローカル)→ワールド。ルビは pivot.x=0.5 なので
+        // ワールド x を合わせれば視覚中心が一致する。y は現状維持。
+        float localCenterX = (minX + maxX) * 0.5f;
+        Vector3 world = body.rectTransform.TransformPoint(new Vector3(localCenterX, 0f, 0f));
+        Vector3 p = ruby.position;
+        ruby.position = new Vector3(world.x, p.y, p.z);
+        return true;
+    }
+
+    // 漢字(CJK 統合漢字・拡張A・互換漢字)と、々〆〇 の繰り返し/記号。
+    // ひらがな(U+3040–309F)・カタカナ(U+30A0–30FF)・ラテンは false。
+    private static bool IsKanji(char c)
+    {
+        return (c >= 0x4E00 && c <= 0x9FFF)
+            || (c >= 0x3400 && c <= 0x4DBF)
+            || (c >= 0xF900 && c <= 0xFAFF)
+            || c == 0x3005 || c == 0x3006 || c == 0x3007;
+    }
 }
