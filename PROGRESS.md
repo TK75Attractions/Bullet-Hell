@@ -52,11 +52,19 @@ Discord 投稿2件(ルビ Before/After、HUD 2案)。証拠は `.tmp_ruby/` `.tm
 
 ### (3) 未解決と次の一手
 
-- **(2) チュートリアル統一が未着手**(次の一手)。TutorialManager.cs は手続き生成の
-  オーバーレイ(カード+WASD/SPACE キーキャップ)。石工では `ShouldSkipPreStageTutorial`
-  で現状スキップされるため、検証は RunTutorial を直接駆動 or スキップ一時解除が要る。
-  UiButtonStyle の帯/スラッシュ様式へ寄せ、見出しにルビを付ける(新設した
-  PlaceRubyOverKanji を流用可能)
+- **(2) チュートリアル統一は方向確認待ち**(Discord に選択肢 A〜D を提示済)。
+  TutorialManager.cs は手続き生成のオーバーレイ(ナビ地の平行四辺形カード+両端白
+  スラッシュ+WASD/SPACE キーキャップ)。**現状の実フレームを撮影して確認した結果、
+  既に概ねオンブランド**(`.tmp_tut/tut_card_current.png`)。平行四辺形カードに銀枠/
+  白ブラケットを盲目追加すると崩れ得るため、証拠ゲート(曖昧な見た目は方向確認先行)に
+  従い実装は方向確定後に回した。選択肢: A現状維持 / B端スラッシュを19°共通様式へ /
+  C さらに下辺シアンリム+上辺シルバー / D 帯+見出しルビ「いどう」まで。方向が決まれば
+  実装+検証は速い(新設 PlaceRubyOverKanji を流用可能)。
+  - **検証手段を確立**(次セッション用): 石工は `SkipStoneTutorialForDebug` で現状
+    チュートリアルをスキップするため、Play 中に TManager.Dismiss()→state=Tutorial→
+    TutorialManager を SetActive+EnsureInit→cardGroup.alpha=1 等を reflection で強制
+    表示し、transform.SetAsLastSibling() で最前面化すれば 1080p 静止撮影できる
+    (タイトル文脈のまま alpha だけ上げても背後に隠れて撮れない点に注意)
 - **HUD の要判断(ユーザー)**: 案A(左下縦積み)/案B(左右隅分散)の採用、スコア表示位置、
   不透明度(現 0.8)。密度場面の重なりを避けるなら位置を上げる/中央寄せ等の余地
 - **push 未実施**(ローカル ahead 3: ルビ+HUD+本 PROGRESS)。検収後に
