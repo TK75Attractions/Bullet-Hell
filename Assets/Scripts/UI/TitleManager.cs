@@ -599,6 +599,12 @@ public class TitleManager : MonoBehaviour
                     bar.sprite = menuButtonSprite;
                     bar.type = Image.Type.Simple;
                     bar.color = Color.white;
+                    // クローン元(シーンの DefficultyBar)は起動順の都合で先に
+                    // Init 済み(SSManager.Init→TManager.Init)で、StageBar が
+                    // 難易度画面の拡大寸法へ上書きされている。タイトル行は
+                    // 583x109 が確定寸法なので明示的に戻す(戻さないと 583x109 の
+                    // 焼き込みが拡大寸法へ引き伸ばされてぼける)。
+                    bar.rectTransform.sizeDelta = new Vector2(583f, 109f);
                     menuRowFlash[i] = CreateRowFlash(bar.rectTransform);
                 }
                 menuRowBars[i] = bar;
@@ -627,7 +633,9 @@ public class TitleManager : MonoBehaviour
             // 上下辺(焼き込み枠)に合わせる(2026-07-11 指摘)。x は共通則
             // ThinSlashX でボタン枠に密着させる(2026-07-11 指摘「離れすぎ」)。
             // 行 CanvasGroup の減光には子としてそのまま追従する。
-            foreach (string grayName in new[] { "Gray_L", "Gray_R" })
+            // RowSlashL/R は Init 済みクローン元から継承した難易度画面幅基準の
+            // スラッシュ(位置が合わない)。無効化して下で 583 幅基準を付け直す。
+            foreach (string grayName in new[] { "Gray_L", "Gray_R", "RowSlashL", "RowSlashR" })
             {
                 Transform gray = row.Find(grayName);
                 if (gray != null) gray.gameObject.SetActive(false);
@@ -664,6 +672,15 @@ public class TitleManager : MonoBehaviour
             menuWhite = (RectTransform)whiteObj.transform;
             CanvasGroup whiteCG = whiteObj.GetComponent<CanvasGroup>();
             if (whiteCG != null) whiteCG.alpha = 1f;
+            // クローン元の White は難易度画面の Init 済みで、難易度ボタン幅基準の
+            // MarkerSlashL/R が付いている(起動順: SSManager.Init→ここ)。継承分を
+            // 残すとマーカーが二重に見える(2026-07-11 実フレームで確認)ため無効化し、
+            // タイトル幅(583)基準の自前スラッシュだけを使う。
+            foreach (string inheritedName in new[] { "MarkerSlashL", "MarkerSlashR" })
+            {
+                Transform inherited = menuWhite.Find(inheritedName);
+                if (inherited != null) inherited.gameObject.SetActive(false);
+            }
             // 選択マーカーの白スラッシュ(クローン元 sprite・角度約21°)を
             // リザルト様式の太スラッシュ(19°・11px)へ差し替え、上下端を
             // ボタンの上下辺(焼き込み枠)に合わせる(2026-07-11 指摘)。
