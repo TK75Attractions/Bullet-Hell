@@ -77,6 +77,14 @@ public class PlayHudController : MonoBehaviour
 
     private bool built;
 
+    // 和文ラベルは TMP の Middle(行ボックス)整列だと CJK フォールバックの
+    // 非対称メトリクスで数 px 上ずれする(再発指摘)。TmpAlign のインク実測で
+    // 光学センターへ補正する。ビルド時(帯が非表示)は canvas 未初期化で測れず
+    // 無言で空振りすることがあるため、プレイ中の Update で全ラベルの補正が
+    // 成功するまで再試行する(bool 戻り値で確定)。
+    private readonly List<TMP_Text> inkCenterLabels = new List<TMP_Text>();
+    private bool inkCentered;
+
     private void Awake()
     {
         Build();
@@ -187,6 +195,7 @@ public class PlayHudController : MonoBehaviour
             tr.pivot = new Vector2(0f, 0.5f);
             tr.anchoredPosition = new Vector2(14f, 0f);
             tr.sizeDelta = new Vector2(220f, 30f);
+            inkCenterLabels.Add(barTimeText);
         }
 
         // ---- 右: 曲名パネル(カードと同型のパネルに ♪+曲名を中央配置) ----
@@ -207,6 +216,8 @@ public class PlayHudController : MonoBehaviour
             songNameText.color = SongWhite;
             RectTransform nr = (RectTransform)songNameText.transform;
             nr.anchoredPosition = new Vector2(SongPanelCenterX + 12f, RowY);
+            // 曲名は和文になり得る。基準 y(RowY=帯中心線)を確定させた後に登録。
+            inkCenterLabels.Add(songNameText);
         }
 
         built = true;
@@ -264,6 +275,8 @@ public class PlayHudController : MonoBehaviour
         vr.sizeDelta = new Vector2(170f, 36f);
         value.characterSpacing = 2f;
 
+        inkCenterLabels.Add(label);
+        inkCenterLabels.Add(value);
         return value;
     }
 
@@ -310,10 +323,21 @@ public class PlayHudController : MonoBehaviour
         StageReader sr = gm.SReader;
         if (sr == null || !sr.IsReady) return;
 
+        // 帯が表示された後の初回に、全ラベルをインク実測で縦センターへ確定させる。
+        if (!inkCentered)
+        {
+            bool all = true;
+            for (int i = 0; i < inkCenterLabels.Count; i++)
+                if (inkCenterLabels[i] != null) all &= TmpAlign.CenterInkVertically(inkCenterLabels[i]);
+            inkCentered = all;
+        }
+
         // 曲名パネル内: ♪アイコンをインク幅に追従させて文字の左に置く。
         if (songNameText != null && songIconRect != null && songNameText.text != lastSongText)
         {
             lastSongText = songNameText.text;
+            // 曲名が変わったらインク中心も変わる(和文/欧文混在)ので再補正。
+            TmpAlign.CenterInkVertically(songNameText);
             songNameText.ForceMeshUpdate();
             songIconRect.anchoredPosition = new Vector2(
                 SongPanelCenterX + 12f - songNameText.preferredWidth * 0.5f - 26f,
