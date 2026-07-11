@@ -15,10 +15,15 @@ using TMPro;
 /// 上端の薄い半透明帯(高さ104)の中に、リザルトのデザイン言語
 /// (平行四辺形+銀枠+シアンリム+青ボトムリム+白スラッシュ仕切り)で
 /// 全要素をひとつの意匠として並べる。左=被弾/スコアカード、中央=曲進捗
-/// (平行四辺形トラック)、右=曲名パネル。弾幕の視認性最優先のため、
-/// パネルのフィルは半透明(UiButtonStyle.CreateHudPanelSprite)で下が透ける。
+/// (平行四辺形トラック)、右=曲名パネル。
 /// スタイルの正は Docs/result-design-language.md。テクスチャ焼き込みは
 /// 視覚(sRGB)値・頂点色(Image.color)は pre-linear 値(混同注意)。
+///
+/// 2026-07-12 額装(REVIEW-NOTES「弾幕との被り」①): プレイ中は
+/// FreezeAspectRate.SetPlayFrame でカメラをズームアウトし、フィールド全体を
+/// 帯の下へ縮小表示する。ズームアウトで画面に入るフィールド外(弾の生存域)を
+/// 隠すため、StageCanvas 直下に不透明の額縁(PlayFrame)を敷く。帯の裏にも
+/// 不透明フィルが入るので、落下前ブロック等が帯越しに見えることはない。
 /// </summary>
 public class PlayHudController : MonoBehaviour
 {
@@ -35,6 +40,9 @@ public class PlayHudController : MonoBehaviour
     private static readonly Color BandNavy = new Color(0.010f, 0.028f, 0.055f, 0.45f);
     // 帯下辺の銀エッジ(視覚(0.55,0.60,0.70)相当の pre-linear)。
     private static readonly Color BandEdgeSilver = new Color(0.268f, 0.325f, 0.456f, 0.9f);
+    // 額縁の地色(pre-linear・不透明必須)。フィールド外の弾を隠しつつ、
+    // リザルト背景 DeepNavy より一段だけ明るい紺でエッジ線が立つ暗さにする。
+    private static readonly Color FrameNavy = new Color(0.006f, 0.014f, 0.030f, 1f);
 
     // レイアウト定数(1080p ref・キャンバス中心原点)。全要素は帯の中心線に乗せる。
     private const float BandH = 104f;
@@ -85,6 +93,19 @@ public class PlayHudController : MonoBehaviour
     private readonly List<TMP_Text> inkCenterLabels = new List<TMP_Text>();
     private bool inkCentered;
 
+    // 額装(プレイ領域フレーム)。カメラのズームアウトは FreezeAspectRate が担い、
+    // ここはフィールド外を覆う不透明フィル+エッジ線の UI とフェード同期を持つ。
+    // インセット値は FreezeAspectRate(単一ソース)から導出する。
+    private FreezeAspectRate cameraRig;
+    private RectTransform frameRoot;
+    private CanvasGroup frameGroup;
+    private RectTransform frameTopFill, frameLeftFill, frameRightFill, frameBottomFill;
+    private RectTransform frameEdgeSilverL, frameEdgeSilverR, frameEdgeBlueL, frameEdgeBlueR;
+    private RectTransform frameEdgeSilverB, frameEdgeBlueB;
+    private RectTransform frameEdgeKeyL, frameEdgeKeyR, frameEdgeKeyB;
+    private float frameAppliedTop = -1f;
+    private float frameAppliedBottom = -1f;
+
     private void Awake()
     {
         Build();
@@ -92,6 +113,8 @@ public class PlayHudController : MonoBehaviour
 
     private void OnDestroy()
     {
+        // 額縁は PlayHUD の兄弟(StageCanvas 直下)なので自前で破棄する。
+        if (frameRoot != null) Destroy(frameRoot.gameObject);
         foreach (Sprite s in ownedSprites) if (s != null) Destroy(s);
         foreach (Texture2D t in ownedTextures) if (t != null) Destroy(t);
         ownedSprites.Clear();
@@ -220,7 +243,107 @@ public class PlayHudController : MonoBehaviour
             inkCenterLabels.Add(songNameText);
         }
 
+        // ---- 額装(プレイ領域フレーム) ----
+        cameraRig = Object.FindFirstObjectByType<FreezeAspectRate>();
+        if (cameraRig != null) cameraRig.playFrameTopPx = BandH; // 帯高さと機械同期(d=0)
+        BuildPlayFrame();
+
         built = true;
+    }
+
+    // 額縁: StageCanvas 直下(PlayHUD の直前=下のレイヤ)に置き、AnimateHUDIn の
+    // 70px スライドとは独立させる。フィルは不透明必須(ズームアウトで画面に入る
+    // フィールド外の弾・落下前ブロックを隠す)。エッジ線は帯下辺の
+    // 銀+青アクセントと同じ語彙をフィールドの左右(+下)に回す。
+    private void BuildPlayFrame()
+    {
+        GameObject go = new GameObject("PlayFrame", typeof(RectTransform), typeof(CanvasGroup));
+        go.layer = gameObject.layer;
+        frameRoot = (RectTransform)go.transform;
+        frameRoot.SetParent(transform.parent, false);
+        frameRoot.SetSiblingIndex(transform.GetSiblingIndex());
+        StretchFull(frameRoot);
+        frameGroup = go.GetComponent<CanvasGroup>();
+        frameGroup.alpha = 0f;
+        frameGroup.blocksRaycasts = false;
+        frameGroup.interactable = false;
+
+        frameTopFill = NewImage("TopFill", frameRoot, FrameNavy).rectTransform;
+        frameLeftFill = NewImage("LeftFill", frameRoot, FrameNavy).rectTransform;
+        frameRightFill = NewImage("RightFill", frameRoot, FrameNavy).rectTransform;
+        frameBottomFill = NewImage("BottomFill", frameRoot, FrameNavy).rectTransform;
+
+        // エッジは3層(フィールド側から): 銀2px→青リム(控えめ)→暗キーライン1px。
+        // oracle レビュー(playframe-ab-review)の「銀主体+シアン控えめ+外側に
+        // 暗いキーラインでデバッグ境界線感を消す」を反映。
+        Color accentBlue = new Color(FillBlue.r, FillBlue.g, FillBlue.b, 0.28f);
+        Color keyline = new Color(0f, 0.004f, 0.010f, 0.9f);
+        frameEdgeBlueL = NewImage("EdgeBlueL", frameRoot, accentBlue).rectTransform;
+        frameEdgeSilverL = NewImage("EdgeSilverL", frameRoot, BandEdgeSilver).rectTransform;
+        frameEdgeKeyL = NewImage("EdgeKeyL", frameRoot, keyline).rectTransform;
+        frameEdgeBlueR = NewImage("EdgeBlueR", frameRoot, accentBlue).rectTransform;
+        frameEdgeSilverR = NewImage("EdgeSilverR", frameRoot, BandEdgeSilver).rectTransform;
+        frameEdgeKeyR = NewImage("EdgeKeyR", frameRoot, keyline).rectTransform;
+        frameEdgeBlueB = NewImage("EdgeBlueB", frameRoot, accentBlue).rectTransform;
+        frameEdgeSilverB = NewImage("EdgeSilverB", frameRoot, BandEdgeSilver).rectTransform;
+        frameEdgeKeyB = NewImage("EdgeKeyB", frameRoot, keyline).rectTransform;
+
+        LayoutPlayFrame();
+        go.SetActive(false);
+    }
+
+    // 1080p ref・キャンバス中心原点。FreezeAspectRate と同じ式で内寸を出す
+    // (連動要素の同一ソース導出)。インセットが変わったフレームだけ組み直す。
+    private void LayoutPlayFrame()
+    {
+        if (frameRoot == null) return;
+        float top = cameraRig != null ? cameraRig.playFrameTopPx : BandH;
+        float bot = cameraRig != null ? cameraRig.playFrameBottomPx : 20f;
+        if (top == frameAppliedTop && bot == frameAppliedBottom) return;
+        frameAppliedTop = top;
+        frameAppliedBottom = bot;
+
+        float s = Mathf.Max(0.05f, 1f - (top + bot) / 1080f);
+        float halfW = 960f * s;              // フィールド半幅(canvas px)
+        float fieldTop = 540f - top;
+        float fieldBot = -540f + bot;
+        float sideW = 960f - halfW;
+        float sideH = 1080f - top;
+        float fieldH = fieldTop - fieldBot;
+        float edgeCy = (fieldTop + fieldBot) * 0.5f;
+        bool hasBottom = bot > 0.5f;
+
+        PlaceRect(frameTopFill, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), Vector2.zero, new Vector2(1920f, top));
+        PlaceRect(frameLeftFill, new Vector2(0f, 0f), new Vector2(0f, 0f), Vector2.zero, new Vector2(sideW, sideH));
+        PlaceRect(frameRightFill, new Vector2(1f, 0f), new Vector2(1f, 0f), Vector2.zero, new Vector2(sideW, sideH));
+        frameBottomFill.gameObject.SetActive(hasBottom);
+        PlaceRect(frameBottomFill, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), Vector2.zero, new Vector2(1920f, Mathf.Max(1f, bot)));
+
+        // 3層エッジ(フィールド側から銀2px→青リム1.5px→暗キーライン1px、計4.5px)。
+        // 下辺の横ラインは左右キーラインの外端まで伸ばして額縁を閉じる。
+        Vector2 center = new Vector2(0.5f, 0.5f);
+        const float edgeOut = 4.5f;
+        PlaceRect(frameEdgeSilverL, center, new Vector2(1f, 0.5f), new Vector2(-halfW, edgeCy), new Vector2(2f, fieldH));
+        PlaceRect(frameEdgeBlueL, center, new Vector2(1f, 0.5f), new Vector2(-halfW - 2f, edgeCy), new Vector2(1.5f, fieldH));
+        PlaceRect(frameEdgeKeyL, center, new Vector2(1f, 0.5f), new Vector2(-halfW - 3.5f, edgeCy), new Vector2(1f, fieldH));
+        PlaceRect(frameEdgeSilverR, center, new Vector2(0f, 0.5f), new Vector2(halfW, edgeCy), new Vector2(2f, fieldH));
+        PlaceRect(frameEdgeBlueR, center, new Vector2(0f, 0.5f), new Vector2(halfW + 2f, edgeCy), new Vector2(1.5f, fieldH));
+        PlaceRect(frameEdgeKeyR, center, new Vector2(0f, 0.5f), new Vector2(halfW + 3.5f, edgeCy), new Vector2(1f, fieldH));
+        frameEdgeSilverB.gameObject.SetActive(hasBottom);
+        frameEdgeBlueB.gameObject.SetActive(hasBottom);
+        frameEdgeKeyB.gameObject.SetActive(hasBottom);
+        float bottomW = halfW * 2f + edgeOut * 2f;
+        PlaceRect(frameEdgeSilverB, center, new Vector2(0.5f, 1f), new Vector2(0f, fieldBot), new Vector2(bottomW, 2f));
+        PlaceRect(frameEdgeBlueB, center, new Vector2(0.5f, 1f), new Vector2(0f, fieldBot - 2f), new Vector2(bottomW, 1.5f));
+        PlaceRect(frameEdgeKeyB, center, new Vector2(0.5f, 1f), new Vector2(0f, fieldBot - 3.5f), new Vector2(bottomW, 1f));
+    }
+
+    private static void PlaceRect(RectTransform rect, Vector2 anchor, Vector2 pivot, Vector2 pos, Vector2 size)
+    {
+        rect.anchorMin = rect.anchorMax = anchor;
+        rect.pivot = pivot;
+        rect.anchoredPosition = pos;
+        rect.sizeDelta = size;
     }
 
     // ステータスミニカード: 平行四辺形パネル(銀枠+半透明紺)+左のアイコン+
@@ -318,6 +441,20 @@ public class PlayHudController : MonoBehaviour
         // 帯(カード/仕切り/曲名パネル込み)はプレイ中のみ表示。
         if (bandRoot != null && bandRoot.gameObject.activeSelf != playing)
             bandRoot.gameObject.SetActive(playing);
+
+        // 額装はプレイ中のみ。カメラのズームアウト(FreezeAspectRate)と
+        // 額縁のフェードを同じイーズ値で同期させる。
+        if (cameraRig != null) cameraRig.SetPlayFrame(playing);
+        if (frameRoot != null)
+        {
+            if (frameRoot.gameObject.activeSelf != playing)
+                frameRoot.gameObject.SetActive(playing);
+            if (playing && cameraRig != null)
+            {
+                frameGroup.alpha = cameraRig.PlayFrameEased;
+                LayoutPlayFrame();
+            }
+        }
 
         if (!playing) return;
         StageReader sr = gm.SReader;

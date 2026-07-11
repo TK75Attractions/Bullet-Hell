@@ -22,6 +22,28 @@ public class FreezeAspectRate : MonoBehaviour
     [SerializeField] private Sprite Sleft;
     [SerializeField] private Transform up, down, right, left;
 
+    // ---- プレイ領域の額装(HUD帯と弾幕の被り対策) ----
+    // プレイ中だけ MainCamera の orthographicSize と位置をずらし、論理 32x18 の
+    // フィールド全体を HUD 帯(上端 playFrameTopPx)の下へ縮小表示する。
+    // 論理座標・弾データ・カメラ rect(レターボックス機構)には一切触れない。
+    // URP の Overlay カメラは viewport rect が効かないため、ビュー行列側で額装する。
+    // ズームアウトで画面に入るフィールド外(弾の生存域 [-2,36)²)は、
+    // PlayHudController 側の不透明額縁 UI が覆う前提。
+    // インセットは 1080 基準 px。上は PlayHudController が BandH と同期させる。
+    // 下 20px は四辺クローズの額縁(oracle レビュー playframe-ab-review:
+    // Plan B 採用+下余白 18-20px 推奨)。
+    [System.NonSerialized] public float playFrameTopPx = 104f;
+    [System.NonSerialized] public float playFrameBottomPx = 20f;
+    private const float PlayFrameAnimDur = 0.35f; // StageSelectManager.AnimateHUDIn と同じ
+    private float playFrameBlend;
+    private float playFrameTarget;
+    private float appliedFrameEased = -1f;
+    private float appliedFrameTop = -1f;
+    private float appliedFrameBottom = -1f;
+    private Vector3 playFrameBasePos;
+    private float playFrameBaseSize;
+    private bool playFrameBaseCaptured;
+
     public void Awake()
     {
         aspectRate = (float)aspect.x / aspect.y;
@@ -31,6 +53,14 @@ public class FreezeAspectRate : MonoBehaviour
         frontCamera = transform.parent.Find("FrontCamera").GetComponent<Camera>();
         backImageCamera = transform.parent.Find("BackImageCamera").GetComponent<Camera>();
 
+        if (Application.isPlaying)
+        {
+            // 額装の基準(フルスクリーン時)のカメラ姿勢。シーン値 (16,9,-10)/size9。
+            playFrameBasePos = main.transform.position;
+            playFrameBaseSize = main.orthographicSize;
+            playFrameBaseCaptured = true;
+        }
+
         CreateBackCamera();
         UpdateScreenRate();
     }
@@ -38,10 +68,52 @@ public class FreezeAspectRate : MonoBehaviour
     private void Update()
     {
         ChangeSize();
+        UpdatePlayFrame();
 
         if (IsChangeAspect()) return;
         UpdateScreenRate();
         main.ResetAspect();
+    }
+
+    /// <summary>額装の適用度(0-1、イーズ済み)。額縁UIのフェードと同期させる。</summary>
+    public float PlayFrameEased => Mathf.SmoothStep(0f, 1f, playFrameBlend);
+
+    /// <summary>プレイ領域の額装を有効/無効にする(0.35s で補間)。</summary>
+    public void SetPlayFrame(bool on) => playFrameTarget = on ? 1f : 0f;
+
+    private void UpdatePlayFrame()
+    {
+        if (!playFrameBaseCaptured || main == null) return;
+        if (playFrameBlend != playFrameTarget)
+            playFrameBlend = Mathf.MoveTowards(playFrameBlend, playFrameTarget, Time.unscaledDeltaTime / PlayFrameAnimDur);
+
+        // 値が変わったフレームだけ書く(CameraShake の LateUpdate オフセット/復元と
+        // 毎フレーム上書きで衝突しないための guard)。
+        float eased = PlayFrameEased;
+        if (eased == appliedFrameEased && playFrameTopPx == appliedFrameTop && playFrameBottomPx == appliedFrameBottom) return;
+        appliedFrameEased = eased;
+        appliedFrameTop = playFrameTopPx;
+        appliedFrameBottom = playFrameBottomPx;
+
+        if (eased <= 0f)
+        {
+            main.orthographicSize = playFrameBaseSize;
+            main.transform.position = playFrameBasePos;
+            return;
+        }
+
+        float topN = playFrameTopPx / 1080f * eased;
+        float botN = playFrameBottomPx / 1080f * eased;
+        float scale = Mathf.Max(0.05f, 1f - topN - botN);
+        float ortho = playFrameBaseSize / scale;
+        // フィールド下端(world y=0)が画面下から botN、上端が画面上から topN に
+        // 来るよう、ズームアウトぶんだけカメラを上へ置き直す。
+        float fieldBottomY = playFrameBasePos.y - playFrameBaseSize;
+        main.orthographicSize = ortho;
+        main.transform.position = new Vector3(
+            playFrameBasePos.x,
+            fieldBottomY + ortho * (1f - 2f * botN),
+            playFrameBasePos.z);
     }
 
     private void CreateBackCamera()
