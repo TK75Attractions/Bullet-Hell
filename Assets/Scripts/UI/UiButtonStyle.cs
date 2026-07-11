@@ -301,6 +301,70 @@ public static class UiButtonStyle
         return slash;
     }
 
+    // プレイ中 HUD 用の淡い平行四辺形パネル（ステータスカード/バートラック/
+    // 曲名パネル）。ボタン様式(BakeBody)の縮小翻訳: 同じ 19° 斜辺+銀枠+
+    // 上辺シアンハイライト+最下辺の青リムだが、フィルは半透明の濃紺
+    // （下の弾幕がうっすら透ける）でグロー/ブルームは持たない。
+    // 視覚(sRGB)値で焼く。枠は rect の 2px 内側。
+    public static Sprite CreateHudPanelSprite(int refW, int refH,
+        List<Texture2D> texOwner, List<Sprite> spriteOwner, string spriteName)
+    {
+        const int S = 2;   // 2x スーパーサンプル
+        int TW = refW * S, TH = refH * S;
+        Texture2D texture = new Texture2D(TW, TH, TextureFormat.RGBA32, false);
+        texture.name = spriteName + "Texture";
+        texture.filterMode = FilterMode.Bilinear;
+        Color32[] px = new Color32[TW * TH];
+        float cx = (TW - 1) * 0.5f, cy = (TH - 1) * 0.5f;
+
+        float hw = (refW * 0.5f - 2f) * S;
+        float hh = (refH * 0.5f - 2f) * S;
+        Vector2[] verts = ParallelogramVerts(hw, hh, 2f * hh * SlashTan);
+
+        Color topCol = new Color(0.004f, 0.051f, 0.122f);   // フィル上端(濃紺)
+        Color botCol = new Color(0.008f, 0.098f, 0.216f);   // フィル下端(やや明るい紺)
+        Color rimBot = new Color(0.000f, 0.310f, 0.714f);   // 最下辺の青リム(ボタンと同値)
+        Color topHi = new Color(0.30f, 0.68f, 0.88f);       // 上辺シアンハイライト(同値)
+        Color frame = new Color(0.412f, 0.400f, 0.447f);    // 銀枠(同値)
+
+        for (int y = 0; y < TH; y++)
+        {
+            for (int x = 0; x < TW; x++)
+            {
+                Vector2 p = new Vector2(x - cx, y - cy);
+                float sdf = ConvexSdf(verts, p);
+                float inside = Mathf.Clamp01(0.5f - sdf);
+                if (inside > 0f)
+                {
+                    float ty = Mathf.Clamp01(0.5f - p.y / (hh * 2f)); // 0 上 .. 1 下
+                    Color grad = Color.Lerp(topCol, botCol, ty * ty);
+                    Blend(px, TW, TH, x, y, grad, inside * 0.60f);
+                    if (p.y < -hh + 5f * S)
+                    {
+                        float rim = Mathf.Clamp01((p.y + hh) / (5f * S));
+                        Blend(px, TW, TH, x, y, rimBot, inside * (1f - rim) * 0.55f);
+                    }
+                    if (p.y > hh - 2.5f * S)
+                        Blend(px, TW, TH, x, y, topHi, inside * 0.45f);
+                }
+                // 枠はボタンよりわずかに太く/明るく(小型パネルでは 1.2px が
+                // 背景に沈む。oracle レビュー 2026-07-11 の指摘)。
+                float line = Mathf.Clamp01(1.6f * S - Mathf.Abs(sdf) + 0.5f);
+                if (line > 0f)
+                    Blend(px, TW, TH, x, y, frame, line * 0.95f);
+            }
+        }
+
+        texture.SetPixels32(px);
+        texture.Apply();
+        texOwner?.Add(texture);
+        Sprite sprite = Sprite.Create(texture, new Rect(0f, 0f, TW, TH),
+            new Vector2(0.5f, 0.5f), 100f * S);
+        sprite.name = spriteName;
+        spriteOwner?.Add(sprite);
+        return sprite;
+    }
+
     // 凸多角形の符号付き距離（+外側）。原点は内部にある前提。
     private static float ConvexSdf(Vector2[] v, Vector2 p)
     {

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -5,48 +6,74 @@ using TMPro;
 /// <summary>
 /// プレイ中 HUD の駆動役。シーンの PlayHUD(曲名+装飾バー)に実行時 AddComponent され、
 /// 自身の Update で GManager.state==Playing のときだけ:
-///   (b) 既存の上部バー(BarBack/BarFill)を曲の再生位置に連動させる
-///       (従来は BarFill が固定幅で進捗を表していなかった)
-///   (c) 上部帯の左に被弾/スコアのミニカードを表示する(リザルトのカード様式)
+///   (b) 既存の上部バー(BarBack)を曲の再生位置に連動させる
+///   (c) 上部帯の左に被弾/スコアのミニカードを表示する
 /// を行う。曲位置は StageReader.CurrentTime/EndTime、被弾は GManager.playerHitCount、
 /// スコアは ResultScreen.CalculateProvisionalScore の暫定値。
 ///
-/// レイアウトはユーザー確定(2026-07-11): ステータス系は上部帯に集約し、
-/// 左上=被弾数+スコア、中央=曲の進捗バー、右端=曲名(右揃え+♪アイコン)。
-/// スタイルの正は Docs/result-design-language.md。色は頂点色(pre-linear)で与える。
+/// 見た目は 2026-07-11 の再設計(ユーザー指摘「統一感がない」対応):
+/// 上端の薄い半透明帯(高さ104)の中に、リザルトのデザイン言語
+/// (平行四辺形+銀枠+シアンリム+青ボトムリム+白スラッシュ仕切り)で
+/// 全要素をひとつの意匠として並べる。左=被弾/スコアカード、中央=曲進捗
+/// (平行四辺形トラック)、右=曲名パネル。弾幕の視認性最優先のため、
+/// パネルのフィルは半透明(UiButtonStyle.CreateHudPanelSprite)で下が透ける。
+/// スタイルの正は Docs/result-design-language.md。テクスチャ焼き込みは
+/// 視覚(sRGB)値・頂点色(Image.color)は pre-linear 値(混同注意)。
 /// </summary>
 public class PlayHudController : MonoBehaviour
 {
     // リザルト様式の色(pre-linear 頂点色)。
-    private static readonly Color Cyan = new Color(0.04f, 0.54f, 0.75f);
     private static readonly Color CyanBright = new Color(0.12f, 0.78f, 0.95f);
-    private static readonly Color PanelNavy = new Color(0.010f, 0.028f, 0.055f, 0.82f);
-    private static readonly Color BracketWhite = new Color(0.85f, 0.90f, 1f, 0.9f);
     private static readonly Color ValueWhite = new Color(1f, 1f, 1f, 0.95f);
-    private static readonly Color TrackGray = new Color(0.32f, 0.32f, 0.34f, 1f);
     private static readonly Color FillBlue = new Color(0.051f, 0.549f, 0.949f, 1f);
+    // ラベル/アイコンは帯の暗さに沈まないよう明るめ(oracle レビュー指摘)。
+    private static readonly Color LabelGray = new Color(0.88f, 0.91f, 0.96f, 1f);
+    private static readonly Color IconWarm = new Color(1f, 0.97f, 0.90f, 1f);
+    // 曲名は純白から一段抑えて左の数値と明度階層を揃える(視覚 #E6E9EF 相当)。
+    private static readonly Color SongWhite = new Color(0.797f, 0.820f, 0.867f, 1f);
+    // 帯の地色(pre-linear)。控えめ不透明度で下の弾幕を透かす。
+    private static readonly Color BandNavy = new Color(0.010f, 0.028f, 0.055f, 0.45f);
+    // 帯下辺の銀エッジ(視覚(0.55,0.60,0.70)相当の pre-linear)。
+    private static readonly Color BandEdgeSilver = new Color(0.268f, 0.325f, 0.456f, 0.9f);
+
+    // レイアウト定数(1080p ref・キャンバス中心原点)。全要素は帯の中心線に乗せる。
+    private const float BandH = 104f;
+    private const float RowY = 488f;            // 540(上端) - BandH/2
+    private const float CardH = 72f;
+    private const float HitCardW = 220f;
+    private const float ScoreCardW = 320f;
+    private const float TrackW = 620f;
+    private const float TrackH = 26f;
+    // 曲名パネルは右端 930 を保ったまま左へ延長し、バーとの空白を詰める
+    // (oracle レビュー「右側の空白が広い」)。
+    private const float SongPanelW = 340f;
+    private const float SongPanelCenterX = 760f; // 右端 930 - W/2
 
     private TMP_FontAsset font;
 
+    // 生成テクスチャ/スプライトの破棄用(アイコンは Resources 資産なので含めない)。
+    private readonly List<Texture2D> ownedTextures = new List<Texture2D>();
+    private readonly List<Sprite> ownedSprites = new List<Sprite>();
+
+    // 帯(バンド)ルート。プレイ中のみ表示。
+    private RectTransform bandRoot;
+
     // (b) 進捗バー
     private RectTransform barBack;
-    private RectTransform barFill;
+    private ParallelogramGraphic barFillPara;
     private Image barFillGlow;      // フィル先端のシアン発光
     private TMP_Text barTimeText;   // 0:54 / 1:22
+    private float fillSkew;
+    private float fillMaxInk;
 
     // (c) スコア/被弾ミニカード
-    private RectTransform scoreCard;
-    private RectTransform hitCard;
     private TMP_Text scoreValue;
     private TMP_Text hitValue;
 
-    // 右端の曲名グループ(曲名は右揃え、♪アイコンは曲名のインク幅に追従)
+    // 右端の曲名パネル(曲名は中央揃え、♪アイコンはインク幅に追従)
     private TMP_Text songNameText;
     private RectTransform songIconRect;
     private string lastSongText;
-
-    // 曲名の右端 x(キャンバス中心基準)。時計等の他 UI と揃える基準線。
-    private const float SongRightEdgeX = 930f;
 
     private bool built;
 
@@ -55,43 +82,105 @@ public class PlayHudController : MonoBehaviour
         Build();
     }
 
+    private void OnDestroy()
+    {
+        foreach (Sprite s in ownedSprites) if (s != null) Destroy(s);
+        foreach (Texture2D t in ownedTextures) if (t != null) Destroy(t);
+        ownedSprites.Clear();
+        ownedTextures.Clear();
+    }
+
     private void Build()
     {
         if (built) return;
 
-        // 既存バーを掴む。BarFill を左端起点に張り替えて進捗で伸ばせるようにする。
+        // フォントはシーンの曲名テキストから拝借(シーン既定 TMP)。
+        Transform songName = transform.Find("SongName");
+        if (songName != null)
+        {
+            songNameText = songName.GetComponent<TMP_Text>();
+            if (songNameText != null) font = songNameText.font;
+        }
+        Transform songIcon = transform.Find("SongIcon");
+        if (songIcon != null) songIconRect = (RectTransform)songIcon;
+
+        // ---- 帯(全要素の受け皿)。最背面に敷く ----
+        GameObject bandGo = new GameObject("HudBand", typeof(RectTransform));
+        bandGo.layer = gameObject.layer;
+        bandRoot = (RectTransform)bandGo.transform;
+        bandRoot.SetParent(transform, false);
+        bandRoot.SetAsFirstSibling();
+        bandRoot.anchorMin = new Vector2(0f, 1f);
+        bandRoot.anchorMax = new Vector2(1f, 1f);
+        bandRoot.pivot = new Vector2(0.5f, 1f);
+        bandRoot.anchoredPosition = Vector2.zero;
+        bandRoot.sizeDelta = new Vector2(0f, BandH);
+
+        Image bandBg = NewImage("BandBg", bandRoot, BandNavy);
+        StretchFull(bandBg.rectTransform);
+
+        // 帯下辺: 銀エッジ+その上の青アクセント(リザルトのヘッダー帯の金属
+        // エッジ+ボタン下辺発光の語彙)。
+        Image edgeBlue = NewImage("BandEdgeBlue", bandRoot, new Color(FillBlue.r, FillBlue.g, FillBlue.b, 0.40f));
+        AnchorBottomStretch(edgeBlue.rectTransform, 2f, 1.5f);
+        Image edgeSilver = NewImage("BandEdgeSilver", bandRoot, BandEdgeSilver);
+        AnchorBottomStretch(edgeSilver.rectTransform, 0f, 2f);
+
+        // ---- 左: 被弾/スコアのミニカード ----
+        Sprite hitPanel = UiButtonStyle.CreateHudPanelSprite((int)HitCardW, (int)CardH,
+            ownedTextures, ownedSprites, "HudHitPanel");
+        Sprite scorePanel = UiButtonStyle.CreateHudPanelSprite((int)ScoreCardW, (int)CardH,
+            ownedTextures, ownedSprites, "HudScorePanel");
+        float hitCx = -960f + 28f + HitCardW * 0.5f;
+        float scoreCx = -960f + 28f + HitCardW + 12f + ScoreCardW * 0.5f;
+        hitValue = BuildStatCard("HitCard", hitPanel, hitCx, HitCardW,
+            "被弾", "HIT", "UI/result_icon_hit");
+        scoreValue = BuildStatCard("ScoreCard", scorePanel, scoreCx, ScoreCardW,
+            "スコア", "SCORE", "UI/result_icon_score");
+
+        // ---- 仕切りのスラッシュ対(カード群/バー間、バー/曲名間) ----
+        AddSeparator(-352f);
+        AddSeparator(548f);
+
+        // ---- 中央: 曲進捗バー(平行四辺形トラック+フィル) ----
         Transform bb = transform.Find("BarBack");
         if (bb != null)
         {
             barBack = (RectTransform)bb;
-            // ユーザー確定レイアウト: 進捗バーは上部帯の中央へ。左のステータス
-            // カード・右の曲名と干渉しない幅に詰める(シーンは左寄り1030幅)。
-            barBack.anchoredPosition = new Vector2(0f, 470f);
-            barBack.sizeDelta = new Vector2(700f, barBack.sizeDelta.y);
-            Transform bf = bb.Find("BarFill");
-            if (bf != null)
-            {
-                barFill = (RectTransform)bf;
-                // 左端固定でスケールでなく幅で伸ばす。
-                barFill.anchorMin = new Vector2(0f, 0.5f);
-                barFill.anchorMax = new Vector2(0f, 0.5f);
-                barFill.pivot = new Vector2(0f, 0.5f);
-                barFill.anchoredPosition = new Vector2(0f, 0f);
-                Image bfImg = barFill.GetComponent<Image>();
-                if (bfImg != null) bfImg.color = FillBlue;
-                // 先端のシアン発光(縦線)。
-                barFillGlow = NewImage("BarFillGlow", barBack, CyanBright);
-                barFillGlow.rectTransform.anchorMin = new Vector2(0f, 0.5f);
-                barFillGlow.rectTransform.anchorMax = new Vector2(0f, 0.5f);
-                barFillGlow.rectTransform.pivot = new Vector2(0.5f, 0.5f);
-                barFillGlow.rectTransform.sizeDelta = new Vector2(4f, barBack.sizeDelta.y + 6f);
-                Color g = CyanBright; g.a = 0.9f; barFillGlow.color = g;
-            }
+            // シーン直下(キャンバス中心アンカー)なので y はキャンバス座標で与える。
+            barBack.anchoredPosition = new Vector2(-10f, RowY);
+            barBack.sizeDelta = new Vector2(TrackW, TrackH);
             Image bbImg = bb.GetComponent<Image>();
-            if (bbImg != null) bbImg.color = TrackGray;
+            if (bbImg != null)
+            {
+                bbImg.sprite = UiButtonStyle.CreateHudPanelSprite((int)TrackW, (int)TrackH,
+                    ownedTextures, ownedSprites, "HudTrackPanel");
+                bbImg.type = Image.Type.Simple;
+                bbImg.color = Color.white;
+            }
+            // 旧フィル(矩形 Image)は使わず、トラックの斜辺に平行な
+            // ParallelogramGraphic で左から伸ばす。
+            Transform bf = bb.Find("BarFill");
+            if (bf != null) bf.gameObject.SetActive(false);
+            const float fillH = 16f;
+            fillSkew = fillH * Mathf.Tan(UiButtonStyle.SlashAngleDeg * Mathf.Deg2Rad);
+            fillMaxInk = TrackW - 12f - fillSkew;
+            barFillPara = UiButtonStyle.AddSlash(barBack, "Fill", FillBlue, 0f, 0.1f, fillH);
+            RectTransform fr = barFillPara.rectTransform;
+            fr.anchorMin = fr.anchorMax = new Vector2(0f, 0.5f);
+            fr.pivot = new Vector2(0f, 0.5f);
+            fr.anchoredPosition = new Vector2(6f, 0f);
+            // フィル先端のシアン発光(斜辺に合わせて 19° 傾ける)。
+            barFillGlow = NewImage("FillGlow", barBack, new Color(CyanBright.r, CyanBright.g, CyanBright.b, 0.9f));
+            barFillGlow.rectTransform.anchorMin = new Vector2(0f, 0.5f);
+            barFillGlow.rectTransform.anchorMax = new Vector2(0f, 0.5f);
+            barFillGlow.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            barFillGlow.rectTransform.sizeDelta = new Vector2(3f, fillH + 4f);
+            barFillGlow.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -UiButtonStyle.SlashAngleDeg);
 
             // 経過/全体の時刻テキスト(バー右端の外側)。
-            barTimeText = NewText("BarTime", barBack, "0:00 / 0:00", 20f, new Color(0.72f, 0.86f, 0.95f, 0.9f), TextAlignmentOptions.Left);
+            barTimeText = NewText("BarTime", barBack, "0:00 / 0:00", 20f,
+                new Color(0.72f, 0.86f, 0.95f, 0.9f), TextAlignmentOptions.Left);
             RectTransform tr = (RectTransform)barTimeText.transform;
             tr.anchorMin = new Vector2(1f, 0.5f);
             tr.anchorMax = new Vector2(1f, 0.5f);
@@ -100,112 +189,111 @@ public class PlayHudController : MonoBehaviour
             tr.sizeDelta = new Vector2(220f, 30f);
         }
 
-        // 右端の曲名グループ。曲名は右揃えで基準線 SongRightEdgeX に合わせ、
-        // ♪アイコンは曲名のインク幅に追従して文字の左に付く(曲名は可変長のため。
-        // 追従は Update で行う)。フォントもここから拝借(シーン既定 TMP)。
-        Transform songName = transform.Find("SongName");
-        if (songName != null)
+        // ---- 右: 曲名パネル(カードと同型のパネルに ♪+曲名を中央配置) ----
+        Sprite songPanel = UiButtonStyle.CreateHudPanelSprite((int)SongPanelW, (int)CardH,
+            ownedTextures, ownedSprites, "HudSongPanel");
+        Image songBg = NewImage("SongPanel", bandRoot, Color.white);
+        songBg.sprite = songPanel;
+        songBg.type = Image.Type.Simple;
+        songBg.rectTransform.anchorMin = songBg.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        songBg.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        songBg.rectTransform.anchoredPosition = new Vector2(SongPanelCenterX, 0f);
+        songBg.rectTransform.sizeDelta = new Vector2(SongPanelW, CardH);
+        if (songNameText != null)
         {
-            songNameText = songName.GetComponent<TMP_Text>();
-            if (songNameText != null)
-            {
-                font = songNameText.font;
-                songNameText.alignment = TextAlignmentOptions.Right;
-                RectTransform nr = (RectTransform)songName.transform;
-                nr.anchoredPosition = new Vector2(SongRightEdgeX - nr.sizeDelta.x * 0.5f, 468f);
-            }
+            songNameText.alignment = TextAlignmentOptions.Center;
+            // 曲名だけ1段大きく明るく見える不均衡を抑える(48→40px・白を一段減光)。
+            songNameText.fontSize = 40f;
+            songNameText.color = SongWhite;
+            RectTransform nr = (RectTransform)songNameText.transform;
+            nr.anchoredPosition = new Vector2(SongPanelCenterX + 12f, RowY);
         }
-        Transform songIcon = transform.Find("SongIcon");
-        if (songIcon != null) songIconRect = (RectTransform)songIcon;
-
-        // (c) 被弾/スコアのミニカード(上部帯の左)。
-        scoreCard = BuildStatCard("ScoreCard", "スコア", "SCORE", out scoreValue);
-        hitCard = BuildStatCard("HitCard", "被弾", "HIT", out hitValue);
-        ApplyLayout();
 
         built = true;
     }
 
-    // ステータスミニカード: 半透明の濃紺板 + 上辺シアンリム + 2隅の白ブラケット +
-    // シアンの英字ラベル + 白の数値(リザルトカードの控えめ縮小版)。
-    private RectTransform BuildStatCard(string name, string jp, string en, out TMP_Text value)
+    // ステータスミニカード: 平行四辺形パネル(銀枠+半透明紺)+左のアイコン+
+    // 和文ラベル(シアン英字添え)+右寄せの白数値。リザルトカードの帯内縮小版。
+    private TMP_Text BuildStatCard(string name, Sprite panel, float centerX, float width,
+        string jp, string en, string iconResource)
     {
-        GameObject go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(CanvasGroup), typeof(Image));
+        GameObject go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
         go.layer = gameObject.layer;
         RectTransform rect = (RectTransform)go.transform;
-        rect.SetParent(transform, false);
-        rect.sizeDelta = new Vector2(240f, 66f);
+        rect.SetParent(bandRoot, false);
+        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = new Vector2(centerX, 0f);
+        rect.sizeDelta = new Vector2(width, CardH);
         Image bg = go.GetComponent<Image>();
-        bg.color = PanelNavy;
+        bg.sprite = panel;
+        bg.type = Image.Type.Simple;
+        bg.color = Color.white;
         bg.raycastTarget = false;
-        CanvasGroup cg = go.GetComponent<CanvasGroup>();
-        cg.alpha = 0.9f; // 上部帯の上に載るため弾との重なりは少ない。わずかに透かして帯と馴染ませる
 
-        // 上辺シアンリム。
-        Image rim = NewImage("Rim", rect, Cyan);
-        rim.rectTransform.anchorMin = new Vector2(0f, 1f);
-        rim.rectTransform.anchorMax = new Vector2(1f, 1f);
-        rim.rectTransform.pivot = new Vector2(0.5f, 1f);
-        rim.rectTransform.sizeDelta = new Vector2(0f, 2.5f);
-        rim.rectTransform.anchoredPosition = Vector2.zero;
-        Color rc = Cyan; rc.a = 0.9f; rim.color = rc;
-
-        // 2隅(左上・右下)の白ブラケット。
-        AddBracket(rect, new Vector2(0f, 1f));
-        AddBracket(rect, new Vector2(1f, 0f));
+        // 左のアイコン(リザルトカードと同じ Material Symbols 資産)。
+        Sprite iconSprite = Resources.Load<Sprite>(iconResource);
+        float labelX = -width * 0.5f + 30f;
+        if (iconSprite != null)
+        {
+            Image icon = NewImage("Icon", rect, IconWarm);
+            icon.sprite = iconSprite;
+            icon.type = Image.Type.Simple;
+            icon.rectTransform.anchorMin = icon.rectTransform.anchorMax = new Vector2(0f, 0.5f);
+            icon.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            icon.rectTransform.anchoredPosition = new Vector2(38f, 0f);
+            icon.rectTransform.sizeDelta = new Vector2(26f, 26f);
+            labelX = -width * 0.5f + 58f;
+        }
 
         // ラベル(JP 白グレー + シアン英字)。
-        TMP_Text label = NewText("Label", rect, jp + "  <size=13><color=#38C2E0>" + en + "</color></size>",
-            18f, new Color(0.80f, 0.83f, 0.88f, 1f), TextAlignmentOptions.Left);
+        TMP_Text label = NewText("Label", rect, jp + " <size=12><color=#38C2E0>" + en + "</color></size>",
+            19f, LabelGray, TextAlignmentOptions.Left);
         RectTransform lr = (RectTransform)label.transform;
-        lr.anchorMin = lr.anchorMax = new Vector2(0f, 1f);
-        lr.pivot = new Vector2(0f, 1f);
-        lr.anchoredPosition = new Vector2(14f, -8f);
-        lr.sizeDelta = new Vector2(220f, 22f);
+        lr.anchorMin = lr.anchorMax = new Vector2(0.5f, 0.5f);
+        lr.pivot = new Vector2(0f, 0.5f);
+        lr.anchoredPosition = new Vector2(labelX, 0f);
+        lr.sizeDelta = new Vector2(width - 150f, 30f);
 
-        // 数値(白・やや大きめ)。
-        value = NewText("Value", rect, "0", 26f, ValueWhite, TextAlignmentOptions.Right);
+        // 数値(白・右寄せ。斜辺を避けて右マージン 24)。
+        TMP_Text value = NewText("Value", rect, "0", 29f, ValueWhite, TextAlignmentOptions.Right);
         RectTransform vr = (RectTransform)value.transform;
-        vr.anchorMin = vr.anchorMax = new Vector2(1f, 0f);
-        vr.pivot = new Vector2(1f, 0f);
-        vr.anchoredPosition = new Vector2(-14f, 6f);
-        vr.sizeDelta = new Vector2(220f, 34f);
+        vr.anchorMin = vr.anchorMax = new Vector2(1f, 0.5f);
+        vr.pivot = new Vector2(1f, 0.5f);
+        vr.anchoredPosition = new Vector2(-24f, 0f);
+        vr.sizeDelta = new Vector2(170f, 36f);
         value.characterSpacing = 2f;
 
-        return rect;
+        return value;
     }
 
-    // ユーザー確定レイアウト: 上部帯(y 420..540)の左に 被弾(左端)→スコア を横並び。
-    // カード66px は帯の縦中央(上から27px)に収める。
-    public void ApplyLayout()
+    // 仕切りのスラッシュ対(白の主線+シアンの細い補助線、19°、帯の中心線に配置)。
+    // リザルトの「白主線+青アクセント」の語彙(oracle レビューで補助線を
+    // 白→シアンへ)。
+    private void AddSeparator(float centerX)
     {
-        if (scoreCard == null || hitCard == null) return;
-        AnchorCorner(hitCard, new Vector2(0f, 1f), new Vector2(30f, -27f));
-        AnchorCorner(scoreCard, new Vector2(0f, 1f), new Vector2(30f + 240f + 14f, -27f));
+        const float h = 44f;
+        UiButtonStyle.AddSlash(bandRoot, "SepSlashA", new Color(1f, 1f, 1f, 0.9f), centerX, 6f, h);
+        UiButtonStyle.AddSlash(bandRoot, "SepSlashB",
+            new Color(CyanBright.r, CyanBright.g, CyanBright.b, 0.55f), centerX + 16f, 2.5f, h);
     }
 
-    private static void AnchorCorner(RectTransform rect, Vector2 anchor, Vector2 offset)
+    private static void StretchFull(RectTransform rect)
     {
-        rect.anchorMin = rect.anchorMax = anchor;
-        // pivot を隅に合わせ、offset で内側へ寄せる。
-        rect.pivot = new Vector2(anchor.x, anchor.y);
-        rect.anchoredPosition = offset;
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
     }
 
-    private void AddBracket(RectTransform parent, Vector2 corner)
+    // 帯の下端に沿う横一杯のライン。bottomOffset は帯下端からの持ち上げ。
+    private static void AnchorBottomStretch(RectTransform rect, float bottomOffset, float height)
     {
-        float sx = corner.x < 0.5f ? 1f : -1f;
-        float sy = corner.y < 0.5f ? 1f : -1f;
-        Image h = NewImage("BracketH", parent, BracketWhite);
-        h.rectTransform.anchorMin = h.rectTransform.anchorMax = corner;
-        h.rectTransform.pivot = new Vector2(corner.x, corner.y);
-        h.rectTransform.sizeDelta = new Vector2(14f, 2.5f);
-        h.rectTransform.anchoredPosition = new Vector2(sx * 3f, sy * 3f);
-        Image v = NewImage("BracketV", parent, BracketWhite);
-        v.rectTransform.anchorMin = v.rectTransform.anchorMax = corner;
-        v.rectTransform.pivot = new Vector2(corner.x, corner.y);
-        v.rectTransform.sizeDelta = new Vector2(2.5f, 14f);
-        v.rectTransform.anchoredPosition = new Vector2(sx * 3f, sy * 3f);
+        rect.anchorMin = new Vector2(0f, 0f);
+        rect.anchorMax = new Vector2(1f, 0f);
+        rect.pivot = new Vector2(0.5f, 0f);
+        rect.anchoredPosition = new Vector2(0f, bottomOffset);
+        rect.sizeDelta = new Vector2(0f, height);
     }
 
     private void Update()
@@ -214,34 +302,35 @@ public class PlayHudController : MonoBehaviour
         if (gm == null) return;
         bool playing = gm.state == GManager.GameState.Playing;
 
-        // スコア/被弾カードはプレイ中のみ表示(それ以外は隠す)。
-        if (scoreCard != null) scoreCard.gameObject.SetActive(playing);
-        if (hitCard != null) hitCard.gameObject.SetActive(playing);
+        // 帯(カード/仕切り/曲名パネル込み)はプレイ中のみ表示。
+        if (bandRoot != null && bandRoot.gameObject.activeSelf != playing)
+            bandRoot.gameObject.SetActive(playing);
 
         if (!playing) return;
         StageReader sr = gm.SReader;
         if (sr == null || !sr.IsReady) return;
 
-        // 曲名は右揃え(右端基準線)。♪アイコンをインク幅に追従させて文字の左に置く。
+        // 曲名パネル内: ♪アイコンをインク幅に追従させて文字の左に置く。
         if (songNameText != null && songIconRect != null && songNameText.text != lastSongText)
         {
             lastSongText = songNameText.text;
             songNameText.ForceMeshUpdate();
             songIconRect.anchoredPosition = new Vector2(
-                SongRightEdgeX - songNameText.preferredWidth - 46f, 470f);
+                SongPanelCenterX + 12f - songNameText.preferredWidth * 0.5f - 26f,
+                RowY);
         }
 
-        // (b) 進捗バー。
+        // (b) 進捗バー。フィルはトラック斜辺に平行な平行四辺形を幅で伸ばす。
         float end = sr.EndTime;
         float cur = sr.CurrentTime;
         float progress = end > 0.001f ? Mathf.Clamp01(cur / end) : 0f;
-        if (barBack != null && barFill != null)
+        if (barBack != null && barFillPara != null)
         {
-            float trackW = barBack.rect.width;
-            float w = trackW * progress;
-            barFill.sizeDelta = new Vector2(w, barFill.sizeDelta.y);
+            float ink = fillMaxInk * progress;
+            RectTransform fr = barFillPara.rectTransform;
+            fr.sizeDelta = new Vector2(Mathf.Max(0.1f, ink) + fillSkew, fr.sizeDelta.y);
             if (barFillGlow != null)
-                barFillGlow.rectTransform.anchoredPosition = new Vector2(w, 0f);
+                barFillGlow.rectTransform.anchoredPosition = new Vector2(6f + ink + fillSkew * 0.5f, 0f);
             if (barTimeText != null)
                 barTimeText.text = FormatTime(cur) + " / " + FormatTime(end);
         }
