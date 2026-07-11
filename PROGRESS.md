@@ -1,6 +1,68 @@
 # PROGRESS
 
-## 2026-07-12 未明・プレイ領域額装便(Fable 自律・弾幕とHUDの被り解消=決定①)
+## 2026-07-12 深夜・プレイ額装の仕上げ便(Opus 自律・就寝前2指摘の対応)
+
+コミット `5181974`(3ファイル: FreezeAspectRate.cs / PlayHudController.cs /
+StageSelectManager.cs)。**push 未実施**(親検収後)。Discord 投稿2件(HTTP 200):
+①左右エッジ4案比較+旧シアン/新銀の拡大、②HUD帯 before/after フレーム比較。
+証拠は `.tmp_edge/`(edge_a〜d・compare/edge_compare・impl_edge_check)と
+`.tmp_anim/`(before/after のフレーム連番+manifest.tsv・compare/anim_compare)。
+
+### (1) 今回やったこと
+
+**(1) 左右の縦エッジ線の再検討(ユーザー指摘「左右の線は意図してる?」)**
+- 実プレイ(石工 t≈7s、同一フレーム)で4案を撮影・比較:
+  A=現状(銀2px+シアン青リムα0.28+暗キーライン1px)/ B=左右線なし /
+  C=1px暗色のみ / D=銀線のみ(帯の銀下エッジと同材質・発光なし)
+- oracle は Cloudflare で2連敗 → moracle(ChatGPT)フォールバックでレビュー
+  → **案D採用**。理由:帯の銀エッジと材質がつながり四辺が同一構造に見える/
+  シアンは弾・予告・残光と競合し画面端の弾を見落とす(C は背景が暗く実質不可視
+  =Bと同等の退化案)
+- 実装は D をさらに一段静かに(moracle 推奨 1px・帯銀比20-35%暗・alpha45-60%):
+  `FrameEdgeSilver=(0.193,0.234,0.328,0.55)`・幅1.5px・非発光。左右の
+  青リム+暗キーラインは撤去。**下辺は額縁を閉じるため銀+青+暗キーの3層を維持**
+
+**(2) HUD帯(上のバー)の出現アニメを自然化(ユーザー指摘「不自然」)**
+- 正体を実経路のフレーム連番で特定:①曲名バーが入場(Tutorial)中に先行スライド
+  イン(AnimateHUDIn)→②帯クローム(地色/カード/曲名パネル)がプレイ開始の瞬間に
+  **即時ポップ**(`bandRoot.SetActive`)→③額縁+カメラだけ0.35sフェード。3イベントが
+  別タイミング・別イージングで、特に帯だけ瞬間表示が不自然の核心
+- 修正:帯・曲名バー(playHUD 全体の CanvasGroup + RectTransform)を額縁フェード・
+  カメラズームと**同じ eased 値**でフェード+上からスライドイン(HudSlideY=56px)。
+  イージングを `SmoothStep`→**ease-out cubic**(`PlayFrameEased`)に統一し、
+  リザルト入場(EaseOutCubic)・旧 AnimateHUDIn と同語彙の「着地して静止」に揃えた
+- `StageSelectManager.AnimateHUDIn` の Tutorial 中先行スライドを停止(帯だけ先に
+  出る問題を断ち、登場を Playing 遷移へ一本化)
+
+### (2) 検証結果
+
+- **コンパイル 0 エラー**(既存の TMP obsolete 警告のみ)
+- **EditMode 11/11 緑**(現行 EditMode 全数=PlayHistoryCodeTests 10+stub 1。
+  旧便の 49 はチャート golden テストで現行スイート未搭載)
+- **弾データ/golden 完全不変**:変更は UI/カメラの 3 .cs のみ。データ/JSON/chart は
+  一切未変更(`git` 上も本コミットは 3 .cs だけ)
+- **登場アニメ before/after**:旧コードを stash して同手法で撮影し比較。同一 blend
+  (=0.35s 登場の同時刻)で before は帯 alpha 常時 1.0(最初からフル=ポップ)、after は
+  帯 alpha が額縁と同じ eased に追従(0.34→0.59→…→1.0)。`.tmp_anim/compare` 参照
+- **エッジ実装確認**:新コードの settled フレーム(eased=1)で左右がシアン→静かな銀に
+  変化・下辺の青線は維持を目視(`.tmp_edge/impl_edge_check.png` で旧シアン vs 新銀の拡大)
+
+### (3) 未解決と次の一手
+
+- **退場(clear→Result)の額縁フェードは未検証**:今回 frame/band の active 判定を
+  `playing`→`frameVisible(eased>0.001)` に変えたため、退場時も 0.35s フェードで
+  消えるようになった(旧=即時 SetActive(false))。ResultScreen の不透明背景が額縁を
+  覆う(過去の誤キャプチャで確認済み)ため実害は無い見込みだが、Result 遷移の実映像
+  では未確認。次便で clear→Result を通し確認したい
+- **エッジの明度は主観判断**:moracle 推奨帯で実装したが、案D captured より一段暗い
+  ため「もう少し出したい/完全に消したい」がありうる。Discord に覆せる旨を明記済み。
+  調整は `FrameEdgeSilver` の alpha(0.55)と `sideEdgeW`(1.5) の2値のみ
+- **通し録画(mp4・時計焼込)は未作成**:0.35s の登場はフレーム連番モンタージュの方が
+  各段が読めるため、そちらを before/after 証拠とした。動画が要るなら次便で実経路
+  (whiteout→reveal→Playing)を通し録画する
+- oracle MCP は本セッションも Cloudflare で不通(moracle は 23s で成功)
+
+
 
 REVIEW-NOTES「プレイ画面UI 第2弾」最終項目[弾幕との被り]をユーザー決定①
 (画面枠レイアウト調整)で実装・[x]化。コミット `d91cd35`(額装本体)+本便。
