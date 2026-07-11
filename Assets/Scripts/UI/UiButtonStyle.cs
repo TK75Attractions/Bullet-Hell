@@ -22,6 +22,78 @@ public static class UiButtonStyle
     public static Sprite CreateBodySprite(int refW, int refH,
         List<Texture2D> texOwner, List<Sprite> spriteOwner, string spriteName)
     {
+        return BakeBody(refW, refH, StandardBluePalette(), texOwner, spriteOwner, spriteName);
+    }
+
+    // 難易度色などアクセント色違いの本体。標準パレット(ブランド青)の各色を
+    // HSV 差分(色相=差、彩度/明度=比)で accent へ寄せて焼く。銀枠は共通のまま、
+    // 本体グラデ・リム・ブルーム・枠の発光だけが accent の色相に乗る。
+    public static Sprite CreateBodySpriteTinted(int refW, int refH, Color accent,
+        List<Texture2D> texOwner, List<Sprite> spriteOwner, string spriteName)
+    {
+        Color brand = new Color(0.259f, 0.565f, 0.859f);
+        BodyPalette std = StandardBluePalette();
+        BodyPalette pal = new BodyPalette
+        {
+            topCol = Retint(std.topCol, brand, accent),
+            botCol = Retint(std.botCol, brand, accent),
+            rimCol = Retint(std.rimCol, brand, accent),
+            bloomCol = Retint(std.bloomCol, brand, accent),
+            topHi = Retint(std.topHi, brand, accent),
+            rail = Retint(std.rail, brand, accent),
+            glowTop = Retint(std.glowTop, brand, accent),
+            glowBot = Retint(std.glowBot, brand, accent),
+        };
+        return BakeBody(refW, refH, pal, texOwner, spriteOwner, spriteName);
+    }
+
+    private struct BodyPalette
+    {
+        public Color topCol;   // 本体グラデ上端
+        public Color botCol;   // 本体グラデ下端
+        public Color rimCol;   // 最下辺の滲み
+        public Color bloomCol; // 中央下寄りのブルーム
+        public Color topHi;    // 上辺の細いハイライト
+        public Color rail;     // 本体エッジ内側の細線
+        public Color glowTop;  // 銀枠上辺の発光
+        public Color glowBot;  // 銀枠下辺の発光
+    }
+
+    // リザルト v11 で確定した標準(ブランド青)パレット。CreateBodySprite の
+    // 出力を従来とビット同一に保つため、値はここに集約して変更しない。
+    private static BodyPalette StandardBluePalette()
+    {
+        Color brand = new Color(0.259f, 0.565f, 0.859f);   // #4290DB(視覚)
+        return new BodyPalette
+        {
+            topCol = Color.Lerp(new Color(0.000f, 0.149f, 0.353f), brand, 0.30f),
+            botCol = Color.Lerp(new Color(0.000f, 0.247f, 0.588f), brand, 0.30f),
+            rimCol = new Color(0.000f, 0.310f, 0.714f),
+            bloomCol = new Color(0.157f, 0.471f, 0.863f),
+            topHi = new Color(0.30f, 0.68f, 0.88f),
+            rail = new Color(0.22f, 0.76f, 0.88f),
+            glowTop = new Color(0.000f, 0.220f, 0.565f),
+            glowBot = new Color(0.000f, 0.298f, 0.714f),
+        };
+    }
+
+    // 基準色 from→to の HSV 差分(色相は差、彩度/明度は比)を c に適用する。
+    private static Color Retint(Color c, Color from, Color to)
+    {
+        Color.RGBToHSV(c, out float ch, out float cs, out float cv);
+        Color.RGBToHSV(from, out float fh, out float fs, out float fv);
+        Color.RGBToHSV(to, out float th, out float ts, out float tv);
+        float h = Mathf.Repeat(ch + (th - fh), 1f);
+        float s = Mathf.Clamp01(cs * (fs <= 0.001f ? 1f : ts / fs));
+        float v = Mathf.Clamp01(cv * (fv <= 0.001f ? 1f : tv / fv));
+        Color result = Color.HSVToRGB(h, s, v);
+        result.a = c.a;
+        return result;
+    }
+
+    private static Sprite BakeBody(int refW, int refH, BodyPalette pal,
+        List<Texture2D> texOwner, List<Sprite> spriteOwner, string spriteName)
+    {
         const int S = 2;   // 2x スーパーサンプル
         int TW = refW * S, TH = refH * S;
         Texture2D texture = new Texture2D(TW, TH, TextureFormat.RGBA32, false);
@@ -37,11 +109,6 @@ public static class UiButtonStyle
         Vector2[] frame = ParallelogramVerts(frameHW, frameHH, 2f * frameHH * SlashTan);
         Vector2[] body = ParallelogramVerts(bodyHW, bodyHH, 2f * bodyHH * SlashTan);
 
-        Color brand = new Color(0.259f, 0.565f, 0.859f);   // #4290DB(視覚)
-        Color topCol = Color.Lerp(new Color(0.000f, 0.149f, 0.353f), brand, 0.30f);
-        Color botCol = Color.Lerp(new Color(0.000f, 0.247f, 0.588f), brand, 0.30f);
-        Color rimCol = new Color(0.000f, 0.310f, 0.714f);
-        Color bloomCol = new Color(0.157f, 0.471f, 0.863f);
         float bloomRx = refW * (250f / 660f) * S;
         float bloomRy = refH * (70f / 120f) * S;
         for (int y = 0; y < TH; y++)
@@ -54,32 +121,32 @@ public static class UiButtonStyle
                 if (inside > 0f)
                 {
                     float ty = Mathf.Clamp01(0.5f - p.y / (bodyHH * 2f)); // 0 上 .. 1 下
-                    Color grad = Color.Lerp(topCol, botCol, ty * ty);
+                    Color grad = Color.Lerp(pal.topCol, pal.botCol, ty * ty);
                     Blend(px, TW, TH, x, y, grad, inside);
                     // 最下辺のシアン寄りの滲み（高さ 8ref 分）と上辺の細いハイライト。
                     float rim = Mathf.Clamp01((p.y + bodyHH) / (8f * S));
                     if (p.y < -bodyHH + 8f * S)
-                        Blend(px, TW, TH, x, y, rimCol, inside * (1f - rim) * 0.85f);
+                        Blend(px, TW, TH, x, y, pal.rimCol, inside * (1f - rim) * 0.85f);
                     if (p.y > bodyHH - 3f * S)
-                        Blend(px, TW, TH, x, y, new Color(0.30f, 0.68f, 0.88f), inside * 0.45f);
+                        Blend(px, TW, TH, x, y, pal.topHi, inside * 0.45f);
                     // 中央下寄りの淡いブルーム（ガラス感）。
                     float bd = Mathf.Sqrt((p.x / bloomRx) * (p.x / bloomRx)
                         + ((p.y + bodyHH * 0.4f) / bloomRy) * ((p.y + bodyHH * 0.4f) / bloomRy));
-                    Blend(px, TW, TH, x, y, bloomCol, inside * Mathf.Clamp01(1f - bd) * 0.18f);
+                    Blend(px, TW, TH, x, y, pal.bloomCol, inside * Mathf.Clamp01(1f - bd) * 0.18f);
                     // 本体エッジ内側のシアン細線（三段構造の中間レール）。
                     float railLine = Mathf.Clamp01(0.8f * S - Mathf.Abs(sdfB + 4f * S) + 0.5f);
-                    Blend(px, TW, TH, x, y, new Color(0.22f, 0.76f, 0.88f), railLine * 0.4f);
+                    Blend(px, TW, TH, x, y, pal.rail, railLine * 0.4f);
                 }
-                // 枠線（銀）。上辺・下辺は青の発光色を重ねる。
+                // 枠線（銀）。上辺・下辺は発光色を重ねる。
                 float sdfF = ConvexSdf(frame, p);
                 float line = Mathf.Clamp01(1.2f * S - Mathf.Abs(sdfF) + 0.5f);
                 if (line > 0f)
                 {
                     Blend(px, TW, TH, x, y, new Color(0.412f, 0.400f, 0.447f), line * 0.9f);
                     if (p.y > frameHH - 14f * S)
-                        Blend(px, TW, TH, x, y, new Color(0.000f, 0.220f, 0.565f), line * 0.9f);
+                        Blend(px, TW, TH, x, y, pal.glowTop, line * 0.9f);
                     else if (p.y < -frameHH + 14f * S)
-                        Blend(px, TW, TH, x, y, new Color(0.000f, 0.298f, 0.714f), line * 0.9f);
+                        Blend(px, TW, TH, x, y, pal.glowBot, line * 0.9f);
                 }
             }
         }

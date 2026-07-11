@@ -98,10 +98,11 @@ public class TutorialManager : MonoBehaviour
         cardRect.SetAsFirstSibling();
         cardGroup = card.AddComponent<CanvasGroup>();
         cardGroup.alpha = 0f;
-        // Keep the navy parallelogram panel, with slim white edge marks at both ends.
+        // ユーザー確定様式(2026-07-11): 端の白スラッシュは付けず、
+        // パネル上下辺に控えめな青ラインを沿わせるだけにする。
         CreateRibbonPanel("Panel", cardRect, Vector2.zero, new Vector2(780f, 194f), panelColor, 34f);
-        CreateEndSlashes(cardRect, -414f);
-        CreateEndSlashes(cardRect, 414f);
+        CreateEdgeLine(cardRect, new Vector2(780f, 194f), 34f, true);
+        CreateEdgeLine(cardRect, new Vector2(780f, 194f), 34f, false);
 
         tutorialRect.anchoredPosition = new Vector2(145f, cardBasePosition.y);
         tutorialRect.sizeDelta = new Vector2(410f, 92f);
@@ -144,20 +145,29 @@ public class TutorialManager : MonoBehaviour
         graphic.raycastTarget = false;
     }
 
-    private void CreateEndSlashes(Transform parent, float x)
+    // パネルの上辺/下辺に沿う細い青ライン。パネルと同じ平行四辺形規約で作り、
+    // 高さ h の帯の skew を panelSlant*h/panelH にすると端の斜めに正確に沿う。
+    private void CreateEdgeLine(Transform parent, Vector2 panelSize, float panelSlant, bool top)
     {
-        CreateSlash(parent, new Vector2(x - 7f, 0f));
-        CreateSlash(parent, new Vector2(x + 7f, 0f));
-    }
-
-    private void CreateSlash(Transform parent, Vector2 position)
-    {
-        GameObject slash = CreateImageObject("EndSlash", parent, Color.white);
-        RectTransform rect = (RectTransform)slash.transform;
+        const float h = 3f;
+        float skew = panelSlant * h / panelSize.y;
+        GameObject go = new GameObject(top ? "EdgeLineTop" : "EdgeLineBottom",
+            typeof(RectTransform), typeof(CanvasRenderer), typeof(ParallelogramGraphic));
+        go.layer = gameObject.layer;
+        RectTransform rect = (RectTransform)go.transform;
+        rect.SetParent(parent, false);
         rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.anchoredPosition = position;
-        rect.sizeDelta = new Vector2(7f, 78f);
-        rect.localEulerAngles = new Vector3(0f, 0f, -18f);
+        rect.sizeDelta = new Vector2(panelSize.x - panelSlant + skew, h);
+        float dirX = top ? 1f : -1f;
+        rect.anchoredPosition = new Vector2(dirX * (panelSlant - skew) * 0.5f,
+            dirX * (panelSize.y - h) * 0.5f);
+
+        ParallelogramGraphic line = go.GetComponent<ParallelogramGraphic>();
+        Color c = cyan; c.a = 0.55f;
+        line.color = c;
+        line.Slant = skew;
+        line.SlantRightEdge = true;
+        line.raycastTarget = false;
     }
 
     private RectTransform CreateIconRoot(string objectName, Transform parent)

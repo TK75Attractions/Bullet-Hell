@@ -22,6 +22,8 @@ public class JsabStageSelect : MonoBehaviour
     // pale thumbnail rim, side-card body.
     private static readonly Color AccentCyan = new Color(0.55f, 0.93f, 1f, 1f);
     private static readonly Color BracketColor = new Color(0.92f, 0.95f, 0.97f, 0.9f);
+    // 統一様式の銀エッジ(UiButtonStyle の枠線と同じ視覚 sRGB 値)。
+    private static readonly Color SilverEdge = new Color(0.412f, 0.400f, 0.447f, 0.85f);
     private static readonly Color ThumbRimColor = new Color(0.75f, 0.82f, 0.88f, 0.35f);
     private static readonly Color CardBg = new Color(0.035f, 0.075f, 0.125f, 1f);
 
@@ -47,6 +49,9 @@ public class JsabStageSelect : MonoBehaviour
     private Image[] cardRim;
     private TMP_Text cardArrow;
     private TMP_Text stageNameText;
+    // ステージ名脇の統一様式スラッシュ([0]=左太 [1]=左細 [2]=右細 [3]=右太)。
+    private ParallelogramGraphic[] stageNameSlashes;
+    private const float StageNameSlashH = 54f;
     private float accentAlpha = 1f;      // accents fade back in after a landing
 
     // One pooled neighbour card. Panels swap roles (left/right/spare) on landing
@@ -58,6 +63,7 @@ public class JsabStageSelect : MonoBehaviour
         public CanvasGroup cg;
         public CanvasGroup decorCG;    // title + arrow + brackets (side-look decor)
         public Image[] brackets;       // white corner brackets (side look)
+        public Image[] silverRim;      // パネル外周の銀エッジ(統一様式・decor と一緒にフェード)
         public Image[] thumbRim;       // thin pale frame around the thumbnail
         public Image glowFrame;        // center-look frame for the morph, alpha 0 at rest
         public RectTransform thumbArea;
@@ -159,6 +165,9 @@ public class JsabStageSelect : MonoBehaviour
     private Vector2 exitWhiteBasePos;
     private Image exitBarImg;
     private Color exitBarColor;
+    // 統一様式ボタンは焼き込みテクスチャのため color 乗算では白フラッシュ
+    // できない。ボタン外形と同じ平行四辺形の白オーバーレイで光らせる。
+    private ParallelogramGraphic exitFlash;
     // 退場中にフェードで消す付随要素(見出し/ルビ/説明/プロンプト/装飾ライン)。
     // 見出しを残すとホワイトアウト中に黒い文字だけが最後まで浮いて見える。
     private TMP_Text[] exitFadeTexts = new TMP_Text[0];
@@ -358,6 +367,14 @@ public class JsabStageSelect : MonoBehaviour
         snr.anchoredPosition = new Vector2(0f, CenterSlotPos.y + CenterSlotSize.y * 0.5f + 46f);
         stageNameRect = snr;
 
+        // 統一様式(2026-07-11): ステージ名の左右に 19° 白スラッシュ対
+        // (外=太・内=細α0.5)。x は名前のインク幅に追従(UpdateStageNameSlashes)。
+        stageNameSlashes = new ParallelogramGraphic[4];
+        stageNameSlashes[0] = UiButtonStyle.AddSlash(snr, "NameSlashL", Color.white, 0f, 8f, StageNameSlashH);
+        stageNameSlashes[1] = UiButtonStyle.AddSlash(snr, "NameSlashLThin", new Color(1f, 1f, 1f, 0.5f), 0f, 2.5f, StageNameSlashH);
+        stageNameSlashes[2] = UiButtonStyle.AddSlash(snr, "NameSlashRThin", new Color(1f, 1f, 1f, 0.5f), 0f, 2.5f, StageNameSlashH);
+        stageNameSlashes[3] = UiButtonStyle.AddSlash(snr, "NameSlashR", Color.white, 0f, 8f, StageNameSlashH);
+
         // --- Progress indicator (rings + filled current dot + player marker) ---
         BuildProgressIndicator(root);
 
@@ -544,6 +561,11 @@ public class JsabStageSelect : MonoBehaviour
 
         p.brackets = BuildBrackets(decorR);
 
+        // 統一様式(2026-07-11): パネル外周に銀エッジ(リザルト/引き継ぎパネルと
+        // 同じ要素)。Decor 内に置き、中央への飛行モーフでブラケットと一緒に消える。
+        p.silverRim = BuildRim(decorR);
+        SetRim(p.silverRim, SilverEdge, 2f);
+
         // Stage name inside the top band of the card (per mockup).
         p.title = NewText("Title", decorR, "", 30f, Cyan, TextAlignmentOptions.Center);
         RectTransform tr = (RectTransform)p.title.transform;
@@ -575,6 +597,34 @@ public class JsabStageSelect : MonoBehaviour
         ar.anchorMin = ar.anchorMax = new Vector2(side < 0 ? 1f : 0f, 0.5f);
         ar.anchoredPosition = new Vector2(side < 0 ? -36f : 36f, 0f);
         TmpAlign.CenterInkVertically(p.arrow);
+    }
+
+    // ステージ名スラッシュの x をインク幅に追従させる(名前は可変長)。
+    // 距離感はボタンの「枠のすぐ外」規則に合わせ、細=+24 / 太=+42。
+    private void UpdateStageNameSlashes()
+    {
+        if (stageNameText == null || stageNameSlashes == null) return;
+        stageNameText.ForceMeshUpdate();
+        float half = stageNameText.preferredWidth * 0.5f;
+        float thinX = half + 24f;
+        float thickX = half + 42f;
+        stageNameSlashes[0].rectTransform.anchoredPosition = new Vector2(-thickX, 0f);
+        stageNameSlashes[1].rectTransform.anchoredPosition = new Vector2(-thinX, 0f);
+        stageNameSlashes[2].rectTransform.anchoredPosition = new Vector2(thinX, 0f);
+        stageNameSlashes[3].rectTransform.anchoredPosition = new Vector2(thickX, 0f);
+    }
+
+    // ステージ名スラッシュの alpha を名前のフェードに同期させる。
+    private void SetStageNameSlashAlpha(float a)
+    {
+        if (stageNameSlashes == null) return;
+        for (int i = 0; i < stageNameSlashes.Length; i++)
+        {
+            if (stageNameSlashes[i] == null) continue;
+            Color c = Color.white;
+            c.a = (i == 1 || i == 2 ? 0.5f : 1f) * a;
+            stageNameSlashes[i].color = c;
+        }
     }
 
     // Four white corner brackets (2 strips per corner), per the mockup side cards.
@@ -1009,6 +1059,7 @@ public class JsabStageSelect : MonoBehaviour
             ? exitRowRects[selected].Find("StageBar")?.GetComponent<Image>()
             : null;
         exitBarColor = exitBarImg != null ? exitBarImg.color : Color.white;
+        exitFlash = GetOrCreateRowFlash(exitRowRects[selected]);
         TMP_Text selectedLabel = exitRowRects[selected] != null
             ? exitRowRects[selected].Find("StageName")?.GetComponent<TMP_Text>()
             : null;
@@ -1046,6 +1097,12 @@ public class JsabStageSelect : MonoBehaviour
             // ないようネイビーへ反転してから戻す)。
             float flashP = Mathf.Clamp01(time / flashDur);
             if (exitBarImg != null) exitBarImg.color = Color.Lerp(Color.white, exitBarColor, flashP * flashP);
+            if (exitFlash != null)
+            {
+                Color fc = Color.white;
+                fc.a = 1f - flashP * flashP;
+                exitFlash.color = fc;
+            }
             if (selectedLabel != null) selectedLabel.color = Color.Lerp(Navy, labelColor, flashP * flashP);
 
             float fadeKeep = 1f - Mathf.Clamp01(time / 0.12f);
@@ -1128,6 +1185,7 @@ public class JsabStageSelect : MonoBehaviour
         }
         if (exitWhiteRect != null) exitWhiteRect.anchoredPosition = exitWhiteBasePos;
         if (exitBarImg != null) exitBarImg.color = exitBarColor;
+        if (exitFlash != null) exitFlash.gameObject.SetActive(false);
         for (int i = 0; i < exitFadeTexts.Length; i++)
         {
             if (exitFadeTexts[i] != null) exitFadeTexts[i].alpha = exitFadeTextAlphas[i];
@@ -1140,6 +1198,44 @@ public class JsabStageSelect : MonoBehaviour
             exitFadeImages[i].color = ic;
         }
         if (diffBar != null) diffBar.ResetSelection(diffBar.index);
+    }
+
+    // 決定フラッシュ用の白オーバーレイ(遅延生成)。統一様式ボタンの焼き込み
+    // 枠と同じ外形(583x109 の枠: 上下11/左右22 内側・19° 斜辺)の平行四辺形。
+    // 文字のネイビー反転を見せるため StageName の下に挿す。
+    private ParallelogramGraphic GetOrCreateRowFlash(RectTransform row)
+    {
+        if (row == null) return null;
+        Transform existing = row.Find("ExitFlash");
+        ParallelogramGraphic flash;
+        if (existing != null)
+        {
+            flash = existing.GetComponent<ParallelogramGraphic>();
+        }
+        else
+        {
+            float hw = 583f * 0.5f - 22f;
+            float hh = 109f * 0.5f - 11f;
+            float skew = 2f * hh * Mathf.Tan(UiButtonStyle.SlashAngleDeg * Mathf.Deg2Rad);
+            GameObject go = new GameObject("ExitFlash", typeof(RectTransform), typeof(CanvasRenderer), typeof(ParallelogramGraphic));
+            go.layer = row.gameObject.layer;
+            RectTransform rect = (RectTransform)go.transform;
+            rect.SetParent(row, false);
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.sizeDelta = new Vector2(hw * 2f, hh * 2f);
+            Transform nameLabel = row.Find("StageName");
+            if (nameLabel != null) rect.SetSiblingIndex(nameLabel.GetSiblingIndex());
+            flash = go.GetComponent<ParallelogramGraphic>();
+            flash.Slant = skew;
+            flash.SlantRightEdge = true;
+            flash.raycastTarget = false;
+        }
+        Color init = Color.white;
+        init.a = 0f;
+        flash.color = init;
+        flash.gameObject.SetActive(true);
+        return flash;
     }
 
     // 開閉共通のフェード: alpha トゥイーン+パネルの軽いスケール(0.96→1.0)。
@@ -1448,10 +1544,12 @@ public class JsabStageSelect : MonoBehaviour
                 string curName = cur != null && !string.IsNullOrWhiteSpace(cur.stageName) ? cur.stageName : ("Stage " + currentIndex);
                 stageNameText.text = curName;
                 TmpAlign.CenterInkVertically(stageNameText);
+                UpdateStageNameSlashes();
             }
             stageNameText.alpha = p < 0.35f ? 1f - p / 0.35f
                                 : p < 0.55f ? 0f
                                 : (p - 0.55f) / 0.45f;
+            SetStageNameSlashAlpha(stageNameText.alpha);
         }
     }
 
@@ -1514,6 +1612,7 @@ public class JsabStageSelect : MonoBehaviour
         // 中央カード: 新ステージの名前とメイン動画を適用。
         ApplyCenterContent(arriveHadFrame);
         if (stageNameText != null) stageNameText.alpha = 1f;
+        SetStageNameSlashAlpha(1f);
 
         // 受け渡し側は途切れなく表示継続(飛行中の絵と同じ内容が同じ位置にある)。
         recycled.cg.alpha = recycled.alphaTarget;
@@ -1636,6 +1735,7 @@ public class JsabStageSelect : MonoBehaviour
         // Japanese stage names ride high under Middle alignment (Latin UI font +
         // CJK fallback metrics); optically center each by its ink bounds.
         if (stageNameText != null) { stageNameText.text = curName; TmpAlign.CenterInkVertically(stageNameText); }
+        UpdateStageNameSlashes();
         if (cardFallbackName != null) { cardFallbackName.text = curName; TmpAlign.CenterInkVertically(cardFallbackName); }
         UpdateVideo(cur, keepBlittedFrame);
     }

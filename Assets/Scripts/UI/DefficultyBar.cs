@@ -1,12 +1,22 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
 public class DefficultyBar : MonoBehaviour
 {
+    // 行ボタンの表示サイズ(シーンの StageBar 実寸。タイトルメニューと同寸)。
+    private const float BarW = 583f;
+    private const float BarH = 109f;
+
     private CanvasGroup CG;
     private RectTransform whiteBar;
     private CanvasGroup whiteCG;
+
+    // 焼き込みスプライトの所有(自分が Init で焼いた分だけ破棄する。
+    // JSAB モーダルのクローンは自身の Init で焼き直すため互いに独立)。
+    private readonly List<Texture2D> ownedTextures = new List<Texture2D>();
+    private readonly List<Sprite> ownedSprites = new List<Sprite>();
 
     private TMP_Text descText;
     private RectTransform descRect;
@@ -39,13 +49,31 @@ public class DefficultyBar : MonoBehaviour
         private TMP_Text nameText;
         private Color baseTextColor;
 
-        public DefficultyBox(Transform trans, string name, Color barColor, Color textColor)
+        public DefficultyBox(Transform trans, string name, Sprite bodySprite, Color textColor)
         {
             CG = trans.GetComponent<CanvasGroup>();
             rectTransform = trans.GetComponent<RectTransform>();
-            trans.Find("StageBar").GetComponent<Image>().color = barColor;
+            // 統一様式(2026-07-11 ユーザー確定): 本体はリザルト/タイトルと同じ
+            // 銀枠+縦グラデの焼き込み。難易度の色分けは bodySprite に焼いてある。
+            Image bar = trans.Find("StageBar").GetComponent<Image>();
+            bar.sprite = bodySprite;
+            bar.color = Color.white;
+            // 旧様式の灰色端キャップは廃止(斜め端は焼き込み枠が持つ)。
+            Transform grayL = trans.Find("Gray_L");
+            if (grayL != null) grayL.gameObject.SetActive(false);
+            Transform grayR = trans.Find("Gray_R");
+            if (grayR != null) grayR.gameObject.SetActive(false);
             nameText = trans.Find("StageName").GetComponent<TMP_Text>();
             nameText.text = name;
+            nameText.fontSize = UiButtonStyle.LabelSizeTitleMenu;
+            // 行スラッシュ(内側の細)。クローンの再 Init で二重生成しないよう名前で判定。
+            if (trans.Find("RowSlashL") == null)
+            {
+                float thinX = UiButtonStyle.ThinSlashX(BarW);
+                float h = UiButtonStyle.SlashHeight(BarH);
+                UiButtonStyle.AddSlash(rectTransform, "RowSlashL", new Color(1f, 1f, 1f, 0.5f), -thinX, 2.5f, h);
+                UiButtonStyle.AddSlash(rectTransform, "RowSlashR", new Color(1f, 1f, 1f, 0.5f), thinX, 2.5f, h);
+            }
             baseTextColor = textColor;
             baseX = rectTransform.anchoredPosition.x;
         }
@@ -64,15 +92,26 @@ public class DefficultyBar : MonoBehaviour
         (trans.Find("Easy") as RectTransform).anchoredPosition = new Vector2(0f, 135f);
         (trans.Find("Normal") as RectTransform).anchoredPosition = Vector2.zero;
         (trans.Find("Lunatic") as RectTransform).anchoredPosition = new Vector2(0f, -135f);
-        boxes[0] = new DefficultyBox(trans.Find("Easy"), "EASY", new Color(0.086f, 0.227f, 0.373f), new Color(0.56f, 0.72f, 0.91f));
-        boxes[1] = new DefficultyBox(trans.Find("Normal"), "NORMAL", new Color(0.055f, 0.525f, 0.91f), new Color(0.85f, 0.93f, 1f));
-        boxes[2] = new DefficultyBox(trans.Find("Lunatic"), "LUNATIC", new Color(0.36f, 0.078f, 0.188f), new Color(0.91f, 0.6f, 0.69f));
+        // ベース色は従来の難易度色(色分け)を維持し、様式だけ統一する。
+        boxes[0] = new DefficultyBox(trans.Find("Easy"), "EASY",
+            UiButtonStyle.CreateBodySpriteTinted(583, 109, new Color(0.086f, 0.227f, 0.373f),
+                ownedTextures, ownedSprites, "DiffButtonEasy"),
+            new Color(0.56f, 0.72f, 0.91f));
+        boxes[1] = new DefficultyBox(trans.Find("Normal"), "NORMAL",
+            UiButtonStyle.CreateBodySpriteTinted(583, 109, new Color(0.055f, 0.525f, 0.91f),
+                ownedTextures, ownedSprites, "DiffButtonNormal"),
+            new Color(0.85f, 0.93f, 1f));
+        boxes[2] = new DefficultyBox(trans.Find("Lunatic"), "LUNATIC",
+            UiButtonStyle.CreateBodySpriteTinted(583, 109, new Color(0.36f, 0.078f, 0.188f),
+                ownedTextures, ownedSprites, "DiffButtonLunatic"),
+            new Color(0.91f, 0.6f, 0.69f));
         CG = GetComponent<CanvasGroup>();
         CG.alpha = 0;
 
         whiteBar = transform.Find("White").GetComponent<RectTransform>();
         whiteCG = whiteBar.GetComponent<CanvasGroup>();
         whiteCG.alpha = 1;
+        RestyleSelectionMarker();
 
         Transform desc = transform.Find("DescText");
         if (desc != null)
@@ -101,6 +140,32 @@ public class DefficultyBar : MonoBehaviour
         if (promptText != null) promptText.rectTransform.sizeDelta = new Vector2(650f, 60f);
 
         ResetSelection(1);
+    }
+
+    // 選択マーカーを統一様式の太スラッシュ対へ(タイトルの選択マーカーと同規則:
+    // 焼き込み枠のすぐ外 ThickSlashX に密着)。旧様式の白ブラケットスプライトと
+    // Shine 残骸は使わない。
+    private void RestyleSelectionMarker()
+    {
+        Transform whiteL = whiteBar.Find("White_L");
+        if (whiteL != null) whiteL.gameObject.SetActive(false);
+        Transform whiteR = whiteBar.Find("White_R");
+        if (whiteR != null) whiteR.gameObject.SetActive(false);
+        Transform shine = whiteBar.Find("ShineMask");
+        if (shine != null) shine.gameObject.SetActive(false);
+        if (whiteBar.Find("MarkerSlashL") != null) return; // クローン再 Init 対策
+        float thickX = UiButtonStyle.ThickSlashX(BarW);
+        float h = UiButtonStyle.SlashHeight(BarH);
+        UiButtonStyle.AddSlash(whiteBar, "MarkerSlashL", Color.white, -thickX, 11f, h);
+        UiButtonStyle.AddSlash(whiteBar, "MarkerSlashR", Color.white, thickX, 11f, h);
+    }
+
+    private void OnDestroy()
+    {
+        foreach (Sprite s in ownedSprites) if (s != null) Destroy(s);
+        foreach (Texture2D t in ownedTextures) if (t != null) Destroy(t);
+        ownedSprites.Clear();
+        ownedTextures.Clear();
     }
 
     // Snap selection to the given index without animating (used on entering the screen).

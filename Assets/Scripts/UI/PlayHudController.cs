@@ -7,13 +7,13 @@ using TMPro;
 /// 自身の Update で GManager.state==Playing のときだけ:
 ///   (b) 既存の上部バー(BarBack/BarFill)を曲の再生位置に連動させる
 ///       (従来は BarFill が固定幅で進捗を表していなかった)
-///   (c) 画面下部にスコアと被弾回数のミニカードを表示する(リザルトのカード様式の
-///       控えめ版。弾と被らないよう下端の隅・低不透明度)
+///   (c) 上部帯の左に被弾/スコアのミニカードを表示する(リザルトのカード様式)
 /// を行う。曲位置は StageReader.CurrentTime/EndTime、被弾は GManager.playerHitCount、
 /// スコアは ResultScreen.CalculateProvisionalScore の暫定値。
 ///
+/// レイアウトはユーザー確定(2026-07-11): ステータス系は上部帯に集約し、
+/// 左上=被弾数+スコア、中央=曲の進捗バー、右端=曲名(右揃え+♪アイコン)。
 /// スタイルの正は Docs/result-design-language.md。色は頂点色(pre-linear)で与える。
-/// レイアウトは layoutVariant で切替可能(検証用に2案を並べて撮るため)。
 /// </summary>
 public class PlayHudController : MonoBehaviour
 {
@@ -40,8 +40,13 @@ public class PlayHudController : MonoBehaviour
     private TMP_Text scoreValue;
     private TMP_Text hitValue;
 
-    // 0 = 両方を左下に縦積み / 1 = スコア左下・被弾右下(隅に分散)
-    public int layoutVariant = 0;
+    // 右端の曲名グループ(曲名は右揃え、♪アイコンは曲名のインク幅に追従)
+    private TMP_Text songNameText;
+    private RectTransform songIconRect;
+    private string lastSongText;
+
+    // 曲名の右端 x(キャンバス中心基準)。時計等の他 UI と揃える基準線。
+    private const float SongRightEdgeX = 930f;
 
     private bool built;
 
@@ -59,6 +64,10 @@ public class PlayHudController : MonoBehaviour
         if (bb != null)
         {
             barBack = (RectTransform)bb;
+            // ユーザー確定レイアウト: 進捗バーは上部帯の中央へ。左のステータス
+            // カード・右の曲名と干渉しない幅に詰める(シーンは左寄り1030幅)。
+            barBack.anchoredPosition = new Vector2(0f, 470f);
+            barBack.sizeDelta = new Vector2(700f, barBack.sizeDelta.y);
             Transform bf = bb.Find("BarFill");
             if (bf != null)
             {
@@ -91,15 +100,25 @@ public class PlayHudController : MonoBehaviour
             tr.sizeDelta = new Vector2(220f, 30f);
         }
 
-        // フォントは曲名ラベルから拝借(シーン既定 TMP)。
+        // 右端の曲名グループ。曲名は右揃えで基準線 SongRightEdgeX に合わせ、
+        // ♪アイコンは曲名のインク幅に追従して文字の左に付く(曲名は可変長のため。
+        // 追従は Update で行う)。フォントもここから拝借(シーン既定 TMP)。
         Transform songName = transform.Find("SongName");
         if (songName != null)
         {
-            TMP_Text st = songName.GetComponent<TMP_Text>();
-            if (st != null) font = st.font;
+            songNameText = songName.GetComponent<TMP_Text>();
+            if (songNameText != null)
+            {
+                font = songNameText.font;
+                songNameText.alignment = TextAlignmentOptions.Right;
+                RectTransform nr = (RectTransform)songName.transform;
+                nr.anchoredPosition = new Vector2(SongRightEdgeX - nr.sizeDelta.x * 0.5f, 468f);
+            }
         }
+        Transform songIcon = transform.Find("SongIcon");
+        if (songIcon != null) songIconRect = (RectTransform)songIcon;
 
-        // (c) スコア/被弾のミニカード(下部・控えめ)。
+        // (c) 被弾/スコアのミニカード(上部帯の左)。
         scoreCard = BuildStatCard("ScoreCard", "スコア", "SCORE", out scoreValue);
         hitCard = BuildStatCard("HitCard", "被弾", "HIT", out hitValue);
         ApplyLayout();
@@ -107,7 +126,7 @@ public class PlayHudController : MonoBehaviour
         built = true;
     }
 
-    // 下部ミニカード: 半透明の濃紺板 + 上辺シアンリム + 2隅の白ブラケット +
+    // ステータスミニカード: 半透明の濃紺板 + 上辺シアンリム + 2隅の白ブラケット +
     // シアンの英字ラベル + 白の数値(リザルトカードの控えめ縮小版)。
     private RectTransform BuildStatCard(string name, string jp, string en, out TMP_Text value)
     {
@@ -120,8 +139,7 @@ public class PlayHudController : MonoBehaviour
         bg.color = PanelNavy;
         bg.raycastTarget = false;
         CanvasGroup cg = go.GetComponent<CanvasGroup>();
-        cg.alpha = 0.8f; // 全体を少し透かして弾・タイルの視認性を優先(下端隅は石工の
-                         // 底タイル列と重なり得るため。不透明度はユーザー確定待ちの調整点)
+        cg.alpha = 0.9f; // 上部帯の上に載るため弾との重なりは少ない。わずかに透かして帯と馴染ませる
 
         // 上辺シアンリム。
         Image rim = NewImage("Rim", rect, Cyan);
@@ -157,30 +175,13 @@ public class PlayHudController : MonoBehaviour
         return rect;
     }
 
-    // レイアウト2案の切替(検証用)。下端の隅に配置。
+    // ユーザー確定レイアウト: 上部帯(y 420..540)の左に 被弾(左端)→スコア を横並び。
+    // カード66px は帯の縦中央(上から27px)に収める。
     public void ApplyLayout()
     {
         if (scoreCard == null || hitCard == null) return;
-        float margin = 26f;
-        // 下端: PlayHUD は 1920x1080 の全画面。下端 y は -540、左端 x は -960。
-        if (layoutVariant == 0)
-        {
-            // 左下に縦積み(スコアが上)。
-            AnchorCorner(scoreCard, new Vector2(0f, 0f), new Vector2(margin, margin + 76f));
-            AnchorCorner(hitCard, new Vector2(0f, 0f), new Vector2(margin, margin));
-        }
-        else
-        {
-            // スコア左下・被弾右下。
-            AnchorCorner(scoreCard, new Vector2(0f, 0f), new Vector2(margin, margin));
-            AnchorCorner(hitCard, new Vector2(1f, 0f), new Vector2(-margin, margin));
-        }
-    }
-
-    public void SetVariant(int v)
-    {
-        layoutVariant = Mathf.Clamp(v, 0, 1);
-        ApplyLayout();
+        AnchorCorner(hitCard, new Vector2(0f, 1f), new Vector2(30f, -27f));
+        AnchorCorner(scoreCard, new Vector2(0f, 1f), new Vector2(30f + 240f + 14f, -27f));
     }
 
     private static void AnchorCorner(RectTransform rect, Vector2 anchor, Vector2 offset)
@@ -220,6 +221,15 @@ public class PlayHudController : MonoBehaviour
         if (!playing) return;
         StageReader sr = gm.SReader;
         if (sr == null || !sr.IsReady) return;
+
+        // 曲名は右揃え(右端基準線)。♪アイコンをインク幅に追従させて文字の左に置く。
+        if (songNameText != null && songIconRect != null && songNameText.text != lastSongText)
+        {
+            lastSongText = songNameText.text;
+            songNameText.ForceMeshUpdate();
+            songIconRect.anchoredPosition = new Vector2(
+                SongRightEdgeX - songNameText.preferredWidth - 46f, 470f);
+        }
 
         // (b) 進捗バー。
         float end = sr.EndTime;
