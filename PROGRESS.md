@@ -1,6 +1,63 @@
 # PROGRESS
 
-## 2026-07-11 深夜・プレイ画面UI修正便(Fable 自律・縦余白拡大+和文ラベル上ずれ解消)
+## 2026-07-12 未明・プレイ領域額装便(Fable 自律・弾幕とHUDの被り解消=決定①)
+
+REVIEW-NOTES「プレイ画面UI 第2弾」最終項目[弾幕との被り]をユーザー決定①
+(画面枠レイアウト調整)で実装・[x]化。コミット `d91cd35`(額装本体)+本便。
+**push 未実施**(検収後)。Discord 投稿1件(Before/After 2枚+通し録画、HTTP 200)。
+証拠は `.tmp_frame/`(final_t63/t70・discord_cmp_*・flow_sheet)と
+`Recordings/playframe_flow.mp4`。
+
+### (1) 今回やったこと
+
+**(a) カメラ額装(FreezeAspectRate.SetPlayFrame 新設)**
+- 発見: 本プロジェクトは URP カメラスタック(Base=BackImageCamera、
+  Overlay=[MainCamera, FrontCamera, UICamera])で、**Overlay カメラは
+  viewport rect が効かない**→当初想定の rect 縮小ではなく
+  **orthographicSize+位置のズームアウト**で額装(9→10.167・y9→9.79)
+- Playing 中のみ 0.35s(AnimateHUDIn と同長)で補間。値変化フレームのみ
+  書き込み=CameraShake の LateUpdate 復元と非衝突。rect・レターボックス
+  機構・論理座標 32x18・弾データ・golden は**完全不変**(diff は .cs 2つ)
+- インセットは単一ソース(playFrameTopPx=104 は BandH と機械同期、下20px)
+
+**(b) 額縁 UI(PlayHudController.BuildPlayFrame)**
+- ズームアウトで画面に入るフィールド外(弾の生存域[-2,36)²)を隠すため、
+  StageCanvas 直下に不透明額縁 PlayFrame: 濃紺フィル4辺(帯裏にも敷き
+  **落下前ブロックの予告前見え を防止**)+3層エッジ(銀2px→青リムα0.28→
+  暗キーライン1px)。帯下辺の銀+青エッジと同語彙
+- oracle レビュー(moracle 経由 `playframe-ab-review`。oracle MCP は
+  Cloudflare 2連敗→フォールバック): **Plan B(四辺クローズ)採用**+
+  下余白18-20px 推奨+「銀主体でデバッグ境界線感を消す」→ 20px+3層で反映。
+  ボス位置調整・スポーン弾の描画抑制の提案は弾データ不変の制約で見送り
+
+### (2) 検証結果(証拠形式)
+
+- コンパイル 0 エラー・**EditMode 11/11 緑**
+- t=63/70 の実フレーム(`.tmp_frame/final_t63|t70.png`)で弾・破片・ゴーレム
+  すべて帯下の額装領域内。Before(帯裏にボス頭が隠れる)との並置を Discord へ
+- 余白遮蔽をピクセル実測: 余白(2,4,8)=FrameNavy vs フィールド内ベルト
+  (42,54,87)、境界にエッジ線。赤フィル可視化(`debug_redfill2.png`)でも
+  帯裏含む全余白の被覆を確認
+- カメラ実測: ortho=10.1674(=9/0.8852)・pos y=9.79・rect(0,0,1,1)不変
+- **実経路の通し録画** `Recordings/playframe_flow.mp4`(20.4s・時計焼込):
+  選択(フル)→白→入場+HUDスライド+額装エンゲージ→プレイ(額装)→
+  リザルト(フル・残留なし)→選択復帰(フル)。全遷移で無破綻
+- ポーズ: 実経路プレイ中 t=5.13 で SetPaused→OPTION 全画面・背景ぼかしに
+  額装フィールドが正しく写る(`Assets/Screenshots/pause_frame2.png`)
+- **弾データ/golden 完全不変**(git diff に JSON/asset なし)
+
+### (3) 未解決と次の一手
+
+- **push 未実施**(ローカル ahead 10)。ユーザー検収後に
+- oracle 提案の未適用分(ユーザー判断): 額縁コーナーの 19° 面取り
+  (10-14px・下隅のみ等)、余白への極薄グラデ。現状は無地+エッジのみ
+- デバッグ経路(Start Stone Stage)は従来どおり HUD/額装なしのフル画面
+  (HideSelectionCanvases が PlayHUD ごと隠すため)。額装込みの録画・検証は
+  実経路駆動(StartGameTransition 反射呼び出し、ResultFlowRecorderMenu の
+  ペイロード)を使う。**デバッグ経路+HUDレシピ混在の検証は選択画面の残留で
+  汚れる**(本便で実例)→ポーズ等の検証は実経路で
+- StageTimeOverlay(時計)は録画で HUD 左カードと重なる(エディタ専用。
+  気になるなら y を帯下へ移す小修正で対応可)
 
 REVIEW-NOTES「プレイ画面UI 第2弾(2026-07-11 夜)」の上2項目を消化([x]化済み)。
 3項目目(弾幕とHUDの被り)は指示どおり**未着手**(ユーザー決定待ち)。
