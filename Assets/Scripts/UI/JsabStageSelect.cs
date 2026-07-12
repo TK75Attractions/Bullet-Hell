@@ -308,6 +308,10 @@ public class JsabStageSelect : MonoBehaviour
         videoPlayer.renderMode = VideoRenderMode.RenderTexture;
         videoPlayer.targetTexture = videoRT;
         videoPlayer.isLooping = true;
+        // 録画サムネ(924x754 ≒ 6:5)を 16:9 RT へ「見切れなく」収める。既定の
+        // 詰め方だと上下がクロップされ中央帯しか映らないため FitInside=全体を
+        // レターボックス表示(左右に余白)する。
+        videoPlayer.aspectRatio = VideoAspectRatio.FitInside;
         videoPlayer.waitForFirstFrame = true;
         videoPlayer.audioOutputMode = VideoAudioOutputMode.None;
         videoPlayer.skipOnDrop = true;
@@ -537,6 +541,8 @@ public class JsabStageSelect : MonoBehaviour
         p.vp.renderMode = VideoRenderMode.RenderTexture;
         p.vp.targetTexture = p.rt;
         p.vp.isLooping = true;
+        // 中央カードと同様に全体をレターボックス表示(見切れ防止)。
+        p.vp.aspectRatio = VideoAspectRatio.FitInside;
         p.vp.waitForFirstFrame = true;
         p.vp.audioOutputMode = VideoAudioOutputMode.None;
         p.vp.skipOnDrop = true;
