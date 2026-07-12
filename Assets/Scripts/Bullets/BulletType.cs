@@ -21,6 +21,9 @@ public class BulletType : ScriptableObject
     public float baseSize;
     public int renderPriority;
     public float counterPower;
+    // 描画角を常に0(正立)に固定する。公転(polarForm.y)や速度角に追従させたくない
+    // キャラ系スプライト弾(幽霊リング等)用。当たり判定の角度には影響しない。
+    public bool uprightSprite;
 
     [Header("Collider")]
     public float2[] verts = new float2[0];
