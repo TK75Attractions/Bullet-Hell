@@ -174,13 +174,13 @@ public static class UiButtonStyle
     public static float ThinSlashX(float buttonW) => buttonW * 0.5f - 31f;
 
     // ボタン内ラベルの標準サイズ(2026-07-11 指摘「余白をもっと広く」の一括調整点)。
-    // リザルト 660x120=38 はユーザー承認済みの錨。タイトル 583x109=40 と
-    // 確認ダイアログ 260x86=25 は oracle レビュー(ui-unify-followup-review)の
-    // 推奨帯(38〜42 / 24〜26)で手調整した値。ボタンの役割(主導線かどうか)で
-    // 最適比が変わるため単一比率式にはしない。新規ボタンはここへ追記して使う。
-    public const float LabelSizeResult = 38f;
-    public const float LabelSizeTitleMenu = 40f;
-    public const float LabelSizeConfirm = 25f;
+    // 2026-07-12 夜「全体としてボタンの文字を大きく」で一段拡大(リザルト 38→44・
+    // タイトル 40→46・確認 25→30)。様式・平行四辺形・難易度色は不変で、枠内の
+    // 余白は残しつつ可読性を上げる。ボタンの役割(主導線かどうか)で最適比が変わる
+    // ため単一比率式にはしない。新規ボタンはここへ追記して使う。
+    public const float LabelSizeResult = 44f;
+    public const float LabelSizeTitleMenu = 46f;
+    public const float LabelSizeConfirm = 30f;
 
     // ボタン両脇の白スラッシュ4本(外=太11px 白、内=細2.5px 白α0.5、19°、
     // 左右対称)。高さは SlashHeight でボタンの上下辺に揃える。
