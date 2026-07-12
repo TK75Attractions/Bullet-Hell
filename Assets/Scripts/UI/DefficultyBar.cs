@@ -13,10 +13,10 @@ public class DefficultyBar : MonoBehaviour
     private const float BarW = 660f;
     // 2026-07-12 通しレビュー指摘「ボタン自体をもう少し縦に長く」で 140→160。
     private const float BarH = 160f;
-    // 行間(Easy/Normal/Lunatic の中心間隔)。ボタン拡大に合わせて一段広げる
-    // (158→180。行の隙間 34→40 で縦の抜けも一段増える)。BarH 160 で隙間 24 を保つ
-    // ため 184 へ。
-    private const float RowSpacing = 184f;
+    // 行間(Easy/Normal/Lunatic の中心間隔)。2026-07-12 夜「ボタン間隔を狭く」で
+    // 184→172(BarH 160 据え置きなので行の隙間は 24→12 に詰まる。ボタン自体の
+    // 縦長は維持)。
+    private const float RowSpacing = 172f;
     // 行ラベルのフォントサイズ。2026-07-12 指摘「文字をもう少し大きく」で 40→48。
     // 併せてフォントを既定 LiberationSans から共通英数字フォント(Oxanium)へ戻す
     // (labelFont。Init で受け取る)。
@@ -178,9 +178,11 @@ public class DefficultyBar : MonoBehaviour
         Transform rubyK = transform.Find("PromptRubyK");
         if (rubyK != null) promptRubyK = rubyK.GetComponent<TMP_Text>();
 
-        SetLayoutPosition("Title", new Vector2(0f, 365f));
-        SetLayoutPosition("TitleRubyN", new Vector2(-114f, 425f));
-        SetLayoutPosition("TitleRubyS", new Vector2(152f, 425f));
+        // 「難易度を選択」の見出しを下げてボタン群に寄せる(2026-07-12 夜指摘
+        // 「文字を下に」)。ルビ(なんいど/せんたく)も同量下げて漢字の真上を維持。
+        SetLayoutPosition("Title", new Vector2(0f, 310f));
+        SetLayoutPosition("TitleRubyN", new Vector2(-114f, 370f));
+        SetLayoutPosition("TitleRubyS", new Vector2(152f, 370f));
         SetLayoutPosition("LineT", new Vector2(0f, -315f));
         SetLayoutPosition("DescText", new Vector2(0f, -370f));
         SetLayoutPosition("LineB", new Vector2(0f, -425f));
