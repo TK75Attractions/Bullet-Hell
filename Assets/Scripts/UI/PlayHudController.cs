@@ -117,6 +117,12 @@ public class PlayHudController : MonoBehaviour
     private RectTransform frameEdgeSilverB, frameEdgeBlueB, frameEdgeKeyB;
     private float frameAppliedTop = -1f;
     private float frameAppliedBottom = -1f;
+    // 石工では下部コンベア帯が下端を示すため、装飾枠線(左右銀線+下辺3層)は純黒
+    // 背景に高コントラストの縦線/L字として浮いて見える(2026-07-12 指摘+oracle
+    // レビュー: 左辺 x≈72 が画面枠でなくステージ内の縦線に見え、下辺と直角の
+    // 明るいL字を作る)。機能フィル(不透明・画面外弾の遮蔽)は残し、石工のときだけ
+    // 装飾枠線を消す。他ステージは従来どおり(副作用なし)。
+    private bool frameStrokeVisible = true;
 
     private void Awake()
     {
@@ -339,15 +345,28 @@ public class PlayHudController : MonoBehaviour
         Vector2 center = new Vector2(0.5f, 0.5f);
         const float edgeOut = 4.5f;
         const float sideEdgeW = 1.5f;
+        // 装飾枠線は frameStrokeVisible(石工=false)で一括表示制御。機能フィルは常時。
+        frameEdgeSilverL.gameObject.SetActive(frameStrokeVisible);
+        frameEdgeSilverR.gameObject.SetActive(frameStrokeVisible);
         PlaceRect(frameEdgeSilverL, center, new Vector2(1f, 0.5f), new Vector2(-halfW, edgeCy), new Vector2(sideEdgeW, fieldH));
         PlaceRect(frameEdgeSilverR, center, new Vector2(0f, 0.5f), new Vector2(halfW, edgeCy), new Vector2(sideEdgeW, fieldH));
-        frameEdgeSilverB.gameObject.SetActive(hasBottom);
-        frameEdgeBlueB.gameObject.SetActive(hasBottom);
-        frameEdgeKeyB.gameObject.SetActive(hasBottom);
+        frameEdgeSilverB.gameObject.SetActive(hasBottom && frameStrokeVisible);
+        frameEdgeBlueB.gameObject.SetActive(hasBottom && frameStrokeVisible);
+        frameEdgeKeyB.gameObject.SetActive(hasBottom && frameStrokeVisible);
         float bottomW = halfW * 2f + edgeOut * 2f;
         PlaceRect(frameEdgeSilverB, center, new Vector2(0.5f, 1f), new Vector2(0f, fieldBot), new Vector2(bottomW, 2f));
         PlaceRect(frameEdgeBlueB, center, new Vector2(0.5f, 1f), new Vector2(0f, fieldBot - 2f), new Vector2(bottomW, 1.5f));
         PlaceRect(frameEdgeKeyB, center, new Vector2(0.5f, 1f), new Vector2(0f, fieldBot - 3.5f), new Vector2(bottomW, 1f));
+    }
+
+    // 装飾枠線(左右銀線+下辺3層)の表示を切り替える。石工では false。
+    // 機能フィルは触らない。変化時のみ次フレームで再レイアウトさせる。
+    private void SetFrameStrokeVisible(bool v)
+    {
+        if (v == frameStrokeVisible) return;
+        frameStrokeVisible = v;
+        frameAppliedTop = -999f; // LayoutPlayFrame の早期 return を外して active を反映
+        LayoutPlayFrame();
     }
 
     private static void PlaceRect(RectTransform rect, Vector2 anchor, Vector2 pivot, Vector2 pos, Vector2 size)
@@ -481,6 +500,10 @@ public class PlayHudController : MonoBehaviour
         if (!playing) return;
         StageReader sr = gm.SReader;
         if (sr == null || !sr.IsReady) return;
+
+        // 石工のみ装飾枠線を消す(下部コンベア帯が下端を示すため線が重複・浮く)。
+        bool stoneStage = sr.CurrentStage != null && sr.CurrentStage.stageDirectoryName == "stone";
+        SetFrameStrokeVisible(!stoneStage);
 
         // 帯が表示された後の初回に、全ラベルをインク実測で縦センターへ確定させる。
         if (!inkCentered)
