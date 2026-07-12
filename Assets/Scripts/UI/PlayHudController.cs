@@ -392,8 +392,10 @@ public class PlayHudController : MonoBehaviour
             labelX = -width * 0.5f + 58f;
         }
 
-        // ラベル(JP 白グレー + シアン英字)。
-        TMP_Text label = NewText("Label", rect, jp + " <size=12><color=#38C2E0>" + en + "</color></size>",
+        // ラベル(JP 白グレー + シアン英字)。英字はリザルトの #38C2E0 より一段
+        // 明るい #42E4FF(輝度+約17%)。12px と小さく弾幕上の帯に載るため、同値だと
+        // リザルトより暗い階層に見える(oracle 提案 2026-07-12)。
+        TMP_Text label = NewText("Label", rect, jp + " <size=12><color=#42E4FF>" + en + "</color></size>",
             19f, LabelGray, TextAlignmentOptions.Left);
         RectTransform lr = (RectTransform)label.transform;
         lr.anchorMin = lr.anchorMax = new Vector2(0.5f, 0.5f);

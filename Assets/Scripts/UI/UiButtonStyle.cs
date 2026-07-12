@@ -324,7 +324,10 @@ public static class UiButtonStyle
         Color topCol = new Color(0.004f, 0.051f, 0.122f);   // フィル上端(濃紺)
         Color botCol = new Color(0.008f, 0.098f, 0.216f);   // フィル下端(やや明るい紺)
         Color rimBot = new Color(0.000f, 0.310f, 0.714f);   // 最下辺の青リム(ボタンと同値)
-        Color topHi = new Color(0.30f, 0.68f, 0.88f);       // 上辺シアンハイライト(同値)
+        // 上辺シアンハイライトはボタン(0.30,0.68,0.88)より輝度+約17%。小型で
+        // 弾幕上に載る HUD ではリザルトと同値だと暗い階層に見える(oracle 提案
+        // 2026-07-12「HIT 英字とシアンリムを 15〜20% 明るく」)。
+        Color topHi = new Color(0.354f, 0.802f, 1f);
         Color frame = new Color(0.412f, 0.400f, 0.447f);    // 銀枠(同値)
 
         for (int y = 0; y < TH; y++)
@@ -355,6 +358,45 @@ public static class UiButtonStyle
             }
         }
 
+        texture.SetPixels32(px);
+        texture.Apply();
+        texOwner?.Add(texture);
+        Sprite sprite = Sprite.Create(texture, new Rect(0f, 0f, TW, TH),
+            new Vector2(0.5f, 0.5f), 100f * S);
+        sprite.name = spriteName;
+        spriteOwner?.Add(sprite);
+        return sprite;
+    }
+
+    // 銀枠だけを焼いた平行四辺形フレーム(本体なし)。BakeBody の枠と同一幾何
+    // (rect の左右22/上下11 内側・19° 斜辺・線幅1.2)なので、ボタン本体
+    // スプライトと同寸で重ねると枠位置が一致する(d=0)。難易度モーダルの
+    // 非選択行など、行全体を CanvasGroup で減光しても枠の輪郭だけ残したい
+    // 補強用(oracle 提案 2026-07-12)。
+    public static Sprite CreateFrameSprite(int refW, int refH,
+        List<Texture2D> texOwner, List<Sprite> spriteOwner, string spriteName)
+    {
+        const int S = 2;   // 2x スーパーサンプル
+        int TW = refW * S, TH = refH * S;
+        Texture2D texture = new Texture2D(TW, TH, TextureFormat.RGBA32, false);
+        texture.name = spriteName + "Texture";
+        texture.filterMode = FilterMode.Bilinear;
+        Color32[] px = new Color32[TW * TH];
+        float cx = (TW - 1) * 0.5f, cy = (TH - 1) * 0.5f;
+        float frameHW = (refW * 0.5f - 22f) * S;
+        float frameHH = (refH * 0.5f - 11f) * S;
+        Vector2[] frame = ParallelogramVerts(frameHW, frameHH, 2f * frameHH * SlashTan);
+        Color silver = new Color(0.412f, 0.400f, 0.447f);
+        for (int y = 0; y < TH; y++)
+        {
+            for (int x = 0; x < TW; x++)
+            {
+                Vector2 p = new Vector2(x - cx, y - cy);
+                float line = Mathf.Clamp01(1.2f * S - Mathf.Abs(ConvexSdf(frame, p)) + 0.5f);
+                if (line > 0f)
+                    Blend(px, TW, TH, x, y, silver, line * 0.9f);
+            }
+        }
         texture.SetPixels32(px);
         texture.Apply();
         texOwner?.Add(texture);

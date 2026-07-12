@@ -55,8 +55,9 @@ public class DefficultyBar : MonoBehaviour
         public float baseX;
         private TMP_Text nameText;
         private Color baseTextColor;
+        private Image frameBoost;
 
-        public DefficultyBox(Transform trans, string name, Sprite bodySprite, Color textColor)
+        public DefficultyBox(Transform trans, string name, Sprite bodySprite, Sprite frameSprite, Color textColor)
         {
             CG = trans.GetComponent<CanvasGroup>();
             rectTransform = trans.GetComponent<RectTransform>();
@@ -67,6 +68,29 @@ public class DefficultyBar : MonoBehaviour
             bar.color = Color.white;
             // シーンの旧寸法(583x109)を拡大寸法へ上書き(焼き込みと同寸で表示)。
             ((RectTransform)bar.transform).sizeDelta = new Vector2(BarW, BarH);
+            // 非選択行の銀枠補強: 行全体が CanvasGroup α0.4 まで減光すると焼き込み
+            // の銀枠が背景に沈む。枠だけの焼き込みを同寸で重ね、非選択時ほど
+            // 浮かせる(oracle 提案 2026-07-12)。クローンの再 Init で二重生成
+            // しないよう名前で判定。
+            Transform boostT = bar.transform.Find("FrameBoost");
+            if (boostT == null)
+            {
+                GameObject boostGo = new GameObject("FrameBoost",
+                    typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+                boostGo.layer = bar.gameObject.layer;
+                boostT = boostGo.transform;
+                RectTransform boostRect = (RectTransform)boostT;
+                boostRect.SetParent(bar.transform, false);
+                boostRect.anchorMin = Vector2.zero;
+                boostRect.anchorMax = Vector2.one;
+                boostRect.offsetMin = Vector2.zero;
+                boostRect.offsetMax = Vector2.zero;
+            }
+            frameBoost = boostT.GetComponent<Image>();
+            frameBoost.sprite = frameSprite;
+            frameBoost.type = Image.Type.Simple;
+            frameBoost.raycastTarget = false;
+            frameBoost.color = new Color(1f, 1f, 1f, 0f);
             // 旧様式の灰色端キャップは廃止(斜め端は焼き込み枠が持つ)。
             Transform grayL = trans.Find("Gray_L");
             if (grayL != null) grayL.gameObject.SetActive(false);
@@ -92,6 +116,9 @@ public class DefficultyBar : MonoBehaviour
             CG.alpha = 0.4f + 0.6f * progress;
             rectTransform.localScale = Vector3.one * (0.8f + 0.2f * progress);
             nameText.color = Color.Lerp(baseTextColor, Color.white, progress);
+            // 非選択時のみ銀枠を補強(選択行は焼き込みそのままの見た目を維持)。
+            if (frameBoost != null)
+                frameBoost.color = new Color(1f, 1f, 1f, (1f - progress) * 0.5f);
         }
     }
 
@@ -102,17 +129,20 @@ public class DefficultyBar : MonoBehaviour
         (trans.Find("Normal") as RectTransform).anchoredPosition = Vector2.zero;
         (trans.Find("Lunatic") as RectTransform).anchoredPosition = new Vector2(0f, -RowSpacing);
         // ベース色は従来の難易度色(色分け)を維持し、様式だけ統一する。
+        // 銀枠補強は3行共通の1枚を焼いて共有する。
+        Sprite rowFrame = UiButtonStyle.CreateFrameSprite((int)BarW, (int)BarH,
+            ownedTextures, ownedSprites, "DiffRowFrameBoost");
         boxes[0] = new DefficultyBox(trans.Find("Easy"), "EASY",
             UiButtonStyle.CreateBodySpriteTinted((int)BarW, (int)BarH, new Color(0.086f, 0.227f, 0.373f),
-                ownedTextures, ownedSprites, "DiffButtonEasy"),
+                ownedTextures, ownedSprites, "DiffButtonEasy"), rowFrame,
             new Color(0.56f, 0.72f, 0.91f));
         boxes[1] = new DefficultyBox(trans.Find("Normal"), "NORMAL",
             UiButtonStyle.CreateBodySpriteTinted((int)BarW, (int)BarH, new Color(0.055f, 0.525f, 0.91f),
-                ownedTextures, ownedSprites, "DiffButtonNormal"),
+                ownedTextures, ownedSprites, "DiffButtonNormal"), rowFrame,
             new Color(0.85f, 0.93f, 1f));
         boxes[2] = new DefficultyBox(trans.Find("Lunatic"), "LUNATIC",
             UiButtonStyle.CreateBodySpriteTinted((int)BarW, (int)BarH, new Color(0.36f, 0.078f, 0.188f),
-                ownedTextures, ownedSprites, "DiffButtonLunatic"),
+                ownedTextures, ownedSprites, "DiffButtonLunatic"), rowFrame,
             new Color(0.91f, 0.6f, 0.69f));
         CG = GetComponent<CanvasGroup>();
         CG.alpha = 0;
