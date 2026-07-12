@@ -10,21 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cbd360919789aba45b7e5b8e684967f4, type: 3}
-  m_Name: ghost
+  m_Name: skull_r3
   m_EditorClassIdentifier: BulletHell.Core::BulletType
-  typeName: ghost
-  baseSprite: {fileID: 2800000, guid: 8a09bab936564594cae801d3c06137dc, type: 3}
-  maskSprite: {fileID: 2800000, guid: 269f9e20124b5eb458a528b21416d7fb, type: 3}
+  typeName: skull_r3
+  baseSprite: {fileID: 2800000, guid: b692cdc394914b75a28ec3d7bcaa4ff3, type: 3}
+  maskSprite: {fileID: 2800000, guid: abed2de6da494e91bb20a0721fe19ec8, type: 3}
   baseColor: {r: 1, g: 1, b: 1, a: 1}
   baseSize: 1
-  renderPriority: 2
+  renderPriority: 1
   counterPower: 1
   verts:
-  - x: -0.3975
-    y: -0.3506
-  - x: 0.3897
-    y: -0.3506
-  - x: 0.3897
-    y: 0.3506
-  - x: -0.3975
-    y: 0.3506
+  - x: -0.3506
+    y: -0.3897
+  - x: 0.3506
+    y: -0.3897
+  - x: 0.3506
+    y: 0.3897
+  - x: -0.3506
+    y: 0.3897
