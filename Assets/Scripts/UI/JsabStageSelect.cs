@@ -241,6 +241,7 @@ public class JsabStageSelect : MonoBehaviour
         // the exact same design. The timer text and the red time-dim panel mirror
         // the live originals every frame in Tick.
         CloneTopBar(root);
+        RestyleTopBar();
 
         // --- Neighbour cards (pooled; spare parks off-screen until a transition) ---
         leftPanel = BuildSidePanel(root, "LeftCard");
@@ -471,6 +472,70 @@ public class JsabStageSelect : MonoBehaviour
             Transform srcTimer = textHead.Find("TimerText");
             origTimerText = srcTimer != null ? srcTimer.GetComponent<TMP_Text>() : null;
         }
+    }
+
+    // 上部バーを確立済みデザイン言語(リザルト/設定のヘッダー帯様式)へ寄せる。
+    // JSAB クローン(TopBarBase)側だけを対象にし、シーン原本(style0)には触れない。
+    // 高さ・レイアウト・タイマー位置は不変で、面色/縁だけを様式統一する:
+    //   主帯 head = フラット明青 → 横グラデ(左濃青#014190→右鮮青#026CDB)
+    //   右副帯 Gray = 濃紺(リザルト副帯トーン)
+    //   全幅に 3層エッジ(上=銀/その直下=シアン細線/下=沈み)を重ねる
+    // (oracle 案「横グラデ+銀/シアン縁」。高さ縮小は全要素の再配置が要るため見送り)。
+    private void RestyleTopBar()
+    {
+        if (topBarBaseRoot == null) return;
+        Transform bandT = topBarBaseRoot.Find("head");
+        Image band = bandT != null ? bandT.GetComponent<Image>() : null;
+        if (band != null)
+        {
+            Vector2 sz = band.rectTransform.sizeDelta;
+            band.sprite = CreateTopBandSprite(Mathf.RoundToInt(sz.x), Mathf.RoundToInt(sz.y));
+            band.color = Color.white;
+            band.type = Image.Type.Simple;
+            // 3層エッジは帯・副帯・仕切りの上へ重ねたいので Head クローン直下に置き
+            // 最前面へ(全幅を1本で通す)。
+            float halfH = sz.y * 0.5f;
+            AddBarEdge("BarEdgeSilver", sz.x, 2f, halfH - 1f, new Color(0.55f, 0.60f, 0.70f, 0.85f));
+            AddBarEdge("BarEdgeCyan", sz.x, 1f, halfH - 3.5f, new Color(0.22f, 0.76f, 0.878f, 0.28f));
+            AddBarEdge("BarEdgeDark", sz.x, 2f, -(halfH - 1f), new Color(0f, 0.02f, 0.05f, 0.6f));
+        }
+        Transform grayT = topBarBaseRoot.Find("Gray");
+        Image gray = grayT != null ? grayT.GetComponent<Image>() : null;
+        if (gray != null) gray.color = new Color(0.02f, 0.075f, 0.16f, 1f);
+    }
+
+    // 全幅の細帯(上部バーの縁)を Head クローン直下に最前面で1本足す。
+    private void AddBarEdge(string name, float width, float height, float y, Color color)
+    {
+        Image e = NewImage(name, topBarBaseRoot, color);
+        RectTransform rt = e.rectTransform;
+        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.sizeDelta = new Vector2(width, height);
+        rt.anchoredPosition = new Vector2(0f, y);
+        rt.SetAsLastSibling();
+    }
+
+    // 上部バー主帯の横グラデ(左濃青→右鮮青。リザルトヘッダー主帯と同色)。
+    private Sprite CreateTopBandSprite(int W, int H)
+    {
+        Texture2D tex = new Texture2D(W, H, TextureFormat.RGBA32, false);
+        tex.name = "JsabTopBandTex";
+        tex.filterMode = FilterMode.Bilinear;
+        tex.wrapMode = TextureWrapMode.Clamp;
+        Color mainL = new Color(0.004f, 0.255f, 0.565f);
+        Color mainR = new Color(0.008f, 0.424f, 0.859f);
+        Color32[] px = new Color32[W * H];
+        for (int x = 0; x < W; x++)
+        {
+            Color32 c = Color.Lerp(mainL, mainR, W > 1 ? x / (float)(W - 1) : 0f);
+            for (int y = 0; y < H; y++) px[y * W + x] = c;
+        }
+        tex.SetPixels32(px);
+        tex.Apply();
+        Sprite s = Sprite.Create(tex, new Rect(0f, 0f, W, H), new Vector2(0.5f, 0.5f), 100f);
+        s.name = "JsabTopBand";
+        return s;
     }
 
     private static void CopyRect(RectTransform dst, RectTransform src)
@@ -772,9 +837,9 @@ public class JsabStageSelect : MonoBehaviour
         markerRect = marker.rectTransform;
     }
 
-    // Rebuilds the node/dash chain: hollow rings connected by dashes, one node per
-    // stage; the current stage is a bigger filled cyan dot (mockup look). The
-    // persistent player marker stands on the line and tweens between nodes.
+    // Rebuilds the node chain: hollow rings on a single navy rail (no dashes), one
+    // node per stage; the current stage is a bigger filled cyan dot and non-current
+    // rings are dimmed. The persistent player marker stands on the line and tweens.
     private void RefreshProgress(bool animate)
     {
         if (progressRow == null) return;
@@ -792,26 +857,25 @@ public class JsabStageSelect : MonoBehaviour
         float totalW = (n - 1) * dashGap;
         float x0 = -totalW * 0.5f;
 
+        // 背面に紺の1本レール(破線ティックは廃止し控えめに統一。oracle 案)。
+        // 列の端ノードから端ノードまでを1本で繋ぐ。
+        if (n > 1)
+        {
+            Image rail = NewImage("Rail", progressRow, new Color(0.09f, 0.19f, 0.33f, 0.9f));
+            rail.rectTransform.anchorMin = rail.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            rail.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            rail.rectTransform.sizeDelta = new Vector2(totalW, 4f);
+            rail.rectTransform.anchoredPosition = Vector2.zero;
+            rail.rectTransform.SetAsFirstSibling(); // ノードより背面へ
+        }
+
+        // 非選択ノードは減光(現在ノードだけ明るいシアンで際立たせる)。
+        Color nodeDim = new Color(Cyan.r, Cyan.g, Cyan.b, 0.4f);
         for (int i = 0; i < n; i++)
         {
             float x = x0 + i * dashGap;
-
-            // Dash segment to the next node (3 small ticks).
-            if (i < n - 1)
-            {
-                for (int d = 0; d < 3; d++)
-                {
-                    Image dash = NewImage("Dash", progressRow, CyanDim);
-                    dash.rectTransform.anchorMin = dash.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-                    dash.rectTransform.pivot = new Vector2(0.5f, 0.5f);
-                    dash.rectTransform.sizeDelta = new Vector2(10f, 4f);
-                    // 3 ticks evenly spread across the gap [x .. x+dashGap].
-                    dash.rectTransform.anchoredPosition = new Vector2(x + dashGap * (d + 1) / 4f, 0f);
-                }
-            }
-
             bool current = i == currentIndex;
-            Image node = NewImage(current ? "NodeCurrent" : "Node", progressRow, Cyan);
+            Image node = NewImage(current ? "NodeCurrent" : "Node", progressRow, current ? Cyan : nodeDim);
             node.sprite = current ? dotSprite : ringSprite;
             node.type = Image.Type.Simple;
             node.rectTransform.anchorMin = node.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
