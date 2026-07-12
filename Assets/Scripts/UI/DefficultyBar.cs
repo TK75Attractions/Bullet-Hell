@@ -11,10 +11,16 @@ public class DefficultyBar : MonoBehaviour
     // 2026-07-11 夜の再指摘「余白を縦方向にさらに」で高さのみ 124→140
     // (横幅は現状維持の指定)。
     private const float BarW = 660f;
-    private const float BarH = 140f;
+    // 2026-07-12 通しレビュー指摘「ボタン自体をもう少し縦に長く」で 140→160。
+    private const float BarH = 160f;
     // 行間(Easy/Normal/Lunatic の中心間隔)。ボタン拡大に合わせて一段広げる
-    // (158→180。行の隙間 34→40 で縦の抜けも一段増える)。
-    private const float RowSpacing = 180f;
+    // (158→180。行の隙間 34→40 で縦の抜けも一段増える)。BarH 160 で隙間 24 を保つ
+    // ため 184 へ。
+    private const float RowSpacing = 184f;
+    // 行ラベルのフォントサイズ。2026-07-12 指摘「文字をもう少し大きく」で 40→48。
+    // 併せてフォントを既定 LiberationSans から共通英数字フォント(Oxanium)へ戻す
+    // (labelFont。Init で受け取る)。
+    private const float LabelSize = 48f;
 
     private CanvasGroup CG;
     private RectTransform whiteBar;
@@ -57,7 +63,7 @@ public class DefficultyBar : MonoBehaviour
         private Color baseTextColor;
         private Image frameBoost;
 
-        public DefficultyBox(Transform trans, string name, Sprite bodySprite, Sprite frameSprite, Color textColor)
+        public DefficultyBox(Transform trans, string name, Sprite bodySprite, Sprite frameSprite, Color textColor, TMP_FontAsset labelFont)
         {
             CG = trans.GetComponent<CanvasGroup>();
             rectTransform = trans.GetComponent<RectTransform>();
@@ -98,7 +104,11 @@ public class DefficultyBar : MonoBehaviour
             if (grayR != null) grayR.gameObject.SetActive(false);
             nameText = trans.Find("StageName").GetComponent<TMP_Text>();
             nameText.text = name;
-            nameText.fontSize = UiButtonStyle.LabelSizeTitleMenu;
+            // 他の英数字 UI と同じ共通フォント(Oxanium)へ。シーンの StageName は
+            // 既定 LiberationSans のままだったため難易度ボタンだけ字形が違って見えた
+            // (2026-07-12 指摘「フォントを元のフォントに戻す」)。
+            if (labelFont != null) nameText.font = labelFont;
+            nameText.fontSize = LabelSize;
             // 行スラッシュ(内側の細)。クローンの再 Init で二重生成しないよう名前で判定。
             if (trans.Find("RowSlashL") == null)
             {
@@ -122,7 +132,9 @@ public class DefficultyBar : MonoBehaviour
         }
     }
 
-    public void Init()
+    // uiFont: 行ラベル(EASY/NORMAL/LUNATIC)に使う共通英数字フォント(Oxanium)。
+    // null なら従来どおりシーンのフォントのまま(後方互換)。
+    public void Init(TMP_FontAsset uiFont = null)
     {
         Transform trans = transform.Find("List");
         (trans.Find("Easy") as RectTransform).anchoredPosition = new Vector2(0f, RowSpacing);
@@ -135,15 +147,15 @@ public class DefficultyBar : MonoBehaviour
         boxes[0] = new DefficultyBox(trans.Find("Easy"), "EASY",
             UiButtonStyle.CreateBodySpriteTinted((int)BarW, (int)BarH, new Color(0.086f, 0.227f, 0.373f),
                 ownedTextures, ownedSprites, "DiffButtonEasy"), rowFrame,
-            new Color(0.56f, 0.72f, 0.91f));
+            new Color(0.56f, 0.72f, 0.91f), uiFont);
         boxes[1] = new DefficultyBox(trans.Find("Normal"), "NORMAL",
             UiButtonStyle.CreateBodySpriteTinted((int)BarW, (int)BarH, new Color(0.055f, 0.525f, 0.91f),
                 ownedTextures, ownedSprites, "DiffButtonNormal"), rowFrame,
-            new Color(0.85f, 0.93f, 1f));
+            new Color(0.85f, 0.93f, 1f), uiFont);
         boxes[2] = new DefficultyBox(trans.Find("Lunatic"), "LUNATIC",
             UiButtonStyle.CreateBodySpriteTinted((int)BarW, (int)BarH, new Color(0.36f, 0.078f, 0.188f),
                 ownedTextures, ownedSprites, "DiffButtonLunatic"), rowFrame,
-            new Color(0.91f, 0.6f, 0.69f));
+            new Color(0.91f, 0.6f, 0.69f), uiFont);
         CG = GetComponent<CanvasGroup>();
         CG.alpha = 0;
 

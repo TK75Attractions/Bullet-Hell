@@ -103,6 +103,14 @@ public class JsabStageSelect : MonoBehaviour
     private RectTransform topBarTimeDim;
     private TMP_Text origTimerText;
     private RectTransform origTimeDim;
+    // 上部バー(タイマー/残り時間)のクローンルート。難易度モーダルを開いている間だけ
+    // diffRoot(ぼかし+暗幕)より前面へ持ち上げ、制限時間が隠れず読めるようにする
+    // (2026-07-12 指摘「難易度選択中もバーを最前面に+制限時間を表示」)。
+    private Transform topBarBaseRoot;
+    private Transform topBarTextRoot;
+    private int topBarBaseSiblingIndex = -1;
+    private int topBarTextSiblingIndex = -1;
+    private bool topBarRaised;
 
     // Carousel slots. Panels physically move between these on stage change.
     private const float BandYOffset = -60f;   // 全体を下げて上下の余白バランスを取る
@@ -438,6 +446,7 @@ public class JsabStageSelect : MonoBehaviour
             clone.name = "TopBarBase";
             clone.SetActive(true);
             CopyRect((RectTransform)clone.transform, (RectTransform)staticHead);
+            topBarBaseRoot = clone.transform;
             topBarTimeDim = clone.transform.Find("TimeDim") as RectTransform;
             origTimeDim = staticHead.Find("TimeDim") as RectTransform;
         }
@@ -449,6 +458,7 @@ public class JsabStageSelect : MonoBehaviour
             clone.name = "TopBarText";
             clone.SetActive(true);
             CopyRect((RectTransform)clone.transform, (RectTransform)textHead);
+            topBarTextRoot = clone.transform;
             // The clone must not react to state transitions; it is a static copy.
             Header dupHeader = clone.GetComponent<Header>();
             if (dupHeader != null) Destroy(dupHeader);
@@ -993,7 +1003,7 @@ public class JsabStageSelect : MonoBehaviour
             diffBar = clone.GetComponent<DefficultyBar>();
             if (diffBar != null)
             {
-                diffBar.Init();
+                diffBar.Init(font);
                 diffBar.SetAlpha(1f);
                 diffBar.SetEntranceProgress(1f);
             }
@@ -1008,6 +1018,35 @@ public class JsabStageSelect : MonoBehaviour
 
     // ---- Public difficulty API (driven by StageSelectManager) ----
 
+    // 上部バー(タイマー/残り時間)を diffRoot より前面へ持ち上げる。難易度モーダルの
+    // ぼかし+暗幕が制限時間を覆っていた指摘(2026-07-12)への対応。クローンは Tick で
+    // 生タイマーをミラーし続けるので、前面に出せば残り時間がそのまま読める。
+    private void RaiseTopBar()
+    {
+        if (topBarRaised) return;
+        if (topBarBaseRoot != null)
+        {
+            topBarBaseSiblingIndex = topBarBaseRoot.GetSiblingIndex();
+            topBarBaseRoot.SetAsLastSibling();
+        }
+        if (topBarTextRoot != null)
+        {
+            topBarTextSiblingIndex = topBarTextRoot.GetSiblingIndex();
+            topBarTextRoot.SetAsLastSibling(); // テキスト層を最前面(ベースの上)に
+        }
+        topBarRaised = true;
+    }
+
+    private void RestoreTopBar()
+    {
+        if (!topBarRaised) return;
+        if (topBarBaseRoot != null && topBarBaseSiblingIndex >= 0)
+            topBarBaseRoot.SetSiblingIndex(topBarBaseSiblingIndex);
+        if (topBarTextRoot != null && topBarTextSiblingIndex >= 0)
+            topBarTextRoot.SetSiblingIndex(topBarTextSiblingIndex);
+        topBarRaised = false;
+    }
+
     public void OpenDifficulty()
     {
         if (diffRoot == null) return;
@@ -1021,12 +1060,14 @@ public class JsabStageSelect : MonoBehaviour
         if (diffCG != null) diffCG.alpha = 0f;
         if (diffPanel != null) diffPanel.localScale = Vector3.one * (DiffPanelBaseScale * 0.96f);
         diffRoot.gameObject.SetActive(true);
+        RaiseTopBar();
         StartCoroutine(CaptureBlurBackground());
     }
 
     public void CloseDifficulty()
     {
         difficultyOpen = false;
+        RestoreTopBar();
         if (diffRoot == null || !diffRoot.gameObject.activeSelf) return;
         RestoreDifficultyExit();
         if (diffFadeCo != null) { StopCoroutine(diffFadeCo); diffFadeCo = null; }

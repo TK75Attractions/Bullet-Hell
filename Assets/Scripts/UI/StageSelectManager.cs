@@ -114,7 +114,7 @@ public class StageSelectManager : MonoBehaviour
         defficultyBasePos = defficultyRect.anchoredPosition + Vector2.left * 20f;
         ApplySlide(0);
 
-        defficultyBar.Init();
+        defficultyBar.Init(guideText != null ? guideText.font : null);
         header.Init();
         scroll.Init();
         stageBar.Init();
