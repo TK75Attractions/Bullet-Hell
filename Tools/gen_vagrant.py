@@ -164,13 +164,13 @@ def skeletons():
 #   バッファは拍88で発火、内部は拍88=相対0。
 # ---------------------------------------------------------------------------
 def _tiled_ys(count, margin):
-    """原典y域[20,579]を count レーンに均等分割し、各レーン内ランダム位置を
-    シャッフル順で返す(タイル状ランダム配置: 全体は均一に埋まるが整列しない)。
+    """原典y域[20,579]を count レーンに均等分割し、(レーン番号, レーン内ランダムy)
+    をシャッフル順で返す(タイル状ランダム配置: 全体は均一に埋まるが整列しない)。
     margin はレーン端からの最小距離(px)で、隣接帯の重なりを防ぐ。"""
     lo, hi = 20.0, 579.0
     lane_h = (hi - lo) / count
     assert lane_h > margin * 2, "レーンが margin に対して狭すぎる"
-    ys = [lo + lane_h * i + random.uniform(margin, lane_h - margin) for i in range(count)]
+    ys = [(i, lo + lane_h * i + random.uniform(margin, lane_h - margin)) for i in range(count)]
     random.shuffle(ys)
     return ys
 
@@ -206,12 +206,15 @@ def main_section():
         yi = 0
         for j, cnt in enumerate(co1[bi]):
             for _ in range(cnt):
-                y = my(ys[yi]); yi += 1
+                lane, py = ys[yi]; y = my(py); yi += 1
+                # 奇数レーンは半ピッチ横オフセット: セグメントの切れ目が段間で
+                # 縦に揃う格子感を崩す(oracle レビュー 2026-07-12 採用)。
+                xoff = 0.375 if lane % 2 == 1 else 0.0
                 wt = (bi * 16 + time1[j]) * BEAT              # 予告開始(原典 emerge)
                 for k, sx in enumerate(seg_xs):
                     at = wt + 4 * BEAT + k * 0.00375 * BEAT   # 致死開始(判定4拍後+走り)
                     bullets.append(bullet(
-                        originPos={"x": sx, "y": y}, speed=0.0, useVelocityAngle=False,
+                        originPos={"x": round(sx + xoff, 3), "y": y}, speed=0.0, useVelocityAngle=False,
                         typeName="box", scale={"x": ms(20), "y": ms(25)}, color=dict(PINK),
                         appearTime=round(at, 3), appearDuration=round(4 * BEAT, 3),
                         life=round(at + 1 * BEAT, 3)))        # 判定1拍(原典 duration=1)
@@ -224,11 +227,11 @@ def main_section():
         yi = 0
         for j, cnt in enumerate(co2[bi]):
             for _ in range(cnt):
-                y = my(ys[yi]); yi += 1
+                y = my(ys[yi][1]); yi += 1
                 wt = (8 + bi * 16 + j) * BEAT                 # 予告開始(拍96+16i+j)
                 ft = wt + 4 * BEAT                            # 致死開始(原典 timelag2=4)
                 never = ft + 2.0                              # 寿命より後=永遠に非致死
-                # 予告はブラケット型(上下エッジ線+中心ガイド線)。塗り帯の予告は
+                # 予告はブラケット型(上下エッジ線+中心ガイド破線)。塗り帯の予告は
                 # 点滅の山で発射帯と輝度が並び静止画で誤読するため、シルエットで
                 # 区別する。上下線が実寸(太さLTH)の端を示す(実測検証 2026-07-12)。
                 edge_off = round((LTH - ms(3)) / 2, 4)
@@ -238,11 +241,18 @@ def main_section():
                         typeName="box", scale={"x": 34.0, "y": ms(3)}, color=dict(PINK),
                         appearTime=round(never, 3), appearDuration=round(never - wt, 3),
                         life=round(ft, 3)))
-                bullets.append(bullet(   # 予告の中心ガイド線(狙いの芯)
-                    originPos={"x": 16, "y": y}, speed=0.0, useVelocityAngle=False,
-                    typeName="box", scale={"x": 34.0, "y": ms(4)}, color=dict(PINK),
-                    appearTime=round(never, 3), appearDuration=round(never - wt, 3),
-                    life=round(ft, 3)))
+                # 中心ガイドは実線だと点滅ピークで「細いレーザー発射中」に誤読
+                # されるため、破線(12px線+12px空き)+細身(2px)にする
+                # (oracle レビュー 2026-07-12 採用)。
+                dash_w, dash_gap = ms(12), ms(12)
+                dx = -1.0 + dash_w / 2
+                while dx < 33.0:
+                    bullets.append(bullet(   # 予告の中心ガイド破線
+                        originPos={"x": round(dx, 3), "y": y}, speed=0.0, useVelocityAngle=False,
+                        typeName="box", scale={"x": dash_w, "y": ms(2)}, color=dict(PINK),
+                        appearTime=round(never, 3), appearDuration=round(never - wt, 3),
+                        life=round(ft, 3)))
+                    dx += dash_w + dash_gap
                 bullets.append(bullet(   # 発射: 実寸帯(致死0.5拍)
                     originPos={"x": 16, "y": y}, speed=0.0, useVelocityAngle=False,
                     typeName="box", scale={"x": 34.0, "y": LTH}, color=dict(PINK),
