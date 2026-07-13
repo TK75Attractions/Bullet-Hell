@@ -1597,9 +1597,11 @@ public class JsabStageSelect : MonoBehaviour
         }
         if (cardFrameImg != null)
         {
-            Color fc = Cyan;
-            fc.a = 1f - e;
-            cardFrameImg.color = fc;
+            // 発光枠(シアン)を序盤で一気に消す(旧 1-e ease-out)と枠が痩せ、着地で
+            // サイドパネルの銀エッジ(SilverEdge)が突然乗ってポップした。枠を消さず、
+            // 着地パネルの銀エッジ色へ e で連続変化させて飛行中ずっと枠を残し、着地状態と
+            // 色・濃さを一致させる(2026-07-14 指摘「移動前ステージの枠のアニメが不自然」)。
+            cardFrameImg.color = Color.Lerp(Cyan, SilverEdge, e);
         }
         SetAccentAlpha(1f - e);
         // ブラケットは ease(e) だと序盤2フレームで一気に出て「突然出る」ため、
