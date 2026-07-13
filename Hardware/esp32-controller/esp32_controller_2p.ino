@@ -49,6 +49,7 @@ unsigned long lastHelloMs = 0;
 // 前方宣言（Arduino IDE は自動生成するが、PlatformIO 等でも確実にするため明示）。
 char hexDigit(uint8_t v);
 uint8_t readState(const int* pins);
+void sendLine(const char* line);
 
 // --- ヘルパ: 5 ピンを読んで 5bit の状態バイトを作る（押下=LOW=1）---
 uint8_t readState(const int* pins) {
@@ -61,8 +62,16 @@ uint8_t readState(const int* pins) {
   return s;
 }
 
+// Mirror the controller protocol to both board connectors:
+// Serial = ESP32-S3 native USB CDC, Serial0 = CH343 UART bridge.
+void sendLine(const char* line) {
+  Serial.print(line);
+  Serial0.print(line);
+}
+
 void setup() {
   Serial.begin(BAUD);
+  Serial0.begin(BAUD);
 
   for (int i = 0; i < 5; i++) {
     pinMode(P1_PINS[i], INPUT_PULLUP);
@@ -83,7 +92,7 @@ void setup() {
 
   // Unity 側の接続確認用に、起動を 1 行知らせる（プロトコル名 + バージョン）。
   // 受信側は "HELLO " で始まる行を「接続 OK」の合図として扱える。
-  Serial.print("HELLO 2P v1\n");
+  sendLine("HELLO 2P v1\n");
   lastHelloMs = millis();
 }
 
@@ -95,7 +104,7 @@ void loop() {
   // Keep advertising the CDC port until the first input report proves that
   // controller data is flowing. Unsigned subtraction remains safe at wrap.
   if (!hasSentState && now - lastHelloMs >= HELLO_INTERVAL_MS) {
-    Serial.print("HELLO 2P v1\n");
+    sendLine("HELLO 2P v1\n");
     lastHelloMs = now;
   }
 
@@ -121,7 +130,7 @@ void loop() {
     buf[6] = hexDigit(s2 & 0x0F);
     buf[7] = '\n';
     buf[8] = '\0';
-    Serial.print(buf);
+    sendLine(buf);
 
     prev1 = s1;
     prev2 = s2;

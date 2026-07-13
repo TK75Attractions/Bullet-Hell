@@ -9,9 +9,12 @@ XH-S3E には USB-C コネクタが2つあります。
 
 - UART ブリッジ側: CH343 として列挙されます。`pio device list` では
   `USB-Enhanced-SERIAL CH343`（VID:PID `1A86:55D3`）と表示されます。
-  ROM ブートログと書き込みに使えます。
+  ROM ブートログ、書き込み、このファームのコントローラー出力に使えます。
 - native USB 側: ESP32-S3 本体の USB CDC として列挙されます。
-  このファームの `Serial`（`HELLO 2P v1` / `S xx yy`）を確認するモニタはこちらへ接続します。
+  こちらでも同じコントローラー出力を確認できます。
+
+このファームは `HELLO 2P v1` / `S xx yy` を両方のポートへ同時に出力します。
+native USB が列挙されない場合でも、CH343 の COM ポートをモニタすれば確認できます。
 
 両方を接続したうえで次を実行し、表示名と COM 番号を確認してください。
 
@@ -19,9 +22,9 @@ XH-S3E には USB-C コネクタが2つあります。
 pio device list
 ```
 
-COM 番号は接続し直すと変わる場合があります。UART 側で ROM の
-`mode:DIO ... entry ...` だけが見え、`HELLO 2P v1` が見えない場合は、
-native USB 側の COM ポートを選び直してください。
+COM 番号は接続し直すと変わる場合があります。CH343 側ではリセット直後に
+`mode:DIO ... entry ...` などの ROM ログが混ざりますが、その後に
+`HELLO 2P v1` が表示されれば正常です。
 
 ## ビルド・書き込み・モニタ
 
@@ -36,11 +39,11 @@ pio device monitor -e xh_s3e -p COMx
 `platformio.ini` ではモニタの DTR/RTS を無効にしています。モニタを開いた際に
 ESP32-S3 のリセット線やブートストラップ線を誤って操作しないためです。
 
-付属の確認用モニタも使えます。ポートを省略すると検出ポートを選びますが、
-2ポートある場合は native USB 側を明示してください。
+付属の確認用モニタも使えます。ポートを省略すると検出ポートを選びます。
+現在 CH343 が COM4 なら、次のように明示できます。
 
 ```powershell
-.\test-monitor.ps1 -Port COMx
+.\test-monitor.ps1 -Port COM4
 ```
 
 ## 出力と確認項目

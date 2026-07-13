@@ -11,7 +11,7 @@ if (-not $Port) {
 
     $Port = $ports[-1]
     Write-Host "Auto-selected $Port. Available ports: $($ports -join ', ')"
-    Write-Host 'If this is the CH343 UART bridge, rerun with -Port COMx for native USB CDC.'
+    Write-Host 'The firmware mirrors controller output to both CH343 UART and native USB CDC.'
 }
 
 $sp = New-Object System.IO.Ports.SerialPort $Port, 115200
