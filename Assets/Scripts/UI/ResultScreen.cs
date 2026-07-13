@@ -164,16 +164,23 @@ public sealed class ResultScreen : MonoBehaviour
     // スコア/被弾。すべて既存ウィジェットの「上書き」として実装し、1P では一切
     // 実行されない(twoPlayerResult=false のまま)=現行リザルト byte/実測不変。
     private bool twoPlayerResult;
+    private bool twoPlayerLayoutApplied;   // 一度でも 2P 上書きしたら真(1P 復元の要否判定)
     private int finalScore2;
     private int finalHit2;
     private TMP_Text rankText2;        // P2 のランク字(既定は非アクティブ)
     private Material rankGlowMat2;
     private TMP_Text p1RankTag;        // 「1P」見出し(ランク上)
     private TMP_Text p2RankTag;        // 「2P」見出し
-    // 4 枚のステータスカードのラベル/ルビ参照(2P で再ラベルするために保持)。
-    // 索引は生成順: 0=スコア 1=被弾 2=カウンター 3=時間。
+    // 4 枚のステータスカードのラベル/ルビ/アイコン参照(2P で再ラベル・再アイコン
+    // するために保持)。索引は生成順: 0=スコア 1=被弾 2=カウンター 3=時間。
+    // statLabelOriginal は 1P レイアウトへ確実に戻すための元ラベル文字列。
     private readonly TMP_Text[] statLabels = new TMP_Text[4];
     private readonly TMP_Text[] statRubies = new TMP_Text[4];
+    private readonly Image[] statIcons = new Image[4];
+    private readonly string[] statLabelOriginal = new string[4];
+    // カード生成順に対応する既定アイコン(1P 復元用)。
+    private static readonly StatIcon[] StatCardIcons =
+        { StatIcon.Crosshair, StatIcon.Shield, StatIcon.Swords, StatIcon.Clock };
 
     // ランク文字のアンダーレイグロー色（クリア=青 / 失敗=赤）。
     private static readonly Color RankGlowBlue = new Color(0.20f, 0.60f, 1f, 0.55f);
@@ -876,6 +883,7 @@ public sealed class ResultScreen : MonoBehaviour
         // 双剣だけ線密度が高く一段強く見えるため 6% 縮小（oracle 指摘）。
         float iconSize = icon == StatIcon.Swords ? 43f : 46f;
         SetRect(iconImg.rectTransform, new Vector2(-100f, 53f), new Vector2(iconSize, iconSize));
+        if (cardIndex >= 0 && cardIndex < statIcons.Length) statIcons[cardIndex] = iconImg;
 
         // ラベルはチップ右の領域で中央揃え。カード幅 366 化に伴いフォントを
         // モック実測（jp≈30・en≈17）へ。最長「カウンター回数」(7字×30=210)が
@@ -898,11 +906,12 @@ public sealed class ResultScreen : MonoBehaviour
             BindRuby(label, rubyText, 0, jp.Length);
         }
 
-        // 2P の再ラベル用にラベル/ルビ参照を控える(1P では未使用=描画不変)。
+        // 2P の再ラベル用にラベル/ルビ参照と元ラベル文字列を控える(1P では未使用=描画不変)。
         if (cardIndex >= 0 && cardIndex < statLabels.Length)
         {
             statLabels[cardIndex] = label;
             statRubies[cardIndex] = rubyText;
+            statLabelOriginal[cardIndex] = label.text;
         }
 
         // 見出し下の細い区切り線（中央ノード＋両端ターミナル付き）。
@@ -1120,6 +1129,8 @@ public sealed class ResultScreen : MonoBehaviour
         if (twoPlayer)
             ApplyTwoPlayerResult(cleared, hitCount, hitCount2,
                 counterCount, elapsedSeconds, endSeconds, provisionalScore);
+        else if (twoPlayerLayoutApplied)
+            RestoreOnePlayerLayout();     // 2P 表示後に 1P へ戻す経路のみ(純 1P は不変)
         else
             twoPlayerResult = false;
 
@@ -1138,6 +1149,7 @@ public sealed class ResultScreen : MonoBehaviour
         int counterCount, float elapsedSeconds, float endSeconds, int score1)
     {
         twoPlayerResult = true;
+        twoPlayerLayoutApplied = true;
         finalScore2 = CalculateProvisionalScore(cleared, hit2, counterCount, elapsedSeconds, endSeconds);
         finalHit2 = Mathf.Max(0, hit2);
 
@@ -1164,11 +1176,17 @@ public sealed class ResultScreen : MonoBehaviour
         if (p1RankTag != null) p1RankTag.gameObject.SetActive(true);
         if (p2RankTag != null) p2RankTag.gameObject.SetActive(true);
 
-        // --- 左右カードの再ラベル(左列=P1 / 右列=P2) ---
+        // --- 左右カードの再ラベル+アイコン(左列=P1 / 右列=P2) ---
+        // カードは物理的に流用するため、ラベルに合うアイコン(スコア=照準/被弾=盾)へ
+        // 差し替える(既定のカウンター=双剣・時間=時計のままだと不一致になる)。
         SetStatLabel(0, "#FFCC66", "P1", "スコア", "SCORE");   // 左上
         SetStatLabel(2, "#FFCC66", "P1", "被弾", "HIT");       // 左下
         SetStatLabel(1, "#73D9FF", "P2", "スコア", "SCORE");   // 右上
         SetStatLabel(3, "#73D9FF", "P2", "被弾", "HIT");       // 右下
+        SetCardIcon(0, StatIcon.Crosshair);
+        SetCardIcon(2, StatIcon.Shield);
+        SetCardIcon(1, StatIcon.Crosshair);
+        SetCardIcon(3, StatIcon.Shield);
 
         // --- 値の即時反映(カウントアップの最終状態と一致させる) ---
         scoreText.text = Mathf.Max(0, score1).ToString("N0");
@@ -1185,6 +1203,37 @@ public sealed class ResultScreen : MonoBehaviour
         if (statLabels[idx] == null) return;
         statLabels[idx].text = "<color=" + toneHex + ">" + tag + "</color> " + jp
             + "\n<size=17><color=#38C2E0>" + en + "</color></size>";
+    }
+
+    // カードのアイコンスプライトを差し替える(双剣のみ 6% 縮小の既定を踏襲)。
+    private void SetCardIcon(int idx, StatIcon icon)
+    {
+        if (idx < 0 || idx >= statIcons.Length || statIcons[idx] == null) return;
+        statIcons[idx].sprite = statIconSprites[(int)icon];
+        float size = icon == StatIcon.Swords ? 43f : 46f;
+        statIcons[idx].rectTransform.sizeDelta = new Vector2(size, size);
+    }
+
+    // 1P レイアウトへ確実に戻す(冪等)。純 1P セッションでは元と同一のため無変化=
+    // 現行リザルト不変。2P 表示の後に同一インスタンスで 1P を出す経路(通常プレイでは
+    // 発生しないが防御的に)でも正しく単独ランク+元ラベルへ復帰させる。
+    private void RestoreOnePlayerLayout()
+    {
+        twoPlayerResult = false;
+        if (rankText2 != null) rankText2.gameObject.SetActive(false);
+        if (p1RankTag != null) p1RankTag.gameObject.SetActive(false);
+        if (p2RankTag != null) p2RankTag.gameObject.SetActive(false);
+        // ランク字は中央・原寸へ(位置は 1P Prepare が別途確定済み)。
+        rankText.rectTransform.localScale = new Vector3(1.09f, 1f, 1f);
+        for (int i = 0; i < statLabels.Length; i++)
+        {
+            if (statLabels[i] != null && statLabelOriginal[i] != null)
+                statLabels[i].text = statLabelOriginal[i];
+            if (statRubies[i] != null) statRubies[i].gameObject.SetActive(true);
+            SetCardIcon(i, StatCardIcons[i]);
+        }
+        // ラベル/ルビを元へ戻したので実測配置を再実行(冪等)。
+        PlaceAllRubies();
     }
 
     public void PlayEntrance()
