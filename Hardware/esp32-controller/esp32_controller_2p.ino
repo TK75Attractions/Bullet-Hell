@@ -1,7 +1,10 @@
 // esp32_controller_2p.ino
-// 2人プレイ用コントローラー ファームウェア（ESP32-DevKitC-32E / ESP32 Dev Module）
+// 2人プレイ用コントローラー ファームウェア
+// ボード: sparkle IoT XH-S3E（**ESP32-S3**・N16R8）— Arduino IDE では「ESP32S3 Dev Module」を選択
+//   ※2026-07-13 実機写真で ESP32-S3 と確定（DevKitC-32E ではなかった）。ピンを S3 用に更新。
+//   ※シリアルが見えない場合はツール→「USB CDC On Boot: Enabled」にして書き込み直す
 //
-// 設計の正: Instructions/controller-2p-esp32.md（ピン確定）・Instructions/2P-design.md
+// 設計の正: Instructions/controller-2p-esp32.md・Instructions/2P-design.md
 //
 // 概要:
 //   P1/P2 それぞれ 5 入力（上/下/左/右/ボタン）を内部プルアップで読み、
@@ -12,19 +15,22 @@
 //
 // 配線: 全スイッチ NO 端子 → GPIO、COM → GND（INPUT_PULLUP・押下で LOW・外付け抵抗不要）。
 //
-//   入力 | P1     | P2
-//   -----+--------+-------
-//   上   | GPIO32 | GPIO16
-//   下   | GPIO33 | GPIO17
-//   左   | GPIO25 | GPIO18
-//   右   | GPIO26 | GPIO19
-//   ボタン| GPIO27 | GPIO21
+//   入力 | P1（既存配線のまま）| P2
+//   -----+---------------------+-------
+//   上   | GPIO4               | GPIO9
+//   下   | GPIO5               | GPIO10
+//   左   | GPIO6               | GPIO11
+//   右   | GPIO7               | GPIO12
+//   ボタン| GPIO8               | GPIO13
+//
+// ESP32-S3 で避けるピン: 0/3/45/46（ストラップ）・19/20（native USB）・35/36/37（octal PSRAM）・
+// 26〜32（フラッシュ）。GPIO4〜18 は自由に使える。
 //
 // ※ 実機未検証（机上実装）。導通・起動確認は README のチェックリスト参照。
 
-// --- ピン定義（controller-2p-esp32.md のアサインと一致。順序は 上,下,左,右,ボタン）---
-const int P1_PINS[5] = {32, 33, 25, 26, 27};
-const int P2_PINS[5] = {16, 17, 18, 19, 21};
+// --- ピン定義（順序は 上,下,左,右,ボタン）---
+const int P1_PINS[5] = {4, 5, 6, 7, 8};      // 既存配線に一致（S3 では全て安全）
+const int P2_PINS[5] = {9, 10, 11, 12, 13};  // P1 と同じ列の下側・連番で配線しやすく
 
 // ビット名の対応（デバッグ表示・ドキュメント用）: bit0=U,1=D,2=L,3=R,4=B
 const char* KEYS = "UDLRB";
