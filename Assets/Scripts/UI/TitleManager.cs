@@ -6,7 +6,11 @@ using TMPro;
 
 public class TitleManager : MonoBehaviour
 {
-    [SerializeField] private float bpm = 128f;
+    // タイトル BGM(Discotheque)の実測 BPM。ロゴのビートパルス(振動)・図形の
+    // フラッシュ周期をこの値に同期させる。測定: Tools/measure_bpm.py の
+    // オンセット包絡自己相関 + 位相最適化櫛フィルタ(拍数正規化)で 130.00 BPM
+    // (拍間隔 461.5ms)を確定(2026-07-13)。
+    [SerializeField] private float bpm = 130f;
     // 引き継ぎコード表示・入力用の可読フォント(等幅コードフォント。0/O・1/I が
     // 紛れない)。未割当なら uiFont にフォールバック(第31便)。
     [SerializeField] private TMP_FontAsset codeFont;
@@ -24,6 +28,16 @@ public class TitleManager : MonoBehaviour
 
     private float beatTimer;
     private float beatPulse;
+    // タイトル BGM(Discotheque)。AManager 常駐 BGMSource でループ再生し、
+    // 戻り値の AudioSource から再生位置を読んでロゴのビートパルスを音にロックする。
+    // clip の t=0 は実ダウンビート(2.763s)にトリム済み=位相 0 が拍頭。
+    private AudioSource titleBgmSource;
+    // Discotheque を stone(最も大きいステージ -10.7LUFS)より僅かに下の -12LUFS へ
+    // 揃える減衰(実測 -6.7LUFS → -5.3dB)。Tools/measure_bpm.py / ffmpeg ebur128。
+    private const float TitleBgmVolume = 0.55f;
+    // ビートパルスの減衰(拍に対する割合)。frac=0(拍頭)で 1、この割合で 0 に。
+    // 旧自走版(dt*5 減衰≒0.2s/拍0.46s)と同等の 0.43。
+    private const float BeatPulseDecayFrac = 0.43f;
     private Graphic[] shapeGraphics = new Graphic[0];
     private float[] shapeBaseAlphas = new float[0];
 
@@ -144,6 +158,8 @@ public class TitleManager : MonoBehaviour
         beatTimer = 0f;
         beatPulse = 0f;
         returnAnimating = false;
+        titleBgmSource = null;
+        StartTitleBgm();
         if (returnBackdrop != null) returnBackdrop.gameObject.SetActive(false);
         group = GetComponent<CanvasGroup>();
         Transform prompt = transform.Find("Prompt");
@@ -319,6 +335,25 @@ public class TitleManager : MonoBehaviour
         returnBackdrop.raycastTarget = false;
     }
 
+    // タイトル BGM(Discotheque)を AManager 常駐 BGMSource でループ再生する。
+    // 戻り値の AudioSource を保持し、UpdateTitle でロゴの拍を音に同期させる。
+    // クリップは Resources/BGM/title_discotheque(1:50 でなく本編の頭 2.763s から
+    // ダウンビート単位でトリム、末尾フェードは除去済みで自然にループ)。
+    private async void StartTitleBgm()
+    {
+        AudioManager am = GManager.Control != null ? GManager.Control.AManager : null;
+        if (am == null) return;
+        AudioClip clip = Resources.Load<AudioClip>("BGM/title_discotheque");
+        if (clip == null)
+        {
+            Debug.LogWarning("Title BGM clip not found: Resources/BGM/title_discotheque");
+            return;
+        }
+        AudioSource src = await am.PlayLoopingBGM(clip, TitleBgmVolume);
+        // 復帰などで await 中に破棄された場合の保険。
+        if (this != null) titleBgmSource = src;
+    }
+
     // Idle animation: prompt blinks, logo floats and bounces on the beat,
     // background shapes drift, spin and flash slightly in time with the BPM.
     public void UpdateTitle(float dt)
@@ -340,14 +375,26 @@ public class TitleManager : MonoBehaviour
 
         animTime += dt;
 
-        beatTimer += dt;
+        // ビートパルス(ロゴの振動・図形フラッシュ): Discotheque が再生中なら
+        // 再生位置から拍位相を取って音にロックする(clip の t=0=実ダウンビート)。
+        // BGM 未再生(ロード中/失敗)のときだけ従来の自走タイマーで代替する。
         float beatInterval = 60f / Mathf.Max(1f, bpm);
-        if (beatTimer >= beatInterval)
+        if (titleBgmSource != null && titleBgmSource.isPlaying && titleBgmSource.clip != null)
         {
-            beatTimer -= beatInterval;
-            beatPulse = 1f;
+            float beats = titleBgmSource.time / beatInterval;
+            float frac = beats - Mathf.Floor(beats);         // 0=拍頭 → 1=次拍直前
+            beatPulse = Mathf.Max(0f, 1f - frac / BeatPulseDecayFrac);
         }
-        beatPulse = Mathf.Max(0f, beatPulse - dt * 5f);
+        else
+        {
+            beatTimer += dt;
+            if (beatTimer >= beatInterval)
+            {
+                beatTimer -= beatInterval;
+                beatPulse = 1f;
+            }
+            beatPulse = Mathf.Max(0f, beatPulse - dt * 5f);
+        }
 
         if (promptText != null)
         {

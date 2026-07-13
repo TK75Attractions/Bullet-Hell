@@ -43,6 +43,7 @@ public class AudioManager : MonoBehaviour
         }
 
         BGMSource.Stop();
+        BGMSource.loop = false;   // ステージ BGM はループしない(タイトル BGM でループを立てた後の持ち越し対策)
         BGMSource.clip = clip;
         BGMSource.time = 0f;
         BGMSource.volume = volume;
@@ -72,6 +73,18 @@ public class AudioManager : MonoBehaviour
         BGMSource.timeSamples = 0;
         BGMSource.time = 0f;
         return BGMSource;
+    }
+
+    // タイトル/曲選択などの UI 画面向け: BGM をロードして即ループ再生する。
+    // ステージのような PlayScheduled(DSP 同期)は不要な画面用。戻り値の
+    // AudioSource で再生位置(source.time)を読めば映像側を音に同期できる。
+    public async Task<AudioSource> PlayLoopingBGM(AudioClip clip, float volume = 1.0f)
+    {
+        AudioSource src = await PlayBGM(clip, volume);
+        if (src == null) return null;
+        src.loop = true;
+        src.Play();
+        return src;
     }
 
     public int PlaySE(string seName)
