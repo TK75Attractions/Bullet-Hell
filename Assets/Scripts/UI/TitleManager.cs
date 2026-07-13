@@ -72,9 +72,11 @@ public class TitleManager : MonoBehaviour
     private static readonly Color MenuTextBase = new Color(0.85f, 0.93f, 1f);
 
     // How far above its scene-authored position the logo is lifted.
-    // 2026-07-13: メニューボタンを難易度規格(660x160)へ拡大し行間も 172 に広げたため、
-    // 3 行を画面内に収めるロゴを 130→160 へ僅かに上げて上部に余白を作る。
-    private const float LogoRaiseOffset = 160f;
+    // 2026-07-13: 上げすぎ(160)を元の位置(130)へ戻す。実フレーム(720p)で確認した
+    // 通り、ボタン3行(660x160・行間172)は logo=130 でも画面内にそのまま収まり
+    // (行はロゴと独立に配置され下端に余白がある)、ロゴ可視下端とスタート上端の
+    // 間隔も約50px 空くため、行間側の調整は不要だった。
+    private const float LogoRaiseOffset = 130f;
 
     // スタート決定からステージ選択を重ね始めるまでの時間。GManager がこの時間
     // 経過後に state を切り替えて SSManager.PlayEntrance を呼ぶ(演出は総尺
