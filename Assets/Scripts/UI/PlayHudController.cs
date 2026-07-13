@@ -131,8 +131,10 @@ public class PlayHudController : MonoBehaviour
     private bool frameSideStrokeVisible = true;
     // 下辺3層(額縁を閉じる横ライン)の恒久スイッチ。true で従来の下辺装飾が復活。
     private const bool BottomStrokeEnabled = false;
-    // 石工で左右の縦エッジも表示するか。2d2ced9 を尊重して既定 false。
-    private const bool StoneShowSideEdges = false;
+    // 石工で左右の縦エッジも表示するか。2026-07-13 指摘「石工も他ステージと同じ
+    // 左右エッジ表示に揃える」で true(下辺3層は BottomStrokeEnabled=false のまま
+    // なので、2d2ced9 で問題になった下辺との直角L字は発生しない=縦エッジのみ)。
+    private const bool StoneShowSideEdges = true;
 
     private void Awake()
     {
