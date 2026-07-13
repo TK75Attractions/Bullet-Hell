@@ -41,6 +41,10 @@ public class PlayerController
     private int animFrame = 0;
     private float animTimer = 0f;
     private const float AnimFps = 12f;
+    // 新主人公(探偵)は 128px セル内で実キャラ約72px=0.56units と旧 Rumia(約1unit)より
+    // 小さいので、旧主人公と同等の見え方(約1unit)へ拡大する。当たり判定は点(pos)基準の
+    // ため見た目のみに影響。実フレームで 1.85 が旧サイズ相当と確認(2P その1)。
+    private const float PlayerVisualScale = 1.85f;
 
     public bool invincible
     {
@@ -74,6 +78,7 @@ public class PlayerController
         framesFront = LoadFrames(prefix + "_front");
         framesRight = LoadFrames(prefix + "_right");
         lastSet = framesFront;
+        if (playerTransform != null) playerTransform.localScale = Vector3.one * PlayerVisualScale;
         // P1 は従来の playerColor をそのまま採用し 1P の演出色を不変に保つ。
         // P2 は視認しやすい寒色トーン(淡いシアン)にして P1 と区別する。
         toneColor = playerIndex == 1
