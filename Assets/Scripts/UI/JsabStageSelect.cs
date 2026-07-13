@@ -1094,16 +1094,15 @@ public class JsabStageSelect : MonoBehaviour
     private void RaiseTopBar()
     {
         if (topBarRaised) return;
-        if (topBarBaseRoot != null)
-        {
-            topBarBaseSiblingIndex = topBarBaseRoot.GetSiblingIndex();
-            topBarBaseRoot.SetAsLastSibling();
-        }
-        if (topBarTextRoot != null)
-        {
-            topBarTextSiblingIndex = topBarTextRoot.GetSiblingIndex();
-            topBarTextRoot.SetAsLastSibling(); // テキスト層を最前面(ベースの上)に
-        }
+        // 元の並び順は必ず「両方を動かす前」に保存する。base を先に SetAsLastSibling
+        // すると、その後ろにあった text の sibling index が 1 つ繰り上がり、text の
+        // 保存値が狂う。すると RestoreTopBar で text が base(不透明な帯)より後ろ=
+        // 最背面へ戻り、上部テキスト(曲名/残り時間)が帯の裏に隠れて消える不具合に
+        // なる(2026-07-13 修正: 難易度から Esc で戻ると上のテキストが消える)。
+        if (topBarBaseRoot != null) topBarBaseSiblingIndex = topBarBaseRoot.GetSiblingIndex();
+        if (topBarTextRoot != null) topBarTextSiblingIndex = topBarTextRoot.GetSiblingIndex();
+        if (topBarBaseRoot != null) topBarBaseRoot.SetAsLastSibling();
+        if (topBarTextRoot != null) topBarTextRoot.SetAsLastSibling(); // テキスト層を最前面(ベースの上)に
         topBarRaised = true;
     }
 
