@@ -35,16 +35,37 @@
 - 出典: Google Fonts https://fonts.google.com/specimen/Playfair+Display
 - ライセンス: SIL Open Font License 1.1
 
+## BGM（背景音楽）
+
+DOVA-SYNDROME（https://dova-s.jp/ ）のフリー BGM。
+利用規約（2026-07-13 確認・ユーザー確認済み）: 連絡不要・商用/非商用/学校利用可・
+クレジット表記は必須ではない（任意）。素材そのものの再配布は禁止だがゲーム組み込みは可。
+※本ファイルへの記載は礼儀としての帰属メモ。
+
+### Discotheque（タイトル画面 BGM）
+
+- 用途: タイトル画面のループ BGM。`Assets/Resources/BGM/title_discotheque.mp3`
+- 出典: DOVA-SYNDROME
+- 作曲者: **不明**（mp3 メタデータにタグなし・DOVA 検索でも曲名から特定できず。
+  判明したら追記する）
+- BPM: 130.00（実測。Tools/measure_bpm.py のオンセット自己相関＋位相最適化櫛
+  フィルタ）。タイトルロゴの振動・図形フラッシュ周期をこの BPM に同期。
+- 加工内容: 原曲 3:20 のうち先頭ダウンビート 2.763s〜末尾フェード前 184.0s を
+  切り出し（VBR ~190k・先頭/末尾に 5〜10ms のクリック防止フェード）。ループ用。
+  音量は再生時に 0.55 倍で減衰（ステージ BGM 帯 -12LUFS へラウドネス整合）。
+
+### Killing Party（リザルト画面 BGM）
+
+- 用途: リザルト画面のループ BGM。`Assets/Resources/BGM/result_killing_party.mp3`
+- 出典: DOVA-SYNDROME
+- 作曲者: **MFP**（mp3 メタデータ TAG:artist=MFP / album=DOVA / 2017）
+- BPM: 128.00（実測。1:50 以降の区間）。入場アニメ（溜め→開放）と音ハメ:
+  clip 頭の build-up が「溜め」、1.44s のドロップがランクスタンプ着地に一致。
+- 加工内容: ユーザー指示「1:50 以降を使い」に従い、原曲 110.113s（ドロップが
+  スタンプ着地に一致する位置）〜本編終了 171.0s を切り出し（VBR ~190k・
+  クリック防止フェード）。ループ用。音量は再生時に 0.78 倍で減衰（-12LUFS 整合）。
+
 ## 効果音
 
-### 効果音ラボ（リザルト画面の SE 6 種）
-
-- 用途: `Assets/Resources/SE/result_*.wav`（スタンプ着地 2 種・カウント駆動/確定・
-  カードスライド・決定）
-- 出典: https://soundeffect-lab.info/sound/battle/ / https://soundeffect-lab.info/sound/button/
-  - 打撃4「岩を砕く」(blow4) / 怪獣の足音「ズシン」(monster-footstep1) /
-    剣の素振り2 (sword-gesture2) / データ表示2 (data-display2) / 決定29 / 決定1
-- 利用規約（2026-07-10 確認）: https://soundeffect-lab.info/agreement/
-  クレジット表記不要（任意）・商用無料・加工可（素材そのものの再配布は禁止・
-  ゲーム組み込みは可）。
-- 加工内容: 先頭無音トリム + wav 化。
+（2026-07-10 に追加したリザルト画面の効果音ラボ SE 6 種は、2026-07-13 に
+ユーザー指示で削除済み。現在ゲーム内で使用している SE は無し。）
