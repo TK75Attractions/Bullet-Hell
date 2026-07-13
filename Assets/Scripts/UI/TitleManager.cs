@@ -58,7 +58,9 @@ public class TitleManager : MonoBehaviour
     private static readonly Color MenuTextBase = new Color(0.85f, 0.93f, 1f);
 
     // How far above its scene-authored position the logo is lifted.
-    private const float LogoRaiseOffset = 130f;
+    // 2026-07-13: メニューボタンを難易度規格(660x160)へ拡大し行間も 172 に広げたため、
+    // 3 行を画面内に収めるロゴを 130→160 へ僅かに上げて上部に余白を作る。
+    private const float LogoRaiseOffset = 160f;
 
     // スタート決定からステージ選択を重ね始めるまでの時間。GManager がこの時間
     // 経過後に state を切り替えて SSManager.PlayEntrance を呼ぶ(演出は総尺
@@ -82,6 +84,15 @@ public class TitleManager : MonoBehaviour
     private float[] menuItemSel = new float[0];
     private float[] menuRowY = new float[0];
     private int menuIndex;
+
+    // 引き継ぎコードの導線(設計未確定のため無効化)。false で「引き継ぎ」行を
+    // 灰色(disabled 見た目)+選択不可にする。画面(BuildTransferPanel)は残すので、
+    // true に戻すだけで導線が復活する(2026-07-13 指摘)。
+    private const bool TransferEnabled = false;
+    private bool[] menuRowEnabled = new bool[0];
+    // 無効行の見た目(灰色・沈む)。有効行は白/MenuTextBase。
+    private static readonly Color MenuDisabledText = new Color(0.45f, 0.48f, 0.55f, 1f);
+    private static readonly Color MenuDisabledBar = new Color(0.34f, 0.36f, 0.42f, 1f);
 
     // Cloned DefficultyBar "White" slash brackets; glide to the selected row.
     private RectTransform menuWhite;
@@ -520,8 +531,9 @@ public class TitleManager : MonoBehaviour
     {
         if (transferOpen || menuItems.Length == 0) return;
 
-        if (up) menuIndex = Mathf.Max(0, menuIndex - 1);
-        else if (down) menuIndex = Mathf.Min(menuItems.Length - 1, menuIndex + 1);
+        // 無効行(引き継ぎ等)は飛ばして、その方向にある最も近い有効行へ移す。
+        if (up) menuIndex = StepMenuIndex(menuIndex - 1, -1);
+        else if (down) menuIndex = StepMenuIndex(menuIndex + 1, +1);
 
         float follow = 1f - Mathf.Exp(-14f * dt);
         for (int i = 0; i < menuItems.Length; i++)
@@ -546,9 +558,30 @@ public class TitleManager : MonoBehaviour
     // Same visual state math as DefficultyBox.SetPosition.
     private void ApplyMenuRowState(int i, float progress)
     {
+        // 無効行は選択に反応させず、灰色(disabled 見た目)で固定する。
+        if (!IsRowEnabled(i))
+        {
+            if (menuRowCG[i] != null) menuRowCG[i].alpha = 0.32f;
+            if (menuItemRects[i] != null) menuItemRects[i].localScale = Vector3.one * 0.8f;
+            if (menuItems[i] != null) menuItems[i].color = MenuDisabledText;
+            if (menuRowBars[i] != null) menuRowBars[i].color = MenuDisabledBar;
+            return;
+        }
+        if (menuRowBars[i] != null) menuRowBars[i].color = Color.white; // 有効行は焼き込みそのまま
         if (menuRowCG[i] != null) menuRowCG[i].alpha = 0.4f + 0.6f * progress;
         if (menuItemRects[i] != null) menuItemRects[i].localScale = Vector3.one * (0.8f + 0.2f * progress);
         if (menuItems[i] != null) menuItems[i].color = Color.Lerp(MenuTextBase, Color.white, progress);
+    }
+
+    private bool IsRowEnabled(int i)
+        => menuRowEnabled == null || i < 0 || i >= menuRowEnabled.Length || menuRowEnabled[i];
+
+    // from から dir 方向へ最初の有効行を探す。無ければ現在位置を維持(移動しない)。
+    private int StepMenuIndex(int from, int dir)
+    {
+        for (int i = from; i >= 0 && i < menuItems.Length; i += dir)
+            if (IsRowEnabled(i)) return i;
+        return menuIndex;
     }
 
     private void BuildMenu()
@@ -562,7 +595,11 @@ public class TitleManager : MonoBehaviour
         menuRoot.sizeDelta = new Vector2(700f, 500f);
 
         string[] labels = { "スタート", "設定", "引き継ぎ" };
-        float[] rowY = { -178f, -303f, -428f };
+        // 難易度ボタン規格(660x160)へ拡大したぶん、行間も難易度と同じ DiffRowSpacing に
+        // 広げる。ロゴを僅かに上げたぶんの余白へ 3 行を収める中心 -278(2026-07-13)。
+        float rowGap = UiButtonStyle.DiffRowSpacing;
+        const float rowCenter = -278f;
+        float[] rowY = { rowCenter + rowGap, rowCenter, rowCenter - rowGap };
 
         // The real difficulty-select column lives next to the title in the same
         // canvas; clone its row (banner + label) and white brackets so the title
@@ -579,9 +616,15 @@ public class TitleManager : MonoBehaviour
         menuItemSel = new float[labels.Length];
         menuRowY = rowY;
 
-        // リザルト様式のボタン本体(統一便)。行サイズ 583x109 は現状維持。
+        // 各行の有効/無効。既定は全て有効。引き継ぎ行だけ TransferEnabled で切替。
+        menuRowEnabled = new bool[labels.Length];
+        for (int i = 0; i < labels.Length; i++) menuRowEnabled[i] = true;
+        menuRowEnabled[(int)TitleMenuAction.Transfer] = TransferEnabled;
+
+        // リザルト様式のボタン本体を難易度規格(660x160)で焼く(2026-07-13 統一)。
         if (menuButtonSprite == null)
-            menuButtonSprite = UiButtonStyle.CreateBodySprite(583, 109, null, null, "TitleMenuButton");
+            menuButtonSprite = UiButtonStyle.CreateBodySprite(
+                (int)UiButtonStyle.DiffButtonW, (int)UiButtonStyle.DiffButtonH, null, null, "TitleMenuButton");
 
         for (int i = 0; i < labels.Length; i++)
         {
@@ -600,11 +643,9 @@ public class TitleManager : MonoBehaviour
                     bar.type = Image.Type.Simple;
                     bar.color = Color.white;
                     // クローン元(シーンの DefficultyBar)は起動順の都合で先に
-                    // Init 済み(SSManager.Init→TManager.Init)で、StageBar が
-                    // 難易度画面の拡大寸法へ上書きされている。タイトル行は
-                    // 583x109 が確定寸法なので明示的に戻す(戻さないと 583x109 の
-                    // 焼き込みが拡大寸法へ引き伸ばされてぼける)。
-                    bar.rectTransform.sizeDelta = new Vector2(583f, 109f);
+                    // Init 済みで StageBar が拡大寸法に上書きされている。タイトル行も
+                    // 難易度規格(660x160)へ揃えるため明示的に設定する(2026-07-13)。
+                    bar.rectTransform.sizeDelta = new Vector2(UiButtonStyle.DiffButtonW, UiButtonStyle.DiffButtonH);
                     menuRowFlash[i] = CreateRowFlash(bar.rectTransform);
                 }
                 menuRowBars[i] = bar;
@@ -615,10 +656,11 @@ public class TitleManager : MonoBehaviour
                 // Degraded fallback (scene layout changed): plain banner + label.
                 row = new GameObject("Item" + i, typeof(RectTransform)).GetComponent<RectTransform>();
                 row.SetParent(menuRoot, false);
-                menuRowBars[i] = CreatePanel("StageBar", row, Vector2.zero, new Vector2(583f, 109f), Color.white);
+                Vector2 btnSize = new Vector2(UiButtonStyle.DiffButtonW, UiButtonStyle.DiffButtonH);
+                menuRowBars[i] = CreatePanel("StageBar", row, Vector2.zero, btnSize, Color.white);
                 menuRowBars[i].sprite = menuButtonSprite;
                 menuRowFlash[i] = CreateRowFlash(menuRowBars[i].rectTransform);
-                label = CreateText("StageName", row, Vector2.zero, new Vector2(583f, 109f), 52f, MenuTextBase, TextAlignmentOptions.Center);
+                label = CreateText("StageName", row, Vector2.zero, btnSize, UiButtonStyle.LabelSizeDifficulty, MenuTextBase, TextAlignmentOptions.Center);
             }
 
             row.anchorMin = row.anchorMax = new Vector2(0.5f, 0.5f);
@@ -640,18 +682,17 @@ public class TitleManager : MonoBehaviour
                 Transform gray = row.Find(grayName);
                 if (gray != null) gray.gameObject.SetActive(false);
             }
-            float rowThinX = UiButtonStyle.ThinSlashX(583f);
+            float rowThinX = UiButtonStyle.ThinSlashX(UiButtonStyle.DiffButtonW);
             UiButtonStyle.AddSlash(row, "RowSlashL", new Color(1f, 1f, 1f, 0.5f),
-                -rowThinX, 2.5f, UiButtonStyle.SlashHeight(109f));
+                -rowThinX, 2.5f, UiButtonStyle.SlashHeight(UiButtonStyle.DiffButtonH));
             UiButtonStyle.AddSlash(row, "RowSlashR", new Color(1f, 1f, 1f, 0.5f),
-                rowThinX, 2.5f, UiButtonStyle.SlashHeight(109f));
+                rowThinX, 2.5f, UiButtonStyle.SlashHeight(UiButtonStyle.DiffButtonH));
 
             if (label != null)
             {
                 label.text = labels[i];
-                // 共通ラベル則(UiButtonStyle)で枠との余白を確保する
-                // (2026-07-11 指摘「余白をもっと広く」。旧60px→40px)。
-                label.fontSize = UiButtonStyle.LabelSizeTitleMenu;
+                // ラベルサイズは難易度ボタンと同じ規格へ統一(2026-07-13)。
+                label.fontSize = UiButtonStyle.LabelSizeDifficulty;
                 // Japanese labels ride high under Middle alignment (Latin UI font
                 // + CJK fallback metrics); optically center them in the banner.
                 TmpAlign.CenterInkVertically(label);
@@ -691,10 +732,10 @@ public class TitleManager : MonoBehaviour
                 RectTransform slash = menuWhite.Find(slashName) as RectTransform;
                 if (slash == null) continue;
                 float slashX = Mathf.Sign(slash.anchoredPosition.x)
-                    * UiButtonStyle.ThickSlashX(583f);
+                    * UiButtonStyle.ThickSlashX(UiButtonStyle.DiffButtonW);
                 slash.gameObject.SetActive(false);
                 UiButtonStyle.AddSlash(menuWhite, slashName + "19", Color.white,
-                    slashX, 11f, UiButtonStyle.SlashHeight(109f));
+                    slashX, 11f, UiButtonStyle.SlashHeight(UiButtonStyle.DiffButtonH));
             }
             // Shine 用マスクの mask graphic は旧様式 SimpleBar(矩形枠)で、
             // 選択行に「横方向の白い線」(矩形の上下辺)を描いてしまう。
@@ -714,8 +755,9 @@ public class TitleManager : MonoBehaviour
         }
     }
 
-    // 決定閃光用の白オーバーレイ。焼き込みバナーの枠(583x109 の内側 44/22
-    // マージン=539x87)と同じ平行四辺形で、通常は alpha0。閃光時のみ白く光らせる。
+    // 決定閃光用の白オーバーレイ。焼き込みバナーの枠(内側 44/22 マージン)と同じ
+    // 平行四辺形で、通常は alpha0。閃光時のみ白く光らせる。バナー寸法に追従させる
+    // (難易度規格 660x160 なら 616x138)。
     private static ParallelogramGraphic CreateRowFlash(RectTransform barRect)
     {
         GameObject go = new GameObject("Flash", typeof(RectTransform), typeof(CanvasRenderer), typeof(ParallelogramGraphic));
@@ -725,9 +767,11 @@ public class TitleManager : MonoBehaviour
         rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
         rect.pivot = new Vector2(0.5f, 0.5f);
         rect.anchoredPosition = Vector2.zero;
-        rect.sizeDelta = new Vector2(539f, 87f);
+        float flashW = barRect.sizeDelta.x - 44f;
+        float flashH = barRect.sizeDelta.y - 22f;
+        rect.sizeDelta = new Vector2(flashW, flashH);
         ParallelogramGraphic flash = go.GetComponent<ParallelogramGraphic>();
-        flash.Slant = 87f * Mathf.Tan(UiButtonStyle.SlashAngleDeg * Mathf.Deg2Rad);
+        flash.Slant = flashH * Mathf.Tan(UiButtonStyle.SlashAngleDeg * Mathf.Deg2Rad);
         flash.SlantRightEdge = true;
         flash.color = new Color(1f, 1f, 1f, 0f);
         flash.raycastTarget = false;
@@ -738,6 +782,8 @@ public class TitleManager : MonoBehaviour
 
     public void OpenTransfer()
     {
+        // 導線が無効なら開かない(行は選択不可だが念のためガード)。
+        if (!TransferEnabled) return;
         if (transferRoot == null) return;
         if (transferCloseRoutine != null) { StopCoroutine(transferCloseRoutine); transferCloseRoutine = null; }
         transferRoot.transform.localScale = Vector3.one; // 閉じるアニメの縮小をリセット

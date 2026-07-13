@@ -181,6 +181,14 @@ public static class UiButtonStyle
     public const float LabelSizeResult = 44f;
     public const float LabelSizeTitleMenu = 46f;
     public const float LabelSizeConfirm = 30f;
+    // 難易度ボタン(EASY/NORMAL/LUNATIC)の規格。タイトルメニューもこの規格へ統一する
+    // (2026-07-13 指摘「タイトルのボタンも難易度と同じ大きさに」)。DefficultyBar と
+    // TitleManager が同一ソースを参照して寸法・ラベルが揃うようにする。
+    // ラベルは 2026-07-13 指摘「英字をさらに一段大きく」で 48→56。
+    public const float LabelSizeDifficulty = 56f;
+    public const float DiffButtonW = 660f;      // ボタン表示幅
+    public const float DiffButtonH = 160f;      // ボタン表示高
+    public const float DiffRowSpacing = 172f;   // 行(中心間)の間隔
 
     // ボタン両脇の白スラッシュ4本(外=太11px 白、内=細2.5px 白α0.5、19°、
     // 左右対称)。高さは SlashHeight でボタンの上下辺に揃える。

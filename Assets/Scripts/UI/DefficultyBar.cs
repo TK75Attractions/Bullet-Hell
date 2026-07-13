@@ -10,17 +10,17 @@ public class DefficultyBar : MonoBehaviour
     // Init でこの寸法に上書きする)。ラベルは 40 のまま=枠内の余白が増える。
     // 2026-07-11 夜の再指摘「余白を縦方向にさらに」で高さのみ 124→140
     // (横幅は現状維持の指定)。
-    private const float BarW = 660f;
-    // 2026-07-12 通しレビュー指摘「ボタン自体をもう少し縦に長く」で 140→160。
-    private const float BarH = 160f;
-    // 行間(Easy/Normal/Lunatic の中心間隔)。2026-07-12 夜「ボタン間隔を狭く」で
-    // 184→172(BarH 160 据え置きなので行の隙間は 24→12 に詰まる。ボタン自体の
-    // 縦長は維持)。
-    private const float RowSpacing = 172f;
-    // 行ラベルのフォントサイズ。2026-07-12 指摘「文字をもう少し大きく」で 40→48。
-    // 併せてフォントを既定 LiberationSans から共通英数字フォント(Oxanium)へ戻す
-    // (labelFont。Init で受け取る)。
-    private const float LabelSize = 48f;
+    // 寸法・行間・ラベルは UiButtonStyle の難易度規格(単一ソース)を参照する。
+    // タイトルメニューも同じ規格へ統一するため、値の変更はそちらで一括管理する
+    // (2026-07-13「タイトルのボタンも難易度と同じ大きさに」)。
+    // 履歴: 幅 583→660、高さ 140→160、行間 184→172。
+    private const float BarW = UiButtonStyle.DiffButtonW;
+    private const float BarH = UiButtonStyle.DiffButtonH;
+    private const float RowSpacing = UiButtonStyle.DiffRowSpacing;
+    // 行ラベルのフォントサイズ。2026-07-12「文字を大きく」で 40→48、
+    // 2026-07-13「英字をさらに一段大きく」で 48→56(UiButtonStyle.LabelSizeDifficulty)。
+    // 行間・縦長比(BarH/RowSpacing)は維持。フォントは共通英数字(Oxanium・Init で受領)。
+    private const float LabelSize = UiButtonStyle.LabelSizeDifficulty;
 
     private CanvasGroup CG;
     private RectTransform whiteBar;
