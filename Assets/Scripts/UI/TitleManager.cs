@@ -1104,8 +1104,10 @@ public class TitleManager : MonoBehaviour
             if (transferMessageText != null)
             {
                 transferMessageText.color = Cyan;
+                // 1P/2P は別枠の履歴。取り込み先モードを明示して混同を避ける。
+                string modeTag = PlayHistory.TwoPlayerMode ? "2人プレイ" : "1人プレイ";
                 transferMessageText.text =
-                    $"引き継ぎました(プレイ {PlayHistory.TotalPlays} 回 / クリア {PlayHistory.TotalClears} 回)";
+                    $"引き継ぎました[{modeTag}](プレイ {PlayHistory.TotalPlays} 回 / クリア {PlayHistory.TotalClears} 回)";
             }
             RefreshTransferCode();
             transferInput.text = string.Empty;

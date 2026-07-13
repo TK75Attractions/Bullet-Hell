@@ -34,7 +34,27 @@ using UnityEngine;
 //   displayed grouped as XXXX-XXXX-XXXX-XXXX
 public static class PlayHistory
 {
-    private const string PrefsKey = "playHistory.v1";
+    // 1P と 2P の記録は混ぜない(2P-design.md 6)。モード別に別 PlayerPrefs キーへ保存し、
+    // 引き継ぎコードもモード別に発行/取り込みする。1P は従来キー("playHistory.v1")を
+    // そのまま使うため既存セーブと完全互換(byte 不変)。
+    private const string PrefsKey1P = "playHistory.v1";
+    private const string PrefsKey2P = "playHistory.2p.v1";
+    private static bool twoPlayerMode;
+
+    // 現在の記録モード。切り替わったらキャッシュを捨て、次アクセスで該当キーから読み直す。
+    // GManager が記録直前に gm.twoPlayer を、タイトルが人数選択時に反映する。
+    public static bool TwoPlayerMode
+    {
+        get => twoPlayerMode;
+        set
+        {
+            if (twoPlayerMode == value) return;
+            twoPlayerMode = value;
+            cache = null;
+        }
+    }
+
+    private static string PrefsKey => twoPlayerMode ? PrefsKey2P : PrefsKey1P;
     private const int MaxSlots = 8;
     private const int Version = 1;
     private const int VersionV2 = 2;

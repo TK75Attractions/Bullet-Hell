@@ -160,6 +160,21 @@ public sealed class ResultScreen : MonoBehaviour
     private Color flareCyanBase;
     private Vector2 exitHome;
 
+    // 2P(その2): 左右分割リザルト。中央に P1/P2 の 2 ランク、左列=P1・右列=P2 の
+    // スコア/被弾。すべて既存ウィジェットの「上書き」として実装し、1P では一切
+    // 実行されない(twoPlayerResult=false のまま)=現行リザルト byte/実測不変。
+    private bool twoPlayerResult;
+    private int finalScore2;
+    private int finalHit2;
+    private TMP_Text rankText2;        // P2 のランク字(既定は非アクティブ)
+    private Material rankGlowMat2;
+    private TMP_Text p1RankTag;        // 「1P」見出し(ランク上)
+    private TMP_Text p2RankTag;        // 「2P」見出し
+    // 4 枚のステータスカードのラベル/ルビ参照(2P で再ラベルするために保持)。
+    // 索引は生成順: 0=スコア 1=被弾 2=カウンター 3=時間。
+    private readonly TMP_Text[] statLabels = new TMP_Text[4];
+    private readonly TMP_Text[] statRubies = new TMP_Text[4];
+
     // ランク文字のアンダーレイグロー色（クリア=青 / 失敗=赤）。
     private static readonly Color RankGlowBlue = new Color(0.20f, 0.60f, 1f, 0.55f);
     private static readonly Color RankGlowRed = new Color(1f, 0.25f, 0.35f, 0.45f);
@@ -689,6 +704,49 @@ public sealed class ResultScreen : MonoBehaviour
             Color.white, Color.white,
             new Color(0.86f, 0.94f, 1f, 1f), new Color(0.86f, 0.94f, 1f, 1f));
         SetRect((RectTransform)rankText.transform, new Vector2(0f, 23f), new Vector2(560f, 480f));
+
+        // 2P(その2): 2 人分のランクを中央に並べるための 2 つ目のランク字と P1/P2 タグ。
+        // いずれも既定は非アクティブ=1P では一切描画されず現行と完全一致。位置/縮小/
+        // 色は 2P の Prepare(ApplyTwoPlayerResult)で確定させる。
+        rankText2 = NewText("Rank2", rankGroupRect, "S", 469f, Color.white, TextAlignmentOptions.Center);
+        if (rankFont != null)
+        {
+            rankText2.font = rankFont;
+            rankText2.fontStyle = FontStyles.Normal;
+            rankGlowMat2 = rankText2.fontMaterial;
+            rankGlowMat2.EnableKeyword("UNDERLAY_ON");
+            rankGlowMat2.SetFloat(ShaderUtilities.ID_ScaleRatio_C, 1f);
+            rankGlowMat2.SetFloat(ShaderUtilities.ID_UnderlayOffsetX, 0f);
+            rankGlowMat2.SetFloat(ShaderUtilities.ID_UnderlayOffsetY, 0f);
+            rankGlowMat2.SetFloat(ShaderUtilities.ID_UnderlayDilate, 0.08f);
+            rankGlowMat2.SetFloat(ShaderUtilities.ID_UnderlaySoftness, 0.42f);
+            rankGlowMat2.SetColor(ShaderUtilities.ID_UnderlayColor, RankGlowBlue);
+            rankText2.UpdateMeshPadding();
+        }
+        else
+        {
+            rankText2.fontStyle = FontStyles.Bold;
+            rankText2.rectTransform.localScale = new Vector3(0.92f, 1f, 1f);
+        }
+        rankText2.enableAutoSizing = false;
+        rankText2.outlineColor = new Color(Cyan.r, Cyan.g, Cyan.b, 0.5f);
+        rankText2.outlineWidth = 0.03f;
+        rankText2.enableVertexGradient = true;
+        rankText2.colorGradient = new VertexGradient(
+            Color.white, Color.white,
+            new Color(0.86f, 0.94f, 1f, 1f), new Color(0.86f, 0.94f, 1f, 1f));
+        SetRect((RectTransform)rankText2.transform, new Vector2(0f, 23f), new Vector2(560f, 480f));
+        rankText2.gameObject.SetActive(false);
+
+        // P1/P2 見出し(各ランクの上・トーン色。HUD と同じ 温色/シアン)。
+        p1RankTag = NewText("P1Tag", rankGroupRect, "1P", 44f,
+            new Color(1f, 0.80f, 0.40f, 1f), TextAlignmentOptions.Center);
+        SetRect((RectTransform)p1RankTag.transform, new Vector2(-178f, 172f), new Vector2(180f, 56f));
+        p1RankTag.gameObject.SetActive(false);
+        p2RankTag = NewText("P2Tag", rankGroupRect, "2P", 44f,
+            new Color(0.45f, 0.85f, 1f, 1f), TextAlignmentOptions.Center);
+        SetRect((RectTransform)p2RankTag.transform, new Vector2(178f, 172f), new Vector2(180f, 56f));
+        p2RankTag.gameObject.SetActive(false);
     }
 
     // 評価エリアを囲む八角形の細いフレーム。上下辺＋45°面取り＋左右辺
@@ -789,6 +847,7 @@ public sealed class ResultScreen : MonoBehaviour
         SetRect(rect, pos, size);
 
         // 入場演出用: カード単位でフェード＋スライドできるよう控えておく。
+        int cardIndex = builtCardCount;
         if (builtCardCount < cardRects.Length)
         {
             cardRects[builtCardCount] = rect;
@@ -830,12 +889,20 @@ public sealed class ResultScreen : MonoBehaviour
         // 漢字部分のルビ。rubyX は算術による初期 x（フォールバック）。実配置は
         // Prepare の PlaceAllRubies で label の JP 語範囲 [0, jp.Length) の漢字
         // グリフ実測中心へ精密化する（「カウンター回数」は「回数」だけに乗る）。
+        TMP_Text rubyText = null;
         if (!string.IsNullOrEmpty(ruby))
         {
-            TMP_Text rubyText = NewText("Ruby", rect, ruby, 11f,
+            rubyText = NewText("Ruby", rect, ruby, 11f,
                 new Color(1f, 1f, 1f, 0.85f), TextAlignmentOptions.Center);
             SetRect((RectTransform)rubyText.transform, new Vector2(rubyX, 79f), new Vector2(220f, 16f));
             BindRuby(label, rubyText, 0, jp.Length);
+        }
+
+        // 2P の再ラベル用にラベル/ルビ参照を控える(1P では未使用=描画不変)。
+        if (cardIndex >= 0 && cardIndex < statLabels.Length)
+        {
+            statLabels[cardIndex] = label;
+            statRubies[cardIndex] = rubyText;
         }
 
         // 見出し下の細い区切り線（中央ノード＋両端ターミナル付き）。
@@ -971,7 +1038,8 @@ public sealed class ResultScreen : MonoBehaviour
     }
 
     public void Prepare(StageData stage, int difficulty, bool cleared, int hitCount,
-        int counterCount, float elapsedSeconds, float endSeconds)
+        int counterCount, float elapsedSeconds, float endSeconds,
+        bool twoPlayer = false, int hitCount2 = 0)
     {
         gameObject.SetActive(true);
         inputArmed = false;
@@ -1047,11 +1115,76 @@ public sealed class ResultScreen : MonoBehaviour
         flareBlueBase = flareBlue;
         flareCyanBase = flareCyan;
 
+        // 2P: 左右分割へ上書き(中央 2 ランク+左=P1/右=P2 のスコア・被弾)。
+        // 1P では実行せず twoPlayerResult=false=現行リザルトのまま。
+        if (twoPlayer)
+            ApplyTwoPlayerResult(cleared, hitCount, hitCount2,
+                counterCount, elapsedSeconds, endSeconds, provisionalScore);
+        else
+            twoPlayerResult = false;
+
         contentGroup.alpha = 1f;
         contentRect.anchoredPosition = Vector2.zero;
         contentRect.localScale = Vector3.one;
         StopEntranceRoutine();
         ApplyEntranceFrame(0f);
+    }
+
+    // 2P: リザルトを左右分割へ上書きする(1P では呼ばれない)。中央に P1/P2 の 2 ランク、
+    // 左列(既存 Score/Counter カード)=P1 のスコア/被弾、右列(既存 Hit/Time カード)=
+    // P2 のスコア/被弾。値のカウントアップは ApplyEntranceFrame の twoPlayerResult 分岐、
+    // ラベルはここで再設定する。既存ウィジェットを流用するため額装・銀枠の様式は不変。
+    private void ApplyTwoPlayerResult(bool cleared, int hit1, int hit2,
+        int counterCount, float elapsedSeconds, float endSeconds, int score1)
+    {
+        twoPlayerResult = true;
+        finalScore2 = CalculateProvisionalScore(cleared, hit2, counterCount, elapsedSeconds, endSeconds);
+        finalHit2 = Mathf.Max(0, hit2);
+
+        // --- 中央: 2 人分のランク(P1=左へ縮小移動 / P2=右) ---
+        string rank1 = EvaluateRank(cleared, hit1);
+        string rank2 = EvaluateRank(cleared, hit2);
+        const float rankScale = 0.62f;
+        rankText.text = rank1;
+        rankText.rectTransform.anchoredPosition = new Vector2(-178f + (rank1 == "F" ? 8f : 0f), 23f);
+        rankText.rectTransform.localScale = new Vector3(1.09f * rankScale, rankScale, 1f);
+        if (rankText2 != null)
+        {
+            rankText2.gameObject.SetActive(true);
+            rankText2.text = rank2;
+            rankText2.rectTransform.anchoredPosition = new Vector2(178f + (rank2 == "F" ? 8f : 0f), 23f);
+            rankText2.rectTransform.localScale = new Vector3(1.09f * rankScale, rankScale, 1f);
+            rankText2.color = cleared ? Color.white : new Color(1f, 0.52f, 0.65f, 1f);
+            rankText2.outlineColor = cleared
+                ? new Color(Cyan.r, Cyan.g, Cyan.b, 0.74f)
+                : new Color(0.85f, 0.08f, 0.22f, 0.78f);
+            if (rankGlowMat2 != null)
+                rankGlowMat2.SetColor(ShaderUtilities.ID_UnderlayColor, cleared ? RankGlowBlue : RankGlowRed);
+        }
+        if (p1RankTag != null) p1RankTag.gameObject.SetActive(true);
+        if (p2RankTag != null) p2RankTag.gameObject.SetActive(true);
+
+        // --- 左右カードの再ラベル(左列=P1 / 右列=P2) ---
+        SetStatLabel(0, "#FFCC66", "P1", "スコア", "SCORE");   // 左上
+        SetStatLabel(2, "#FFCC66", "P1", "被弾", "HIT");       // 左下
+        SetStatLabel(1, "#73D9FF", "P2", "スコア", "SCORE");   // 右上
+        SetStatLabel(3, "#73D9FF", "P2", "被弾", "HIT");       // 右下
+
+        // --- 値の即時反映(カウントアップの最終状態と一致させる) ---
+        scoreText.text = Mathf.Max(0, score1).ToString("N0");
+        counterText.text = Mathf.Max(0, hit1).ToString("00");
+        hitText.text = finalScore2.ToString("N0");
+        timeText.text = finalHit2.ToString("00");
+    }
+
+    // カードラベルを「<tag> <jp>\n<en>」形式へ差し替え、対応するルビを隠す。
+    private void SetStatLabel(int idx, string toneHex, string tag, string jp, string en)
+    {
+        if (idx < 0 || idx >= statLabels.Length) return;
+        if (statRubies[idx] != null) statRubies[idx].gameObject.SetActive(false);
+        if (statLabels[idx] == null) return;
+        statLabels[idx].text = "<color=" + toneHex + ">" + tag + "</color> " + jp
+            + "\n<size=17><color=#38C2E0>" + en + "</color></size>";
     }
 
     public void PlayEntrance()
@@ -1157,10 +1290,22 @@ public sealed class ResultScreen : MonoBehaviour
         // (3) 数値カウントアップ（下位桁が回って見えるよう毎フレーム再計算）。
         float np = Mathf.Clamp01((t - EnterCountStart) / EnterCountDur);
         float ne = 1f - (1f - np) * (1f - np);
-        scoreText.text = Mathf.RoundToInt(finalScore * ne).ToString("N0");
-        hitText.text = Mathf.RoundToInt(finalHit * ne).ToString("00");
-        counterText.text = Mathf.RoundToInt(finalCounter * ne).ToString("00");
-        timeText.text = FormatTime(finalElapsed * ne);
+        if (twoPlayerResult)
+        {
+            // 左列=P1(score/hit) / 右列=P2(score/hit)。カード割当:
+            // scoreText=P1スコア, counterText=P1被弾, hitText=P2スコア, timeText=P2被弾。
+            scoreText.text = Mathf.RoundToInt(finalScore * ne).ToString("N0");
+            counterText.text = Mathf.RoundToInt(finalHit * ne).ToString("00");
+            hitText.text = Mathf.RoundToInt(finalScore2 * ne).ToString("N0");
+            timeText.text = Mathf.RoundToInt(finalHit2 * ne).ToString("00");
+        }
+        else
+        {
+            scoreText.text = Mathf.RoundToInt(finalScore * ne).ToString("N0");
+            hitText.text = Mathf.RoundToInt(finalHit * ne).ToString("00");
+            counterText.text = Mathf.RoundToInt(finalCounter * ne).ToString("00");
+            timeText.text = FormatTime(finalElapsed * ne);
+        }
         float pulse = ValuePulse(t - (EnterCountStart + EnterCountDur));
         scoreText.rectTransform.localScale = Vector3.one * pulse;
         hitText.rectTransform.localScale = Vector3.one * pulse;

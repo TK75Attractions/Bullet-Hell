@@ -681,6 +681,9 @@ public class GManager : MonoBehaviour
         string historyDir = string.IsNullOrWhiteSpace(runtimeStage.stageDirectoryName)
             ? runtimeStage.stageName
             : runtimeStage.stageDirectoryName;
+        // 2P プレイの記録は 1P と別枠(別 PlayerPrefs キー)へ保存する。記録直前に
+        // 現在の人数モードを反映し、scene 再読込後の静的状態の取り違えを防ぐ。
+        PlayHistory.TwoPlayerMode = twoPlayer;
         PlayHistory.RecordPlay(historyDir);
         Debug.Log($"Started Stage: {runtimeStage.stageName} (requested={selected}, data={runtimeStage.resolvedDataDifficulty.displayName})");
     }
@@ -736,11 +739,13 @@ public class GManager : MonoBehaviour
             string historyDir = string.IsNullOrWhiteSpace(stage.stageDirectoryName)
                 ? stage.stageName
                 : stage.stageDirectoryName;
+            // クリア記録も人数モード別枠へ(RecordPlay と同様)。
+            PlayHistory.TwoPlayerMode = twoPlayer;
             PlayHistory.RecordClear(historyDir);
         }
 
         RManager.Prepare(stage, selectedDifficulty, cleared, playerHitCount,
-            counterHitBossCount, elapsed, endTime);
+            counterHitBossCount, elapsed, endTime, twoPlayer, playerHitCount2);
         SReader?.StopStage();
 
         if (transition != null) await transition.MosaicReveal();
@@ -881,6 +886,8 @@ public class GManager : MonoBehaviour
     {
         twoPlayer = two;
         if (IManager != null) IManager.twoPlayerMode = two;
+        // 履歴/引き継ぎコードもモード別枠に切り替える(1P と 2P を混ぜない)。
+        PlayHistory.TwoPlayerMode = two;
     }
 
     public void AddCounterHitBossCount(int value = 1)
