@@ -19,7 +19,8 @@ public class JsabStageSelect : MonoBehaviour
     // 左右カルーセル矢印は白で目立たせる(2026-07-13 指摘「矢印が見づらい」)。
     // 銀/シアン様式と喧嘩しないよう、面は白・背後の発光ハローだけシアン寄りにする。
     private static readonly Color ArrowWhite = new Color(1f, 1f, 1f, 1f);
-    private static readonly Color ArrowGlowColor = new Color(0.72f, 0.92f, 1f, 0.55f);
+    // 発光ハローは弱めに(2026-07-14 指摘「矢印のグローを弱く」)。矢印本体は白のまま。
+    private static readonly Color ArrowGlowColor = new Color(0.72f, 0.92f, 1f, 0.30f);
     private static readonly Color Navy = new Color(0.043f, 0.106f, 0.169f, 1f);      // #0B1B2B
     private static readonly Color NavyDeep = new Color(0.02f, 0.05f, 0.09f, 1f);
     // Mockup-derived accents: bright cyan edge highlight, white corner brackets,

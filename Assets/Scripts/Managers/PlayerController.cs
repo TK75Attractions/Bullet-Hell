@@ -45,6 +45,8 @@ public class PlayerController
     // 小さいので、旧主人公と同等の見え方(約1unit)へ拡大する。当たり判定は点(pos)基準の
     // ため見た目のみに影響。実フレームで 1.85 が旧サイズ相当と確認(2P その1)。
     private const float PlayerVisualScale = 1.85f;
+    // ダッシュエフェクト(Spell 子)の縮小率。親スケール(1.85)とは独立の子スケール乗数。
+    private const float DashEffectScale = 0.6f;
 
     public bool invincible
     {
@@ -68,6 +70,9 @@ public class PlayerController
         if (spellTransform != null)
         {
             spell = spellTransform.GetComponent<SpriteRenderer>();
+            // ダッシュエフェクト(Spell オーラ)を縮小して馴染ませる(2026-07-14 指摘「ダッシュ時のエフェクトが大きい」)。
+            // 親(player)の 1.85 倍とは独立の子スケール。0.6 で現状の 0.6 倍。
+            spellTransform.localScale = Vector3.one * DashEffectScale;
         }
         xRange = new float2(margin, 32 - margin);
         yRange = new float2(margin, 18 - margin);
@@ -198,7 +203,8 @@ public class PlayerController
     }
 
     // 入力方向で左/前後/右シートを選び、移動中は 8 フレームを AnimFps で循環、
-    // 静止時は直近シートの先頭フレームで止める。横入力を優先し、縦のみ/静止は前後シート。
+    // 静止時は前後(front)シートの先頭フレームで止める(2026-07-14 指摘「静止時はデフォルト正面に」)。
+    // 横入力を優先し、縦のみは前後シート。
     private void UpdateAnimation(float dt)
     {
         if (main == null) return;
@@ -221,6 +227,12 @@ public class PlayerController
         }
         else
         {
+            // 静止時は常に前後(front)シートの基準フレームへ戻す。横向きのまま止まらない。
+            if (framesFront != null && framesFront.Length > 0)
+            {
+                set = framesFront;
+                lastSet = set;
+            }
             animFrame = 0;
             animTimer = 0f;
         }
