@@ -6,10 +6,11 @@ using UnityEngine.InputSystem;
 /// Editor-only on-screen overlay for verifying controller / joystick input at
 /// runtime. Reads the live <see cref="InputManager"/> state and shows:
 ///   - input mode (serial ESP32-S3 controller vs keyboard debug fallback)
-///   - serial connection status (port name / baud / OPEN|CLOSED)
+///   - serial connection status (port name / baud / OPEN|CLOSED) + reconnect
+///   - the 2P protocol handshake state (HELLO seen / S line seen)
 ///   - the latest raw line received from the controller
-///   - the parsed move vector, both as text and a small stick visualization
-///   - the dash / back buttons and up/down/left/right direction booleans
+///   - P1 and P2 direction booleans + A(dash/confirm) / B(back) buttons
+///   - per-player input orientation (90 deg rotate + axis flip) toggles
 ///
 /// Self-bootstraps on entering Play mode; no scene edits required. Gated behind
 /// UNITY_EDITOR so it never ships in a festival build. Hidden by default; toggle
@@ -22,8 +23,8 @@ public class InputDebugOverlay : MonoBehaviour
     // 既定は非表示。入力確認が必要なときだけ F2 で表示する。
     private bool visible = false;
 
-    private const float PanelW = 340f;
-    private const float PanelH = 250f;
+    private const float PanelW = 360f;
+    private const float PanelH = 396f;
     private const string NumFmt = "+0.00;-0.00;0.00";
 
     private static readonly Color OnColor = new Color(0.45f, 0.95f, 0.55f);
@@ -81,12 +82,12 @@ public class InputDebugOverlay : MonoBehaviour
         const float x = 14f;
         float top = Screen.height - PanelH - 12f;   // bottom-left; StageTimeOverlay is top-left
 
-        GUI.color = new Color(0.03f, 0.05f, 0.11f, 0.80f);
+        GUI.color = new Color(0.03f, 0.05f, 0.11f, 0.82f);
         GUI.DrawTexture(new Rect(x - 6f, top - 6f, PanelW, PanelH), Texture2D.whiteTexture);
         GUI.color = Color.white;
 
         float y = top;
-        GUI.Label(new Rect(x, y, PanelW, 24f), "INPUT DEBUG (F2)", headStyle);
+        GUI.Label(new Rect(x, y, PanelW, 24f), "INPUT DEBUG (F2)  -  2P", headStyle);
         y += 26f;
 
         if (im == null)
@@ -111,74 +112,116 @@ public class InputDebugOverlay : MonoBehaviour
             GUI.Label(new Rect(x, y, PanelW, 20f),
                 $"port : {im.portName} @ {im.baudRate}  [{(connected ? "OPEN" : "CLOSED")}]", rowStyle);
             GUI.color = Color.white;
+            y += 20f;
+
+            // Handshake: firmware sends "HELLO 2P v2" on boot, then "S xx yy" on change.
+            GUI.color = im.SProtocolSeen ? OnColor : (im.HelloSeen ? WarnColor : OffColor);
+            GUI.Label(new Rect(x, y, PanelW, 20f),
+                $"proto: HELLO {(im.HelloSeen ? "OK" : "--")}   S-line {(im.SProtocolSeen ? "OK" : "--")}", rowStyle);
+            GUI.color = Color.white;
+            y += 20f;
+
+            // Port controls: cycle COMx and reopen, without leaving Play mode.
+            const float bh = 20f;
+            float bx = x;
+            if (GUI.Button(new Rect(bx, y, 46f, bh), "COM-")) im.CyclePort(-1);
+            bx += 52f;
+            if (GUI.Button(new Rect(bx, y, 46f, bh), "COM+")) im.CyclePort(1);
+            bx += 52f;
+            if (GUI.Button(new Rect(bx, y, 88f, bh), "RECONNECT")) im.ReconnectSerial();
+            y += 24f;
         }
         else
         {
             GUI.Label(new Rect(x, y, PanelW, 20f), "keys : WASD / arrows, Space=dash, Esc=back", rawStyle);
+            y += 20f;
         }
-        y += 20f;
 
         // Init outcome: the fastest way to see why serial is dead (type missing,
         // open failed, wrong COM). Amber when it clearly signals a failure.
         string init = im.InitStatus;
         bool initBad = init.Contains("missing") || init.Contains("failed");
         GUI.color = initBad ? WarnColor : OffColor;
-        GUI.Label(new Rect(x, y, 250f, 18f), $"init : {Truncate(init, 36)}", rawStyle);
+        GUI.Label(new Rect(x, y, PanelW, 18f), $"init : {Truncate(init, 40)}", rawStyle);
         GUI.color = Color.white;
-        y += 20f;
-
-        Vector2 mv = im.Move;
-        GUI.Label(new Rect(x, y, PanelW, 20f),
-            $"move : x={mv.x.ToString(NumFmt)}  y={mv.y.ToString(NumFmt)}", rowStyle);
         y += 22f;
 
-        DrawFlag(x, y, "DASH", im.buttonPressed);
-        DrawFlag(x + 96f, y, "BACK", im.backPressed);
+        // === P1 ===
+        Vector2 mv = im.Move;
+        GUI.Label(new Rect(x, y, PanelW, 20f),
+            $"P1   : move x={mv.x.ToString(NumFmt)} y={mv.y.ToString(NumFmt)}", rowStyle);
+        DrawStick(x + PanelW - 66f, y - 4f, 46f,
+            kb ? BoolStick(im.rightPressed, im.leftPressed, im.upPressed, im.downPressed) : mv);
         y += 22f;
 
         DrawFlag(x, y, "U", im.upPressed);
-        DrawFlag(x + 40f, y, "D", im.downPressed);
-        DrawFlag(x + 80f, y, "L", im.leftPressed);
-        DrawFlag(x + 120f, y, "R", im.rightPressed);
-        y += 24f;
+        DrawFlag(x + 32f, y, "D", im.downPressed);
+        DrawFlag(x + 64f, y, "L", im.leftPressed);
+        DrawFlag(x + 96f, y, "R", im.rightPressed);
+        DrawFlag(x + 132f, y, "A", im.buttonPressed);
+        DrawFlag(x + 176f, y, "B", im.backPressed);
+        y += 22f;
+        y += DrawOrientationRow(im, 0, x, y);
 
-        // --- 入力の向き(筐体の設置向きに合わせて 90°回転 + 軸反転を切替) ---
-        // U/D/L/R は変換後の値なので、ここで ROT/Flip を変えると上の表示にも即反映される。
-        bool oriented = im.InputRotation != 0 || im.InputFlipX || im.InputFlipY;
-        GUI.color = oriented ? WarnColor : OffColor;
-        GUI.Label(new Rect(x, y, PanelW, 20f),
-            $"dir  : ROT {im.InputRotationDegrees}  FlipX {(im.InputFlipX ? "ON" : "off")}  FlipY {(im.InputFlipY ? "ON" : "off")}", rowStyle);
-        GUI.color = Color.white;
+        // === P2 ===
+        GUI.Label(new Rect(x, y, PanelW, 20f), "P2   : (serial only)", rowStyle);
+        DrawStick(x + PanelW - 66f, y - 4f, 46f,
+            BoolStick(im.p2Right, im.p2Left, im.p2Up, im.p2Down));
         y += 22f;
 
-        const float bh = 22f;
-        float bx = x;
-        if (GUI.Button(new Rect(bx, y, 74f, bh), "ROT +90")) im.CycleInputRotation(1);
-        bx += 80f;
-        if (GUI.Button(new Rect(bx, y, 58f, bh), im.InputFlipX ? "FX:ON" : "FX:off")) im.ToggleInputFlipX();
-        bx += 64f;
-        if (GUI.Button(new Rect(bx, y, 58f, bh), im.InputFlipY ? "FY:ON" : "FY:off")) im.ToggleInputFlipY();
-        bx += 64f;
-        if (GUI.Button(new Rect(bx, y, 52f, bh), "RESET")) im.ResetInputOrientation();
-        y += 26f;
+        DrawFlag(x, y, "U", im.p2Up);
+        DrawFlag(x + 32f, y, "D", im.p2Down);
+        DrawFlag(x + 64f, y, "L", im.p2Left);
+        DrawFlag(x + 96f, y, "R", im.p2Right);
+        DrawFlag(x + 132f, y, "A", im.p2ButtonPressed);
+        DrawFlag(x + 176f, y, "B", im.p2BackPressed);
+        y += 22f;
+        y += DrawOrientationRow(im, 1, x, y);
 
         string raw = string.IsNullOrEmpty(im.LatestRawLine) ? "(none)" : im.LatestRawLine;
-        GUI.Label(new Rect(x, y, PanelW - 66f, 18f), $"raw  : {Truncate(raw, 34)}", rawStyle);
+        GUI.Label(new Rect(x, y, PanelW, 18f), $"raw  : {Truncate(raw, 40)}", rawStyle);
+    }
 
-        // Stick visualization, docked to the panel's right edge. Keyboard mode
-        // never fills Move (analog), so derive the dot from the resolved
-        // direction booleans there — that is what the game actually reads.
-        Vector2 stickVec = kb
-            ? new Vector2((im.rightPressed ? 1f : 0f) - (im.leftPressed ? 1f : 0f),
-                          (im.upPressed ? 1f : 0f) - (im.downPressed ? 1f : 0f))
-            : mv;
-        DrawStick(x + PanelW - 78f, top + 34f, 58f, stickVec);
+    // Draws the "dir : ROT.. FlipX.. FlipY.." status line plus the four toggle
+    // buttons for one player. Returns the vertical space consumed.
+    private float DrawOrientationRow(InputManager im, int player, float x, float y)
+    {
+        float y0 = y;
+        int rotDeg = im.InputRotationDegrees(player);
+        bool fx = im.InputFlipX(player);
+        bool fy = im.InputFlipY(player);
+        bool oriented = rotDeg != 0 || fx || fy;
+
+        GUI.color = oriented ? WarnColor : OffColor;
+        GUI.Label(new Rect(x, y, PanelW, 20f),
+            $"dir  : ROT {rotDeg}  FlipX {(fx ? "ON" : "off")}  FlipY {(fy ? "ON" : "off")}", rowStyle);
+        GUI.color = Color.white;
+        y += 20f;
+
+        const float bh = 20f;
+        float bx = x;
+        if (GUI.Button(new Rect(bx, y, 66f, bh), "ROT +90")) im.CycleInputRotation(player, 1);
+        bx += 72f;
+        if (GUI.Button(new Rect(bx, y, 52f, bh), fx ? "FX:ON" : "FX:off")) im.ToggleInputFlipX(player);
+        bx += 58f;
+        if (GUI.Button(new Rect(bx, y, 52f, bh), fy ? "FY:ON" : "FY:off")) im.ToggleInputFlipY(player);
+        bx += 58f;
+        if (GUI.Button(new Rect(bx, y, 48f, bh), "RESET")) im.ResetInputOrientation(player);
+        y += 24f;
+
+        return y - y0;
+    }
+
+    private static Vector2 BoolStick(bool right, bool left, bool up, bool down)
+    {
+        return new Vector2((right ? 1f : 0f) - (left ? 1f : 0f),
+                           (up ? 1f : 0f) - (down ? 1f : 0f));
     }
 
     private void DrawFlag(float x, float y, string label, bool on)
     {
         GUI.color = on ? OnColor : OffColor;
-        GUI.Label(new Rect(x, y, 92f, 20f), on ? $"[{label}]" : $" {label} ", rowStyle);
+        GUI.Label(new Rect(x, y, 44f, 20f), on ? $"[{label}]" : $" {label} ", rowStyle);
         GUI.color = Color.white;
     }
 

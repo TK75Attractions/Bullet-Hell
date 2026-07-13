@@ -265,9 +265,15 @@ public class GManager : MonoBehaviour
             IManager.UpdateInput();
             if (IManager.backPressedThisFrame)
             {
-                // Esc closes the confirm popup first; otherwise it resumes.
+                // Esc / P1 の B は確認ポップアップを閉じ、無ければポーズ解除。
                 if (optionMenu == null) SetPaused(false);
                 else if (!optionMenu.HandleBack()) optionMenu.BeginResume();
+            }
+            else if (IManager.p2BackPressedThisFrame)
+            {
+                // P2 の B はポーズのトグルのみ(メニュー階層の操作は P1 の設計)。
+                if (optionMenu == null) SetPaused(false);
+                else optionMenu.BeginResume();
             }
             else if (optionMenu != null)
             {
@@ -311,8 +317,8 @@ public class GManager : MonoBehaviour
             return;
         }
 
-        // Esc during gameplay opens the option (pause) screen.
-        if (state == GameState.Playing && IManager.backPressedThisFrame)
+        // Esc / P1 の B、または P2 の B(プレイ中のポーズのみ有効)でポーズ画面を開く。
+        if (state == GameState.Playing && (IManager.backPressedThisFrame || IManager.p2BackPressedThisFrame))
         {
             SetPaused(true);
             return;
