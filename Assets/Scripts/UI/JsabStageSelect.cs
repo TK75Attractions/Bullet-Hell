@@ -16,6 +16,10 @@ public class JsabStageSelect : MonoBehaviour
     // Palette: cyan + black + navy. No heavy white use (per design).
     private static readonly Color Cyan = new Color(0.22f, 0.76f, 0.878f, 1f);       // #38C2E0
     private static readonly Color CyanDim = new Color(0.22f, 0.76f, 0.878f, 0.55f);
+    // 左右カルーセル矢印は白で目立たせる(2026-07-13 指摘「矢印が見づらい」)。
+    // 銀/シアン様式と喧嘩しないよう、面は白・背後の発光ハローだけシアン寄りにする。
+    private static readonly Color ArrowWhite = new Color(1f, 1f, 1f, 1f);
+    private static readonly Color ArrowGlowColor = new Color(0.72f, 0.92f, 1f, 0.55f);
     private static readonly Color Navy = new Color(0.043f, 0.106f, 0.169f, 1f);      // #0B1B2B
     private static readonly Color NavyDeep = new Color(0.02f, 0.05f, 0.09f, 1f);
     // Mockup-derived accents: bright cyan edge highlight, white corner brackets,
@@ -74,6 +78,7 @@ public class JsabStageSelect : MonoBehaviour
         public Image scrim;
         public TMP_Text title;         // stage name inside the card top (per mockup)
         public TMP_Text arrow;
+        public RectTransform arrowGlow; // 矢印背後の発光ハロー(矢印に追従)
         public VideoPlayer vp;
         public RenderTexture rt;
         // サムネイル(or fallback)の準備が終わるまで mediaCG のフェードインを保留する
@@ -367,7 +372,7 @@ public class JsabStageSelect : MonoBehaviour
 
         // Side-card arrow for the fly-out morph (alpha 0 at rest; BeginTransition
         // points it at the side the card is about to become).
-        cardArrow = NewText("CardArrow", cardRect, ">", 56f, new Color(Cyan.r, Cyan.g, Cyan.b, 0f), TextAlignmentOptions.Center);
+        cardArrow = NewText("CardArrow", cardRect, ">", 60f, new Color(ArrowWhite.r, ArrowWhite.g, ArrowWhite.b, 0f), TextAlignmentOptions.Center);
         RectTransform car = (RectTransform)cardArrow.transform;
         car.pivot = new Vector2(0.5f, 0.5f);
         car.sizeDelta = new Vector2(64f, 90f);
@@ -658,9 +663,21 @@ public class JsabStageSelect : MonoBehaviour
         tr.anchoredPosition = new Vector2(0f, -6f);
         tr.sizeDelta = new Vector2(0f, SideTitleBand - 10f);
 
-        // 山括弧型の矢印。サムネイル外側の縁に上下中央で重ね、カルーセルの進行
-        // 方向を示す。サイズ/位置/alpha は oracle レビュー反映(56pt・端36px・0.8)。
-        p.arrow = NewText("Arrow", decorR, ">", 56f, new Color(Cyan.r, Cyan.g, Cyan.b, 0.8f), TextAlignmentOptions.Center);
+        // 矢印背後の発光ハロー(先に生成=矢印の背面)。SoftCircleGraphic の淡い円で、
+        // 白い矢印を柔らかく発光させる。位置は SetPanelSide で矢印に合わせる。
+        GameObject aglowGO = new GameObject("ArrowGlow", typeof(RectTransform));
+        aglowGO.transform.SetParent(decorR, false);
+        p.arrowGlow = (RectTransform)aglowGO.transform;
+        p.arrowGlow.pivot = new Vector2(0.5f, 0.5f);
+        p.arrowGlow.sizeDelta = new Vector2(104f, 104f);
+        SoftCircleGraphic aglow = aglowGO.AddComponent<SoftCircleGraphic>();
+        aglow.color = ArrowGlowColor;
+        aglow.raycastTarget = false;
+
+        // 山括弧型の矢印。サムネイル外側の縁に上下中央で重ね、カルーセルの進行方向を
+        // 示す。2026-07-13 指摘「見づらい」→ 白・不透明・やや大きく(60pt)し、背後の
+        // ハローで発光させる(端36px は維持)。
+        p.arrow = NewText("Arrow", decorR, ">", 60f, ArrowWhite, TextAlignmentOptions.Center);
         RectTransform ar2 = (RectTransform)p.arrow.transform;
         ar2.pivot = new Vector2(0.5f, 0.5f);
         ar2.sizeDelta = new Vector2(64f, 90f);
@@ -680,6 +697,12 @@ public class JsabStageSelect : MonoBehaviour
         ar.anchorMin = ar.anchorMax = new Vector2(side < 0 ? 1f : 0f, 0.5f);
         ar.anchoredPosition = new Vector2(side < 0 ? -36f : 36f, 0f);
         TmpAlign.CenterInkVertically(p.arrow);
+        // 発光ハローを矢印の中心へ追従させる。
+        if (p.arrowGlow != null)
+        {
+            p.arrowGlow.anchorMin = p.arrowGlow.anchorMax = ar.anchorMin;
+            p.arrowGlow.anchoredPosition = ar.anchoredPosition;
+        }
     }
 
     // ステージ名スラッシュの x をインク幅に追従させる(名前は可変長)。
@@ -919,16 +942,14 @@ public class JsabStageSelect : MonoBehaviour
         tlr.anchoredPosition = new Vector2(0f, 76f);
         tlr.sizeDelta = new Vector2(0f, 2f);
 
-        // Reference layout: primary actions grouped on the left, "back" on the right.
+        // 実機はジョイスティック+ボタンを想定(2026-07-13 指摘)。キー表記(←→/SPACE/
+        // ESC/V)をやめ、スティックとボタンだけで案内する。スタイル切替(V)は実機に
+        // 対応キーが無いので撤去。戻る(ESC)はシリアル未配線のため案内から外す
+        // (最終報告の監査項目: 2 個目のボタンを戻るに割り当てれば復活可能)。
         BuildHintRowAt(br, 0f, 0f, 48f, 0f, new[]
         {
-            new HintItem(new[] { "←", "→" }, "選択"),
-            new HintItem(new[] { "SPACE" }, "決定"),
-            new HintItem(new[] { "V" }, "スタイル切替"),
-        });
-        BuildHintRowAt(br, 1f, 1f, -48f, 0f, new[]
-        {
-            new HintItem(new[] { "ESC" }, "戻る"),
+            new HintItem(new[] { "スティック" }, "選択"),
+            new HintItem(new[] { "ボタン" }, "決定"),
         });
     }
 
@@ -1536,7 +1557,7 @@ public class JsabStageSelect : MonoBehaviour
             car.anchorMin = car.anchorMax = new Vector2(newSide < 0 ? 1f : 0f, 0.5f);
             car.anchoredPosition = new Vector2(newSide < 0 ? -36f : 36f, 0f);
             TmpAlign.CenterInkVertically(cardArrow);
-            Color ac = Cyan;
+            Color ac = ArrowWhite;
             ac.a = 0f;
             cardArrow.color = ac;
         }
@@ -1595,8 +1616,8 @@ public class JsabStageSelect : MonoBehaviour
         }
         if (cardArrow != null)
         {
-            Color ac = Cyan;
-            ac.a = 0.8f * Mathf.Clamp01((p - 0.4f) / 0.5f);
+            Color ac = ArrowWhite;
+            ac.a = 0.9f * Mathf.Clamp01((p - 0.4f) / 0.5f);
             cardArrow.color = ac;
         }
         if (cardScrim != null)
@@ -1790,7 +1811,7 @@ public class JsabStageSelect : MonoBehaviour
         }
         if (cardArrow != null)
         {
-            Color ac = Cyan;
+            Color ac = ArrowWhite;
             ac.a = 0f;
             cardArrow.color = ac;
         }

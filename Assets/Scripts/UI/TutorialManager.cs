@@ -113,16 +113,15 @@ public class TutorialManager : MonoBehaviour
         tutorialText.fontSizeMax = 46f;
         tutorialText.enableWordWrapping = false;
 
+        // 実機はジョイスティック+ボタン想定(2026-07-13 指摘)。WASD の 4 キーの代わりに
+        // 「スティック」1 枚、ダッシュは「ボタン」で案内する。
         moveIconRoot = CreateIconRoot("MoveIcons", cardRect);
         moveIconGroup = moveIconRoot.gameObject.AddComponent<CanvasGroup>();
-        moveKeys.Add(CreateKey(moveIconRoot, "W", new Vector2(0f, 30f), new Vector2(64f, 52f)));
-        moveKeys.Add(CreateKey(moveIconRoot, "A", new Vector2(-68f, -28f), new Vector2(64f, 52f)));
-        moveKeys.Add(CreateKey(moveIconRoot, "S", new Vector2(0f, -28f), new Vector2(64f, 52f)));
-        moveKeys.Add(CreateKey(moveIconRoot, "D", new Vector2(68f, -28f), new Vector2(64f, 52f)));
+        moveKeys.Add(CreateKey(moveIconRoot, "スティック", Vector2.zero, new Vector2(248f, 62f)));
 
         dashIconRoot = CreateIconRoot("DashIcons", cardRect);
         dashIconGroup = dashIconRoot.gameObject.AddComponent<CanvasGroup>();
-        dashKeys.Add(CreateKey(dashIconRoot, "SPACE", Vector2.zero, new Vector2(232f, 62f)));
+        dashKeys.Add(CreateKey(dashIconRoot, "ボタン", Vector2.zero, new Vector2(232f, 62f)));
 
         moveIconRoot.gameObject.SetActive(false);
         dashIconRoot.gameObject.SetActive(false);
@@ -200,7 +199,7 @@ public class TutorialManager : MonoBehaviour
         accentRect.anchoredPosition = new Vector2(0f, -size.y * 0.5f + 3f);
         accentRect.sizeDelta = new Vector2(size.x - 8f, 6f);
 
-        TMP_Text keyText = CreateLabel("Label", rect, new Vector2(0f, 2f), size, label == "SPACE" ? 27f : 32f);
+        TMP_Text keyText = CreateLabel("Label", rect, new Vector2(0f, 2f), size, label.Length >= 4 ? 27f : 32f);
         keyText.text = label;
         keyText.fontStyle = FontStyles.Bold;
         keyText.color = new Color(0.035f, 0.055f, 0.09f);
@@ -245,7 +244,7 @@ public class TutorialManager : MonoBehaviour
         EnsureInit();
         if (tutorialText == null) return;
 
-        await ShowTutorialStep("WASDで移動", false);
+        await ShowTutorialStep("スティックで移動", false);
         while (!input.upPressed && !input.downPressed && !input.leftPressed && !input.rightPressed)
         {
             await Task.Yield();
@@ -253,7 +252,7 @@ public class TutorialManager : MonoBehaviour
         }
         await CompleteTutorialStep(false);
 
-        await ShowTutorialStep("SPACEでダッシュ", true);
+        await ShowTutorialStep("ボタンでダッシュ", true);
         while (!input.buttonPressedThisFrame)
         {
             await Task.Yield();
