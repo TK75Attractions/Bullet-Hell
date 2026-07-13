@@ -87,17 +87,13 @@ public sealed class ResultScreen : MonoBehaviour
     private bool inputArmed;
     private bool entering;
 
-    // 効果音。SEDB(SEDataBase)がシーン未配線のため、リザルト画面ローカルの
-    // AudioSource で鳴らす最小構成。決定音が画面の SetActive(false) や
-    // Whiteout 遷移で切れないよう、ソースは兄弟 GO に常駐させる。
-    // クリップは効果音ラボ(soundeffect-lab.info)のフリー素材(加工可・クレジット不要)。
-    private AudioSource seSource;
-    private AudioClip seStampClear;
-    private AudioClip seStampFail;
-    private AudioClip seCount;
-    private AudioClip seCountDone;
-    private AudioClip seCardSwish;
-    private AudioClip seDecide;
+    // リザルト BGM(Killing Party の 1:50 以降)。画面ローカルの AudioSource で
+    // ループ再生する。入場アニメ(溜め→開放)と同時に再生を開始し、clip の頭に
+    // ある build-up が「溜め」、1.44s 後のドロップが「開放(ランクスタンプ着地)」と
+    // 一致するようトリム済み(clip t=0=原曲 110.113s)。画面の SetActive(false) で
+    // 切れないよう、ソースは兄弟 GO に常駐させる。素材: DOVA-SYNDROME。
+    private AudioSource bgmSource;
+    private AudioClip resultBgm;
 
     // --- 入場演出（溜め→開放のシーケンス）---
     // ヘッダー降下→カード左右スライド→数値カウントアップ→中央装飾→
@@ -122,14 +118,10 @@ public sealed class ResultScreen : MonoBehaviour
     private const float EnterButtonDur = 0.32f;
     private const float EnterTail = 0.95f;          // 着地後に波紋・ボタンを収める残り尺
 
-    // SE 音量。リザルト中は BGM 停止済みなので、直前のプレイ音量に対して
-    // 控えめに聞こえる値にする(全体は AudioListener.volume でさらに減衰)。
-    private const float SeVolStampClear = 0.72f;
-    private const float SeVolStampFail = 0.78f;
-    private const float SeVolCount = 0.30f;
-    private const float SeVolCountDone = 0.38f;
-    private const float SeVolCard = 0.20f;
-    private const float SeVolDecide = 0.55f;
+    // リザルト BGM 音量。Killing Party(1:50 以降 実測 -9.8LUFS)を、ステージ
+    // BGM 帯(stone -10.7LUFS が最大)より僅かに下の -12LUFS へ揃える減衰
+    // (-2.2dB)。全体は AudioListener.volume でさらに減衰する。
+    private const float ResultBgmVolume = 0.78f;
 
     private CanvasGroup headerGroup;
     private RectTransform headerGroupRect;
@@ -226,27 +218,25 @@ public sealed class ResultScreen : MonoBehaviour
         BuildAudio();
     }
 
-    // SE 用の常駐 AudioSource(兄弟 GO)とクリップの読み込み。クリップが無い
-    // 環境では該当音だけ無音になり、他の動作には影響しない。
+    // リザルト BGM 用の常駐 AudioSource(兄弟 GO)とクリップの読み込み。クリップが
+    // 無い環境では無音になるだけで他の動作には影響しない。入場開始と同時に
+    // 再生できるよう、ここで LoadAudioData を要求して先読みしておく。
     private void BuildAudio()
     {
-        GameObject go = new GameObject("ResultScreenAudio");
+        GameObject go = new GameObject("ResultScreenBgm");
         go.transform.SetParent(transform.parent, false);
-        seSource = go.AddComponent<AudioSource>();
-        seSource.playOnAwake = false;
-        seSource.spatialBlend = 0f;
+        bgmSource = go.AddComponent<AudioSource>();
+        bgmSource.playOnAwake = false;
+        bgmSource.spatialBlend = 0f;
+        bgmSource.loop = true;
+        bgmSource.volume = ResultBgmVolume;
 
-        seStampClear = Resources.Load<AudioClip>("SE/result_stamp_clear");
-        seStampFail = Resources.Load<AudioClip>("SE/result_stamp_fail");
-        seCount = Resources.Load<AudioClip>("SE/result_count");
-        seCountDone = Resources.Load<AudioClip>("SE/result_count_done");
-        seCardSwish = Resources.Load<AudioClip>("SE/result_card");
-        seDecide = Resources.Load<AudioClip>("SE/result_decide");
-    }
-
-    private void PlaySe(AudioClip clip, float volume)
-    {
-        if (seSource != null && clip != null) seSource.PlayOneShot(clip, volume);
+        resultBgm = Resources.Load<AudioClip>("BGM/result_killing_party");
+        if (resultBgm != null)
+        {
+            bgmSource.clip = resultBgm;
+            resultBgm.LoadAudioData();   // 入場と同フレームで Play できるよう先読み
+        }
     }
 
     private void BuildBackgroundDecor(RectTransform root)
@@ -1036,7 +1026,7 @@ public sealed class ResultScreen : MonoBehaviour
     private void FinishEntranceImmediate()
     {
         StopEntranceRoutine();
-        if (seSource != null) seSource.Stop();
+        // BGM は止めない(映像だけスキップ、音楽は流し続ける)。
         ApplyEntranceFrame(9999f);
     }
 
@@ -1053,41 +1043,22 @@ public sealed class ResultScreen : MonoBehaviour
         float total = StampImpactTime() + EnterTail;
         float t = 0f;
         ApplyEntranceFrame(0f);
+        // 音ハメ: 入場アニメと同フレームでリザルト BGM(Killing Party 1:50〜)を
+        // 頭から再生。build-up=溜め、1.44s のドロップ=スタンプ着地に一致する。
+        if (bgmSource != null && resultBgm != null)
+        {
+            bgmSource.time = 0f;
+            bgmSource.Play();
+        }
         while (t < total)
         {
             yield return null;
-            float prev = t;
             t += Mathf.Min(Time.unscaledDeltaTime, 1f / 30f);
-            PlayEntranceSounds(prev, t);
             ApplyEntranceFrame(t);
         }
         ApplyEntranceFrame(9999f);
         entering = false;
         entranceRoutine = null;
-    }
-
-    // 入場演出の効果音。ApplyEntranceFrame は再入・スキップされる純関数なので、
-    // 音はコルーチン側の時刻区間 (prev, now] のイベント跨ぎ判定でだけ鳴らす。
-    private void PlayEntranceSounds(float prev, float now)
-    {
-        // カードのスライドイン: 4枚重なると騒がしいので左右1回ずつ(0枚目/2枚目)。
-        for (int i = 0; i < builtCardCount; i += 2)
-            if (Crossed(prev, now, EnterCardStart + i * EnterCardStagger))
-                PlaySe(seCardSwish, SeVolCard);
-
-        // 数値カウントアップ: 駆動音(電子カスケード)+確定パルス。
-        if (Crossed(prev, now, EnterCountStart)) PlaySe(seCount, SeVolCount);
-        if (Crossed(prev, now, EnterCountStart + EnterCountDur)) PlaySe(seCountDone, SeVolCountDone);
-
-        // ランクスタンプの着地。クリアは短い一撃、失敗は重い地響き。
-        if (Crossed(prev, now, StampImpactTime()))
-            PlaySe(resultCleared ? seStampClear : seStampFail,
-                resultCleared ? SeVolStampClear : SeVolStampFail);
-    }
-
-    private static bool Crossed(float prev, float now, float at)
-    {
-        return prev < at && now >= at;
     }
 
     // 入場シーケンスの時刻 t（秒）における全要素の状態を決める純関数。
@@ -1278,6 +1249,8 @@ public sealed class ResultScreen : MonoBehaviour
     public void HideImmediate()
     {
         StopEntranceRoutine();
+        // リザルトを閉じるときは BGM も止める(タイトル/選択画面へ持ち越さない)。
+        if (bgmSource != null) bgmSource.Stop();
         gameObject.SetActive(false);
     }
 
@@ -1306,7 +1279,6 @@ public sealed class ResultScreen : MonoBehaviour
     private void RequestExit()
     {
         if (!gameObject.activeSelf) return;
-        PlaySe(seDecide, SeVolDecide);
         ActionRequested?.Invoke(Action.StageSelect);
     }
 
