@@ -323,7 +323,7 @@ public class QuadOrder : MonoBehaviour
     public void QuadUpdate(float _dt)
     {
         BulletUpdate(_dt);
-        CheckCollisionWithEnemy(GManager.Control.PController.pos, _dt);
+        CheckCollisionWithEnemy(GManager.Control.PController, 0, _dt);
         for (int i = 0; i < allLASERs.Count; i++)
         {
             LASER laser = allLASERs[i];
@@ -342,7 +342,17 @@ public class QuadOrder : MonoBehaviour
             }
         }
         UpdateDirtyLASERCellIndices();
-        CheckCollisionWithLASER(GManager.Control.PController.pos);
+        CheckCollisionWithLASER(GManager.Control.PController, 0);
+
+        // 2P: P2 の当たり判定を P1 と同経路で逐次に走らせる。共有の NativeArray は
+        // 各呼び出しが Schedule→Complete / Run で同期完了するため逐次実行なら安全。
+        // 無敵・被弾カウントは player 引数で個別に扱う(プレイヤー同士の衝突は無し)。
+        GManager gm = GManager.Control;
+        if (gm != null && gm.twoPlayer && gm.PController2 != null)
+        {
+            CheckCollisionWithEnemy(gm.PController2, 1, _dt);
+            CheckCollisionWithLASER(gm.PController2, 1);
+        }
 
         UpdateMultiBullets(_dt);
 
@@ -1073,22 +1083,23 @@ public class QuadOrder : MonoBehaviour
     #endregion
 
     #region //collisionMethods
-    private void NotifyPlayerHit(string source)
+    private void NotifyPlayerHit(string source, PlayerController player, int playerIndex)
     {
-        PlayerController player = GManager.Control?.PController;
         if (player == null) return;
         if (!player.TryHit()) return;
 
-        GManager.Control?.AddPlayerHitCount();
+        GManager.Control?.AddPlayerHitCount(playerIndex, 1);
 
         if (IsRaymeeDebugEnabled())
         {
-            Debug.Log($"{source} collision detected.");
+            Debug.Log($"{source} (P{playerIndex + 1}) collision detected.");
         }
     }
 
-    public void CheckCollisionWithEnemy(float2 pPos, float dt)
+    public void CheckCollisionWithEnemy(PlayerController player, int playerIndex, float dt)
     {
+        if (player == null) return;
+        float2 pPos = player.pos;
         if (collisionDataDirty || !collisionVerts.IsCreated || !collisionVertRanges.IsCreated || !bulletPowers.IsCreated) BuildCollisionData();
         if (!collisionHitFlag.IsCreated) collisionHitFlag = new NativeArray<int>(1, Allocator.Persistent);
         if (!grazePower.IsCreated) grazePower = new NativeArray<float>(1, Allocator.Persistent);
@@ -1096,7 +1107,7 @@ public class QuadOrder : MonoBehaviour
         if (!bulletPowers.IsCreated) bulletPowers = new NativeArray<float>(0, Allocator.Persistent);
 
         // カウンターはダッシュ中のみ(被弾後の無敵時間では出さない)。
-        bool isPlayerDash = GManager.Control.PController.IsDashing;
+        bool isPlayerDash = player.IsDashing;
         NativeArray<BulletData> checkBullets;
 
         if (isPlayerDash)
@@ -1191,7 +1202,7 @@ public class QuadOrder : MonoBehaviour
 
         if (collisionHitFlag[0] != 0)
         {
-            NotifyPlayerHit("Enemy bullet");
+            NotifyPlayerHit("Enemy bullet", player, playerIndex);
         }
 
         if (grazePower[0] > 0f && IsRaymeeDebugEnabled())
@@ -1266,10 +1277,10 @@ public class QuadOrder : MonoBehaviour
         }
     }
 
-    public void CheckCollisionWithLASER(float2 pPos)
+    public void CheckCollisionWithLASER(PlayerController player, int playerIndex)
     {
-        PlayerController player = GManager.Control?.PController;
         if (player == null || player.invincible) return;
+        float2 pPos = player.pos;
 
         int pCell = GetTreeNum(pPos);
         if (pCell == -1) return;
@@ -1299,7 +1310,7 @@ public class QuadOrder : MonoBehaviour
             float2sets.Dispose();
             if (collisionHitFlag[0] != 0)
             {
-                NotifyPlayerHit("Laser");
+                NotifyPlayerHit("Laser", player, playerIndex);
                 break;
             }
         }

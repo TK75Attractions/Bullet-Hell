@@ -31,6 +31,11 @@ public class GManager : MonoBehaviour
 
     public GameObject PlayerObj;
     public PlayerController PController;
+    // 2P(その1): 2 人プレイ時のみ使う 2 人目。既定は 1 人プレイなので生成のみ・非アクティブ。
+    public PlayerController PController2;
+    private GameObject player2Obj;
+    // タイトルで選択される人数。false=1 人(既定)、true=2 人。1P モードは完全に従来どおり。
+    public bool twoPlayer = false;
 
     public InputManager IManager;
     public StageReader SReader;
@@ -82,6 +87,8 @@ public class GManager : MonoBehaviour
 
     public bool musicOn = false;
     public int playerHitCount = 0;
+    // 2P(その1): P2 の被弾回数は P1 とは別カウント(無敵時間も個別)。1P では未使用。
+    public int playerHitCount2 = 0;
     public int counterHitBossCount = 0;
 
     // --- Stone stage M21 landing shake ------------------------------------
@@ -201,6 +208,20 @@ public class GManager : MonoBehaviour
             }
             LogStartup("Player initialized");
 
+            // 2P(その1): 2 人目を生成しておく(既定は非アクティブ)。実際に動かすのは
+            // タイトルで 2 人プレイを選び、ステージ開始で twoPlayer が真のときだけ。
+            // 1 人プレイでは非アクティブのまま=描画も更新もされず 1P 挙動に影響しない。
+            PController2 = new PlayerController { playerIndex = 1 };
+            player2Obj = Instantiate(PlayerObj);
+            player2Obj.transform.position = new Vector3(20f, 3f, 0f);
+            PController2.Init(player2Obj);
+            if (player2Obj.GetComponent<PlayerFrontOverlay>() == null)
+            {
+                player2Obj.AddComponent<PlayerFrontOverlay>();
+            }
+            player2Obj.SetActive(false);
+            LogStartup("Player2 initialized (inactive)");
+
             // Attach the (idle-by-default) camera shake to the main gameplay
             // camera so event-driven landing shakes (e.g. the stone stage M21
             // golem slam) can play. It never touches the transform until it is
@@ -293,6 +314,12 @@ public class GManager : MonoBehaviour
         {
             // The player can also move during the pre-stage tutorial.
             if (state == GameState.Playing || state == GameState.Tutorial) PController.UpdatePos(t);
+        }
+        // 2P: 2 人プレイ時のみ P2 も動かす(チュートリアルは 1P のみ対応の設計)。
+        if (twoPlayer && PController2 != null && player2Obj != null && player2Obj.activeSelf
+            && state == GameState.Playing)
+        {
+            PController2.UpdatePos(t);
         }
 
         SReader.UpdateStage(t);
@@ -405,6 +432,20 @@ public class GManager : MonoBehaviour
             default: // Menu
                 stageSelectButton = false;
                 TManager?.UpdateMenu(t, IManager.upPressedThisFrame, IManager.downPressedThisFrame);
+
+                // 人数選択: P1 の ←=1 人 / →=2 人。選択に合わせて入力基盤(P2 キーボード)も
+                // 切り替える。実機は P1 スティック左右、キーボードは 2P モードだと矢印が P2 に
+                // 回るため WASD の A/D で操作する(WASD は常に P1)。
+                if (IManager.leftPressedThisFrame)
+                {
+                    TManager?.SetTwoPlayer(false);
+                    SetPlayerCount(false);
+                }
+                else if (IManager.rightPressedThisFrame)
+                {
+                    TManager?.SetTwoPlayer(true);
+                    SetPlayerCount(true);
+                }
 
                 // Require the button to be released once before the title accepts
                 // a press, so a button still held from a previous screen cannot
@@ -609,9 +650,16 @@ public class GManager : MonoBehaviour
         currentStageIndex = index;
 
         playerHitCount = 0;
+        playerHitCount2 = 0;
         counterHitBossCount = 0;
         QOrder?.ClearManagedEnemyDanmaku();
         PController?.ResetToCenter();
+        // 2P: 2 人プレイならこのステージで P2 を出す。1 人なら確実に隠す。
+        if (player2Obj != null)
+        {
+            player2Obj.SetActive(twoPlayer);
+            if (twoPlayer) PController2?.ResetToCenter();
+        }
         TManager?.Dismiss();
         HideTitleBossBackdrop();
         // 曲選択で流れていたタイトル BGM を、ステージ BGM 開始前にフェードアウトして
@@ -680,6 +728,8 @@ public class GManager : MonoBehaviour
         // ステージ BGM のフェードアウトと自然にクロスする。
         AManager?.FadeOutAndStopBGM(0.5f);
         QOrder?.ClearAllGameplayBulletsImmediate();
+        // 2P: リザルトへ移る際は P2 をフィールドから隠す(リザルトの左右分割は別便)。
+        if (player2Obj != null) player2Obj.SetActive(false);
 
         if (recordHistory && cleared && stage != null)
         {
@@ -816,6 +866,21 @@ public class GManager : MonoBehaviour
     {
         if (value <= 0) return;
         playerHitCount += value;
+    }
+
+    // 2P: プレイヤー別の被弾加算(0=P1, 1=P2)。衝突判定(QuadOrder)から player 別に呼ぶ。
+    public void AddPlayerHitCount(int playerIndex, int value)
+    {
+        if (value <= 0) return;
+        if (playerIndex == 1) playerHitCount2 += value;
+        else playerHitCount += value;
+    }
+
+    // タイトルの人数選択から呼ぶ。入力基盤(キーボードの P2 割り当て)も同時に切り替える。
+    public void SetPlayerCount(bool two)
+    {
+        twoPlayer = two;
+        if (IManager != null) IManager.twoPlayerMode = two;
     }
 
     public void AddCounterHitBossCount(int value = 1)

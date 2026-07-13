@@ -152,6 +152,20 @@ public class TitleManager : MonoBehaviour
     private static readonly Color ApplyLabelIdle = new Color(0.624f, 0.722f, 0.761f, 0.6f);
     private static readonly Color ApplyLabelReady = new Color(1f, 1f, 1f, 0.95f);
 
+    // ---- 1P/2P 人数トグル(2P その1) --------------------------------------
+    // 3 行メニュー(スタート/設定/引き継ぎ)は固定レイアウトのため触らず、ロゴと
+    // メニューの間に独立した「1P | 2P」トグルを置く。既定 1P。P1 の ←/→ で切替。
+    // 既存の平行四辺形ボタン様式(menuButtonSprite・19°スラッシュ言語)を流用する。
+    private RectTransform playerCountRoot;
+    private readonly Image[] pcSegBars = new Image[2];
+    private readonly TMP_Text[] pcSegLabels = new TMP_Text[2];
+    private bool pcTwoPlayer = false;
+    private static readonly Color PcSelText = Color.white;
+    private static readonly Color PcSelBar = Color.white;
+    private static readonly Color PcDimText = new Color(0.5f, 0.55f, 0.63f, 1f);
+    private static readonly Color PcDimBar = new Color(0.38f, 0.42f, 0.5f, 0.9f);
+    public bool TwoPlayerSelected => pcTwoPlayer;
+
     public int MenuIndex => menuIndex;
     public TitleMenuAction CurrentAction => (TitleMenuAction)menuIndex;
     public bool IsTransferOpen => transferOpen;
@@ -580,11 +594,13 @@ public class TitleManager : MonoBehaviour
     public void ShowMenu()
     {
         if (menuRoot != null) menuRoot.gameObject.SetActive(true);
+        SetPlayerCountToggleVisible(true);
     }
 
     public void HideMenu()
     {
         if (menuRoot != null) menuRoot.gameObject.SetActive(false);
+        SetPlayerCountToggleVisible(false);
     }
 
     // Navigate + animate the vertical menu. Selection mirrors DefficultyBox
@@ -816,6 +832,115 @@ public class TitleManager : MonoBehaviour
             menuWhiteY = rowY[0];
             menuWhite.anchoredPosition = new Vector2(0f, menuWhiteY);
         }
+
+        BuildPlayerCountToggle(rowY.Length > 0 ? rowY[0] : rowCenter + rowGap);
+    }
+
+    // ロゴとメニュー最上段の間に「1P | 2P」トグルを組む。topRowY はメニュー最上段の y。
+    // その少し上(+124)へ 2 セグメントを横並びで置く。焼き込みボタン様式を縮小流用。
+    private void BuildPlayerCountToggle(float topRowY)
+    {
+        GameObject rootObj = new GameObject("PlayerCountToggle", typeof(RectTransform));
+        rootObj.layer = gameObject.layer;
+        playerCountRoot = (RectTransform)rootObj.transform;
+        playerCountRoot.SetParent(transform, false);
+        playerCountRoot.anchorMin = playerCountRoot.anchorMax = new Vector2(0.5f, 0.5f);
+        playerCountRoot.pivot = new Vector2(0.5f, 0.5f);
+        playerCountRoot.anchoredPosition = new Vector2(0f, topRowY + 132f);
+        playerCountRoot.sizeDelta = new Vector2(520f, 96f);
+
+        const float segW = 176f;
+        const float segH = 78f;
+        const float segGap = 24f;
+        string[] segText = { "1P", "2P" };
+        float[] segX = { -(segW + segGap) * 0.5f, (segW + segGap) * 0.5f };
+
+        for (int i = 0; i < 2; i++)
+        {
+            GameObject segObj = new GameObject("Seg" + i, typeof(RectTransform));
+            segObj.layer = gameObject.layer;
+            RectTransform seg = (RectTransform)segObj.transform;
+            seg.SetParent(playerCountRoot, false);
+            seg.anchorMin = seg.anchorMax = new Vector2(0.5f, 0.5f);
+            seg.pivot = new Vector2(0.5f, 0.5f);
+            seg.anchoredPosition = new Vector2(segX[i], 0f);
+            seg.sizeDelta = new Vector2(segW, segH);
+
+            Image bar = segObj.AddComponent<Image>();
+            bar.sprite = menuButtonSprite;   // 焼き込みバナー(660x160)を縮小流用
+            bar.type = Image.Type.Simple;
+            bar.raycastTarget = false;
+            pcSegBars[i] = bar;
+
+            // 焼き込みボタンと同じ 19° 細スラッシュを左右端に添えてメニューと様式統一。
+            float thinX = segW * 0.5f - 8f;
+            UiButtonStyle.AddSlash(seg, "PcSlashL", new Color(1f, 1f, 1f, 0.5f), -thinX, 2.2f, segH - 16f);
+            UiButtonStyle.AddSlash(seg, "PcSlashR", new Color(1f, 1f, 1f, 0.5f), thinX, 2.2f, segH - 16f);
+
+            GameObject lblObj = new GameObject("Label", typeof(RectTransform));
+            lblObj.layer = gameObject.layer;
+            RectTransform lblRect = (RectTransform)lblObj.transform;
+            lblRect.SetParent(seg, false);
+            lblRect.anchorMin = Vector2.zero;
+            lblRect.anchorMax = Vector2.one;
+            lblRect.offsetMin = lblRect.offsetMax = Vector2.zero;
+            TMP_Text lbl = lblObj.AddComponent<TextMeshProUGUI>();
+            if (uiFont != null) lbl.font = uiFont;
+            lbl.text = segText[i];
+            lbl.fontSize = 40f;
+            lbl.alignment = TextAlignmentOptions.Center;
+            lbl.raycastTarget = false;
+            pcSegLabels[i] = lbl;
+        }
+
+        // 操作ヒント(小さく・下側)。
+        GameObject hintObj = new GameObject("PcHint", typeof(RectTransform));
+        hintObj.layer = gameObject.layer;
+        RectTransform hintRect = (RectTransform)hintObj.transform;
+        hintRect.SetParent(playerCountRoot, false);
+        hintRect.anchorMin = hintRect.anchorMax = new Vector2(0.5f, 0.5f);
+        hintRect.pivot = new Vector2(0.5f, 1f);
+        hintRect.anchoredPosition = new Vector2(0f, -segH * 0.5f - 6f);
+        hintRect.sizeDelta = new Vector2(520f, 34f);
+        TMP_Text hint = hintObj.AddComponent<TextMeshProUGUI>();
+        if (uiFont != null) hint.font = uiFont;
+        hint.text = "◀ ▶ で人数選択";
+        hint.fontSize = 22f;
+        hint.alignment = TextAlignmentOptions.Center;
+        hint.color = new Color(0.6f, 0.68f, 0.78f, 0.85f);
+        hint.raycastTarget = false;
+
+        ApplyPlayerCountVisual();
+    }
+
+    // トグルの選択状態を見た目に反映(選択セグメント=白/明、非選択=灰/沈む)。
+    private void ApplyPlayerCountVisual()
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            bool selected = (i == 1) == pcTwoPlayer;
+            if (pcSegBars[i] != null) pcSegBars[i].color = selected ? PcSelBar : PcDimBar;
+            if (pcSegLabels[i] != null)
+            {
+                pcSegLabels[i].color = selected ? PcSelText : PcDimText;
+                pcSegLabels[i].fontStyle = selected ? FontStyles.Bold : FontStyles.Normal;
+            }
+        }
+    }
+
+    // GManager から呼ぶ。人数選択を設定して見た目を更新する。戻り値=変化したか。
+    public bool SetTwoPlayer(bool two)
+    {
+        if (pcTwoPlayer == two) return false;
+        pcTwoPlayer = two;
+        ApplyPlayerCountVisual();
+        return true;
+    }
+
+    // メニュー表示/非表示に人数トグルも追従させる。
+    public void SetPlayerCountToggleVisible(bool visible)
+    {
+        if (playerCountRoot != null) playerCountRoot.gameObject.SetActive(visible);
     }
 
     // 決定閃光用の白オーバーレイ。焼き込みバナーの枠(内側 44/22 マージン)と同じ

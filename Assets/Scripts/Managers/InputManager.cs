@@ -30,6 +30,12 @@ public class InputManager : MonoBehaviour
     // false(既定)= シリアルも開いてキーボードと併用。いずれの場合もキーボードは常に有効。
     public bool isDebugMode = false;
 
+    // true = 2 人プレイ。P2 のキーボード代替(矢印キー+RightShift/Enter)を有効にし、
+    // その分 P1 のキーボードは WASD のみへ狭める(矢印を P2 に譲る)。false(既定)では
+    // 従来どおり矢印も WASD も P1 に入る=1P の入力挙動は完全に不変。タイトルの人数選択で
+    // GManager が設定する。実機シリアル(S 行)の P2 ビットは本フラグに関係なく常に P2 へ入る。
+    public bool twoPlayerMode = false;
+
     // --- P1(既存 1P プレイヤーが消費する状態)---
     public bool buttonPressed;
     public bool buttonPressedThisFrame;
@@ -199,12 +205,24 @@ public class InputManager : MonoBehaviour
         bool prevP2Right = p2Right;
 
         // --- キーボード(常時) ---
-        bool kbButton = keyboard != null && keyboard.spaceKey.isPressed;
-        bool kbUp = keyboard != null && (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed);
-        bool kbDown = keyboard != null && (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed);
-        bool kbLeft = keyboard != null && (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed);
-        bool kbRight = keyboard != null && (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed);
-        bool kbBack = keyboard != null && keyboard.escapeKey.isPressed;
+        bool kb = keyboard != null;
+        // P1 キーボード: 1P モードは従来どおり WASD と矢印の両方(1P 挙動不変)。
+        // 2P モードでは矢印を P2 のテスト操作へ譲るため P1 は WASD のみへ狭める。
+        bool p1Arrows = !twoPlayerMode;
+        bool kbButton = kb && keyboard.spaceKey.isPressed;
+        bool kbUp = kb && (keyboard.wKey.isPressed || (p1Arrows && keyboard.upArrowKey.isPressed));
+        bool kbDown = kb && (keyboard.sKey.isPressed || (p1Arrows && keyboard.downArrowKey.isPressed));
+        bool kbLeft = kb && (keyboard.aKey.isPressed || (p1Arrows && keyboard.leftArrowKey.isPressed));
+        bool kbRight = kb && (keyboard.dKey.isPressed || (p1Arrows && keyboard.rightArrowKey.isPressed));
+        bool kbBack = kb && keyboard.escapeKey.isPressed;
+
+        // P2 キーボード(実機スティックが無い開発/テスト用)。2P モードのときだけ矢印キーを
+        // P2 移動に、RightShift/Enter を P2 の決定(ダッシュ)に割り当てる。1P モードでは全て false。
+        bool kbP2Up = twoPlayerMode && kb && keyboard.upArrowKey.isPressed;
+        bool kbP2Down = twoPlayerMode && kb && keyboard.downArrowKey.isPressed;
+        bool kbP2Left = twoPlayerMode && kb && keyboard.leftArrowKey.isPressed;
+        bool kbP2Right = twoPlayerMode && kb && keyboard.rightArrowKey.isPressed;
+        bool kbP2Button = twoPlayerMode && kb && (keyboard.rightShiftKey.isPressed || keyboard.enterKey.isPressed);
 
         // --- シリアル(接続時のみ)。1 行ずつ解析して状態を更新 ---
         if (serialPort != null && IsSerialOpen())
@@ -262,12 +280,12 @@ public class InputManager : MonoBehaviour
         // 戻る: Esc または P1 の B ボタンは全画面で有効(メニュー操作 = P1 の設計)。
         backPressed = kbBack || serialBackState;
 
-        // --- P2: シリアルのみ ---
-        p2Up = s2Up;
-        p2Down = s2Down;
-        p2Left = s2Left;
-        p2Right = s2Right;
-        p2ButtonPressed = s2A;
+        // --- P2: シリアル(S 行) OR キーボード(2P モード時の矢印/RightShift) ---
+        p2Up = s2Up || kbP2Up;
+        p2Down = s2Down || kbP2Down;
+        p2Left = s2Left || kbP2Left;
+        p2Right = s2Right || kbP2Right;
+        p2ButtonPressed = s2A || kbP2Button;
         p2BackPressed = s2B;
 
         // --- this-frame エッジ(前フレームとの差分)---
