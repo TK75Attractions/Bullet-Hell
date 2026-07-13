@@ -349,6 +349,11 @@ public class StageSelectManager : MonoBehaviour
     // 中央からピクセル(モザイク)状に欠けながらプレイ画面が解像していく。
     private async void StartGameTransition(int stageIndex)
     {
+        // ステージ開始の遷移に入った瞬間から選択/タイトルBGM(Discotheque)をフェードアウト
+        // (2026-07-14 指摘「ステージ開始時、音量はフェードアウトして下げて」)。白覆い・チュートリアル
+        // 中に滑らかに音量が下がる。ステージBGMは GoGameAsync 内で開始(PlayBGM が二重フェードを
+        // 自動キャンセルするため既存 GManager.cs の保険フェードとも衝突しない)。b249413 の機構を流用。
+        GManager.Control?.AManager?.FadeOutAndStopBGM(0.7f);
         if (pixelTransition != null)
         {
             // JSAB の難易度モーダルが開いていれば、行が右へ飛び去ってから白へ。

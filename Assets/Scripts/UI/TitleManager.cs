@@ -108,6 +108,9 @@ public class TitleManager : MonoBehaviour
     // 灰色(disabled 見た目)+選択不可にする。画面(BuildTransferPanel)は残すので、
     // true に戻すだけで導線が復活する(2026-07-13 指摘)。
     private const bool TransferEnabled = false;
+    // 引き継ぎ行の表示可否(2026-07-14 指摘「一旦引き継ぎは非表示に」)。false で行ごと消す
+    // (灰色無効化からさらに進めて非表示)。true に戻すだけで復活(その場合 TransferEnabled で有効/灰色を選ぶ)。
+    private const bool ShowTransferRow = false;
     private bool[] menuRowEnabled = new bool[0];
     // 無効行の見た目(灰色・沈む)。有効行は白/MenuTextBase。
     private static readonly Color MenuDisabledText = new Color(0.45f, 0.48f, 0.55f, 1f);
@@ -673,12 +676,19 @@ public class TitleManager : MonoBehaviour
         menuRoot.anchoredPosition = Vector2.zero;
         menuRoot.sizeDelta = new Vector2(700f, 500f);
 
-        string[] labels = { "スタート", "設定", "引き継ぎ" };
-        // 難易度ボタン規格(660x160)へ拡大したぶん、行間も難易度と同じ DiffRowSpacing に
-        // 広げる。ロゴを僅かに上げたぶんの余白へ 3 行を収める中心 -278(2026-07-13)。
+        // 引き継ぎ行は既定で非表示(ShowTransferRow=false)。行ごと作らず 2 行に。
+        string[] labels = ShowTransferRow
+            ? new[] { "スタート", "設定", "引き継ぎ" }
+            : new[] { "スタート", "設定" };
+        // 難易度ボタン規格(660x160)。行間は難易度と同じ DiffRowSpacing。
+        // n 行を rowCenter 中心に等間隔で並べる(3 行時は従来の {center+gap, center, center-gap} と一致)。
         float rowGap = UiButtonStyle.DiffRowSpacing;
-        const float rowCenter = -278f;
-        float[] rowY = { rowCenter + rowGap, rowCenter, rowCenter - rowGap };
+        // 2 行時はロゴ下へ余裕をもって配置(トグルをスタート旧位置-106へ・2ボタンを下段へ)。
+        // 3 行復活時は従来の -278 中心(3 行が画面内に収まる)。
+        float rowCenter = ShowTransferRow ? -278f : -364f;
+        float[] rowY = new float[labels.Length];
+        for (int i = 0; i < labels.Length; i++)
+            rowY[i] = rowCenter + (labels.Length - 1) * rowGap * 0.5f - i * rowGap;
 
         // The real difficulty-select column lives next to the title in the same
         // canvas; clone its row (banner + label) and white brackets so the title
@@ -698,7 +708,8 @@ public class TitleManager : MonoBehaviour
         // 各行の有効/無効。既定は全て有効。引き継ぎ行だけ TransferEnabled で切替。
         menuRowEnabled = new bool[labels.Length];
         for (int i = 0; i < labels.Length; i++) menuRowEnabled[i] = true;
-        menuRowEnabled[(int)TitleMenuAction.Transfer] = TransferEnabled;
+        // 引き継ぎ行を表示する場合のみ有効/無効を設定(非表示時は行自体が無いので配列外参照を避ける)。
+        if (ShowTransferRow) menuRowEnabled[(int)TitleMenuAction.Transfer] = TransferEnabled;
 
         // リザルト様式のボタン本体を難易度規格(660x160)で焼く(2026-07-13 統一)。
         if (menuButtonSprite == null)
@@ -846,7 +857,9 @@ public class TitleManager : MonoBehaviour
         playerCountRoot.SetParent(transform, false);
         playerCountRoot.anchorMin = playerCountRoot.anchorMax = new Vector2(0.5f, 0.5f);
         playerCountRoot.pivot = new Vector2(0.5f, 0.5f);
-        playerCountRoot.anchoredPosition = new Vector2(0f, topRowY + 132f);
+        // トグルはメニュー最上段の 1 行分(DiffRowSpacing)上へ。ロゴと最上段ボタンの中間で
+        // 均等間隔になり、ロゴへの重なりを解消(2026-07-14 指摘「ぐちゃぐちゃ」)。
+        playerCountRoot.anchoredPosition = new Vector2(0f, topRowY + UiButtonStyle.DiffRowSpacing);
         playerCountRoot.sizeDelta = new Vector2(520f, 96f);
 
         const float segW = 176f;
