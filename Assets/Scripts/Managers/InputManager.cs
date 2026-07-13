@@ -180,19 +180,16 @@ public class InputManager : MonoBehaviour
         bool serLeft = serialMove.x < -0.5f;
         bool serRight = serialMove.x > 0.5f;
 
+        // 筐体の設置向きに合わせた回転/反転(F2 デバッグで切替、既定は無変換)は
+        // ジョイスティック(シリアル)入力にのみ適用する。キーボード WASD は開発/操作用で
+        // 筐体の物理的な設置向きとは無関係なため、回転させると操作が破綻する(実機不具合)。
+        ApplyInputOrientation(ref serUp, ref serDown, ref serLeft, ref serRight);
+
         // --- キーボード OR シリアルをマージ ---
-        bool mUp = kbUp || serUp;
-        bool mDown = kbDown || serDown;
-        bool mLeft = kbLeft || serLeft;
-        bool mRight = kbRight || serRight;
-
-        // 筐体の設置向きに合わせて入力方向を回転/反転(F2 デバッグで切替、既定は無変換)。
-        ApplyInputOrientation(ref mUp, ref mDown, ref mLeft, ref mRight);
-
-        upPressed = mUp;
-        downPressed = mDown;
-        leftPressed = mLeft;
-        rightPressed = mRight;
+        upPressed = kbUp || serUp;
+        downPressed = kbDown || serDown;
+        leftPressed = kbLeft || serLeft;
+        rightPressed = kbRight || serRight;
         buttonPressed = kbButton || serialButtonState;
         backPressed = kbBack;
 
