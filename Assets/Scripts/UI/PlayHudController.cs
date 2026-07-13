@@ -525,11 +525,13 @@ public class PlayHudController : MonoBehaviour
         if (songIconRect != null) songIconRect.gameObject.SetActive(false);
         if (songNameText != null)
         {
-            songNameText.fontSize = 22f;
+            // oracle 指摘: 曲名が小さく進捗バーの飾り文字に近い。中央軸としての存在感を
+            // 少し戻すため一段拡大(22→25)。バー幅・位置は不変。
+            songNameText.fontSize = 25f;
             songNameText.alignment = TextAlignmentOptions.Center;
             RectTransform nr = (RectTransform)songNameText.transform;
             nr.anchoredPosition = new Vector2(-10f, RowY + 30f); // 進捗バー(-10,RowY)の直上
-            nr.sizeDelta = new Vector2(TrackW, 26f);
+            nr.sizeDelta = new Vector2(TrackW, 28f);
         }
 
         // ---- バー時刻: バー直下の中央へ(1P では右外だが 2P は P2 カードと被る) ----

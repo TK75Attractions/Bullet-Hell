@@ -748,11 +748,11 @@ public sealed class ResultScreen : MonoBehaviour
         // P1/P2 見出し(各ランクの上・トーン色。HUD と同じ 温色/シアン)。
         p1RankTag = NewText("P1Tag", rankGroupRect, "1P", 44f,
             new Color(1f, 0.80f, 0.40f, 1f), TextAlignmentOptions.Center);
-        SetRect((RectTransform)p1RankTag.transform, new Vector2(-178f, 172f), new Vector2(180f, 56f));
+        SetRect((RectTransform)p1RankTag.transform, new Vector2(-225f, 158f), new Vector2(180f, 56f));
         p1RankTag.gameObject.SetActive(false);
         p2RankTag = NewText("P2Tag", rankGroupRect, "2P", 44f,
             new Color(0.45f, 0.85f, 1f, 1f), TextAlignmentOptions.Center);
-        SetRect((RectTransform)p2RankTag.transform, new Vector2(178f, 172f), new Vector2(180f, 56f));
+        SetRect((RectTransform)p2RankTag.transform, new Vector2(225f, 158f), new Vector2(180f, 56f));
         p2RankTag.gameObject.SetActive(false);
     }
 
@@ -1154,17 +1154,20 @@ public sealed class ResultScreen : MonoBehaviour
         finalHit2 = Mathf.Max(0, hit2);
 
         // --- 中央: 2 人分のランク(P1=左へ縮小移動 / P2=右) ---
+        // oracle 指摘: A/B が近接+同色で「AB」という 1 語に見える。各字を一段縮小し
+        // 左右へ広げて中央に明確な空きを作り、1P/2P タグとの所属関係を強める。
         string rank1 = EvaluateRank(cleared, hit1);
         string rank2 = EvaluateRank(cleared, hit2);
-        const float rankScale = 0.62f;
+        const float rankScale = 0.56f;
+        const float rankOffset = 225f;
         rankText.text = rank1;
-        rankText.rectTransform.anchoredPosition = new Vector2(-178f + (rank1 == "F" ? 8f : 0f), 23f);
+        rankText.rectTransform.anchoredPosition = new Vector2(-rankOffset + (rank1 == "F" ? 8f : 0f), 23f);
         rankText.rectTransform.localScale = new Vector3(1.09f * rankScale, rankScale, 1f);
         if (rankText2 != null)
         {
             rankText2.gameObject.SetActive(true);
             rankText2.text = rank2;
-            rankText2.rectTransform.anchoredPosition = new Vector2(178f + (rank2 == "F" ? 8f : 0f), 23f);
+            rankText2.rectTransform.anchoredPosition = new Vector2(rankOffset + (rank2 == "F" ? 8f : 0f), 23f);
             rankText2.rectTransform.localScale = new Vector3(1.09f * rankScale, rankScale, 1f);
             rankText2.color = cleared ? Color.white : new Color(1f, 0.52f, 0.65f, 1f);
             rankText2.outlineColor = cleared
