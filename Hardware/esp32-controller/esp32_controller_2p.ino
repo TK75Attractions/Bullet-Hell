@@ -38,6 +38,13 @@ const char* KEYS = "UDLRB";
 // 送信ボーレート・デバッグ設定
 const unsigned long BAUD = 115200;
 const unsigned long DEBOUNCE_MS = 5;   // デバウンス兼レート制限（最大 200Hz）
+const unsigned long SERIAL_WAIT_MS = 3000;
+const unsigned long HELLO_INTERVAL_MS = 2000;
+
+uint8_t prev1 = 0;
+uint8_t prev2 = 0;
+bool hasSentState = false;
+unsigned long lastHelloMs = 0;
 
 // 前方宣言（Arduino IDE は自動生成するが、PlatformIO 等でも確実にするため明示）。
 char hexDigit(uint8_t v);
@@ -62,18 +69,36 @@ void setup() {
     pinMode(P2_PINS[i], INPUT_PULLUP);
   }
 
+  // Native USB CDC is re-enumerated after reset. Give the host time to open
+  // the port so the startup greeting is not lost, but never block forever.
+  unsigned long t0 = millis();
+  while (!Serial && millis() - t0 < SERIAL_WAIT_MS) {
+    delay(10);
+  }
+
+  // Treat the boot-time input as the baseline. The first actual change sends
+  // the first S line and stops the periodic HELLO messages below.
+  prev1 = readState(P1_PINS);
+  prev2 = readState(P2_PINS);
+
   // Unity 側の接続確認用に、起動を 1 行知らせる（プロトコル名 + バージョン）。
   // 受信側は "HELLO " で始まる行を「接続 OK」の合図として扱える。
   Serial.print("HELLO 2P v1\n");
+  lastHelloMs = millis();
 }
 
 void loop() {
-  // 前回送信した状態。初期値 0xFF（実際には下位 5bit のみ使用）にしておくと、
-  // 起動直後の最初の 1 回で必ず現在状態を送る（全解放 0x00 でも初回送信される）。
-  static uint8_t prev1 = 0xFF, prev2 = 0xFF;
+  // setup() で記録した起動時状態から変化したときだけ S 行を送る。
   static unsigned long lastMs = 0;
 
   unsigned long now = millis();
+  // Keep advertising the CDC port until the first input report proves that
+  // controller data is flowing. Unsigned subtraction remains safe at wrap.
+  if (!hasSentState && now - lastHelloMs >= HELLO_INTERVAL_MS) {
+    Serial.print("HELLO 2P v1\n");
+    lastHelloMs = now;
+  }
+
   if (now - lastMs < DEBOUNCE_MS) {
     return;                       // デバウンス兼レート制限
   }
@@ -100,6 +125,7 @@ void loop() {
 
     prev1 = s1;
     prev2 = s2;
+    hasSentState = true;
   }
 }
 
