@@ -33,6 +33,25 @@ public class InputManager : MonoBehaviour
     public bool leftPressedThisFrame;
     public bool rightPressedThisFrame;
 
+    // --- 入力の向き設定(F2 デバッグ画面で切替) ---
+    // 筐体の設置(ジョイスティックの物理的な取り付け向き)は設計によって変わるため、
+    // 入力方向を 90°刻みで回転(0/90/180/270 = CCW)し、必要なら軸反転もできるようにする。
+    // serialMove 由来のブールにもキーボード由来のブールにも同じ変換をかけるので、実機の
+    // ジョイスティックが無い環境でも WASD で切替動作を確認できる。PlayerPrefs で永続化。
+    private int inputRotation = 0;   // 0..3 = 反時計回り 90°×n
+    private bool inputFlipX = false; // 回転後に左右反転
+    private bool inputFlipY = false; // 回転後に上下反転
+
+    private const string RotPrefKey = "inputDir.rotation";
+    private const string FlipXPrefKey = "inputDir.flipX";
+    private const string FlipYPrefKey = "inputDir.flipY";
+    private bool orientationLoaded = false;
+
+    public int InputRotation => inputRotation;             // 0..3
+    public int InputRotationDegrees => inputRotation * 90; // 0/90/180/270
+    public bool InputFlipX => inputFlipX;
+    public bool InputFlipY => inputFlipY;
+
     public Vector2 Move => serialMove;
     public string LatestRawLine => latestRawLine;
 
@@ -48,6 +67,8 @@ public class InputManager : MonoBehaviour
 
     public void Init()
     {
+        LoadOrientationPrefs();
+
         if (isDebugMode)
         {
             InitStatus = "keyboard only (serial disabled)";
@@ -160,10 +181,18 @@ public class InputManager : MonoBehaviour
         bool serRight = serialMove.x > 0.5f;
 
         // --- キーボード OR シリアルをマージ ---
-        upPressed = kbUp || serUp;
-        downPressed = kbDown || serDown;
-        leftPressed = kbLeft || serLeft;
-        rightPressed = kbRight || serRight;
+        bool mUp = kbUp || serUp;
+        bool mDown = kbDown || serDown;
+        bool mLeft = kbLeft || serLeft;
+        bool mRight = kbRight || serRight;
+
+        // 筐体の設置向きに合わせて入力方向を回転/反転(F2 デバッグで切替、既定は無変換)。
+        ApplyInputOrientation(ref mUp, ref mDown, ref mLeft, ref mRight);
+
+        upPressed = mUp;
+        downPressed = mDown;
+        leftPressed = mLeft;
+        rightPressed = mRight;
         buttonPressed = kbButton || serialButtonState;
         backPressed = kbBack;
 
@@ -173,6 +202,82 @@ public class InputManager : MonoBehaviour
         leftPressedThisFrame = !prevLeftPressed && leftPressed;
         rightPressedThisFrame = !prevRightPressed && rightPressed;
         backPressedThisFrame = keyboard != null && keyboard.escapeKey.wasPressedThisFrame;
+    }
+
+    // 上下左右の押下ブールに、設定された回転(反時計回り 90°×n)と軸反転を適用する。
+    // 既定(回転0・反転なし)では即 return して従来挙動を完全に保つ。回転は方向の置換
+    // として扱うため、同時押しや斜め入力の OR マージ結果もそのまま保存される。
+    private void ApplyInputOrientation(ref bool up, ref bool down, ref bool left, ref bool right)
+    {
+        if (inputRotation == 0 && !inputFlipX && !inputFlipY)
+        {
+            return;
+        }
+
+        bool u = up, d = down, l = left, r = right;
+
+        // 反時計回りに 90°ずつ回す: up<-right, left<-up, down<-left, right<-down
+        for (int i = 0; i < inputRotation; i++)
+        {
+            bool nu = r, nl = u, nd = l, nr = d;
+            u = nu; l = nl; d = nd; r = nr;
+        }
+
+        if (inputFlipX) { bool t = l; l = r; r = t; }
+        if (inputFlipY) { bool t = u; u = d; d = t; }
+
+        up = u; down = d; left = l; right = r;
+    }
+
+    private void LoadOrientationPrefs()
+    {
+        if (orientationLoaded)
+        {
+            return;
+        }
+        inputRotation = ((PlayerPrefs.GetInt(RotPrefKey, 0) % 4) + 4) % 4;
+        inputFlipX = PlayerPrefs.GetInt(FlipXPrefKey, 0) != 0;
+        inputFlipY = PlayerPrefs.GetInt(FlipYPrefKey, 0) != 0;
+        orientationLoaded = true;
+    }
+
+    private void SaveOrientationPrefs()
+    {
+        PlayerPrefs.SetInt(RotPrefKey, inputRotation);
+        PlayerPrefs.SetInt(FlipXPrefKey, inputFlipX ? 1 : 0);
+        PlayerPrefs.SetInt(FlipYPrefKey, inputFlipY ? 1 : 0);
+        PlayerPrefs.Save();
+    }
+
+    // F2 デバッグ画面のボタンから呼ぶ。delta=+1 で反時計回りに 90°進める。
+    public void CycleInputRotation(int delta)
+    {
+        LoadOrientationPrefs();
+        inputRotation = ((inputRotation + delta) % 4 + 4) % 4;
+        SaveOrientationPrefs();
+    }
+
+    public void ToggleInputFlipX()
+    {
+        LoadOrientationPrefs();
+        inputFlipX = !inputFlipX;
+        SaveOrientationPrefs();
+    }
+
+    public void ToggleInputFlipY()
+    {
+        LoadOrientationPrefs();
+        inputFlipY = !inputFlipY;
+        SaveOrientationPrefs();
+    }
+
+    public void ResetInputOrientation()
+    {
+        inputRotation = 0;
+        inputFlipX = false;
+        inputFlipY = false;
+        orientationLoaded = true;
+        SaveOrientationPrefs();
     }
 
     private void OnDestroy()

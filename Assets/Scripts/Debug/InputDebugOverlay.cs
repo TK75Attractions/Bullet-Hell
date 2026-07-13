@@ -23,7 +23,7 @@ public class InputDebugOverlay : MonoBehaviour
     private bool visible = false;
 
     private const float PanelW = 340f;
-    private const float PanelH = 198f;
+    private const float PanelH = 250f;
     private const string NumFmt = "+0.00;-0.00;0.00";
 
     private static readonly Color OnColor = new Color(0.45f, 0.95f, 0.55f);
@@ -141,6 +141,26 @@ public class InputDebugOverlay : MonoBehaviour
         DrawFlag(x + 80f, y, "L", im.leftPressed);
         DrawFlag(x + 120f, y, "R", im.rightPressed);
         y += 24f;
+
+        // --- 入力の向き(筐体の設置向きに合わせて 90°回転 + 軸反転を切替) ---
+        // U/D/L/R は変換後の値なので、ここで ROT/Flip を変えると上の表示にも即反映される。
+        bool oriented = im.InputRotation != 0 || im.InputFlipX || im.InputFlipY;
+        GUI.color = oriented ? WarnColor : OffColor;
+        GUI.Label(new Rect(x, y, PanelW, 20f),
+            $"dir  : ROT {im.InputRotationDegrees}  FlipX {(im.InputFlipX ? "ON" : "off")}  FlipY {(im.InputFlipY ? "ON" : "off")}", rowStyle);
+        GUI.color = Color.white;
+        y += 22f;
+
+        const float bh = 22f;
+        float bx = x;
+        if (GUI.Button(new Rect(bx, y, 74f, bh), "ROT +90")) im.CycleInputRotation(1);
+        bx += 80f;
+        if (GUI.Button(new Rect(bx, y, 58f, bh), im.InputFlipX ? "FX:ON" : "FX:off")) im.ToggleInputFlipX();
+        bx += 64f;
+        if (GUI.Button(new Rect(bx, y, 58f, bh), im.InputFlipY ? "FY:ON" : "FY:off")) im.ToggleInputFlipY();
+        bx += 64f;
+        if (GUI.Button(new Rect(bx, y, 52f, bh), "RESET")) im.ResetInputOrientation();
+        y += 26f;
 
         string raw = string.IsNullOrEmpty(im.LatestRawLine) ? "(none)" : im.LatestRawLine;
         GUI.Label(new Rect(x, y, PanelW - 66f, 18f), $"raw  : {Truncate(raw, 34)}", rawStyle);
