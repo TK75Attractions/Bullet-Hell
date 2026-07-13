@@ -11,29 +11,35 @@
 //   状態が変化したときだけ 1 行を 115200bps で送る。
 //     フォーマット: "S <P1hex> <P2hex>\n"  （例: "S 05 00"）
 //     各バイトのビット割り当て: bit0=上, bit1=下, bit2=左, bit3=右, bit4=ボタン
-//   起動時に接続確認用の 1 行 "HELLO 2P v1\n" を送る。
+//   起動時に接続確認用の 1 行 "HELLO 2P v2\n" を送る。
 //
 // 配線: 全スイッチ NO 端子 → GPIO、COM → GND（INPUT_PULLUP・押下で LOW・外付け抵抗不要）。
 //
-//   入力 | P1（既存配線のまま）| P2
-//   -----+---------------------+-------
-//   上   | GPIO4               | GPIO9
-//   下   | GPIO5               | GPIO10
-//   左   | GPIO6               | GPIO11
-//   右   | GPIO7               | GPIO12
-//   ボタン| GPIO8               | GPIO13
+//   入力    | P1（既存配線のまま）| P2
+//   --------+---------------------+-------
+//   上      | GPIO4               | GPIO9
+//   下      | GPIO5               | GPIO10
+//   左      | GPIO6               | GPIO11
+//   右      | GPIO7               | GPIO12
+//   ボタンA | GPIO8               | GPIO13
+//   ボタンB | GPIO15（戻る）      | GPIO14（戻る）
+//
+// 2026-07-13: 2ボタン構成に拡張（ユーザー確定・A=決定/ダッシュ・B=戻る/ポーズ）。
+//   プロトコルは bit5 に B を追加（bit0=上,1=下,2=左,3=右,4=A,5=B）。HELLO は v2。
+//   旧 v1 パーサは bit5 を無視するだけなので後方互換。
 //
 // ESP32-S3 で避けるピン: 0/3/45/46（ストラップ）・19/20（native USB）・35/36/37（octal PSRAM）・
 // 26〜32（フラッシュ）。GPIO4〜18 は自由に使える。
 //
 // ※ 実機未検証（机上実装）。導通・起動確認は README のチェックリスト参照。
 
-// --- ピン定義（順序は 上,下,左,右,ボタン）---
-const int P1_PINS[5] = {4, 5, 6, 7, 8};      // 既存配線に一致（S3 では全て安全）
-const int P2_PINS[5] = {9, 10, 11, 12, 13};  // P1 と同じ列の下側・連番で配線しやすく
+// --- ピン定義（順序は 上,下,左,右,ボタンA,ボタンB）---
+const int NUM_INPUTS = 6;
+const int P1_PINS[6] = {4, 5, 6, 7, 8, 15};      // 既存配線+B=15（7 の物理隣）
+const int P2_PINS[6] = {9, 10, 11, 12, 13, 14};  // 既存配線+B=14（13 の物理隣）
 
-// ビット名の対応（デバッグ表示・ドキュメント用）: bit0=U,1=D,2=L,3=R,4=B
-const char* KEYS = "UDLRB";
+// ビット名の対応（デバッグ表示・ドキュメント用）: bit0=U,1=D,2=L,3=R,4=A,5=B
+const char* KEYS = "UDLRAB";
 
 // 送信ボーレート・デバッグ設定
 const unsigned long BAUD = 115200;
@@ -54,7 +60,7 @@ void sendLine(const char* line);
 // --- ヘルパ: 5 ピンを読んで 5bit の状態バイトを作る（押下=LOW=1）---
 uint8_t readState(const int* pins) {
   uint8_t s = 0;
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < NUM_INPUTS; i++) {
     if (digitalRead(pins[i]) == LOW) {   // 内部プルアップ: 押下で LOW
       s |= (uint8_t)(1 << i);
     }
@@ -73,7 +79,7 @@ void setup() {
   Serial.begin(BAUD);
   Serial0.begin(BAUD);
 
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < NUM_INPUTS; i++) {
     pinMode(P1_PINS[i], INPUT_PULLUP);
     pinMode(P2_PINS[i], INPUT_PULLUP);
   }
@@ -92,7 +98,7 @@ void setup() {
 
   // Unity 側の接続確認用に、起動を 1 行知らせる（プロトコル名 + バージョン）。
   // 受信側は "HELLO " で始まる行を「接続 OK」の合図として扱える。
-  sendLine("HELLO 2P v1\n");
+  sendLine("HELLO 2P v2\n");
   lastHelloMs = millis();
 }
 
@@ -104,7 +110,7 @@ void loop() {
   // Keep advertising the CDC port until the first input report proves that
   // controller data is flowing. Unsigned subtraction remains safe at wrap.
   if (!hasSentState && now - lastHelloMs >= HELLO_INTERVAL_MS) {
-    sendLine("HELLO 2P v1\n");
+    sendLine("HELLO 2P v2\n");
     lastHelloMs = now;
   }
 

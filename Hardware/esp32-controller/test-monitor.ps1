@@ -30,9 +30,9 @@ try {
 Write-Host "Connected to $Port at 115200 bps with DTR/RTS disabled." -ForegroundColor Cyan
 Write-Host 'Press RST to check HELLO output. Press Ctrl+C to stop.' -ForegroundColor Cyan
 
-$names = @('Up', 'Down', 'Left', 'Right', 'Button')
+$names = @('Up', 'Down', 'Left', 'Right', 'A', 'B')
 function Decode([int]$v) {
-    $on = for ($i = 0; $i -lt 5; $i++) {
+    $on = for ($i = 0; $i -lt 6; $i++) {
         if ($v -band (1 -shl $i)) { $names[$i] }
     }
     if ($on) { $on -join '+' } else { '-' }
