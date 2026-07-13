@@ -85,8 +85,25 @@ public class PlayHudController : MonoBehaviour
     // (c) スコア/被弾ミニカード
     private TMP_Text scoreValue;
     private TMP_Text hitValue;
+    // P1 カードのラベル(2P 化時に P1 タグを付ける・1P では触らない)。
+    private TMP_Text hitLabel;
+    private TMP_Text scoreLabel;
+    // BuildStatCard が最後に生成したラベル(呼び出し直後に捕捉する)。
+    private TMP_Text lastBuiltLabel;
+
+    // 2P(その2): 右側の P2 被弾/スコアカードと、中央へ移す曲名。1P では一切生成せず
+    // 現行レイアウトを完全維持する。HUD は scene 開始時(タイトルの人数選択より前)に
+    // 組まれ twoPlayer が未確定なので、Playing かつ twoPlayer を最初に検出した Update で
+    // 1 度だけ遅延構築する(twoPlayerBuilt)。
+    private bool twoPlayerBuilt;
+    private TMP_Text scoreValue2;
+    private TMP_Text hitValue2;
+    // 1P の右セパレータ(548)。2P では隠して +352 の鏡像に置き換える。
+    private ParallelogramGraphic sepRightA;
+    private ParallelogramGraphic sepRightB;
 
     // 右端の曲名パネル(曲名は中央揃え、♪アイコンはインク幅に追従)
+    private Image songBg;
     private TMP_Text songNameText;
     private RectTransform songIconRect;
     private string lastSongText;
@@ -202,12 +219,18 @@ public class PlayHudController : MonoBehaviour
         float scoreCx = -960f + 28f + HitCardW + 12f + ScoreCardW * 0.5f;
         hitValue = BuildStatCard("HitCard", hitPanel, hitCx, HitCardW,
             "被弾", "HIT", "UI/result_icon_hit");
+        hitLabel = lastBuiltLabel;
         scoreValue = BuildStatCard("ScoreCard", scorePanel, scoreCx, ScoreCardW,
             "スコア", "SCORE", "UI/result_icon_score");
+        scoreLabel = lastBuiltLabel;
 
         // ---- 仕切りのスラッシュ対(カード群/バー間、バー/曲名間) ----
+        // 右セパレータ(548)は 2P で隠して +352 の鏡像へ置き換えるため参照を保持。
+        // 呼び出し内容は AddSeparator(548f) と同一(1P では見た目不変)。
         AddSeparator(-352f);
-        AddSeparator(548f);
+        sepRightA = UiButtonStyle.AddSlash(bandRoot, "SepSlashA", new Color(1f, 1f, 1f, 0.9f), 548f, 6f, 44f);
+        sepRightB = UiButtonStyle.AddSlash(bandRoot, "SepSlashB",
+            new Color(CyanBright.r, CyanBright.g, CyanBright.b, 0.55f), 548f + 16f, 2.5f, 44f);
 
         // ---- 中央: 曲進捗バー(平行四辺形トラック+フィル) ----
         Transform bb = transform.Find("BarBack");
@@ -260,7 +283,7 @@ public class PlayHudController : MonoBehaviour
         // ---- 右: 曲名パネル(カードと同型のパネルに ♪+曲名を中央配置) ----
         Sprite songPanel = UiButtonStyle.CreateHudPanelSprite((int)SongPanelW, (int)CardH,
             ownedTextures, ownedSprites, "HudSongPanel");
-        Image songBg = NewImage("SongPanel", bandRoot, Color.white);
+        songBg = NewImage("SongPanel", bandRoot, Color.white);
         songBg.sprite = songPanel;
         songBg.type = Image.Type.Simple;
         songBg.rectTransform.anchorMin = songBg.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
@@ -448,6 +471,7 @@ public class PlayHudController : MonoBehaviour
 
         inkCenterLabels.Add(label);
         inkCenterLabels.Add(value);
+        lastBuiltLabel = label;
         return value;
     }
 
@@ -460,6 +484,76 @@ public class PlayHudController : MonoBehaviour
         UiButtonStyle.AddSlash(bandRoot, "SepSlashA", new Color(1f, 1f, 1f, 0.9f), centerX, 6f, h);
         UiButtonStyle.AddSlash(bandRoot, "SepSlashB",
             new Color(CyanBright.r, CyanBright.g, CyanBright.b, 0.55f), centerX + 16f, 2.5f, h);
+    }
+
+    // 2P レイアウトの遅延構築(Playing かつ twoPlayer を最初に検出した Update から 1 度)。
+    // 左=P1(現行)の鏡像として右に P2 の被弾/スコアを組み、両側のラベルへ P1/P2 タグを
+    // 付ける。曲名は右パネルを畳んで中央の進捗バー直上の小さな見出しへ移し、バー時刻は
+    // バー直下(中央)へ寄せて P2 カードとの重なりを避ける。1P では決して呼ばれない。
+    private void BuildTwoPlayerLayout()
+    {
+        if (twoPlayerBuilt) return;
+        twoPlayerBuilt = true;
+
+        // ---- 右: P2 の被弾/スコア(左 P1 の鏡像・外=被弾/内=スコア) ----
+        Sprite hitPanel2 = UiButtonStyle.CreateHudPanelSprite((int)HitCardW, (int)CardH,
+            ownedTextures, ownedSprites, "HudHitPanel2");
+        Sprite scorePanel2 = UiButtonStyle.CreateHudPanelSprite((int)ScoreCardW, (int)CardH,
+            ownedTextures, ownedSprites, "HudScorePanel2");
+        float hitCx2 = 960f - 28f - HitCardW * 0.5f;
+        float scoreCx2 = 960f - 28f - HitCardW - 12f - ScoreCardW * 0.5f;
+        scoreValue2 = BuildStatCard("ScoreCard2", scorePanel2, scoreCx2, ScoreCardW,
+            "スコア", "SCORE", "UI/result_icon_score");
+        TMP_Text scoreLabel2 = lastBuiltLabel;
+        hitValue2 = BuildStatCard("HitCard2", hitPanel2, hitCx2, HitCardW,
+            "被弾", "HIT", "UI/result_icon_hit");
+        TMP_Text hitLabel2 = lastBuiltLabel;
+
+        // プレイヤータグ(1P=温色 / 2P=シアン)。EN サブラベルは 2P で外し余白を確保。
+        ApplyPlayerTag(hitLabel, "被弾", true);
+        ApplyPlayerTag(scoreLabel, "スコア", true);
+        ApplyPlayerTag(hitLabel2, "被弾", false);
+        ApplyPlayerTag(scoreLabel2, "スコア", false);
+
+        // ---- 仕切り: 右セパレータ(548)を隠して +352 の鏡像へ ----
+        if (sepRightA != null) sepRightA.gameObject.SetActive(false);
+        if (sepRightB != null) sepRightB.gameObject.SetActive(false);
+        AddSeparator(352f);
+
+        // ---- 曲名: 右パネルを畳み、中央バー直上の小見出しへ ----
+        if (songBg != null) songBg.gameObject.SetActive(false);
+        if (songIconRect != null) songIconRect.gameObject.SetActive(false);
+        if (songNameText != null)
+        {
+            songNameText.fontSize = 22f;
+            songNameText.alignment = TextAlignmentOptions.Center;
+            RectTransform nr = (RectTransform)songNameText.transform;
+            nr.anchoredPosition = new Vector2(-10f, RowY + 30f); // 進捗バー(-10,RowY)の直上
+            nr.sizeDelta = new Vector2(TrackW, 26f);
+        }
+
+        // ---- バー時刻: バー直下の中央へ(1P では右外だが 2P は P2 カードと被る) ----
+        if (barTimeText != null)
+        {
+            barTimeText.alignment = TextAlignmentOptions.Center;
+            RectTransform tr = (RectTransform)barTimeText.transform;
+            tr.anchorMin = tr.anchorMax = new Vector2(0.5f, 0f);
+            tr.pivot = new Vector2(0.5f, 1f);
+            tr.anchoredPosition = new Vector2(0f, -6f);
+            tr.sizeDelta = new Vector2(240f, 26f);
+        }
+
+        // 新規/変更ラベルをインク中央補正で再確定させる。
+        inkCentered = false;
+    }
+
+    // ラベルへ P1/P2 タグ(トーン色つき)を付与する。2P では EN サブラベルを外す。
+    private void ApplyPlayerTag(TMP_Text label, string jp, bool isP1)
+    {
+        if (label == null) return;
+        string tone = isP1 ? "#FFCC66" : "#73D9FF";
+        string tag = isP1 ? "P1" : "P2";
+        label.text = "<color=" + tone + "><size=15>" + tag + "</size></color> " + jp;
     }
 
     private static void StretchFull(RectTransform rect)
@@ -516,6 +610,10 @@ public class PlayHudController : MonoBehaviour
         StageReader sr = gm.SReader;
         if (sr == null || !sr.IsReady) return;
 
+        // 2P(その2): 2 人プレイなら右側 P2 カード+中央曲名レイアウトを 1 度だけ足す。
+        // ink-center パスの前に組み、新ラベルも同フレームで中央補正の対象にする。
+        if (gm.twoPlayer && !twoPlayerBuilt) BuildTwoPlayerLayout();
+
         // 石工のみ左右の縦エッジも消す(純黒背景で縦線がステージ内の線に見える指摘)。
         // StoneShowSideEdges=true にすれば石工も他ステージと同じ左右エッジになる。
         bool stoneStage = sr.CurrentStage != null && sr.CurrentStage.stageDirectoryName == "stone";
@@ -563,6 +661,15 @@ public class PlayHudController : MonoBehaviour
         int score = ResultScreen.CalculateProvisionalScore(false, hit, counter, cur, end);
         if (scoreValue != null) scoreValue.text = score.ToString("000,000");
         if (hitValue != null) hitValue.text = hit.ToString("00");
+
+        // 2P: P2 の被弾/スコア(ボスカウンターは共有・被弾は playerHitCount2)。
+        if (gm.twoPlayer)
+        {
+            int hit2 = gm.playerHitCount2;
+            int score2 = ResultScreen.CalculateProvisionalScore(false, hit2, counter, cur, end);
+            if (scoreValue2 != null) scoreValue2.text = score2.ToString("000,000");
+            if (hitValue2 != null) hitValue2.text = hit2.ToString("00");
+        }
     }
 
     private static string FormatTime(float seconds)
