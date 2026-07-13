@@ -1,0 +1,172 @@
+﻿{
+    "name": "石工後半_暗転",
+    "bullets": [
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 19.5
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": -1.5707963
+            },
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_block",
+            "scale": {
+                "x": 7.0,
+                "y": 7.0
+            },
+            "color": {
+                "x": 0.03,
+                "y": 0.03,
+                "z": 0.05,
+                "w": 0.96
+            },
+            "appearTime": 0.0,
+            "appearDuration": 0.02,
+            "life": 1.281,
+            "random": 0,
+            "unCounterable": true,
+            "useVelocityAngle": false
+        },
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 18.0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": -1.5707963
+            },
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "warn_box",
+            "scale": {
+                "x": 11.0,
+                "y": 11.0
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 1.081,
+            "appearDuration": 0.02,
+            "life": 1.221,
+            "random": 0,
+            "unCounterable": true,
+            "useVelocityAngle": false
+        },
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 9.0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": -1.5707963
+            },
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_block",
+            "scale": {
+                "x": 46.0,
+                "y": 46.0
+            },
+            "color": {
+                "x": 0.01,
+                "y": 0.012,
+                "z": 0.02,
+                "w": 1.0
+            },
+            "appearTime": 1.131,
+            "appearDuration": 0.15,
+            "life": 1.505,
+            "random": 0,
+            "unCounterable": true,
+            "useVelocityAngle": false
+        }
+    ],
+    "homing": false,
+    "isLaser": false
+}
