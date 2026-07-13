@@ -122,6 +122,9 @@ public sealed class ResultScreen : MonoBehaviour
     // BGM 帯(stone -10.7LUFS が最大)より僅かに下の -12LUFS へ揃える減衰
     // (-2.2dB)。全体は AudioListener.volume でさらに減衰する。
     private const float ResultBgmVolume = 0.78f;
+    // PlayScheduled のわずかな先読み(DSP バッファ境界で確実にスケジュールするため)。
+    // この間だけ入場は t=0 で保持され、その後 dspTime に追従する。
+    private const double BgmScheduleLead = 0.08d;
 
     private CanvasGroup headerGroup;
     private RectTransform headerGroupRect;
@@ -1043,17 +1046,31 @@ public sealed class ResultScreen : MonoBehaviour
         float total = StampImpactTime() + EnterTail;
         float t = 0f;
         ApplyEntranceFrame(0f);
-        // 音ハメ: 入場アニメと同フレームでリザルト BGM(Killing Party 1:50〜)を
-        // 頭から再生。build-up=溜め、1.44s のドロップ=スタンプ着地に一致する。
-        if (bgmSource != null && resultBgm != null)
+        // 音ハメ: リザルト BGM(Killing Party 1:50〜)を DSP 時刻でスケジュール再生し、
+        // 入場アニメの時刻を AudioSettings.dspTime に合わせて進める。ステージの
+        // 弾幕が dspTime に同期するのと同じ流儀。描画クロック(captureFramerate や
+        // フレーム落ち)に依らず、スタンプ着地(t=1.44)が曲の強アクセント(clip 1.44s)に
+        // フレーム精度で一致し、Recorder が DSP 時計で取り込む音声とも録画上でずれない。
+        bool useDspClock = bgmSource != null && resultBgm != null;
+        double startDsp = 0d;
+        if (useDspClock)
         {
             bgmSource.time = 0f;
-            bgmSource.Play();
+            startDsp = AudioSettings.dspTime + BgmScheduleLead;
+            bgmSource.PlayScheduled(startDsp);
         }
         while (t < total)
         {
             yield return null;
-            t += Mathf.Min(Time.unscaledDeltaTime, 1f / 30f);
+            if (useDspClock)
+            {
+                double elapsed = AudioSettings.dspTime - startDsp;
+                t = elapsed > 0d ? (float)elapsed : 0f;   // 発音前はフレーム0で保持
+            }
+            else
+            {
+                t += Mathf.Min(Time.unscaledDeltaTime, 1f / 30f);
+            }
             ApplyEntranceFrame(t);
         }
         ApplyEntranceFrame(9999f);
