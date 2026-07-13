@@ -100,6 +100,10 @@ public class TitleManager : MonoBehaviour
     // オーバーレイの減衰で閃光を出す。
     private ParallelogramGraphic[] menuRowFlash = new ParallelogramGraphic[0];
     private Sprite menuButtonSprite;
+    // 1P/2P トグル専用の焼き込み本体。menuButtonSprite(660x160)をトグル(176x78)へ
+    // 流用すると非等倍ストレッチで 19° 斜辺が見かけ約 10.7° に歪むため、トグルの
+    // 表示アスペクトに一致した解像度で別に焼く(2026-07-14 傾き一致対応)。
+    private Sprite pcToggleSprite;
     private float[] menuItemSel = new float[0];
     private float[] menuRowY = new float[0];
     private int menuIndex;
@@ -868,6 +872,15 @@ public class TitleManager : MonoBehaviour
         string[] segText = { "1P", "2P" };
         float[] segX = { -(segW + segGap) * 0.5f, (segW + segGap) * 0.5f };
 
+        // トグル本体は segW:segH と同一アスペクト(=整数4倍 704x312)で焼く。表示は
+        // 等倍スケールになるので焼き込み 19° 斜辺が歪まず、追加の細スラッシュ(真の
+        // 19°)と平行に揃う。従来の menuButtonSprite(660x160)流用は非等倍ストレッチで
+        // 見かけ角が約 10.7° に潰れていた(2026-07-14 指摘「1P/2P の傾きが食い違う」)。
+        const int pcBakeScale = 4;
+        if (pcToggleSprite == null)
+            pcToggleSprite = UiButtonStyle.CreateBodySprite(
+                (int)segW * pcBakeScale, (int)segH * pcBakeScale, null, null, "PlayerCountToggleButton");
+
         for (int i = 0; i < 2; i++)
         {
             GameObject segObj = new GameObject("Seg" + i, typeof(RectTransform));
@@ -880,7 +893,7 @@ public class TitleManager : MonoBehaviour
             seg.sizeDelta = new Vector2(segW, segH);
 
             Image bar = segObj.AddComponent<Image>();
-            bar.sprite = menuButtonSprite;   // 焼き込みバナー(660x160)を縮小流用
+            bar.sprite = pcToggleSprite;   // segW:segH 一致で焼いた本体(等倍表示=19°不変)
             bar.type = Image.Type.Simple;
             bar.raycastTarget = false;
             pcSegBars[i] = bar;
