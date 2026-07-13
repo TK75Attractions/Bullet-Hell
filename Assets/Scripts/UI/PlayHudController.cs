@@ -117,12 +117,22 @@ public class PlayHudController : MonoBehaviour
     private RectTransform frameEdgeSilverB, frameEdgeBlueB, frameEdgeKeyB;
     private float frameAppliedTop = -1f;
     private float frameAppliedBottom = -1f;
-    // 石工では下部コンベア帯が下端を示すため、装飾枠線(左右銀線+下辺3層)は純黒
-    // 背景に高コントラストの縦線/L字として浮いて見える(2026-07-12 指摘+oracle
-    // レビュー: 左辺 x≈72 が画面枠でなくステージ内の縦線に見え、下辺と直角の
-    // 明るいL字を作る)。機能フィル(不透明・画面外弾の遮蔽)は残し、石工のときだけ
-    // 装飾枠線を消す。他ステージは従来どおり(副作用なし)。
-    private bool frameStrokeVisible = true;
+    // 装飾枠線の表示ポリシー(2026-07-13 指摘「プレイ画面の枠は左右だけに」):
+    //  - 左右の縦エッジ(EdgeSilverL/R)= 通常ステージで表示。frameSideStrokeVisible で制御。
+    //  - 下辺3層(EdgeSilverB/BlueB/KeyB)= 全ステージで恒久非表示。復活は
+    //    BottomStrokeEnabled=true の 1 フラグで戻せる。
+    // 機能フィル(TopFill/LeftFill/RightFill/BottomFill=不透明・画面外弾の遮蔽)は常時維持。
+    //
+    // 石工(2d2ced9): 下部コンベア帯が下端を示すため、純黒背景では左右縦線が
+    // 画面枠でなくステージ内の縦線に見え、下辺と直角の明るいL字を作る指摘があった。
+    // 下辺3層を全ステージで消した本便では L字の原因(下辺)自体が無くなるが、確定済みの
+    // ユーザー修正を尊重し既定では石工も左右エッジを非表示のまま保つ。石工も他ステージと
+    // 同じ左右エッジに揃えたいときは StoneShowSideEdges=true にするだけで戻せる。
+    private bool frameSideStrokeVisible = true;
+    // 下辺3層(額縁を閉じる横ライン)の恒久スイッチ。true で従来の下辺装飾が復活。
+    private const bool BottomStrokeEnabled = false;
+    // 石工で左右の縦エッジも表示するか。2d2ced9 を尊重して既定 false。
+    private const bool StoneShowSideEdges = false;
 
     private void Awake()
     {
@@ -345,26 +355,29 @@ public class PlayHudController : MonoBehaviour
         Vector2 center = new Vector2(0.5f, 0.5f);
         const float edgeOut = 4.5f;
         const float sideEdgeW = 1.5f;
-        // 装飾枠線は frameStrokeVisible(石工=false)で一括表示制御。機能フィルは常時。
-        frameEdgeSilverL.gameObject.SetActive(frameStrokeVisible);
-        frameEdgeSilverR.gameObject.SetActive(frameStrokeVisible);
+        // 左右の縦エッジは frameSideStrokeVisible(石工=false)で表示制御。機能フィルは常時。
+        frameEdgeSilverL.gameObject.SetActive(frameSideStrokeVisible);
+        frameEdgeSilverR.gameObject.SetActive(frameSideStrokeVisible);
         PlaceRect(frameEdgeSilverL, center, new Vector2(1f, 0.5f), new Vector2(-halfW, edgeCy), new Vector2(sideEdgeW, fieldH));
         PlaceRect(frameEdgeSilverR, center, new Vector2(0f, 0.5f), new Vector2(halfW, edgeCy), new Vector2(sideEdgeW, fieldH));
-        frameEdgeSilverB.gameObject.SetActive(hasBottom && frameStrokeVisible);
-        frameEdgeBlueB.gameObject.SetActive(hasBottom && frameStrokeVisible);
-        frameEdgeKeyB.gameObject.SetActive(hasBottom && frameStrokeVisible);
+        // 下辺3層は「枠は左右だけに」で恒久非表示(BottomStrokeEnabled=true で復活)。
+        bool bottomStroke = hasBottom && BottomStrokeEnabled && frameSideStrokeVisible;
+        frameEdgeSilverB.gameObject.SetActive(bottomStroke);
+        frameEdgeBlueB.gameObject.SetActive(bottomStroke);
+        frameEdgeKeyB.gameObject.SetActive(bottomStroke);
         float bottomW = halfW * 2f + edgeOut * 2f;
         PlaceRect(frameEdgeSilverB, center, new Vector2(0.5f, 1f), new Vector2(0f, fieldBot), new Vector2(bottomW, 2f));
         PlaceRect(frameEdgeBlueB, center, new Vector2(0.5f, 1f), new Vector2(0f, fieldBot - 2f), new Vector2(bottomW, 1.5f));
         PlaceRect(frameEdgeKeyB, center, new Vector2(0.5f, 1f), new Vector2(0f, fieldBot - 3.5f), new Vector2(bottomW, 1f));
     }
 
-    // 装飾枠線(左右銀線+下辺3層)の表示を切り替える。石工では false。
-    // 機能フィルは触らない。変化時のみ次フレームで再レイアウトさせる。
-    private void SetFrameStrokeVisible(bool v)
+    // 左右の縦エッジの表示を切り替える。石工では false(2d2ced9 の縦線指摘を尊重)。
+    // 下辺3層は BottomStrokeEnabled で恒久制御、機能フィルは触らない。
+    // 変化時のみ次フレームで再レイアウトさせる。
+    private void SetFrameSideStrokeVisible(bool v)
     {
-        if (v == frameStrokeVisible) return;
-        frameStrokeVisible = v;
+        if (v == frameSideStrokeVisible) return;
+        frameSideStrokeVisible = v;
         frameAppliedTop = -999f; // LayoutPlayFrame の早期 return を外して active を反映
         LayoutPlayFrame();
     }
@@ -501,9 +514,10 @@ public class PlayHudController : MonoBehaviour
         StageReader sr = gm.SReader;
         if (sr == null || !sr.IsReady) return;
 
-        // 石工のみ装飾枠線を消す(下部コンベア帯が下端を示すため線が重複・浮く)。
+        // 石工のみ左右の縦エッジも消す(純黒背景で縦線がステージ内の線に見える指摘)。
+        // StoneShowSideEdges=true にすれば石工も他ステージと同じ左右エッジになる。
         bool stoneStage = sr.CurrentStage != null && sr.CurrentStage.stageDirectoryName == "stone";
-        SetFrameStrokeVisible(!stoneStage);
+        SetFrameSideStrokeVisible(!stoneStage || StoneShowSideEdges);
 
         // 帯が表示された後の初回に、全ラベルをインク実測で縦センターへ確定させる。
         if (!inkCentered)
