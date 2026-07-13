@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -11,6 +12,9 @@ public class AudioManager : MonoBehaviour
     private List<AudioSource> SEPool = new();
     private AudioSource BGMSource;
     private bool isready = false;
+    // 画面遷移で BGM をぶつ切りにせずフェードさせるためのコルーチンハンドル
+    // (2026-07-13 指摘)。フェード中に新しい再生/フェードが来たら必ず止める。
+    private Coroutine bgmFadeRoutine;
 
     public void Init()
     {
@@ -42,6 +46,9 @@ public class AudioManager : MonoBehaviour
             return null;
         }
 
+        // 再生を確定させる前に、走っているフェードを止める(フェードが新しい
+        // 再生の音量を 0 に潰すのを防ぐ)。
+        StopBgmFade();
         BGMSource.Stop();
         BGMSource.loop = false;   // ステージ BGM はループしない(タイトル BGM でループを立てた後の持ち越し対策)
         BGMSource.clip = clip;
@@ -124,7 +131,71 @@ public class AudioManager : MonoBehaviour
 public void StopBGM()
     {
         if (BGMSource == null) return;
+        StopBgmFade();
         BGMSource.Stop();
         BGMSource.clip = null;
+    }
+
+    // 実行中の BGM フェードコルーチンを止める。
+    private void StopBgmFade()
+    {
+        if (bgmFadeRoutine != null)
+        {
+            StopCoroutine(bgmFadeRoutine);
+            bgmFadeRoutine = null;
+        }
+    }
+
+    // 共有 BGMSource を duration 秒でフェードアウトしてから停止する(ぶつ切り防止)。
+    // 画面遷移(ゲーム開始・リザルト入場など)の覆い演出と重ねて使う。
+    public void FadeOutAndStopBGM(float duration = 0.6f)
+    {
+        if (!isready || BGMSource == null) return;
+        StopBgmFade();
+        if (!BGMSource.isPlaying || duration <= 0f) { StopBGM(); return; }
+        bgmFadeRoutine = StartCoroutine(FadeOutRoutine(duration));
+    }
+
+    private IEnumerator FadeOutRoutine(float duration)
+    {
+        float startVol = BGMSource != null ? BGMSource.volume : 1f;
+        float t = 0f;
+        while (t < duration && BGMSource != null)
+        {
+            t += Time.unscaledDeltaTime;
+            BGMSource.volume = Mathf.Lerp(startVol, 0f, Mathf.Clamp01(t / duration));
+            yield return null;
+        }
+        if (BGMSource != null)
+        {
+            BGMSource.Stop();
+            BGMSource.clip = null;
+            BGMSource.volume = startVol;   // 次の再生に備えて戻す(PlayBGM でも上書きされる)
+        }
+        bgmFadeRoutine = null;
+    }
+
+    // 共有 BGMSource を 0 から target まで duration 秒でフェードインする。
+    // タイトル/選択 BGM を静かに復帰させる用途(リザルト後の無音対策)。
+    public void FadeInBGM(float target, float duration)
+    {
+        if (!isready || BGMSource == null) return;
+        StopBgmFade();
+        if (duration <= 0f) { BGMSource.volume = target; return; }
+        BGMSource.volume = 0f;
+        bgmFadeRoutine = StartCoroutine(FadeInRoutine(target, duration));
+    }
+
+    private IEnumerator FadeInRoutine(float target, float duration)
+    {
+        float t = 0f;
+        while (t < duration && BGMSource != null)
+        {
+            t += Time.unscaledDeltaTime;
+            BGMSource.volume = Mathf.Lerp(0f, target, Mathf.Clamp01(t / duration));
+            yield return null;
+        }
+        if (BGMSource != null) BGMSource.volume = target;
+        bgmFadeRoutine = null;
     }
 }

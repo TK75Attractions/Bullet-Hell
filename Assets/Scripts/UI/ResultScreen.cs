@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -15,6 +16,7 @@ public sealed class ResultScreen : MonoBehaviour
     {
         Retry,
         StageSelect,
+        Title,
     }
 
     // Linear Color Space 上でモックアップの sRGB 色へ見えるよう調整した値。
@@ -84,6 +86,14 @@ public sealed class ResultScreen : MonoBehaviour
     private Material rankGlowMat;
     private RectTransform exitRect;
     private TMP_Text exitLabel;
+    // 2 択(左=ステージ選択 / 右=プレイを終わる→タイトル)のボタン群と選択状態。
+    // スティック左右で選択、ボタンで決定する(2026-07-13 指摘: リザルト→タイトル導線)。
+    private readonly RectTransform[] actionRects = new RectTransform[2];
+    private readonly CanvasGroup[] actionGroups = new CanvasGroup[2];
+    private readonly Action[] actionValues = new Action[2];
+    private int selectedActionIndex;
+    private bool navLeftPrev;
+    private bool navRightPrev;
     private bool inputArmed;
     private bool entering;
 
@@ -121,7 +131,8 @@ public sealed class ResultScreen : MonoBehaviour
     // リザルト BGM 音量。Killing Party(1:50 以降 実測 -9.8LUFS)を、ステージ
     // BGM 帯(stone -10.7LUFS が最大)より僅かに下の -12LUFS へ揃える減衰
     // (-2.2dB)。全体は AudioListener.volume でさらに減衰する。
-    private const float ResultBgmVolume = 0.78f;
+    // 2026-07-13 指摘「もう一段下げる」で 0.78→0.52(約 -3.5dB / -15.5LUFS 相当)。
+    private const float ResultBgmVolume = 0.52f;
     // PlayScheduled のわずかな先読み(DSP バッファ境界で確実にスケジュールするため)。
     // この間だけ入場は t=0 で保持され、その後 dspTime に追従する。
     private const double BgmScheduleLead = 0.08d;
@@ -217,7 +228,7 @@ public sealed class ResultScreen : MonoBehaviour
         evalGroup = NewGroup("EvalGroup", contentRect, out evalGroupRect);
         BuildEvaluation(evalGroupRect);
         BuildStats(contentRect);
-        BuildExitButton(contentRect);
+        BuildActionButtons(contentRect);
         BuildAudio();
     }
 
@@ -858,20 +869,43 @@ public sealed class ResultScreen : MonoBehaviour
         return img;
     }
 
-    // モックアップどおりの単一ボタン「プレイを終わる」（ステージ選択へ戻る）。
-    // 青の縦グラデ本体＋銀の外枠＋両端ブラケットを一体で焼き込んだスプライト。
-    private void BuildExitButton(RectTransform root)
+    // リザルト下部の 2 択ボタン。左=「ステージ選択」(曲選択へ戻る=従来挙動) /
+    // 右=「プレイを終わる」(タイトルへ)。スティック左右で選択・ボタンで決定する
+    // (2026-07-13 指摘: リザルト→タイトル導線)。入場演出は親 ActionRow をまとめて
+    // フェード/スライドさせる(exitRect/buttonGroup がその親)。ボタンの見た目・
+    // 焼き込みスプライト(660x120)・白スラッシュ様式は従来のまま(横に 2 枚並べる)。
+    private void BuildActionButtons(RectTransform root)
     {
-        GameObject buttonGo = NewRect("ExitAction", root);
+        GameObject rowGo = NewRect("ActionRow", root);
+        RectTransform rowRect = (RectTransform)rowGo.transform;
+        SetRect(rowRect, new Vector2(0f, -433f), new Vector2(1500f, 140f));
+        exitRect = rowRect;                              // 入場スライドの単位(親ごと動かす)
+        exitHome = rowRect.anchoredPosition;
+        buttonGroup = rowGo.AddComponent<CanvasGroup>(); // 2 ボタンをまとめてフェード
+
+        BuildActionButton(0, rowRect, new Vector2(-352f, 0f), "ステージ選択",
+            Action.StageSelect, null, 0, 0);
+        BuildActionButton(1, rowRect, new Vector2(352f, 0f), "プレイを終わる",
+            Action.Title, "お", 0, 7);   // 漢字「終」にルビ
+
+        selectedActionIndex = 0;
+        RefreshActionSelection();
+    }
+
+    private void BuildActionButton(int slot, RectTransform row, Vector2 pos, string labelText,
+        Action action, string rubyText, int rubyStart, int rubyLen)
+    {
+        GameObject buttonGo = NewRect($"Action{slot}", row);
         RectTransform rect = (RectTransform)buttonGo.transform;
-        SetRect(rect, new Vector2(0f, -433f), new Vector2(660f, 120f));
-        exitRect = rect;
-        exitHome = rect.anchoredPosition;
-        buttonGroup = buttonGo.AddComponent<CanvasGroup>();
+        SetRect(rect, pos, new Vector2(660f, 120f));
+        actionRects[slot] = rect;
+        actionValues[slot] = action;
+        CanvasGroup cg = buttonGo.AddComponent<CanvasGroup>();   // 選択状態の減光用
+        actionGroups[slot] = cg;
 
         // ボタン背後の淡い青グロー（モックの発光感。中央ランクと競合しないよう
         // oracle 指摘で 25% 減光）。
-        SoftCircleGraphic glow = NewGraphic<SoftCircleGraphic>("ExitGlow", rect);
+        SoftCircleGraphic glow = NewGraphic<SoftCircleGraphic>("Glow", rect);
         glow.color = new Color(BrandBlue.r, BrandBlue.g, BrandBlue.b, 0.075f);
         SetRect(glow.rectTransform, Vector2.zero, new Vector2(760f, 190f));
 
@@ -882,25 +916,24 @@ public sealed class ResultScreen : MonoBehaviour
         body.raycastTarget = true;
 
         // 白スラッシュ（難易度選択/タイトルの White マーカーと同じ語彙。
-        // 左右対称・4本とも 19° で平行）。焼き込み本体と共に UiButtonStyle に
-        // 共通化（統一便）。見た目の正は Docs/result-design-language.md。
+        // 左右対称・4本とも 19° で平行）。見た目の正は Docs/result-design-language.md。
         UiButtonStyle.AddSlashPair(rect, 660f, 120f);
 
-        // ラベルサイズは全ボタン共通則(UiButtonStyle)の錨。38px で従来値と
-        // 同一(見た目不変)。
-        TMP_Text label = NewText("Label", rect, "プレイを終わる",
-            UiButtonStyle.LabelSizeResult, Color.white,
-            TextAlignmentOptions.Center);
+        TMP_Text label = NewText("Label", rect, labelText,
+            UiButtonStyle.LabelSizeResult, Color.white, TextAlignmentOptions.Center);
         Stretch((RectTransform)label.transform);
 
-        // 「終」のルビ（曲選択様式）。label の子にして光学中央補正へ追従させる。
-        // x は算術（-133+4.5*38=+38）を初期値に、Prepare の PlaceAllRubies で
-        // 「プレイを終わる」の漢字「終」1字の実測中心へ精密化する。
-        TMP_Text exitRuby = NewText("Ruby", (RectTransform)label.transform, "お", 14f,
-            new Color(1f, 1f, 1f, 0.85f), TextAlignmentOptions.Center);
-        SetRect((RectTransform)exitRuby.transform, new Vector2(38f, 28f), new Vector2(40f, 18f));
-        BindRuby(label, exitRuby, 0, 7); // 「プレイを終わる」→ 漢字「終」だけに乗る
-        exitLabel = label;
+        if (rubyText != null)
+        {
+            // ルビ（曲選択様式）。label の子にして光学中央補正へ追従させる。x は算術を
+            // 初期値に、Prepare の PlaceAllRubies で漢字グリフ実測中心へ精密化する。
+            TMP_Text ruby = NewText("Ruby", (RectTransform)label.transform, rubyText, 14f,
+                new Color(1f, 1f, 1f, 0.85f), TextAlignmentOptions.Center);
+            SetRect((RectTransform)ruby.transform, new Vector2(38f, 28f), new Vector2(40f, 18f));
+            BindRuby(label, ruby, rubyStart, rubyLen);
+        }
+        if (slot == 1) exitLabel = label;   // Prepare の再インク中央補正の代表
+
         // 日本語は CJK フォールバックの行メトリクスで上に乗るため、インク実測で
         // 光学中央へ補正する。ビルド時(非アクティブ)は空振りし得るので Prepare でも再実行。
         TmpAlign.CenterInkVertically(label);
@@ -911,17 +944,30 @@ public sealed class ResultScreen : MonoBehaviour
         Navigation navigation = button.navigation;
         navigation.mode = Navigation.Mode.None;
         button.navigation = navigation;
-        button.onClick.AddListener(RequestExit);
+        int captured = slot;
+        button.onClick.AddListener(() => { SetActionSelection(captured); RequestAction(actionValues[captured]); });
 
         EventTrigger trigger = buttonGo.AddComponent<EventTrigger>();
-        AddTrigger(trigger, EventTriggerType.PointerEnter, _ => SetExitHover(true));
-        AddTrigger(trigger, EventTriggerType.PointerExit, _ => SetExitHover(false));
+        AddTrigger(trigger, EventTriggerType.PointerEnter, _ => SetActionSelection(captured));
     }
 
-    private void SetExitHover(bool hover)
+    // 選択中のボタンを拡大＋明るく、非選択を縮小＋減光する。
+    private void SetActionSelection(int index)
     {
-        if (exitRect != null)
-            exitRect.localScale = Vector3.one * (hover ? 1.025f : 1f);
+        selectedActionIndex = Mathf.Clamp(index, 0, actionRects.Length - 1);
+        RefreshActionSelection();
+    }
+
+    private void RefreshActionSelection()
+    {
+        for (int i = 0; i < actionRects.Length; i++)
+        {
+            bool sel = i == selectedActionIndex;
+            if (actionRects[i] != null)
+                actionRects[i].localScale = Vector3.one * (sel ? 1.03f : 0.965f);
+            if (actionGroups[i] != null)
+                actionGroups[i].alpha = sel ? 1f : 0.5f;
+        }
     }
 
     public void Prepare(StageData stage, int difficulty, bool cleared, int hitCount,
@@ -930,7 +976,11 @@ public sealed class ResultScreen : MonoBehaviour
         gameObject.SetActive(true);
         inputArmed = false;
         entering = false;
-        SetExitHover(false);
+        // 2 択の初期選択は左(ステージ選択)。左右のエッジ検出もリセット。
+        selectedActionIndex = 0;
+        navLeftPrev = false;
+        navRightPrev = false;
+        RefreshActionSelection();
         // 表示確定後の再実行(冪等)。非アクティブ時の空振り対策(既知の TMP の罠)。
         TmpAlign.CenterInkVertically(exitLabel);
 
@@ -1055,6 +1105,8 @@ public sealed class ResultScreen : MonoBehaviour
         double startDsp = 0d;
         if (useDspClock)
         {
+            // 退出時のフェードアウトで 0 のままになっている場合があるので毎回戻す。
+            bgmSource.volume = ResultBgmVolume;
             bgmSource.time = 0f;
             startDsp = AudioSettings.dspTime + BgmScheduleLead;
             bgmSource.PlayScheduled(startDsp);
@@ -1231,7 +1283,9 @@ public sealed class ResultScreen : MonoBehaviour
         return new Color(c.r, c.g, c.b, a);
     }
 
-    // 単一ボタンのため左右選択は無い。決定/戻るのどちらでもステージ選択へ戻る。
+    // 2 択(左=ステージ選択 / 右=プレイを終わる→タイトル)。スティック左右で選択、
+    // ボタンで決定。戻る(あれば)は即ステージ選択へ抜ける近道。left/right は押しっぱなし
+    // 状態なので、立ち上がりエッジで 1 回だけ選択を動かす。
     public void Tick(bool left, bool right, bool buttonHeld, bool buttonPressed, bool backPressed)
     {
         if (!gameObject.activeSelf) return;
@@ -1244,31 +1298,62 @@ public sealed class ResultScreen : MonoBehaviour
             {
                 FinishEntranceImmediate();
                 inputArmed = false;
+                navLeftPrev = left;
+                navRightPrev = right;
             }
             return;
         }
 
         if (backPressed)
         {
-            RequestExit();
+            // 戻るは近道: 迷わずステージ選択へ(次の人がすぐ曲を選べる)。
+            RequestAction(Action.StageSelect);
             return;
         }
 
         if (!inputArmed)
         {
             if (!buttonHeld) inputArmed = true;
+            navLeftPrev = left;
+            navRightPrev = right;
             return;
         }
 
-        if (buttonPressed) RequestExit();
+        // 左右のエッジで選択移動(2 択なので端で止める)。
+        if (left && !navLeftPrev) SetActionSelection(selectedActionIndex - 1);
+        else if (right && !navRightPrev) SetActionSelection(selectedActionIndex + 1);
+        navLeftPrev = left;
+        navRightPrev = right;
+
+        if (buttonPressed) RequestAction(actionValues[selectedActionIndex]);
     }
 
     public void HideImmediate()
     {
         StopEntranceRoutine();
         // リザルトを閉じるときは BGM も止める(タイトル/選択画面へ持ち越さない)。
+        // 退出前に FadeOutBgmAsync を await していれば既に無音まで下がっている。
         if (bgmSource != null) bgmSource.Stop();
         gameObject.SetActive(false);
+    }
+
+    // リザルト BGM を duration 秒でフェードアウトする(退出前に await して使う)。
+    // ぶつ切りを避けつつ、実際の停止は直後の HideImmediate が担う。
+    public async Task FadeOutBgmAsync(float duration)
+    {
+        if (bgmSource == null || !bgmSource.isPlaying) return;
+        float startVol = bgmSource.volume;
+        float start = Time.realtimeSinceStartup;
+        while (true)
+        {
+            float el = Time.realtimeSinceStartup - start;
+            float k = duration > 0f ? Mathf.Clamp01(el / duration) : 1f;
+            if (bgmSource == null) return;
+            bgmSource.volume = Mathf.Lerp(startVol, 0f, k);
+            if (k >= 1f) break;
+            await Task.Yield();
+        }
+        if (bgmSource != null) bgmSource.volume = 0f;
     }
 
     public static int CalculateProvisionalScore(bool cleared, int hitCount, int counterCount,
@@ -1293,10 +1378,10 @@ public sealed class ResultScreen : MonoBehaviour
         return "C";
     }
 
-    private void RequestExit()
+    private void RequestAction(Action action)
     {
         if (!gameObject.activeSelf) return;
-        ActionRequested?.Invoke(Action.StageSelect);
+        ActionRequested?.Invoke(action);
     }
 
     private static string DifficultyName(int difficulty)

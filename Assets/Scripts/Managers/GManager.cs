@@ -608,6 +608,11 @@ public class GManager : MonoBehaviour
         PController?.ResetToCenter();
         TManager?.Dismiss();
         HideTitleBossBackdrop();
+        // 曲選択で流れていたタイトル BGM を、ステージ BGM 開始前にフェードアウトして
+        // ぶつ切りを避ける(2026-07-13 指摘)。SReader.Init 内の PlayBGM が新しい再生を
+        // 確定する際にフェードは自動キャンセルされる。リトライ時は共有 BGM が既に停止
+        // 済みで、この呼び出しは安全に何もしない。
+        AManager?.FadeOutAndStopBGM(0.5f);
 
         bool initialized = await SReader.Init(runtimeStage);
         if (!initialized)
@@ -664,7 +669,10 @@ public class GManager : MonoBehaviour
 
         state = GameState.Result;
         musicOn = false;
-        AManager?.StopBGM();
+        // ステージ BGM をぶつ切りにせずフェードアウト(2026-07-13 指摘)。リザルト BGM
+        // は別ソース(ResultScreenBgm)で dspTime スケジュール再生されるので、覆いの下で
+        // ステージ BGM のフェードアウトと自然にクロスする。
+        AManager?.FadeOutAndStopBGM(0.5f);
         QOrder?.ClearAllGameplayBulletsImmediate();
 
         if (recordHistory && cleared && stage != null)
@@ -706,6 +714,10 @@ public class GManager : MonoBehaviour
         if (resultTransitioning || RManager == null || !RManager.Visible) return;
         resultTransitioning = true;
 
+        // リザルト BGM をぶつ切りにせずフェードアウトしてから覆う(2026-07-13 指摘)。
+        // await で無音まで下げ切ってから画面を覆う=遷移が自然につながる。
+        await RManager.FadeOutBgmAsync(0.4f);
+
         PixelTransition transition = FindPixelTransition();
         if (transition != null)
         {
@@ -716,6 +728,20 @@ public class GManager : MonoBehaviour
         RManager.HideImmediate();
         AudioListener.pause = false;
         Time.timeScale = 1f;
+
+        if (action == ResultScreen.Action.Title)
+        {
+            // タイトルへ: シーンを再読込してタイトルをクリーンに復元する(QuitPlay と
+            // 同流儀)。タイトル BGM(Init→StartTitleBgm)・背景・入力状態がすべて
+            // 初期化され、半端な復元の取りこぼしが無い。画面は WhiteoutCover で覆われた
+            // ままなので、新シーンは覆いの下から現れる。
+            QOrder?.ClearAllGameplayBulletsImmediate();
+            PixelTransition.RevealAfterNextSceneLoad(true);
+            resultTransitioning = false;
+            UnityEngine.SceneManagement.SceneManager.LoadScene(
+                UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            return;
+        }
 
         if (action == ResultScreen.Action.Retry)
         {
@@ -729,6 +755,9 @@ public class GManager : MonoBehaviour
             QOrder?.ClearAllGameplayBulletsImmediate();
             state = GameState.ChoosingStage;
             SSManager?.PrepareReturnFromResult();
+            // リザルトで止まっていたタイトル/選択 BGM を再開し、選択画面の無音を解消
+            // (2026-07-13 指摘)。共有 BGMSource でフェードインしてつなぐ。
+            TManager?.EnsureTitleBgm();
         }
 
         if (transition != null) await transition.MosaicReveal();

@@ -34,7 +34,10 @@ public class TitleManager : MonoBehaviour
     private AudioSource titleBgmSource;
     // Discotheque を stone(最も大きいステージ -10.7LUFS)より僅かに下の -12LUFS へ
     // 揃える減衰(実測 -6.7LUFS → -5.3dB)。Tools/measure_bpm.py / ffmpeg ebur128。
-    private const float TitleBgmVolume = 0.55f;
+    // 2026-07-13 指摘「もう一段下げる」で 0.55→0.37(約 -3.4dB / -15.4LUFS 相当)。
+    private const float TitleBgmVolume = 0.37f;
+    // リザルト→選択復帰時のタイトル BGM 立ち上げ秒数(ぶつ切り防止)。
+    private const float TitleBgmFadeIn = 0.6f;
     // ビートパルスの減衰(拍に対する割合)。frac=0(拍頭)で 1、この割合で 0 に。
     // 旧自走版(dt*5 減衰≒0.2s/拍0.46s)と同等の 0.43。
     private const float BeatPulseDecayFrac = 0.43f;
@@ -341,7 +344,7 @@ public class TitleManager : MonoBehaviour
     // 戻り値の AudioSource を保持し、UpdateTitle でロゴの拍を音に同期させる。
     // クリップは Resources/BGM/title_discotheque(1:50 でなく本編の頭 2.763s から
     // ダウンビート単位でトリム、末尾フェードは除去済みで自然にループ)。
-    private async void StartTitleBgm()
+    private async void StartTitleBgm(bool fadeIn = false)
     {
         AudioManager am = GManager.Control != null ? GManager.Control.AManager : null;
         if (am == null) return;
@@ -351,9 +354,20 @@ public class TitleManager : MonoBehaviour
             Debug.LogWarning("Title BGM clip not found: Resources/BGM/title_discotheque");
             return;
         }
-        AudioSource src = await am.PlayLoopingBGM(clip, TitleBgmVolume);
+        // fadeIn 時は音量 0 で再生開始し、直後に FadeInBGM で立ち上げる。
+        AudioSource src = await am.PlayLoopingBGM(clip, fadeIn ? 0f : TitleBgmVolume);
         // 復帰などで await 中に破棄された場合の保険。
         if (this != null) titleBgmSource = src;
+        if (fadeIn && src != null) am.FadeInBGM(TitleBgmVolume, TitleBgmFadeIn);
+    }
+
+    // リザルトから選択画面へ戻ったときに、共有 BGMSource で止まっているタイトル
+    // BGM(Discotheque)を静かに再開する(2026-07-13 指摘: リザルト後の選択画面が
+    // 無音になる問題への対策)。TitleManager の GameObject が非表示でも、再生自体は
+    // 常駐 AManager 上で走るため呼び出せる。
+    public void EnsureTitleBgm()
+    {
+        StartTitleBgm(fadeIn: true);
     }
 
     // Idle animation: prompt blinks, logo floats and bounces on the beat,
