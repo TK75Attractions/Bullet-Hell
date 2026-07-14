@@ -7,8 +7,8 @@
                 "y": 9.0
             },
             "originVlc": {
-                "x": 11.4943,
-                "y": 5.7471
+                "x": 25.5428,
+                "y": 0.0
             },
             "playerInfluence": {
                 "x": 0,
@@ -50,6 +50,61 @@
                 "w": 0
             },
             "appearTime": 0.0,
+            "appearDuration": 0,
+            "life": 0.43065,
+            "random": 0,
+            "unCounterable": true,
+            "useVelocityAngle": false
+        },
+        {
+            "originPos": {
+                "x": 27.0,
+                "y": 9.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 10.4493
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0.0,
+                "y": -1.5707963
+            },
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 5.165232
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 6.0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_cutter",
+            "scale": {
+                "x": 3.0,
+                "y": 3.0
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0.43065,
             "appearDuration": 0,
             "life": 0.957,
             "random": 0,
@@ -227,8 +282,8 @@
                 "y": 3.5
             },
             "originVlc": {
-                "x": -13.2,
-                "y": 6.6
+                "x": 0.0,
+                "y": 13.2
             },
             "playerInfluence": {
                 "x": 0,
@@ -271,7 +326,337 @@
             },
             "appearTime": 3.591,
             "appearDuration": 0,
+            "life": 4.00767,
+            "random": 0,
+            "unCounterable": true,
+            "useVelocityAngle": false
+        },
+        {
+            "originPos": {
+                "x": 27.0,
+                "y": 9.0
+            },
+            "originVlc": {
+                "x": -26.4,
+                "y": 0.0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0.0,
+                "y": -1.5707963
+            },
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 1.494591
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 6.0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_cutter",
+            "scale": {
+                "x": 3.0,
+                "y": 3.0
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 4.00767,
+            "appearDuration": 0,
             "life": 4.45433,
+            "random": 0,
+            "unCounterable": true,
+            "useVelocityAngle": false
+        },
+        {
+            "originPos": {
+                "x": 27.0,
+                "y": 9.0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": -1.5707963
+            },
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "warn_box",
+            "scale": {
+                "x": 1.0,
+                "y": 1.0
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0.0,
+            "appearDuration": 0.83333,
+            "life": 4.42433,
+            "random": 0,
+            "unCounterable": true,
+            "useVelocityAngle": false
+        },
+        {
+            "originPos": {
+                "x": 27.0,
+                "y": 14.5
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": -1.5707963
+            },
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "warn_box",
+            "scale": {
+                "x": 1.0,
+                "y": 1.0
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0.0,
+            "appearDuration": 0.83333,
+            "life": 4.42433,
+            "random": 0,
+            "unCounterable": true,
+            "useVelocityAngle": false
+        },
+        {
+            "originPos": {
+                "x": 5.0,
+                "y": 14.5
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": -1.5707963
+            },
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "warn_box",
+            "scale": {
+                "x": 1.0,
+                "y": 1.0
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0.0,
+            "appearDuration": 0.83333,
+            "life": 4.42433,
+            "random": 0,
+            "unCounterable": true,
+            "useVelocityAngle": false
+        },
+        {
+            "originPos": {
+                "x": 5.0,
+                "y": 3.5
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": -1.5707963
+            },
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "warn_box",
+            "scale": {
+                "x": 1.0,
+                "y": 1.0
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0.0,
+            "appearDuration": 0.83333,
+            "life": 4.42433,
+            "random": 0,
+            "unCounterable": true,
+            "useVelocityAngle": false
+        },
+        {
+            "originPos": {
+                "x": 27.0,
+                "y": 3.5
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": -1.5707963
+            },
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "warn_box",
+            "scale": {
+                "x": 1.0,
+                "y": 1.0
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0.0,
+            "appearDuration": 0.83333,
+            "life": 4.42433,
             "random": 0,
             "unCounterable": true,
             "useVelocityAngle": false

@@ -8,7 +8,7 @@
             },
             "originVlc": {
                 "x": 0.0,
-                "y": -7.1151
+                "y": -3.6999
             },
             "playerInfluence": {
                 "x": 0,
@@ -17,7 +17,7 @@
             "startX": 0,
             "speed": 0,
             "gravity": {
-                "x": 0.0,
+                "x": 0,
                 "y": -1.5707963
             },
             "angleSpeed": 0,
@@ -49,9 +49,229 @@
                 "z": 1,
                 "w": 0
             },
-            "appearTime": 0,
+            "appearTime": 0.0,
             "appearDuration": 0,
-            "life": 0.773,
+            "life": 0.1746,
+            "random": 0,
+            "unCounterable": true,
+            "useVelocityAngle": false
+        },
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 13.928
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": -8.8228
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": -1.5707963
+            },
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 3.001229
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 6.0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_cutter",
+            "scale": {
+                "x": 3.0,
+                "y": 3.0
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0.1546,
+            "appearDuration": 0,
+            "life": 0.3292,
+            "random": 0,
+            "unCounterable": true,
+            "useVelocityAngle": false
+        },
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 12.564
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": -10.5304
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": -1.5707963
+            },
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 3.928829
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 6.0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_cutter",
+            "scale": {
+                "x": 3.0,
+                "y": 3.0
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0.3092,
+            "appearDuration": 0,
+            "life": 0.4838,
+            "random": 0,
+            "unCounterable": true,
+            "useVelocityAngle": false
+        },
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 10.936
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": -8.8228
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": -1.5707963
+            },
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 4.856429
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 6.0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_cutter",
+            "scale": {
+                "x": 3.0,
+                "y": 3.0
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0.4638,
+            "appearDuration": 0,
+            "life": 0.6384,
+            "random": 0,
+            "unCounterable": true,
+            "useVelocityAngle": false
+        },
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 9.572
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": -3.6999
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": -1.5707963
+            },
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 5.784029
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 6.0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_cutter",
+            "scale": {
+                "x": 3.0,
+                "y": 3.0
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0.6184,
+            "appearDuration": 0,
+            "life": 0.793,
             "random": 0,
             "unCounterable": true,
             "useVelocityAngle": false
