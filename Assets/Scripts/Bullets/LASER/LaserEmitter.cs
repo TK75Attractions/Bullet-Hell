@@ -15,7 +15,7 @@ public class LaserEmitter : MonoBehaviour
             LASER laser = Instantiate(LASEROrigin).GetComponent<LASER>();
             laser.transform.position = Vector3.zero;
             float laserScale = math.cmax(math.abs(d.scale));
-            laser.AwakeSetting(d.originPos, d.originVlc, d.thetaVlc, d.speed, new float2(1, d.polarForm.y), d.startX, d.startPos, new float[4] { d.polynomial.x, d.polynomial.y, d.polynomial.z, d.polynomial.w }, laserScale, d.appearTime, d.life, d.color, GManager.Control.QOrder.cellCount);
+            laser.AwakeSetting(d.originPos, d.originVlc, d.thetaVlc, d.speed, new float2(1, d.polarForm.y), d.startX, d.startPos, new float[4] { d.polynomial.x, d.polynomial.y, d.polynomial.z, d.polynomial.w }, laserScale, d.appearTime, d.appearDuration, d.life, d.color, GManager.Control.QOrder.cellCount);
             laS.Add(laser);
         }
         return laS;

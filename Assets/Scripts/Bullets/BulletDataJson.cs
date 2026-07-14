@@ -28,11 +28,15 @@ public class BulletDataJson
     public string typeName;
     public Vector2 scale;
     public Vector4 color;
-    public float appearTime;//弾幕を表示する時間、レーザーでは太さを指定
-    public float appearDuration;//appearTime直前に演出を適用する時間
+    public float appearTime;//通常弾: 表示時間。レーザー: 当たり判定の太さ
+    public float appearDuration;//通常弾: appearTime直前の演出時間。レーザー: 描画の太さ
     public float life;
     public float random;
     public float warpCooldown;
+    // Omitted from legacy JSON is normalized to true by BulletBufferManager.
+    public bool warpable = true;
+    // true の弾は画面外に出ても画面外カリングで無効化しない。
+    public bool ignoreOutOfBoundsCulling;
     public bool unCounterable;
 
     public BulletData ToBulletData()
@@ -69,6 +73,8 @@ public class BulletDataJson
             life = this.life,
             random = this.random,
             warpCooldown = this.warpCooldown,
+            warpable = this.warpable,
+            ignoreOutOfBoundsCulling = this.ignoreOutOfBoundsCulling,
             unCounterable = this.unCounterable,
             isActive = true
         };

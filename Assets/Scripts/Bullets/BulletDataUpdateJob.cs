@@ -64,7 +64,11 @@ public struct BulletDataUpdateJob : IJobParallelFor
         //(x∈[0,36)/y∈[-9,27))だと左端・上端へ飛ぶ破片が marron より早く消える regression に
         //なるため、marron 準拠の生存境界 [-2,36)² を明示適用する(grid の -1 では判定しない)。
         float2 p = bullet.position;
-        if (p.x < -2f || p.y < -2f || p.x >= 36f || p.y >= 36f) bullet.isActive = false;
+        if (!bullet.ignoreOutOfBoundsCulling
+            && (p.x < -2f || p.y < -2f || p.x >= 36f || p.y >= 36f))
+        {
+            bullet.isActive = false;
+        }
         if (bullet.isClearing && (bullet.clearDuration <= 0f || bullet.clearTime >= bullet.clearDuration))
         {
             bullet.isClearing = false;

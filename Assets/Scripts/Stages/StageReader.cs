@@ -20,6 +20,10 @@ public class StageReader : MonoBehaviour
     // 予定 DSP 時刻を保持し、UpdateStage で AudioSettings.dspTime に同期する。
     private AudioSource stageBgmSource;
     private double stageBgmScheduledDspTime = -1d;
+    // BGM と同じ速度で進む通常プレイでは DSP 時刻に厳密に同期する。デバッグ倍速を
+    // 一度でも使ったステージは BGM を追い越すため、以後はステージ固有のクロックで
+    // 進める(解除時に BGM 時刻まで停止してしまうのを防ぐ)。
+    private bool stageClockDetachedFromBgmSync;
 
     public float ElapsedTime => time;
     public float EndTime => stageData != null ? stageData.endTime : 0f;
@@ -63,6 +67,7 @@ public class StageReader : MonoBehaviour
         isReady = false;
         stageBgmSource = null;
         stageBgmScheduledDspTime = -1d;
+        stageClockDetachedFromBgmSync = false;
 
         if (GManager.Control.SDB != null)
         {
@@ -216,19 +221,35 @@ public class StageReader : MonoBehaviour
         return enemyVisualCatalog?.GetVisual(visualId);
     }
 
-    public void UpdateStage(float dt)
+    /// <summary>
+    /// ステージを進める。<paramref name="advanceIndependentOfBgm"/> は、倍速中の
+    /// スケール済み <paramref name="dt"/> で BGM 同期を外して時計を進めるための指定。
+    /// </summary>
+    public void UpdateStage(float dt, bool advanceIndependentOfBgm = false)
     {
         if (stageData == null || !isReady) return;
         if (GManager.Control == null || GManager.Control.state != GManager.GameState.Playing) return;
 
         // 音ハメ: BGM の DSP 時刻にステージクロックを同期させる(marron 由来)。
         // scheduledDspTime は BGM の実発音予定時刻。delayTime だけ後ろへずらして t=0 を合わせる。
-        // BGM が無い(silent)ステージはフレーム加算にフォールバック。
+        // BGM が無い(silent)ステージはフレーム加算にフォールバック。倍速を使った後は
+        // ステージが BGM より先行するので、ステージクロックを独立して進め続ける。
         if (stageBgmSource != null && stageData.audioClip != null && stageBgmScheduledDspTime > 0d)
         {
             double syncedTime = AudioSettings.dspTime - stageBgmScheduledDspTime - stageData.delayTime;
             if (syncedTime < 0d) return; // まだ発音前(BgmLeadTime のリード中)
-            time = Mathf.Min(Mathf.Max(time, (float)syncedTime), stageData.endTime);
+
+            float bgmTime = (float)syncedTime;
+            if (!stageClockDetachedFromBgmSync && !advanceIndependentOfBgm)
+            {
+                // 通常プレイは従来どおり BGM に正確に同期する。
+                time = Mathf.Min(Mathf.Max(time, bgmTime), stageData.endTime);
+            }
+            else
+            {
+                stageClockDetachedFromBgmSync = true;
+                time = Mathf.Min(Mathf.Max(time + dt, bgmTime), stageData.endTime);
+            }
         }
         else
         {
@@ -276,6 +297,7 @@ public class StageReader : MonoBehaviour
         spawnEvents.Clear();
         multiBulletSpawnerCount = 0;
         bulletCount = 0;
+        stageClockDetachedFromBgmSync = false;
         stageData = null;
     }
 

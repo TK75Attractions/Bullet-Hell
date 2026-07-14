@@ -1,0 +1,160 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03c85d5478bf4707910cc774c0c5edcc, type: 3}
+  m_Name: FifthStudentVisualSet
+  m_EditorClassIdentifier: BulletHell.Core::EnemyVisualSetAsset
+  visualId: fifth-student
+  fallbackSprite: {fileID: 21300000, guid: 302b52d7901cbc14a9f3a7e4ad23515b, type: 3}
+  clips:
+  - name: idle
+    frames:
+    - {fileID: 21300000, guid: 302b52d7901cbc14a9f3a7e4ad23515b, type: 3}
+    - {fileID: 21300000, guid: bd1983ea64e1c044795271f95c4e0994, type: 3}
+    - {fileID: 21300000, guid: b03471b93c4e06e4fa9a9613b75e678d, type: 3}
+    - {fileID: 21300000, guid: 4ec3c52d0c94c5e4e890ba0327f0550e, type: 3}
+    - {fileID: 21300000, guid: 9ea43232dcf218940b4df53839ae6af9, type: 3}
+    - {fileID: 21300000, guid: 8ccd3557dd9727d4e816f4ca7187597a, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 1
+    next: 
+  - name: cast1
+    frames:
+    - {fileID: 21300000, guid: fc0f372ccbfe76f468f98947563efcb3, type: 3}
+    - {fileID: 21300000, guid: c4353337aa2a6a34b9290d219bfc1537, type: 3}
+    - {fileID: 21300000, guid: 9b6bb7079de57a34d97165343064a073, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 0
+    next: idle
+  - name: up1
+    frames:
+    - {fileID: 21300000, guid: 396d80d49d2a67b47967352b0433c999, type: 3}
+    - {fileID: 21300000, guid: 110930db0f39a664c8b828c19653beae, type: 3}
+    - {fileID: 21300000, guid: 2dd364c4572b35f48968a1996eef89ff, type: 3}
+    - {fileID: 21300000, guid: 1c19dc5abf4414948976132b90e51dcd, type: 3}
+    - {fileID: 21300000, guid: dd17ed34797d27d47ac1805c28cd134b, type: 3}
+    - {fileID: 21300000, guid: 372d419b452d10446afce461a30c8a9b, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 0
+    next: idle
+  - name: up2
+    frames:
+    - {fileID: 21300000, guid: 0938e667724e2e74c8f0bf7aef389186, type: 3}
+    - {fileID: 21300000, guid: a23d2067aeecc88408092a489bdce3b5, type: 3}
+    - {fileID: 21300000, guid: 8d62126a54cc98e4ba524f50c5dcb573, type: 3}
+    - {fileID: 21300000, guid: cd9544b3519f7f84a98cb1832aaf89f3, type: 3}
+    - {fileID: 21300000, guid: 64f69715e303da540ae6f960337e48cf, type: 3}
+    - {fileID: 21300000, guid: ecd507e13578ea248bdec70bdd39135a, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 0
+    next: idle
+  - name: up3
+    frames:
+    - {fileID: 21300000, guid: 94f4ab98e52b2834c8b672f68975fa90, type: 3}
+    - {fileID: 21300000, guid: 505b141c9b37b7441b1ca1c63cbdca6a, type: 3}
+    - {fileID: 21300000, guid: 1aa1dbd4c003302498d133f172070294, type: 3}
+    - {fileID: 21300000, guid: 29fac9f2aed6b26429fc0f3b4bd0e3bf, type: 3}
+    - {fileID: 21300000, guid: 5fb59765e54e99345937f5ac9366f700, type: 3}
+    - {fileID: 21300000, guid: 00b44d617596f8a4eaf4fd1c83ae12ad, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 0
+    next: idle
+  - name: left1
+    frames:
+    - {fileID: 21300000, guid: 4c336977a5f9e26418224e26236ce91a, type: 3}
+    - {fileID: 21300000, guid: 64eac14cebeab834ab98a01385889b3c, type: 3}
+    - {fileID: 21300000, guid: 21e6ac693e2f54a4cb5ed653604ef6b0, type: 3}
+    - {fileID: 21300000, guid: c633004a74e7bb24fae1e878c283ac89, type: 3}
+    - {fileID: 21300000, guid: 42f2de71e2159ac4eabe01a208e0c84d, type: 3}
+    - {fileID: 21300000, guid: 92f47953d891b6e448a3e5b84968e894, type: 3}
+    - {fileID: 21300000, guid: 2e6cebe657b28764d8cabb568a418a1e, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 0
+    next: idle
+  - name: left2
+    frames:
+    - {fileID: 21300000, guid: e8244611d8f8eec44a37e09740a6eb0b, type: 3}
+    frameDurations:
+    - 0.1
+    loop: 0
+    next: idle
+  - name: left3
+    frames:
+    - {fileID: 21300000, guid: b521686029418844bb3b2e0834283834, type: 3}
+    - {fileID: 21300000, guid: 575d670c1d3b5b144949cccf7563835b, type: 3}
+    - {fileID: 21300000, guid: eeaf327c0ae4b6f42bf731d5830a6751, type: 3}
+    - {fileID: 21300000, guid: 91ad6f7b7fcd0b84c94282d2465754a9, type: 3}
+    - {fileID: 21300000, guid: 7ec920df9bdd5bc48bd4945d298b97bc, type: 3}
+    - {fileID: 21300000, guid: fe9f4238c23f37a458a0a6c9875f2498, type: 3}
+    - {fileID: 21300000, guid: a412e3eaa26900247957868e482d6a73, type: 3}
+    - {fileID: 21300000, guid: 8c805faa13613df46a2690dce5c33aa3, type: 3}
+    - {fileID: 21300000, guid: ebb05ec98457f0c4bbbb346c8fba3d8d, type: 3}
+    - {fileID: 21300000, guid: 809b258e66f4ecd4d967d9dde5d9369a, type: 3}
+    - {fileID: 21300000, guid: 5349de85e455d8f4d9b2f5c8f7de814d, type: 3}
+    - {fileID: 21300000, guid: 359561d73ad06b84f9d5c38caa04e43f, type: 3}
+    - {fileID: 21300000, guid: 6abcc141aa5495243a2e8d043c6432dd, type: 3}
+    frameDurations:
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    - 0.099999994
+    loop: 0
+    next: idle
+  - name: defeat
+    frames:
+    - {fileID: 21300000, guid: 31c8e517d883b1c43b6fd022e42bd36b, type: 3}
+    frameDurations:
+    - 0.1
+    loop: 0
+    next: 

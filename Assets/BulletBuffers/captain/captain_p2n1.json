@@ -15,7 +15,7 @@
         "y": 0
       },
       "startX": 0,
-      "speed": 0,
+      "speed": 70,
       "gravity": {
         "x": 0,
         "y": 0
@@ -32,7 +32,7 @@
       "thetaVlc": 0,
       "thetaAccel": 0,
       "startPos": {
-        "x": -18,
+        "x": 0,
         "y": 0
       },
       "polynomial": {
@@ -41,10 +41,10 @@
         "z": 0,
         "w": 0
       },
-      "typeName": "box",
+      "typeName": "laser",
       "scale": {
-        "x": 36,
-        "y": 0.1
+        "x": 60,
+        "y": 60
       },
       "color": {
         "x": 1,
@@ -53,11 +53,13 @@
         "w": 0.2
       },
       "appearTime": 0,
-      "appearDuration": 0.5,
-      "life": 0.84,
+      "appearDuration": 0.04,
+      "life": 10,
       "random": 0,
       "warpCooldown": 0,
-      "unCounterable": true
+      "warpable": true,
+      "ignoreOutOfBoundsCulling": false,
+      "unCounterable": false
     },
     {
       "originPos": {
@@ -73,7 +75,7 @@
         "y": 0
       },
       "startX": 0,
-      "speed": 0,
+      "speed": 12,
       "gravity": {
         "x": 0,
         "y": 0
@@ -90,7 +92,7 @@
       "thetaVlc": 0,
       "thetaAccel": 0,
       "startPos": {
-        "x": -18,
+        "x": 0,
         "y": 0
       },
       "polynomial": {
@@ -99,83 +101,27 @@
         "z": 0,
         "w": 0
       },
-      "typeName": "box",
+      "typeName": "laser",
       "scale": {
-        "x": 36,
-        "y": 0.3
+        "x": 10,
+        "y": 10
       },
       "color": {
         "x": 1,
         "y": 1,
         "z": 1,
-        "w": 0.8
+        "w": 1
       },
-      "appearTime": 0.56,
-      "appearDuration": 0.2,
-      "life": 0.78,
+      "appearTime": 0.045,
+      "appearDuration": 0.06,
+      "life": 10,
       "random": 0,
       "warpCooldown": 0,
-      "unCounterable": true
-    },
-    {
-      "originPos": {
-        "x": 0,
-        "y": 0
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "playerInfluence": {
-        "x": 0,
-        "y": 0
-      },
-      "startX": 0,
-      "speed": 0,
-      "gravity": {
-        "x": 0,
-        "y": 0
-      },
-      "angleSpeed": 0,
-      "initialAngle": 0,
-      "useVelocityAngle": true,
-      "polarForm": {
-        "x": 1,
-        "y": 0
-      },
-      "radiusVlc": 0,
-      "radiusAccel": 0,
-      "thetaVlc": 0,
-      "thetaAccel": 0,
-      "startPos": {
-        "x": -18,
-        "y": 0
-      },
-      "polynomial": {
-        "x": 0,
-        "y": 0,
-        "z": 0,
-        "w": 0
-      },
-      "typeName": "box",
-      "scale": {
-        "x": 36,
-        "y": 0.4
-      },
-      "color": {
-        "x": 1,
-        "y": 1,
-        "z": 1,
-        "w": 0.8
-      },
-      "appearTime": 0.64,
-      "appearDuration": 0.1,
-      "life": 0.83,
-      "random": 0,
-      "warpCooldown": 0,
-      "unCounterable": true
+      "warpable": true,
+      "ignoreOutOfBoundsCulling": false,
+      "unCounterable": false
     }
   ],
   "homing": true,
-  "isLaser": false
+  "isLaser": true
 }

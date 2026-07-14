@@ -13,6 +13,7 @@ public class PlayerController
     private Transform playerTransform;
     private SpriteRenderer main;
     private SpriteRenderer spell;
+    private PlayerVisualController visual;
     private Transform spellTransform;
     private float2 initialPos;
     private readonly float margin = 0.3f;
@@ -28,9 +29,15 @@ public class PlayerController
     // どちらのプレイヤーか。0=P1(既定・従来どおり P1 入力/色)、1=P2。
     // new PlayerController() 後、Init 前に GManager が設定する。
     public int playerIndex = 0;
-    // 主人公アートは色付き(探偵)。従来の playerColor 乗算では色が濁るため、
-    // スプライト本来の色をそのまま出す白をベース色にする(P2 の淡色化はシート側で焼込済)。
-    private static readonly Color mainBaseColor = Color.white;
+    // 主人公アートは色付き(探偵)。従来の playerColor 乗算では色が濁るため、白ベースで
+    // スプライト本来の色をそのまま出す(P2 の淡色化はシート側で焼込済)。被弾/リセットでは
+    // SetMainColor が基準色を書き換える(Raymee のデバッグ透過と両立)ため可変インスタンスにする。
+    private Color mainBaseColor = Color.white;
+    // ダッシュ演出(Spell)の基準色。SetSpellColor/デバッグ透過が参照する(main 統合)。
+    private Color spellBaseColor = Color.clear;
+    // Raymee 専用デバッグの透過表示(main 統合)。基準色は保持したまま描画αだけ落とす。
+    private bool debugTransparent;
+    private float debugTransparencyAlpha = 1f;
     // 被弾パーティクル/ダッシュ光のトーン色。P1=従来 playerColor 準拠(=1P 不変)、
     // P2=寒色系。Init で playerIndex に応じて確定する。
     private Color toneColor = new Color(1f, 1f, 0.6f, 1f);
@@ -50,7 +57,8 @@ public class PlayerController
 
     public bool invincible
     {
-        get => dash > 0 || hitInvincibleTimer > 0f;
+        get => dash > 0 || hitInvincibleTimer > 0f
+            || (GManager.Control != null && GManager.Control.IsRaymeeDebugPlayerInvincible);
         private set { }
     }
     // カウンター判定用: ダッシュ中のみ true。被弾後の無敵時間(hitInvincibleTimer)は含めない
@@ -66,10 +74,21 @@ public class PlayerController
         initialPos = new float2(playerTransform.position.x, playerTransform.position.y);
         pos = initialPos;
         main = playerObj.GetComponent<SpriteRenderer>();
+        if (main != null) mainBaseColor = main.color;
+        visual = playerObj.GetComponent<PlayerVisualController>();
+        if (visual == null)
+        {
+            visual = playerObj.AddComponent<PlayerVisualController>();
+        }
+        visual.Initialize(
+            main,
+            GManager.Control != null ? GManager.Control.playerColor1 : PlayerPaletteDefaults.Color1,
+            GManager.Control != null ? GManager.Control.playerColor2 : PlayerPaletteDefaults.Color2);
         spellTransform = playerTransform.Find("Spell");
         if (spellTransform != null)
         {
             spell = spellTransform.GetComponent<SpriteRenderer>();
+            if (spell != null) spellBaseColor = spell.color;   // main: 基準色を保持(デバッグ透過用)
             // ダッシュエフェクト(Spell オーラ)を縮小して馴染ませる(2026-07-14 指摘「ダッシュ時のエフェクトが大きい」)。
             // 親(player)の 1.85 倍とは独立の子スケール。0.6 で現状の 0.6 倍。
             spellTransform.localScale = Vector3.one * DashEffectScale;
@@ -197,6 +216,9 @@ public class PlayerController
         Move(dt);
         Dash(dt);
         UpdateHitState(dt);
+        // 毎フレームのスプライト駆動は feature の方向別 8 フレームアニメ(P1/P2 対応)を採用。
+        // main の visual.UpdateVisual(palette-swap)は同じ SpriteRenderer を奪い合うため
+        // per-frame では呼ばない(色は SetVisualColors から visual へ反映)。
         UpdateAnimation(dt);
         playerTransform.position = new Vector3(pos.x, pos.y, 0);
 
@@ -252,11 +274,8 @@ public class PlayerController
         if (invincible) return false;
 
         hitInvincibleTimer = hitInvincibleDuration;
-        if (main != null)
-        {
-            //固定赤色
-            main.color = new Color(1f, 0.35f, 0.35f, 1f);
-        }
+        //固定赤色
+        SetMainColor(new Color(1f, 0.35f, 0.35f, 1f));
 
         // 被弾パーティクルを少量発射(色はパレット準拠の playerColor)。既存の赤
         // フラッシュに重ねる補助演出。無敵中(dash/i-frame)は上で return するので出ない。
@@ -278,14 +297,35 @@ public class PlayerController
         velocity = float2.zero;
         hitInvincibleTimer = 0f;
         dash = -dashCooldown * 1.4f;
-        if (main != null) main.color = mainBaseColor;
-        if (spell != null) spell.color = Color.clear;
+        // 白ベース(=スプライト本来色)へ。SetMainColor/SetSpellColor 経由でデバッグ透過も反映。
+        SetMainColor(Color.white);
+        visual?.ResetAnimation();
+        SetSpellColor(Color.clear);
         if (playerTransform != null) playerTransform.position = new Vector3(pos.x, pos.y, 0f);
     }
 
     // marron keep コード(GManager / StageSelectManager)向け互換。開始位置(中央)への
     // リセットは raymee の ResetForStage と同義。
     public void ResetToCenter() => ResetForStage();
+
+    public void SetVisualColors(Color color1, Color color2)
+    {
+        visual?.SetColors(color1, color2);
+    }
+
+    /// <summary>
+    /// Raymee デバッグ用の透過表示を切り替える。実際の描画色は基準色として保持するため、
+    /// 被弾演出やダッシュ演出による色・アルファの変化を壊さない。
+    /// </summary>
+    public void SetDebugTransparency(bool enabled, float alpha)
+    {
+        float clampedAlpha = Mathf.Clamp01(alpha);
+        if (debugTransparent == enabled && Mathf.Approximately(debugTransparencyAlpha, clampedAlpha)) return;
+
+        debugTransparent = enabled;
+        debugTransparencyAlpha = clampedAlpha;
+        ApplyDisplayColors();
+    }
 
     private void Move(float dt)
     {
@@ -321,12 +361,12 @@ public class PlayerController
             {
                 Color c = toneColor;
                 c.a = alpha;
-                spell.color = c;
+                SetSpellColor(c);
             }
         }
         else
         {
-            if (spell != null) spell.color = new Color(0, 0, 0, 0);
+            SetSpellColor(Color.clear);
         }
 
         if (spellTransform != null) spellTransform.rotation = Quaternion.Euler(0, 0, Time.time * 30);
@@ -337,15 +377,39 @@ public class PlayerController
     {
         if (hitInvincibleTimer <= 0f)
         {
-            if (main != null) main.color = mainBaseColor;
+            SetMainColor(Color.white);
             return;
         }
 
         hitInvincibleTimer = math.max(0f, hitInvincibleTimer - dt);
-        if (hitInvincibleTimer <= 0f && main != null)
+        if (hitInvincibleTimer <= 0f)
         {
-            main.color = mainBaseColor;
+            SetMainColor(Color.white);
         }
+    }
+
+    private void SetMainColor(Color color)
+    {
+        mainBaseColor = color;
+        if (main != null) main.color = ApplyDebugTransparency(color);
+    }
+
+    private void SetSpellColor(Color color)
+    {
+        spellBaseColor = color;
+        if (spell != null) spell.color = ApplyDebugTransparency(color);
+    }
+
+    private void ApplyDisplayColors()
+    {
+        if (main != null) main.color = ApplyDebugTransparency(mainBaseColor);
+        if (spell != null) spell.color = ApplyDebugTransparency(spellBaseColor);
+    }
+
+    private Color ApplyDebugTransparency(Color color)
+    {
+        color.a *= debugTransparent ? debugTransparencyAlpha : 1f;
+        return color;
     }
 
     private float GetAlpha(float t)

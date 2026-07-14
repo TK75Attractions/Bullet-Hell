@@ -278,9 +278,11 @@ Shader "Custom/BulletIndirectMasked"
                     return baseCol;
                 }
 
-                // Compose the texture and tint independently from opacity so that
-                // color.a only controls the transparency of the finished bullet.
-                float tintAlpha = saturate(mask);
+                // 通常弾では color.a を透明度ではなく「色指定の有無」として扱う。
+                // 低い color.a を着色率に使うと白い元画像へ戻ってしまうため、
+                // 0 より大きければ RGB を完全に適用し、表示自体は不透明にする。
+                float hasTint = step(1e-4, saturate(i.color.a));
+                float tintAlpha = saturate(mask) * hasTint;
                 float baseAlpha = saturate(baseCol.a);
                 float outAlpha = saturate(baseAlpha + tintAlpha * (1.0 - baseAlpha));
                 fixed3 outRgb = outAlpha > 1e-4
@@ -291,7 +293,7 @@ Shader "Custom/BulletIndirectMasked"
                 // return fixed4(mask, mask, mask, 1); // マスクをグレースケールで表示
                 
                 baseCol.rgb = outRgb;
-                baseCol.a = outAlpha * saturate(i.color.a) * appear;
+                baseCol.a = outAlpha * appear;
 
                 return baseCol;
             }

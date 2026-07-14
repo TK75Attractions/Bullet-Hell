@@ -280,11 +280,12 @@ Shader "Custom/BulletIndirectURP"
                     return baseCol;
                 }
 
-                // marron 由来の規約: color.w=0 の弾はスプライト本来の色/アルファをそのまま表示する
-                // (hammer/cutter/warn_box 等)。tint(mask×color.a)は sprite alpha と max で合成するので、
-                // color.a を 0 にしても sprite が消えない。raymee 版は alpha を color.a で乗じており
-                // color.w=0 の弾が不可視化していた(統合 regression)ため、marron 式に戻す。
-                half tintStrength = saturate(mask * input.color.a);
+                // 通常弾では color.a を透明度ではなく「色指定の有無」として扱う。
+                // 低い color.a を着色率に使うと白い元画像へ戻ってしまうため、
+                // 0 より大きければ RGB を完全に適用し、表示自体は不透明にする。
+                // color.a=0 の無着色スプライト規約はそのまま維持する。
+                half hasTint = step(1e-4h, saturate(input.color.a));
+                half tintStrength = saturate(mask) * hasTint;
                 baseCol.rgb = lerp(baseCol.rgb, input.color.rgb, tintStrength);
                 baseCol.a = max(baseCol.a, tintStrength) * appear;
 

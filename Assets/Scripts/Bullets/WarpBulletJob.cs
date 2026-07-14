@@ -21,6 +21,7 @@ public struct WarpBulletJob : IJobParallelFor
     {
         BulletData bullet = bullets[index];
         if (!bullet.isActive || bullet.isClearing) return;
+        if (!bullet.warpable) return;
         if (bullet.appearTime > bullet.time) return;
         if (bullet.warpCooldown > 0f) return;
         if (warpZones.Length < 2) return;
@@ -73,7 +74,7 @@ public struct WarpBulletJob : IJobParallelFor
         bullet.angle = GetAngleRad(exitVelocity.x, exitVelocity.y);
         bullet.areaNum = grid.GetTreeNum(exitPosition);
 
-        if (bullet.areaNum == -1)
+        if (bullet.areaNum == -1 && !bullet.ignoreOutOfBoundsCulling)
         {
             bullet.isActive = false;
         }

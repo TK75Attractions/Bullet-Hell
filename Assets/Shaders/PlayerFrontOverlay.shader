@@ -7,6 +7,8 @@ Shader "Custom/PlayerFrontOverlay"
     {
         _MainTex("Sprite", 2D) = "white" {}
         _Color("Tint", Color) = (1,1,1,1)
+        _Color1("Color 1", Color) = (0.09,0.70,1,1)
+        _Color2("Color 2", Color) = (1,0.09,0.36,1)
     }
 
     SubShader
@@ -32,6 +34,7 @@ Shader "Custom/PlayerFrontOverlay"
             #pragma fragment frag
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "PlayerPaletteSwap.hlsl"
 
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
@@ -39,6 +42,8 @@ Shader "Custom/PlayerFrontOverlay"
             CBUFFER_START(UnityPerMaterial)
                 float4 _MainTex_ST;
                 float4 _Color;
+                float4 _Color1;
+                float4 _Color2;
             CBUFFER_END
 
             struct Attributes
@@ -64,6 +69,7 @@ Shader "Custom/PlayerFrontOverlay"
             half4 frag(Varyings input) : SV_Target
             {
                 half4 c = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
+                c.rgb = ApplyPlayerPalette(c.rgb, _Color1.rgb, _Color2.rgb);
                 c *= _Color;
                 return c;
             }
