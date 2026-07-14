@@ -224,8 +224,9 @@ public class PlayerController
 
     }
 
-    // 入力方向で左/前後/右シートを選び、移動中は 8 フレームを AnimFps で循環、
-    // 静止時は前後(front)シートの先頭フレームで止める(2026-07-14 指摘「静止時はデフォルト正面に」)。
+    // 入力方向で左/前後/右シートを選び、移動中は 8 フレームを AnimFps で循環。
+    // 静止時も前後(front)シートを循環させ続けて「ひらひら」を常時見せる。向きは正面(front)固定のまま
+    // (2026-07-14「静止時はデフォルト正面に」の向き固定は保つ・フレーム循環だけ復活)。
     // 横入力を優先し、縦のみは前後シート。
     private void UpdateAnimation(float dt)
     {
@@ -249,14 +250,14 @@ public class PlayerController
         }
         else
         {
-            // 静止時は常に前後(front)シートの基準フレームへ戻す。横向きのまま止まらない。
+            // 静止時も前後(front)シートへ揃えつつ循環を続ける。横向きのまま止まらず、正面で「ひらひら」。
             if (framesFront != null && framesFront.Length > 0)
             {
                 set = framesFront;
                 lastSet = set;
             }
-            animFrame = 0;
-            animTimer = 0f;
+            animTimer += dt * AnimFps;
+            animFrame = ((int)animTimer) % set.Length;
         }
         main.sprite = set[math.clamp(animFrame, 0, set.Length - 1)];
     }
