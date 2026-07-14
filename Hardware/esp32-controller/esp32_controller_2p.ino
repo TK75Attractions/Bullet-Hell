@@ -34,9 +34,21 @@
 // ※ 実機未検証（机上実装）。導通・起動確認は README のチェックリスト参照。
 
 // --- ピン定義（順序は 上,下,左,右,ボタンA,ボタンB）---
+// ボードは焼くときに選ぶだけ（Arduino IDE のボード / PlatformIO の env）。
+// チップ target マクロでピンとシリアル系統を自動切替する（同一 .ino で両対応）。
 const int NUM_INPUTS = 6;
-const int P1_PINS[6] = {4, 5, 6, 7, 8, 15};      // 既存配線+B=15（7 の物理隣）
-const int P2_PINS[6] = {9, 10, 11, 12, 13, 14};  // 既存配線+B=14（13 の物理隣）
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
+  // ESP32-S3（sparkle IoT XH-S3E）: GPIO4〜18 が自由。
+  const int P1_PINS[6] = {4, 5, 6, 7, 8, 15};       // 上4 下5 左6 右7 A8 B15
+  const int P2_PINS[6] = {9, 10, 11, 12, 13, 14};   // 上9 下10 左11 右12 A13 B14
+  #define HAS_SECOND_SERIAL 1   // Serial=native USB CDC / Serial0=CH343 UART の2系統へ送る
+#else
+  // classic ESP32（ESP32-DevKitC-VE / WROVER-E）: フラッシュ6-11・PSRAM16/17・
+  // 入力専用34-39・ストラップ0/2/5/12/15 を全て回避した内蔵プルアップ可のピン。
+  const int P1_PINS[6] = {32, 33, 25, 26, 27, 14};  // 上32 下33 左25 右26 A27 B14
+  const int P2_PINS[6] = {13, 4, 18, 19, 21, 22};   // 上13 下4  左18 右19 A21 B22
+  #define HAS_SECOND_SERIAL 0   // USBブリッジ(CP2102/CH340)経由の Serial(UART0) 1本のみ
+#endif
 
 // ビット名の対応（デバッグ表示・ドキュメント用）: bit0=U,1=D,2=L,3=R,4=A,5=B
 const char* KEYS = "UDLRAB";
@@ -68,16 +80,21 @@ uint8_t readState(const int* pins) {
   return s;
 }
 
-// Mirror the controller protocol to both board connectors:
-// Serial = ESP32-S3 native USB CDC, Serial0 = CH343 UART bridge.
+// Mirror the controller protocol to the available serial connector(s).
+// S3: Serial = native USB CDC, Serial0 = CH343 UART bridge（両方へミラー）。
+// classic ESP32(WROVER-E): Serial = UART0(USBブリッジ) の1本のみ。
 void sendLine(const char* line) {
   Serial.print(line);
+#if HAS_SECOND_SERIAL
   Serial0.print(line);
+#endif
 }
 
 void setup() {
   Serial.begin(BAUD);
+#if HAS_SECOND_SERIAL
   Serial0.begin(BAUD);
+#endif
 
   for (int i = 0; i < NUM_INPUTS; i++) {
     pinMode(P1_PINS[i], INPUT_PULLUP);
