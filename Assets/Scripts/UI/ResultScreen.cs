@@ -1199,8 +1199,10 @@ public sealed class ResultScreen : MonoBehaviour
         // 1P は BuildStats の ±515/±500 を保持(この分岐は 1P で呼ばれない)。左右列を中央側へ
         // 寄せることで中央の 2 ランクとカード群の間の余白を詰める。cardHomes(入場アニメの静止
         // 位置)と実位置の両方を更新し、符号=スライド方向は保持する。値は screenshot 実測で調整。
-        const float twoPTopX = 430f;    // 上段カード(スコア)。元 ±515 → 中央へ 85px
-        const float twoPBottomX = 418f; // 下段カード(被弾)。元 ±500 → 中央へ 82px
+        // 2026-07-14 追記: ±430/±418 でも実機ではまだ左右に寄りすぎとの指摘。カード内側端が
+        // 中央から 120-160px の距離に収まる ±300/±290 へさらに詰める(元 ±515 比で -215/-210)。
+        const float twoPTopX = 300f;    // 上段カード(スコア)。元 ±515 → 中央へ 215px(前回 ±430)
+        const float twoPBottomX = 290f; // 下段カード(被弾)。元 ±500 → 中央へ 210px(前回 ±418)
         SetTwoPlayerCardX(0, -twoPTopX);    // P1 スコア(左上)
         SetTwoPlayerCardX(2, -twoPBottomX); // P1 被弾(左下)
         SetTwoPlayerCardX(1, twoPTopX);     // P2 スコア(右上)
