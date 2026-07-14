@@ -1008,11 +1008,8 @@ public class JsabStageSelect : MonoBehaviour
 
     private RectTransform NewKeyCap(RectTransform parent, string label, float height, float fontSize)
     {
-        float width = Mathf.Max(height, 24f + label.Length * fontSize * 0.66f);
         Image border = NewImage("Key_" + label, parent, KeyCapEdge);
         RectTransform br = border.rectTransform;
-        br.sizeDelta = new Vector2(width, height);
-        AddLayoutElement(br, width, height);
 
         Image fill = NewImage("Fill", br, KeyCapBlue);
         RectTransform fr = fill.rectTransform;
@@ -1022,9 +1019,20 @@ public class JsabStageSelect : MonoBehaviour
         fr.offsetMax = new Vector2(-2f, -2f);
 
         TMP_Text t = NewText("L", br, label, fontSize, Color.white, TextAlignmentOptions.Center);
+        // チップ幅は文字の実プリファード幅+左右パディングで確保する。旧実装の
+        // 「24+文字数*fontSize*0.66」はラテン字送り(0.66em)を仮定しており、全角
+        // カタカナ(スティック/ボタン)は約 1em 送りのため過小に見積もられ、
+        // Center+Overflow の文字がチップ枠(青地)からはみ出していた
+        // (2026-07-14 指摘「下部テキストが黒背景から切れる」)。font(CJK
+        // フォールバック付き)割当済みの t を GetPreferredValues で実測して枠を合わせる。
+        const float padX = 28f;
+        float textW = t.GetPreferredValues(label).x;
+        float width = Mathf.Max(height, textW + padX);
+        br.sizeDelta = new Vector2(width, height);
+        AddLayoutElement(br, width, height);
+
         Stretch((RectTransform)t.transform);
-        // CJK フォールバックの行メトリクス(←/→ など)で文字が上に乗るため、
-        // インク実測で光学中央へ寄せる。
+        // CJK フォールバックの行メトリクスで文字が上に乗るため、インク実測で光学中央へ。
         TmpAlign.CenterInkVertically(t);
         return br;
     }
