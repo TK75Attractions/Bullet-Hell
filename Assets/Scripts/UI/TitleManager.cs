@@ -919,7 +919,11 @@ public class TitleManager : MonoBehaviour
             pcSegLabels[i] = lbl;
         }
 
-        // 操作ヒント(小さく・下側)。
+        // 操作ヒント(小さく・下側)。スティックを左右に動かすアイコン + テキストを
+        // 横並び中央寄せで置く(2026-07-14 要望「ジョイスティックを左右に動かすアイコンが
+        // 欲しい」)。◀▶(U+25C0/25B6)は Oxanium/M PLUS 1 Code に無く tofu 化する
+        // (2db7e9e で «» 化した経緯)ため、記号ではなくランタイム生成の画像アイコンで示す。
+        // 中央寄せは HorizontalLayoutGroup に任せ、非アクティブ時の TMP 幅計測トラップを避ける。
         GameObject hintObj = new GameObject("PcHint", typeof(RectTransform));
         hintObj.layer = gameObject.layer;
         RectTransform hintRect = (RectTransform)hintObj.transform;
@@ -928,16 +932,34 @@ public class TitleManager : MonoBehaviour
         hintRect.pivot = new Vector2(0.5f, 1f);
         hintRect.anchoredPosition = new Vector2(0f, -segH * 0.5f - 6f);
         hintRect.sizeDelta = new Vector2(520f, 34f);
-        TMP_Text hint = hintObj.AddComponent<TextMeshProUGUI>();
+        HorizontalLayoutGroup hlg = hintObj.AddComponent<HorizontalLayoutGroup>();
+        hlg.childAlignment = TextAnchor.MiddleCenter;
+        hlg.spacing = 9f;
+        hlg.childControlWidth = true;
+        hlg.childControlHeight = true;
+        hlg.childForceExpandWidth = false;
+        hlg.childForceExpandHeight = false;
+
+        GameObject stickObj = new GameObject("StickIcon", typeof(RectTransform));
+        stickObj.layer = gameObject.layer;
+        stickObj.transform.SetParent(hintRect, false);
+        Image stickImg = stickObj.AddComponent<Image>();
+        stickImg.sprite = UiIconFactory.StickLeftRight();
+        stickImg.preserveAspect = true;
+        stickImg.raycastTarget = false;
+        stickImg.color = new Color(0.55f, 0.85f, 1f, 0.95f);   // 淡いシアン(暗い帯で視認)
+        LayoutElement stickLe = stickObj.AddComponent<LayoutElement>();
+        stickLe.preferredHeight = 26f;
+        stickLe.preferredWidth = 26f * (112f / 64f);           // アイコンのアスペクト比
+
+        GameObject lblObj2 = new GameObject("Label", typeof(RectTransform));
+        lblObj2.layer = gameObject.layer;
+        lblObj2.transform.SetParent(hintRect, false);
+        TMP_Text hint = lblObj2.AddComponent<TextMeshProUGUI>();
         if (uiFont != null) hint.font = uiFont;
-        // 左右の三角矢印 ◀▶(U+25C0/U+25B6)は Oxanium も M PLUS 1 Code も TTF に
-        // 持たず、フォールバックにも無いため □□(tofu)に化けていた(2026-07-14 指摘
-        // 「タイトルの文字化け」の実体)。フォントは Dynamic モードなので atlas 追加で
-        // 直る種類ではなく、字自体が存在しない。描画可能な二重山括弧 «»(U+00AB/00BB・
-        // Oxanium に収録)へ差し替えて左右操作を示す。
-        hint.text = "« » で人数選択";
+        hint.text = "で人数を選択";
         hint.fontSize = 22f;
-        hint.alignment = TextAlignmentOptions.Center;
+        hint.alignment = TextAlignmentOptions.Left;
         hint.color = new Color(0.6f, 0.68f, 0.78f, 0.85f);
         hint.raycastTarget = false;
 
