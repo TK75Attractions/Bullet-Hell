@@ -73,6 +73,10 @@ public class GManager : MonoBehaviour
     private OptionMenu optionMenu;
     private bool titleArmed = false;
     private bool resultTransitioning = false;
+    // ステージ選択(カルーセル)で Esc / B を押してタイトルへ戻る途中フラグ。
+    // 白カバー→シーン再読込までの間、カウントダウン自動スタートやタイトル/選択の
+    // 入力処理を止めるために立てる(再読込で GManager が作り直され false に戻る)。
+    private bool returningToTitle = false;
     private int currentStageIndex = -1;
 
     // Which layer of the title screen currently owns input.
@@ -500,6 +504,11 @@ public class GManager : MonoBehaviour
     // frame was fully consumed by an overlay (options or transfer).
     private bool UpdateTitleMenu(float t, ref bool stageSelectButton)
     {
+        // タイトルへ戻る遷移中(白カバー〜シーン再読込)は入力を全消費し、
+        // タイトルメニューにも選択画面(下の SSManager.UpdateSelect)にも
+        // 処理を漏らさない。カバー下でのメニュー誤発火や自動スタートを防ぐ。
+        if (returningToTitle) return true;
+
         switch (titlePhase)
         {
             case TitlePhase.Options:
@@ -957,6 +966,37 @@ public class GManager : MonoBehaviour
             PixelTransition.RevealAfterNextSceneLoad(true);
         }
         AudioListener.pause = false;
+        UnityEngine.SceneManagement.SceneManager.LoadScene(
+            UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+    }
+
+    // ステージ選択(カルーセル)で Esc / P1 の B を押したときにタイトルへ戻る。
+    // Result→Title / QuitPlay と同流儀で白カバー→シーン再読込し、タイトル BGM・
+    // 背景・入力状態をクリーンに復元する(半端な手動復元の取りこぼしを避ける)。
+    // 再読込後は PixelTransition の title-return 演出でタイトルが復帰する。
+    public async void ReturnToTitleFromSelect()
+    {
+        if (returningToTitle || state != GameState.ChoosingStage) return;
+        returningToTitle = true;
+        // 即座に Title 状態へ移し、選択画面のカウントダウン自動スタート等の
+        // 副作用を止める(UpdateTitleMenu の returningToTitle ガードと二重の保険)。
+        state = GameState.Title;
+        SSManager?.NotifyGameStateChanged();
+        // 選択/タイトル BGM は再読込で作り直されるが、覆いの間に手前でフェード
+        // アウトしておくとぶつ切りにならない。
+        AManager?.FadeOutAndStopBGM(0.4f);
+
+        PixelTransition[] transitions = UnityEngine.Object.FindObjectsByType<PixelTransition>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None);
+        if (transitions.Length > 0)
+        {
+            transitions[0].SetColor(Color.white);
+            await transitions[0].Cover();
+            // 覆い切ってからフラグを立てる。先に立てると再読込前の旧シーンが
+            // フラグを消費してタイトルが覆いの下に隠れたままになる(QuitPlay 準拠)。
+            PixelTransition.RevealAfterNextSceneLoad(true);
+        }
+        QOrder?.ClearAllGameplayBulletsImmediate();
         UnityEngine.SceneManagement.SceneManager.LoadScene(
             UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
     }

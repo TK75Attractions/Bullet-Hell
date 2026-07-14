@@ -288,6 +288,17 @@ public class StageSelectManager : MonoBehaviour
                     break;
                 }
 
+                // カルーセル(難易度モーダル非表示)で Esc / P1 の B を押すとタイトルへ戻る。
+                // モーダルが開いている間は上の分岐で「閉じる」を優先するので、
+                // 難易度→カルーセル→タイトルの2段戻りになる。既定スタイルでも
+                // 難易度リストは別ステート(State.Difficulty)で back→音楽選択に戻るため、
+                // ここに来るのはカルーセル段のみ。
+                if (back)
+                {
+                    GManager.Control.ReturnToTitleFromSelect();
+                    break;
+                }
+
                 if (button)
                 {
                     // On the JSAB screen the decision opens the in-screen difficulty
