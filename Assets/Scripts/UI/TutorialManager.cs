@@ -15,6 +15,8 @@ public class TutorialManager : MonoBehaviour
     private static readonly Color cyan = new Color(0.02f, 0.78f, 1f);
     private static readonly Color panelColor = new Color(0.018f, 0.028f, 0.075f, 0.97f);
     private static readonly Color keyColor = new Color(0.92f, 0.94f, 0.97f, 0.98f);
+    // 白いキーキャップ上でアイコン線画を濃紺に tint(ラベルと同系で可読性確保)。
+    private static readonly Color iconTint = new Color(0.03f, 0.12f, 0.28f, 1f);
 
     private TMP_Text tutorialText;
     private RectTransform tutorialRect;
@@ -33,6 +35,7 @@ public class TutorialManager : MonoBehaviour
     private CanvasGroup moveIconGroup;
     private RectTransform dashIconRoot;
     private CanvasGroup dashIconGroup;
+    private TMP_Text dashNote;
     private readonly List<KeyVisual> moveKeys = new List<KeyVisual>();
     private readonly List<KeyVisual> dashKeys = new List<KeyVisual>();
     private Vector2 cardBasePosition;
@@ -114,14 +117,28 @@ public class TutorialManager : MonoBehaviour
         tutorialText.enableWordWrapping = false;
 
         // 実機はジョイスティック+ボタン想定(2026-07-13 指摘)。WASD の 4 キーの代わりに
-        // 「スティック」1 枚、ダッシュは「ボタン」で案内する。
+        // 「スティック」1 枚、ダッシュは「ボタン」で案内する。各キーキャップには
+        // ランタイム生成のアイコン(スティック左右 / ボタン)を添える(2026-07-14 要望)。
         moveIconRoot = CreateIconRoot("MoveIcons", cardRect);
         moveIconGroup = moveIconRoot.gameObject.AddComponent<CanvasGroup>();
-        moveKeys.Add(CreateKey(moveIconRoot, "スティック", Vector2.zero, new Vector2(248f, 62f)));
+        moveKeys.Add(CreateKey(moveIconRoot, "スティック", UiIconFactory.StickLeftRight(), Vector2.zero, new Vector2(248f, 62f)));
 
+        // ダッシュは「移動しながらボタン」を示すため、スティックとボタンの2枚を縦に並べる。
         dashIconRoot = CreateIconRoot("DashIcons", cardRect);
         dashIconGroup = dashIconRoot.gameObject.AddComponent<CanvasGroup>();
-        dashKeys.Add(CreateKey(dashIconRoot, "ボタン", Vector2.zero, new Vector2(232f, 62f)));
+        dashKeys.Add(CreateKey(dashIconRoot, "スティック", UiIconFactory.StickLeftRight(), new Vector2(0f, 34f), new Vector2(248f, 56f)));
+        dashKeys.Add(CreateKey(dashIconRoot, "ボタン", UiIconFactory.Button(), new Vector2(0f, -34f), new Vector2(248f, 56f)));
+
+        // 「ダッシュ中は無敵!」の注記(ダッシュステップのみ表示)。無敵は PlayerController の
+        // invincible(dash>0 で true・TryHit を無効化)で実装済み=事実として明記する。
+        // 濃紺パネル上なのでアクセントのシアンで強調(既存の強調色を踏襲)。card の子に
+        // するので cardGroup のフェードに追従する。
+        dashNote = CreateLabel("DashNote", cardRect, new Vector2(145f, -44f), new Vector2(440f, 46f), 26f);
+        dashNote.text = "ダッシュ中は無敵!";
+        dashNote.color = cyan;
+        dashNote.fontStyle = FontStyles.Bold;
+        dashNote.alignment = TextAlignmentOptions.MidlineLeft;
+        dashNote.gameObject.SetActive(false);
 
         moveIconRoot.gameObject.SetActive(false);
         dashIconRoot.gameObject.SetActive(false);
@@ -181,7 +198,7 @@ public class TutorialManager : MonoBehaviour
         return rect;
     }
 
-    private KeyVisual CreateKey(Transform parent, string label, Vector2 position, Vector2 size)
+    private KeyVisual CreateKey(Transform parent, string label, Sprite icon, Vector2 position, Vector2 size)
     {
         GameObject key = CreateImageObject("Key_" + label, parent, keyColor);
         RectTransform rect = (RectTransform)key.transform;
@@ -199,7 +216,26 @@ public class TutorialManager : MonoBehaviour
         accentRect.anchoredPosition = new Vector2(0f, -size.y * 0.5f + 3f);
         accentRect.sizeDelta = new Vector2(size.x - 8f, 6f);
 
-        TMP_Text keyText = CreateLabel("Label", rect, new Vector2(0f, 2f), size, label.Length >= 4 ? 27f : 32f);
+        // アイコンを左側に配置し、ラベルを右の残り領域へ中央寄せする。
+        float textLeftPad = 0f;
+        if (icon != null)
+        {
+            float iconH = 30f;
+            float iconW = iconH * (icon.rect.width / icon.rect.height);
+            GameObject ic = CreateImageObject("Icon", rect, iconTint);
+            Image icImg = ic.GetComponent<Image>();
+            icImg.sprite = icon;
+            icImg.preserveAspect = true;
+            RectTransform icr = (RectTransform)ic.transform;
+            icr.anchorMin = icr.anchorMax = new Vector2(0.5f, 0.5f);
+            icr.anchoredPosition = new Vector2(-size.x * 0.5f + 16f + iconW * 0.5f, 1f);
+            icr.sizeDelta = new Vector2(iconW, iconH);
+            textLeftPad = 16f + iconW + 8f;
+        }
+
+        float labelW = Mathf.Max(40f, size.x - textLeftPad - 12f);
+        Vector2 labelPos = new Vector2((textLeftPad - 12f) * 0.5f, 2f);
+        TMP_Text keyText = CreateLabel("Label", rect, labelPos, new Vector2(labelW, size.y), label.Length >= 4 ? 24f : 30f);
         keyText.text = label;
         keyText.fontStyle = FontStyles.Bold;
         keyText.color = new Color(0.035f, 0.055f, 0.09f);
@@ -252,8 +288,11 @@ public class TutorialManager : MonoBehaviour
         }
         await CompleteTutorialStep(false);
 
-        await ShowTutorialStep("ボタンでダッシュ", true);
-        while (!input.buttonPressedThisFrame)
+        // ダッシュは「移動しながらボタンを押す」で成立させる(2026-07-14 要望)。
+        // 静止したままボタンだけでは進まず、移動入力とダッシュボタンの同時成立で次へ。
+        await ShowTutorialStep("移動しながらダッシュ", true);
+        while (!(input.buttonPressedThisFrame &&
+                 (input.upPressed || input.downPressed || input.leftPressed || input.rightPressed)))
         {
             await Task.Yield();
             if (this == null) return;
@@ -267,6 +306,10 @@ public class TutorialManager : MonoBehaviour
         moveIconRoot.gameObject.SetActive(!dash);
         dashIconRoot.gameObject.SetActive(dash);
         CanvasGroup icons = dash ? dashIconGroup : moveIconGroup;
+
+        // ダッシュステップは無敵注記を出す分、本文を少し上げて重なりを避ける。
+        if (dashNote != null) dashNote.gameObject.SetActive(dash);
+        tutorialRect.anchoredPosition = new Vector2(145f, cardBasePosition.y + (dash ? 26f : 0f));
 
         tutorialText.text = message;
         tutorialText.color = Color.white;
