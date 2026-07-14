@@ -1081,7 +1081,7 @@ public sealed class ResultScreen : MonoBehaviour
         // 本文の text/サイズ確定後に呼ぶ必要があるためここで実行する。
         PlaceAllRubies();
 
-        string rank = EvaluateRank(cleared, hitCount);
+        string rank = EvaluateRank(cleared, hitCount, difficulty);
         rankText.text = rank;
         // F は字形の質量が左に寄るため、光学中心へ +12px 右へ寄せる（oracle 指摘）。
         rankText.rectTransform.anchoredPosition = new Vector2(rank == "F" ? 12f : 0f, 23f);
@@ -1132,7 +1132,7 @@ public sealed class ResultScreen : MonoBehaviour
         // 1P では実行せず twoPlayerResult=false=現行リザルトのまま。
         if (twoPlayer)
             ApplyTwoPlayerResult(cleared, hitCount, hitCount2,
-                counterCount, elapsedSeconds, endSeconds, provisionalScore);
+                counterCount, elapsedSeconds, endSeconds, provisionalScore, difficulty);
         else if (twoPlayerLayoutApplied)
             RestoreOnePlayerLayout();     // 2P 表示後に 1P へ戻す経路のみ(純 1P は不変)
         else
@@ -1150,7 +1150,7 @@ public sealed class ResultScreen : MonoBehaviour
     // P2 のスコア/被弾。値のカウントアップは ApplyEntranceFrame の twoPlayerResult 分岐、
     // ラベルはここで再設定する。既存ウィジェットを流用するため額装・銀枠の様式は不変。
     private void ApplyTwoPlayerResult(bool cleared, int hit1, int hit2,
-        int counterCount, float elapsedSeconds, float endSeconds, int score1)
+        int counterCount, float elapsedSeconds, float endSeconds, int score1, int difficulty)
     {
         twoPlayerResult = true;
         twoPlayerLayoutApplied = true;
@@ -1160,8 +1160,8 @@ public sealed class ResultScreen : MonoBehaviour
         // --- 中央: 2 人分のランク(P1=左へ縮小移動 / P2=右) ---
         // oracle 指摘: A/B が近接+同色で「AB」という 1 語に見える。各字を一段縮小し
         // 左右へ広げて中央に明確な空きを作り、1P/2P タグとの所属関係を強める。
-        string rank1 = EvaluateRank(cleared, hit1);
-        string rank2 = EvaluateRank(cleared, hit2);
+        string rank1 = EvaluateRank(cleared, hit1, difficulty);
+        string rank2 = EvaluateRank(cleared, hit2, difficulty);
         const float rankScale = 0.56f;
         const float rankOffset = 225f;
         rankText.text = rank1;
@@ -1588,25 +1588,35 @@ public sealed class ResultScreen : MonoBehaviour
         if (bgmSource != null) bgmSource.volume = 0f;
     }
 
+    // スコア = クリア +500,000 / カウンター ×20,000 / 被弾 ×10,000（clamp [0,999999]）。
+    // 進行率係数(elapsedSeconds/endSeconds × 700,000)はユーザー指定で廃止。
+    // elapsedSeconds/endSeconds は既存呼び出し互換のため残すが、この関数では未使用。
     public static int CalculateProvisionalScore(bool cleared, int hitCount, int counterCount,
         float elapsedSeconds, float endSeconds)
     {
-        float progress = endSeconds > 0.001f
-            ? Mathf.Clamp01(elapsedSeconds / endSeconds)
-            : (cleared ? 1f : 0f);
-        int score = Mathf.RoundToInt(progress * 700000f);
-        if (cleared) score += 200000;
-        score += Mathf.Max(0, counterCount) * 7500;
-        score -= Mathf.Max(0, hitCount) * 40000;
+        int score = cleared ? 500000 : 0;
+        score += Mathf.Max(0, counterCount) * 20000;
+        score -= Mathf.Max(0, hitCount) * 10000;
         return Mathf.Clamp(score, 0, 999999);
     }
 
-    public static string EvaluateRank(bool cleared, int hitCount)
+    // 総合ランク。被弾のみで決めていたが、難易度別しきい値を導入し高難易度ほど被弾を
+    // 許容する。S は全難易度で 0 被弾、未クリアは全難易度で F 固定。
+    // difficulty は 0=EASY / 1=NORMAL / 2=LUNATIC（DifficultyName と同じ割当。HARD は
+    // 存在しないため switch の default=NORMAL 相当へフォールバック）。
+    public static string EvaluateRank(bool cleared, int hitCount, int difficulty)
     {
         if (!cleared) return "F";
         if (hitCount <= 0) return "S";
-        if (hitCount <= 2) return "A";
-        if (hitCount <= 5) return "B";
+        int aMax, bMax;
+        switch (difficulty)
+        {
+            case 0: aMax = 2; bMax = 5; break;    // EASY
+            case 2: aMax = 8; bMax = 15; break;   // LUNATIC
+            default: aMax = 5; bMax = 10; break;  // NORMAL（HARD 相当もここへ）
+        }
+        if (hitCount <= aMax) return "A";
+        if (hitCount <= bMax) return "B";
         return "C";
     }
 
