@@ -92,6 +92,26 @@ public class ControllerSerial2PTests
         Assert.IsFalse(InputManager.TryParseSLine("S GG 00", out _, out _), "不正 hex は拒否");
     }
 
+    // ---- COM 番号の自動追従 ----
+
+    [Test]
+    public void SelectPortName_ConfiguredPortStillExists_KeepsIt()
+    {
+        Assert.AreEqual("COM4", InputManager.SelectPortName("COM4", new[] { "COM3", "COM4" }));
+    }
+
+    [Test]
+    public void SelectPortName_ConfiguredPortDisappeared_UsesAvailablePort()
+    {
+        Assert.AreEqual("COM3", InputManager.SelectPortName("COM4", new[] { "COM3" }));
+    }
+
+    [Test]
+    public void SelectPortName_MultipleFallbacks_UsesLowestComNumber()
+    {
+        Assert.AreEqual("COM3", InputManager.SelectPortName("COM9", new[] { "COM11", "COM3", "COM7" }));
+    }
+
     // ---- P1 のビット展開(注入 → UpdateInput) ----
 
     [Test]
