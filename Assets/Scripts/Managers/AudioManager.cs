@@ -127,6 +127,31 @@ public class AudioManager : MonoBehaviour
         return so;
     }
 
+    // UI の「決定」効果音。SEDB 経路(未配線)は使わず、Resources/SE から遅延ロードして
+    // キャッシュし、常駐 SE プールで PlayOneShot する(BGM とは独立)。タイトル/選択/
+    // リザルトの確定ボタンから呼ぶ。出典: 効果音ラボ(決定ボタンを押す16)。
+    private const float DecisionSeVolume = 0.7f;
+    private AudioClip decisionSeClip;
+    private bool decisionSeLoadFailed;
+
+    public void PlayDecisionSE()
+    {
+        if (!isready) return;
+        if (decisionSeClip == null && !decisionSeLoadFailed)
+        {
+            decisionSeClip = Resources.Load<AudioClip>("SE/ui_decide");
+            if (decisionSeClip == null)
+            {
+                decisionSeLoadFailed = true;
+                Debug.LogWarning("Decision SE 'Resources/SE/ui_decide' not found.");
+                return;
+            }
+        }
+        if (decisionSeClip == null) return;
+        AudioSource source = GetAvailableAudioSource();
+        if (source != null) source.PlayOneShot(decisionSeClip, DecisionSeVolume);
+    }
+
 
 public void StopBGM()
     {

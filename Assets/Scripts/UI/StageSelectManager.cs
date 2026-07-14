@@ -281,6 +281,8 @@ public class StageSelectManager : MonoBehaviour
                         // これがないと時間切れ auto-confirm で endTime=0 の姿見が起動し落ちる。
                         if (jsab.CanConfirm())
                         {
+                            // 時間切れ auto-confirm(button 上書き)では鳴らさない。
+                            if (!timeUp) GManager.Control?.AManager?.PlayDecisionSE();
                             GManager.Control.selectedDifficulty = jsab.DifficultyIndex;
                             // JSAB 画面はここでは隠さない。ピクセルトランジションが
                             // 覆い切ってから StartGameTransition 側で隠す(先に隠すと
@@ -311,6 +313,7 @@ public class StageSelectManager : MonoBehaviour
                     // modal; the default screen slides to the difficulty list. The
                     // modal gets the same fresh countdown as the difficulty screen,
                     // otherwise a music-phase timeout would auto-confirm it instantly.
+                    if (!timeUp) GManager.Control?.AManager?.PlayDecisionSE();   // ステージ確定
                     if (jsab != null && stageSelectStyle == 1)
                     {
                         remainingTime = difficultySelectTime;
@@ -348,6 +351,7 @@ public class StageSelectManager : MonoBehaviour
                     // 確定するとゲームが落ちるためブロックする(B で戻る)。
                     if (!IsCurrentStageLocked())
                     {
+                        if (!timeUp) GManager.Control?.AManager?.PlayDecisionSE();   // 難易度確定
                         GManager.Control.selectedDifficulty = defficultyBar.index;
                         state = State.InGame;
                         StartGameTransition(stageBar.currentStage);

@@ -561,6 +561,7 @@ public class GManager : MonoBehaviour
 
                 if (IManager.buttonPressedThisFrame)
                 {
+                    AManager?.PlayDecisionSE();   // タイトルメニュー確定
                     TitleManager.TitleMenuAction action =
                         TManager != null ? TManager.CurrentAction : TitleManager.TitleMenuAction.Start;
                     switch (action)
@@ -877,6 +878,7 @@ public class GManager : MonoBehaviour
     {
         if (resultTransitioning || RManager == null || !RManager.Visible) return;
         resultTransitioning = true;
+        AManager?.PlayDecisionSE();   // リザルトのボタン確定(ステージ選択/プレイを終わる)
 
         // リザルト BGM をぶつ切りにせずフェードアウトしてから覆う(2026-07-13 指摘)。
         // await で無音まで下げ切ってから画面を覆う=遷移が自然につながる。
