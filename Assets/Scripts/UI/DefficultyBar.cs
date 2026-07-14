@@ -40,18 +40,41 @@ public class DefficultyBar : MonoBehaviour
     private float descAnimT = 1f;
     private float animTime;
 
-    // 難読漢字にふりがなを併記する(文化祭の子供来場者向け・2026-07-14 指摘)。
-    // TMP にネイティブ ruby 機能は無く、説明文は難易度切替でテキストが差し替わり
-    // 横スライドで入場するため、漢字直上へルビを個別配置するより「漢字(かな)」を
-    // 1行に併記する方式が堅牢(採用理由は PROGRESS.md)。難易度名はカタカナで
-    // 既に読めるので、ふりがなは説明部の難読漢字に絞る。併記で行が伸びるぶんは
-    // 説明フォントを 34→30 に一段下げて画面内に収める(Init)。
+    // 難読漢字にふりがなを付ける(文化祭の子供来場者向け・2026-07-14 指摘)。
+    // 当初は「漢字(かな)」併記だったが、ユーザー要望で括弧をやめ漢字の真上へ小さな
+    // ルビとして載せる方式へ変更(2026-07-14)。TMP にネイティブ ruby は無いため、
+    // 説明テキストの子として小型 TMP を漢字ブロック実測中心へ配置する
+    // (正準の TmpAlign.PlaceRubyOverKanji。ResultScreen/引き継ぎ/Header と同方式)。
+    // ルビを descText の子にすることで、説明の横スライド入場に追従させる。
+    // ふりがなは説明部の難読漢字に絞る(難易度名はカタカナで既に読める)。
     private static readonly string[] descriptions =
     {
-        "イージー / EASY - 気軽(きがる)に遊(あそ)べる難易度(なんいど)です",
-        "ノーマル / NORMAL - 標準的(ひょうじゅんてき)な難易度(なんいど)です",
-        "ルナティック / LUNATIC - 上級者(じょうきゅうしゃ)向けの高難易度(こうなんいど)です",
+        "イージー / EASY - 気軽に遊べる難易度です",
+        "ノーマル / NORMAL - 標準的な難易度です",
+        "ルナティック / LUNATIC - 上級者向けの高難易度です",
     };
+
+    // 各説明の漢字語とその読み。start は実行時に本文へ IndexOf で求める(語は各説明内で
+    // 一意)。読みは PlaceRubyOverKanji が漢字グリフ実測中心へ水平配置する。
+    private readonly struct Furigana
+    {
+        public readonly string word;    // 本文中の対象漢字語(部分文字列)
+        public readonly string reading; // ふりがな
+        public Furigana(string w, string r) { word = w; reading = r; }
+    }
+
+    private static readonly Furigana[][] descFurigana =
+    {
+        new[] { new Furigana("気軽", "きがる"), new Furigana("遊", "あそ"), new Furigana("難易度", "なんいど") },
+        new[] { new Furigana("標準的", "ひょうじゅんてき"), new Furigana("難易度", "なんいど") },
+        new[] { new Furigana("上級者", "じょうきゅうしゃ"), new Furigana("高難易度", "こうなんいど") },
+    };
+
+    // 説明ルビ TMP のプール(最大 3 語=イージー)。descText の子として横スライドに追従。
+    private TMP_Text[] descRubies;
+    private const int DescRubyPoolSize = 3;
+    private const float DescRubyFontSize = 15f;  // 本文 30 の約半分
+    private const float DescRubyY = 23f;         // 説明中心からの上オフセット(スクショで調整)
 
     private DefficultyBox[] boxes = new DefficultyBox[3];
     // Per-box selection progress (0=unselected, 1=selected), smoothed every frame
@@ -176,9 +199,11 @@ public class DefficultyBar : MonoBehaviour
             descText = desc.GetComponent<TMP_Text>();
             descRect = desc.GetComponent<RectTransform>();
             descBaseX = descRect.anchoredPosition.x;
-            // ふりがな併記で行が長くなるため一段小さく(34→30)。1行維持・画面内に収める。
+            // ルビ方式(括弧を廃止)で本文は短くなったが、行の見た目を維持するため
+            // フォントは 30 のまま(旧: 括弧併記で行が伸びるぶん 34→30)。
             descText.enableAutoSizing = false;
             descText.fontSize = 30f;
+            BuildDescRubies();
         }
         Transform prompt = transform.Find("Prompt");
         if (prompt != null) promptText = prompt.GetComponent<TMP_Text>();
@@ -277,6 +302,11 @@ public class DefficultyBar : MonoBehaviour
             float p = -descAnimT * (descAnimT - 2);
             descText.alpha = p;
             descRect.anchoredPosition = new Vector2(descBaseX + 30f * (1f - p), descRect.anchoredPosition.y);
+            // ルビも本文と同じ不透明度でフェードイン(横スライドは子として自動追従)。
+            if (descRubies != null)
+                for (int i = 0; i < descRubies.Length; i++)
+                    if (descRubies[i] != null && descRubies[i].gameObject.activeSelf)
+                        descRubies[i].alpha = p;
         }
     }
 
@@ -325,6 +355,73 @@ public class DefficultyBar : MonoBehaviour
         descText.text = descriptions[index];
         descAnimT = 0f;
         descText.alpha = 0f;
+        PlaceDescRubies();
+    }
+
+    // 説明ルビ TMP をプール生成(descText の子。横スライドに追従)。JSAB モーダルは
+    // シーンの DefficultyBar を丸ごとクローンして再 Init するため、生成済みの子が
+    // あれば再利用する(FrameBoost/RowSlash と同じ二重生成対策)。
+    private void BuildDescRubies()
+    {
+        descRubies = new TMP_Text[DescRubyPoolSize];
+        for (int i = 0; i < DescRubyPoolSize; i++)
+        {
+            Transform existing = descRect.Find("DescRuby" + i);
+            TextMeshProUGUI t;
+            if (existing != null)
+            {
+                t = existing.GetComponent<TextMeshProUGUI>();
+            }
+            else
+            {
+                GameObject go = new GameObject("DescRuby" + i,
+                    typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+                RectTransform rt = (RectTransform)go.transform;
+                rt.SetParent(descRect, false);
+                rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
+                rt.sizeDelta = new Vector2(240f, 24f);
+                rt.anchoredPosition = new Vector2(0f, DescRubyY);
+                t = go.GetComponent<TextMeshProUGUI>();
+                t.raycastTarget = false;
+                t.enableWordWrapping = false;
+                t.overflowMode = TextOverflowModes.Overflow;
+            }
+            if (descText.font != null) t.font = descText.font;
+            t.fontSize = DescRubyFontSize;
+            t.color = new Color(1f, 1f, 1f, 0.9f);
+            t.alignment = TextAlignmentOptions.Center;
+            t.gameObject.SetActive(false);
+            descRubies[i] = t;
+        }
+    }
+
+    // 現在の難易度の各漢字語の上へルビを配置(実測中心)。未使用スロットは非表示。
+    private void PlaceDescRubies()
+    {
+        if (descRubies == null) return;
+        Furigana[] spans = (index >= 0 && index < descFurigana.Length)
+            ? descFurigana[index] : System.Array.Empty<Furigana>();
+        string body = descriptions[index];
+        for (int i = 0; i < descRubies.Length; i++)
+        {
+            if (descRubies[i] == null) continue;
+            if (i < spans.Length)
+            {
+                int start = body.IndexOf(spans[i].word, System.StringComparison.Ordinal);
+                if (start < 0) { descRubies[i].gameObject.SetActive(false); continue; }
+                descRubies[i].gameObject.SetActive(true);
+                descRubies[i].text = spans[i].reading;
+                descRubies[i].alpha = 0f;   // 本文と同じくフェードイン(Tick で同期)
+                // 漢字ブロックの実測中心へ水平配置(y は既定オフセット維持)。子なので
+                // 配置後は descText の横スライドに自動追従する。
+                TmpAlign.PlaceRubyOverKanji(descText,
+                    (RectTransform)descRubies[i].transform, start, spans[i].word.Length);
+            }
+            else
+            {
+                descRubies[i].gameObject.SetActive(false);
+            }
+        }
     }
 
     private void SetLayoutPosition(string childName, Vector2 position)

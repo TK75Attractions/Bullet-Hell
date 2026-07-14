@@ -1213,12 +1213,16 @@ public class JsabStageSelect : MonoBehaviour
             : null;
         Color labelColor = selectedLabel != null ? selectedLabel.color : Color.white;
         // 見出し・説明文・プロンプト(ルビ含む)・装飾ラインは行より先にすっと消す。
+        // 説明文の漢字直上ルビ(DescText の子 DescRuby0..2)も一緒に消す。
         exitFadeTexts = new[]
         {
             diffPanel.Find("Title")?.GetComponent<TMP_Text>(),
             diffPanel.Find("TitleRubyN")?.GetComponent<TMP_Text>(),
             diffPanel.Find("TitleRubyS")?.GetComponent<TMP_Text>(),
             diffPanel.Find("DescText")?.GetComponent<TMP_Text>(),
+            diffPanel.Find("DescText/DescRuby0")?.GetComponent<TMP_Text>(),
+            diffPanel.Find("DescText/DescRuby1")?.GetComponent<TMP_Text>(),
+            diffPanel.Find("DescText/DescRuby2")?.GetComponent<TMP_Text>(),
             diffPanel.Find("Prompt")?.GetComponent<TMP_Text>(),
             diffPanel.Find("PromptRubyO")?.GetComponent<TMP_Text>(),
             diffPanel.Find("PromptRubyK")?.GetComponent<TMP_Text>(),
