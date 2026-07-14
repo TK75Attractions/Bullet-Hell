@@ -1182,14 +1182,23 @@ public class JsabStageSelect : MonoBehaviour
 
     // 現在のステージに応じて選択可能な難易度を絞る。石工・浮浪者は EASY/LUNATIC が
     // 未完成のため NORMAL のみ選択可(グレーアウト+COMING SOON)。艦長は3難易度とも
-    // 実データがあるので従来どおり、姿見(WIP)も現状維持で3行可のまま。
+    // 実データがあるので従来どおり。姿見(mirror)は endTime=0 の WIP=全難易度 COMING SOON
+    // にして確定不可にする(CanConfirm でゲーム開始をブロック)。
     private void ApplyDifficultyAvailability()
     {
         if (diffBar == null) return;
         string dir = GetStage(currentIndex)?.stageDirectoryName;
-        bool restricted = dir == "stone" || dir == "vagrant";
-        if (restricted) diffBar.SetEnabledMask(false, true, false);
+        if (dir == "mirror") diffBar.SetEnabledMask(false, false, false);
+        else if (dir == "stone" || dir == "vagrant") diffBar.SetEnabledMask(false, true, false);
         else diffBar.SetEnabledMask(true, true, true);
+    }
+
+    // 現在選択中の難易度が実際に確定可能か。姿見(WIP)は全行 COMING SOON なので false を
+    // 返し、決定キー/時間切れによるゲーム開始をブロックする(endTime=0 の強制起動で
+    // BulletRenderSystem が落ちるのを防ぐ)。マウスは元々無効行を確定できない。
+    public bool CanConfirm()
+    {
+        return diffBar != null && diffBar.IsRowEnabled(diffBar.index);
     }
 
     public void CloseDifficulty()

@@ -276,12 +276,18 @@ public class StageSelectManager : MonoBehaviour
                     }
                     else if (button || jsab.ConsumeMouseConfirm())
                     {
-                        GManager.Control.selectedDifficulty = jsab.DifficultyIndex;
-                        // JSAB 画面はここでは隠さない。ピクセルトランジションが
-                        // 覆い切ってから StartGameTransition 側で隠す(先に隠すと
-                        // カバー完了前に下の画面が露出して一瞬乱れる)。
-                        state = State.InGame;
-                        StartGameTransition(stageBar.currentStage);
+                        // WIP ステージ(姿見)は全難易度 COMING SOON=確定不可。決定キー・
+                        // 時間切れ・マウスのいずれでもゲームを開始しない(B でカルーセルへ戻る)。
+                        // これがないと時間切れ auto-confirm で endTime=0 の姿見が起動し落ちる。
+                        if (jsab.CanConfirm())
+                        {
+                            GManager.Control.selectedDifficulty = jsab.DifficultyIndex;
+                            // JSAB 画面はここでは隠さない。ピクセルトランジションが
+                            // 覆い切ってから StartGameTransition 側で隠す(先に隠すと
+                            // カバー完了前に下の画面が露出して一瞬乱れる)。
+                            state = State.InGame;
+                            StartGameTransition(stageBar.currentStage);
+                        }
                     }
                     else if (left || up) jsab.MoveDifficulty(-1);
                     else if (right || down) jsab.MoveDifficulty(1);
@@ -338,9 +344,14 @@ public class StageSelectManager : MonoBehaviour
                 }
                 else if (button)
                 {
-                    GManager.Control.selectedDifficulty = defficultyBar.index;
-                    state = State.InGame;
-                    StartGameTransition(stageBar.currentStage);
+                    // 既定スタイルは難易度制限機構を持たないが、姿見(WIP・endTime=0)だけは
+                    // 確定するとゲームが落ちるためブロックする(B で戻る)。
+                    if (!IsCurrentStageLocked())
+                    {
+                        GManager.Control.selectedDifficulty = defficultyBar.index;
+                        state = State.InGame;
+                        StartGameTransition(stageBar.currentStage);
+                    }
                 }
                 else
                 {
@@ -353,6 +364,17 @@ public class StageSelectManager : MonoBehaviour
             default:
                 break;
         }
+    }
+
+    // 現在カルーセルで選択中のステージが未完成(COMING SOON)で確定不可か。
+    // 姿見(mirror)は endTime=0 の WIP のため確定するとゲームが落ちる。JSAB スタイルは
+    // 難易度モーダル側(CanConfirm)でブロックするが、既定スタイル用の保険としても使う。
+    private bool IsCurrentStageLocked()
+    {
+        var sdb = GManager.Control != null ? GManager.Control.SDB : null;
+        if (sdb == null || stageBar == null) return false;
+        var data = sdb.GetStage(stageBar.currentStage);
+        return data != null && data.stageDirectoryName == "mirror";
     }
 
     // プレイ開始遷移: 難易度ボタン群がスライドアウトしてからホワイトアウトで
