@@ -147,6 +147,9 @@ public sealed class ResultScreen : MonoBehaviour
     private readonly RectTransform[] cardRects = new RectTransform[4];
     private readonly CanvasGroup[] cardGroups = new CanvasGroup[4];
     private readonly Vector2[] cardHomes = new Vector2[4];
+    // BuildStats の初期配置(1P・±515/±500)。2P で中央寄せへ動かした後、
+    // 同一インスタンスで 1P へ戻す防御経路で確実に復元するため保持。
+    private readonly Vector2[] cardHomeOriginal = new Vector2[4];
     private int builtCardCount;
     private Image rippleA;
     private Image rippleB;
@@ -860,6 +863,7 @@ public sealed class ResultScreen : MonoBehaviour
             cardRects[builtCardCount] = rect;
             cardGroups[builtCardCount] = card.AddComponent<CanvasGroup>();
             cardHomes[builtCardCount] = pos;
+            cardHomeOriginal[builtCardCount] = pos;
             builtCardCount++;
         }
 
@@ -1191,11 +1195,33 @@ public sealed class ResultScreen : MonoBehaviour
         SetCardIcon(1, StatIcon.Crosshair);
         SetCardIcon(3, StatIcon.Shield);
 
+        // --- 2P はスコア/被弾カードを中央寄せへ再配置(2026-07-14 指摘「もっと中央寄せに」) ---
+        // 1P は BuildStats の ±515/±500 を保持(この分岐は 1P で呼ばれない)。左右列を中央側へ
+        // 寄せることで中央の 2 ランクとカード群の間の余白を詰める。cardHomes(入場アニメの静止
+        // 位置)と実位置の両方を更新し、符号=スライド方向は保持する。値は screenshot 実測で調整。
+        const float twoPTopX = 430f;    // 上段カード(スコア)。元 ±515 → 中央へ 85px
+        const float twoPBottomX = 418f; // 下段カード(被弾)。元 ±500 → 中央へ 82px
+        SetTwoPlayerCardX(0, -twoPTopX);    // P1 スコア(左上)
+        SetTwoPlayerCardX(2, -twoPBottomX); // P1 被弾(左下)
+        SetTwoPlayerCardX(1, twoPTopX);     // P2 スコア(右上)
+        SetTwoPlayerCardX(3, twoPBottomX);  // P2 被弾(右下)
+
         // --- 値の即時反映(カウントアップの最終状態と一致させる) ---
         scoreText.text = Mathf.Max(0, score1).ToString("N0");
         counterText.text = Mathf.Max(0, hit1).ToString("00");
         hitText.text = finalScore2.ToString("N0");
         timeText.text = finalHit2.ToString("00");
+    }
+
+    // 2P: カードの水平位置を中央寄せへ動かす(入場アニメの静止位置 cardHomes と実位置の
+    // 両方を更新)。符号=スライド方向は保持されるため x の符号は呼び出し側で維持する。
+    private void SetTwoPlayerCardX(int idx, float x)
+    {
+        if (idx < 0 || idx >= cardRects.Length || cardRects[idx] == null) return;
+        cardHomes[idx].x = x;
+        Vector2 pos = cardRects[idx].anchoredPosition;
+        pos.x = x;
+        cardRects[idx].anchoredPosition = pos;
     }
 
     // カードラベルを「<tag> <jp>\n<en>」形式へ差し替え、対応するルビを隠す。
@@ -1228,6 +1254,13 @@ public sealed class ResultScreen : MonoBehaviour
         if (p2RankTag != null) p2RankTag.gameObject.SetActive(false);
         // ランク字は中央・原寸へ(位置は 1P Prepare が別途確定済み)。
         rankText.rectTransform.localScale = new Vector3(1.09f, 1f, 1f);
+        // 2P で中央寄せしたカードを元の 1P 配置(±515/±500)へ戻す。
+        for (int i = 0; i < cardRects.Length; i++)
+        {
+            if (cardRects[i] == null) continue;
+            cardHomes[i] = cardHomeOriginal[i];
+            cardRects[i].anchoredPosition = cardHomeOriginal[i];
+        }
         for (int i = 0; i < statLabels.Length; i++)
         {
             if (statLabels[i] != null && statLabelOriginal[i] != null)
