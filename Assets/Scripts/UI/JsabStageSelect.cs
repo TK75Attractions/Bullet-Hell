@@ -848,12 +848,16 @@ public class JsabStageSelect : MonoBehaviour
 
         // Persistent player marker; RefreshProgress never destroys it so its
         // position can tween smoothly between nodes.
+        // 選択画面下部の主人公マーカーは専用アート(探偵の立ち絵 Resources/UI/hero_select)を
+        // 優先で使う。無ければ従来どおりプレイヤースプライトへフォールバック(2026-07-14 差替)。
+        Sprite markerSprite = Resources.Load<Sprite>("UI/hero_select");
+        if (markerSprite == null) markerSprite = playerSprite;
         Image marker = NewImage("Marker", progressRow, Color.white);
-        if (playerSprite != null)
+        if (markerSprite != null)
         {
-            marker.sprite = playerSprite;
+            marker.sprite = markerSprite;
             marker.preserveAspect = true;
-            Rect sr = playerSprite.rect;
+            Rect sr = markerSprite.rect;
             // 主人公マーカーを拡大(40→56, 約1.4倍)。MarkerY(=h/2=28)と対で足元が
             // rail に乗る。ユーザー要望「大きくして」。
             float h = 56f;
