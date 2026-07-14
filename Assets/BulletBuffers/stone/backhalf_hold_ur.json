@@ -3,63 +3,8 @@
     "bullets": [
         {
             "originPos": {
-                "x": 19.5,
-                "y": 11.0
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 0,
-            "gravity": {
-                "x": 0.0,
-                "y": -1.5707963
-            },
-            "angleSpeed": 0,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 0
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_block",
-            "scale": {
-                "x": 2.75,
-                "y": 2.75
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.0,
-            "appearDuration": 0.02,
-            "life": 3.492,
-            "random": 0,
-            "unCounterable": true,
-            "useVelocityAngle": false
-        },
-        {
-            "originPos": {
-                "x": 28.5,
-                "y": 14.5
+                "x": 18.5,
+                "y": 6.375
             },
             "originVlc": {
                 "x": 0,
@@ -113,8 +58,8 @@
         },
         {
             "originPos": {
-                "x": 22.5,
-                "y": 11.0
+                "x": 23.0,
+                "y": 6.375
             },
             "originVlc": {
                 "x": 0,
@@ -161,15 +106,15 @@
             },
             "appearTime": 0.0,
             "appearDuration": 0.02,
-            "life": 3.492,
+            "life": 0.23833,
             "random": 0,
             "unCounterable": true,
             "useVelocityAngle": false
         },
         {
             "originPos": {
-                "x": 25.5,
-                "y": 14.5
+                "x": 27.5,
+                "y": 6.375
             },
             "originVlc": {
                 "x": 0,
@@ -216,15 +161,15 @@
             },
             "appearTime": 0.0,
             "appearDuration": 0.02,
-            "life": 0.447,
+            "life": 0.44667,
             "random": 0,
             "unCounterable": true,
             "useVelocityAngle": false
         },
         {
             "originPos": {
-                "x": 25.5,
-                "y": 11.0
+                "x": 18.5,
+                "y": 9.125
             },
             "originVlc": {
                 "x": 0,
@@ -271,15 +216,15 @@
             },
             "appearTime": 0.0,
             "appearDuration": 0.02,
-            "life": 3.492,
+            "life": 0.655,
             "random": 0,
             "unCounterable": true,
             "useVelocityAngle": false
         },
         {
             "originPos": {
-                "x": 22.5,
-                "y": 14.5
+                "x": 23.0,
+                "y": 9.125
             },
             "originVlc": {
                 "x": 0,
@@ -326,15 +271,15 @@
             },
             "appearTime": 0.0,
             "appearDuration": 0.02,
-            "life": 0.863,
+            "life": 0.86333,
             "random": 0,
             "unCounterable": true,
             "useVelocityAngle": false
         },
         {
             "originPos": {
-                "x": 28.5,
-                "y": 11.0
+                "x": 27.5,
+                "y": 9.125
             },
             "originVlc": {
                 "x": 0,
@@ -381,15 +326,15 @@
             },
             "appearTime": 0.0,
             "appearDuration": 0.02,
-            "life": 3.492,
+            "life": 1.07167,
             "random": 0,
             "unCounterable": true,
             "useVelocityAngle": false
         },
         {
             "originPos": {
-                "x": 19.5,
-                "y": 14.5
+                "x": 18.5,
+                "y": 11.875
             },
             "originVlc": {
                 "x": 0,
@@ -437,6 +382,61 @@
             "appearTime": 0.0,
             "appearDuration": 0.02,
             "life": 1.28,
+            "random": 0,
+            "unCounterable": true,
+            "useVelocityAngle": false
+        },
+        {
+            "originPos": {
+                "x": 27.5,
+                "y": 11.875
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0.0,
+                "y": -1.5707963
+            },
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_block",
+            "scale": {
+                "x": 2.75,
+                "y": 2.75
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.0,
+            "appearDuration": 0.02,
+            "life": 1.48833,
             "random": 0,
             "unCounterable": true,
             "useVelocityAngle": false
