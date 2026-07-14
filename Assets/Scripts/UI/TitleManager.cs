@@ -931,7 +931,9 @@ public class TitleManager : MonoBehaviour
         hintRect.anchorMin = hintRect.anchorMax = new Vector2(0.5f, 0.5f);
         hintRect.pivot = new Vector2(0.5f, 1f);
         hintRect.anchoredPosition = new Vector2(0f, -segH * 0.5f - 6f);
-        hintRect.sizeDelta = new Vector2(520f, 34f);
+        // アイコン拡大に合わせて行の高さも広げる(34→46)。子は HLG が MiddleCenter で
+        // 縦中央寄せするため、行を広げてもアイコン/テキストの中心は揃う。
+        hintRect.sizeDelta = new Vector2(520f, 46f);
         HorizontalLayoutGroup hlg = hintObj.AddComponent<HorizontalLayoutGroup>();
         hlg.childAlignment = TextAnchor.MiddleCenter;
         hlg.spacing = 9f;
@@ -949,8 +951,14 @@ public class TitleManager : MonoBehaviour
         stickImg.raycastTarget = false;
         stickImg.color = new Color(0.55f, 0.85f, 1f, 0.95f);   // 淡いシアン(暗い帯で視認)
         LayoutElement stickLe = stickObj.AddComponent<LayoutElement>();
-        stickLe.preferredHeight = 26f;
-        stickLe.preferredWidth = 26f * (112f / 64f);           // アイコンのアスペクト比
+        // スティックアイコンを拡大し、隣接テキスト「で人数を選択」の高さに視覚的に合わせる
+        // (2026-07-14 要望「タイトルの左右のアイコン大きくして、高さテキストと合わせて」)。
+        // 焼き込みスプライト(112x64)は上下に約23%ずつ余白があり、描画される輪は箱高の
+        // 34.5/64≈0.54 しか占めない。box=26 では実描画≈14px でテキスト実測(13.9px)と
+        // 同寸でも中空細線ゆえ小さく見えていた。box=42 に上げ実描画≈22.6px とし、
+        // pt サイズ相当(22)まで拡大して「テキストと同等以上」に見せる。アスペクト比は維持。
+        stickLe.preferredHeight = 42f;
+        stickLe.preferredWidth = 42f * (112f / 64f);           // アイコンのアスペクト比(縦横比維持)
 
         GameObject lblObj2 = new GameObject("Label", typeof(RectTransform));
         lblObj2.layer = gameObject.layer;
