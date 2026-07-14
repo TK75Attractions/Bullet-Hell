@@ -103,7 +103,7 @@ public class JsabStageSelect : MonoBehaviour
     private float markerFromX;
     private float markerTweenTime = -1f;    // <0 == not animating
     private const float markerTweenDuration = 0.25f;
-    private const float MarkerY = 20f;      // stands on the dotted line (feet at the line)
+    private const float MarkerY = 28f;      // stands on the dotted line (feet at the line, = markerHeight/2)
 
     // Cloned style-0 top bar pieces that must mirror the live originals
     // (StageSelectManager keeps updating them even while alpha-hidden).
@@ -838,7 +838,11 @@ public class JsabStageSelect : MonoBehaviour
         progressRow.anchorMin = progressRow.anchorMax = new Vector2(0.5f, 0.5f);
         progressRow.pivot = new Vector2(0.5f, 0.5f);
         progressRow.sizeDelta = new Vector2(0f, 60f);
-        progressRow.anchoredPosition = new Vector2(0f, CenterSlotPos.y - CenterSlotSize.y * 0.5f - 72f);
+        // ユーザー要望(2026-07-14「下の主人公の動くところ、もうちょっと下にして大きくして」):
+        // プログレス行(主人公マーカーが歩く帯)全体をさらに下げ、マーカーを拡大する。
+        // 下オフセットを 72→126(約54px下げ)。下部ヒントバー(上端 y≈-464)とは
+        // マーカー足元 y≈-380 で約84px の余裕を確保して衝突しない。
+        progressRow.anchoredPosition = new Vector2(0f, CenterSlotPos.y - CenterSlotSize.y * 0.5f - 126f);
         ringSprite = CreateRingSprite();
         dotSprite = CreateDotSprite();
 
@@ -850,7 +854,9 @@ public class JsabStageSelect : MonoBehaviour
             marker.sprite = playerSprite;
             marker.preserveAspect = true;
             Rect sr = playerSprite.rect;
-            float h = 40f;
+            // 主人公マーカーを拡大(40→56, 約1.4倍)。MarkerY(=h/2=28)と対で足元が
+            // rail に乗る。ユーザー要望「大きくして」。
+            float h = 56f;
             float scale = sr.height <= 32f ? Mathf.Max(1f, Mathf.Floor(h / sr.height)) : h / sr.height;
             marker.rectTransform.sizeDelta = new Vector2(sr.width * scale, sr.height * scale);
         }
