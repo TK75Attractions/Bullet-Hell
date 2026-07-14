@@ -40,11 +40,17 @@ public class DefficultyBar : MonoBehaviour
     private float descAnimT = 1f;
     private float animTime;
 
+    // 難読漢字にふりがなを併記する(文化祭の子供来場者向け・2026-07-14 指摘)。
+    // TMP にネイティブ ruby 機能は無く、説明文は難易度切替でテキストが差し替わり
+    // 横スライドで入場するため、漢字直上へルビを個別配置するより「漢字(かな)」を
+    // 1行に併記する方式が堅牢(採用理由は PROGRESS.md)。難易度名はカタカナで
+    // 既に読めるので、ふりがなは説明部の難読漢字に絞る。併記で行が伸びるぶんは
+    // 説明フォントを 34→30 に一段下げて画面内に収める(Init)。
     private static readonly string[] descriptions =
     {
-        "イージー / EASY - 気軽に遊べる難易度です",
-        "ノーマル / NORMAL - 標準的な難易度です",
-        "ルナティック / LUNATIC - 上級者向けの高難易度です",
+        "イージー / EASY - 気軽(きがる)に遊(あそ)べる難易度(なんいど)です",
+        "ノーマル / NORMAL - 標準的(ひょうじゅんてき)な難易度(なんいど)です",
+        "ルナティック / LUNATIC - 上級者(じょうきゅうしゃ)向けの高難易度(こうなんいど)です",
     };
 
     private DefficultyBox[] boxes = new DefficultyBox[3];
@@ -170,6 +176,9 @@ public class DefficultyBar : MonoBehaviour
             descText = desc.GetComponent<TMP_Text>();
             descRect = desc.GetComponent<RectTransform>();
             descBaseX = descRect.anchoredPosition.x;
+            // ふりがな併記で行が長くなるため一段小さく(34→30)。1行維持・画面内に収める。
+            descText.enableAutoSizing = false;
+            descText.fontSize = 30f;
         }
         Transform prompt = transform.Find("Prompt");
         if (prompt != null) promptText = prompt.GetComponent<TMP_Text>();

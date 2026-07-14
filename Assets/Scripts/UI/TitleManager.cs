@@ -930,7 +930,12 @@ public class TitleManager : MonoBehaviour
         hintRect.sizeDelta = new Vector2(520f, 34f);
         TMP_Text hint = hintObj.AddComponent<TextMeshProUGUI>();
         if (uiFont != null) hint.font = uiFont;
-        hint.text = "◀ ▶ で人数選択";
+        // 左右の三角矢印 ◀▶(U+25C0/U+25B6)は Oxanium も M PLUS 1 Code も TTF に
+        // 持たず、フォールバックにも無いため □□(tofu)に化けていた(2026-07-14 指摘
+        // 「タイトルの文字化け」の実体)。フォントは Dynamic モードなので atlas 追加で
+        // 直る種類ではなく、字自体が存在しない。描画可能な二重山括弧 «»(U+00AB/00BB・
+        // Oxanium に収録)へ差し替えて左右操作を示す。
+        hint.text = "« » で人数選択";
         hint.fontSize = 22f;
         hint.alignment = TextAlignmentOptions.Center;
         hint.color = new Color(0.6f, 0.68f, 0.78f, 0.85f);

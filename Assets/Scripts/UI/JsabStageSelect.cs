@@ -20,7 +20,9 @@ public class JsabStageSelect : MonoBehaviour
     // 銀/シアン様式と喧嘩しないよう、面は白・背後の発光ハローだけシアン寄りにする。
     private static readonly Color ArrowWhite = new Color(1f, 1f, 1f, 1f);
     // 発光ハローは弱めに(2026-07-14 指摘「矢印のグローを弱く」)。矢印本体は白のまま。
-    private static readonly Color ArrowGlowColor = new Color(0.72f, 0.92f, 1f, 0.30f);
+    // 前便 63f85b0 で 0.30 まで下げたが「まだ強い」の再指摘(2026-07-14 夜)で
+    // 0.30→0.15 へ半減。ハローのサイズも 104→92 に微縮小(下記 BuildSidePanel)。
+    private static readonly Color ArrowGlowColor = new Color(0.72f, 0.92f, 1f, 0.15f);
     private static readonly Color Navy = new Color(0.043f, 0.106f, 0.169f, 1f);      // #0B1B2B
     private static readonly Color NavyDeep = new Color(0.02f, 0.05f, 0.09f, 1f);
     // Mockup-derived accents: bright cyan edge highlight, white corner brackets,
@@ -670,7 +672,8 @@ public class JsabStageSelect : MonoBehaviour
         aglowGO.transform.SetParent(decorR, false);
         p.arrowGlow = (RectTransform)aglowGO.transform;
         p.arrowGlow.pivot = new Vector2(0.5f, 0.5f);
-        p.arrowGlow.sizeDelta = new Vector2(104f, 104f);
+        // グロー減光の追加指摘(2026-07-14 夜)でハローも一回り小さく(104→92)。
+        p.arrowGlow.sizeDelta = new Vector2(92f, 92f);
         SoftCircleGraphic aglow = aglowGO.AddComponent<SoftCircleGraphic>();
         aglow.color = ArrowGlowColor;
         aglow.raycastTarget = false;
