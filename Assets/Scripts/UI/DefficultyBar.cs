@@ -82,6 +82,9 @@ public class DefficultyBar : MonoBehaviour
     private float[] selectProgress = new float[3];
     public int index = 1;
     private float whiteY;
+    // 難易度ごとの選択可否。石工/浮浪者は EASY/LUNATIC が未完成のため無効化する
+    // (SetEnabledMask で設定)。全 true が既定=従来どおり3行とも選択可。
+    private readonly bool[] rowEnabled = { true, true, true };
 
     private class DefficultyBox
     {
@@ -91,6 +94,10 @@ public class DefficultyBar : MonoBehaviour
         private TMP_Text nameText;
         private Color baseTextColor;
         private Image frameBoost;
+        // 未完成難易度(石工/浮浪者の EASY/LUNATIC)を選択不可にするときの状態。
+        // true の間は SetPosition が減光+灰ラベル固定にし、COMING SOON を重ねる。
+        private TMP_Text comingSoonText;
+        public bool disabled;
 
         public DefficultyBox(Transform trans, string name, Sprite bodySprite, Sprite frameSprite, Color textColor, TMP_FontAsset labelFont)
         {
@@ -146,18 +153,61 @@ public class DefficultyBar : MonoBehaviour
                 UiButtonStyle.AddSlash(rectTransform, "RowSlashL", new Color(1f, 1f, 1f, 0.5f), -thinX, 2.5f, h);
                 UiButtonStyle.AddSlash(rectTransform, "RowSlashR", new Color(1f, 1f, 1f, 0.5f), thinX, 2.5f, h);
             }
+            // 未完成難易度に重ねる「COMING SOON」ラベル(既定は非表示・SetDisabled で出す)。
+            // 難易度名(EASY/NORMAL/LUNATIC)と同じ英字フォントに揃える(和文だと Oxanium で
+            // 豆腐になるため英語表記)。クローン再 Init の二重生成は名前で判定。
+            Transform csT = trans.Find("ComingSoon");
+            if (csT == null)
+            {
+                GameObject csGo = new GameObject("ComingSoon",
+                    typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+                csGo.layer = trans.gameObject.layer;
+                RectTransform csRect = (RectTransform)csGo.transform;
+                csRect.SetParent(trans, false);
+                csRect.anchorMin = csRect.anchorMax = csRect.pivot = new Vector2(0.5f, 0.5f);
+                csRect.sizeDelta = new Vector2(BarW, 34f);
+                csRect.anchoredPosition = new Vector2(0f, -BarH * 0.30f);
+                csT = csRect;
+            }
+            comingSoonText = csT.GetComponent<TMP_Text>();
+            comingSoonText.text = "COMING SOON";
+            if (labelFont != null) comingSoonText.font = labelFont;
+            comingSoonText.fontSize = 24f;
+            comingSoonText.characterSpacing = 6f;
+            comingSoonText.alignment = TextAlignmentOptions.Center;
+            comingSoonText.color = new Color(0.88f, 0.92f, 1f, 1f);
+            comingSoonText.raycastTarget = false;
+            comingSoonText.enableWordWrapping = false;
+            comingSoonText.gameObject.SetActive(false);
             baseTextColor = textColor;
             baseX = rectTransform.anchoredPosition.x;
         }
 
         public void SetPosition(float progress)
         {
+            // 選択不可の行は進捗に関係なく減光+灰ラベルで固定し、選択の見た目が乗らない
+            // ようにする(非選択の 0.4 よりさらに暗くして「未完成」と分かるようにする)。
+            if (disabled)
+            {
+                CG.alpha = 0.32f;
+                rectTransform.localScale = Vector3.one * 0.8f;
+                nameText.color = new Color(0.6f, 0.64f, 0.72f, 1f);
+                if (frameBoost != null) frameBoost.color = new Color(1f, 1f, 1f, 0f);
+                return;
+            }
             CG.alpha = 0.4f + 0.6f * progress;
             rectTransform.localScale = Vector3.one * (0.8f + 0.2f * progress);
             nameText.color = Color.Lerp(baseTextColor, Color.white, progress);
             // 非選択時のみ銀枠を補強(選択行は焼き込みそのままの見た目を維持)。
             if (frameBoost != null)
                 frameBoost.color = new Color(1f, 1f, 1f, (1f - progress) * 0.5f);
+        }
+
+        // 選択可否を切り替える。無効時は減光+COMING SOON を表示する。
+        public void SetDisabled(bool value)
+        {
+            disabled = value;
+            if (comingSoonText != null) comingSoonText.gameObject.SetActive(value);
         }
     }
 
@@ -255,10 +305,49 @@ public class DefficultyBar : MonoBehaviour
         ownedTextures.Clear();
     }
 
+    // 難易度ごとの選択可否を設定する(石工/浮浪者の EASY/LUNATIC 無効化などに使う)。
+    // 無効行は減光+COMING SOON になり、カーソル/マウスが止まらなくなる。null 相当
+    // (全 true)にすると従来どおり3行とも選択可。
+    public void SetEnabledMask(bool easy, bool normal, bool lunatic)
+    {
+        rowEnabled[0] = easy;
+        rowEnabled[1] = normal;
+        rowEnabled[2] = lunatic;
+        for (int i = 0; i < boxes.Length; i++)
+            if (boxes[i] != null) boxes[i].SetDisabled(!rowEnabled[i]);
+        // 現在の選択が無効行に乗っていたら最寄りの有効行へ寄せる。
+        if (!IsRowEnabled(index))
+        {
+            int f = NearestEnabled(index);
+            if (f >= 0) index = f;
+        }
+    }
+
+    public bool IsRowEnabled(int i) => i >= 0 && i < rowEnabled.Length && rowEnabled[i];
+
+    // from から左右に広がりつつ最寄りの有効行を返す(無ければ -1)。
+    private int NearestEnabled(int from)
+    {
+        for (int d = 0; d < boxes.Length; d++)
+        {
+            int a = from - d;
+            if (a >= 0 && IsRowEnabled(a)) return a;
+            int b = from + d;
+            if (b < boxes.Length && IsRowEnabled(b)) return b;
+        }
+        return -1;
+    }
+
     // Snap selection to the given index without animating (used on entering the screen).
     public void ResetSelection(int newIndex)
     {
         index = Mathf.Clamp(newIndex, 0, boxes.Length - 1);
+        // 無効行が指定されたら最寄りの有効行へ寄せる(既定 NORMAL は石工/浮浪者でも有効)。
+        if (!IsRowEnabled(index))
+        {
+            int f = NearestEnabled(index);
+            if (f >= 0) index = f;
+        }
         for (int i = 0; i < boxes.Length; i++)
         {
             selectProgress[i] = i == index ? 1f : 0f;
@@ -325,16 +414,19 @@ public class DefficultyBar : MonoBehaviour
 
     public void Up()
     {
-        if (index <= 0) return;
-        index--;
-        RefreshDescription();
+        // 無効行(COMING SOON)はスキップして最寄りの有効行へ止まる。
+        for (int i = index - 1; i >= 0; i--)
+        {
+            if (rowEnabled[i]) { index = i; RefreshDescription(); return; }
+        }
     }
 
     public void Down()
     {
-        if (index >= boxes.Length - 1) return;
-        index++;
-        RefreshDescription();
+        for (int i = index + 1; i < boxes.Length; i++)
+        {
+            if (rowEnabled[i]) { index = i; RefreshDescription(); return; }
+        }
     }
 
     public void SetAlpha(float alpha)

@@ -1155,7 +1155,11 @@ public class JsabStageSelect : MonoBehaviour
         difficultyOpen = true;
         diffOpenTime = Time.unscaledTime;
         mouseConfirm = false;
-        if (diffBar != null) diffBar.ResetSelection(1); // default NORMAL each time it opens
+        if (diffBar != null)
+        {
+            ApplyDifficultyAvailability();     // 石工/浮浪者は EASY/LUNATIC を選択不可にする
+            diffBar.ResetSelection(1);         // default NORMAL each time it opens
+        }
         if (diffFadeCo != null) { StopCoroutine(diffFadeCo); diffFadeCo = null; }
         // ぼかしスナップショットが用意できるまでは全体を透明にしておき、準備完了
         // 後に CaptureBlurBackground がフェードインを開始する(急な表示を防ぐ)。
@@ -1164,6 +1168,18 @@ public class JsabStageSelect : MonoBehaviour
         diffRoot.gameObject.SetActive(true);
         RaiseTopBar();
         StartCoroutine(CaptureBlurBackground());
+    }
+
+    // 現在のステージに応じて選択可能な難易度を絞る。石工・浮浪者は EASY/LUNATIC が
+    // 未完成のため NORMAL のみ選択可(グレーアウト+COMING SOON)。艦長は3難易度とも
+    // 実データがあるので従来どおり、姿見(WIP)も現状維持で3行可のまま。
+    private void ApplyDifficultyAvailability()
+    {
+        if (diffBar == null) return;
+        string dir = GetStage(currentIndex)?.stageDirectoryName;
+        bool restricted = dir == "stone" || dir == "vagrant";
+        if (restricted) diffBar.SetEnabledMask(false, true, false);
+        else diffBar.SetEnabledMask(true, true, true);
     }
 
     public void CloseDifficulty()
@@ -1949,7 +1965,9 @@ public class JsabStageSelect : MonoBehaviour
                             break;
                         }
                     }
-                    if (hover >= 0 && diffBar != null)
+                    // 無効(COMING SOON)行はホバー選択・確定させない。ガードしないと
+                    // Up/Down が無効行に止まれず while が無限ループになる。
+                    if (hover >= 0 && diffBar != null && diffBar.IsRowEnabled(hover))
                     {
                         // Route through Up/Down so the description/brackets update too.
                         while (diffBar.index > hover) diffBar.Up();
