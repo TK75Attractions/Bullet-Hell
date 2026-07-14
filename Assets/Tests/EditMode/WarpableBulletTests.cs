@@ -56,7 +56,10 @@ public class WarpableBulletTests
                 "ReadBulletBufferFromJson",
                 BindingFlags.Instance | BindingFlags.NonPublic);
             object buffer = readMethod.Invoke(new BulletBufferManager(), new object[] { "test.json", json });
-            FieldInfo bulletsField = buffer.GetType().GetField("bullets", BindingFlags.Instance | BindingFlags.NonPublic);
+            // BulletBuffer.bullets は public フィールド(main/feature 両方)なので Public を含める。
+            // NonPublic のみだと GetField が null を返し NRE になる(main 由来テストの既存不具合を統合時に修正)。
+            FieldInfo bulletsField = buffer.GetType().GetField("bullets",
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             return (List<BulletData>)bulletsField.GetValue(buffer);
         }
     }
