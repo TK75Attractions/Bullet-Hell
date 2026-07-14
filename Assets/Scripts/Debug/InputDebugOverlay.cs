@@ -140,7 +140,8 @@ public class InputDebugOverlay : MonoBehaviour
         // Init outcome: the fastest way to see why serial is dead (type missing,
         // open failed, wrong COM). Amber when it clearly signals a failure.
         string init = im.InitStatus;
-        bool initBad = init.Contains("missing") || init.Contains("failed");
+        bool initBad = init.Contains("missing") || init.Contains("failed") ||
+            init.Contains("unavailable") || init.Contains("retrying") || init.Contains("no serial");
         GUI.color = initBad ? WarnColor : OffColor;
         GUI.Label(new Rect(x, y, PanelW, 18f), $"init : {Truncate(init, 40)}", rawStyle);
         GUI.color = Color.white;

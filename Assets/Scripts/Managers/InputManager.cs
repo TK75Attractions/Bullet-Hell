@@ -13,6 +13,10 @@ public class InputManager : MonoBehaviour
     private PropertyInfo isOpenProperty;
     private PropertyInfo bytesToReadProperty;
     private MethodInfo readLineMethod;
+    private bool serialLifecycleActive;
+    private float nextSerialReconnectTime;
+    private string lastSerialError = "";
+    private const float SerialReconnectIntervalSeconds = 2f;
     private bool serialButtonState;   // P1 の A(決定/ダッシュ)
     private bool serialBackState;     // P1 の B(戻る)。S プロトコルの bit5
     private Vector2 serialMove;
@@ -108,6 +112,7 @@ public class InputManager : MonoBehaviour
     {
         LoadOrientationPrefs();
         LoadSerialConfig();
+        serialLifecycleActive = !isDebugMode;
 
         if (isDebugMode)
         {
@@ -122,6 +127,18 @@ public class InputManager : MonoBehaviour
     // ポートを開く実体。Init と F2 の再接続の両方から呼ぶ。
     private void OpenSerialPort()
     {
+        if (!serialLifecycleActive || isDebugMode || IsSerialOpen())
+        {
+            return;
+        }
+
+        // Dispose a stale instance left behind by unplug/re-enumeration before
+        // creating the replacement port on the next retry.
+        if (serialPort != null)
+        {
+            CloseSerialPort();
+        }
+
         try
         {
             Type serialPortType = Type.GetType("System.IO.Ports.SerialPort, System") ?? Type.GetType("System.IO.Ports.SerialPort");
@@ -132,37 +149,139 @@ public class InputManager : MonoBehaviour
                 return;
             }
 
+            string configuredPort = portName;
+            string[] availablePorts = GetAvailablePortNames(serialPortType);
+            portName = SelectPortName(configuredPort, availablePorts);
+            if (string.IsNullOrEmpty(portName))
+            {
+                InitStatus = "no serial ports found; retrying";
+                ScheduleSerialReconnect();
+                return;
+            }
+
             serialPort = System.Activator.CreateInstance(serialPortType, portName, baudRate);
             serialPortType.GetProperty("ReadTimeout")?.SetValue(serialPort, 5);
             serialPortType.GetProperty("NewLine")?.SetValue(serialPort, "\n");
+            // Opening the monitor must not toggle the ESP32-S3 reset/boot lines.
+            serialPortType.GetProperty("DtrEnable")?.SetValue(serialPort, false);
+            serialPortType.GetProperty("RtsEnable")?.SetValue(serialPort, false);
 
             isOpenProperty = serialPortType.GetProperty("IsOpen");
             bytesToReadProperty = serialPortType.GetProperty("BytesToRead");
             readLineMethod = serialPortType.GetMethod("ReadLine");
 
             serialPortType.GetMethod("Open")?.Invoke(serialPort, null);
-            InitStatus = $"listening {portName} @ {baudRate}";
+            bool autoSelected = !string.Equals(configuredPort, portName, StringComparison.OrdinalIgnoreCase);
+            InitStatus = autoSelected
+                ? $"listening {portName} @ {baudRate} (auto-selected from {configuredPort})"
+                : $"listening {portName} @ {baudRate}";
+            if (autoSelected)
+            {
+                SaveSerialConfig();
+            }
+            lastSerialError = "";
             Debug.Log($"Serial port opened: {portName} ({baudRate})");
         }
         catch (System.Exception e)
         {
             // ESP32 未接続時はここに来るが、キーボードは常時有効なので致命的ではない。
-            InitStatus = "serial open failed (keyboard still works): " + e.Message;
-            Debug.LogWarning("Serial port open failed (ESP32 未接続?). Keyboard input still works: " + e.Message);
+            System.Exception cause = UnwrapException(e);
+            string detail = cause.Message;
+            InitStatus = $"serial unavailable on {portName}; retrying: {detail}";
+            if (!string.Equals(lastSerialError, detail, StringComparison.Ordinal))
+            {
+                Debug.LogWarning($"Serial port {portName} unavailable; Unity will retry: {detail}");
+                lastSerialError = detail;
+            }
             CloseSerialPort();
+            ScheduleSerialReconnect();
         }
+    }
+
+    private void TryAutoReconnect()
+    {
+        if (!serialLifecycleActive || isDebugMode || IsSerialOpen() || Time.unscaledTime < nextSerialReconnectTime)
+        {
+            return;
+        }
+        OpenSerialPort();
+    }
+
+    private void ScheduleSerialReconnect()
+    {
+        nextSerialReconnectTime = Time.unscaledTime + SerialReconnectIntervalSeconds;
+    }
+
+    private static string[] GetAvailablePortNames(Type serialPortType)
+    {
+        try
+        {
+            MethodInfo method = serialPortType.GetMethod("GetPortNames", BindingFlags.Public | BindingFlags.Static);
+            return method?.Invoke(null, null) as string[] ?? Array.Empty<string>();
+        }
+        catch
+        {
+            return Array.Empty<string>();
+        }
+    }
+
+    // Keep the configured COM port while it exists. If Windows assigned a new
+    // number after reconnect/reboot, fall back to the lowest available COM port.
+    public static string SelectPortName(string configuredPort, string[] availablePorts)
+    {
+        if (availablePorts == null || availablePorts.Length == 0)
+        {
+            return configuredPort;
+        }
+
+        foreach (string available in availablePorts)
+        {
+            if (string.Equals(configuredPort, available, StringComparison.OrdinalIgnoreCase))
+            {
+                return available;
+            }
+        }
+
+        string best = null;
+        int bestNumber = int.MaxValue;
+        foreach (string available in availablePorts)
+        {
+            if (string.IsNullOrWhiteSpace(available))
+            {
+                continue;
+            }
+            int number = ExtractComNumber(available, int.MaxValue);
+            if (best == null || number < bestNumber ||
+                (number == bestNumber && string.CompareOrdinal(available, best) < 0))
+            {
+                best = available;
+                bestNumber = number;
+            }
+        }
+        return best ?? configuredPort;
+    }
+
+    private static System.Exception UnwrapException(System.Exception e)
+    {
+        while (e is TargetInvocationException && e.InnerException != null)
+        {
+            e = e.InnerException;
+        }
+        return e;
     }
 
     // F2 デバッグ画面から呼ぶ。ポートを閉じて開き直す(COM 番号変更後の再接続など)。
     public void ReconnectSerial()
     {
         CloseSerialPort();
+        serialLifecycleActive = !isDebugMode;
         if (isDebugMode)
         {
             InitStatus = "keyboard only (serial disabled)";
             return;
         }
         InitStatus = "reconnecting...";
+        nextSerialReconnectTime = 0f;
         OpenSerialPort();
     }
 
@@ -186,6 +305,8 @@ public class InputManager : MonoBehaviour
 
     public void UpdateInput()
     {
+        TryAutoReconnect();
+
         // キーボードとシリアル(ESP32)を両方受け付ける。キーボードは常時有効、シリアルは
         // ポートが開いているとき(接続時)だけマージする。どちらでも操作できる。
         Keyboard keyboard = Keyboard.current;
@@ -240,13 +361,17 @@ public class InputManager : MonoBehaviour
                     ProcessSerialLine(message);
                 }
             }
-            catch (System.Reflection.TargetInvocationException tie) when (tie.InnerException is System.TimeoutException)
-            {
-                // Ignore partial lines and continue reading next frame.
-            }
             catch (System.Exception e)
             {
-                Debug.LogError("Serial read error: " + e.Message);
+                System.Exception cause = UnwrapException(e);
+                if (!(cause is System.TimeoutException))
+                {
+                    string detail = cause.Message;
+                    InitStatus = $"serial read failed on {portName}; retrying: {detail}";
+                    Debug.LogWarning($"Serial read failed on {portName}; Unity will retry: {detail}");
+                    CloseSerialPort();
+                    ScheduleSerialReconnect();
+                }
             }
         }
 
@@ -562,11 +687,13 @@ public class InputManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        serialLifecycleActive = false;
         CloseSerialPort();
     }
 
     private void OnApplicationQuit()
     {
+        serialLifecycleActive = false;
         CloseSerialPort();
     }
 
@@ -577,12 +704,19 @@ public class InputManager : MonoBehaviour
             return;
         }
 
-        if (IsSerialOpen())
+        try
         {
-            serialPort.GetType().GetMethod("Close")?.Invoke(serialPort, null);
+            if (IsSerialOpen())
+            {
+                serialPort.GetType().GetMethod("Close")?.Invoke(serialPort, null);
+            }
         }
-
-        serialPort.GetType().GetMethod("Dispose")?.Invoke(serialPort, null);
+        catch { }
+        try
+        {
+            serialPort.GetType().GetMethod("Dispose")?.Invoke(serialPort, null);
+        }
+        catch { }
         serialPort = null;
         isOpenProperty = null;
         bytesToReadProperty = null;
@@ -596,8 +730,15 @@ public class InputManager : MonoBehaviour
             return false;
         }
 
-        object value = isOpenProperty.GetValue(serialPort);
-        return value is bool isOpen && isOpen;
+        try
+        {
+            object value = isOpenProperty.GetValue(serialPort);
+            return value is bool isOpen && isOpen;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private int GetBytesToRead()
