@@ -927,57 +927,7 @@ public class TitleManager : MonoBehaviour
             pcSegLabels[i] = lbl;
         }
 
-        // 操作ヒント(小さく・下側)。スティックを左右に動かすアイコン + テキストを
-        // 横並び中央寄せで置く(2026-07-14 要望「ジョイスティックを左右に動かすアイコンが
-        // 欲しい」)。◀▶(U+25C0/25B6)は Oxanium/M PLUS 1 Code に無く tofu 化する
-        // (2db7e9e で «» 化した経緯)ため、記号ではなくランタイム生成の画像アイコンで示す。
-        // 中央寄せは HorizontalLayoutGroup に任せ、非アクティブ時の TMP 幅計測トラップを避ける。
-        GameObject hintObj = new GameObject("PcHint", typeof(RectTransform));
-        hintObj.layer = gameObject.layer;
-        RectTransform hintRect = (RectTransform)hintObj.transform;
-        hintRect.SetParent(playerCountRoot, false);
-        hintRect.anchorMin = hintRect.anchorMax = new Vector2(0.5f, 0.5f);
-        hintRect.pivot = new Vector2(0.5f, 1f);
-        hintRect.anchoredPosition = new Vector2(0f, -segH * 0.5f - 6f);
-        // アイコン拡大に合わせて行の高さも広げる(34→46)。子は HLG が MiddleCenter で
-        // 縦中央寄せするため、行を広げてもアイコン/テキストの中心は揃う。
-        hintRect.sizeDelta = new Vector2(520f, 46f);
-        HorizontalLayoutGroup hlg = hintObj.AddComponent<HorizontalLayoutGroup>();
-        hlg.childAlignment = TextAnchor.MiddleCenter;
-        hlg.spacing = 9f;
-        hlg.childControlWidth = true;
-        hlg.childControlHeight = true;
-        hlg.childForceExpandWidth = false;
-        hlg.childForceExpandHeight = false;
-
-        GameObject stickObj = new GameObject("StickIcon", typeof(RectTransform));
-        stickObj.layer = gameObject.layer;
-        stickObj.transform.SetParent(hintRect, false);
-        Image stickImg = stickObj.AddComponent<Image>();
-        stickImg.sprite = UiIconFactory.StickLeftRight();
-        stickImg.preserveAspect = true;
-        stickImg.raycastTarget = false;
-        stickImg.color = new Color(0.55f, 0.85f, 1f, 0.95f);   // 淡いシアン(暗い帯で視認)
-        LayoutElement stickLe = stickObj.AddComponent<LayoutElement>();
-        // スティックアイコンを拡大し、隣接テキスト「で人数を選択」の高さに視覚的に合わせる
-        // (2026-07-14 要望「タイトルの左右のアイコン大きくして、高さテキストと合わせて」)。
-        // 焼き込みスプライト(112x64)は上下に約23%ずつ余白があり、描画される輪は箱高の
-        // 34.5/64≈0.54 しか占めない。box=26 では実描画≈14px でテキスト実測(13.9px)と
-        // 同寸でも中空細線ゆえ小さく見えていた。box=42 に上げ実描画≈22.6px とし、
-        // pt サイズ相当(22)まで拡大して「テキストと同等以上」に見せる。アスペクト比は維持。
-        stickLe.preferredHeight = 42f;
-        stickLe.preferredWidth = 42f * (112f / 64f);           // アイコンのアスペクト比(縦横比維持)
-
-        GameObject lblObj2 = new GameObject("Label", typeof(RectTransform));
-        lblObj2.layer = gameObject.layer;
-        lblObj2.transform.SetParent(hintRect, false);
-        TMP_Text hint = lblObj2.AddComponent<TextMeshProUGUI>();
-        if (uiFont != null) hint.font = uiFont;
-        hint.text = "で人数を選択";
-        hint.fontSize = 22f;
-        hint.alignment = TextAlignmentOptions.Left;
-        hint.color = new Color(0.6f, 0.68f, 0.78f, 0.85f);
-        hint.raycastTarget = false;
+        // 人数選択は 1P / 2P トグル自体で示す。
 
         ApplyPlayerCountVisual();
     }
@@ -1041,6 +991,7 @@ public class TitleManager : MonoBehaviour
         image.preserveAspect = true;
         image.color = new Color(0.56f, 0.87f, 1f, 0.98f);
         image.raycastTarget = false;
+        go.AddComponent<ControlIconMotion>().Configure(sprite);
     }
 
     // トグルの選択状態を見た目に反映(選択セグメント=白/明、非選択=灰/沈む)。

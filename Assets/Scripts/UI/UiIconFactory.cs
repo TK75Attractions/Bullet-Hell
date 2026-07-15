@@ -1,43 +1,45 @@
 using UnityEngine;
 
-// ランタイム生成のコントローラー用アイコン(スティック左右 / ボタン)。
-// プロジェクトには実アイコン画像が無いため、他の UI 手続き生成テクスチャと同じ
-// 流儀で白の線画スプライトをベイクし、使用側で Image.color により文脈色へ tint する
-// (白背景のキーキャップ上では濃紺、暗い帯の上ではシアン/白 等)。
+// ランタイム生成のアーケード操作アイコン(スティック / 丸ボタン)。
+// 添付イメージを基にした白いシルエットをベイクし、使用側の Image.color で
+// 白背景では濃紺、暗い帯ではシアンへ tint する。
 // 生成物はキャッシュして重複ベイクを避ける。
 public static class UiIconFactory
 {
     private static Sprite stickLeftRight;
     private static Sprite button;
 
-    // 上下対称の丸ベース(真上視点のアナログスティック)+ 中央のノブ +
-    // 左右の三角矢印。「スティックを左右に動かす」ことを示すアイコン。
+    // 広い台座・軸・丸ノブで構成する、横から見たスティックのシルエット。
     public static Sprite StickLeftRight()
     {
         if (stickLeftRight != null) return stickLeftRight;
-        const int w = 112, h = 64;
+        const int w = 128, h = 96;
         float[,] cov = new float[w, h];
-        Vector2 c = new Vector2(56f, 32f);
-        AddRing(cov, w, h, c, 15f, 4.5f);   // ベース(リング)
-        AddDisc(cov, w, h, c, 7.5f);        // ノブ
-        // 左矢印(先端左)
-        AddTriangle(cov, w, h, new Vector2(14f, 32f), new Vector2(38f, 21f), new Vector2(38f, 43f));
-        // 右矢印(先端右)
-        AddTriangle(cov, w, h, new Vector2(98f, 32f), new Vector2(74f, 21f), new Vector2(74f, 43f));
-        stickLeftRight = ToSprite(cov, w, h, "UiIcon_StickLR");
+
+        // 添付イメージに合わせた横から見たアーケードスティックのシルエット。
+        // 広い台座、細い軸、丸いノブの3要素だけで小サイズでも判別できる形にする。
+        AddTriangle(cov, w, h, new Vector2(12f, 10f), new Vector2(116f, 10f), new Vector2(103f, 34f));
+        AddTriangle(cov, w, h, new Vector2(12f, 10f), new Vector2(103f, 34f), new Vector2(25f, 34f));
+        AddRoundedRect(cov, w, h, new Rect(58f, 29f, 12f, 42f), 6f);
+        AddEllipse(cov, w, h, new Vector2(64f, 76f), 20f, 13f);
+
+        stickLeftRight = ToSprite(cov, w, h, "UiIcon_StickSilhouette");
         return stickLeftRight;
     }
 
-    // 丸いフェイスボタン(外リング+ノブ)。ダッシュ等のボタン操作を示す。
+    // 低い台座と大きな丸い天面で、押しボタン操作を示すシルエット。
     public static Sprite Button()
     {
         if (button != null) return button;
-        const int w = 64, h = 64;
+        const int w = 128, h = 80;
         float[,] cov = new float[w, h];
-        Vector2 c = new Vector2(32f, 32f);
-        AddRing(cov, w, h, c, 22f, 5f);
-        AddDisc(cov, w, h, c, 12f);
-        button = ToSprite(cov, w, h, "UiIcon_Button");
+
+        // 低い台座の上に大きな丸ボタンが乗る、横から見たシルエット。
+        // 台座とボタンの間に細い空きを残し、単色でも部品が読み分けられる。
+        AddRoundedRect(cov, w, h, new Rect(15f, 10f, 98f, 25f), 10f);
+        AddEllipse(cov, w, h, new Vector2(64f, 55f), 37f, 17f);
+
+        button = ToSprite(cov, w, h, "UiIcon_ButtonSilhouette");
         return button;
     }
 
@@ -141,5 +143,50 @@ public static class UiIconFactory
         Sprite sp = Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 100f);
         sp.name = name;
         return sp;
+    }
+
+
+    private static void AddEllipse(float[,] cov, int w, int h, Vector2 center, float radiusX, float radiusY)
+    {
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                int inside = 0;
+                for (int sy = 0; sy < SS; sy++)
+                    for (int sx = 0; sx < SS; sx++)
+                    {
+                        float px = x + (sx + 0.5f) / SS;
+                        float py = y + (sy + 0.5f) / SS;
+                        float dx = (px - center.x) / radiusX;
+                        float dy = (py - center.y) / radiusY;
+                        if (dx * dx + dy * dy <= 1f) inside++;
+                    }
+                float alpha = inside / (float)(SS * SS);
+                if (alpha > cov[x, y]) cov[x, y] = alpha;
+            }
+    }
+
+    private static void AddRoundedRect(float[,] cov, int w, int h, Rect rect, float radius)
+    {
+        Vector2 center = rect.center;
+        Vector2 half = rect.size * 0.5f;
+        radius = Mathf.Min(radius, Mathf.Min(half.x, half.y));
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                int inside = 0;
+                for (int sy = 0; sy < SS; sy++)
+                    for (int sx = 0; sx < SS; sx++)
+                    {
+                        Vector2 point = new Vector2(x + (sx + 0.5f) / SS, y + (sy + 0.5f) / SS);
+                        Vector2 q = new Vector2(Mathf.Abs(point.x - center.x), Mathf.Abs(point.y - center.y))
+                            - (half - Vector2.one * radius);
+                        float distance = new Vector2(Mathf.Max(q.x, 0f), Mathf.Max(q.y, 0f)).magnitude
+                            + Mathf.Min(Mathf.Max(q.x, q.y), 0f) - radius;
+                        if (distance <= 0f) inside++;
+                    }
+                float alpha = inside / (float)(SS * SS);
+                if (alpha > cov[x, y]) cov[x, y] = alpha;
+            }
     }
 }

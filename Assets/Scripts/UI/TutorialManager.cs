@@ -230,6 +230,7 @@ public class TutorialManager : MonoBehaviour
             icr.anchorMin = icr.anchorMax = new Vector2(0.5f, 0.5f);
             icr.anchoredPosition = new Vector2(-size.x * 0.5f + 16f + iconW * 0.5f, 1f);
             icr.sizeDelta = new Vector2(iconW, iconH);
+            ic.AddComponent<ControlIconMotion>().Configure(icon);
             textLeftPad = 16f + iconW + 8f;
         }
 

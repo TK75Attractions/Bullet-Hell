@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.IO;
 using System.Threading.Tasks;
@@ -84,9 +85,10 @@ public class JsabStageSelect : MonoBehaviour
         public RectTransform arrowGlow; // 矢印背後の発光ハロー(矢印に追従)
         public VideoPlayer vp;
         public RenderTexture rt;
-        // サムネイル(or fallback)の準備が終わるまで mediaCG のフェードインを保留する
-        // フラグ。パネル本体(枠/ブラケット/タイトル)は準備を待たずに表示する。
+        // サムネイルまたは対象名フォールバックが表示可能かを示す。動画準備中も
+        // 正しいフォールバックを即表示するため、通常は true のまま維持する。
         public bool contentReady = true;
+        public int thumbnailRequestId;
         public float alphaTarget = 1f; // 端のステージで存在しない側は 0
         public int side;               // -1 left / +1 right (arrow glyph & placement)
     }
@@ -141,6 +143,7 @@ public class JsabStageSelect : MonoBehaviour
     // Video
     private VideoPlayer videoPlayer;
     private RenderTexture videoRT;
+    private RenderTexture departingVideoRT;
 
     // State
     private int currentIndex = 0;
@@ -619,20 +622,9 @@ public class JsabStageSelect : MonoBehaviour
         p.vp.waitForFirstFrame = true;
         p.vp.audioOutputMode = VideoAudioOutputMode.None;
         p.vp.skipOnDrop = true;
-        SidePanel self = p;
-        // Show a still first frame instead of a busy looping clip.
-        p.vp.prepareCompleted += v =>
-        {
-            if (self.thumb != null) self.thumb.enabled = true;
-            v.Pause();
-            self.contentReady = true;
-        };
-        // 準備に失敗した場合も fallback タイルでフェードインを解放する。
-        p.vp.errorReceived += (v, msg) =>
-        {
-            if (self.fallback != null) self.fallback.gameObject.SetActive(true);
-            self.contentReady = true;
-        };
+        // prepareCompleted / errorReceived は UpdateThumb で要求ごとに登録する。
+        // パネル再利用後に古い非同期通知が届いても requestId で破棄できる。
+        // エラー時のフォールバックも UpdateThumb の要求単位ハンドラで処理する。
 
         // Center-look glow frame for the flight morph (hidden at rest).
         Image glow = NewImage("GlowFrame", p.rect, new Color(Cyan.r, Cyan.g, Cyan.b, 0f));
@@ -1576,10 +1568,21 @@ public class JsabStageSelect : MonoBehaviour
         SidePanel exitP = dir > 0 ? leftPanel : rightPanel;
         exitStartAlpha = exitP != null && exitP.cg != null ? exitP.cg.alpha : 1f;
         exitHadFrame = cardVideo != null && cardVideo.enabled;
+        // 次動画の Prepare が中央 RT を上書きする前に、退場する中央フレームを退避する。
+        if (exitHadFrame && videoRT != null)
+        {
+            if (departingVideoRT == null)
+            {
+                departingVideoRT = new RenderTexture(videoRT.width, videoRT.height, 0)
+                {
+                    name = "JsabDepartingVideoRT"
+                };
+            }
+            Graphics.Blit(videoRT, departingVideoRT);
+        }
 
         // 到着後すぐ再生に移れるよう、飛行中に新ステージの動画を裏で準備する。
-        // url を差し替えた時点で旧クリップは止まり、RT は最後のフレームで凍結
-        // するので、縮小しながら退く中央カードには旧ステージの静止画が残る。
+        // 退場フレームは上の専用 RT に保存済みなので、中央 RT は安全に更新できる。
         StageData cur = GetStage(currentIndex);
         string path = VideoPath(cur);
         if (videoPlayer != null && path != null && videoPlayer.url != path)
@@ -1757,8 +1760,8 @@ public class JsabStageSelect : MonoBehaviour
 
         // (1) 旧中央の凍結フレームを、旧中央側スロットを引き継ぐパネルへ写す。
         // 飛行中ずっと見えていた絵をそのまま受け渡すので消灯フレームが出ない。
-        bool recycledHasFrame = exitHadFrame && videoRT != null && recycled != null && recycled.rt != null;
-        if (recycledHasFrame) Graphics.Blit(videoRT, recycled.rt);
+        bool recycledHasFrame = exitHadFrame && departingVideoRT != null && recycled != null && recycled.rt != null;
+        if (recycledHasFrame) Graphics.Blit(departingVideoRT, recycled.rt);
 
         // (2) 到着パネルの静止フレームを中央RTへ写す(着地フレームで絵が飛ばない)。
         bool arriveHadFrame = arrived != null && arrived.thumb != null && arrived.thumb.enabled && arrived.rt != null;
@@ -2153,26 +2156,53 @@ public class JsabStageSelect : MonoBehaviour
             : null;
         bool hasVideo = !string.IsNullOrEmpty(path) && File.Exists(path);
 
-        if (hasVideo)
+        int requestId = ++p.thumbnailRequestId;
+        p.vp.Stop();
+        if (p.thumb != null) p.thumb.enabled = false;
+
+        // 動画の準備中も空欄にせず、対象ステージ名のフォールバックを即表示する。
+        // これにより I/O 待ち中に以前のステージの RT が見えることもない。
+        if (p.fallback != null) p.fallback.gameObject.SetActive(true);
+        p.contentReady = true;
+        if (p.mediaCG != null) p.mediaCG.alpha = 1f;
+
+        if (!hasVideo)
         {
-            if (p.fallback != null) p.fallback.gameObject.SetActive(false);
-            // thumb.enabled is flipped on in prepareCompleted so we never show a
-            // stale texture from the previous stage.
-            if (p.thumb != null) p.thumb.enabled = false;
-            // 準備完了(prepareCompleted)まで thumbArea のフェードインを保留する。
-            p.contentReady = false;
-            if (p.mediaCG != null) p.mediaCG.alpha = 0f;
-            p.vp.url = path;
-            p.vp.Prepare();
+            p.vp.url = null;
+            return;
         }
-        else
+
+        VideoPlayer.EventHandler prepared = null;
+        VideoPlayer.ErrorEventHandler failed = null;
+        prepared = v =>
         {
+            v.prepareCompleted -= prepared;
+            v.errorReceived -= failed;
+            if (p.thumbnailRequestId != requestId || !string.Equals(v.url, path, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            v.Pause();
+            if (p.thumb != null) p.thumb.enabled = true;
+            if (p.fallback != null) p.fallback.gameObject.SetActive(false);
+            p.contentReady = true;
+            if (p.mediaCG != null) p.mediaCG.alpha = 1f;
+        };
+        failed = (v, message) =>
+        {
+            v.prepareCompleted -= prepared;
+            v.errorReceived -= failed;
+            if (p.thumbnailRequestId != requestId) return;
+
             if (p.thumb != null) p.thumb.enabled = false;
             if (p.fallback != null) p.fallback.gameObject.SetActive(true);
-            p.vp.Stop();
-            p.vp.url = null;
-            p.contentReady = true; // fallback タイルは即表示できる
-        }
+            p.contentReady = true;
+            if (p.mediaCG != null) p.mediaCG.alpha = 1f;
+        };
+
+        p.vp.prepareCompleted += prepared;
+        p.vp.errorReceived += failed;
+        p.vp.url = path;
+        p.vp.Prepare();
     }
 
     private StageData GetStage(int index)
@@ -2376,6 +2406,11 @@ public class JsabStageSelect : MonoBehaviour
         {
             blurRT.Release();
             Destroy(blurRT);
+        }
+        if (departingVideoRT != null)
+        {
+            departingVideoRT.Release();
+            Destroy(departingVideoRT);
         }
         ReleasePanelRT(leftPanel);
         ReleasePanelRT(rightPanel);

@@ -155,10 +155,9 @@ public class StageSelectManager : MonoBehaviour
         bool onTitle = GManager.Control != null && GManager.Control.state == GManager.GameState.Title;
         bool jsabOn = jsab != null && stageSelectStyle == 1 && state == State.Music && !onTitle;
         if (jsab != null) jsab.SetVisible(jsabOn);
-        // The JSAB overlay is the only thing that hides the default UI; whenever it
-        // is not covering the screen, the default CanvasGroups must be restored so
-        // the music/difficulty screens render normally.
-        float defaultAlpha = jsabOn ? 0f : 1f;
+        // タイトル中は新旧どちらのステージ選択 UI も非表示にする。
+        // 選択画面へ入った後だけ、現在のスタイルに応じて既定 UI を復元する。
+        float defaultAlpha = onTitle || jsabOn ? 0f : 1f;
         variableCG.alpha = defaultAlpha;
         staticCG.alpha = defaultAlpha;
     }

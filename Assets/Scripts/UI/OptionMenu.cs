@@ -56,8 +56,7 @@ public class OptionMenu : MonoBehaviour
     private TMP_Text noText;
     private Image yesButton;
     private Image noButton;
-    // リザルト様式ボタン(UiButtonStyle)の選択状態は色スワップではなく
-    // CanvasGroup の減光で表す(スラッシュ等の子要素ごと沈める)。
+    // 終了確認は装飾を抑えた単色ボタン。選択状態は明度と細い輪郭で示す。
     private CanvasGroup yesButtonGroup;
     private CanvasGroup noButtonGroup;
 
@@ -268,15 +267,14 @@ public class OptionMenu : MonoBehaviour
         confirmDetail.text = string.Empty;
         confirmDetail.gameObject.SetActive(false);
 
-        // リザルト画面で確立したボタン様式(銀枠+シアンリム+青縦グラデ+
-        // 左右対称の白スラッシュ)へ統一(統一便)。サイズ・配置は従来のまま。
-        Sprite confirmButtonSprite = UiButtonStyle.CreateBodySprite(260, 86, null, null, "OptionConfirmButton");
-        yesButton = CreateImage("YesButton", confirmGroup.transform, yesButtonPosition, new Vector2(260f, 86f), Color.white).GetComponent<Image>();
-        noButton = CreateImage("NoButton", confirmGroup.transform, noButtonPosition, new Vector2(260f, 86f), Color.white).GetComponent<Image>();
-        yesButton.sprite = confirmButtonSprite;
-        noButton.sprite = confirmButtonSprite;
-        UiButtonStyle.AddSlashPair(yesButton.rectTransform, 260f, 86f);
-        UiButtonStyle.AddSlashPair(noButton.rectTransform, 260f, 86f);
+        // 青い単色面と細い輪郭だけの、静かな確認ボタンにする。
+        Color buttonBase = new Color(0.025f, 0.08f, 0.14f, 0.96f);
+        yesButton = CreateImage("YesButton", confirmGroup.transform, yesButtonPosition,
+            new Vector2(240f, 72f), buttonBase).GetComponent<Image>();
+        noButton = CreateImage("NoButton", confirmGroup.transform, noButtonPosition,
+            new Vector2(240f, 72f), buttonBase).GetComponent<Image>();
+        SetupSimpleConfirmOutline(yesButton);
+        SetupSimpleConfirmOutline(noButton);
         yesButtonGroup = yesButton.gameObject.AddComponent<CanvasGroup>();
         noButtonGroup = noButton.gameObject.AddComponent<CanvasGroup>();
         yesText.text = "はい";
@@ -779,9 +777,20 @@ public class OptionMenu : MonoBehaviour
         noButton.rectTransform.anchoredPosition = noButtonPosition;
         yesText.rectTransform.anchoredPosition = yesButtonPosition + new Vector2(0f, confirmButtonTextOffsetY);
         noText.rectTransform.anchoredPosition = noButtonPosition + new Vector2(0f, confirmButtonTextOffsetY);
-        // 選択=等倍表示、非選択=減光(スラッシュ・枠ごと沈める)。
-        if (yesButtonGroup != null) yesButtonGroup.alpha = yes ? 1f : 0.5f;
-        if (noButtonGroup != null) noButtonGroup.alpha = yes ? 0.5f : 1f;
+        if (yesButtonGroup != null) yesButtonGroup.alpha = yes ? 1f : 0.72f;
+        if (noButtonGroup != null) noButtonGroup.alpha = yes ? 0.72f : 1f;
+        yesButton.color = yes
+            ? new Color(0.04f, 0.30f, 0.52f, 0.98f)
+            : new Color(0.025f, 0.08f, 0.14f, 0.96f);
+        noButton.color = yes
+            ? new Color(0.025f, 0.08f, 0.14f, 0.96f)
+            : new Color(0.04f, 0.30f, 0.52f, 0.98f);
+        yesButton.GetComponent<Outline>().effectColor = yes
+            ? new Color(0.55f, 0.88f, 1f, 0.90f)
+            : new Color(0.30f, 0.72f, 1f, 0.35f);
+        noButton.GetComponent<Outline>().effectColor = yes
+            ? new Color(0.30f, 0.72f, 1f, 0.35f)
+            : new Color(0.55f, 0.88f, 1f, 0.90f);
         yesText.color = yes ? Color.white : unselectedColor;
         noText.color = yes ? unselectedColor : Color.white;
         ApplyConfirmSelectionScale();
@@ -789,8 +798,8 @@ public class OptionMenu : MonoBehaviour
 
     private void ApplyConfirmSelectionScale()
     {
-        float yesScale = confirmContentScale * (confirmIndex == 0 ? 1.12f : 0.96f);
-        float noScale = confirmContentScale * (confirmIndex == 1 ? 1.12f : 0.96f);
+        float yesScale = confirmContentScale * (confirmIndex == 0 ? 1.04f : 1f);
+        float noScale = confirmContentScale * (confirmIndex == 1 ? 1.04f : 1f);
         if (yesButton != null) yesButton.rectTransform.localScale = Vector3.one * yesScale;
         if (noButton != null) noButton.rectTransform.localScale = Vector3.one * noScale;
         if (yesText != null) yesText.rectTransform.localScale = Vector3.one * yesScale;
@@ -909,5 +918,15 @@ public class OptionMenu : MonoBehaviour
     {
         BackdropBlurUtil.ReleaseRT(ref confirmBlurRT);
         BackdropBlurUtil.ReleaseRT(ref menuBlurRT);
+    }
+
+
+    private static void SetupSimpleConfirmOutline(Image button)
+    {
+        if (button == null) return;
+        Outline outline = button.gameObject.AddComponent<Outline>();
+        outline.effectDistance = new Vector2(2f, -2f);
+        outline.effectColor = new Color(0.30f, 0.72f, 1f, 0.55f);
+        outline.useGraphicAlpha = true;
     }
 }
