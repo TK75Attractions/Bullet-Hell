@@ -3,8 +3,8 @@
     "bullets": [
         {
             "originPos": {
-                "x": 8,
-                "y": 4.7
+                "x": 2.0,
+                "y": 2.3
             },
             "originVlc": {
                 "x": 0,
@@ -15,16 +15,16 @@
                 "y": 0
             },
             "startX": 0,
-            "speed": 6.5,
+            "speed": 5.2,
             "gravity": {
-                "x": 8,
-                "y": -1.5707963
+                "x": 8.0,
+                "y": -1.5707963267948966
             },
             "angleSpeed": 6,
             "initialAngle": 0,
             "polarForm": {
                 "x": 1,
-                "y": 0.523599
+                "y": -0.7
             },
             "radiusVlc": 0,
             "thetaVlc": 0,
@@ -40,8 +40,8 @@
             },
             "typeName": "stone_shard",
             "scale": {
-                "x": 0.95,
-                "y": 0.95
+                "x": 0.85,
+                "y": 0.85
             },
             "color": {
                 "x": 0.025,
@@ -49,16 +49,16 @@
                 "z": 0.095,
                 "w": 0.98
             },
-            "appearTime": 0.29619,
+            "appearTime": 0.28429,
             "appearDuration": 0,
-            "life": 2.5,
+            "life": 2.28429,
             "random": 0,
             "unCounterable": true
         },
         {
             "originPos": {
-                "x": 8,
-                "y": 4.7
+                "x": 2.0,
+                "y": 2.3
             },
             "originVlc": {
                 "x": 0,
@@ -69,232 +69,16 @@
                 "y": 0
             },
             "startX": 0,
-            "speed": 6.5,
+            "speed": 5.2,
             "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": -7,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 0.942478
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.29619,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 8,
-                "y": 4.7
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": 8,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 1.361357
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.29619,
-            "appearDuration": 0,
-            "life": 2.763,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 8,
-                "y": 4.7
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": -9,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 1.780236
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.29619,
-            "appearDuration": 0,
-            "life": 2.763,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 8,
-                "y": 4.7
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": 10,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 2.199115
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.29619,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 8,
-                "y": 4.7
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
+                "x": 8.0,
+                "y": -1.5707963267948966
             },
             "angleSpeed": -6,
             "initialAngle": 0,
             "polarForm": {
                 "x": 1,
-                "y": 2.617994
+                "y": 0.347198
             },
             "radiusVlc": 0,
             "thetaVlc": 0,
@@ -310,8 +94,8 @@
             },
             "typeName": "stone_shard",
             "scale": {
-                "x": 0.95,
-                "y": 0.95
+                "x": 0.85,
+                "y": 0.85
             },
             "color": {
                 "x": 0.025,
@@ -319,16 +103,16 @@
                 "z": 0.095,
                 "w": 0.98
             },
-            "appearTime": 0.29619,
+            "appearTime": 0.28429,
             "appearDuration": 0,
-            "life": 2.5,
+            "life": 2.28429,
             "random": 0,
             "unCounterable": true
         },
         {
             "originPos": {
-                "x": 24,
-                "y": 4.7
+                "x": 2.0,
+                "y": 2.3
             },
             "originVlc": {
                 "x": 0,
@@ -339,232 +123,16 @@
                 "y": 0
             },
             "startX": 0,
-            "speed": 6.5,
+            "speed": 5.2,
             "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": 7,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 0.523599
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.308333,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 24,
-                "y": 4.7
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": -8,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 0.942478
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.308333,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 24,
-                "y": 4.7
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": 9,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 1.361357
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.308333,
-            "appearDuration": 0,
-            "life": 2.775,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 24,
-                "y": 4.7
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": -10,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 1.780236
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.308333,
-            "appearDuration": 0,
-            "life": 2.775,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 24,
-                "y": 4.7
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
+                "x": 8.0,
+                "y": -1.5707963267948966
             },
             "angleSpeed": 6,
             "initialAngle": 0,
             "polarForm": {
                 "x": 1,
-                "y": 2.199115
+                "y": 1.394395
             },
             "radiusVlc": 0,
             "thetaVlc": 0,
@@ -580,8 +148,8 @@
             },
             "typeName": "stone_shard",
             "scale": {
-                "x": 0.95,
-                "y": 0.95
+                "x": 0.85,
+                "y": 0.85
             },
             "color": {
                 "x": 0.025,
@@ -589,69 +157,15 @@
                 "z": 0.095,
                 "w": 0.98
             },
-            "appearTime": 0.308333,
+            "appearTime": 0.28429,
             "appearDuration": 0,
-            "life": 2.5,
+            "life": 2.28429,
             "random": 0,
             "unCounterable": true
         },
         {
             "originPos": {
-                "x": 24,
-                "y": 4.7
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": -7,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 2.617994
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.308333,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 4,
+                "x": 2.0,
                 "y": 2.3
             },
             "originVlc": {
@@ -663,178 +177,16 @@
                 "y": 0
             },
             "startX": 0,
-            "speed": 6.5,
+            "speed": 5.2,
             "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": 8,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 0.523599
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.010476,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 4,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": -9,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 0.942478
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.010476,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 4,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": 10,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 1.361357
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.010476,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 4,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
+                "x": 8.0,
+                "y": -1.5707963267948966
             },
             "angleSpeed": -6,
             "initialAngle": 0,
             "polarForm": {
                 "x": 1,
-                "y": 1.780236
+                "y": 2.441593
             },
             "radiusVlc": 0,
             "thetaVlc": 0,
@@ -850,8 +202,8 @@
             },
             "typeName": "stone_shard",
             "scale": {
-                "x": 0.95,
-                "y": 0.95
+                "x": 0.85,
+                "y": 0.85
             },
             "color": {
                 "x": 0.025,
@@ -859,15 +211,15 @@
                 "z": 0.095,
                 "w": 0.98
             },
-            "appearTime": 0.010476,
+            "appearTime": 0.28429,
             "appearDuration": 0,
-            "life": 2.5,
+            "life": 2.28429,
             "random": 0,
             "unCounterable": true
         },
         {
             "originPos": {
-                "x": 4,
+                "x": 2.0,
                 "y": 2.3
             },
             "originVlc": {
@@ -879,232 +231,16 @@
                 "y": 0
             },
             "startX": 0,
-            "speed": 6.5,
+            "speed": 5.2,
             "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": 7,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 2.199115
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.010476,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 4,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": -8,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 2.617994
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.010476,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 8,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": 9,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 0.523599
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.29619,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 8,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": -10,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 0.942478
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.29619,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 8,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
+                "x": 8.0,
+                "y": -1.5707963267948966
             },
             "angleSpeed": 6,
             "initialAngle": 0,
             "polarForm": {
                 "x": 1,
-                "y": 1.361357
+                "y": 3.48879
             },
             "radiusVlc": 0,
             "thetaVlc": 0,
@@ -1120,8 +256,8 @@
             },
             "typeName": "stone_shard",
             "scale": {
-                "x": 0.95,
-                "y": 0.95
+                "x": 0.85,
+                "y": 0.85
             },
             "color": {
                 "x": 0.025,
@@ -1129,15 +265,15 @@
                 "z": 0.095,
                 "w": 0.98
             },
-            "appearTime": 0.29619,
+            "appearTime": 0.28429,
             "appearDuration": 0,
-            "life": 2.5,
+            "life": 2.28429,
             "random": 0,
             "unCounterable": true
         },
         {
             "originPos": {
-                "x": 8,
+                "x": 2.0,
                 "y": 2.3
             },
             "originVlc": {
@@ -1149,232 +285,16 @@
                 "y": 0
             },
             "startX": 0,
-            "speed": 6.5,
+            "speed": 5.2,
             "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": -7,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 1.780236
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.29619,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 8,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": 8,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 2.199115
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.29619,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 8,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": -9,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 2.617994
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.29619,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 12,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": 10,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 0.523599
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.581904,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 12,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
+                "x": 8.0,
+                "y": -1.5707963267948966
             },
             "angleSpeed": -6,
             "initialAngle": 0,
             "polarForm": {
                 "x": 1,
-                "y": 0.942478
+                "y": 4.535988
             },
             "radiusVlc": 0,
             "thetaVlc": 0,
@@ -1390,8 +310,8 @@
             },
             "typeName": "stone_shard",
             "scale": {
-                "x": 0.95,
-                "y": 0.95
+                "x": 0.85,
+                "y": 0.85
             },
             "color": {
                 "x": 0.025,
@@ -1399,16 +319,16 @@
                 "z": 0.095,
                 "w": 0.98
             },
-            "appearTime": 0.581904,
+            "appearTime": 0.28429,
             "appearDuration": 0,
-            "life": 2.5,
+            "life": 2.28429,
             "random": 0,
             "unCounterable": true
         },
         {
             "originPos": {
-                "x": 12,
-                "y": 2.3
+                "x": 5.5,
+                "y": 2.9
             },
             "originVlc": {
                 "x": 0,
@@ -1419,232 +339,16 @@
                 "y": 0
             },
             "startX": 0,
-            "speed": 6.5,
+            "speed": 5.65,
             "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": 7,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 1.361357
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.581904,
-            "appearDuration": 0,
-            "life": 2.849,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 12,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": -8,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 1.780236
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.581904,
-            "appearDuration": 0,
-            "life": 2.849,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 12,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": 9,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 2.199115
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.581904,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 12,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": -10,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 2.617994
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.581904,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 16,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
+                "x": 8.0,
+                "y": -1.5707963267948966
             },
             "angleSpeed": 6,
             "initialAngle": 0,
             "polarForm": {
                 "x": 1,
-                "y": 0.523599
+                "y": -0.7
             },
             "radiusVlc": 0,
             "thetaVlc": 0,
@@ -1660,8 +364,8 @@
             },
             "typeName": "stone_shard",
             "scale": {
-                "x": 0.95,
-                "y": 0.95
+                "x": 0.85,
+                "y": 0.85
             },
             "color": {
                 "x": 0.025,
@@ -1669,16 +373,16 @@
                 "z": 0.095,
                 "w": 0.98
             },
-            "appearTime": 0.867619,
+            "appearTime": 0.53429,
             "appearDuration": 0,
-            "life": 2.5,
+            "life": 2.53429,
             "random": 0,
             "unCounterable": true
         },
         {
             "originPos": {
-                "x": 16,
-                "y": 2.3
+                "x": 5.5,
+                "y": 2.9
             },
             "originVlc": {
                 "x": 0,
@@ -1689,232 +393,16 @@
                 "y": 0
             },
             "startX": 0,
-            "speed": 6.5,
+            "speed": 5.65,
             "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": -7,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 0.942478
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.867619,
-            "appearDuration": 0,
-            "life": 2.918,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 16,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": 8,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 1.361357
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.867619,
-            "appearDuration": 0,
-            "life": 3.134,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 16,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": -9,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 1.780236
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.867619,
-            "appearDuration": 0,
-            "life": 3.134,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 16,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": 10,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 2.199115
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.867619,
-            "appearDuration": 0,
-            "life": 2.918,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 16,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
+                "x": 8.0,
+                "y": -1.5707963267948966
             },
             "angleSpeed": -6,
             "initialAngle": 0,
             "polarForm": {
                 "x": 1,
-                "y": 2.617994
+                "y": 0.347198
             },
             "radiusVlc": 0,
             "thetaVlc": 0,
@@ -1930,8 +418,8 @@
             },
             "typeName": "stone_shard",
             "scale": {
-                "x": 0.95,
-                "y": 0.95
+                "x": 0.85,
+                "y": 0.85
             },
             "color": {
                 "x": 0.025,
@@ -1939,16 +427,16 @@
                 "z": 0.095,
                 "w": 0.98
             },
-            "appearTime": 0.867619,
+            "appearTime": 0.53429,
             "appearDuration": 0,
-            "life": 2.5,
+            "life": 2.53429,
             "random": 0,
             "unCounterable": true
         },
         {
             "originPos": {
-                "x": 20,
-                "y": 2.3
+                "x": 5.5,
+                "y": 2.9
             },
             "originVlc": {
                 "x": 0,
@@ -1959,232 +447,16 @@
                 "y": 0
             },
             "startX": 0,
-            "speed": 6.5,
+            "speed": 5.65,
             "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": 7,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 0.523599
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.594047,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 20,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": -8,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 0.942478
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.594047,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 20,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": 9,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 1.361357
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.594047,
-            "appearDuration": 0,
-            "life": 2.861,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 20,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": -10,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 1.780236
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.594047,
-            "appearDuration": 0,
-            "life": 2.861,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 20,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
+                "x": 8.0,
+                "y": -1.5707963267948966
             },
             "angleSpeed": 6,
             "initialAngle": 0,
             "polarForm": {
                 "x": 1,
-                "y": 2.199115
+                "y": 1.394395
             },
             "radiusVlc": 0,
             "thetaVlc": 0,
@@ -2200,8 +472,8 @@
             },
             "typeName": "stone_shard",
             "scale": {
-                "x": 0.95,
-                "y": 0.95
+                "x": 0.85,
+                "y": 0.85
             },
             "color": {
                 "x": 0.025,
@@ -2209,16 +481,16 @@
                 "z": 0.095,
                 "w": 0.98
             },
-            "appearTime": 0.594047,
+            "appearTime": 0.53429,
             "appearDuration": 0,
-            "life": 2.5,
+            "life": 2.53429,
             "random": 0,
             "unCounterable": true
         },
         {
             "originPos": {
-                "x": 20,
-                "y": 2.3
+                "x": 5.5,
+                "y": 2.9
             },
             "originVlc": {
                 "x": 0,
@@ -2229,232 +501,16 @@
                 "y": 0
             },
             "startX": 0,
-            "speed": 6.5,
+            "speed": 5.65,
             "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": -7,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 2.617994
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.594047,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 24,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": 8,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 0.523599
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.308333,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 24,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": -9,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 0.942478
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.308333,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 24,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": 10,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 1.361357
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.308333,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 24,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
+                "x": 8.0,
+                "y": -1.5707963267948966
             },
             "angleSpeed": -6,
             "initialAngle": 0,
             "polarForm": {
                 "x": 1,
-                "y": 1.780236
+                "y": 2.441593
             },
             "radiusVlc": 0,
             "thetaVlc": 0,
@@ -2470,8 +526,8 @@
             },
             "typeName": "stone_shard",
             "scale": {
-                "x": 0.95,
-                "y": 0.95
+                "x": 0.85,
+                "y": 0.85
             },
             "color": {
                 "x": 0.025,
@@ -2479,16 +535,16 @@
                 "z": 0.095,
                 "w": 0.98
             },
-            "appearTime": 0.308333,
+            "appearTime": 0.53429,
             "appearDuration": 0,
-            "life": 2.5,
+            "life": 2.53429,
             "random": 0,
             "unCounterable": true
         },
         {
             "originPos": {
-                "x": 24,
-                "y": 2.3
+                "x": 5.5,
+                "y": 2.9
             },
             "originVlc": {
                 "x": 0,
@@ -2499,232 +555,16 @@
                 "y": 0
             },
             "startX": 0,
-            "speed": 6.5,
+            "speed": 5.65,
             "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": 7,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 2.199115
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.308333,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 24,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": -8,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 2.617994
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.308333,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 28,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": 9,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 0.523599
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.022619,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 28,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
-            },
-            "angleSpeed": -10,
-            "initialAngle": 0,
-            "polarForm": {
-                "x": 1,
-                "y": 0.942478
-            },
-            "radiusVlc": 0,
-            "thetaVlc": 0,
-            "startPos": {
-                "x": 0,
-                "y": 0
-            },
-            "polynomial": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
-            },
-            "typeName": "stone_shard",
-            "scale": {
-                "x": 0.95,
-                "y": 0.95
-            },
-            "color": {
-                "x": 0.025,
-                "y": 0.04,
-                "z": 0.095,
-                "w": 0.98
-            },
-            "appearTime": 0.022619,
-            "appearDuration": 0,
-            "life": 2.5,
-            "random": 0,
-            "unCounterable": true
-        },
-        {
-            "originPos": {
-                "x": 28,
-                "y": 2.3
-            },
-            "originVlc": {
-                "x": 0,
-                "y": 0
-            },
-            "playerInfluence": {
-                "x": 0,
-                "y": 0
-            },
-            "startX": 0,
-            "speed": 6.5,
-            "gravity": {
-                "x": 8,
-                "y": -1.5707963
+                "x": 8.0,
+                "y": -1.5707963267948966
             },
             "angleSpeed": 6,
             "initialAngle": 0,
             "polarForm": {
                 "x": 1,
-                "y": 1.361357
+                "y": 3.48879
             },
             "radiusVlc": 0,
             "thetaVlc": 0,
@@ -2740,8 +580,8 @@
             },
             "typeName": "stone_shard",
             "scale": {
-                "x": 0.95,
-                "y": 0.95
+                "x": 0.85,
+                "y": 0.85
             },
             "color": {
                 "x": 0.025,
@@ -2749,15 +589,69 @@
                 "z": 0.095,
                 "w": 0.98
             },
-            "appearTime": 0.022619,
+            "appearTime": 0.53429,
             "appearDuration": 0,
-            "life": 2.5,
+            "life": 2.53429,
             "random": 0,
             "unCounterable": true
         },
         {
             "originPos": {
-                "x": 28,
+                "x": 5.5,
+                "y": 2.9
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.65,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 4.535988
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.53429,
+            "appearDuration": 0,
+            "life": 2.53429,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 9.0,
                 "y": 2.3
             },
             "originVlc": {
@@ -2769,16 +663,16 @@
                 "y": 0
             },
             "startX": 0,
-            "speed": 6.5,
+            "speed": 6.1,
             "gravity": {
-                "x": 8,
-                "y": -1.5707963
+                "x": 8.0,
+                "y": -1.5707963267948966
             },
-            "angleSpeed": -7,
+            "angleSpeed": 6,
             "initialAngle": 0,
             "polarForm": {
                 "x": 1,
-                "y": 1.780236
+                "y": -0.7
             },
             "radiusVlc": 0,
             "thetaVlc": 0,
@@ -2794,8 +688,8 @@
             },
             "typeName": "stone_shard",
             "scale": {
-                "x": 0.95,
-                "y": 0.95
+                "x": 0.85,
+                "y": 0.85
             },
             "color": {
                 "x": 0.025,
@@ -2803,15 +697,15 @@
                 "z": 0.095,
                 "w": 0.98
             },
-            "appearTime": 0.022619,
+            "appearTime": 0.78429,
             "appearDuration": 0,
-            "life": 2.5,
+            "life": 2.78429,
             "random": 0,
             "unCounterable": true
         },
         {
             "originPos": {
-                "x": 28,
+                "x": 9.0,
                 "y": 2.3
             },
             "originVlc": {
@@ -2823,16 +717,16 @@
                 "y": 0
             },
             "startX": 0,
-            "speed": 6.5,
+            "speed": 6.1,
             "gravity": {
-                "x": 8,
-                "y": -1.5707963
+                "x": 8.0,
+                "y": -1.5707963267948966
             },
-            "angleSpeed": 8,
+            "angleSpeed": -6,
             "initialAngle": 0,
             "polarForm": {
                 "x": 1,
-                "y": 2.199115
+                "y": 0.347198
             },
             "radiusVlc": 0,
             "thetaVlc": 0,
@@ -2848,8 +742,8 @@
             },
             "typeName": "stone_shard",
             "scale": {
-                "x": 0.95,
-                "y": 0.95
+                "x": 0.85,
+                "y": 0.85
             },
             "color": {
                 "x": 0.025,
@@ -2857,15 +751,15 @@
                 "z": 0.095,
                 "w": 0.98
             },
-            "appearTime": 0.022619,
+            "appearTime": 0.78429,
             "appearDuration": 0,
-            "life": 2.5,
+            "life": 2.78429,
             "random": 0,
             "unCounterable": true
         },
         {
             "originPos": {
-                "x": 28,
+                "x": 9.0,
                 "y": 2.3
             },
             "originVlc": {
@@ -2877,16 +771,16 @@
                 "y": 0
             },
             "startX": 0,
-            "speed": 6.5,
+            "speed": 6.1,
             "gravity": {
-                "x": 8,
-                "y": -1.5707963
+                "x": 8.0,
+                "y": -1.5707963267948966
             },
-            "angleSpeed": -9,
+            "angleSpeed": 6,
             "initialAngle": 0,
             "polarForm": {
                 "x": 1,
-                "y": 2.617994
+                "y": 1.394395
             },
             "radiusVlc": 0,
             "thetaVlc": 0,
@@ -2902,8 +796,8 @@
             },
             "typeName": "stone_shard",
             "scale": {
-                "x": 0.95,
-                "y": 0.95
+                "x": 0.85,
+                "y": 0.85
             },
             "color": {
                 "x": 0.025,
@@ -2911,9 +805,2115 @@
                 "z": 0.095,
                 "w": 0.98
             },
-            "appearTime": 0.022619,
+            "appearTime": 0.78429,
             "appearDuration": 0,
-            "life": 2.5,
+            "life": 2.78429,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 9.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 6.1,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 2.441593
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.78429,
+            "appearDuration": 0,
+            "life": 2.78429,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 9.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 6.1,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": 6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 3.48879
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.78429,
+            "appearDuration": 0,
+            "life": 2.78429,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 9.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 6.1,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 4.535988
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.78429,
+            "appearDuration": 0,
+            "life": 2.78429,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 12.5,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.2,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": 6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": -0.7
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 1.03429,
+            "appearDuration": 0,
+            "life": 3.03429,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 12.5,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.2,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0.347198
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 1.03429,
+            "appearDuration": 0,
+            "life": 3.03429,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 12.5,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.2,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": 6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 1.394395
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 1.03429,
+            "appearDuration": 0,
+            "life": 3.03429,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 12.5,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.2,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 2.441593
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 1.03429,
+            "appearDuration": 0,
+            "life": 3.03429,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 12.5,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.2,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": 6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 3.48879
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 1.03429,
+            "appearDuration": 0,
+            "life": 3.03429,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 12.5,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.2,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 4.535988
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 1.03429,
+            "appearDuration": 0,
+            "life": 3.03429,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.65,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": 6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": -0.7
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 1.28429,
+            "appearDuration": 0,
+            "life": 3.28429,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.65,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 0.347198
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 1.28429,
+            "appearDuration": 0,
+            "life": 3.28429,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.65,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": 6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 1.394395
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 1.28429,
+            "appearDuration": 0,
+            "life": 3.28429,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.65,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 2.441593
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 1.28429,
+            "appearDuration": 0,
+            "life": 3.28429,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.65,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": 6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 3.48879
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 1.28429,
+            "appearDuration": 0,
+            "life": 3.28429,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.65,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 4.535988
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 1.28429,
+            "appearDuration": 0,
+            "life": 3.28429,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 19.5,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 6.1,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": 6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 2.441593
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 1.04643,
+            "appearDuration": 0,
+            "life": 3.04643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 19.5,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 6.1,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 3.48879
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 1.04643,
+            "appearDuration": 0,
+            "life": 3.04643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 19.5,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 6.1,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": 6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 4.535988
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 1.04643,
+            "appearDuration": 0,
+            "life": 3.04643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 19.5,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 6.1,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 5.583185
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 1.04643,
+            "appearDuration": 0,
+            "life": 3.04643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 19.5,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 6.1,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": 6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 6.630383
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 1.04643,
+            "appearDuration": 0,
+            "life": 3.04643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 19.5,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 6.1,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 7.67758
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 1.04643,
+            "appearDuration": 0,
+            "life": 3.04643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 23.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.2,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": 6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 2.441593
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.79643,
+            "appearDuration": 0,
+            "life": 2.79643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 23.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.2,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 3.48879
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.79643,
+            "appearDuration": 0,
+            "life": 2.79643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 23.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.2,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": 6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 4.535988
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.79643,
+            "appearDuration": 0,
+            "life": 2.79643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 23.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.2,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 5.583185
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.79643,
+            "appearDuration": 0,
+            "life": 2.79643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 23.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.2,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": 6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 6.630383
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.79643,
+            "appearDuration": 0,
+            "life": 2.79643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 23.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.2,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 7.67758
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.79643,
+            "appearDuration": 0,
+            "life": 2.79643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 26.5,
+                "y": 2.9
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.65,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": 6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 2.441593
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.54643,
+            "appearDuration": 0,
+            "life": 2.54643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 26.5,
+                "y": 2.9
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.65,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 3.48879
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.54643,
+            "appearDuration": 0,
+            "life": 2.54643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 26.5,
+                "y": 2.9
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.65,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": 6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 4.535988
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.54643,
+            "appearDuration": 0,
+            "life": 2.54643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 26.5,
+                "y": 2.9
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.65,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 5.583185
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.54643,
+            "appearDuration": 0,
+            "life": 2.54643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 26.5,
+                "y": 2.9
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.65,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": 6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 6.630383
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.54643,
+            "appearDuration": 0,
+            "life": 2.54643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 26.5,
+                "y": 2.9
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 5.65,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 7.67758
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.54643,
+            "appearDuration": 0,
+            "life": 2.54643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 30.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 6.1,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": 6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 2.441593
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.29643,
+            "appearDuration": 0,
+            "life": 2.29643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 30.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 6.1,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 3.48879
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.29643,
+            "appearDuration": 0,
+            "life": 2.29643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 30.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 6.1,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": 6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 4.535988
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.29643,
+            "appearDuration": 0,
+            "life": 2.29643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 30.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 6.1,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 5.583185
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.29643,
+            "appearDuration": 0,
+            "life": 2.29643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 30.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 6.1,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": 6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 6.630383
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.29643,
+            "appearDuration": 0,
+            "life": 2.29643,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 30.0,
+                "y": 2.3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 6.1,
+            "gravity": {
+                "x": 8.0,
+                "y": -1.5707963267948966
+            },
+            "angleSpeed": -6,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 7.67758
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_shard",
+            "scale": {
+                "x": 0.85,
+                "y": 0.85
+            },
+            "color": {
+                "x": 0.025,
+                "y": 0.04,
+                "z": 0.095,
+                "w": 0.98
+            },
+            "appearTime": 0.29643,
+            "appearDuration": 0,
+            "life": 2.29643,
             "random": 0,
             "unCounterable": true
         }
