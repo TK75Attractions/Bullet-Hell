@@ -40,6 +40,10 @@ public class StageDataManager
 
     private const bool UseAddressablesInEditor = false;
 
+    // 調整中のため、石工はステージ選択および製品ビルドの一覧へ一時的に出さない。
+    // データ自体は残すので、再公開時はこの定数を空へ戻すだけで復帰できる。
+    private const string TemporarilyDisabledOfficialStageDirectory = "stone";
+
     private static readonly string[] AudioExtensions = { ".wav", ".mp3", ".ogg", ".m4a" };
 
     private static readonly string[] VideoExtensions = { ".mp4", ".webm" };
@@ -812,6 +816,12 @@ public class StageDataManager
 
             string stageName = Path.GetFileName(dir);
 
+            if (IsTemporarilyDisabledOfficialStage(stageName))
+            {
+                Debug.Log($"Temporarily disabled official stage: {stageName}");
+                continue;
+            }
+
             StageData data = ReadStageDataFromDirectory(stageName);
 
             stageDataList.Add(data);
@@ -878,6 +888,13 @@ public class StageDataManager
 
             {
 
+                string directoryName = GetStageDirectoryNameFromAddress(location.PrimaryKey);
+                if (IsTemporarilyDisabledOfficialStage(directoryName))
+                {
+                    Debug.Log($"Temporarily disabled official stage: {directoryName}");
+                    continue;
+                }
+
                 AsyncOperationHandle<TextAsset> jsonHandle = Addressables.LoadAssetAsync<TextAsset>(location);
 
                 await WaitForAddressable(jsonHandle);
@@ -897,8 +914,6 @@ public class StageDataManager
                 }
 
 
-
-                string directoryName = GetStageDirectoryNameFromAddress(location.PrimaryKey);
 
                 StageData data = ReadStageDataFromJson(directoryName, jsonHandle.Result.text);
 
@@ -949,6 +964,20 @@ public class StageDataManager
 
 
         return stageDataList;
+
+    }
+
+
+
+    private static bool IsTemporarilyDisabledOfficialStage(string directoryName)
+
+    {
+
+        return !string.IsNullOrEmpty(TemporarilyDisabledOfficialStageDirectory)
+            && string.Equals(
+                directoryName,
+                TemporarilyDisabledOfficialStageDirectory,
+                StringComparison.OrdinalIgnoreCase);
 
     }
 
