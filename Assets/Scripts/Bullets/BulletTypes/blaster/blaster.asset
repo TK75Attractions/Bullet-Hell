@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbd360919789aba45b7e5b8e684967f4, type: 3}
+  m_Name: blaster
+  m_EditorClassIdentifier: BulletHell.Core::BulletType
+  typeName: blaster
+  baseSprite: {fileID: 2800000, guid: 4ad76f1a00b54750ae672ea25f128cde, type: 3}
+  maskSprite: {fileID: 2800000, guid: 54f3719a949e4846840ba9aae99cb7fa, type: 3}
+  baseColor: {r: 1, g: 1, b: 1, a: 1}
+  baseSize: 1
+  renderPriority: 1
+  counterPower: 1
+  verts:
+  - x: -0.3594
+    y: -0.1406
+  - x: 0.3906
+    y: -0.1406
+  - x: 0.3906
+    y: 0.3281
+  - x: -0.3594
+    y: 0.3281

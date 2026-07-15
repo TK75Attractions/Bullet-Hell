@@ -19,12 +19,13 @@ MonoBehaviour:
   baseSize: 1
   renderPriority: 2
   counterPower: 1
+  uprightSprite: 1
   verts:
-  - x: -0.5
-    y: -0.5
-  - x: 0.5
-    y: -0.5
-  - x: 0.5
-    y: 0.5
-  - x: -0.5
-    y: 0.5
+  - x: -0.33
+    y: -0.29
+  - x: 0.33
+    y: -0.29
+  - x: 0.33
+    y: 0.29
+  - x: -0.33
+    y: 0.29

@@ -1,0 +1,62 @@
+﻿{
+    "name": "石工後半_カッター上昇",
+    "bullets": [
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 9.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 20.53808,
+                "y": 1.5707963
+            },
+            "angleSpeed": 0,
+            "initialAngle": 0,
+            "polarForm": {
+                "x": 1,
+                "y": 4.842441
+            },
+            "radiusVlc": 0,
+            "thetaVlc": 6.0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone_cutter",
+            "scale": {
+                "x": 4.8,
+                "y": 4.8
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0.0,
+            "appearDuration": 0,
+            "life": 1.131,
+            "random": 0,
+            "unCounterable": true,
+            "useVelocityAngle": false
+        }
+    ],
+    "homing": false,
+    "isLaser": false
+}

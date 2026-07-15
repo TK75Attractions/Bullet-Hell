@@ -55,6 +55,8 @@ public class StageSelectManager : MonoBehaviour
     }
 
     private State state = State.Music;
+    public int CurrentStageIndex => stageBar != null ? stageBar.currentStage : 0;
+
 
     private bool isTransitioning = false;
 
@@ -99,6 +101,9 @@ public class StageSelectManager : MonoBehaviour
             Transform song = hud.Find("SongName");
             if (song != null) playHUDSongName = song.GetComponent<TMPro.TMP_Text>();
             if (playHUD != null) playHUD.alpha = 0;
+            // プレイ中 HUD の駆動役(曲進捗バー+スコア/被弾)を実行時に取り付ける。
+            if (hud.GetComponent<PlayHudController>() == null)
+                hud.gameObject.AddComponent<PlayHudController>();
         }
 
         stageBarRect = stageBar.GetComponent<RectTransform>();
@@ -109,7 +114,7 @@ public class StageSelectManager : MonoBehaviour
         defficultyBasePos = defficultyRect.anchoredPosition + Vector2.left * 20f;
         ApplySlide(0);
 
-        defficultyBar.Init();
+        defficultyBar.Init(guideText != null ? guideText.font : null);
         header.Init();
         scroll.Init();
         stageBar.Init();
@@ -164,6 +169,31 @@ public class StageSelectManager : MonoBehaviour
     {
         RefreshStyleVisibility();
     }
+    // リザルトから同一シーン内でステージ選択へ戻す。プレイ開始時に隠した
+    // CanvasGroup と JSAB オーバーレイを、Music フェーズの静止状態へ戻す。
+    public void PrepareReturnFromResult()
+    {
+        state = State.Music;
+        isTransitioning = false;
+        remainingTime = musicSelectTime;
+        phaseTotalTime = musicSelectTime;
+        ApplySlide(0f);
+        stageBar.SetAlpha(1f);
+        scroll.SetAlpha(1f);
+        defficultyBar.SetAlpha(0f);
+        defficultyBar.SetEntranceProgress(0f);
+        stageDescription.Transition(0f);
+        header.TransitionNotes(0);
+        if (playHUD != null) playHUD.alpha = 0f;
+        if (jsab != null)
+        {
+            jsab.CloseDifficulty();
+            jsab.SetStage(stageBar.currentStage, GManager.Control.SDB.GetStageCount(), false);
+            jsab.SetEntranceAlpha(1f);
+        }
+        RefreshStyleVisibility();
+    }
+
 
     private int FindStageIndex(string stageName)
     {
@@ -246,15 +276,34 @@ public class StageSelectManager : MonoBehaviour
                     }
                     else if (button || jsab.ConsumeMouseConfirm())
                     {
-                        GManager.Control.selectedDifficulty = jsab.DifficultyIndex;
-                        // JSAB 画面はここでは隠さない。ピクセルトランジションが
-                        // 覆い切ってから StartGameTransition 側で隠す(先に隠すと
-                        // カバー完了前に下の画面が露出して一瞬乱れる)。
-                        state = State.InGame;
-                        StartGameTransition(stageBar.currentStage);
+                        // WIP ステージ(姿見)は全難易度 COMING SOON=確定不可。決定キー・
+                        // 時間切れ・マウスのいずれでもゲームを開始しない(B でカルーセルへ戻る)。
+                        // これがないと時間切れ auto-confirm で endTime=0 の姿見が起動し落ちる。
+                        if (jsab.CanConfirm())
+                        {
+                            // 時間切れ auto-confirm(button 上書き)では鳴らさない。
+                            if (!timeUp) GManager.Control?.AManager?.PlayDecisionSE();
+                            GManager.Control.selectedDifficulty = jsab.DifficultyIndex;
+                            // JSAB 画面はここでは隠さない。ピクセルトランジションが
+                            // 覆い切ってから StartGameTransition 側で隠す(先に隠すと
+                            // カバー完了前に下の画面が露出して一瞬乱れる)。
+                            state = State.InGame;
+                            StartGameTransition(stageBar.currentStage);
+                        }
                     }
                     else if (left || up) jsab.MoveDifficulty(-1);
                     else if (right || down) jsab.MoveDifficulty(1);
+                    break;
+                }
+
+                // カルーセル(難易度モーダル非表示)で Esc / P1 の B を押すとタイトルへ戻る。
+                // モーダルが開いている間は上の分岐で「閉じる」を優先するので、
+                // 難易度→カルーセル→タイトルの2段戻りになる。既定スタイルでも
+                // 難易度リストは別ステート(State.Difficulty)で back→音楽選択に戻るため、
+                // ここに来るのはカルーセル段のみ。
+                if (back)
+                {
+                    GManager.Control.ReturnToTitleFromSelect();
                     break;
                 }
 
@@ -264,6 +313,7 @@ public class StageSelectManager : MonoBehaviour
                     // modal; the default screen slides to the difficulty list. The
                     // modal gets the same fresh countdown as the difficulty screen,
                     // otherwise a music-phase timeout would auto-confirm it instantly.
+                    if (!timeUp) GManager.Control?.AManager?.PlayDecisionSE();   // ステージ確定
                     if (jsab != null && stageSelectStyle == 1)
                     {
                         remainingTime = difficultySelectTime;
@@ -297,9 +347,15 @@ public class StageSelectManager : MonoBehaviour
                 }
                 else if (button)
                 {
-                    GManager.Control.selectedDifficulty = defficultyBar.index;
-                    state = State.InGame;
-                    StartGameTransition(stageBar.currentStage);
+                    // 既定スタイルは難易度制限機構を持たないが、姿見(WIP・endTime=0)だけは
+                    // 確定するとゲームが落ちるためブロックする(B で戻る)。
+                    if (!IsCurrentStageLocked())
+                    {
+                        if (!timeUp) GManager.Control?.AManager?.PlayDecisionSE();   // 難易度確定
+                        GManager.Control.selectedDifficulty = defficultyBar.index;
+                        state = State.InGame;
+                        StartGameTransition(stageBar.currentStage);
+                    }
                 }
                 else
                 {
@@ -314,11 +370,27 @@ public class StageSelectManager : MonoBehaviour
         }
     }
 
+    // 現在カルーセルで選択中のステージが未完成(COMING SOON)で確定不可か。
+    // 姿見(mirror)は endTime=0 の WIP のため確定するとゲームが落ちる。JSAB スタイルは
+    // 難易度モーダル側(CanConfirm)でブロックするが、既定スタイル用の保険としても使う。
+    private bool IsCurrentStageLocked()
+    {
+        var sdb = GManager.Control != null ? GManager.Control.SDB : null;
+        if (sdb == null || stageBar == null) return false;
+        var data = sdb.GetStage(stageBar.currentStage);
+        return data != null && data.stageDirectoryName == "mirror";
+    }
+
     // プレイ開始遷移: 難易度ボタン群がスライドアウトしてからホワイトアウトで
     // 画面を白く飛ばし、覆われている間にプレイ画面へ切り替え、白カバーが
     // 中央からピクセル(モザイク)状に欠けながらプレイ画面が解像していく。
     private async void StartGameTransition(int stageIndex)
     {
+        // ステージ開始の遷移に入った瞬間から選択/タイトルBGM(Discotheque)をフェードアウト
+        // (2026-07-14 指摘「ステージ開始時、音量はフェードアウトして下げて」)。白覆い・チュートリアル
+        // 中に滑らかに音量が下がる。ステージBGMは GoGameAsync 内で開始(PlayBGM が二重フェードを
+        // 自動キャンセルするため既存 GManager.cs の保険フェードとも衝突しない)。b249413 の機構を流用。
+        GManager.Control?.AManager?.FadeOutAndStopBGM(0.7f);
         if (pixelTransition != null)
         {
             // JSAB の難易度モーダルが開いていれば、行が右へ飛び去ってから白へ。
@@ -397,24 +469,19 @@ public class StageSelectManager : MonoBehaviour
         await AnimateHUDIn();
     }
 
-    // HUD slides down from above the screen edge while fading in.
-    private async Task AnimateHUDIn()
+    // HUD 帯の登場は PlayHudController が Playing 遷移で額縁フェード・カメラ
+    // ズームアウトと同じ eased 値に乗せて行う(上からスライドイン+フェードで着地)。
+    // ここで Tutorial 中に帯だけ単独スライドインさせると、後から出る額縁・カメラ
+    // ズームと別々の動きになり不自然だった(退行解消)。よって早期には見せず、
+    // 隠したまま帰す。実際のフェード/スライドは PlayHudController.Update が担う。
+    private Task AnimateHUDIn()
     {
-        RectTransform rect = (RectTransform)playHUD.transform;
-        Vector2 basePos = Vector2.zero;
-        float t = 0f;
-        const float duration = 0.35f;
-        while (t < duration)
+        if (playHUD != null)
         {
-            t += Time.deltaTime;
-            float p = Mathf.Clamp01(t / duration);
-            float ease = 1f - Mathf.Pow(1f - p, 3f);
-            playHUD.alpha = ease;
-            rect.anchoredPosition = basePos + new Vector2(0, 70f * (1f - ease));
-            await Task.Yield();
+            playHUD.alpha = 0f;
+            ((RectTransform)playHUD.transform).anchoredPosition = Vector2.zero;
         }
-        playHUD.alpha = 1f;
-        rect.anchoredPosition = basePos;
+        return Task.CompletedTask;
     }
 
     private void SetTutorialEnemiesVisible(bool visible)

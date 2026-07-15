@@ -6,7 +6,11 @@ using TMPro;
 
 public class TitleManager : MonoBehaviour
 {
-    [SerializeField] private float bpm = 128f;
+    // タイトル BGM(Discotheque)の実測 BPM。ロゴのビートパルス(振動)・図形の
+    // フラッシュ周期をこの値に同期させる。測定: Tools/measure_bpm.py の
+    // オンセット包絡自己相関 + 位相最適化櫛フィルタ(拍数正規化)で 130.00 BPM
+    // (拍間隔 461.5ms)を確定(2026-07-13)。
+    [SerializeField] private float bpm = 130f;
     // 引き継ぎコード表示・入力用の可読フォント(等幅コードフォント。0/O・1/I が
     // 紛れない)。未割当なら uiFont にフォールバック(第31便)。
     [SerializeField] private TMP_FontAsset codeFont;
@@ -24,6 +28,19 @@ public class TitleManager : MonoBehaviour
 
     private float beatTimer;
     private float beatPulse;
+    // タイトル BGM(Discotheque)。AManager 常駐 BGMSource でループ再生し、
+    // 戻り値の AudioSource から再生位置を読んでロゴのビートパルスを音にロックする。
+    // clip の t=0 は実ダウンビート(2.763s)にトリム済み=位相 0 が拍頭。
+    private AudioSource titleBgmSource;
+    // Discotheque を stone(最も大きいステージ -10.7LUFS)より僅かに下の -12LUFS へ
+    // 揃える減衰(実測 -6.7LUFS → -5.3dB)。Tools/measure_bpm.py / ffmpeg ebur128。
+    // 2026-07-13 指摘「もう一段下げる」で 0.55→0.37(約 -3.4dB / -15.4LUFS 相当)。
+    private const float TitleBgmVolume = 0.37f;
+    // リザルト→選択復帰時のタイトル BGM 立ち上げ秒数(ぶつ切り防止)。
+    private const float TitleBgmFadeIn = 0.6f;
+    // ビートパルスの減衰(拍に対する割合)。frac=0(拍頭)で 1、この割合で 0 に。
+    // 旧自走版(dt*5 減衰≒0.2s/拍0.46s)と同等の 0.43。
+    private const float BeatPulseDecayFrac = 0.43f;
     private Graphic[] shapeGraphics = new Graphic[0];
     private float[] shapeBaseAlphas = new float[0];
 
@@ -53,19 +70,16 @@ public class TitleManager : MonoBehaviour
 
     // The title menu clones the difficulty-select rows (DefficultyBar) so both
     // screens share one design language: slanted StageBar banner + StageName
-    // label + gliding white slash brackets. Colors mirror the NORMAL row.
-    private static readonly Color MenuBarBlue = new Color(0.055f, 0.525f, 0.91f);
+    // label + gliding white slash brackets. 統一便: バナー本体はリザルト画面で
+    // 確立した焼き込み(銀枠+シアンリム+青縦グラデ・UiButtonStyle)へ差し替え。
     private static readonly Color MenuTextBase = new Color(0.85f, 0.93f, 1f);
-    // スタート決定のバナー閃光のピーク色。純白だと「フラッシュ」が強すぎるため、
-    // バナー青から白へ半分だけ寄せた柔らかい輝きにする(第31便)。
-    private static readonly Color MenuFlashPeak = Color.Lerp(MenuBarBlue, Color.white, 0.5f);
 
     // How far above its scene-authored position the logo is lifted.
+    // 2026-07-13: 上げすぎ(160)を元の位置(130)へ戻す。実フレーム(720p)で確認した
+    // 通り、ボタン3行(660x160・行間172)は logo=130 でも画面内にそのまま収まり
+    // (行はロゴと独立に配置され下端に余白がある)、ロゴ可視下端とスタート上端の
+    // 間隔も約50px 空くため、行間側の調整は不要だった。
     private const float LogoRaiseOffset = 130f;
-
-    // メニュー横の白スラッシュ(DefficultyBar クローン)のひと回り縮小率。
-    // 等倍だとバナー高(109px)に対して159pxと主張が強すぎる。
-    private const float MenuSlashScale = 0.78f;
 
     // スタート決定からステージ選択を重ね始めるまでの時間。GManager がこの時間
     // 経過後に state を切り替えて SSManager.PlayEntrance を呼ぶ(演出は総尺
@@ -81,9 +95,30 @@ public class TitleManager : MonoBehaviour
     private RectTransform[] menuItemRects = new RectTransform[0];
     private CanvasGroup[] menuRowCG = new CanvasGroup[0];
     private Image[] menuRowBars = new Image[0];
+    // 決定閃光用の白オーバーレイ(バナーと同形の平行四辺形・通常 alpha0)。
+    // 焼き込みスプライトは頂点色で白側へ飛ばせないため、色 lerp ではなく
+    // オーバーレイの減衰で閃光を出す。
+    private ParallelogramGraphic[] menuRowFlash = new ParallelogramGraphic[0];
+    private Sprite menuButtonSprite;
+    // 1P/2P トグル専用の焼き込み本体。menuButtonSprite(660x160)をトグル(176x78)へ
+    // 流用すると非等倍ストレッチで 19° 斜辺が見かけ約 10.7° に歪むため、トグルの
+    // 表示アスペクトに一致した解像度で別に焼く(2026-07-14 傾き一致対応)。
+    private Sprite pcToggleSprite;
     private float[] menuItemSel = new float[0];
     private float[] menuRowY = new float[0];
     private int menuIndex;
+
+    // 引き継ぎコードの導線(設計未確定のため無効化)。false で「引き継ぎ」行を
+    // 灰色(disabled 見た目)+選択不可にする。画面(BuildTransferPanel)は残すので、
+    // true に戻すだけで導線が復活する(2026-07-13 指摘)。
+    private const bool TransferEnabled = false;
+    // 引き継ぎ行の表示可否(2026-07-14 指摘「一旦引き継ぎは非表示に」)。false で行ごと消す
+    // (灰色無効化からさらに進めて非表示)。true に戻すだけで復活(その場合 TransferEnabled で有効/灰色を選ぶ)。
+    private const bool ShowTransferRow = false;
+    private bool[] menuRowEnabled = new bool[0];
+    // 無効行の見た目(灰色・沈む)。有効行は白/MenuTextBase。
+    private static readonly Color MenuDisabledText = new Color(0.45f, 0.48f, 0.55f, 1f);
+    private static readonly Color MenuDisabledBar = new Color(0.34f, 0.36f, 0.42f, 1f);
 
     // Cloned DefficultyBar "White" slash brackets; glide to the selected row.
     private RectTransform menuWhite;
@@ -124,6 +159,20 @@ public class TitleManager : MonoBehaviour
     private static readonly Color ApplyLabelIdle = new Color(0.624f, 0.722f, 0.761f, 0.6f);
     private static readonly Color ApplyLabelReady = new Color(1f, 1f, 1f, 0.95f);
 
+    // ---- 1P/2P 人数トグル(2P その1) --------------------------------------
+    // 3 行メニュー(スタート/設定/引き継ぎ)は固定レイアウトのため触らず、ロゴと
+    // メニューの間に独立した「1P | 2P」トグルを置く。既定 1P。P1 の ←/→ で切替。
+    // 既存の平行四辺形ボタン様式(menuButtonSprite・19°スラッシュ言語)を流用する。
+    private RectTransform playerCountRoot;
+    private readonly Image[] pcSegBars = new Image[2];
+    private readonly TMP_Text[] pcSegLabels = new TMP_Text[2];
+    private bool pcTwoPlayer = false;
+    private static readonly Color PcSelText = Color.white;
+    private static readonly Color PcSelBar = Color.white;
+    private static readonly Color PcDimText = new Color(0.5f, 0.55f, 0.63f, 1f);
+    private static readonly Color PcDimBar = new Color(0.38f, 0.42f, 0.5f, 0.9f);
+    public bool TwoPlayerSelected => pcTwoPlayer;
+
     public int MenuIndex => menuIndex;
     public TitleMenuAction CurrentAction => (TitleMenuAction)menuIndex;
     public bool IsTransferOpen => transferOpen;
@@ -135,6 +184,8 @@ public class TitleManager : MonoBehaviour
         beatTimer = 0f;
         beatPulse = 0f;
         returnAnimating = false;
+        titleBgmSource = null;
+        StartTitleBgm();
         if (returnBackdrop != null) returnBackdrop.gameObject.SetActive(false);
         group = GetComponent<CanvasGroup>();
         Transform prompt = transform.Find("Prompt");
@@ -310,6 +361,36 @@ public class TitleManager : MonoBehaviour
         returnBackdrop.raycastTarget = false;
     }
 
+    // タイトル BGM(Discotheque)を AManager 常駐 BGMSource でループ再生する。
+    // 戻り値の AudioSource を保持し、UpdateTitle でロゴの拍を音に同期させる。
+    // クリップは Resources/BGM/title_discotheque(1:50 でなく本編の頭 2.763s から
+    // ダウンビート単位でトリム、末尾フェードは除去済みで自然にループ)。
+    private async void StartTitleBgm(bool fadeIn = false)
+    {
+        AudioManager am = GManager.Control != null ? GManager.Control.AManager : null;
+        if (am == null) return;
+        AudioClip clip = Resources.Load<AudioClip>("BGM/title_discotheque");
+        if (clip == null)
+        {
+            Debug.LogWarning("Title BGM clip not found: Resources/BGM/title_discotheque");
+            return;
+        }
+        // fadeIn 時は音量 0 で再生開始し、直後に FadeInBGM で立ち上げる。
+        AudioSource src = await am.PlayLoopingBGM(clip, fadeIn ? 0f : TitleBgmVolume);
+        // 復帰などで await 中に破棄された場合の保険。
+        if (this != null) titleBgmSource = src;
+        if (fadeIn && src != null) am.FadeInBGM(TitleBgmVolume, TitleBgmFadeIn);
+    }
+
+    // リザルトから選択画面へ戻ったときに、共有 BGMSource で止まっているタイトル
+    // BGM(Discotheque)を静かに再開する(2026-07-13 指摘: リザルト後の選択画面が
+    // 無音になる問題への対策)。TitleManager の GameObject が非表示でも、再生自体は
+    // 常駐 AManager 上で走るため呼び出せる。
+    public void EnsureTitleBgm()
+    {
+        StartTitleBgm(fadeIn: true);
+    }
+
     // Idle animation: prompt blinks, logo floats and bounces on the beat,
     // background shapes drift, spin and flash slightly in time with the BPM.
     public void UpdateTitle(float dt)
@@ -331,14 +412,26 @@ public class TitleManager : MonoBehaviour
 
         animTime += dt;
 
-        beatTimer += dt;
+        // ビートパルス(ロゴの振動・図形フラッシュ): Discotheque が再生中なら
+        // 再生位置から拍位相を取って音にロックする(clip の t=0=実ダウンビート)。
+        // BGM 未再生(ロード中/失敗)のときだけ従来の自走タイマーで代替する。
         float beatInterval = 60f / Mathf.Max(1f, bpm);
-        if (beatTimer >= beatInterval)
+        if (titleBgmSource != null && titleBgmSource.isPlaying && titleBgmSource.clip != null)
         {
-            beatTimer -= beatInterval;
-            beatPulse = 1f;
+            float beats = titleBgmSource.time / beatInterval;
+            float frac = beats - Mathf.Floor(beats);         // 0=拍頭 → 1=次拍直前
+            beatPulse = Mathf.Max(0f, 1f - frac / BeatPulseDecayFrac);
         }
-        beatPulse = Mathf.Max(0f, beatPulse - dt * 5f);
+        else
+        {
+            beatTimer += dt;
+            if (beatTimer >= beatInterval)
+            {
+                beatTimer -= beatInterval;
+                beatPulse = 1f;
+            }
+            beatPulse = Mathf.Max(0f, beatPulse - dt * 5f);
+        }
 
         if (promptText != null)
         {
@@ -437,12 +530,13 @@ public class TitleManager : MonoBehaviour
                 s.rect.Rotate(0f, 0f, s.rotSpeed * dt * speedMul);
             }
 
-            // 選択バナーのフラッシュ(白→元色)+小ポップ(1→1.06→1)。文字は白地に
-            // 飛ばないよう反転(ネイビー→白)させ、決定の一拍を読めるまま見せる。
+            // 選択バナーのフラッシュ(白オーバーレイ減衰)+小ポップ(1→1.06→1)。
+            // 文字は白地に飛ばないよう反転(ネイビー→白)させ、決定の一拍を
+            // 読めるまま見せる。ピーク0.5は旧「バナー青→白50%」相当。
             float flashP = Mathf.Clamp01(time / flashDur);
-            if (selected < menuRowBars.Length && menuRowBars[selected] != null)
+            if (selected < menuRowFlash.Length && menuRowFlash[selected] != null)
             {
-                menuRowBars[selected].color = Color.Lerp(MenuFlashPeak, MenuBarBlue, flashP * flashP);
+                menuRowFlash[selected].color = new Color(1f, 1f, 1f, 0.5f * (1f - flashP * flashP));
             }
             if (selected < menuItems.Length && menuItems[selected] != null)
             {
@@ -491,9 +585,9 @@ public class TitleManager : MonoBehaviour
             menuItemRects[i].anchoredPosition = new Vector2(0f, menuRowY[i]);
             ApplyMenuRowState(i, menuItemSel[i]);
         }
-        if (selected < menuRowBars.Length && menuRowBars[selected] != null)
+        if (selected < menuRowFlash.Length && menuRowFlash[selected] != null)
         {
-            menuRowBars[selected].color = MenuBarBlue;
+            menuRowFlash[selected].color = new Color(1f, 1f, 1f, 0f);
         }
         if (menuWhite != null) menuWhite.anchoredPosition = new Vector2(0f, menuWhiteY);
         if (logoRect != null)
@@ -507,11 +601,13 @@ public class TitleManager : MonoBehaviour
     public void ShowMenu()
     {
         if (menuRoot != null) menuRoot.gameObject.SetActive(true);
+        SetPlayerCountToggleVisible(true);
     }
 
     public void HideMenu()
     {
         if (menuRoot != null) menuRoot.gameObject.SetActive(false);
+        SetPlayerCountToggleVisible(false);
     }
 
     // Navigate + animate the vertical menu. Selection mirrors DefficultyBox
@@ -521,8 +617,9 @@ public class TitleManager : MonoBehaviour
     {
         if (transferOpen || menuItems.Length == 0) return;
 
-        if (up) menuIndex = Mathf.Max(0, menuIndex - 1);
-        else if (down) menuIndex = Mathf.Min(menuItems.Length - 1, menuIndex + 1);
+        // 無効行(引き継ぎ等)は飛ばして、その方向にある最も近い有効行へ移す。
+        if (up) menuIndex = StepMenuIndex(menuIndex - 1, -1);
+        else if (down) menuIndex = StepMenuIndex(menuIndex + 1, +1);
 
         float follow = 1f - Mathf.Exp(-14f * dt);
         for (int i = 0; i < menuItems.Length; i++)
@@ -547,9 +644,30 @@ public class TitleManager : MonoBehaviour
     // Same visual state math as DefficultyBox.SetPosition.
     private void ApplyMenuRowState(int i, float progress)
     {
+        // 無効行は選択に反応させず、灰色(disabled 見た目)で固定する。
+        if (!IsRowEnabled(i))
+        {
+            if (menuRowCG[i] != null) menuRowCG[i].alpha = 0.32f;
+            if (menuItemRects[i] != null) menuItemRects[i].localScale = Vector3.one * 0.8f;
+            if (menuItems[i] != null) menuItems[i].color = MenuDisabledText;
+            if (menuRowBars[i] != null) menuRowBars[i].color = MenuDisabledBar;
+            return;
+        }
+        if (menuRowBars[i] != null) menuRowBars[i].color = Color.white; // 有効行は焼き込みそのまま
         if (menuRowCG[i] != null) menuRowCG[i].alpha = 0.4f + 0.6f * progress;
         if (menuItemRects[i] != null) menuItemRects[i].localScale = Vector3.one * (0.8f + 0.2f * progress);
         if (menuItems[i] != null) menuItems[i].color = Color.Lerp(MenuTextBase, Color.white, progress);
+    }
+
+    private bool IsRowEnabled(int i)
+        => menuRowEnabled == null || i < 0 || i >= menuRowEnabled.Length || menuRowEnabled[i];
+
+    // from から dir 方向へ最初の有効行を探す。無ければ現在位置を維持(移動しない)。
+    private int StepMenuIndex(int from, int dir)
+    {
+        for (int i = from; i >= 0 && i < menuItems.Length; i += dir)
+            if (IsRowEnabled(i)) return i;
+        return menuIndex;
     }
 
     private void BuildMenu()
@@ -562,8 +680,19 @@ public class TitleManager : MonoBehaviour
         menuRoot.anchoredPosition = Vector2.zero;
         menuRoot.sizeDelta = new Vector2(700f, 500f);
 
-        string[] labels = { "スタート", "設定", "引き継ぎ" };
-        float[] rowY = { -178f, -303f, -428f };
+        // 引き継ぎ行は既定で非表示(ShowTransferRow=false)。行ごと作らず 2 行に。
+        string[] labels = ShowTransferRow
+            ? new[] { "スタート", "設定", "引き継ぎ" }
+            : new[] { "スタート", "設定" };
+        // 難易度ボタン規格(660x160)。行間は難易度と同じ DiffRowSpacing。
+        // n 行を rowCenter 中心に等間隔で並べる(3 行時は従来の {center+gap, center, center-gap} と一致)。
+        float rowGap = UiButtonStyle.DiffRowSpacing;
+        // 2 行時はロゴ下へ余裕をもって配置(トグルをスタート旧位置-106へ・2ボタンを下段へ)。
+        // 3 行復活時は従来の -278 中心(3 行が画面内に収まる)。
+        float rowCenter = ShowTransferRow ? -278f : -364f;
+        float[] rowY = new float[labels.Length];
+        for (int i = 0; i < labels.Length; i++)
+            rowY[i] = rowCenter + (labels.Length - 1) * rowGap * 0.5f - i * rowGap;
 
         // The real difficulty-select column lives next to the title in the same
         // canvas; clone its row (banner + label) and white brackets so the title
@@ -576,8 +705,20 @@ public class TitleManager : MonoBehaviour
         menuItemRects = new RectTransform[labels.Length];
         menuRowCG = new CanvasGroup[labels.Length];
         menuRowBars = new Image[labels.Length];
+        menuRowFlash = new ParallelogramGraphic[labels.Length];
         menuItemSel = new float[labels.Length];
         menuRowY = rowY;
+
+        // 各行の有効/無効。既定は全て有効。引き継ぎ行だけ TransferEnabled で切替。
+        menuRowEnabled = new bool[labels.Length];
+        for (int i = 0; i < labels.Length; i++) menuRowEnabled[i] = true;
+        // 引き継ぎ行を表示する場合のみ有効/無効を設定(非表示時は行自体が無いので配列外参照を避ける)。
+        if (ShowTransferRow) menuRowEnabled[(int)TitleMenuAction.Transfer] = TransferEnabled;
+
+        // リザルト様式のボタン本体を難易度規格(660x160)で焼く(2026-07-13 統一)。
+        if (menuButtonSprite == null)
+            menuButtonSprite = UiButtonStyle.CreateBodySprite(
+                (int)UiButtonStyle.DiffButtonW, (int)UiButtonStyle.DiffButtonH, null, null, "TitleMenuButton");
 
         for (int i = 0; i < labels.Length; i++)
         {
@@ -590,7 +731,17 @@ public class TitleManager : MonoBehaviour
                 rowObj.SetActive(true);
                 row = (RectTransform)rowObj.transform;
                 Image bar = rowObj.transform.Find("StageBar")?.GetComponent<Image>();
-                if (bar != null) bar.color = MenuBarBlue;
+                if (bar != null)
+                {
+                    bar.sprite = menuButtonSprite;
+                    bar.type = Image.Type.Simple;
+                    bar.color = Color.white;
+                    // クローン元(シーンの DefficultyBar)は起動順の都合で先に
+                    // Init 済みで StageBar が拡大寸法に上書きされている。タイトル行も
+                    // 難易度規格(660x160)へ揃えるため明示的に設定する(2026-07-13)。
+                    bar.rectTransform.sizeDelta = new Vector2(UiButtonStyle.DiffButtonW, UiButtonStyle.DiffButtonH);
+                    menuRowFlash[i] = CreateRowFlash(bar.rectTransform);
+                }
                 menuRowBars[i] = bar;
                 label = rowObj.transform.Find("StageName")?.GetComponent<TMP_Text>();
             }
@@ -599,8 +750,11 @@ public class TitleManager : MonoBehaviour
                 // Degraded fallback (scene layout changed): plain banner + label.
                 row = new GameObject("Item" + i, typeof(RectTransform)).GetComponent<RectTransform>();
                 row.SetParent(menuRoot, false);
-                menuRowBars[i] = CreatePanel("StageBar", row, Vector2.zero, new Vector2(583f, 109f), MenuBarBlue);
-                label = CreateText("StageName", row, Vector2.zero, new Vector2(583f, 109f), 52f, MenuTextBase, TextAlignmentOptions.Center);
+                Vector2 btnSize = new Vector2(UiButtonStyle.DiffButtonW, UiButtonStyle.DiffButtonH);
+                menuRowBars[i] = CreatePanel("StageBar", row, Vector2.zero, btnSize, Color.white);
+                menuRowBars[i].sprite = menuButtonSprite;
+                menuRowFlash[i] = CreateRowFlash(menuRowBars[i].rectTransform);
+                label = CreateText("StageName", row, Vector2.zero, btnSize, UiButtonStyle.LabelSizeDifficulty, MenuTextBase, TextAlignmentOptions.Center);
             }
 
             row.anchorMin = row.anchorMax = new Vector2(0.5f, 0.5f);
@@ -610,9 +764,29 @@ public class TitleManager : MonoBehaviour
             CanvasGroup cg = row.GetComponent<CanvasGroup>();
             if (cg == null) cg = row.gameObject.AddComponent<CanvasGroup>();
 
+            // 行付属の灰スラッシュ(クローン元 sprite・角度約18°)はリザルト様式の
+            // 細スラッシュ(19°・2.5px・白α0.5)へ差し替え、上下端をボタンの
+            // 上下辺(焼き込み枠)に合わせる(2026-07-11 指摘)。x は共通則
+            // ThinSlashX でボタン枠に密着させる(2026-07-11 指摘「離れすぎ」)。
+            // 行 CanvasGroup の減光には子としてそのまま追従する。
+            // RowSlashL/R は Init 済みクローン元から継承した難易度画面幅基準の
+            // スラッシュ(位置が合わない)。無効化して下で 583 幅基準を付け直す。
+            foreach (string grayName in new[] { "Gray_L", "Gray_R", "RowSlashL", "RowSlashR" })
+            {
+                Transform gray = row.Find(grayName);
+                if (gray != null) gray.gameObject.SetActive(false);
+            }
+            float rowThinX = UiButtonStyle.ThinSlashX(UiButtonStyle.DiffButtonW);
+            UiButtonStyle.AddSlash(row, "RowSlashL", new Color(1f, 1f, 1f, 0.5f),
+                -rowThinX, 2.5f, UiButtonStyle.SlashHeight(UiButtonStyle.DiffButtonH));
+            UiButtonStyle.AddSlash(row, "RowSlashR", new Color(1f, 1f, 1f, 0.5f),
+                rowThinX, 2.5f, UiButtonStyle.SlashHeight(UiButtonStyle.DiffButtonH));
+
             if (label != null)
             {
                 label.text = labels[i];
+                // ラベルサイズは難易度ボタンと同じ規格へ統一(2026-07-13)。
+                label.fontSize = UiButtonStyle.LabelSizeDifficulty;
                 // Japanese labels ride high under Middle alignment (Latin UI font
                 // + CJK fallback metrics); optically center them in the banner.
                 TmpAlign.CenterInkVertically(label);
@@ -633,25 +807,232 @@ public class TitleManager : MonoBehaviour
             menuWhite = (RectTransform)whiteObj.transform;
             CanvasGroup whiteCG = whiteObj.GetComponent<CanvasGroup>();
             if (whiteCG != null) whiteCG.alpha = 1f;
-            // 白スラッシュ本体だけ縮小(バナー上を掃く Shine はバナーサイズのまま)。
-            // 縮小した分だけ内側に寄せ、バナー端との間隔を保つ。
+            // クローン元の White は難易度画面の Init 済みで、難易度ボタン幅基準の
+            // MarkerSlashL/R が付いている(起動順: SSManager.Init→ここ)。継承分を
+            // 残すとマーカーが二重に見える(2026-07-11 実フレームで確認)ため無効化し、
+            // タイトル幅(583)基準の自前スラッシュだけを使う。
+            foreach (string inheritedName in new[] { "MarkerSlashL", "MarkerSlashR" })
+            {
+                Transform inherited = menuWhite.Find(inheritedName);
+                if (inherited != null) inherited.gameObject.SetActive(false);
+            }
+            // 選択マーカーの白スラッシュ(クローン元 sprite・角度約21°)を
+            // リザルト様式の太スラッシュ(19°・11px)へ差し替え、上下端を
+            // ボタンの上下辺(焼き込み枠)に合わせる(2026-07-11 指摘)。
+            // x は共通則 ThickSlashX でボタン枠のすぐ外に密着させる
+            // (2026-07-11 指摘「離れすぎ」。クローン元のバナー外側配置を廃止)。
             foreach (string slashName in new[] { "White_L", "White_R" })
             {
                 RectTransform slash = menuWhite.Find(slashName) as RectTransform;
                 if (slash == null) continue;
-                slash.localScale = Vector3.one * MenuSlashScale;
-                slash.anchoredPosition = new Vector2(slash.anchoredPosition.x * 0.96f, slash.anchoredPosition.y);
+                float slashX = Mathf.Sign(slash.anchoredPosition.x)
+                    * UiButtonStyle.ThickSlashX(UiButtonStyle.DiffButtonW);
+                slash.gameObject.SetActive(false);
+                UiButtonStyle.AddSlash(menuWhite, slashName + "19", Color.white,
+                    slashX, 11f, UiButtonStyle.SlashHeight(UiButtonStyle.DiffButtonH));
+            }
+            // Shine 用マスクの mask graphic は旧様式 SimpleBar(矩形枠)で、
+            // 選択行に「横方向の白い線」(矩形の上下辺)を描いてしまう。
+            // 描画を止め、マスク形状も焼き込みバナーの平行四辺形に合わせる
+            // (2026-07-11 指摘「横方向の白い線もリザルト様式に統一」)。
+            Transform shineMask = menuWhite.Find("ShineMask");
+            if (shineMask != null)
+            {
+                Image maskImage = shineMask.GetComponent<Image>();
+                if (maskImage != null) maskImage.sprite = menuButtonSprite;
+                Mask mask = shineMask.GetComponent<Mask>();
+                if (mask != null) mask.showMaskGraphic = false;
             }
             menuWhite.SetAsLastSibling();
             menuWhiteY = rowY[0];
             menuWhite.anchoredPosition = new Vector2(0f, menuWhiteY);
         }
+
+        BuildPlayerCountToggle(rowY.Length > 0 ? rowY[0] : rowCenter + rowGap);
+    }
+
+    // ロゴとメニュー最上段の間に「1P | 2P」トグルを組む。topRowY はメニュー最上段の y。
+    // その少し上(+124)へ 2 セグメントを横並びで置く。焼き込みボタン様式を縮小流用。
+    private void BuildPlayerCountToggle(float topRowY)
+    {
+        GameObject rootObj = new GameObject("PlayerCountToggle", typeof(RectTransform));
+        rootObj.layer = gameObject.layer;
+        playerCountRoot = (RectTransform)rootObj.transform;
+        playerCountRoot.SetParent(transform, false);
+        playerCountRoot.anchorMin = playerCountRoot.anchorMax = new Vector2(0.5f, 0.5f);
+        playerCountRoot.pivot = new Vector2(0.5f, 0.5f);
+        // トグルはメニュー最上段の 1 行分(DiffRowSpacing)上へ。ロゴと最上段ボタンの中間で
+        // 均等間隔になり、ロゴへの重なりを解消(2026-07-14 指摘「ぐちゃぐちゃ」)。
+        playerCountRoot.anchoredPosition = new Vector2(0f, topRowY + UiButtonStyle.DiffRowSpacing);
+        playerCountRoot.sizeDelta = new Vector2(520f, 96f);
+
+        const float segW = 176f;
+        const float segH = 78f;
+        const float segGap = 24f;
+        string[] segText = { "1P", "2P" };
+        float[] segX = { -(segW + segGap) * 0.5f, (segW + segGap) * 0.5f };
+
+        // トグル本体は segW:segH と同一アスペクト(=整数4倍 704x312)で焼く。表示は
+        // 等倍スケールになるので焼き込み 19° 斜辺が歪まず、追加の細スラッシュ(真の
+        // 19°)と平行に揃う。従来の menuButtonSprite(660x160)流用は非等倍ストレッチで
+        // 見かけ角が約 10.7° に潰れていた(2026-07-14 指摘「1P/2P の傾きが食い違う」)。
+        const int pcBakeScale = 4;
+        if (pcToggleSprite == null)
+            pcToggleSprite = UiButtonStyle.CreateBodySprite(
+                (int)segW * pcBakeScale, (int)segH * pcBakeScale, null, null, "PlayerCountToggleButton");
+
+        for (int i = 0; i < 2; i++)
+        {
+            GameObject segObj = new GameObject("Seg" + i, typeof(RectTransform));
+            segObj.layer = gameObject.layer;
+            RectTransform seg = (RectTransform)segObj.transform;
+            seg.SetParent(playerCountRoot, false);
+            seg.anchorMin = seg.anchorMax = new Vector2(0.5f, 0.5f);
+            seg.pivot = new Vector2(0.5f, 0.5f);
+            seg.anchoredPosition = new Vector2(segX[i], 0f);
+            seg.sizeDelta = new Vector2(segW, segH);
+
+            Image bar = segObj.AddComponent<Image>();
+            bar.sprite = pcToggleSprite;   // segW:segH 一致で焼いた本体(等倍表示=19°不変)
+            bar.type = Image.Type.Simple;
+            bar.raycastTarget = false;
+            pcSegBars[i] = bar;
+
+            // 焼き込みボタンと同じ 19° 細スラッシュを左右端に添えてメニューと様式統一。
+            float thinX = segW * 0.5f - 8f;
+            UiButtonStyle.AddSlash(seg, "PcSlashL", new Color(1f, 1f, 1f, 0.5f), -thinX, 2.2f, segH - 16f);
+            UiButtonStyle.AddSlash(seg, "PcSlashR", new Color(1f, 1f, 1f, 0.5f), thinX, 2.2f, segH - 16f);
+
+            GameObject lblObj = new GameObject("Label", typeof(RectTransform));
+            lblObj.layer = gameObject.layer;
+            RectTransform lblRect = (RectTransform)lblObj.transform;
+            lblRect.SetParent(seg, false);
+            lblRect.anchorMin = Vector2.zero;
+            lblRect.anchorMax = Vector2.one;
+            lblRect.offsetMin = lblRect.offsetMax = Vector2.zero;
+            TMP_Text lbl = lblObj.AddComponent<TextMeshProUGUI>();
+            if (uiFont != null) lbl.font = uiFont;
+            lbl.text = segText[i];
+            lbl.fontSize = 40f;
+            lbl.alignment = TextAlignmentOptions.Center;
+            lbl.raycastTarget = false;
+            pcSegLabels[i] = lbl;
+        }
+
+        // 操作ヒント(小さく・下側)。スティックを左右に動かすアイコン + テキストを
+        // 横並び中央寄せで置く(2026-07-14 要望「ジョイスティックを左右に動かすアイコンが
+        // 欲しい」)。◀▶(U+25C0/25B6)は Oxanium/M PLUS 1 Code に無く tofu 化する
+        // (2db7e9e で «» 化した経緯)ため、記号ではなくランタイム生成の画像アイコンで示す。
+        // 中央寄せは HorizontalLayoutGroup に任せ、非アクティブ時の TMP 幅計測トラップを避ける。
+        GameObject hintObj = new GameObject("PcHint", typeof(RectTransform));
+        hintObj.layer = gameObject.layer;
+        RectTransform hintRect = (RectTransform)hintObj.transform;
+        hintRect.SetParent(playerCountRoot, false);
+        hintRect.anchorMin = hintRect.anchorMax = new Vector2(0.5f, 0.5f);
+        hintRect.pivot = new Vector2(0.5f, 1f);
+        hintRect.anchoredPosition = new Vector2(0f, -segH * 0.5f - 6f);
+        // アイコン拡大に合わせて行の高さも広げる(34→46)。子は HLG が MiddleCenter で
+        // 縦中央寄せするため、行を広げてもアイコン/テキストの中心は揃う。
+        hintRect.sizeDelta = new Vector2(520f, 46f);
+        HorizontalLayoutGroup hlg = hintObj.AddComponent<HorizontalLayoutGroup>();
+        hlg.childAlignment = TextAnchor.MiddleCenter;
+        hlg.spacing = 9f;
+        hlg.childControlWidth = true;
+        hlg.childControlHeight = true;
+        hlg.childForceExpandWidth = false;
+        hlg.childForceExpandHeight = false;
+
+        GameObject stickObj = new GameObject("StickIcon", typeof(RectTransform));
+        stickObj.layer = gameObject.layer;
+        stickObj.transform.SetParent(hintRect, false);
+        Image stickImg = stickObj.AddComponent<Image>();
+        stickImg.sprite = UiIconFactory.StickLeftRight();
+        stickImg.preserveAspect = true;
+        stickImg.raycastTarget = false;
+        stickImg.color = new Color(0.55f, 0.85f, 1f, 0.95f);   // 淡いシアン(暗い帯で視認)
+        LayoutElement stickLe = stickObj.AddComponent<LayoutElement>();
+        // スティックアイコンを拡大し、隣接テキスト「で人数を選択」の高さに視覚的に合わせる
+        // (2026-07-14 要望「タイトルの左右のアイコン大きくして、高さテキストと合わせて」)。
+        // 焼き込みスプライト(112x64)は上下に約23%ずつ余白があり、描画される輪は箱高の
+        // 34.5/64≈0.54 しか占めない。box=26 では実描画≈14px でテキスト実測(13.9px)と
+        // 同寸でも中空細線ゆえ小さく見えていた。box=42 に上げ実描画≈22.6px とし、
+        // pt サイズ相当(22)まで拡大して「テキストと同等以上」に見せる。アスペクト比は維持。
+        stickLe.preferredHeight = 42f;
+        stickLe.preferredWidth = 42f * (112f / 64f);           // アイコンのアスペクト比(縦横比維持)
+
+        GameObject lblObj2 = new GameObject("Label", typeof(RectTransform));
+        lblObj2.layer = gameObject.layer;
+        lblObj2.transform.SetParent(hintRect, false);
+        TMP_Text hint = lblObj2.AddComponent<TextMeshProUGUI>();
+        if (uiFont != null) hint.font = uiFont;
+        hint.text = "で人数を選択";
+        hint.fontSize = 22f;
+        hint.alignment = TextAlignmentOptions.Left;
+        hint.color = new Color(0.6f, 0.68f, 0.78f, 0.85f);
+        hint.raycastTarget = false;
+
+        ApplyPlayerCountVisual();
+    }
+
+    // トグルの選択状態を見た目に反映(選択セグメント=白/明、非選択=灰/沈む)。
+    private void ApplyPlayerCountVisual()
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            bool selected = (i == 1) == pcTwoPlayer;
+            if (pcSegBars[i] != null) pcSegBars[i].color = selected ? PcSelBar : PcDimBar;
+            if (pcSegLabels[i] != null)
+            {
+                pcSegLabels[i].color = selected ? PcSelText : PcDimText;
+                pcSegLabels[i].fontStyle = selected ? FontStyles.Bold : FontStyles.Normal;
+            }
+        }
+    }
+
+    // GManager から呼ぶ。人数選択を設定して見た目を更新する。戻り値=変化したか。
+    public bool SetTwoPlayer(bool two)
+    {
+        if (pcTwoPlayer == two) return false;
+        pcTwoPlayer = two;
+        ApplyPlayerCountVisual();
+        return true;
+    }
+
+    // メニュー表示/非表示に人数トグルも追従させる。
+    public void SetPlayerCountToggleVisible(bool visible)
+    {
+        if (playerCountRoot != null) playerCountRoot.gameObject.SetActive(visible);
+    }
+
+    // 決定閃光用の白オーバーレイ。焼き込みバナーの枠(内側 44/22 マージン)と同じ
+    // 平行四辺形で、通常は alpha0。閃光時のみ白く光らせる。バナー寸法に追従させる
+    // (難易度規格 660x160 なら 616x138)。
+    private static ParallelogramGraphic CreateRowFlash(RectTransform barRect)
+    {
+        GameObject go = new GameObject("Flash", typeof(RectTransform), typeof(CanvasRenderer), typeof(ParallelogramGraphic));
+        go.layer = barRect.gameObject.layer;
+        RectTransform rect = (RectTransform)go.transform;
+        rect.SetParent(barRect, false);
+        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = Vector2.zero;
+        float flashW = barRect.sizeDelta.x - 44f;
+        float flashH = barRect.sizeDelta.y - 22f;
+        rect.sizeDelta = new Vector2(flashW, flashH);
+        ParallelogramGraphic flash = go.GetComponent<ParallelogramGraphic>();
+        flash.Slant = flashH * Mathf.Tan(UiButtonStyle.SlashAngleDeg * Mathf.Deg2Rad);
+        flash.SlantRightEdge = true;
+        flash.color = new Color(1f, 1f, 1f, 0f);
+        flash.raycastTarget = false;
+        return flash;
     }
 
     // ---- Transfer panel ---------------------------------------------------
 
     public void OpenTransfer()
     {
+        // 導線が無効なら開かない(行は選択不可だが念のためガード)。
+        if (!TransferEnabled) return;
         if (transferRoot == null) return;
         if (transferCloseRoutine != null) { StopCoroutine(transferCloseRoutine); transferCloseRoutine = null; }
         transferRoot.transform.localScale = Vector3.one; // 閉じるアニメの縮小をリセット
@@ -784,8 +1165,10 @@ public class TitleManager : MonoBehaviour
             if (transferMessageText != null)
             {
                 transferMessageText.color = Cyan;
+                // 1P/2P は別枠の履歴。取り込み先モードを明示して混同を避ける。
+                string modeTag = PlayHistory.TwoPlayerMode ? "2人プレイ" : "1人プレイ";
                 transferMessageText.text =
-                    $"引き継ぎました(プレイ {PlayHistory.TotalPlays} 回 / クリア {PlayHistory.TotalClears} 回)";
+                    $"引き継ぎました[{modeTag}](プレイ {PlayHistory.TotalPlays} 回 / クリア {PlayHistory.TotalClears} 回)";
             }
             RefreshTransferCode();
             transferInput.text = string.Empty;
@@ -905,33 +1288,36 @@ public class TitleManager : MonoBehaviour
         // 背面の影板(わずかに右下へずらす。ぼかし無しでも黒板の浮きが和らぐ)。
         CreatePanel("PanelShadow", rootRect, new Vector2(6f, -8f), panelSize, new Color(0f, 0f, 0f, 0.24f));
         CreatePanel("Panel", rootRect, Vector2.zero, panelSize, new Color(0.008f, 0.031f, 0.078f, 0.90f));
-        // 上部の薄い青かぶせ・下部の締め(内側グラデの代替)。
-        CreatePanel("PanelTopWash", rootRect, new Vector2(0f, panelHalfH - 45f), new Vector2(panelW, 90f), new Color(0.078f, 0.373f, 0.471f, 0.10f));
+        // 下部の締め(内側グラデの代替)。
         CreatePanel("PanelBottomDark", rootRect, new Vector2(0f, -(panelHalfH - 45f)), new Vector2(panelW, 90f), new Color(0f, 0f, 0f, 0.16f));
-        // 辺ハイライト(上辺だけ少し明るいシアン、他辺は控えめ)。
-        CreatePanel("EdgeTop", rootRect, new Vector2(0f, panelHalfH - 1f), new Vector2(panelW, 2f), new Color(0.282f, 0.902f, 1f, 0.28f));
-        CreatePanel("EdgeBottom", rootRect, new Vector2(0f, -(panelHalfH - 0.5f)), new Vector2(panelW, 1f), new Color(0f, 0f, 0f, 0.55f));
-        CreatePanel("EdgeLeft", rootRect, new Vector2(-(panelHalfW - 0.5f), 0f), new Vector2(1f, panelH), new Color(0.282f, 0.902f, 1f, 0.12f));
-        CreatePanel("EdgeRight", rootRect, new Vector2(panelHalfW - 0.5f, 0f), new Vector2(1f, panelH), new Color(0.282f, 0.902f, 1f, 0.08f));
+        // 辺は細い銀の額装枠のみ(統一便2で足した4隅ブラケット・ヘッダー帯・
+        // スラッシュ・ダイヤノードの加飾は撤去。コードとコピー導線を主役に戻す)。
+        Color edgeSilver = new Color(0.268f, 0.325f, 0.456f);
+        CreatePanel("EdgeTop", rootRect, new Vector2(0f, panelHalfH - 1f), new Vector2(panelW, 2f), new Color(edgeSilver.r, edgeSilver.g, edgeSilver.b, 0.80f));
+        CreatePanel("EdgeBottom", rootRect, new Vector2(0f, -(panelHalfH - 1f)), new Vector2(panelW, 2f), new Color(edgeSilver.r, edgeSilver.g, edgeSilver.b, 0.60f));
+        CreatePanel("EdgeLeft", rootRect, new Vector2(-(panelHalfW - 1f), 0f), new Vector2(2f, panelH), new Color(edgeSilver.r, edgeSilver.g, edgeSilver.b, 0.60f));
+        CreatePanel("EdgeRight", rootRect, new Vector2(panelHalfW - 1f, 0f), new Vector2(2f, panelH), new Color(edgeSilver.r, edgeSilver.g, edgeSilver.b, 0.60f));
+        // コンテンツ(ラベル・コード帯・入力行)の左右端を揃える基準。
+        const float contentHalf = 272f;
 
-        // 見出しはタイポグラフィのみ(バナー・スラッシュなし)。見出しの下に短い
-        // 区切り線を1本だけ入れ、見出しをタイトルブロックとして締める(oracle bin34)。
-        TMP_Text heading = CreateText("Heading", rootRect, new Vector2(0f, 170f), new Vector2(700f, 56f), 44f, Cyan, TextAlignmentOptions.Center);
+        // 見出しはタイポグラフィのみ(帯・スラッシュ・ルビ無し)。白見出し+シアン
+        // 英字サブ+短い1本の細線で締める(pre-d4f748c のシンプル様式へ戻す)。
+        TMP_Text heading = CreateText("Heading", rootRect, new Vector2(0f, 168f), new Vector2(700f, 52f), 40f, Color.white, TextAlignmentOptions.Center);
         heading.fontStyle = FontStyles.Bold;
-        TMP_Text headingSub = CreateText("HeadingSub", rootRect, new Vector2(0f, 140f), new Vector2(700f, 24f), 16f, new Color(0.62f, 0.91f, 0.906f, 0.5f), TextAlignmentOptions.Center);
-        headingSub.characterSpacing = 9f;
+        TMP_Text headingSub = CreateText("HeadingSub", rootRect, new Vector2(0f, 138f), new Vector2(700f, 22f), 15f, Cyan, TextAlignmentOptions.Center);
+        headingSub.characterSpacing = 8f;
         headingSub.text = "TRANSFER CODE";
-        CreatePanel("HeadingRule", rootRect, new Vector2(0f, 116f), new Vector2(260f, 1f), new Color(0.275f, 0.863f, 0.941f, 0.30f));
+        CreatePanel("HeadingRule", rootRect, new Vector2(0f, 114f), new Vector2(240f, 1f), new Color(0.275f, 0.863f, 0.941f, 0.28f));
 
         // コード表示: ラベル+1枚のネオン帯(第33便: 1文字=1チップの4分割をやめ、
         // 「C4D7」のように連続した1フィールドにまとめる。可読フォントは維持)。
         // 装飾層(外グロー→外枠→本体→ハイライト/影/帯/アクセント)はチップ時代の
         // 見た目を踏襲しつつ、帯1枚に集約する。
-        const float contentHalf = 272f; // 入力行の左右端を揃える基準(第34便 oracle: 幅を絞る)
         // 第35便: コードチップ幅を入力行の全幅(contentHalf*2=544)に合わせ、チップだけ
         // 狭かったのを解消。ラベルの左端(-contentHalf)もチップ左端に一致する。
         const float bandW = contentHalf * 2f;
         const float bandH = 64f;
+        // ラベルはシアン1行(ルビ・英字サブは撤去してシンプルに)。
         TMP_Text codeLabel = CreateText("CodeLabel", rootRect, new Vector2(-contentHalf + 180f, 80f), new Vector2(360f, 30f), 20f, new Color(0.388f, 0.867f, 0.91f, 0.5f), TextAlignmentOptions.Left);
         codeLabel.characterSpacing = 3f;
 

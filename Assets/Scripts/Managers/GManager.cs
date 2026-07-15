@@ -11,6 +11,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
+using TMPro;
 
 public class GManager : MonoBehaviour
 {
@@ -51,6 +52,11 @@ public class GManager : MonoBehaviour
 
     public GameObject PlayerObj;
     public PlayerController PController;
+    // 2P(その1): 2 人プレイ時のみ使う 2 人目。既定は 1 人プレイなので生成のみ・非アクティブ。
+    public PlayerController PController2;
+    private GameObject player2Obj;
+    // タイトルで選択される人数。false=1 人(既定)、true=2 人。1P モードは完全に従来どおり。
+    public bool twoPlayer = false;
 
     public InputManager IManager;
     public StageReader SReader;
@@ -59,12 +65,19 @@ public class GManager : MonoBehaviour
     public CManager CManager;
     public StageSelectManager SSManager;
     public TitleManager TManager;
+    public ResultScreen RManager;
     // 0=Easy / 1=Normal / 2=Lunatic。現状データは Lunatic のみのため既定を Lunatic に。
     public int selectedDifficulty = 2;
     public bool isPaused = false;
     private GameObject optionScreenObj;
     private OptionMenu optionMenu;
     private bool titleArmed = false;
+    private bool resultTransitioning = false;
+    // ステージ選択(カルーセル)で Esc / B を押してタイトルへ戻る途中フラグ。
+    // 白カバー→シーン再読込までの間、カウントダウン自動スタートやタイトル/選択の
+    // 入力処理を止めるために立てる(再読込で GManager が作り直され false に戻る)。
+    private bool returningToTitle = false;
+    private int currentStageIndex = -1;
 
     // Which layer of the title screen currently owns input.
     // Starting はスタート決定後、タイトル退場演出がステージ選択に覆われる
@@ -113,6 +126,8 @@ public class GManager : MonoBehaviour
 
     public bool musicOn = false;
     public int playerHitCount = 0;
+    // 2P(その1): P2 の被弾回数は P1 とは別カウント(無敵時間も個別)。1P では未使用。
+    public int playerHitCount2 = 0;
     public int counterHitBossCount = 0;
 
     // --- Stone stage M21 landing shake ------------------------------------
@@ -193,6 +208,15 @@ public class GManager : MonoBehaviour
             SSManager.Init();
             LogStartup("Stage select initialized");
 
+            Transform canvasesRoot = transform.parent.Find("Canvases");
+            TMP_Text fontSource = canvasesRoot != null
+                ? canvasesRoot.GetComponentInChildren<TMP_Text>(true)
+                : null;
+            RManager = ResultScreen.Create(canvasesRoot, fontSource != null ? fontSource.font : null);
+            RManager.ActionRequested += HandleResultAction;
+            currentStageIndex = SSManager.CurrentStageIndex;
+            LogStartup("Result screen initialized");
+
             Transform titleTrans = transform.parent.Find("Canvases").Find("StageCanvas").Find("Title");
             if (titleTrans != null)
             {
@@ -222,6 +246,20 @@ public class GManager : MonoBehaviour
                 ptemp.AddComponent<PlayerFrontOverlay>();
             }
             LogStartup("Player initialized");
+
+            // 2P(その1): 2 人目を生成しておく(既定は非アクティブ)。実際に動かすのは
+            // タイトルで 2 人プレイを選び、ステージ開始で twoPlayer が真のときだけ。
+            // 1 人プレイでは非アクティブのまま=描画も更新もされず 1P 挙動に影響しない。
+            PController2 = new PlayerController { playerIndex = 1 };
+            player2Obj = Instantiate(PlayerObj);
+            player2Obj.transform.position = new Vector3(20f, 3f, 0f);
+            PController2.Init(player2Obj);
+            if (player2Obj.GetComponent<PlayerFrontOverlay>() == null)
+            {
+                player2Obj.AddComponent<PlayerFrontOverlay>();
+            }
+            player2Obj.SetActive(false);
+            LogStartup("Player2 initialized (inactive)");
 
             // Attach the (idle-by-default) camera shake to the main gameplay
             // camera so event-driven landing shakes (e.g. the stone stage M21
@@ -288,9 +326,15 @@ public class GManager : MonoBehaviour
             IManager.UpdateInput();
             if (IManager.backPressedThisFrame)
             {
-                // Esc closes the confirm popup first; otherwise it resumes.
+                // Esc / P1 の B は確認ポップアップを閉じ、無ければポーズ解除。
                 if (optionMenu == null) SetPaused(false);
                 else if (!optionMenu.HandleBack()) optionMenu.BeginResume();
+            }
+            else if (IManager.p2BackPressedThisFrame)
+            {
+                // P2 の B はポーズのトグルのみ(メニュー階層の操作は P1 の設計)。
+                if (optionMenu == null) SetPaused(false);
+                else optionMenu.BeginResume();
             }
             else if (optionMenu != null)
             {
@@ -312,17 +356,39 @@ public class GManager : MonoBehaviour
             // The player can also move during the pre-stage tutorial.
             if (state == GameState.Playing || state == GameState.Tutorial) PController.UpdatePos(t);
         }
+        // 2P: 2 人プレイ時のみ P2 も動かす(チュートリアルは 1P のみ対応の設計)。
+        if (twoPlayer && PController2 != null && player2Obj != null && player2Obj.activeSelf
+            && state == GameState.Playing)
+        {
+            PController2.UpdatePos(t);
+        }
 
         SReader.UpdateStage(t, debugFastForwardActive);
         UpdateStoneLandingShake();
+
+        if (state == GameState.Playing && SReader.HasReachedEndTime && !resultTransitioning)
+        {
+            ShowResult(true);
+        }
 
         // Time.timeScale により自機・ステージ・演出を含むゲーム全体が加速済みなので、
         // 各ゲームロジックにはスケール済みの deltaTime をそのまま渡す。
         QOrder.QuadUpdate(t);
         IManager.UpdateInput();
 
-        // Esc during gameplay opens the option (pause) screen.
-        if (state == GameState.Playing && IManager.backPressedThisFrame)
+        if (state == GameState.Result)
+        {
+            RManager?.Tick(
+                IManager.leftPressedThisFrame,
+                IManager.rightPressedThisFrame,
+                IManager.buttonPressed,
+                IManager.buttonPressedThisFrame,
+                IManager.backPressedThisFrame);
+            return;
+        }
+
+        // Esc / P1 の B、または P2 の B(プレイ中のポーズのみ有効)でポーズ画面を開く。
+        if (state == GameState.Playing && (IManager.backPressedThisFrame || IManager.p2BackPressedThisFrame))
         {
             SetPaused(true);
             return;
@@ -438,6 +504,11 @@ public class GManager : MonoBehaviour
     // frame was fully consumed by an overlay (options or transfer).
     private bool UpdateTitleMenu(float t, ref bool stageSelectButton)
     {
+        // タイトルへ戻る遷移中(白カバー〜シーン再読込)は入力を全消費し、
+        // タイトルメニューにも選択画面(下の SSManager.UpdateSelect)にも
+        // 処理を漏らさない。カバー下でのメニュー誤発火や自動スタートを防ぐ。
+        if (returningToTitle) return true;
+
         switch (titlePhase)
         {
             case TitlePhase.Options:
@@ -465,6 +536,20 @@ public class GManager : MonoBehaviour
                 stageSelectButton = false;
                 TManager?.UpdateMenu(t, IManager.upPressedThisFrame, IManager.downPressedThisFrame);
 
+                // 人数選択: P1 の ←=1 人 / →=2 人。選択に合わせて入力基盤(P2 キーボード)も
+                // 切り替える。実機は P1 スティック左右、キーボードは 2P モードだと矢印が P2 に
+                // 回るため WASD の A/D で操作する(WASD は常に P1)。
+                if (IManager.leftPressedThisFrame)
+                {
+                    TManager?.SetTwoPlayer(false);
+                    SetPlayerCount(false);
+                }
+                else if (IManager.rightPressedThisFrame)
+                {
+                    TManager?.SetTwoPlayer(true);
+                    SetPlayerCount(true);
+                }
+
                 // Require the button to be released once before the title accepts
                 // a press, so a button still held from a previous screen cannot
                 // instantly trigger a menu item.
@@ -476,6 +561,7 @@ public class GManager : MonoBehaviour
 
                 if (IManager.buttonPressedThisFrame)
                 {
+                    AManager?.PlayDecisionSE();   // タイトルメニュー確定
                     TitleManager.TitleMenuAction action =
                         TManager != null ? TManager.CurrentAction : TitleManager.TitleMenuAction.Start;
                     switch (action)
@@ -665,13 +751,26 @@ public class GManager : MonoBehaviour
         // CreateRuntimeCopy が top-level(Lunatic)へフォールバックして正常に起動する。
         Difficulty selected = (Difficulty)Mathf.Clamp(selectedDifficulty, 0, 2);
         StageData runtimeStage = stage.CreateRuntimeCopy(selected);
+        currentStageIndex = index;
 
         playerHitCount = 0;
+        playerHitCount2 = 0;
         counterHitBossCount = 0;
         QOrder?.ClearManagedEnemyDanmaku();
         PController?.ResetToCenter();
+        // 2P: 2 人プレイならこのステージで P2 を出す。1 人なら確実に隠す。
+        if (player2Obj != null)
+        {
+            player2Obj.SetActive(twoPlayer);
+            if (twoPlayer) PController2?.ResetToCenter();
+        }
         TManager?.Dismiss();
         HideTitleBossBackdrop();
+        // 曲選択で流れていたタイトル BGM を、ステージ BGM 開始前にフェードアウトして
+        // ぶつ切りを避ける(2026-07-13 指摘)。SReader.Init 内の PlayBGM が新しい再生を
+        // 確定する際にフェードは自動キャンセルされる。リトライ時は共有 BGM が既に停止
+        // 済みで、この呼び出しは安全に何もしない。
+        AManager?.FadeOutAndStopBGM(0.5f);
 
         bool initialized = await SReader.Init(runtimeStage);
         if (!initialized)
@@ -686,9 +785,151 @@ public class GManager : MonoBehaviour
         string historyDir = string.IsNullOrWhiteSpace(runtimeStage.stageDirectoryName)
             ? runtimeStage.stageName
             : runtimeStage.stageDirectoryName;
+        // 2P プレイの記録は 1P と別枠(別 PlayerPrefs キー)へ保存する。記録直前に
+        // 現在の人数モードを反映し、scene 再読込後の静的状態の取り違えを防ぐ。
+        PlayHistory.TwoPlayerMode = twoPlayer;
         PlayHistory.RecordPlay(historyDir);
         Debug.Log($"Started Stage: {runtimeStage.stageName} (requested={selected}, data={runtimeStage.resolvedDataDifficulty.displayName})");
     }
+    // ステージ終了条件の共通入口。現状は StageReader.endTime 到達をクリアとして
+    // 自動呼び出しする。TODO: ライフ制/失敗条件が追加されたら ShowResult(false)
+    // をその確定箇所から呼ぶ。
+    public async void ShowResult(bool cleared)
+    {
+        await ShowResultAsync(cleared, true);
+    }
+
+#if UNITY_EDITOR
+    // Play Mode で UI を単独確認するための入口。履歴は変更しない。
+    public async void DebugShowResult(bool cleared = true)
+    {
+        await ShowResultAsync(cleared, false);
+    }
+#endif
+
+    private async Task ShowResultAsync(bool cleared, bool recordHistory)
+    {
+        if (resultTransitioning || RManager == null) return;
+        resultTransitioning = true;
+
+        StageData stage = SReader != null && SReader.CurrentStage != null
+            ? SReader.CurrentStage
+            : ResolveSelectedStage();
+        if (stage == null) stage = ResolveSelectedStage();
+        float endTime = stage != null ? stage.endTime : 0f;
+        float elapsed = SReader != null && SReader.IsReady
+            ? SReader.CurrentTime
+            : (cleared ? endTime : endTime * 0.63f);
+
+        PixelTransition transition = FindPixelTransition();
+        if (transition != null)
+        {
+            transition.SetColor(Color.white);
+            await transition.WhiteoutCover();
+        }
+
+        state = GameState.Result;
+        musicOn = false;
+        // ステージ BGM をぶつ切りにせずフェードアウト(2026-07-13 指摘)。リザルト BGM
+        // は別ソース(ResultScreenBgm)で dspTime スケジュール再生されるので、覆いの下で
+        // ステージ BGM のフェードアウトと自然にクロスする。
+        AManager?.FadeOutAndStopBGM(0.5f);
+        QOrder?.ClearAllGameplayBulletsImmediate();
+        // 2P: リザルトへ移る際は P2 をフィールドから隠す(リザルトの左右分割は別便)。
+        if (player2Obj != null) player2Obj.SetActive(false);
+
+        if (recordHistory && cleared && stage != null)
+        {
+            string historyDir = string.IsNullOrWhiteSpace(stage.stageDirectoryName)
+                ? stage.stageName
+                : stage.stageDirectoryName;
+            // クリア記録も人数モード別枠へ(RecordPlay と同様)。
+            PlayHistory.TwoPlayerMode = twoPlayer;
+            PlayHistory.RecordClear(historyDir);
+        }
+
+        RManager.Prepare(stage, selectedDifficulty, cleared, playerHitCount,
+            counterHitBossCount, elapsed, endTime, twoPlayer, playerHitCount2);
+        SReader?.StopStage();
+
+        if (transition != null) await transition.MosaicReveal();
+        RManager.PlayEntrance();
+        resultTransitioning = false;
+    }
+
+    private StageData ResolveSelectedStage()
+    {
+        int index = currentStageIndex >= 0
+            ? currentStageIndex
+            : (SSManager != null ? SSManager.CurrentStageIndex : 0);
+        if (SDB == null || index < 0 || index >= SDB.GetStageCount()) return null;
+        currentStageIndex = index;
+        return SDB.GetStage(index);
+    }
+
+    private PixelTransition FindPixelTransition()
+    {
+        PixelTransition[] transitions = UnityEngine.Object.FindObjectsByType<PixelTransition>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None);
+        return transitions.Length > 0 ? transitions[0] : null;
+    }
+
+    private async void HandleResultAction(ResultScreen.Action action)
+    {
+        if (resultTransitioning || RManager == null || !RManager.Visible) return;
+        resultTransitioning = true;
+        AManager?.PlayDecisionSE();   // リザルトのボタン確定(ステージ選択/プレイを終わる)
+
+        // リザルト BGM をぶつ切りにせずフェードアウトしてから覆う(2026-07-13 指摘)。
+        // await で無音まで下げ切ってから画面を覆う=遷移が自然につながる。
+        await RManager.FadeOutBgmAsync(0.4f);
+
+        PixelTransition transition = FindPixelTransition();
+        if (transition != null)
+        {
+            transition.SetColor(Color.white);
+            await transition.WhiteoutCover();
+        }
+
+        RManager.HideImmediate();
+        AudioListener.pause = false;
+        Time.timeScale = 1f;
+
+        if (action == ResultScreen.Action.Title)
+        {
+            // タイトルへ: シーンを再読込してタイトルをクリーンに復元する(QuitPlay と
+            // 同流儀)。タイトル BGM(Init→StartTitleBgm)・背景・入力状態がすべて
+            // 初期化され、半端な復元の取りこぼしが無い。画面は WhiteoutCover で覆われた
+            // ままなので、新シーンは覆いの下から現れる。
+            QOrder?.ClearAllGameplayBulletsImmediate();
+            PixelTransition.RevealAfterNextSceneLoad(true);
+            resultTransitioning = false;
+            UnityEngine.SceneManagement.SceneManager.LoadScene(
+                UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            return;
+        }
+
+        if (action == ResultScreen.Action.Retry)
+        {
+            int retryIndex = currentStageIndex >= 0
+                ? currentStageIndex
+                : (SSManager != null ? SSManager.CurrentStageIndex : 0);
+            await GoGameAsync(retryIndex);
+        }
+        else
+        {
+            QOrder?.ClearAllGameplayBulletsImmediate();
+            state = GameState.ChoosingStage;
+            SSManager?.PrepareReturnFromResult();
+            // リザルトで止まっていたタイトル/選択 BGM を再開し、選択画面の無音を解消
+            // (2026-07-13 指摘)。共有 BGMSource でフェードインしてつなぐ。
+            TManager?.EnsureTitleBgm();
+        }
+
+        if (transition != null) await transition.MosaicReveal();
+        resultTransitioning = false;
+    }
+
 
     // Opens/closes the pause (option) screen. Freezes game time and all audio.
     public void SetPaused(bool pause)
@@ -731,10 +972,58 @@ public class GManager : MonoBehaviour
             UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
     }
 
+    // ステージ選択(カルーセル)で Esc / P1 の B を押したときにタイトルへ戻る。
+    // Result→Title / QuitPlay と同流儀で白カバー→シーン再読込し、タイトル BGM・
+    // 背景・入力状態をクリーンに復元する(半端な手動復元の取りこぼしを避ける)。
+    // 再読込後は PixelTransition の title-return 演出でタイトルが復帰する。
+    public async void ReturnToTitleFromSelect()
+    {
+        if (returningToTitle || state != GameState.ChoosingStage) return;
+        returningToTitle = true;
+        // 即座に Title 状態へ移し、選択画面のカウントダウン自動スタート等の
+        // 副作用を止める(UpdateTitleMenu の returningToTitle ガードと二重の保険)。
+        state = GameState.Title;
+        SSManager?.NotifyGameStateChanged();
+        // 選択/タイトル BGM は再読込で作り直されるが、覆いの間に手前でフェード
+        // アウトしておくとぶつ切りにならない。
+        AManager?.FadeOutAndStopBGM(0.4f);
+
+        PixelTransition[] transitions = UnityEngine.Object.FindObjectsByType<PixelTransition>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None);
+        if (transitions.Length > 0)
+        {
+            transitions[0].SetColor(Color.white);
+            await transitions[0].Cover();
+            // 覆い切ってからフラグを立てる。先に立てると再読込前の旧シーンが
+            // フラグを消費してタイトルが覆いの下に隠れたままになる(QuitPlay 準拠)。
+            PixelTransition.RevealAfterNextSceneLoad(true);
+        }
+        QOrder?.ClearAllGameplayBulletsImmediate();
+        UnityEngine.SceneManagement.SceneManager.LoadScene(
+            UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+    }
+
     public void AddPlayerHitCount(int value = 1)
     {
         if (value <= 0) return;
         playerHitCount += value;
+    }
+
+    // 2P: プレイヤー別の被弾加算(0=P1, 1=P2)。衝突判定(QuadOrder)から player 別に呼ぶ。
+    public void AddPlayerHitCount(int playerIndex, int value)
+    {
+        if (value <= 0) return;
+        if (playerIndex == 1) playerHitCount2 += value;
+        else playerHitCount += value;
+    }
+
+    // タイトルの人数選択から呼ぶ。入力基盤(キーボードの P2 割り当て)も同時に切り替える。
+    public void SetPlayerCount(bool two)
+    {
+        twoPlayer = two;
+        if (IManager != null) IManager.twoPlayerMode = two;
+        // 履歴/引き継ぎコードもモード別枠に切り替える(1P と 2P を混ぜない)。
+        PlayHistory.TwoPlayerMode = two;
     }
 
     public void AddCounterHitBossCount(int value = 1)

@@ -307,7 +307,7 @@ public class BulletRenderSystem : MonoBehaviour
             {
                 // position は BulletDataUpdateJob でノイズ込みに更新済みの値を使う
                 pos = b.position,
-                angle = b.GetRotationAngle(),
+                angle = type.uprightSprite ? 0f : b.GetRotationAngle(),
                 scale = b.scale * type.baseSize,
                 texIndex = b.typeId,
                 maskIndex = b.typeId,

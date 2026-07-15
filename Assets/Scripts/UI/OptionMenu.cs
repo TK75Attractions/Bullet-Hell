@@ -14,7 +14,9 @@ public class OptionMenu : MonoBehaviour
     private const float sliderWidth = 660f;
     private const float selectedShiftX = 10f;
     private const float textBlockShiftY = -10f;
-    private const float confirmButtonTextOffsetY = -7f;
+    // CJK フォールバックの行メトリクスで上に乗る分の光学補正。フォントサイズに
+    // 比例する(32px 時 -7 → 25px 時 -5.5)。
+    private const float confirmButtonTextOffsetY = -5.5f;
     private static readonly Vector2 yesButtonPosition = new Vector2(-160f, -95f);
     private static readonly Vector2 noButtonPosition = new Vector2(160f, -95f);
 
@@ -54,6 +56,10 @@ public class OptionMenu : MonoBehaviour
     private TMP_Text noText;
     private Image yesButton;
     private Image noButton;
+    // リザルト様式ボタン(UiButtonStyle)の選択状態は色スワップではなく
+    // CanvasGroup の減光で表す(スラッシュ等の子要素ごと沈める)。
+    private CanvasGroup yesButtonGroup;
+    private CanvasGroup noButtonGroup;
 
     private RawImage confirmBackdrop;
     private RenderTexture confirmBlurRT;
@@ -137,6 +143,8 @@ public class OptionMenu : MonoBehaviour
 
     private void BuildFriendlyVisuals()
     {
+        RestyleHeaderBand();
+
         // 背景ぼかしは難易度オーバーレイと同じダウンサンプルピラミッド方式
         // (BackdropBlurUtil)で作るため、シェーダマテリアルは使わない。RawImage は
         // 既定マテリアルで 1/4 解像度のぼかし RT をバイリニア拡大表示する。
@@ -255,8 +263,17 @@ public class OptionMenu : MonoBehaviour
         confirmDetail.text = string.Empty;
         confirmDetail.gameObject.SetActive(false);
 
-        yesButton = CreateImage("YesButton", confirmGroup.transform, yesButtonPosition, new Vector2(260f, 86f), disabledGray).GetComponent<Image>();
-        noButton = CreateImage("NoButton", confirmGroup.transform, noButtonPosition, new Vector2(260f, 86f), accentBlue).GetComponent<Image>();
+        // リザルト画面で確立したボタン様式(銀枠+シアンリム+青縦グラデ+
+        // 左右対称の白スラッシュ)へ統一(統一便)。サイズ・配置は従来のまま。
+        Sprite confirmButtonSprite = UiButtonStyle.CreateBodySprite(260, 86, null, null, "OptionConfirmButton");
+        yesButton = CreateImage("YesButton", confirmGroup.transform, yesButtonPosition, new Vector2(260f, 86f), Color.white).GetComponent<Image>();
+        noButton = CreateImage("NoButton", confirmGroup.transform, noButtonPosition, new Vector2(260f, 86f), Color.white).GetComponent<Image>();
+        yesButton.sprite = confirmButtonSprite;
+        noButton.sprite = confirmButtonSprite;
+        UiButtonStyle.AddSlashPair(yesButton.rectTransform, 260f, 86f);
+        UiButtonStyle.AddSlashPair(noButton.rectTransform, 260f, 86f);
+        yesButtonGroup = yesButton.gameObject.AddComponent<CanvasGroup>();
+        noButtonGroup = noButton.gameObject.AddComponent<CanvasGroup>();
         yesText.text = "はい";
         noText.text = "いいえ";
         SetupButtonText(yesText, yesButtonPosition);
@@ -443,9 +460,24 @@ public class OptionMenu : MonoBehaviour
         headerAnimT = 1f;
         ApplyHeaderEntrance(1f);
         confirmGroup.SetActive(false);
+        // 撮影フレームだけ明部ウィジェットを隠す。ぼかしに写った白いスライダー
+        // バー等はシェード(α0.94)越しでも知覚的に残り、「ダイアログの上に
+        // スライダーが貫通表示」に見える(2026-07-11 指摘)。撮影後に戻す。
+        SetControlWidgetsVisible(false);
         RefreshConfirm();
         if (confirmCaptureRoutine != null) StopCoroutine(confirmCaptureRoutine);
         confirmCaptureRoutine = StartCoroutine(CaptureConfirmBackdrop());
+    }
+
+    // 音量スライダーとエフェクトトグル(明るい前景ウィジェット)の表示切替。
+    // 確認ダイアログの背景ぼかし撮影中だけ false にする。
+    private void SetControlWidgetsVisible(bool visible)
+    {
+        if (sliderKnob != null && sliderKnob.parent != null)
+            sliderKnob.parent.gameObject.SetActive(visible);
+        if (toggleKnob != null && toggleKnob.parent != null && toggleKnob.parent.parent != null)
+            toggleKnob.parent.parent.gameObject.SetActive(visible);
+        if (toggleStateText != null) toggleStateText.gameObject.SetActive(visible);
     }
 
     public async void BeginResume()
@@ -564,10 +596,15 @@ public class OptionMenu : MonoBehaviour
         // this synchronously during input handling can return a white buffer.
         yield return new WaitForEndOfFrame();
         confirmCaptureRoutine = null;
-        if (!confirmOpen) yield break;
+        if (!confirmOpen)
+        {
+            SetControlWidgetsVisible(true);
+            yield break;
+        }
 
         BackdropBlurUtil.ReleaseRT(ref confirmBlurRT);
         confirmBlurRT = BackdropBlurUtil.CapturePyramidBlur();
+        SetControlWidgetsVisible(true);
         confirmBackdrop.texture = confirmBlurRT;
         confirmGroup.SetActive(true);
         confirmGroup.transform.SetAsLastSibling();
@@ -606,6 +643,91 @@ public class OptionMenu : MonoBehaviour
         ApplyConfirmSelectionScale();
     }
 
+    // 統一便: シーン authored のベタ塗りヘッダー帯(1920x120)を、リザルト画面の
+    // ヘッダー様式(ブランド青横グラデ主帯→白スラッシュ仕切り→濃紺副帯+
+    // 金属エッジ)へ差し替える。帯 rect とアイコン/見出し/ルビの配置は現状維持。
+    // 斜辺の角度(atan(34/106))とスラッシュ右側の対称12pxギャップはリザルトと
+    // スクリーン座標で一致させる。
+    private void RestyleHeaderBand()
+    {
+        RectTransform bar = headerRects[0];
+        if (bar == null) return;
+        Image barImage = bar.GetComponent<Image>();
+        if (barImage == null) return;
+        int barW = Mathf.RoundToInt(bar.sizeDelta.x);
+        int barH = Mathf.RoundToInt(bar.sizeDelta.y);
+        barImage.sprite = CreateHeaderBandSprite(barW, barH);
+        barImage.color = Color.white;
+        barImage.type = Image.Type.Simple;
+
+        float skew = barH * (34f / 106f);
+        float lineW = 36f * (barH / 106f);
+        GameObject slashObj = new GameObject("HeaderSlash", typeof(RectTransform), typeof(CanvasRenderer), typeof(ParallelogramGraphic));
+        slashObj.layer = bar.gameObject.layer;
+        RectTransform slashRect = (RectTransform)slashObj.transform;
+        slashRect.SetParent(bar, false);
+        slashRect.anchorMin = slashRect.anchorMax = new Vector2(0.5f, 0.5f);
+        slashRect.pivot = new Vector2(0.5f, 0.5f);
+        slashRect.anchoredPosition = new Vector2(337f, 0f);   // 画面座標 1297 中心(リザルトと一致)
+        slashRect.sizeDelta = new Vector2(lineW + skew, barH);
+        ParallelogramGraphic slash = slashObj.GetComponent<ParallelogramGraphic>();
+        slash.Slant = skew;
+        slash.SlantRightEdge = true;
+        slash.color = Color.white;
+        slash.raycastTarget = false;
+    }
+
+    // リザルト BuildHeaderBanner の帯を1枚に焼き込む(視覚 sRGB 値)。
+    // 主帯は左濃青→右鮮青(#014190→#026CDB)・右端斜め、副帯は一段暗い
+    // (#01356E→#011835)・左端斜め。上辺銀/下辺沈みの金属エッジも帯内に焼く。
+    private Sprite CreateHeaderBandSprite(int W, int H)
+    {
+        Texture2D texture = new Texture2D(W, H, TextureFormat.RGBA32, false);
+        texture.name = "OptionHeaderBandTexture";
+        texture.filterMode = FilterMode.Bilinear;
+        Color32[] px = new Color32[W * H];
+        float skew = H * (34f / 106f);
+        Color mainL = new Color(0.004f, 0.255f, 0.565f);
+        Color mainR = new Color(0.008f, 0.424f, 0.859f);
+        Color subL = new Color(0.004f, 0.208f, 0.431f);
+        Color subR = new Color(0.005f, 0.095f, 0.208f);
+        Color edgeHi = new Color(0.55f, 0.60f, 0.70f);
+        Color edgeLo = new Color(0.004f, 0.03f, 0.09f);
+        const float mainTopRight = 1250f;   // 主帯右端(上辺)の x。リザルトと一致
+        const float subBottomLeft = 1310f;  // 副帯左端(下辺)の x。リザルトと一致
+        for (int y = 0; y < H; y++)
+        {
+            float t = y / (float)(H - 1);              // 0 下端 .. 1 上端
+            float edgeMain = (mainTopRight - skew) + skew * t;
+            float edgeSub = subBottomLeft + skew * t;
+            for (int x = 0; x < W; x++)
+            {
+                float a;
+                Color c;
+                if (x < edgeMain + 1f)
+                {
+                    a = Mathf.Clamp01(edgeMain - x);
+                    c = Color.Lerp(mainL, mainR, Mathf.Clamp01(x / mainTopRight));
+                }
+                else if (x > edgeSub - 1f)
+                {
+                    a = Mathf.Clamp01(x - edgeSub);
+                    c = Color.Lerp(subL, subR, Mathf.Clamp01((x - subBottomLeft) / (W - subBottomLeft)));
+                }
+                else continue;
+                if (a <= 0f) continue;
+                if (y >= H - 3) c = Color.Lerp(c, edgeHi, 0.85f);
+                else if (y < 3) c = Color.Lerp(c, edgeLo, 0.85f);
+                px[y * W + x] = new Color(c.r, c.g, c.b, a);
+            }
+        }
+        texture.SetPixels32(px);
+        texture.Apply();
+        Sprite sprite = Sprite.Create(texture, new Rect(0f, 0f, W, H), new Vector2(0.5f, 0.5f), 100f);
+        sprite.name = "OptionHeaderBand";
+        return sprite;
+    }
+
     private void CloseConfirm()
     {
         confirmOpen = false;
@@ -631,8 +753,9 @@ public class OptionMenu : MonoBehaviour
         noButton.rectTransform.anchoredPosition = noButtonPosition;
         yesText.rectTransform.anchoredPosition = yesButtonPosition + new Vector2(0f, confirmButtonTextOffsetY);
         noText.rectTransform.anchoredPosition = noButtonPosition + new Vector2(0f, confirmButtonTextOffsetY);
-        yesButton.color = yes ? accentBlue : disabledGray;
-        noButton.color = yes ? disabledGray : accentBlue;
+        // 選択=等倍表示、非選択=減光(スラッシュ・枠ごと沈める)。
+        if (yesButtonGroup != null) yesButtonGroup.alpha = yes ? 1f : 0.5f;
+        if (noButtonGroup != null) noButtonGroup.alpha = yes ? 0.5f : 1f;
         yesText.color = yes ? Color.white : unselectedColor;
         noText.color = yes ? unselectedColor : Color.white;
         ApplyConfirmSelectionScale();
@@ -705,7 +828,9 @@ public class OptionMenu : MonoBehaviour
         text.rectTransform.anchoredPosition = position + new Vector2(0f, confirmButtonTextOffsetY);
         text.rectTransform.sizeDelta = new Vector2(260f, 86f);
         text.alignment = TextAlignmentOptions.Center;
-        text.fontSize = 32f;
+        // 共通ラベル則(UiButtonStyle)で枠との余白を確保する
+        // (2026-07-11 指摘「余白をもっと広く」。旧32px→25px)。
+        text.fontSize = UiButtonStyle.LabelSizeConfirm;
         text.fontStyle = FontStyles.Bold;
     }
 
@@ -745,6 +870,8 @@ public class OptionMenu : MonoBehaviour
         {
             StopCoroutine(confirmCaptureRoutine);
             confirmCaptureRoutine = null;
+            // 撮影中に閉じられた場合、隠した明部ウィジェットを戻しておく。
+            SetControlWidgetsVisible(true);
         }
         BackdropBlurUtil.ReleaseRT(ref confirmBlurRT);
         if (confirmBackdrop != null) confirmBackdrop.texture = null;

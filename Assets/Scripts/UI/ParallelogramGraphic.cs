@@ -36,7 +36,12 @@ public sealed class ParallelogramGraphic : MaskableGraphic
         Rect rect = GetPixelAdjustedRect();
         if (rect.width <= 0f || rect.height <= 0f) return;
 
-        float skew = Mathf.Min(slant, rect.width * 0.5f);
+        // 斜辺つき(=真の平行四辺形)の幾何は skew ≤ width まで成立する。
+        // 細い白スラッシュは幅の大半が skew のため、従来の width*0.5 クランプ
+        // だと線ごとに角度が潰れ「2枚のスラッシュが平行でない」原因になる。
+        // 幅0から伸びるワイプ(左辺のみ斜め)は従来どおり width*0.5 で形を保つ。
+        float maxSkew = slantRightEdge ? rect.width : rect.width * 0.5f;
+        float skew = Mathf.Min(slant, maxSkew);
         Color32 vertexColor = color;
 
         AddVertex(vh, new Vector2(rect.xMin, rect.yMin), vertexColor);

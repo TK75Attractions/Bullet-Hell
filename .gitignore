@@ -120,3 +120,18 @@ InitTestScene*.unity*
 *.md
 # .claude/(ローカル設定・discord webhook 等)
 /.claude/
+
+# 一時ディレクトリ全般(.tmp_frames, .tmp_oracle 等)。2026-07-10
+/.tmp_*/
+/.tmp_*
+/Backups/
+
+# 開発ツール・キャプチャ・作業記録はリポジトリに含めない（2026-07-12 ユーザー指示: ゲームが動くのに必要なファイルだけ push）
+Tools/
+Captures/
+PROGRESS.md
+*.lscache
+Materials/
+# Docs はライセンス表記のみ残す（2026-07-12 ユーザー指示）
+Docs/
+!Docs/asset-credits.md

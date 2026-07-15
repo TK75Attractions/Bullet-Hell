@@ -16,12 +16,21 @@ public class JsabStageSelect : MonoBehaviour
     // Palette: cyan + black + navy. No heavy white use (per design).
     private static readonly Color Cyan = new Color(0.22f, 0.76f, 0.878f, 1f);       // #38C2E0
     private static readonly Color CyanDim = new Color(0.22f, 0.76f, 0.878f, 0.55f);
+    // 左右カルーセル矢印は白で目立たせる(2026-07-13 指摘「矢印が見づらい」)。
+    // 銀/シアン様式と喧嘩しないよう、面は白・背後の発光ハローだけシアン寄りにする。
+    private static readonly Color ArrowWhite = new Color(1f, 1f, 1f, 1f);
+    // 発光ハローは弱めに(2026-07-14 指摘「矢印のグローを弱く」)。矢印本体は白のまま。
+    // 前便 63f85b0 で 0.30 まで下げたが「まだ強い」の再指摘(2026-07-14 夜)で
+    // 0.30→0.15 へ半減。ハローのサイズも 104→92 に微縮小(下記 BuildSidePanel)。
+    private static readonly Color ArrowGlowColor = new Color(0.72f, 0.92f, 1f, 0.15f);
     private static readonly Color Navy = new Color(0.043f, 0.106f, 0.169f, 1f);      // #0B1B2B
     private static readonly Color NavyDeep = new Color(0.02f, 0.05f, 0.09f, 1f);
     // Mockup-derived accents: bright cyan edge highlight, white corner brackets,
     // pale thumbnail rim, side-card body.
     private static readonly Color AccentCyan = new Color(0.55f, 0.93f, 1f, 1f);
     private static readonly Color BracketColor = new Color(0.92f, 0.95f, 0.97f, 0.9f);
+    // 統一様式の銀エッジ(UiButtonStyle の枠線と同じ視覚 sRGB 値)。
+    private static readonly Color SilverEdge = new Color(0.412f, 0.400f, 0.447f, 0.85f);
     private static readonly Color ThumbRimColor = new Color(0.75f, 0.82f, 0.88f, 0.35f);
     private static readonly Color CardBg = new Color(0.035f, 0.075f, 0.125f, 1f);
 
@@ -47,6 +56,9 @@ public class JsabStageSelect : MonoBehaviour
     private Image[] cardRim;
     private TMP_Text cardArrow;
     private TMP_Text stageNameText;
+    // ステージ名脇の統一様式スラッシュ([0]=左太 [1]=左細 [2]=右細 [3]=右太)。
+    private ParallelogramGraphic[] stageNameSlashes;
+    private const float StageNameSlashH = 54f;
     private float accentAlpha = 1f;      // accents fade back in after a landing
 
     // One pooled neighbour card. Panels swap roles (left/right/spare) on landing
@@ -58,6 +70,7 @@ public class JsabStageSelect : MonoBehaviour
         public CanvasGroup cg;
         public CanvasGroup decorCG;    // title + arrow + brackets (side-look decor)
         public Image[] brackets;       // white corner brackets (side look)
+        public Image[] silverRim;      // パネル外周の銀エッジ(統一様式・decor と一緒にフェード)
         public Image[] thumbRim;       // thin pale frame around the thumbnail
         public Image glowFrame;        // center-look frame for the morph, alpha 0 at rest
         public RectTransform thumbArea;
@@ -68,6 +81,7 @@ public class JsabStageSelect : MonoBehaviour
         public Image scrim;
         public TMP_Text title;         // stage name inside the card top (per mockup)
         public TMP_Text arrow;
+        public RectTransform arrowGlow; // 矢印背後の発光ハロー(矢印に追従)
         public VideoPlayer vp;
         public RenderTexture rt;
         // サムネイル(or fallback)の準備が終わるまで mediaCG のフェードインを保留する
@@ -89,7 +103,7 @@ public class JsabStageSelect : MonoBehaviour
     private float markerFromX;
     private float markerTweenTime = -1f;    // <0 == not animating
     private const float markerTweenDuration = 0.25f;
-    private const float MarkerY = 20f;      // stands on the dotted line (feet at the line)
+    private const float MarkerY = 28f;      // stands on the dotted line (feet at the line, = markerHeight/2)
 
     // Cloned style-0 top bar pieces that must mirror the live originals
     // (StageSelectManager keeps updating them even while alpha-hidden).
@@ -97,6 +111,14 @@ public class JsabStageSelect : MonoBehaviour
     private RectTransform topBarTimeDim;
     private TMP_Text origTimerText;
     private RectTransform origTimeDim;
+    // 上部バー(タイマー/残り時間)のクローンルート。難易度モーダルを開いている間だけ
+    // diffRoot(ぼかし+暗幕)より前面へ持ち上げ、制限時間が隠れず読めるようにする
+    // (2026-07-12 指摘「難易度選択中もバーを最前面に+制限時間を表示」)。
+    private Transform topBarBaseRoot;
+    private Transform topBarTextRoot;
+    private int topBarBaseSiblingIndex = -1;
+    private int topBarTextSiblingIndex = -1;
+    private bool topBarRaised;
 
     // Carousel slots. Panels physically move between these on stage change.
     private const float BandYOffset = -60f;   // 全体を下げて上下の余白バランスを取る
@@ -146,7 +168,9 @@ public class JsabStageSelect : MonoBehaviour
     // 開閉フェード(alpha + パネルの軽いスケール 0.96→1.0)。急な表示/消灯を防ぐ。
     private CanvasGroup diffCG;
     private Coroutine diffFadeCo;
-    private const float DiffPanelBaseScale = 0.8f;  // style0 準拠のパネル表示スケール
+    // 難易度パネルの表示スケール。2026-07-11 指摘「ボタンを大きく」で
+    // 0.8(style0 準拠) → 0.9 へ(ボタン自体の拡大 583→660 と合わせ実表示 +27%)。
+    private const float DiffPanelBaseScale = 0.9f;
     private const float DiffFadeDuration = 0.18f;
     // プレイ決定時の退場演出(第30便): 行がタイトルのスタート演出と同系で右へ
     // スライドアウトしてからホワイトアウトへ渡す。退場中は Tick の行アニメ/
@@ -159,6 +183,9 @@ public class JsabStageSelect : MonoBehaviour
     private Vector2 exitWhiteBasePos;
     private Image exitBarImg;
     private Color exitBarColor;
+    // 統一様式ボタンは焼き込みテクスチャのため color 乗算では白フラッシュ
+    // できない。ボタン外形と同じ平行四辺形の白オーバーレイで光らせる。
+    private ParallelogramGraphic exitFlash;
     // 退場中にフェードで消す付随要素(見出し/ルビ/説明/プロンプト/装飾ライン)。
     // 見出しを残すとホワイトアウト中に黒い文字だけが最後まで浮いて見える。
     private TMP_Text[] exitFadeTexts = new TMP_Text[0];
@@ -222,6 +249,7 @@ public class JsabStageSelect : MonoBehaviour
         // the exact same design. The timer text and the red time-dim panel mirror
         // the live originals every frame in Tick.
         CloneTopBar(root);
+        RestyleTopBar();
 
         // --- Neighbour cards (pooled; spare parks off-screen until a transition) ---
         leftPanel = BuildSidePanel(root, "LeftCard");
@@ -289,6 +317,10 @@ public class JsabStageSelect : MonoBehaviour
         videoPlayer.renderMode = VideoRenderMode.RenderTexture;
         videoPlayer.targetTexture = videoRT;
         videoPlayer.isLooping = true;
+        // 録画サムネ(924x754 ≒ 6:5)を 16:9 RT へ「見切れなく」収める。既定の
+        // 詰め方だと上下がクロップされ中央帯しか映らないため FitInside=全体を
+        // レターボックス表示(左右に余白)する。
+        videoPlayer.aspectRatio = VideoAspectRatio.FitInside;
         videoPlayer.waitForFirstFrame = true;
         videoPlayer.audioOutputMode = VideoAudioOutputMode.None;
         videoPlayer.skipOnDrop = true;
@@ -343,7 +375,7 @@ public class JsabStageSelect : MonoBehaviour
 
         // Side-card arrow for the fly-out morph (alpha 0 at rest; BeginTransition
         // points it at the side the card is about to become).
-        cardArrow = NewText("CardArrow", cardRect, ">", 56f, new Color(Cyan.r, Cyan.g, Cyan.b, 0f), TextAlignmentOptions.Center);
+        cardArrow = NewText("CardArrow", cardRect, ">", 60f, new Color(ArrowWhite.r, ArrowWhite.g, ArrowWhite.b, 0f), TextAlignmentOptions.Center);
         RectTransform car = (RectTransform)cardArrow.transform;
         car.pivot = new Vector2(0.5f, 0.5f);
         car.sizeDelta = new Vector2(64f, 90f);
@@ -357,6 +389,14 @@ public class JsabStageSelect : MonoBehaviour
         snr.sizeDelta = new Vector2(1000f, 84f);
         snr.anchoredPosition = new Vector2(0f, CenterSlotPos.y + CenterSlotSize.y * 0.5f + 46f);
         stageNameRect = snr;
+
+        // 統一様式(2026-07-11): ステージ名の左右に 19° 白スラッシュ対
+        // (外=太・内=細α0.5)。x は名前のインク幅に追従(UpdateStageNameSlashes)。
+        stageNameSlashes = new ParallelogramGraphic[4];
+        stageNameSlashes[0] = UiButtonStyle.AddSlash(snr, "NameSlashL", Color.white, 0f, 8f, StageNameSlashH);
+        stageNameSlashes[1] = UiButtonStyle.AddSlash(snr, "NameSlashLThin", new Color(1f, 1f, 1f, 0.5f), 0f, 2.5f, StageNameSlashH);
+        stageNameSlashes[2] = UiButtonStyle.AddSlash(snr, "NameSlashRThin", new Color(1f, 1f, 1f, 0.5f), 0f, 2.5f, StageNameSlashH);
+        stageNameSlashes[3] = UiButtonStyle.AddSlash(snr, "NameSlashR", Color.white, 0f, 8f, StageNameSlashH);
 
         // --- Progress indicator (rings + filled current dot + player marker) ---
         BuildProgressIndicator(root);
@@ -419,6 +459,7 @@ public class JsabStageSelect : MonoBehaviour
             clone.name = "TopBarBase";
             clone.SetActive(true);
             CopyRect((RectTransform)clone.transform, (RectTransform)staticHead);
+            topBarBaseRoot = clone.transform;
             topBarTimeDim = clone.transform.Find("TimeDim") as RectTransform;
             origTimeDim = staticHead.Find("TimeDim") as RectTransform;
         }
@@ -430,6 +471,7 @@ public class JsabStageSelect : MonoBehaviour
             clone.name = "TopBarText";
             clone.SetActive(true);
             CopyRect((RectTransform)clone.transform, (RectTransform)textHead);
+            topBarTextRoot = clone.transform;
             // The clone must not react to state transitions; it is a static copy.
             Header dupHeader = clone.GetComponent<Header>();
             if (dupHeader != null) Destroy(dupHeader);
@@ -438,6 +480,70 @@ public class JsabStageSelect : MonoBehaviour
             Transform srcTimer = textHead.Find("TimerText");
             origTimerText = srcTimer != null ? srcTimer.GetComponent<TMP_Text>() : null;
         }
+    }
+
+    // 上部バーを確立済みデザイン言語(リザルト/設定のヘッダー帯様式)へ寄せる。
+    // JSAB クローン(TopBarBase)側だけを対象にし、シーン原本(style0)には触れない。
+    // 高さ・レイアウト・タイマー位置は不変で、面色/縁だけを様式統一する:
+    //   主帯 head = フラット明青 → 横グラデ(左濃青#014190→右鮮青#026CDB)
+    //   右副帯 Gray = 濃紺(リザルト副帯トーン)
+    //   全幅に 3層エッジ(上=銀/その直下=シアン細線/下=沈み)を重ねる
+    // (oracle 案「横グラデ+銀/シアン縁」。高さ縮小は全要素の再配置が要るため見送り)。
+    private void RestyleTopBar()
+    {
+        if (topBarBaseRoot == null) return;
+        Transform bandT = topBarBaseRoot.Find("head");
+        Image band = bandT != null ? bandT.GetComponent<Image>() : null;
+        if (band != null)
+        {
+            Vector2 sz = band.rectTransform.sizeDelta;
+            band.sprite = CreateTopBandSprite(Mathf.RoundToInt(sz.x), Mathf.RoundToInt(sz.y));
+            band.color = Color.white;
+            band.type = Image.Type.Simple;
+            // 3層エッジは帯・副帯・仕切りの上へ重ねたいので Head クローン直下に置き
+            // 最前面へ(全幅を1本で通す)。
+            float halfH = sz.y * 0.5f;
+            AddBarEdge("BarEdgeSilver", sz.x, 2f, halfH - 1f, new Color(0.55f, 0.60f, 0.70f, 0.85f));
+            AddBarEdge("BarEdgeCyan", sz.x, 1f, halfH - 3.5f, new Color(0.22f, 0.76f, 0.878f, 0.28f));
+            AddBarEdge("BarEdgeDark", sz.x, 2f, -(halfH - 1f), new Color(0f, 0.02f, 0.05f, 0.6f));
+        }
+        Transform grayT = topBarBaseRoot.Find("Gray");
+        Image gray = grayT != null ? grayT.GetComponent<Image>() : null;
+        if (gray != null) gray.color = new Color(0.02f, 0.075f, 0.16f, 1f);
+    }
+
+    // 全幅の細帯(上部バーの縁)を Head クローン直下に最前面で1本足す。
+    private void AddBarEdge(string name, float width, float height, float y, Color color)
+    {
+        Image e = NewImage(name, topBarBaseRoot, color);
+        RectTransform rt = e.rectTransform;
+        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.sizeDelta = new Vector2(width, height);
+        rt.anchoredPosition = new Vector2(0f, y);
+        rt.SetAsLastSibling();
+    }
+
+    // 上部バー主帯の横グラデ(左濃青→右鮮青。リザルトヘッダー主帯と同色)。
+    private Sprite CreateTopBandSprite(int W, int H)
+    {
+        Texture2D tex = new Texture2D(W, H, TextureFormat.RGBA32, false);
+        tex.name = "JsabTopBandTex";
+        tex.filterMode = FilterMode.Bilinear;
+        tex.wrapMode = TextureWrapMode.Clamp;
+        Color mainL = new Color(0.004f, 0.255f, 0.565f);
+        Color mainR = new Color(0.008f, 0.424f, 0.859f);
+        Color32[] px = new Color32[W * H];
+        for (int x = 0; x < W; x++)
+        {
+            Color32 c = Color.Lerp(mainL, mainR, W > 1 ? x / (float)(W - 1) : 0f);
+            for (int y = 0; y < H; y++) px[y * W + x] = c;
+        }
+        tex.SetPixels32(px);
+        tex.Apply();
+        Sprite s = Sprite.Create(tex, new Rect(0f, 0f, W, H), new Vector2(0.5f, 0.5f), 100f);
+        s.name = "JsabTopBand";
+        return s;
     }
 
     private static void CopyRect(RectTransform dst, RectTransform src)
@@ -508,6 +614,8 @@ public class JsabStageSelect : MonoBehaviour
         p.vp.renderMode = VideoRenderMode.RenderTexture;
         p.vp.targetTexture = p.rt;
         p.vp.isLooping = true;
+        // 中央カードと同様に全体をレターボックス表示(見切れ防止)。
+        p.vp.aspectRatio = VideoAspectRatio.FitInside;
         p.vp.waitForFirstFrame = true;
         p.vp.audioOutputMode = VideoAudioOutputMode.None;
         p.vp.skipOnDrop = true;
@@ -544,6 +652,11 @@ public class JsabStageSelect : MonoBehaviour
 
         p.brackets = BuildBrackets(decorR);
 
+        // 統一様式(2026-07-11): パネル外周に銀エッジ(リザルト/引き継ぎパネルと
+        // 同じ要素)。Decor 内に置き、中央への飛行モーフでブラケットと一緒に消える。
+        p.silverRim = BuildRim(decorR);
+        SetRim(p.silverRim, SilverEdge, 2f);
+
         // Stage name inside the top band of the card (per mockup).
         p.title = NewText("Title", decorR, "", 30f, Cyan, TextAlignmentOptions.Center);
         RectTransform tr = (RectTransform)p.title.transform;
@@ -553,9 +666,22 @@ public class JsabStageSelect : MonoBehaviour
         tr.anchoredPosition = new Vector2(0f, -6f);
         tr.sizeDelta = new Vector2(0f, SideTitleBand - 10f);
 
-        // 山括弧型の矢印。サムネイル外側の縁に上下中央で重ね、カルーセルの進行
-        // 方向を示す。サイズ/位置/alpha は oracle レビュー反映(56pt・端36px・0.8)。
-        p.arrow = NewText("Arrow", decorR, ">", 56f, new Color(Cyan.r, Cyan.g, Cyan.b, 0.8f), TextAlignmentOptions.Center);
+        // 矢印背後の発光ハロー(先に生成=矢印の背面)。SoftCircleGraphic の淡い円で、
+        // 白い矢印を柔らかく発光させる。位置は SetPanelSide で矢印に合わせる。
+        GameObject aglowGO = new GameObject("ArrowGlow", typeof(RectTransform));
+        aglowGO.transform.SetParent(decorR, false);
+        p.arrowGlow = (RectTransform)aglowGO.transform;
+        p.arrowGlow.pivot = new Vector2(0.5f, 0.5f);
+        // グロー減光の追加指摘(2026-07-14 夜)でハローも一回り小さく(104→92)。
+        p.arrowGlow.sizeDelta = new Vector2(92f, 92f);
+        SoftCircleGraphic aglow = aglowGO.AddComponent<SoftCircleGraphic>();
+        aglow.color = ArrowGlowColor;
+        aglow.raycastTarget = false;
+
+        // 山括弧型の矢印。サムネイル外側の縁に上下中央で重ね、カルーセルの進行方向を
+        // 示す。2026-07-13 指摘「見づらい」→ 白・不透明・やや大きく(60pt)し、背後の
+        // ハローで発光させる(端36px は維持)。
+        p.arrow = NewText("Arrow", decorR, ">", 60f, ArrowWhite, TextAlignmentOptions.Center);
         RectTransform ar2 = (RectTransform)p.arrow.transform;
         ar2.pivot = new Vector2(0.5f, 0.5f);
         ar2.sizeDelta = new Vector2(64f, 90f);
@@ -575,6 +701,40 @@ public class JsabStageSelect : MonoBehaviour
         ar.anchorMin = ar.anchorMax = new Vector2(side < 0 ? 1f : 0f, 0.5f);
         ar.anchoredPosition = new Vector2(side < 0 ? -36f : 36f, 0f);
         TmpAlign.CenterInkVertically(p.arrow);
+        // 発光ハローを矢印の中心へ追従させる。
+        if (p.arrowGlow != null)
+        {
+            p.arrowGlow.anchorMin = p.arrowGlow.anchorMax = ar.anchorMin;
+            p.arrowGlow.anchoredPosition = ar.anchoredPosition;
+        }
+    }
+
+    // ステージ名スラッシュの x をインク幅に追従させる(名前は可変長)。
+    // 距離感はボタンの「枠のすぐ外」規則に合わせ、細=+24 / 太=+42。
+    private void UpdateStageNameSlashes()
+    {
+        if (stageNameText == null || stageNameSlashes == null) return;
+        stageNameText.ForceMeshUpdate();
+        float half = stageNameText.preferredWidth * 0.5f;
+        float thinX = half + 24f;
+        float thickX = half + 42f;
+        stageNameSlashes[0].rectTransform.anchoredPosition = new Vector2(-thickX, 0f);
+        stageNameSlashes[1].rectTransform.anchoredPosition = new Vector2(-thinX, 0f);
+        stageNameSlashes[2].rectTransform.anchoredPosition = new Vector2(thinX, 0f);
+        stageNameSlashes[3].rectTransform.anchoredPosition = new Vector2(thickX, 0f);
+    }
+
+    // ステージ名スラッシュの alpha を名前のフェードに同期させる。
+    private void SetStageNameSlashAlpha(float a)
+    {
+        if (stageNameSlashes == null) return;
+        for (int i = 0; i < stageNameSlashes.Length; i++)
+        {
+            if (stageNameSlashes[i] == null) continue;
+            Color c = Color.white;
+            c.a = (i == 1 || i == 2 ? 0.5f : 1f) * a;
+            stageNameSlashes[i].color = c;
+        }
     }
 
     // Four white corner brackets (2 strips per corner), per the mockup side cards.
@@ -678,19 +838,29 @@ public class JsabStageSelect : MonoBehaviour
         progressRow.anchorMin = progressRow.anchorMax = new Vector2(0.5f, 0.5f);
         progressRow.pivot = new Vector2(0.5f, 0.5f);
         progressRow.sizeDelta = new Vector2(0f, 60f);
-        progressRow.anchoredPosition = new Vector2(0f, CenterSlotPos.y - CenterSlotSize.y * 0.5f - 72f);
+        // ユーザー要望(2026-07-14「下の主人公の動くところ、もうちょっと下にして大きくして」):
+        // プログレス行(主人公マーカーが歩く帯)全体をさらに下げ、マーカーを拡大する。
+        // 下オフセットを 72→126(約54px下げ)。下部ヒントバー(上端 y≈-464)とは
+        // マーカー足元 y≈-380 で約84px の余裕を確保して衝突しない。
+        progressRow.anchoredPosition = new Vector2(0f, CenterSlotPos.y - CenterSlotSize.y * 0.5f - 126f);
         ringSprite = CreateRingSprite();
         dotSprite = CreateDotSprite();
 
         // Persistent player marker; RefreshProgress never destroys it so its
         // position can tween smoothly between nodes.
+        // 選択画面下部の主人公マーカーは専用アート(探偵の立ち絵 Resources/UI/hero_select)を
+        // 優先で使う。無ければ従来どおりプレイヤースプライトへフォールバック(2026-07-14 差替)。
+        Sprite markerSprite = Resources.Load<Sprite>("UI/hero_select");
+        if (markerSprite == null) markerSprite = playerSprite;
         Image marker = NewImage("Marker", progressRow, Color.white);
-        if (playerSprite != null)
+        if (markerSprite != null)
         {
-            marker.sprite = playerSprite;
+            marker.sprite = markerSprite;
             marker.preserveAspect = true;
-            Rect sr = playerSprite.rect;
-            float h = 40f;
+            Rect sr = markerSprite.rect;
+            // 主人公マーカーを拡大(40→56, 約1.4倍)。MarkerY(=h/2=28)と対で足元が
+            // rail に乗る。ユーザー要望「大きくして」。
+            float h = 56f;
             float scale = sr.height <= 32f ? Mathf.Max(1f, Mathf.Floor(h / sr.height)) : h / sr.height;
             marker.rectTransform.sizeDelta = new Vector2(sr.width * scale, sr.height * scale);
         }
@@ -704,9 +874,9 @@ public class JsabStageSelect : MonoBehaviour
         markerRect = marker.rectTransform;
     }
 
-    // Rebuilds the node/dash chain: hollow rings connected by dashes, one node per
-    // stage; the current stage is a bigger filled cyan dot (mockup look). The
-    // persistent player marker stands on the line and tweens between nodes.
+    // Rebuilds the node chain: hollow rings on a single navy rail (no dashes), one
+    // node per stage; the current stage is a bigger filled cyan dot and non-current
+    // rings are dimmed. The persistent player marker stands on the line and tweens.
     private void RefreshProgress(bool animate)
     {
         if (progressRow == null) return;
@@ -724,26 +894,25 @@ public class JsabStageSelect : MonoBehaviour
         float totalW = (n - 1) * dashGap;
         float x0 = -totalW * 0.5f;
 
+        // 背面に紺の1本レール(破線ティックは廃止し控えめに統一。oracle 案)。
+        // 列の端ノードから端ノードまでを1本で繋ぐ。
+        if (n > 1)
+        {
+            Image rail = NewImage("Rail", progressRow, new Color(0.09f, 0.19f, 0.33f, 0.9f));
+            rail.rectTransform.anchorMin = rail.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            rail.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            rail.rectTransform.sizeDelta = new Vector2(totalW, 4f);
+            rail.rectTransform.anchoredPosition = Vector2.zero;
+            rail.rectTransform.SetAsFirstSibling(); // ノードより背面へ
+        }
+
+        // 非選択ノードは減光(現在ノードだけ明るいシアンで際立たせる)。
+        Color nodeDim = new Color(Cyan.r, Cyan.g, Cyan.b, 0.4f);
         for (int i = 0; i < n; i++)
         {
             float x = x0 + i * dashGap;
-
-            // Dash segment to the next node (3 small ticks).
-            if (i < n - 1)
-            {
-                for (int d = 0; d < 3; d++)
-                {
-                    Image dash = NewImage("Dash", progressRow, CyanDim);
-                    dash.rectTransform.anchorMin = dash.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-                    dash.rectTransform.pivot = new Vector2(0.5f, 0.5f);
-                    dash.rectTransform.sizeDelta = new Vector2(10f, 4f);
-                    // 3 ticks evenly spread across the gap [x .. x+dashGap].
-                    dash.rectTransform.anchoredPosition = new Vector2(x + dashGap * (d + 1) / 4f, 0f);
-                }
-            }
-
             bool current = i == currentIndex;
-            Image node = NewImage(current ? "NodeCurrent" : "Node", progressRow, Cyan);
+            Image node = NewImage(current ? "NodeCurrent" : "Node", progressRow, current ? Cyan : nodeDim);
             node.sprite = current ? dotSprite : ringSprite;
             node.type = Image.Type.Simple;
             node.rectTransform.anchorMin = node.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
@@ -787,16 +956,14 @@ public class JsabStageSelect : MonoBehaviour
         tlr.anchoredPosition = new Vector2(0f, 76f);
         tlr.sizeDelta = new Vector2(0f, 2f);
 
-        // Reference layout: primary actions grouped on the left, "back" on the right.
+        // 実機はジョイスティック+ボタンを想定(2026-07-13 指摘)。キー表記(←→/SPACE/
+        // ESC/V)をやめ、スティックとボタンだけで案内する。スタイル切替(V)は実機に
+        // 対応キーが無いので撤去。戻る(ESC)はシリアル未配線のため案内から外す
+        // (最終報告の監査項目: 2 個目のボタンを戻るに割り当てれば復活可能)。
         BuildHintRowAt(br, 0f, 0f, 48f, 0f, new[]
         {
-            new HintItem(new[] { "←", "→" }, "選択"),
-            new HintItem(new[] { "SPACE" }, "決定"),
-            new HintItem(new[] { "V" }, "スタイル切替"),
-        });
-        BuildHintRowAt(br, 1f, 1f, -48f, 0f, new[]
-        {
-            new HintItem(new[] { "ESC" }, "戻る"),
+            new HintItem(new[] { "スティック" }, "選択"),
+            new HintItem(new[] { "ボタン" }, "決定"),
         });
     }
 
@@ -851,11 +1018,8 @@ public class JsabStageSelect : MonoBehaviour
 
     private RectTransform NewKeyCap(RectTransform parent, string label, float height, float fontSize)
     {
-        float width = Mathf.Max(height, 24f + label.Length * fontSize * 0.66f);
         Image border = NewImage("Key_" + label, parent, KeyCapEdge);
         RectTransform br = border.rectTransform;
-        br.sizeDelta = new Vector2(width, height);
-        AddLayoutElement(br, width, height);
 
         Image fill = NewImage("Fill", br, KeyCapBlue);
         RectTransform fr = fill.rectTransform;
@@ -865,9 +1029,20 @@ public class JsabStageSelect : MonoBehaviour
         fr.offsetMax = new Vector2(-2f, -2f);
 
         TMP_Text t = NewText("L", br, label, fontSize, Color.white, TextAlignmentOptions.Center);
+        // チップ幅は文字の実プリファード幅+左右パディングで確保する。旧実装の
+        // 「24+文字数*fontSize*0.66」はラテン字送り(0.66em)を仮定しており、全角
+        // カタカナ(スティック/ボタン)は約 1em 送りのため過小に見積もられ、
+        // Center+Overflow の文字がチップ枠(青地)からはみ出していた
+        // (2026-07-14 指摘「下部テキストが黒背景から切れる」)。font(CJK
+        // フォールバック付き)割当済みの t を GetPreferredValues で実測して枠を合わせる。
+        const float padX = 28f;
+        float textW = t.GetPreferredValues(label).x;
+        float width = Mathf.Max(height, textW + padX);
+        br.sizeDelta = new Vector2(width, height);
+        AddLayoutElement(br, width, height);
+
         Stretch((RectTransform)t.transform);
-        // CJK フォールバックの行メトリクス(←/→ など)で文字が上に乗るため、
-        // インク実測で光学中央へ寄せる。
+        // CJK フォールバックの行メトリクスで文字が上に乗るため、インク実測で光学中央へ。
         TmpAlign.CenterInkVertically(t);
         return br;
     }
@@ -933,16 +1108,19 @@ public class JsabStageSelect : MonoBehaviour
             diffPanel = (RectTransform)clone.transform;
             diffPanel.anchorMin = diffPanel.anchorMax = new Vector2(0.5f, 0.5f);
             diffPanel.pivot = new Vector2(0.5f, 0.5f);
-            diffPanel.anchoredPosition = new Vector2(0f, 30f);
+            // y は行群が背後のぼかしカードに対して視覚センターへ乗る値
+            // (ボタン縦拡大 140/180 の際、+30 だと行群が上寄りに見えると
+            // oracle レビュー指摘 → 14px 下げ)。
+            diffPanel.anchoredPosition = new Vector2(0f, 16f);
             diffPanel.localScale = Vector3.one * DiffPanelBaseScale; // matches the original's on-screen scale
             diffBar = clone.GetComponent<DefficultyBar>();
             if (diffBar != null)
             {
-                diffBar.Init();
+                diffBar.Init(font);
                 diffBar.SetAlpha(1f);
                 diffBar.SetEntranceProgress(1f);
             }
-            // Mouse hit areas = the visible bar sprites (583x109), not the tiny row roots.
+            // Mouse hit areas = the visible bar sprites (660x124), not the tiny row roots.
             string[] rows = { "Easy", "Normal", "Lunatic" };
             for (int i = 0; i < rows.Length; i++)
                 diffBoxRects[i] = clone.transform.Find("List/" + rows[i] + "/StageBar") as RectTransform;
@@ -953,25 +1131,80 @@ public class JsabStageSelect : MonoBehaviour
 
     // ---- Public difficulty API (driven by StageSelectManager) ----
 
+    // 上部バー(タイマー/残り時間)を diffRoot より前面へ持ち上げる。難易度モーダルの
+    // ぼかし+暗幕が制限時間を覆っていた指摘(2026-07-12)への対応。クローンは Tick で
+    // 生タイマーをミラーし続けるので、前面に出せば残り時間がそのまま読める。
+    private void RaiseTopBar()
+    {
+        if (topBarRaised) return;
+        // 元の並び順は必ず「両方を動かす前」に保存する。base を先に SetAsLastSibling
+        // すると、その後ろにあった text の sibling index が 1 つ繰り上がり、text の
+        // 保存値が狂う。すると RestoreTopBar で text が base(不透明な帯)より後ろ=
+        // 最背面へ戻り、上部テキスト(曲名/残り時間)が帯の裏に隠れて消える不具合に
+        // なる(2026-07-13 修正: 難易度から Esc で戻ると上のテキストが消える)。
+        if (topBarBaseRoot != null) topBarBaseSiblingIndex = topBarBaseRoot.GetSiblingIndex();
+        if (topBarTextRoot != null) topBarTextSiblingIndex = topBarTextRoot.GetSiblingIndex();
+        if (topBarBaseRoot != null) topBarBaseRoot.SetAsLastSibling();
+        if (topBarTextRoot != null) topBarTextRoot.SetAsLastSibling(); // テキスト層を最前面(ベースの上)に
+        topBarRaised = true;
+    }
+
+    private void RestoreTopBar()
+    {
+        if (!topBarRaised) return;
+        if (topBarBaseRoot != null && topBarBaseSiblingIndex >= 0)
+            topBarBaseRoot.SetSiblingIndex(topBarBaseSiblingIndex);
+        if (topBarTextRoot != null && topBarTextSiblingIndex >= 0)
+            topBarTextRoot.SetSiblingIndex(topBarTextSiblingIndex);
+        topBarRaised = false;
+    }
+
     public void OpenDifficulty()
     {
         if (diffRoot == null) return;
         difficultyOpen = true;
         diffOpenTime = Time.unscaledTime;
         mouseConfirm = false;
-        if (diffBar != null) diffBar.ResetSelection(1); // default NORMAL each time it opens
+        if (diffBar != null)
+        {
+            ApplyDifficultyAvailability();     // 石工/浮浪者は EASY/LUNATIC を選択不可にする
+            diffBar.ResetSelection(1);         // default NORMAL each time it opens
+        }
         if (diffFadeCo != null) { StopCoroutine(diffFadeCo); diffFadeCo = null; }
         // ぼかしスナップショットが用意できるまでは全体を透明にしておき、準備完了
         // 後に CaptureBlurBackground がフェードインを開始する(急な表示を防ぐ)。
         if (diffCG != null) diffCG.alpha = 0f;
         if (diffPanel != null) diffPanel.localScale = Vector3.one * (DiffPanelBaseScale * 0.96f);
         diffRoot.gameObject.SetActive(true);
+        RaiseTopBar();
         StartCoroutine(CaptureBlurBackground());
+    }
+
+    // 現在のステージに応じて選択可能な難易度を絞る。石工・浮浪者は EASY/LUNATIC が
+    // 未完成のため NORMAL のみ選択可(グレーアウト+COMING SOON)。艦長は3難易度とも
+    // 実データがあるので従来どおり。姿見(mirror)は endTime=0 の WIP=全難易度 COMING SOON
+    // にして確定不可にする(CanConfirm でゲーム開始をブロック)。
+    private void ApplyDifficultyAvailability()
+    {
+        if (diffBar == null) return;
+        string dir = GetStage(currentIndex)?.stageDirectoryName;
+        if (dir == "mirror") diffBar.SetEnabledMask(false, false, false);
+        else if (dir == "stone" || dir == "vagrant") diffBar.SetEnabledMask(false, true, false);
+        else diffBar.SetEnabledMask(true, true, true);
+    }
+
+    // 現在選択中の難易度が実際に確定可能か。姿見(WIP)は全行 COMING SOON なので false を
+    // 返し、決定キー/時間切れによるゲーム開始をブロックする(endTime=0 の強制起動で
+    // BulletRenderSystem が落ちるのを防ぐ)。マウスは元々無効行を確定できない。
+    public bool CanConfirm()
+    {
+        return diffBar != null && diffBar.IsRowEnabled(diffBar.index);
     }
 
     public void CloseDifficulty()
     {
         difficultyOpen = false;
+        RestoreTopBar();
         if (diffRoot == null || !diffRoot.gameObject.activeSelf) return;
         RestoreDifficultyExit();
         if (diffFadeCo != null) { StopCoroutine(diffFadeCo); diffFadeCo = null; }
@@ -1009,17 +1242,22 @@ public class JsabStageSelect : MonoBehaviour
             ? exitRowRects[selected].Find("StageBar")?.GetComponent<Image>()
             : null;
         exitBarColor = exitBarImg != null ? exitBarImg.color : Color.white;
+        exitFlash = GetOrCreateRowFlash(exitRowRects[selected]);
         TMP_Text selectedLabel = exitRowRects[selected] != null
             ? exitRowRects[selected].Find("StageName")?.GetComponent<TMP_Text>()
             : null;
         Color labelColor = selectedLabel != null ? selectedLabel.color : Color.white;
         // 見出し・説明文・プロンプト(ルビ含む)・装飾ラインは行より先にすっと消す。
+        // 説明文の漢字直上ルビ(DescText の子 DescRuby0..2)も一緒に消す。
         exitFadeTexts = new[]
         {
             diffPanel.Find("Title")?.GetComponent<TMP_Text>(),
             diffPanel.Find("TitleRubyN")?.GetComponent<TMP_Text>(),
             diffPanel.Find("TitleRubyS")?.GetComponent<TMP_Text>(),
             diffPanel.Find("DescText")?.GetComponent<TMP_Text>(),
+            diffPanel.Find("DescText/DescRuby0")?.GetComponent<TMP_Text>(),
+            diffPanel.Find("DescText/DescRuby1")?.GetComponent<TMP_Text>(),
+            diffPanel.Find("DescText/DescRuby2")?.GetComponent<TMP_Text>(),
             diffPanel.Find("Prompt")?.GetComponent<TMP_Text>(),
             diffPanel.Find("PromptRubyO")?.GetComponent<TMP_Text>(),
             diffPanel.Find("PromptRubyK")?.GetComponent<TMP_Text>(),
@@ -1046,6 +1284,12 @@ public class JsabStageSelect : MonoBehaviour
             // ないようネイビーへ反転してから戻す)。
             float flashP = Mathf.Clamp01(time / flashDur);
             if (exitBarImg != null) exitBarImg.color = Color.Lerp(Color.white, exitBarColor, flashP * flashP);
+            if (exitFlash != null)
+            {
+                Color fc = Color.white;
+                fc.a = 1f - flashP * flashP;
+                exitFlash.color = fc;
+            }
             if (selectedLabel != null) selectedLabel.color = Color.Lerp(Navy, labelColor, flashP * flashP);
 
             float fadeKeep = 1f - Mathf.Clamp01(time / 0.12f);
@@ -1128,6 +1372,7 @@ public class JsabStageSelect : MonoBehaviour
         }
         if (exitWhiteRect != null) exitWhiteRect.anchoredPosition = exitWhiteBasePos;
         if (exitBarImg != null) exitBarImg.color = exitBarColor;
+        if (exitFlash != null) exitFlash.gameObject.SetActive(false);
         for (int i = 0; i < exitFadeTexts.Length; i++)
         {
             if (exitFadeTexts[i] != null) exitFadeTexts[i].alpha = exitFadeTextAlphas[i];
@@ -1140,6 +1385,44 @@ public class JsabStageSelect : MonoBehaviour
             exitFadeImages[i].color = ic;
         }
         if (diffBar != null) diffBar.ResetSelection(diffBar.index);
+    }
+
+    // 決定フラッシュ用の白オーバーレイ(遅延生成)。統一様式ボタンの焼き込み
+    // 枠と同じ外形(583x109 の枠: 上下11/左右22 内側・19° 斜辺)の平行四辺形。
+    // 文字のネイビー反転を見せるため StageName の下に挿す。
+    private ParallelogramGraphic GetOrCreateRowFlash(RectTransform row)
+    {
+        if (row == null) return null;
+        Transform existing = row.Find("ExitFlash");
+        ParallelogramGraphic flash;
+        if (existing != null)
+        {
+            flash = existing.GetComponent<ParallelogramGraphic>();
+        }
+        else
+        {
+            float hw = 583f * 0.5f - 22f;
+            float hh = 109f * 0.5f - 11f;
+            float skew = 2f * hh * Mathf.Tan(UiButtonStyle.SlashAngleDeg * Mathf.Deg2Rad);
+            GameObject go = new GameObject("ExitFlash", typeof(RectTransform), typeof(CanvasRenderer), typeof(ParallelogramGraphic));
+            go.layer = row.gameObject.layer;
+            RectTransform rect = (RectTransform)go.transform;
+            rect.SetParent(row, false);
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.sizeDelta = new Vector2(hw * 2f, hh * 2f);
+            Transform nameLabel = row.Find("StageName");
+            if (nameLabel != null) rect.SetSiblingIndex(nameLabel.GetSiblingIndex());
+            flash = go.GetComponent<ParallelogramGraphic>();
+            flash.Slant = skew;
+            flash.SlantRightEdge = true;
+            flash.raycastTarget = false;
+        }
+        Color init = Color.white;
+        init.a = 0f;
+        flash.color = init;
+        flash.gameObject.SetActive(true);
+        return flash;
     }
 
     // 開閉共通のフェード: alpha トゥイーン+パネルの軽いスケール(0.96→1.0)。
@@ -1325,7 +1608,7 @@ public class JsabStageSelect : MonoBehaviour
             car.anchorMin = car.anchorMax = new Vector2(newSide < 0 ? 1f : 0f, 0.5f);
             car.anchoredPosition = new Vector2(newSide < 0 ? -36f : 36f, 0f);
             TmpAlign.CenterInkVertically(cardArrow);
-            Color ac = Cyan;
+            Color ac = ArrowWhite;
             ac.a = 0f;
             cardArrow.color = ac;
         }
@@ -1364,9 +1647,11 @@ public class JsabStageSelect : MonoBehaviour
         }
         if (cardFrameImg != null)
         {
-            Color fc = Cyan;
-            fc.a = 1f - e;
-            cardFrameImg.color = fc;
+            // 発光枠(シアン)を序盤で一気に消す(旧 1-e ease-out)と枠が痩せ、着地で
+            // サイドパネルの銀エッジ(SilverEdge)が突然乗ってポップした。枠を消さず、
+            // 着地パネルの銀エッジ色へ e で連続変化させて飛行中ずっと枠を残し、着地状態と
+            // 色・濃さを一致させる(2026-07-14 指摘「移動前ステージの枠のアニメが不自然」)。
+            cardFrameImg.color = Color.Lerp(Cyan, SilverEdge, e);
         }
         SetAccentAlpha(1f - e);
         // ブラケットは ease(e) だと序盤2フレームで一気に出て「突然出る」ため、
@@ -1384,8 +1669,8 @@ public class JsabStageSelect : MonoBehaviour
         }
         if (cardArrow != null)
         {
-            Color ac = Cyan;
-            ac.a = 0.8f * Mathf.Clamp01((p - 0.4f) / 0.5f);
+            Color ac = ArrowWhite;
+            ac.a = 0.9f * Mathf.Clamp01((p - 0.4f) / 0.5f);
             cardArrow.color = ac;
         }
         if (cardScrim != null)
@@ -1448,10 +1733,12 @@ public class JsabStageSelect : MonoBehaviour
                 string curName = cur != null && !string.IsNullOrWhiteSpace(cur.stageName) ? cur.stageName : ("Stage " + currentIndex);
                 stageNameText.text = curName;
                 TmpAlign.CenterInkVertically(stageNameText);
+                UpdateStageNameSlashes();
             }
             stageNameText.alpha = p < 0.35f ? 1f - p / 0.35f
                                 : p < 0.55f ? 0f
                                 : (p - 0.55f) / 0.45f;
+            SetStageNameSlashAlpha(stageNameText.alpha);
         }
     }
 
@@ -1514,6 +1801,7 @@ public class JsabStageSelect : MonoBehaviour
         // 中央カード: 新ステージの名前とメイン動画を適用。
         ApplyCenterContent(arriveHadFrame);
         if (stageNameText != null) stageNameText.alpha = 1f;
+        SetStageNameSlashAlpha(1f);
 
         // 受け渡し側は途切れなく表示継続(飛行中の絵と同じ内容が同じ位置にある)。
         recycled.cg.alpha = recycled.alphaTarget;
@@ -1576,7 +1864,7 @@ public class JsabStageSelect : MonoBehaviour
         }
         if (cardArrow != null)
         {
-            Color ac = Cyan;
+            Color ac = ArrowWhite;
             ac.a = 0f;
             cardArrow.color = ac;
         }
@@ -1636,6 +1924,7 @@ public class JsabStageSelect : MonoBehaviour
         // Japanese stage names ride high under Middle alignment (Latin UI font +
         // CJK fallback metrics); optically center each by its ink bounds.
         if (stageNameText != null) { stageNameText.text = curName; TmpAlign.CenterInkVertically(stageNameText); }
+        UpdateStageNameSlashes();
         if (cardFallbackName != null) { cardFallbackName.text = curName; TmpAlign.CenterInkVertically(cardFallbackName); }
         UpdateVideo(cur, keepBlittedFrame);
     }
@@ -1695,7 +1984,9 @@ public class JsabStageSelect : MonoBehaviour
                             break;
                         }
                     }
-                    if (hover >= 0 && diffBar != null)
+                    // 無効(COMING SOON)行はホバー選択・確定させない。ガードしないと
+                    // Up/Down が無効行に止まれず while が無限ループになる。
+                    if (hover >= 0 && diffBar != null && diffBar.IsRowEnabled(hover))
                     {
                         // Route through Up/Down so the description/brackets update too.
                         while (diffBar.index > hover) diffBar.Up();

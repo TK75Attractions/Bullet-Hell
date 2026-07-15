@@ -15,7 +15,7 @@
         }
     ],
     "delayTime": 0.0,
-    "endTime": 82.0,
+    "endTime": 142.5,
     "stageDescription": "べにぐち",
     "enemyVisuals": [
         {
@@ -2541,6 +2541,903 @@
                 "w": 1.0
             },
             "clipName": "石工形態変化ダスト"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 97.58967,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_落下予告"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 97.923,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_落下"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 98.423,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_着地保持"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 101.635,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_上昇"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 103.339,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_反転衝撃"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 103.339,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_右流れ"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 105.016,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_右上保持"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 105.016,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_単爆破"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 107.643,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_点滅"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 108.478,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_一斉爆破"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 107.62867,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_中央カッター_出現"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 109.244,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_中央カッター_下"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 110.015,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_中央カッター_上"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 110.902,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_中央カッター_復帰"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 142.2,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "Clear"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 111.675,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_中央カッター_保持1"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 110.84167,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_飛来予告"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 111.25833,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_飛来"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 111.675,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_飛来粉砕"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 114.81333,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_明滅ブロック"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 118.317,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_巡回カッター"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 122.74133,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_中央カッター_拡大"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 122.32467,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_飛来2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 122.74133,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_飛来粉砕2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 124.27467,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_分裂結合フラッシュ"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 124.27467,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_縁カッター"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 128.203,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_中央カッター_保持2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 126.94633,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_貫通落下"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 131.685,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_カッター振動"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 131.685,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_振動放射"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 140.685,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_カッター上昇"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 140.685,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_暗転"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 142.25,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工後半_暗転2"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 94.40567,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工_壁"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 79.12767,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工前半_中央カッター地面爆破"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 82.90633,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工前半_ランダムブロックA"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 85.95167,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工前半_中央カッター地面爆破"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 89.28233,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "石工前半_ランダムブロックB"
+        },
+        {
+            "index": 0,
+            "count": 1,
+            "interval": 0.0,
+            "time": 93.405,
+            "pos": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "originVlc": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "angle": 0.0,
+            "angleInterval": 0.0,
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "clipName": "Clear"
         }
     ]
 }
