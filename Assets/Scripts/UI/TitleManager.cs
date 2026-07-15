@@ -871,7 +871,7 @@ public class TitleManager : MonoBehaviour
         playerCountRoot.pivot = new Vector2(0.5f, 0.5f);
         // トグルはメニュー最上段の 1 行分(DiffRowSpacing)上へ。ロゴと最上段ボタンの中間で
         // 均等間隔になり、ロゴへの重なりを解消(2026-07-14 指摘「ぐちゃぐちゃ」)。
-        playerCountRoot.anchoredPosition = new Vector2(0f, topRowY + UiButtonStyle.DiffRowSpacing);
+        playerCountRoot.anchoredPosition = new Vector2(0f, topRowY + UiButtonStyle.DiffRowSpacing - 24f);
         playerCountRoot.sizeDelta = new Vector2(520f, 96f);
 
         const float segW = 176f;
@@ -953,7 +953,7 @@ public class TitleManager : MonoBehaviour
         panel.SlantRightEdge = true;
         panel.raycastTarget = false;
 
-        AddTitleGuideIcon("Stick", UiIconFactory.StickLeftRight(), new Vector2(-192f, 0f), new Vector2(78f, 44f));
+        AddTitleGuideIcon("Stick", UiIconFactory.IconKind.Stick, new Vector2(-192f, 0f), new Vector2(78f, 44f));
         TMP_Text select = CreateText("SelectLabel", titleControlGuideRoot,
             new Vector2(-112f, -1f), new Vector2(102f, 44f), 25f,
             new Color(0.86f, 0.93f, 1f, 0.96f), TextAlignmentOptions.MidlineLeft);
@@ -970,28 +970,17 @@ public class TitleManager : MonoBehaviour
         dividerImage.color = new Color(0.22f, 0.76f, 0.88f, 0.52f);
         dividerImage.raycastTarget = false;
 
-        AddTitleGuideIcon("ConfirmButton", UiIconFactory.Button(), new Vector2(25f, 0f), new Vector2(48f, 48f));
+        AddTitleGuideIcon("ConfirmButton", UiIconFactory.IconKind.Button, new Vector2(25f, 0f), new Vector2(48f, 48f));
         TMP_Text confirm = CreateText("ConfirmLabel", titleControlGuideRoot,
             new Vector2(96f, -1f), new Vector2(112f, 44f), 25f,
             new Color(0.86f, 0.93f, 1f, 0.96f), TextAlignmentOptions.MidlineLeft);
         confirm.text = "で決定";
     }
 
-    private void AddTitleGuideIcon(string objectName, Sprite sprite, Vector2 position, Vector2 size)
+    private void AddTitleGuideIcon(string objectName, UiIconFactory.IconKind kind, Vector2 position, Vector2 size)
     {
-        GameObject go = new GameObject(objectName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-        go.layer = gameObject.layer;
-        RectTransform rect = (RectTransform)go.transform;
-        rect.SetParent(titleControlGuideRoot, false);
-        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.anchoredPosition = position;
-        rect.sizeDelta = size;
-        Image image = go.GetComponent<Image>();
-        image.sprite = sprite;
-        image.preserveAspect = true;
-        image.color = new Color(0.56f, 0.87f, 1f, 0.98f);
-        image.raycastTarget = false;
-        go.AddComponent<ControlIconMotion>().Configure(sprite);
+        UiIconFactory.CreateIcon(titleControlGuideRoot, objectName, kind, position, size,
+            new Color(0.56f, 0.87f, 1f, 0.98f));
     }
 
     // トグルの選択状態を見た目に反映(選択セグメント=白/明、非選択=灰/沈む)。

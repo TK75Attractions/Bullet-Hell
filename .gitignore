@@ -127,7 +127,11 @@ InitTestScene*.unity*
 /Backups/
 
 # 開発ツール・キャプチャ・作業記録はリポジトリに含めない（2026-07-12 ユーザー指示: ゲームが動くのに必要なファイルだけ push）
-Tools/
+/Tools/*
+!/Tools/timing-editor/
+/Tools/timing-editor/*
+!/Tools/timing-editor/index.html
+!/Tools/timing-editor/README.md
 Captures/
 PROGRESS.md
 *.lscache

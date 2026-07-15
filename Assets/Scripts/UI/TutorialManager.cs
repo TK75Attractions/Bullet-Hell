@@ -121,13 +121,13 @@ public class TutorialManager : MonoBehaviour
         // ランタイム生成のアイコン(スティック左右 / ボタン)を添える(2026-07-14 要望)。
         moveIconRoot = CreateIconRoot("MoveIcons", cardRect);
         moveIconGroup = moveIconRoot.gameObject.AddComponent<CanvasGroup>();
-        moveKeys.Add(CreateKey(moveIconRoot, "スティック", UiIconFactory.StickLeftRight(), Vector2.zero, new Vector2(248f, 62f)));
+        moveKeys.Add(CreateKey(moveIconRoot, "スティック", UiIconFactory.IconKind.Stick, Vector2.zero, new Vector2(248f, 62f)));
 
         // ダッシュは「移動しながらボタン」を示すため、スティックとボタンの2枚を縦に並べる。
         dashIconRoot = CreateIconRoot("DashIcons", cardRect);
         dashIconGroup = dashIconRoot.gameObject.AddComponent<CanvasGroup>();
-        dashKeys.Add(CreateKey(dashIconRoot, "スティック", UiIconFactory.StickLeftRight(), new Vector2(0f, 34f), new Vector2(248f, 56f)));
-        dashKeys.Add(CreateKey(dashIconRoot, "ボタン", UiIconFactory.Button(), new Vector2(0f, -34f), new Vector2(248f, 56f)));
+        dashKeys.Add(CreateKey(dashIconRoot, "スティック", UiIconFactory.IconKind.Stick, new Vector2(0f, 34f), new Vector2(248f, 56f)));
+        dashKeys.Add(CreateKey(dashIconRoot, "ボタン", UiIconFactory.IconKind.Button, new Vector2(0f, -34f), new Vector2(248f, 56f)));
 
         // 「ダッシュ中は無敵!」の注記(ダッシュステップのみ表示)。無敵は PlayerController の
         // invincible(dash>0 で true・TryHit を無効化)で実装済み=事実として明記する。
@@ -198,7 +198,7 @@ public class TutorialManager : MonoBehaviour
         return rect;
     }
 
-    private KeyVisual CreateKey(Transform parent, string label, Sprite icon, Vector2 position, Vector2 size)
+    private KeyVisual CreateKey(Transform parent, string label, UiIconFactory.IconKind iconKind, Vector2 position, Vector2 size)
     {
         GameObject key = CreateImageObject("Key_" + label, parent, keyColor);
         RectTransform rect = (RectTransform)key.transform;
@@ -218,21 +218,11 @@ public class TutorialManager : MonoBehaviour
 
         // アイコンを左側に配置し、ラベルを右の残り領域へ中央寄せする。
         float textLeftPad = 0f;
-        if (icon != null)
-        {
-            float iconH = 30f;
-            float iconW = iconH * (icon.rect.width / icon.rect.height);
-            GameObject ic = CreateImageObject("Icon", rect, iconTint);
-            Image icImg = ic.GetComponent<Image>();
-            icImg.sprite = icon;
-            icImg.preserveAspect = true;
-            RectTransform icr = (RectTransform)ic.transform;
-            icr.anchorMin = icr.anchorMax = new Vector2(0.5f, 0.5f);
-            icr.anchoredPosition = new Vector2(-size.x * 0.5f + 16f + iconW * 0.5f, 1f);
-            icr.sizeDelta = new Vector2(iconW, iconH);
-            ic.AddComponent<ControlIconMotion>().Configure(icon);
-            textLeftPad = 16f + iconW + 8f;
-        }
+        float iconH = 30f;
+        float iconW = iconH * (iconKind == UiIconFactory.IconKind.Button ? 1.6f : 1.333f);
+        UiIconFactory.CreateIcon(rect, "Icon", iconKind,
+            new Vector2(-size.x * 0.5f + 16f + iconW * 0.5f, 1f), new Vector2(iconW, iconH), iconTint);
+        textLeftPad = 16f + iconW + 8f;
 
         float labelW = Mathf.Max(40f, size.x - textLeftPad - 12f);
         Vector2 labelPos = new Vector2((textLeftPad - 12f) * 0.5f, 2f);

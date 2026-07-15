@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 // ランタイム生成のアーケード操作アイコン(スティック / 丸ボタン)。
 // 添付イメージを基にした白いシルエットをベイクし、使用側の Image.color で
@@ -6,8 +7,99 @@ using UnityEngine;
 // 生成物はキャッシュして重複ベイクを避ける。
 public static class UiIconFactory
 {
+    public enum IconKind { Stick, Button }
+
     private static Sprite stickLeftRight;
     private static Sprite button;
+    private static Sprite stickBase;
+    private static Sprite stickHandle;
+    private static Sprite buttonBase;
+    private static Sprite buttonCap;
+
+    // 台座と操作部を別 Image として組み立てる。動く部品だけを
+    // ControlIconMotion に渡すことで、シルエットの部品関係を崩さずアニメーションする。
+    public static RectTransform CreateIcon(Transform parent, string objectName, IconKind kind,
+        Vector2 position, Vector2 size, Color tint)
+    {
+        GameObject rootObject = new GameObject(objectName, typeof(RectTransform));
+        rootObject.layer = parent.gameObject.layer;
+        RectTransform root = (RectTransform)rootObject.transform;
+        root.SetParent(parent, false);
+        root.anchorMin = root.anchorMax = new Vector2(0.5f, 0.5f);
+        root.anchoredPosition = position;
+        root.sizeDelta = size;
+
+        CreateLayer(root, "Base", kind == IconKind.Button ? ButtonBase() : StickBase(), tint,
+            new Vector2(0.5f, 0.5f));
+        RectTransform movingPart = CreateLayer(root, kind == IconKind.Button ? "Cap" : "Handle",
+            kind == IconKind.Button ? ButtonCap() : StickHandle(), tint, new Vector2(0.5f, 0.30f));
+
+        rootObject.AddComponent<ControlIconMotion>().Configure(movingPart, kind == IconKind.Button);
+        return root;
+    }
+
+    private static RectTransform CreateLayer(RectTransform parent, string objectName, Sprite sprite,
+        Color tint, Vector2 pivot)
+    {
+        GameObject layerObject = new GameObject(objectName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        layerObject.layer = parent.gameObject.layer;
+        RectTransform rect = (RectTransform)layerObject.transform;
+        rect.SetParent(parent, false);
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+        rect.pivot = pivot;
+
+        Image image = layerObject.GetComponent<Image>();
+        image.sprite = sprite;
+        image.preserveAspect = true;
+        image.color = tint;
+        image.raycastTarget = false;
+        return rect;
+    }
+
+    private static Sprite StickBase()
+    {
+        if (stickBase != null) return stickBase;
+        const int w = 128, h = 96;
+        float[,] cov = new float[w, h];
+        AddTriangle(cov, w, h, new Vector2(12f, 10f), new Vector2(116f, 10f), new Vector2(103f, 34f));
+        AddTriangle(cov, w, h, new Vector2(12f, 10f), new Vector2(103f, 34f), new Vector2(25f, 34f));
+        stickBase = ToSprite(cov, w, h, "UiIcon_StickBase");
+        return stickBase;
+    }
+
+    private static Sprite StickHandle()
+    {
+        if (stickHandle != null) return stickHandle;
+        const int w = 128, h = 96;
+        float[,] cov = new float[w, h];
+        AddRoundedRect(cov, w, h, new Rect(58f, 29f, 12f, 42f), 6f);
+        AddEllipse(cov, w, h, new Vector2(64f, 76f), 20f, 13f);
+        stickHandle = ToSprite(cov, w, h, "UiIcon_StickHandle");
+        return stickHandle;
+    }
+
+    private static Sprite ButtonBase()
+    {
+        if (buttonBase != null) return buttonBase;
+        const int w = 128, h = 80;
+        float[,] cov = new float[w, h];
+        AddRoundedRect(cov, w, h, new Rect(15f, 10f, 98f, 25f), 10f);
+        buttonBase = ToSprite(cov, w, h, "UiIcon_ButtonBase");
+        return buttonBase;
+    }
+
+    private static Sprite ButtonCap()
+    {
+        if (buttonCap != null) return buttonCap;
+        const int w = 128, h = 80;
+        float[,] cov = new float[w, h];
+        AddEllipse(cov, w, h, new Vector2(64f, 55f), 37f, 17f);
+        buttonCap = ToSprite(cov, w, h, "UiIcon_ButtonCap");
+        return buttonCap;
+    }
 
     // 広い台座・軸・丸ノブで構成する、横から見たスティックのシルエット。
     public static Sprite StickLeftRight()
