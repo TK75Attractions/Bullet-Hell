@@ -369,15 +369,16 @@ public class StageSelectManager : MonoBehaviour
         }
     }
 
-    // 現在カルーセルで選択中のステージが未完成(COMING SOON)で確定不可か。
-    // 姿見(mirror)は endTime=0 の WIP のため確定するとゲームが落ちる。JSAB スタイルは
+    // 現在カルーセルで選択中のステージが調整中(COMING SOON)で確定不可か。
+    // 石工と姿見(mirror)は一時的にプレイ不可。JSAB スタイルは
     // 難易度モーダル側(CanConfirm)でブロックするが、既定スタイル用の保険としても使う。
     private bool IsCurrentStageLocked()
     {
         var sdb = GManager.Control != null ? GManager.Control.SDB : null;
         if (sdb == null || stageBar == null) return false;
         var data = sdb.GetStage(stageBar.currentStage);
-        return data != null && data.stageDirectoryName == "mirror";
+        return data != null
+            && (data.stageDirectoryName == "stone" || data.stageDirectoryName == "mirror");
     }
 
     // プレイ開始遷移: 難易度ボタン群がスライドアウトしてからホワイトアウトで
