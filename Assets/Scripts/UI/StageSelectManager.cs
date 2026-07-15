@@ -408,7 +408,7 @@ public class StageSelectManager : MonoBehaviour
             variableCG.alpha = 0;
             staticCG.alpha = 0;
             if (playHUD != null) playHUD.alpha = 0f;
-            GManager.Control.PController?.ResetToCenter();
+            GManager.Control.PreparePlayersForTutorial();
             SetTutorialEnemiesVisible(false);
             // The player can already move while the tutorial runs on the bare field.
             GManager.Control.state = GManager.GameState.Tutorial;
@@ -416,7 +416,7 @@ public class StageSelectManager : MonoBehaviour
             bool skipPreStage = ShouldSkipPreStageTutorial(stageIndex);
             if (!skipPreStage && tutorialManager != null)
             {
-                await tutorialManager.RunTutorial(GManager.Control.IManager);
+                await tutorialManager.RunTutorial(GManager.Control.IManager, GManager.Control.twoPlayer);
                 await tutorialManager.ShowStartText();
             }
 
@@ -432,7 +432,7 @@ public class StageSelectManager : MonoBehaviour
 
             await ShowPlayHUD(stageIndex);
             // Keep the player's tutorial-end position when the actual stage begins.
-            await GManager.Control.GoGameAsync(stageIndex);
+            await GManager.Control.GoGameAsync(stageIndex, true);
             SetTutorialEnemiesVisible(true);
         }
         else
@@ -444,9 +444,9 @@ public class StageSelectManager : MonoBehaviour
             }
             variableCG.alpha = 0;
             staticCG.alpha = 0;
-            GManager.Control.PController?.ResetToCenter();
+            GManager.Control.PreparePlayersForTutorial();
             await ShowPlayHUD(stageIndex);
-            await GManager.Control.GoGameAsync(stageIndex);
+            await GManager.Control.GoGameAsync(stageIndex, true);
         }
     }
 

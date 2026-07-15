@@ -275,29 +275,58 @@ public class TutorialManager : MonoBehaviour
 
     // Step 1: hold movement, Step 2: dash. Keycaps stay visually stable while
     // pressed; input only advances the tutorial.
-    public async Task RunTutorial(InputManager input)
+    public async Task RunTutorial(InputManager input, bool twoPlayer = false)
     {
         EnsureInit();
-        if (tutorialText == null) return;
+        if (tutorialText == null || input == null) return;
 
-        await ShowTutorialStep("スティックで移動", false);
-        while (!input.upPressed && !input.downPressed && !input.leftPressed && !input.rightPressed)
+        bool p1Complete = false;
+        bool p2Complete = !twoPlayer;
+        string moveMessage = twoPlayer ? "2人ともスティックで移動" : "スティックで移動";
+        await ShowTutorialStep(moveMessage, false);
+        while (!IsTutorialStepComplete(twoPlayer, p1Complete, p2Complete))
         {
+            p1Complete |= input.upPressed || input.downPressed || input.leftPressed || input.rightPressed;
+            p2Complete |= input.p2Up || input.p2Down || input.p2Left || input.p2Right;
+            SetTutorialProgress(moveMessage, twoPlayer, p1Complete, p2Complete);
             await Task.Yield();
             if (this == null) return;
         }
+        SetTutorialProgress(moveMessage, twoPlayer, true, true);
         await CompleteTutorialStep(false);
 
-        // ダッシュは「移動しながらボタンを押す」で成立させる(2026-07-14 要望)。
-        // 静止したままボタンだけでは進まず、移動入力とダッシュボタンの同時成立で次へ。
-        await ShowTutorialStep("移動しながらダッシュ", true);
-        while (!(input.buttonPressedThisFrame &&
-                 (input.upPressed || input.downPressed || input.leftPressed || input.rightPressed)))
+        p1Complete = false;
+        p2Complete = !twoPlayer;
+        string dashMessage = twoPlayer ? "2人とも移動しながらダッシュ" : "移動しながらダッシュ";
+        await ShowTutorialStep(dashMessage, true);
+        while (!IsTutorialStepComplete(twoPlayer, p1Complete, p2Complete))
         {
+            p1Complete |= input.buttonPressedThisFrame &&
+                (input.upPressed || input.downPressed || input.leftPressed || input.rightPressed);
+            p2Complete |= input.p2ButtonPressedThisFrame &&
+                (input.p2Up || input.p2Down || input.p2Left || input.p2Right);
+            SetTutorialProgress(dashMessage, twoPlayer, p1Complete, p2Complete);
             await Task.Yield();
             if (this == null) return;
         }
+        SetTutorialProgress(dashMessage, twoPlayer, true, true);
         await CompleteTutorialStep(true);
+    }
+
+    // 1P では P1 の完了だけ、2P では両者の完了が揃ったときだけ次へ進む。
+    public static bool IsTutorialStepComplete(bool twoPlayer, bool p1Complete, bool p2Complete)
+    {
+        return p1Complete && (!twoPlayer || p2Complete);
+    }
+
+    private void SetTutorialProgress(string message, bool twoPlayer, bool p1Complete, bool p2Complete)
+    {
+        if (tutorialText == null) return;
+        tutorialRect.sizeDelta = new Vector2(410f, twoPlayer ? 120f : 92f);
+        tutorialText.text = twoPlayer
+            ? message + "\n<size=24><color=#FFCC66>1P " + (p1Complete ? "OK" : "--")
+                + "</color>　<color=#73D9FF>2P " + (p2Complete ? "OK" : "--") + "</color></size>"
+            : message;
     }
 
     private async Task ShowTutorialStep(string message, bool dash)

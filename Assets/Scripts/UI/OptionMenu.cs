@@ -90,6 +90,8 @@ public class OptionMenu : MonoBehaviour
     // ポーズ解除(カウントダウン)ではなくタイトルへ戻る動作にする。
     private bool titleContext;
     private System.Action titleResumeRequest;
+    private string quitItemTextOriginal;
+    private bool quitRubyActiveOriginal;
 
     private void EnsureInit()
     {
@@ -130,6 +132,9 @@ public class OptionMenu : MonoBehaviour
         confirmDetail = confirm.Find("ConfirmText2").GetComponent<TMP_Text>();
         yesText = confirm.Find("YesText").GetComponent<TMP_Text>();
         noText = confirm.Find("NoText").GetComponent<TMP_Text>();
+
+        quitItemTextOriginal = items[3] != null ? items[3].text : "プレイを終了";
+        quitRubyActiveOriginal = rubyRects[3] != null && rubyRects[3].gameObject.activeSelf;
 
         Transform on = transform.Find("OnText");
         Transform off = transform.Find("OffText");
@@ -328,10 +333,24 @@ public class OptionMenu : MonoBehaviour
     // タイトル文脈では終了行(row 3: プレイを終了)を丸ごと隠す。
     private void ApplyContextVisibility()
     {
-        bool showQuit = !titleContext;
-        if (items[3] != null) items[3].gameObject.SetActive(showQuit);
-        if (badges[3] != null) badges[3].gameObject.SetActive(showQuit);
-        if (rubyRects[3] != null) rubyRects[3].gameObject.SetActive(showQuit);
+        if (items[3] != null)
+        {
+            items[3].gameObject.SetActive(true);
+            items[3].text = titleContext ? "プレイヤー配置" : quitItemTextOriginal;
+        }
+        if (badges[3] != null) badges[3].gameObject.SetActive(true);
+        if (rubyRects[3] != null)
+            rubyRects[3].gameObject.SetActive(titleContext ? false : quitRubyActiveOriginal);
+        RefreshPlayerSidesLabel();
+    }
+
+    private void RefreshPlayerSidesLabel()
+    {
+        if (!titleContext || items[3] == null) return;
+        bool reversed = GManager.Control != null && GManager.Control.PlayerSidesReversed;
+        items[3].text = reversed
+            ? "プレイヤー配置　P2 左 / P1 右"
+            : "プレイヤー配置　P1 左 / P2 右";
     }
 
     public bool HandleBack()
@@ -381,8 +400,8 @@ public class OptionMenu : MonoBehaviour
         }
         else
         {
-            // タイトル文脈では終了行を隠しているので、選択は row 2 までに留める。
-            int maxIndex = titleContext ? 2 : rowY.Length - 1;
+            // タイトル設定では row 3 をプレイヤー配置として使う。
+            int maxIndex = rowY.Length - 1;
             if (up && index > 0) index--;
             else if (down && index < maxIndex) index++;
 
@@ -404,6 +423,13 @@ public class OptionMenu : MonoBehaviour
                     effectsOn = nextEffectsOn;
                     RefreshEffects();
                 }
+            }
+            else if (index == 3 && titleContext && (leftPress || rightPress || button))
+            {
+                bool current = GManager.Control != null && GManager.Control.PlayerSidesReversed;
+                bool next = leftPress ? false : rightPress ? true : !current;
+                GManager.Control?.SetPlayerSidesReversed(next);
+                RefreshPlayerSidesLabel();
             }
 
             if (button)

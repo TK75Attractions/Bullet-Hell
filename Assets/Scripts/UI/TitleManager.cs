@@ -164,6 +164,8 @@ public class TitleManager : MonoBehaviour
     // メニューの間に独立した「1P | 2P」トグルを置く。既定 1P。P1 の ←/→ で切替。
     // 既存の平行四辺形ボタン様式(menuButtonSprite・19°スラッシュ言語)を流用する。
     private RectTransform playerCountRoot;
+    private RectTransform titleControlGuideRoot;
+
     private readonly Image[] pcSegBars = new Image[2];
     private readonly TMP_Text[] pcSegLabels = new TMP_Text[2];
     private bool pcTwoPlayer = false;
@@ -602,12 +604,16 @@ public class TitleManager : MonoBehaviour
     {
         if (menuRoot != null) menuRoot.gameObject.SetActive(true);
         SetPlayerCountToggleVisible(true);
+        if (titleControlGuideRoot != null) titleControlGuideRoot.gameObject.SetActive(true);
+
     }
 
     public void HideMenu()
     {
         if (menuRoot != null) menuRoot.gameObject.SetActive(false);
         SetPlayerCountToggleVisible(false);
+        if (titleControlGuideRoot != null) titleControlGuideRoot.gameObject.SetActive(false);
+
     }
 
     // Navigate + animate the vertical menu. Selection mirrors DefficultyBox
@@ -849,6 +855,8 @@ public class TitleManager : MonoBehaviour
         }
 
         BuildPlayerCountToggle(rowY.Length > 0 ? rowY[0] : rowCenter + rowGap);
+        BuildTitleControlGuide();
+
     }
 
     // ロゴとメニュー最上段の間に「1P | 2P」トグルを組む。topRowY はメニュー最上段の y。
@@ -972,6 +980,67 @@ public class TitleManager : MonoBehaviour
         hint.raycastTarget = false;
 
         ApplyPlayerCountVisual();
+    }
+
+    // タイトル右下に、筐体操作を常時確認できる簡潔なガイドを置く。
+    private void BuildTitleControlGuide()
+    {
+        if (titleControlGuideRoot != null) return;
+
+        GameObject rootObj = new GameObject("TitleControlGuide", typeof(RectTransform),
+            typeof(CanvasRenderer), typeof(ParallelogramGraphic));
+        rootObj.layer = gameObject.layer;
+        titleControlGuideRoot = (RectTransform)rootObj.transform;
+        titleControlGuideRoot.SetParent(transform, false);
+        titleControlGuideRoot.anchorMin = titleControlGuideRoot.anchorMax = new Vector2(1f, 0f);
+        titleControlGuideRoot.pivot = new Vector2(1f, 0f);
+        titleControlGuideRoot.anchoredPosition = new Vector2(-42f, 34f);
+        titleControlGuideRoot.sizeDelta = new Vector2(530f, 68f);
+
+        ParallelogramGraphic panel = rootObj.GetComponent<ParallelogramGraphic>();
+        panel.color = new Color(0.012f, 0.03f, 0.075f, 0.86f);
+        panel.Slant = 18f;
+        panel.SlantRightEdge = true;
+        panel.raycastTarget = false;
+
+        AddTitleGuideIcon("Stick", UiIconFactory.StickLeftRight(), new Vector2(-192f, 0f), new Vector2(78f, 44f));
+        TMP_Text select = CreateText("SelectLabel", titleControlGuideRoot,
+            new Vector2(-112f, -1f), new Vector2(102f, 44f), 25f,
+            new Color(0.86f, 0.93f, 1f, 0.96f), TextAlignmentOptions.MidlineLeft);
+        select.text = "で選択";
+
+        GameObject divider = new GameObject("Divider", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        divider.layer = gameObject.layer;
+        RectTransform dividerRect = (RectTransform)divider.transform;
+        dividerRect.SetParent(titleControlGuideRoot, false);
+        dividerRect.anchorMin = dividerRect.anchorMax = new Vector2(0.5f, 0.5f);
+        dividerRect.anchoredPosition = new Vector2(-38f, 0f);
+        dividerRect.sizeDelta = new Vector2(2f, 34f);
+        Image dividerImage = divider.GetComponent<Image>();
+        dividerImage.color = new Color(0.22f, 0.76f, 0.88f, 0.52f);
+        dividerImage.raycastTarget = false;
+
+        AddTitleGuideIcon("ConfirmButton", UiIconFactory.Button(), new Vector2(25f, 0f), new Vector2(48f, 48f));
+        TMP_Text confirm = CreateText("ConfirmLabel", titleControlGuideRoot,
+            new Vector2(96f, -1f), new Vector2(112f, 44f), 25f,
+            new Color(0.86f, 0.93f, 1f, 0.96f), TextAlignmentOptions.MidlineLeft);
+        confirm.text = "で決定";
+    }
+
+    private void AddTitleGuideIcon(string objectName, Sprite sprite, Vector2 position, Vector2 size)
+    {
+        GameObject go = new GameObject(objectName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        go.layer = gameObject.layer;
+        RectTransform rect = (RectTransform)go.transform;
+        rect.SetParent(titleControlGuideRoot, false);
+        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = position;
+        rect.sizeDelta = size;
+        Image image = go.GetComponent<Image>();
+        image.sprite = sprite;
+        image.preserveAspect = true;
+        image.color = new Color(0.56f, 0.87f, 1f, 0.98f);
+        image.raycastTarget = false;
     }
 
     // トグルの選択状態を見た目に反映(選択セグメント=白/明、非選択=灰/沈む)。

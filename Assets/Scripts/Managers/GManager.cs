@@ -58,6 +58,13 @@ public class GManager : MonoBehaviour
     // タイトルで選択される人数。false=1 人(既定)、true=2 人。1P モードは完全に従来どおり。
     public bool twoPlayer = false;
 
+    private const string PlayerSidesReversedPrefsKey = "players.sidesReversed";
+    private const float TwoPlayerLeftX = 14f;
+    private const float TwoPlayerRightX = 18f;
+    private const float PlayerStartY = 3f;
+    [SerializeField] private bool playerSidesReversed = false;
+    public bool PlayerSidesReversed => playerSidesReversed;
+
     public InputManager IManager;
     public StageReader SReader;
     public AudioManager AManager;
@@ -300,6 +307,9 @@ public class GManager : MonoBehaviour
     private void OnEnable()
     {
         if (Control == null) Control = this;
+        playerSidesReversed = PlayerPrefs.GetInt(
+                PlayerSidesReversedPrefsKey, playerSidesReversed ? 1 : 0) != 0;
+
     }
 
     public void Update()
@@ -356,9 +366,9 @@ public class GManager : MonoBehaviour
             // The player can also move during the pre-stage tutorial.
             if (state == GameState.Playing || state == GameState.Tutorial) PController.UpdatePos(t);
         }
-        // 2P: 2 人プレイ時のみ P2 も動かす(チュートリアルは 1P のみ対応の設計)。
+        // 2P: プレイ中だけでなく、両者の操作確認を行うチュートリアル中も P2 を動かす。
         if (twoPlayer && PController2 != null && player2Obj != null && player2Obj.activeSelf
-            && state == GameState.Playing)
+            && (state == GameState.Playing || state == GameState.Tutorial))
         {
             PController2.UpdatePos(t);
         }
@@ -720,7 +730,6 @@ public class GManager : MonoBehaviour
         }
     }
 
-
     public float GetAngleDeg(float x, float y)
     {
         double rad = Math.Atan2(y, x);
@@ -735,7 +744,7 @@ public class GManager : MonoBehaviour
         await GoGameAsync(index);
     }
 
-    public async Task GoGameAsync(int index)
+    public async Task GoGameAsync(int index, bool preservePlayerPositions = false)
     {
         StageData stage = SDB.GetStage(index);
         if (stage == null)
@@ -757,12 +766,13 @@ public class GManager : MonoBehaviour
         playerHitCount2 = 0;
         counterHitBossCount = 0;
         QOrder?.ClearManagedEnemyDanmaku();
-        PController?.ResetToCenter();
-        // 2P: 2 人プレイならこのステージで P2 を出す。1 人なら確実に隠す。
-        if (player2Obj != null)
+        if (!preservePlayerPositions)
+        {
+            PreparePlayersForStageStart();
+        }
+        else if (player2Obj != null)
         {
             player2Obj.SetActive(twoPlayer);
-            if (twoPlayer) PController2?.ResetToCenter();
         }
         TManager?.Dismiss();
         HideTitleBossBackdrop();
@@ -930,7 +940,6 @@ public class GManager : MonoBehaviour
         resultTransitioning = false;
     }
 
-
     // Opens/closes the pause (option) screen. Freezes game time and all audio.
     public void SetPaused(bool pause)
     {
@@ -1024,6 +1033,41 @@ public class GManager : MonoBehaviour
         if (IManager != null) IManager.twoPlayerMode = two;
         // 履歴/引き継ぎコードもモード別枠に切り替える(1P と 2P を混ぜない)。
         PlayHistory.TwoPlayerMode = two;
+    }
+
+    // 2P のチュートリアルと通常開始で共用する左右対称の開始配置。
+    public void PreparePlayersForStageStart()
+    {
+        if (twoPlayer)
+        {
+            PController?.ResetForStageAt(GetPlayerStartPosition(0, playerSidesReversed));
+            if (player2Obj != null) player2Obj.SetActive(true);
+            PController2?.ResetForStageAt(GetPlayerStartPosition(1, playerSidesReversed));
+        }
+        else
+        {
+            PController?.ResetForStageAt(new float2(16f, PlayerStartY));
+            if (player2Obj != null) player2Obj.SetActive(false);
+        }
+    }
+
+    public void PreparePlayersForTutorial()
+    {
+        PreparePlayersForStageStart();
+    }
+
+    public static float2 GetPlayerStartPosition(int playerIndex, bool reversed)
+    {
+        bool goesRight = (playerIndex == 1) != reversed;
+        return new float2(goesRight ? TwoPlayerRightX : TwoPlayerLeftX, PlayerStartY);
+    }
+
+    public void SetPlayerSidesReversed(bool reversed)
+    {
+        if (playerSidesReversed == reversed) return;
+        playerSidesReversed = reversed;
+        PlayerPrefs.SetInt(PlayerSidesReversedPrefsKey, reversed ? 1 : 0);
+        PlayerPrefs.Save();
     }
 
     public void AddCounterHitBossCount(int value = 1)

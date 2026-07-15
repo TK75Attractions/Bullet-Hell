@@ -294,11 +294,17 @@ public class PlayerController
 
     public void ResetForStage()
     {
-        pos = initialPos;
+        ResetForStageAt(initialPos);
+    }
+
+    // 2P の左右配置を切り替えるときに、プレイヤーごとの開始位置へリセットする。
+    // 1P の ResetForStage は従来どおり Init 時の initialPos を使う。
+    public void ResetForStageAt(float2 startPosition)
+    {
+        pos = startPosition;
         velocity = float2.zero;
         hitInvincibleTimer = 0f;
         dash = -dashCooldown * 1.4f;
-        // 白ベース(=スプライト本来色)へ。SetMainColor/SetSpellColor 経由でデバッグ透過も反映。
         SetMainColor(Color.white);
         visual?.ResetAnimation();
         SetSpellColor(Color.clear);

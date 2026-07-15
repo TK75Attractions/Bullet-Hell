@@ -170,6 +170,8 @@ public sealed class ResultScreen : MonoBehaviour
     private bool twoPlayerLayoutApplied;   // 一度でも 2P 上書きしたら真(1P 復元の要否判定)
     private int finalScore2;
     private int finalHit2;
+    private bool twoPlayerSidesReversed;
+
     private TMP_Text rankText2;        // P2 のランク字(既定は非アクティブ)
     private Material rankGlowMat2;
     private TMP_Text p1RankTag;        // 「1P」見出し(ランク上)
@@ -1156,22 +1158,26 @@ public sealed class ResultScreen : MonoBehaviour
         twoPlayerLayoutApplied = true;
         finalScore2 = CalculateProvisionalScore(cleared, hit2, counterCount, elapsedSeconds, endSeconds);
         finalHit2 = Mathf.Max(0, hit2);
+        twoPlayerSidesReversed = GManager.Control != null && GManager.Control.PlayerSidesReversed;
+        bool p1OnLeft = PlayerIndexForResultSide(false, twoPlayerSidesReversed) == 0;
 
         // --- 中央: 2 人分のランク(P1=左へ縮小移動 / P2=右) ---
         // oracle 指摘: A/B が近接+同色で「AB」という 1 語に見える。各字を一段縮小し
         // 左右へ広げて中央に明確な空きを作り、1P/2P タグとの所属関係を強める。
         string rank1 = EvaluateRank(cleared, hit1, difficulty);
         string rank2 = EvaluateRank(cleared, hit2, difficulty);
-        const float rankScale = 0.56f;
-        const float rankOffset = 225f;
-        rankText.text = rank1;
-        rankText.rectTransform.anchoredPosition = new Vector2(-rankOffset + (rank1 == "F" ? 8f : 0f), 23f);
+        const float rankScale = 0.22f;
+        const float rankOffset = 130f;
+        string leftRank = p1OnLeft ? rank1 : rank2;
+        string rightRank = p1OnLeft ? rank2 : rank1;
+        rankText.text = leftRank;
+        rankText.rectTransform.anchoredPosition = new Vector2(-rankOffset + (leftRank == "F" ? 4f : 0f), -6f);
         rankText.rectTransform.localScale = new Vector3(1.09f * rankScale, rankScale, 1f);
         if (rankText2 != null)
         {
             rankText2.gameObject.SetActive(true);
-            rankText2.text = rank2;
-            rankText2.rectTransform.anchoredPosition = new Vector2(rankOffset + (rank2 == "F" ? 8f : 0f), 23f);
+            rankText2.text = rightRank;
+            rankText2.rectTransform.anchoredPosition = new Vector2(rankOffset + (rightRank == "F" ? 4f : 0f), -6f);
             rankText2.rectTransform.localScale = new Vector3(1.09f * rankScale, rankScale, 1f);
             rankText2.color = cleared ? Color.white : new Color(1f, 0.52f, 0.65f, 1f);
             rankText2.outlineColor = cleared
@@ -1182,14 +1188,24 @@ public sealed class ResultScreen : MonoBehaviour
         }
         if (p1RankTag != null) p1RankTag.gameObject.SetActive(true);
         if (p2RankTag != null) p2RankTag.gameObject.SetActive(true);
+        if (p1RankTag != null)
+        {
+            p1RankTag.fontSize = 30f;
+            ((RectTransform)p1RankTag.transform).anchoredPosition =
+                new Vector2(p1OnLeft ? -rankOffset : rankOffset, 58f);
+        }
+        if (p2RankTag != null)
+        {
+            p2RankTag.fontSize = 30f;
+            ((RectTransform)p2RankTag.transform).anchoredPosition =
+                new Vector2(p1OnLeft ? rankOffset : -rankOffset, 58f);
+        }
 
         // --- 左右カードの再ラベル+アイコン(左列=P1 / 右列=P2) ---
         // カードは物理的に流用するため、ラベルに合うアイコン(スコア=照準/被弾=盾)へ
         // 差し替える(既定のカウンター=双剣・時間=時計のままだと不一致になる)。
-        SetStatLabel(0, "#FFCC66", "P1", "スコア", "SCORE");   // 左上
-        SetStatLabel(2, "#FFCC66", "P1", "被弾", "HIT");       // 左下
-        SetStatLabel(1, "#73D9FF", "P2", "スコア", "SCORE");   // 右上
-        SetStatLabel(3, "#73D9FF", "P2", "被弾", "HIT");       // 右下
+        SetTwoPlayerColumnLabels(0, 2, p1OnLeft ? 0 : 1);
+        SetTwoPlayerColumnLabels(1, 3, p1OnLeft ? 1 : 0);
         SetCardIcon(0, StatIcon.Crosshair);
         SetCardIcon(2, StatIcon.Shield);
         SetCardIcon(1, StatIcon.Crosshair);
@@ -1201,18 +1217,22 @@ public sealed class ResultScreen : MonoBehaviour
         // 位置)と実位置の両方を更新し、符号=スライド方向は保持する。値は screenshot 実測で調整。
         // 2026-07-14 追記: ±430/±418 でも実機ではまだ左右に寄りすぎとの指摘。カード内側端が
         // 中央から 120-160px の距離に収まる ±300/±290 へさらに詰める(元 ±515 比で -215/-210)。
-        const float twoPTopX = 300f;    // 上段カード(スコア)。元 ±515 → 中央へ 215px(前回 ±430)
-        const float twoPBottomX = 290f; // 下段カード(被弾)。元 ±500 → 中央へ 210px(前回 ±418)
+        const float twoPTopX = 390f;
+        const float twoPBottomX = 380f;
         SetTwoPlayerCardX(0, -twoPTopX);    // P1 スコア(左上)
         SetTwoPlayerCardX(2, -twoPBottomX); // P1 被弾(左下)
         SetTwoPlayerCardX(1, twoPTopX);     // P2 スコア(右上)
         SetTwoPlayerCardX(3, twoPBottomX);  // P2 被弾(右下)
 
         // --- 値の即時反映(カウントアップの最終状態と一致させる) ---
-        scoreText.text = Mathf.Max(0, score1).ToString("N0");
-        counterText.text = Mathf.Max(0, hit1).ToString("00");
-        hitText.text = finalScore2.ToString("N0");
-        timeText.text = finalHit2.ToString("00");
+        int leftScore = p1OnLeft ? Mathf.Max(0, score1) : finalScore2;
+        int leftHit = p1OnLeft ? Mathf.Max(0, hit1) : finalHit2;
+        int rightScore = p1OnLeft ? finalScore2 : Mathf.Max(0, score1);
+        int rightHit = p1OnLeft ? finalHit2 : Mathf.Max(0, hit1);
+        scoreText.text = leftScore.ToString("N0");
+        counterText.text = leftHit.ToString("00");
+        hitText.text = rightScore.ToString("N0");
+        timeText.text = rightHit.ToString("00");
     }
 
     // 2P: カードの水平位置を中央寄せへ動かす(入場アニメの静止位置 cardHomes と実位置の
@@ -1224,6 +1244,20 @@ public sealed class ResultScreen : MonoBehaviour
         Vector2 pos = cardRects[idx].anchoredPosition;
         pos.x = x;
         cardRects[idx].anchoredPosition = pos;
+    }
+
+    public static int PlayerIndexForResultSide(bool rightSide, bool reversed)
+    {
+        return (rightSide ? 1 : 0) ^ (reversed ? 1 : 0);
+    }
+
+    private void SetTwoPlayerColumnLabels(int topIndex, int bottomIndex, int playerIndex)
+    {
+        bool p1 = playerIndex == 0;
+        string tone = p1 ? "#FFCC66" : "#73D9FF";
+        string tag = p1 ? "P1" : "P2";
+        SetStatLabel(topIndex, tone, tag, "スコア", "SCORE");
+        SetStatLabel(bottomIndex, tone, tag, "被弾", "HIT");
     }
 
     // カードラベルを「<tag> <jp>\n<en>」形式へ差し替え、対応するルビを隠す。
@@ -1381,10 +1415,14 @@ public sealed class ResultScreen : MonoBehaviour
         {
             // 左列=P1(score/hit) / 右列=P2(score/hit)。カード割当:
             // scoreText=P1スコア, counterText=P1被弾, hitText=P2スコア, timeText=P2被弾。
-            scoreText.text = Mathf.RoundToInt(finalScore * ne).ToString("N0");
-            counterText.text = Mathf.RoundToInt(finalHit * ne).ToString("00");
-            hitText.text = Mathf.RoundToInt(finalScore2 * ne).ToString("N0");
-            timeText.text = Mathf.RoundToInt(finalHit2 * ne).ToString("00");
+            int leftScore = twoPlayerSidesReversed ? finalScore2 : finalScore;
+            int leftHit = twoPlayerSidesReversed ? finalHit2 : finalHit;
+            int rightScore = twoPlayerSidesReversed ? finalScore : finalScore2;
+            int rightHit = twoPlayerSidesReversed ? finalHit : finalHit2;
+            scoreText.text = Mathf.RoundToInt(leftScore * ne).ToString("N0");
+            counterText.text = Mathf.RoundToInt(leftHit * ne).ToString("00");
+            hitText.text = Mathf.RoundToInt(rightScore * ne).ToString("N0");
+            timeText.text = Mathf.RoundToInt(rightHit * ne).ToString("00");
         }
         else
         {
