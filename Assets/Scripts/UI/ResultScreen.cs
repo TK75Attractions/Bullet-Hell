@@ -1161,13 +1161,12 @@ public sealed class ResultScreen : MonoBehaviour
         twoPlayerSidesReversed = GManager.Control != null && GManager.Control.PlayerSidesReversed;
         bool p1OnLeft = PlayerIndexForResultSide(false, twoPlayerSidesReversed) == 0;
 
-        // --- 中央: 2 人分のランク(P1=左へ縮小移動 / P2=右) ---
-        // oracle 指摘: A/B が近接+同色で「AB」という 1 語に見える。各字を一段縮小し
-        // 左右へ広げて中央に明確な空きを作り、1P/2P タグとの所属関係を強める。
+        // --- 中央: 2 人分のランク(P1=左 / P2=右) ---
+        // ランクを十分な大きさに保ちながら左右へ分け、1P/2P タグとの所属関係を示す。
         string rank1 = EvaluateRank(cleared, hit1, difficulty);
         string rank2 = EvaluateRank(cleared, hit2, difficulty);
-        const float rankScale = 0.22f;
-        const float rankOffset = 130f;
+        const float rankScale = 0.34f;
+        const float rankOffset = 110f;
         string leftRank = p1OnLeft ? rank1 : rank2;
         string rightRank = p1OnLeft ? rank2 : rank1;
         rankText.text = leftRank;
@@ -1190,15 +1189,15 @@ public sealed class ResultScreen : MonoBehaviour
         if (p2RankTag != null) p2RankTag.gameObject.SetActive(true);
         if (p1RankTag != null)
         {
-            p1RankTag.fontSize = 30f;
+            p1RankTag.fontSize = 32f;
             ((RectTransform)p1RankTag.transform).anchoredPosition =
-                new Vector2(p1OnLeft ? -rankOffset : rankOffset, 58f);
+                new Vector2(p1OnLeft ? -rankOffset : rankOffset, 108f);
         }
         if (p2RankTag != null)
         {
-            p2RankTag.fontSize = 30f;
+            p2RankTag.fontSize = 32f;
             ((RectTransform)p2RankTag.transform).anchoredPosition =
-                new Vector2(p1OnLeft ? rankOffset : -rankOffset, 58f);
+                new Vector2(p1OnLeft ? rankOffset : -rankOffset, 108f);
         }
 
         // --- 左右カードの再ラベル+アイコン(左列=P1 / 右列=P2) ---
@@ -1211,14 +1210,10 @@ public sealed class ResultScreen : MonoBehaviour
         SetCardIcon(1, StatIcon.Crosshair);
         SetCardIcon(3, StatIcon.Shield);
 
-        // --- 2P はスコア/被弾カードを中央寄せへ再配置(2026-07-14 指摘「もっと中央寄せに」) ---
-        // 1P は BuildStats の ±515/±500 を保持(この分岐は 1P で呼ばれない)。左右列を中央側へ
-        // 寄せることで中央の 2 ランクとカード群の間の余白を詰める。cardHomes(入場アニメの静止
-        // 位置)と実位置の両方を更新し、符号=スライド方向は保持する。値は screenshot 実測で調整。
-        // 2026-07-14 追記: ±430/±418 でも実機ではまだ左右に寄りすぎとの指摘。カード内側端が
-        // 中央から 120-160px の距離に収まる ±300/±290 へさらに詰める(元 ±515 比で -215/-210)。
-        const float twoPTopX = 390f;
-        const float twoPBottomX = 380f;
+        // --- 2P はスコア/被弾カードを左右へ再配置 ---
+        // 中央のランク枠と重ならないよう、1P と同じ外側の基準位置を使う。
+        const float twoPTopX = 515f;
+        const float twoPBottomX = 500f;
         SetTwoPlayerCardX(0, -twoPTopX);    // P1 スコア(左上)
         SetTwoPlayerCardX(2, -twoPBottomX); // P1 被弾(左下)
         SetTwoPlayerCardX(1, twoPTopX);     // P2 スコア(右上)
@@ -1235,7 +1230,7 @@ public sealed class ResultScreen : MonoBehaviour
         timeText.text = rightHit.ToString("00");
     }
 
-    // 2P: カードの水平位置を中央寄せへ動かす(入場アニメの静止位置 cardHomes と実位置の
+    // 2P: カードの水平位置を調整する(入場アニメの静止位置 cardHomes と実位置の
     // 両方を更新)。符号=スライド方向は保持されるため x の符号は呼び出し側で維持する。
     private void SetTwoPlayerCardX(int idx, float x)
     {

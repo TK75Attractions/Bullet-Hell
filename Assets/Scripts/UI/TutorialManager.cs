@@ -282,7 +282,7 @@ public class TutorialManager : MonoBehaviour
 
         bool p1Complete = false;
         bool p2Complete = !twoPlayer;
-        string moveMessage = twoPlayer ? "2人ともスティックで移動" : "スティックで移動";
+        string moveMessage = twoPlayer ? "P1 / P2  スティックで移動" : "スティックで移動";
         await ShowTutorialStep(moveMessage, false);
         while (!IsTutorialStepComplete(twoPlayer, p1Complete, p2Complete))
         {
@@ -297,7 +297,7 @@ public class TutorialManager : MonoBehaviour
 
         p1Complete = false;
         p2Complete = !twoPlayer;
-        string dashMessage = twoPlayer ? "2人とも移動しながらダッシュ" : "移動しながらダッシュ";
+        string dashMessage = twoPlayer ? "P1 / P2  移動しながらダッシュ" : "移動しながらダッシュ";
         await ShowTutorialStep(dashMessage, true);
         while (!IsTutorialStepComplete(twoPlayer, p1Complete, p2Complete))
         {
