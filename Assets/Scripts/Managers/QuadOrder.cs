@@ -450,10 +450,15 @@ public class QuadOrder : MonoBehaviour
             for (int i = 0; i < enemyBullets.Length; i++)
             {
                 BulletData bullet = enemyBullets[i];
-                if (!bullet.isActive || bullet.isClearing) continue;
+                if (!ShouldRegisterBulletForCollision(bullet)) continue;
                 RegisterBulletToCollisionCells(bullet);
             }
         }
+    }
+
+    public static bool ShouldRegisterBulletForCollision(BulletData bullet)
+    {
+        return bullet.isActive && !bullet.isClearing && bullet.appearTime <= bullet.time;
     }
 
     private void RegisterBulletToCollisionCells(BulletData bullet)
