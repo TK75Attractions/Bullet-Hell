@@ -329,27 +329,19 @@ public class OptionMenu : MonoBehaviour
     }
 
     // タイトル文脈では終了行(row 3: プレイを終了)を丸ごと隠す。
+    // プレイヤー左右入れ替えはデバッグ用のため、通常の設定画面には露出させない。
     private void ApplyContextVisibility()
     {
         if (items[3] != null)
         {
-            items[3].gameObject.SetActive(true);
-            items[3].text = titleContext ? "プレイヤー配置" : quitItemTextOriginal;
+            items[3].gameObject.SetActive(!titleContext);
+            items[3].text = quitItemTextOriginal;
         }
-        if (badges[3] != null) badges[3].gameObject.SetActive(true);
+        if (badges[3] != null) badges[3].gameObject.SetActive(!titleContext);
         if (rubyRects[3] != null)
-            rubyRects[3].gameObject.SetActive(titleContext ? false : quitRubyActiveOriginal);
-        RefreshPlayerSidesLabel();
+            rubyRects[3].gameObject.SetActive(!titleContext && quitRubyActiveOriginal);
     }
 
-    private void RefreshPlayerSidesLabel()
-    {
-        if (!titleContext || items[3] == null) return;
-        bool reversed = GManager.Control != null && GManager.Control.PlayerSidesReversed;
-        items[3].text = reversed
-            ? "プレイヤー配置　P2 左 / P1 右"
-            : "プレイヤー配置　P1 左 / P2 右";
-    }
 
     public bool HandleBack()
     {
@@ -398,8 +390,7 @@ public class OptionMenu : MonoBehaviour
         }
         else
         {
-            // タイトル設定では row 3 をプレイヤー配置として使う。
-            int maxIndex = rowY.Length - 1;
+            int maxIndex = titleContext ? rowY.Length - 2 : rowY.Length - 1;
             if (up && index > 0) index--;
             else if (down && index < maxIndex) index++;
 
@@ -421,13 +412,6 @@ public class OptionMenu : MonoBehaviour
                     effectsOn = nextEffectsOn;
                     RefreshEffects();
                 }
-            }
-            else if (index == 3 && titleContext && (leftPress || rightPress || button))
-            {
-                bool current = GManager.Control != null && GManager.Control.PlayerSidesReversed;
-                bool next = leftPress ? false : rightPress ? true : !current;
-                GManager.Control?.SetPlayerSidesReversed(next);
-                RefreshPlayerSidesLabel();
             }
 
             if (button)
