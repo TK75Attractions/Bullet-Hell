@@ -24,8 +24,11 @@ public class RankingStoreTests
     {
         filePath = Path.Combine(Application.persistentDataPath, "ranking.v1.json");
         hadFile = File.Exists(filePath);
-        if (hadFile) backupBytes = File.ReadAllBytes(filePath);
-        else if (File.Exists(filePath)) File.Delete(filePath);
+        if (hadFile)
+        {
+            backupBytes = File.ReadAllBytes(filePath);
+            File.Delete(filePath); // 退避後に実ファイルを消してテストを空状態から開始させる(TearDownで復元)
+        }
         ResetCache();
 
         tempFolder = Path.Combine(Application.temporaryCachePath, "ranking_test_" + Guid.NewGuid().ToString("N"));
