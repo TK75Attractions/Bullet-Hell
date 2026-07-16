@@ -566,6 +566,26 @@ public class InputManager : MonoBehaviour
         up = u; down = d; left = l; right = r;
     }
 
+    // 方向シーケンス入力(引き継ぎコード欄・ランキングイニシャル欄の桁移動等)向け。
+    // this-frame edge(upEdge 等)が来ても、直前の登録から cooldownSeconds 経過して
+    // いなければ無視する(SPEC「連続入力防止に150ms程度のリピート抑制」)。
+    // 純粋関数(EditModeテスト用)。同時押しの優先順位は 上>下>左>右。
+    // cooldownRemaining は毎フレーム dt 分だけ減算し、呼び出し側が値を保持する。
+    public static int TryConsumeDirection(bool upEdge, bool downEdge, bool leftEdge, bool rightEdge,
+        float dt, ref float cooldownRemaining)
+    {
+        cooldownRemaining = Mathf.Max(0f, cooldownRemaining - dt);
+        if (cooldownRemaining > 0f) return -1;
+
+        int digit = upEdge ? 0 : downEdge ? 1 : leftEdge ? 2 : rightEdge ? 3 : -1;
+        if (digit < 0) return -1;
+
+        cooldownRemaining = DirectionConsumeCooldownSeconds;
+        return digit;
+    }
+
+    public const float DirectionConsumeCooldownSeconds = 0.15f;
+
     private void LoadOrientationPrefs()
     {
         if (orientationLoaded)
