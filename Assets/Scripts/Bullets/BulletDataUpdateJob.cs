@@ -17,6 +17,7 @@ public struct BulletDataUpdateJob : IJobParallelFor
     public void Execute(int index)
     {
         BulletData bullet = bullets[index];
+        if (bullet.HasV2Motion) return; // v2 レーンの弾は BulletV2UpdateJob が専任で処理する
         if (!bullet.isActive && !bullet.isClearing) return;
         bullet.time += dt;
         if (bullet.warpCooldown > 0f)

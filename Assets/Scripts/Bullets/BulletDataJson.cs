@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -39,6 +41,11 @@ public class BulletDataJson
     public bool ignoreOutOfBoundsCulling;
     public bool unCounterable;
 
+    // --- v2 運動レーン(SPEC-RUNTIME-V2.md P1)。全フィールド省略可、既定は従来レーン。 ---
+    public List<BulletV2SegmentJson> segments;
+    public float homingTurnRate;
+    public float homingDuration;
+
     public BulletData ToBulletData()
     {
         float2 resolvedScale = new float2(scale.x, scale.y);
@@ -47,8 +54,13 @@ public class BulletDataJson
             resolvedScale = new float2(1f, 1f);
         }
 
+        FixedList128Bytes<BulletV2Segment> resolvedSegments = ResolveV2Segments(segments);
+
         BulletData b = new BulletData
         {
+            v2Segments = resolvedSegments,
+            homingTurnRate = this.homingTurnRate,
+            homingDuration = this.homingDuration,
             originPos = new float2(this.originPos.x, this.originPos.y),
             originVlc = new float2(this.originVlc.x, this.originVlc.y),
             playerInfluence = new float2(this.playerInfluence.x, this.playerInfluence.y),
@@ -80,5 +92,27 @@ public class BulletDataJson
         };
         b.ResetTrajectoryState(syncPosition: true);
         return b;
+    }
+
+    private static FixedList128Bytes<BulletV2Segment> ResolveV2Segments(List<BulletV2SegmentJson> source)
+    {
+        FixedList128Bytes<BulletV2Segment> result = default;
+        if (source == null || source.Count == 0) return result;
+
+        int capacity = result.Capacity;
+        int count = source.Count;
+        if (count > capacity)
+        {
+            Debug.LogWarning($"BulletDataJson: v2 segments count {count} exceeds capacity {capacity}; truncating.");
+            count = capacity;
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            if (source[i] == null) continue;
+            result.Add(source[i].ToSegment());
+        }
+
+        return result;
     }
 }
