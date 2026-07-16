@@ -174,14 +174,22 @@ public static class RankingStore
 
     // 現在の全エントリを1ファイルへ書き出す(差分でなく全件。和集合マージなので
     // 何度読み込んでも冪等)。戻り値は書き出したファイルパス(失敗時は null)。
+    // ファイル名はミリ秒まで含めるが、それでも同名になった場合は連番を足して
+    // 既存ファイルを上書きしない(同一秒内に連続エクスポートしても取りこぼさない)。
     public static string ExportToFile(string destinationFolder)
     {
         Load();
         try
         {
             Directory.CreateDirectory(destinationFolder);
-            string fileName = $"{ExportPrefix}{CabinetId}-{DateTime.Now:yyyyMMdd-HHmmss}.json";
-            string path = Path.Combine(destinationFolder, fileName);
+            string baseName = $"{ExportPrefix}{CabinetId}-{DateTime.Now:yyyyMMdd-HHmmss-fff}";
+            string path = Path.Combine(destinationFolder, baseName + ".json");
+            int suffix = 1;
+            while (File.Exists(path))
+            {
+                path = Path.Combine(destinationFolder, $"{baseName}-{suffix}.json");
+                suffix++;
+            }
             FileModel model = new FileModel { entries = cache };
             File.WriteAllText(path, JsonUtility.ToJson(model, true));
             return path;
