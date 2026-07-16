@@ -67,6 +67,9 @@ public class StageData
 
     public List<BulletSpawner> bulletSpawners = new List<BulletSpawner>();
 
+    // v2 ステージイベントチャンネル(SPEC-RUNTIME-V2.md P1-c)。省略可・弾データに影響しない。
+    public List<StageEventSpawn> stageEvents = new List<StageEventSpawn>();
+
     [NonSerialized] public DifficultySelection requestedDifficulty;
     [NonSerialized] public DifficultySelection activeDifficulty;
     [NonSerialized] public DifficultySelection resolvedDataDifficulty;
@@ -115,7 +118,8 @@ public class StageData
                 : CloneBossSpawners(bossSpawners),
             bulletSpawners = selectedDifficulty != null
                 ? CloneBulletSpawners(selectedDifficulty.bulletSpawners)
-                : CloneBulletSpawners(bulletSpawners)
+                : CloneBulletSpawners(bulletSpawners),
+            stageEvents = CloneStageEvents(stageEvents)
         };
 
         return runtimeData;
@@ -413,6 +417,11 @@ public class StageData
     public static List<BulletSpawner> CloneBulletSpawners(List<BulletSpawner> source)
     {
         return source != null ? new List<BulletSpawner>(source) : new List<BulletSpawner>();
+    }
+
+    public static List<StageEventSpawn> CloneStageEvents(List<StageEventSpawn> source)
+    {
+        return source != null ? new List<StageEventSpawn>(source) : new List<StageEventSpawn>();
     }
 
     private static BulletBufferEmission CloneBulletBufferEmission(BulletBufferEmission source)
