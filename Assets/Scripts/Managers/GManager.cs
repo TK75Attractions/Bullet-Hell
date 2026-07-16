@@ -89,7 +89,7 @@ public class GManager : MonoBehaviour
     // Which layer of the title screen currently owns input.
     // Starting はスタート決定後、タイトル退場演出がステージ選択に覆われる
     // までの待ち(入力は消費し、時間経過で ChoosingStage へ切り替える)。
-    private enum TitlePhase { Menu, Options, Transfer, Starting }
+    private enum TitlePhase { Menu, Options, Transfer, Ranking, Starting }
     private TitlePhase titlePhase = TitlePhase.Menu;
     private float titleStartTimer;
     private int optionScreenSiblingIndex = -1;
@@ -529,6 +529,10 @@ public class GManager : MonoBehaviour
                 UpdateTitleTransfer();
                 return true;
 
+            case TitlePhase.Ranking:
+                UpdateTitleRanking();
+                return true;
+
             case TitlePhase.Starting:
                 // タイトル退場演出中。覆いどきが来たらステージ選択を重ねて出す
                 // (演出の残りは選択画面のフェードインと交差して続く)。
@@ -588,6 +592,10 @@ public class GManager : MonoBehaviour
                         case TitleManager.TitleMenuAction.Transfer:
                             titlePhase = TitlePhase.Transfer;
                             TManager?.OpenTransfer();
+                            return true;
+                        case TitleManager.TitleMenuAction.Ranking:
+                            titlePhase = TitlePhase.Ranking;
+                            TManager?.OpenRanking();
                             return true;
                     }
                 }
@@ -678,32 +686,41 @@ public class GManager : MonoBehaviour
         }
     }
 
+    // 方向シーケンス入力(SPEC §1)。B は TitleManager 側で短押し(1文字削除)/
+    // 長押し(0.6s・画面を閉じる)を判定するため、backPressedThisFrame ではなく
+    // backPressed(レベル)を渡す。戻り値 true は長押し完了=タイトルへ戻る合図。
     private void UpdateTitleTransfer()
     {
-        TManager?.TickTransfer();
-
-        if (IManager.backPressedThisFrame)
+        if (TManager == null) return;
+        bool close = TManager.TickTransferInput(Time.unscaledDeltaTime,
+            IManager.upPressedThisFrame, IManager.downPressedThisFrame,
+            IManager.leftPressedThisFrame, IManager.rightPressedThisFrame,
+            IManager.buttonPressedThisFrame, IManager.backPressed);
+        if (close)
         {
-            TManager?.CloseTransfer();
+            TManager.CloseTransfer();
             titlePhase = TitlePhase.Menu;
             // Same re-arming guard as the option screen: swallow the dismiss input
             // so it cannot immediately trigger a menu item.
             titleArmed = false;
-            TManager?.ShowMenu();
-            return;
+            TManager.ShowMenu();
         }
+    }
 
-        // CTRL+C: 発行済みコードをコピー(入力欄のフォーカスと衝突しないキー)。
-        Keyboard kb = Keyboard.current;
-        if (kb != null && (kb.leftCtrlKey.isPressed || kb.rightCtrlKey.isPressed) && kb.cKey.wasPressedThisFrame)
+    // ランキング盤面(SPEC §2.2)。B(edge)で戻る。
+    private void UpdateTitleRanking()
+    {
+        if (TManager == null) return;
+        bool close = TManager.TickRankingInput(
+            IManager.leftPressedThisFrame, IManager.rightPressedThisFrame,
+            IManager.upPressedThisFrame, IManager.downPressedThisFrame,
+            IManager.buttonPressedThisFrame, IManager.backPressedThisFrame);
+        if (close)
         {
-            TManager?.CopyTransferCode();
-            return;
-        }
-
-        if (IManager.buttonPressedThisFrame && (TManager == null || !TManager.IsTransferInputFocused))
-        {
-            TManager?.ApplyTransfer();
+            TManager.CloseRanking();
+            titlePhase = TitlePhase.Menu;
+            titleArmed = false;
+            TManager.ShowMenu();
         }
     }
 
@@ -856,6 +873,12 @@ public class GManager : MonoBehaviour
             // クリア記録も人数モード別枠へ(RecordPlay と同様)。
             PlayHistory.TwoPlayerMode = twoPlayer;
             PlayHistory.RecordClear(historyDir);
+            // 引き継ぎコードの実績は1P専用(SPEC §1.4: 2Pは引き継ぎ対象外)。
+            if (!twoPlayer)
+            {
+                bool noMiss = playerHitCount <= 0;
+                TransferAchievements.RecordClear(historyDir, selectedDifficulty, noMiss);
+            }
         }
 
         RManager.Prepare(stage, selectedDifficulty, cleared, playerHitCount,
