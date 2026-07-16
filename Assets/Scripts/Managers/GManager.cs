@@ -391,6 +391,10 @@ public class GManager : MonoBehaviour
             RManager?.Tick(
                 IManager.leftPressedThisFrame,
                 IManager.rightPressedThisFrame,
+                IManager.upPressed,
+                IManager.downPressed,
+                IManager.upPressedThisFrame,
+                IManager.downPressedThisFrame,
                 IManager.buttonPressed,
                 IManager.buttonPressedThisFrame,
                 IManager.backPressedThisFrame);
