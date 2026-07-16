@@ -1808,7 +1808,7 @@ public sealed class ResultScreen : MonoBehaviour
 
         if (initialsIdleTimer >= 10f)
         {
-            SubmitRankingEntry("？？？"); // 無操作タイムアウト(SPEC §2.1)
+            SubmitRankingEntry("???"); // 無操作タイムアウト(SPEC §2.1)。全角？は使用フォントに未収録でtofu化するため半角(RankingStore側の空名フォールバックと同一表記)
         }
     }
 
