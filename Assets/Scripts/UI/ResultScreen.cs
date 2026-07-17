@@ -191,6 +191,32 @@ public sealed class ResultScreen : MonoBehaviour
     private static readonly Color RankGlowBlue = new Color(0.20f, 0.60f, 1f, 0.55f);
     private static readonly Color RankGlowRed = new Color(1f, 0.25f, 0.35f, 0.45f);
 
+    // ---- ランキング+引き継ぎ(SPEC §1.3/§2.2) -------------------------------
+    private TMP_Text transferCodeLine; // 発行コード(1P専用。2Pは非表示)
+
+    private enum RankingFlowState { None, Initials, Board }
+    private RankingFlowState rankingFlowState = RankingFlowState.None;
+    private bool rankingQualifies;
+    private string pendingRankStage;
+    private int pendingRankDifficulty;
+    private string pendingRankMode;
+    private int pendingRankScore;
+    private string pendingEntryId;
+
+    private GameObject rankingOverlayRoot;
+    private CanvasGroup rankingOverlayCG;
+    private TMP_Text rankingOverlayHeading;
+    private GameObject initialsGroup;
+    private readonly TMP_Text[] initialsSlotTexts = new TMP_Text[RankingStore.NameLength];
+    private readonly int[] initialsCharIndex = new int[RankingStore.NameLength];
+    private int initialsColumn;
+    private float initialsIdleTimer;
+    private HoldRepeatTrigger initialsUpRepeat;
+    private HoldRepeatTrigger initialsDownRepeat;
+    private GameObject boardGroup;
+    private TMP_Text boardHeaderText;
+    private readonly TMP_Text[] boardRowTexts = new TMP_Text[RankingStore.TopCount];
+
     public event System.Action<Action> ActionRequested;
 
     public bool Visible => gameObject.activeSelf;
@@ -256,7 +282,70 @@ public sealed class ResultScreen : MonoBehaviour
         BuildEvaluation(evalGroupRect);
         BuildStats(contentRect);
         BuildActionButtons(contentRect);
+        BuildRankingOverlay(root);
         BuildAudio();
+    }
+
+    // ランキングのイニシャル入力+Top10盤面を1枚のオーバーレイに重ねる(SPEC §2.1/2.2)。
+    // アクションボタンより手前に表示し、qualifies=true の間だけ通常の Tick 入力を奪う。
+    private void BuildRankingOverlay(RectTransform root)
+    {
+        GameObject go = NewRect("RankingOverlay", root);
+        rankingOverlayRoot = go;
+        RectTransform rect = (RectTransform)go.transform;
+        Stretch(rect);
+        rankingOverlayCG = go.AddComponent<CanvasGroup>();
+
+        Image scrim = NewImage("Scrim", rect, new Color(0f, 0.01f, 0.03f, 0.6f));
+        Stretch(scrim.rectTransform);
+
+        const float panelW = 760f;
+        const float panelH = 560f;
+        Image panel = NewImage("Panel", rect, new Color(0.008f, 0.031f, 0.078f, 0.95f));
+        SetRect(panel.rectTransform, Vector2.zero, new Vector2(panelW, panelH));
+        Color edgeSilver = new Color(0.268f, 0.325f, 0.456f, 0.8f);
+        Image edgeTop = NewImage("EdgeTop", rect, edgeSilver);
+        SetRect(edgeTop.rectTransform, new Vector2(0f, panelH * 0.5f - 1f), new Vector2(panelW, 2f));
+        Image edgeBottom = NewImage("EdgeBottom", rect, edgeSilver);
+        SetRect(edgeBottom.rectTransform, new Vector2(0f, -(panelH * 0.5f - 1f)), new Vector2(panelW, 2f));
+
+        rankingOverlayHeading = NewText("Heading", rect, "Top10 圏内!", 34f, Color.white, TextAlignmentOptions.Center);
+        SetRect((RectTransform)rankingOverlayHeading.transform, new Vector2(0f, panelH * 0.5f - 56f), new Vector2(600f, 44f));
+
+        // --- イニシャル入力(3文字) ---
+        initialsGroup = NewRect("Initials", rect);
+        SetRect((RectTransform)initialsGroup.transform, Vector2.zero, new Vector2(panelW, panelH));
+        const float slotW = 90f;
+        const float slotGap = 24f;
+        float startX = -(slotW + slotGap) * (RankingStore.NameLength - 1) * 0.5f;
+        for (int i = 0; i < RankingStore.NameLength; i++)
+        {
+            TMP_Text slot = NewText("Slot" + i, initialsGroup.transform, "A", 56f, Color.white, TextAlignmentOptions.Center);
+            SetRect((RectTransform)slot.transform, new Vector2(startX + i * (slotW + slotGap), 40f), new Vector2(slotW, 80f));
+            slot.fontStyle = FontStyles.Bold;
+            initialsSlotTexts[i] = slot;
+        }
+        TMP_Text initialsHint = NewText("Hint", initialsGroup.transform,
+            "↑↓ 文字送り / ←→ 桁移動 / A 決定(3桁目で登録) / B 戻る", 18f,
+            new Color(0.7f, 0.85f, 0.95f, 0.8f), TextAlignmentOptions.Center);
+        SetRect((RectTransform)initialsHint.transform, new Vector2(0f, -60f), new Vector2(700f, 30f));
+
+        // --- 登録後のTop10盤面 ---
+        boardGroup = NewRect("Board", rect);
+        SetRect((RectTransform)boardGroup.transform, Vector2.zero, new Vector2(panelW, panelH));
+        boardHeaderText = NewText("BoardHeader", boardGroup.transform, "", 22f, Cyan, TextAlignmentOptions.Center);
+        SetRect((RectTransform)boardHeaderText.transform, new Vector2(0f, panelH * 0.5f - 96f), new Vector2(700f, 30f));
+        for (int i = 0; i < boardRowTexts.Length; i++)
+        {
+            TMP_Text row = NewText("Row" + i, boardGroup.transform, "", 20f, Color.white, TextAlignmentOptions.Left);
+            SetRect((RectTransform)row.transform, new Vector2(0f, panelH * 0.5f - 140f - i * 34f), new Vector2(600f, 30f));
+            boardRowTexts[i] = row;
+        }
+        TMP_Text boardHint = NewText("BoardHint", boardGroup.transform, "B で戻る", 16f,
+            new Color(0.7f, 0.85f, 0.95f, 0.7f), TextAlignmentOptions.Center);
+        SetRect((RectTransform)boardHint.transform, new Vector2(0f, -(panelH * 0.5f - 40f)), new Vector2(400f, 26f));
+
+        go.SetActive(false);
     }
 
     // リザルト BGM 用の常駐 AudioSource(兄弟 GO)とクリップの読み込み。クリップが
@@ -970,6 +1059,13 @@ public sealed class ResultScreen : MonoBehaviour
         BuildActionButton(1, rowRect, new Vector2(352f, 0f), "プレイを終わる",
             Action.Title, "お", 0, 7);   // 漢字「終」にルビ
 
+        // 引き継ぎコード発行(SPEC §1.3)。ActionRow に同居させ、既存の buttonGroup
+        // フェードにそのまま乗せる(専用の入場アニメを新設しない)。
+        transferCodeLine = NewText("TransferCodeLine", rowRect, "", 20f,
+            new Color(0.62f, 0.98f, 1f, 0.85f), TextAlignmentOptions.Center);
+        SetRect((RectTransform)transferCodeLine.transform, new Vector2(0f, -90f), new Vector2(1400f, 30f));
+        transferCodeLine.gameObject.SetActive(false);
+
         selectedActionIndex = 0;
         RefreshActionSelection();
     }
@@ -1139,6 +1235,32 @@ public sealed class ResultScreen : MonoBehaviour
             RestoreOnePlayerLayout();     // 2P 表示後に 1P へ戻す経路のみ(純 1P は不変)
         else
             twoPlayerResult = false;
+
+        // ランキング登録の判定(SPEC §2.2)。イニシャル入力の起動自体は入場演出が
+        // 終わった最初の Tick まで遅らせる(StartRankingEntryFlow)。
+        string rankStageDir = stage != null
+            ? (string.IsNullOrWhiteSpace(stage.stageDirectoryName) ? stage.stageName : stage.stageDirectoryName)
+            : null;
+        pendingRankStage = rankStageDir;
+        pendingRankDifficulty = Mathf.Clamp(difficulty, 0, DirectionTransferCode.DifficultyCount - 1);
+        pendingRankMode = twoPlayer ? "2P" : "1P";
+        pendingRankScore = twoPlayer ? Mathf.Max(provisionalScore, finalScore2) : provisionalScore;
+        rankingQualifies = !string.IsNullOrEmpty(rankStageDir)
+            && RankingStore.QualifiesForTop(rankStageDir, pendingRankDifficulty, pendingRankMode, pendingRankScore);
+        rankingFlowState = RankingFlowState.None;
+        if (rankingOverlayRoot != null) rankingOverlayRoot.SetActive(false);
+
+        // 引き継ぎコード発行(SPEC §1.3)。1P専用(§1.4: 2Pは引き継ぎ対象外)。
+        if (transferCodeLine != null)
+        {
+            bool showTransfer = !twoPlayer && TransferAchievements.HasAnyAchievement;
+            transferCodeLine.gameObject.SetActive(showTransfer);
+            if (showTransfer)
+            {
+                string code = DirectionTransferCode.Encode(TransferAchievements.BuildPayload());
+                transferCodeLine.text = "ひきつぎコード " + code;
+            }
+        }
 
         contentGroup.alpha = 1f;
         contentRect.anchoredPosition = Vector2.zero;
@@ -1551,7 +1673,8 @@ public sealed class ResultScreen : MonoBehaviour
     // 2 択(左=ステージ選択 / 右=プレイを終わる→タイトル)。スティック左右で選択、
     // ボタンで決定。戻る(あれば)は即ステージ選択へ抜ける近道。left/right は押しっぱなし
     // 状態なので、立ち上がりエッジで 1 回だけ選択を動かす。
-    public void Tick(bool left, bool right, bool buttonHeld, bool buttonPressed, bool backPressed)
+    public void Tick(bool left, bool right, bool up, bool down, bool upEdge, bool downEdge,
+        bool buttonHeld, bool buttonPressed, bool backPressed)
     {
         if (!gameObject.activeSelf) return;
 
@@ -1565,6 +1688,26 @@ public sealed class ResultScreen : MonoBehaviour
                 inputArmed = false;
                 navLeftPrev = left;
                 navRightPrev = right;
+            }
+            return;
+        }
+
+        // ランキング登録フロー(SPEC §2.2)。入場演出が終わった最初の Tick で一度だけ起動。
+        if (rankingQualifies && rankingFlowState == RankingFlowState.None)
+        {
+            StartRankingEntryFlow();
+        }
+        if (rankingFlowState == RankingFlowState.Initials)
+        {
+            TickInitialsEntry(left, right, up, down, upEdge, downEdge, buttonPressed, backPressed);
+            return;
+        }
+        if (rankingFlowState == RankingFlowState.Board)
+        {
+            if (backPressed)
+            {
+                rankingFlowState = RankingFlowState.None;
+                if (rankingOverlayRoot != null) rankingOverlayRoot.SetActive(false);
             }
             return;
         }
@@ -1591,6 +1734,128 @@ public sealed class ResultScreen : MonoBehaviour
         navRightPrev = right;
 
         if (buttonPressed) RequestAction(actionValues[selectedActionIndex]);
+    }
+
+    // ---- ランキング登録フロー(SPEC §2.1/2.2) -------------------------------
+
+    private void StartRankingEntryFlow()
+    {
+        rankingFlowState = RankingFlowState.Initials;
+        initialsColumn = 0;
+        for (int i = 0; i < initialsCharIndex.Length; i++) initialsCharIndex[i] = 0; // 既定 'A'(SPEC §2.1)
+        initialsIdleTimer = 0f;
+        initialsUpRepeat = default;
+        initialsDownRepeat = default;
+        if (rankingOverlayRoot != null) rankingOverlayRoot.SetActive(true);
+        if (rankingOverlayHeading != null) rankingOverlayHeading.text = "Top10 圏内!"; // 全角！は使用フォントに未収録でtofu化するため半角(♥/？？？と同じ理由)
+        if (initialsGroup != null) initialsGroup.SetActive(true);
+        if (boardGroup != null) boardGroup.SetActive(false);
+        RefreshInitialsSlots();
+    }
+
+    private void RefreshInitialsSlots()
+    {
+        for (int i = 0; i < initialsSlotTexts.Length; i++)
+        {
+            TMP_Text slot = initialsSlotTexts[i];
+            if (slot == null) continue;
+            slot.text = RankingStore.NameCharset[initialsCharIndex[i]].ToString();
+            slot.color = i == initialsColumn ? new Color(0.62f, 0.98f, 1f) : new Color(0.7f, 0.78f, 0.86f, 0.7f);
+        }
+    }
+
+    // 上下=文字送り(ホールドリピート)・左右=桁移動・A=確定(3桁目でA→登録)・
+    // B=1つ戻る・10秒無操作で？？？自動登録(SPEC §2.1)。
+    private void TickInitialsEntry(bool left, bool right, bool up, bool down, bool upEdge, bool downEdge,
+        bool confirmEdge, bool backEdge)
+    {
+        float dt = Time.unscaledDeltaTime;
+        initialsIdleTimer += dt;
+        bool changed = false;
+
+        if (initialsUpRepeat.Tick(upEdge, up, dt, 0.4f, 0.12f))
+        {
+            initialsCharIndex[initialsColumn] = (initialsCharIndex[initialsColumn] + 1) % RankingStore.NameCharset.Length;
+            changed = true;
+        }
+        if (initialsDownRepeat.Tick(downEdge, down, dt, 0.4f, 0.12f))
+        {
+            initialsCharIndex[initialsColumn] = (initialsCharIndex[initialsColumn] - 1 + RankingStore.NameCharset.Length) % RankingStore.NameCharset.Length;
+            changed = true;
+        }
+        if (right && initialsColumn < RankingStore.NameLength - 1) { initialsColumn++; changed = true; }
+        if (left && initialsColumn > 0) { initialsColumn--; changed = true; }
+        if (backEdge && initialsColumn > 0) { initialsColumn--; changed = true; }
+
+        bool anyInput = left || right || upEdge || downEdge || confirmEdge || backEdge;
+        if (anyInput) initialsIdleTimer = 0f;
+
+        if (confirmEdge)
+        {
+            if (initialsColumn < RankingStore.NameLength - 1)
+            {
+                initialsColumn++;
+                changed = true;
+            }
+            else
+            {
+                SubmitRankingEntry(BuildInitialsName());
+                return;
+            }
+        }
+
+        if (changed) RefreshInitialsSlots();
+
+        if (initialsIdleTimer >= 10f)
+        {
+            SubmitRankingEntry("???"); // 無操作タイムアウト(SPEC §2.1)。全角？は使用フォントに未収録でtofu化するため半角(RankingStore側の空名フォールバックと同一表記)
+        }
+    }
+
+    private string BuildInitialsName()
+    {
+        char[] chars = new char[RankingStore.NameLength];
+        for (int i = 0; i < chars.Length; i++) chars[i] = RankingStore.NameCharset[initialsCharIndex[i]];
+        return new string(chars);
+    }
+
+    private void SubmitRankingEntry(string name)
+    {
+        RankingStore.Entry entry = RankingStore.AddEntry(
+            name, pendingRankScore, pendingRankStage, pendingRankDifficulty, pendingRankMode, System.DateTime.Now);
+        pendingEntryId = entry.entryId;
+        rankingFlowState = RankingFlowState.Board;
+        if (initialsGroup != null) initialsGroup.SetActive(false);
+        if (boardGroup != null) boardGroup.SetActive(true);
+        if (rankingOverlayHeading != null) rankingOverlayHeading.text = "ランキング登録完了";
+        RefreshRankingBoardView();
+    }
+
+    private void RefreshRankingBoardView()
+    {
+        List<RankingStore.Entry> top = RankingStore.GetTop(pendingRankStage, pendingRankDifficulty, pendingRankMode);
+        if (boardHeaderText != null)
+        {
+            string stageName = TransferAchievements.StageDisplayName(pendingRankStage);
+            string diffName = DifficultyUtility.GetDisplayName((Difficulty)pendingRankDifficulty);
+            boardHeaderText.text = $"{stageName}  {diffName}  {pendingRankMode}";
+        }
+        for (int i = 0; i < boardRowTexts.Length; i++)
+        {
+            TMP_Text row = boardRowTexts[i];
+            if (row == null) continue;
+            if (i < top.Count)
+            {
+                RankingStore.Entry e = top[i];
+                row.text = $"{i + 1,2}   {e.name,-3}   {e.score,8:N0}";
+                row.color = e.entryId == pendingEntryId ? new Color(0.62f, 0.98f, 1f) : Color.white;
+            }
+            else
+            {
+                row.text = $"{i + 1,2}   ---";
+                row.color = new Color(1f, 1f, 1f, 0.35f);
+            }
+        }
     }
 
     public void HideImmediate()

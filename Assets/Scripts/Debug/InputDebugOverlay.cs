@@ -24,7 +24,10 @@ public class InputDebugOverlay : MonoBehaviour
     private bool visible = false;
 
     private const float PanelW = 360f;
-    private const float PanelH = 396f;
+    private const float PanelH = 396f + 96f; // +ランキング管理セクション(エクスポート/インポート/全消去)
+    private HoldTrigger rankingResetHold;
+    private string rankingStatusMessage = "";
+    private float rankingStatusTimer;
     private const string NumFmt = "+0.00;-0.00;0.00";
 
     private static readonly Color OnColor = new Color(0.45f, 0.95f, 0.55f);
@@ -181,6 +184,51 @@ public class InputDebugOverlay : MonoBehaviour
 
         string raw = string.IsNullOrEmpty(im.LatestRawLine) ? "(none)" : im.LatestRawLine;
         GUI.Label(new Rect(x, y, PanelW, 18f), $"raw  : {Truncate(raw, 40)}", rawStyle);
+        y += 22f;
+
+        DrawRankingSection(x, y);
+    }
+
+    // ランキング(SPEC §2.3): USBメモリ経由の手動同期用エクスポート/インポートと、
+    // 誤爆防止に長押しを要する全消去。F2オーバーレイの一部として常駐させる。
+    private void DrawRankingSection(float x, float y)
+    {
+        GUI.Label(new Rect(x, y, PanelW, 20f), "RANKING", headStyle);
+        y += 22f;
+
+        const float bh = 22f;
+        if (GUI.Button(new Rect(x, y, 150f, bh), "Export -> Desktop"))
+        {
+            string path = RankingStore.ExportToDesktop();
+            rankingStatusMessage = path != null
+                ? "exported: " + System.IO.Path.GetFileName(path)
+                : "export failed (see Console)";
+            rankingStatusTimer = 4f;
+        }
+        if (GUI.Button(new Rect(x + 156f, y, 150f, bh), "Import <- Desktop"))
+        {
+            int n = RankingStore.ImportFromDesktop();
+            rankingStatusMessage = $"imported {n} new entr{(n == 1 ? "y" : "ies")}";
+            rankingStatusTimer = 4f;
+        }
+        y += bh + 6f;
+
+        bool resetHeld = GUI.RepeatButton(new Rect(x, y, 306f, bh), "HOLD 1.2s: ランキング全消去");
+        if (rankingResetHold.Tick(resetHeld, Time.unscaledDeltaTime, 1.2f))
+        {
+            RankingStore.ClearAll();
+            rankingStatusMessage = "ranking cleared";
+            rankingStatusTimer = 4f;
+        }
+        y += bh + 4f;
+
+        if (rankingStatusTimer > 0f)
+        {
+            rankingStatusTimer -= Time.unscaledDeltaTime;
+            GUI.color = OnColor;
+            GUI.Label(new Rect(x, y, PanelW, 18f), rankingStatusMessage, rawStyle);
+            GUI.color = Color.white;
+        }
     }
 
     // Draws the "dir : ROT.. FlipX.. FlipY.." status line plus the four toggle

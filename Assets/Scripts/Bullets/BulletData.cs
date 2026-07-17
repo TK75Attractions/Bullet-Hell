@@ -1,5 +1,6 @@
 using System;
 using TMPro;
+using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine.UIElements;
 
@@ -91,6 +92,20 @@ public struct BulletData
     public float clearDuration;
     public bool unCounterable;
 
+    // --- v2 運動レーン(SPEC-RUNTIME-V2.md P1) ---------------------------------
+    // 以下4フィールドはすべて省略可・既定値0/emptyで従来レーン(BulletDataUpdateJob)を通る。
+    /// <summary>v2 ネイティブ区間列。空なら従来レーン。非空なら BulletV2UpdateJob が専任で処理する。</summary>
+    public FixedList128Bytes<BulletV2Segment> v2Segments;
+    /// <summary>v2 リアルタイム自機狙いの旋回速度(rad/s)。0 なら無効。</summary>
+    public float homingTurnRate;
+    /// <summary>v2 自機狙いを継続する時間(秒)。経過後は最後の方向のまま直進する。</summary>
+    public float homingDuration;
+    /// <summary>v2 自機狙いレーンの内部積分状態(originPos からの相対オフセット)。JSON非公開・常に0開始。</summary>
+    public float2 v2LocalOffset;
+
+    /// <summary>この弾が v2 レーン(BulletV2UpdateJob)で処理されるべきか。segments と homing は排他(segments優先)。</summary>
+    public bool HasV2Motion => v2Segments.Length > 0 || (homingDuration > 0f && homingTurnRate != 0f);
+
     /// <summary>
     /// 弾幕のデータ
     /// </summary>
@@ -160,6 +175,11 @@ public struct BulletData
         color = _color;
         unCounterable = _unCounterable;
 
+        v2Segments = default;
+        homingTurnRate = 0f;
+        homingDuration = 0f;
+        v2LocalOffset = float2.zero;
+
         float x = _start;
         startX = x;
         float y = 0;
@@ -190,6 +210,21 @@ public struct BulletData
             value.x * cos - value.y * sin,
             value.x * sin + value.y * cos
         );
+    }
+
+    private static FixedList128Bytes<BulletV2Segment> RotateSegments(in FixedList128Bytes<BulletV2Segment> segments, float theta)
+    {
+        if (segments.Length == 0 || theta == 0f) return segments;
+
+        FixedList128Bytes<BulletV2Segment> rotated = default;
+        for (int i = 0; i < segments.Length; i++)
+        {
+            BulletV2Segment segment = segments[i];
+            segment.vlc = Rotate(segment.vlc, theta);
+            segment.gravity.y += theta;
+            rotated.Add(segment);
+        }
+        return rotated;
     }
 
     public void ResetTrajectoryState(bool syncPosition)
@@ -256,6 +291,12 @@ public struct BulletData
         unCounterable = data.unCounterable || _unCounterable;
         warpable = data.warpable;
         ignoreOutOfBoundsCulling = data.ignoreOutOfBoundsCulling;
+
+        // v2: セグメントの vlc/gravity 方向は originVlc や polarForm.y と同様、スポーン角度(_theta)で回転する。
+        v2Segments = RotateSegments(data.v2Segments, _theta);
+        homingTurnRate = data.homingTurnRate;
+        homingDuration = data.homingDuration;
+        v2LocalOffset = float2.zero;
 
         areaNum = 0;
         time = 0;

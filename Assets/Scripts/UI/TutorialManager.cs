@@ -316,7 +316,7 @@ public class TutorialManager : MonoBehaviour
         tutorialRect.sizeDelta = new Vector2(410f, twoPlayer ? 120f : 92f);
         tutorialText.text = twoPlayer
             ? message + "\n<size=24><color=#FFCC66>1P " + (p1Complete ? "OK" : "--")
-                + "</color>　<color=#73D9FF>2P " + (p2Complete ? "OK" : "--") + "</color></size>"
+                + "</color>  <color=#73D9FF>2P " + (p2Complete ? "OK" : "--") + "</color></size>"
             : message;
     }
 

@@ -14,6 +14,11 @@ public class StageReader : MonoBehaviour
     [SerializeField] private int multiBulletSpawnerCount = 0;
     [SerializeField] private int bulletCount = 0;
     [SerializeField] private bool isReady = false;
+    // v2 ステージイベントチャンネル(SPEC-RUNTIME-V2.md P1-c)。弾を伴わない演出キューの時刻発火。
+    [SerializeField] private List<StageEventSpawn> stageEventSchedule = new List<StageEventSpawn>();
+    [SerializeField] private int stageEventCursor = 0;
+    /// <summary>ステージイベントが発火した時に (eventName, time) で通知される。購読側の実装例は最小のログのみ。</summary>
+    public event Action<string, float> OnStageEvent;
     private EnemyVisualCatalog enemyVisualCatalog;
     private BossManager bossManager;
     // 音ハメ用の BGM 同期クロック(marron 由来)。Init で PlayScheduled した BGM の
@@ -64,6 +69,8 @@ public class StageReader : MonoBehaviour
         multiBulletSpawnerCount = 0;
         bulletCount = 0;
         spawnEvents.Clear();
+        stageEventSchedule.Clear();
+        stageEventCursor = 0;
         isReady = false;
         stageBgmSource = null;
         stageBgmScheduledDspTime = -1d;
@@ -160,6 +167,12 @@ public class StageReader : MonoBehaviour
             }
         }
         spawnEvents.Sort((a, b) => a.time.CompareTo(b.time));
+
+        if (stageData.stageEvents != null)
+        {
+            stageEventSchedule.AddRange(stageData.stageEvents);
+        }
+        stageEventSchedule.Sort((a, b) => a.time.CompareTo(b.time));
 
         isReady = true;
         return true;
@@ -280,6 +293,30 @@ public class StageReader : MonoBehaviour
             //Debug.Log($"Spawned bullet: {spawner.index}");
         }
 
+        while (TryDispatchNextStageEvent(stageEventSchedule, ref stageEventCursor, time, out StageEventSpawn stageEvent))
+        {
+            if (LogStageSchedule) Debug.Log($"Stage event fired: {stageEvent.eventName} at {stageEvent.time}");
+            OnStageEvent?.Invoke(stageEvent.eventName, stageEvent.time);
+        }
+    }
+
+    /// <summary>
+    /// 時刻順にソート済みの <paramref name="schedule"/> から、<paramref name="cursor"/> 位置の
+    /// イベントが <paramref name="time"/> に達していれば1件取り出してカーソルを進める。
+    /// 弾スポーンの spawnEvents/bulletCount と同じ「一度発火したら戻らない」カーソル走査。
+    /// EditMode テストから GManager 抜きで直接呼べるよう純粋関数として分離している。
+    /// </summary>
+    public static bool TryDispatchNextStageEvent(List<StageEventSpawn> schedule, ref int cursor, float time, out StageEventSpawn dueEvent)
+    {
+        if (schedule == null || schedule.Count <= cursor || schedule[cursor].time > time)
+        {
+            dueEvent = default;
+            return false;
+        }
+
+        dueEvent = schedule[cursor];
+        cursor++;
+        return true;
     }
 
     public void StopStage()
@@ -297,6 +334,8 @@ public class StageReader : MonoBehaviour
         spawnEvents.Clear();
         multiBulletSpawnerCount = 0;
         bulletCount = 0;
+        stageEventSchedule.Clear();
+        stageEventCursor = 0;
         stageClockDetachedFromBgmSync = false;
         stageData = null;
     }

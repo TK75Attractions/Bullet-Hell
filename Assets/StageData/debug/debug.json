@@ -30,6 +30,50 @@
       "bossSpawners": [],
       "bulletSpawners": [
         {
+          "clipName": "v2_smoke_segments",
+          "count": 1,
+          "interval": 0,
+          "time": 1,
+          "pos": {
+            "x": 18,
+            "y": 20
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 1,
+            "z": 1,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "v2_smoke_homing",
+          "count": 1,
+          "interval": 0,
+          "time": 5,
+          "pos": {
+            "x": 18,
+            "y": 20
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 0,
+          "color": {
+            "x": 1,
+            "y": 1,
+            "z": 1,
+            "w": 1
+          }
+        },
+        {
           "clipName": "captain_anchor_obj_l",
           "count": 18,
           "interval": 1.6363637,
@@ -76,4 +120,4 @@
       ]
     }
   ]
-}
+}

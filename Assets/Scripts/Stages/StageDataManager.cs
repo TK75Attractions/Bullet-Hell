@@ -878,6 +878,8 @@ public class StageDataManager
 
             {
 
+                string directoryName = GetStageDirectoryNameFromAddress(location.PrimaryKey);
+
                 AsyncOperationHandle<TextAsset> jsonHandle = Addressables.LoadAssetAsync<TextAsset>(location);
 
                 await WaitForAddressable(jsonHandle);
@@ -897,8 +899,6 @@ public class StageDataManager
                 }
 
 
-
-                string directoryName = GetStageDirectoryNameFromAddress(location.PrimaryKey);
 
                 StageData data = ReadStageDataFromJson(directoryName, jsonHandle.Result.text);
 

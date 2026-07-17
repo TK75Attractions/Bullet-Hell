@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
@@ -60,7 +61,7 @@ public class TitleManager : MonoBehaviour
     private ShapeAnim[] shapes = new ShapeAnim[0];
 
     // ---- Title menu + transfer panel (black / cyan / deep navy) -------------
-    public enum TitleMenuAction { Start = 0, Options = 1, Transfer = 2 }
+    public enum TitleMenuAction { Start = 0, Options = 1, Transfer = 2, Ranking = 3 }
 
     private static readonly Color Cyan = new Color(0.219f, 0.761f, 0.878f);
     private static readonly Color CyanDim = new Color(0.11f, 0.34f, 0.40f);
@@ -108,13 +109,22 @@ public class TitleManager : MonoBehaviour
     private float[] menuRowY = new float[0];
     private int menuIndex;
 
-    // 引き継ぎコードの導線(設計未確定のため無効化)。false で「引き継ぎ」行を
-    // 灰色(disabled 見た目)+選択不可にする。画面(BuildTransferPanel)は残すので、
-    // true に戻すだけで導線が復活する(2026-07-13 指摘)。
-    private const bool TransferEnabled = false;
-    // 引き継ぎ行の表示可否(2026-07-14 指摘「一旦引き継ぎは非表示に」)。false で行ごと消す
-    // (灰色無効化からさらに進めて非表示)。true に戻すだけで復活(その場合 TransferEnabled で有効/灰色を選ぶ)。
-    private const bool ShowTransferRow = false;
+    // 引き継ぎ・ランキングの導線(SPEC確定・2026-07-16「ランキング+引き継ぎ」便で復活)。
+    // 4行メニュー(スタート/設定/引き継ぎ/ランキング)にする。
+    private const bool ShowTransferRow = true;
+    private const bool ShowRankingRow = true;
+    // 4行を画面内に収めるため、難易度規格(660x160・行間172)から専用に縮小する
+    // (旧3行版は本ファイル履歴 2026-07-13 時点で 660x160・行間172・topRowY=-106 で
+    // 確定していた)。ロゴ実測(Base.unity Logo: anchoredY=60, sizeDelta.y=430,
+    // LogoRaiseOffset=130 → 実行時中心 y=190, 下端 y=-25)+旧版の実測クリアランス
+    // (topRowY=-106 のとき上端 y=-26、ロゴ下端との差はほぼ0=同じ余白比率を踏襲)を
+    // 基準に、MenuRowH=120/MenuRowGap=132(12px クリアランス比を維持)で4行を
+    // 上端 y=-86(旧版から+20 のみ)〜下端 y=-482(画面下端 -540 まで48pxの余裕)に
+    // 収める。実フレームでの見た目確認は未実施(要親確認。NOTES.md 参照)。
+    private const float MenuRowW = 660f;
+    private const float MenuRowH = 120f;
+    private const float MenuRowGap = 132f;
+    private const float MenuRowCenter = -284f; // rowY[0] = -284+198 = -86
     private bool[] menuRowEnabled = new bool[0];
     // 無効行の見た目(灰色・沈む)。有効行は白/MenuTextBase。
     private static readonly Color MenuDisabledText = new Color(0.45f, 0.48f, 0.55f, 1f);
@@ -132,32 +142,42 @@ public class TitleManager : MonoBehaviour
     private RenderTexture transferBlurRT;
     private Coroutine transferCaptureRoutine;
     private Coroutine transferCloseRoutine; // 閉じるときのフェードアウト(第34便)
-    private TMP_Text transferCodeText;          // 履歴なしメッセージ(コードはブロック表示)
-    private TMP_InputField transferInput;
     private TMP_Text transferMessageText;
-    private Image applyButton;
-    private TMP_Text applyLabelText;
+    private TMP_Text transferHintText;
     private bool transferOpen;
-    // oracle レビュー反映(第27便): コード4ブロック表示・入力フォーカス枠・
-    // CTRL+C コピー・斜めバナーヘッダー/ボタン・操作ヒントバー。
-    private GameObject transferCodeBlocksRoot;
-    private TMP_Text[] transferCodeBlockTexts = new TMP_Text[0];
-    private TMP_Text[] transferCodeBlockShadows = new TMP_Text[0];
-    private TMP_Text[] transferHyphenTexts = new TMP_Text[0]; // v2(4文字)コードでは非表示
-    private Image transferInputBorder;
-    private bool transferInputError;
+
+    // 方向シーケンス入力(SPEC §1)。矢印12桁のスロット表示+入力状態機械。
+    private enum TransferInputState { Entry, Confirm }
+    private TransferInputState transferState = TransferInputState.Entry;
+    private readonly List<int> transferDigits = new List<int>();
+    private TMP_Text[] transferDigitTexts = new TMP_Text[0];
+    private float transferDirCooldown;
+    private HoldTrigger transferBackHold;
+    private float transferCursorBlink;
+    private DirectionTransferCode.Payload transferPendingPayload;
+    private static readonly Color DigitFilled = new Color(0.62f, 0.98f, 1f);
+    private static readonly Color DigitEmpty = new Color(0.25f, 0.36f, 0.46f, 0.55f);
+    private static readonly Color DigitCursor = new Color(0.95f, 0.98f, 1f);
+
     // ビルド時に空振りした光学中央補正の再適用フラグ(表示後の初回に確定)。
     private bool menuInkCentered;
     private bool transferInkCentered;
 
-    private static readonly Color InputBorderIdle = new Color(0.118f, 0.812f, 0.878f, 0.65f);
-    // 適用ボタンは入力が空だと沈み、入力があると点灯する(oracle 指摘: 常時
-    // 最明度のボタンが主役のコード表示より目立っていた)。点灯時も主役の
-    // コードチップよりわずかに彩度を抑える。
-    private static readonly Color ApplyIdle = new Color(0.035f, 0.176f, 0.275f, 0.8f);
-    private static readonly Color ApplyReady = new Color(0.086f, 0.561f, 0.784f, 0.92f);
-    private static readonly Color ApplyLabelIdle = new Color(0.624f, 0.722f, 0.761f, 0.6f);
-    private static readonly Color ApplyLabelReady = new Color(1f, 1f, 1f, 0.95f);
+    // ---- ランキング盤面(SPEC §2.2) -----------------------------------------
+    private GameObject rankingRoot;
+    private CanvasGroup rankingCG;
+    private RawImage rankingBackdrop;
+    private RenderTexture rankingBlurRT;
+    private Coroutine rankingCaptureRoutine;
+    private Coroutine rankingCloseRoutine;
+    private bool rankingOpen;
+    private TMP_Text rankingHeaderText;
+    private TMP_Text[] rankingRowTexts = new TMP_Text[0];
+    private int rankingStageIndex;
+    private int rankingDifficultyIndex = DirectionTransferCode.DifficultyCount - 1;
+    private int rankingModeIndex; // 0=1P, 1=2P
+    private static readonly string[] RankingModes = { "1P", "2P" };
+    private bool rankingInkCentered;
 
     // ---- 1P/2P 人数トグル(2P その1) --------------------------------------
     // 3 行メニュー(スタート/設定/引き継ぎ)は固定レイアウトのため触らず、ロゴと
@@ -178,7 +198,7 @@ public class TitleManager : MonoBehaviour
     public int MenuIndex => menuIndex;
     public TitleMenuAction CurrentAction => (TitleMenuAction)menuIndex;
     public bool IsTransferOpen => transferOpen;
-    public bool IsTransferInputFocused => transferInput != null && transferInput.isFocused;
+    public bool IsRankingOpen => rankingOpen;
 
     public void Init()
     {
@@ -243,9 +263,11 @@ public class TitleManager : MonoBehaviour
         }
         if (menuRoot == null) BuildMenu();
         if (transferRoot == null) BuildTransferPanel();
+        if (rankingRoot == null) BuildRankingPanel();
 
         menuIndex = 0;
         transferOpen = false;
+        rankingOpen = false;
         for (int i = 0; i < menuItemSel.Length; i++)
         {
             menuItemSel[i] = i == 0 ? 1f : 0f;
@@ -257,6 +279,7 @@ public class TitleManager : MonoBehaviour
             menuWhite.anchoredPosition = new Vector2(0f, menuWhiteY);
         }
         if (transferRoot != null) transferRoot.SetActive(false);
+        if (rankingRoot != null) rankingRoot.SetActive(false);
         if (menuRoot != null) menuRoot.gameObject.SetActive(true);
 
         // The scene-authored "PRESS ANY BUTTON" prompt is replaced by the menu.
@@ -686,16 +709,14 @@ public class TitleManager : MonoBehaviour
         menuRoot.anchoredPosition = Vector2.zero;
         menuRoot.sizeDelta = new Vector2(700f, 500f);
 
-        // 引き継ぎ行は既定で非表示(ShowTransferRow=false)。行ごと作らず 2 行に。
-        string[] labels = ShowTransferRow
-            ? new[] { "スタート", "設定", "引き継ぎ" }
-            : new[] { "スタート", "設定" };
-        // 難易度ボタン規格(660x160)。行間は難易度と同じ DiffRowSpacing。
-        // n 行を rowCenter 中心に等間隔で並べる(3 行時は従来の {center+gap, center, center-gap} と一致)。
-        float rowGap = UiButtonStyle.DiffRowSpacing;
-        // 2 行時はロゴ下へ余裕をもって配置(トグルをスタート旧位置-106へ・2ボタンを下段へ)。
-        // 3 行復活時は従来の -278 中心(3 行が画面内に収まる)。
-        float rowCenter = ShowTransferRow ? -278f : -364f;
+        // ランキング+引き継ぎ便(2026-07-16 SPEC)で4行に確定。「スタート/設定/引き継ぎ」
+        // は既発行(07-13以前)の3行版と同じ並びを維持し、末尾に「ランキング」を追加する。
+        string[] labels = { "スタート", "設定", "引き継ぎ", "ランキング" };
+        // 4行を安全に収めるため、難易度規格(660x160・行間172)から本メニュー専用に
+        // 縮小する(MenuRowH/MenuRowGap)。ロゴ下端(実測 y≈-26)からの上端クリアランスは
+        // 旧3行版の実測(約50px)と同じ比率になるよう rowCenter を逆算している。
+        float rowGap = MenuRowGap;
+        float rowCenter = MenuRowCenter;
         float[] rowY = new float[labels.Length];
         for (int i = 0; i < labels.Length; i++)
             rowY[i] = rowCenter + (labels.Length - 1) * rowGap * 0.5f - i * rowGap;
@@ -715,16 +736,14 @@ public class TitleManager : MonoBehaviour
         menuItemSel = new float[labels.Length];
         menuRowY = rowY;
 
-        // 各行の有効/無効。既定は全て有効。引き継ぎ行だけ TransferEnabled で切替。
+        // 各行の有効/無効。設計確定(SPEC)につき全行有効。
         menuRowEnabled = new bool[labels.Length];
         for (int i = 0; i < labels.Length; i++) menuRowEnabled[i] = true;
-        // 引き継ぎ行を表示する場合のみ有効/無効を設定(非表示時は行自体が無いので配列外参照を避ける)。
-        if (ShowTransferRow) menuRowEnabled[(int)TitleMenuAction.Transfer] = TransferEnabled;
 
-        // リザルト様式のボタン本体を難易度規格(660x160)で焼く(2026-07-13 統一)。
+        // リザルト様式のボタン本体を本メニュー専用サイズ(MenuRowW x MenuRowH)で焼く。
         if (menuButtonSprite == null)
             menuButtonSprite = UiButtonStyle.CreateBodySprite(
-                (int)UiButtonStyle.DiffButtonW, (int)UiButtonStyle.DiffButtonH, null, null, "TitleMenuButton");
+                (int)MenuRowW, (int)MenuRowH, null, null, "TitleMenuButton");
 
         for (int i = 0; i < labels.Length; i++)
         {
@@ -743,9 +762,9 @@ public class TitleManager : MonoBehaviour
                     bar.type = Image.Type.Simple;
                     bar.color = Color.white;
                     // クローン元(シーンの DefficultyBar)は起動順の都合で先に
-                    // Init 済みで StageBar が拡大寸法に上書きされている。タイトル行も
-                    // 難易度規格(660x160)へ揃えるため明示的に設定する(2026-07-13)。
-                    bar.rectTransform.sizeDelta = new Vector2(UiButtonStyle.DiffButtonW, UiButtonStyle.DiffButtonH);
+                    // Init 済みで StageBar が拡大寸法に上書きされている。タイトル行は
+                    // 本メニュー専用サイズへ明示的に設定する。
+                    bar.rectTransform.sizeDelta = new Vector2(MenuRowW, MenuRowH);
                     menuRowFlash[i] = CreateRowFlash(bar.rectTransform);
                 }
                 menuRowBars[i] = bar;
@@ -756,7 +775,7 @@ public class TitleManager : MonoBehaviour
                 // Degraded fallback (scene layout changed): plain banner + label.
                 row = new GameObject("Item" + i, typeof(RectTransform)).GetComponent<RectTransform>();
                 row.SetParent(menuRoot, false);
-                Vector2 btnSize = new Vector2(UiButtonStyle.DiffButtonW, UiButtonStyle.DiffButtonH);
+                Vector2 btnSize = new Vector2(MenuRowW, MenuRowH);
                 menuRowBars[i] = CreatePanel("StageBar", row, Vector2.zero, btnSize, Color.white);
                 menuRowBars[i].sprite = menuButtonSprite;
                 menuRowFlash[i] = CreateRowFlash(menuRowBars[i].rectTransform);
@@ -782,11 +801,11 @@ public class TitleManager : MonoBehaviour
                 Transform gray = row.Find(grayName);
                 if (gray != null) gray.gameObject.SetActive(false);
             }
-            float rowThinX = UiButtonStyle.ThinSlashX(UiButtonStyle.DiffButtonW);
+            float rowThinX = UiButtonStyle.ThinSlashX(MenuRowW);
             UiButtonStyle.AddSlash(row, "RowSlashL", new Color(1f, 1f, 1f, 0.5f),
-                -rowThinX, 2.5f, UiButtonStyle.SlashHeight(UiButtonStyle.DiffButtonH));
+                -rowThinX, 2.5f, UiButtonStyle.SlashHeight(MenuRowH));
             UiButtonStyle.AddSlash(row, "RowSlashR", new Color(1f, 1f, 1f, 0.5f),
-                rowThinX, 2.5f, UiButtonStyle.SlashHeight(UiButtonStyle.DiffButtonH));
+                rowThinX, 2.5f, UiButtonStyle.SlashHeight(MenuRowH));
 
             if (label != null)
             {
@@ -832,10 +851,10 @@ public class TitleManager : MonoBehaviour
                 RectTransform slash = menuWhite.Find(slashName) as RectTransform;
                 if (slash == null) continue;
                 float slashX = Mathf.Sign(slash.anchoredPosition.x)
-                    * UiButtonStyle.ThickSlashX(UiButtonStyle.DiffButtonW);
+                    * UiButtonStyle.ThickSlashX(MenuRowW);
                 slash.gameObject.SetActive(false);
                 UiButtonStyle.AddSlash(menuWhite, slashName + "19", Color.white,
-                    slashX, 11f, UiButtonStyle.SlashHeight(UiButtonStyle.DiffButtonH));
+                    slashX, 11f, UiButtonStyle.SlashHeight(MenuRowH));
             }
             // Shine 用マスクの mask graphic は旧様式 SimpleBar(矩形枠)で、
             // 選択行に「横方向の白い線」(矩形の上下辺)を描いてしまう。
@@ -869,9 +888,9 @@ public class TitleManager : MonoBehaviour
         playerCountRoot.SetParent(transform, false);
         playerCountRoot.anchorMin = playerCountRoot.anchorMax = new Vector2(0.5f, 0.5f);
         playerCountRoot.pivot = new Vector2(0.5f, 0.5f);
-        // トグルはメニュー最上段の 1 行分(DiffRowSpacing)上へ。ロゴと最上段ボタンの中間で
+        // トグルはメニュー最上段の 1 行分(MenuRowGap)上へ。ロゴと最上段ボタンの中間で
         // 均等間隔になり、ロゴへの重なりを解消(2026-07-14 指摘「ぐちゃぐちゃ」)。
-        playerCountRoot.anchoredPosition = new Vector2(0f, topRowY + UiButtonStyle.DiffRowSpacing - 24f);
+        playerCountRoot.anchoredPosition = new Vector2(0f, topRowY + MenuRowGap - 24f);
         playerCountRoot.sizeDelta = new Vector2(520f, 96f);
 
         const float segW = 176f;
@@ -1040,13 +1059,10 @@ public class TitleManager : MonoBehaviour
 
     public void OpenTransfer()
     {
-        // 導線が無効なら開かない(行は選択不可だが念のためガード)。
-        if (!TransferEnabled) return;
         if (transferRoot == null) return;
         if (transferCloseRoutine != null) { StopCoroutine(transferCloseRoutine); transferCloseRoutine = null; }
         transferRoot.transform.localScale = Vector3.one; // 閉じるアニメの縮小をリセット
         transferOpen = true;
-        transferInputError = false;
         // メニュー・ロゴは退場させない。難易度オーバーレイと同様、完成フレーム
         // (メニュー・ロゴを含む)を撮ってぼかし、その上にパネルを重ねる(第31便)。
         transferRoot.SetActive(true);
@@ -1057,34 +1073,33 @@ public class TitleManager : MonoBehaviour
         if (transferBackdrop != null) transferBackdrop.gameObject.SetActive(false);
         if (transferCaptureRoutine != null) StopCoroutine(transferCaptureRoutine);
         transferCaptureRoutine = StartCoroutine(CaptureTransferBackdrop());
-        // 固定ラベルの光学中央補正はビルド時(非アクティブ)に空振りしている
-        // ことがあるため、初回オープン時に測り直す(チップ等の可変テキストは
-        // RefreshTransferCode が毎回再適用する)。
+        // 固定ラベルの光学中央補正はビルド時(非アクティブ)に空振りしていることがあるため、
+        // 初回オープン時に測り直す(可変テキストは RefreshTransferDigits が毎回再適用)。
         if (!transferInkCentered)
         {
             RectTransform rootRect = (RectTransform)transferRoot.transform;
             bool all = true;
-            foreach (string n in new[] { "Heading", "HeadingSub", "CodeLabel", "InputLabel" })
+            foreach (string n in new[] { "Heading", "HeadingSub" })
             {
                 TMP_Text label = rootRect.Find(n)?.GetComponent<TMP_Text>();
                 if (label != null) all &= TmpAlign.CenterInkVertically(label);
             }
-            if (applyLabelText != null) all &= TmpAlign.CenterInkVertically(applyLabelText);
             transferInkCentered = all;
         }
-        RefreshTransferCode();
+
+        // 方向シーケンス入力状態を初期化(SPEC §1: 開くたびに空の状態から入力)。
+        transferState = TransferInputState.Entry;
+        transferDigits.Clear();
+        transferDirCooldown = 0f;
+        transferBackHold.Reset();
+        transferCursorBlink = 0f;
         if (transferMessageText != null) transferMessageText.text = string.Empty;
-        if (transferInput != null)
-        {
-            transferInput.text = string.Empty;
-            transferInput.ActivateInputField();
-        }
+        RefreshTransferDigits();
     }
 
     public void CloseTransfer()
     {
         transferOpen = false;
-        if (transferInput != null) transferInput.DeactivateInputField();
         if (transferCaptureRoutine != null) { StopCoroutine(transferCaptureRoutine); transferCaptureRoutine = null; }
         // 開くとき(0.14sフェードイン)と対称に、パネル+ぼかし背景をフェードアウト
         // (+わずかに縮小)して閉じる。メニュー・ロゴは隠していないので、フェードの
@@ -1165,91 +1180,123 @@ public class TitleManager : MonoBehaviour
         BackdropBlurUtil.ReleaseRT(ref transferBlurRT);
     }
 
-    public void ApplyTransfer()
+    // 引き継ぎ画面の毎フレーム入力処理(SPEC §1.2/1.3)。GManager.UpdateTitleTransfer
+    // から呼ぶ。戻り値 true は「画面を閉じてタイトルへ戻る」(B長押し完了)。
+    // 方向はスティック1回倒し=1記号(150msクールダウン、Entry状態でのみ消費)。
+    // A: Entry かつ12桁埋まったら decode を試す(成功→Confirm状態、失敗→エラー表示のまま桁は保持)。
+    //    Confirm では反映して Entry へ戻る(全消去はしない=digits は都度クリア)。
+    // B: 短押しで1文字削除(Entryかつ桁がある時)/Confirmから戻る。長押し(0.6s)で画面を閉じる。
+    public bool TickTransferInput(float dt, bool upEdge, bool downEdge, bool leftEdge, bool rightEdge,
+        bool confirmEdge, bool backHeld)
     {
-        if (transferInput == null) return;
-        if (PlayHistory.TryImportCode(transferInput.text, out string error))
+        if (!transferOpen) return false;
+
+        transferCursorBlink += dt;
+
+        // 長押しが閾値に達したフレームで即座に画面を閉じる(離すのを待たない)。
+        // 長押しが成立した場合、この画面はここで閉じて以後 Tick されないため、
+        // 「離された瞬間=閾値未満だった=短押し」と確定できる。
+        if (transferBackHold.Tick(backHeld, dt, 0.6f))
         {
-            transferInputError = false;
-            if (transferMessageText != null)
+            return true; // 長押し完了: GManager 側で CloseTransfer する
+        }
+
+        bool backReleasedShort = transferBackHeldPrev && !backHeld;
+        transferBackHeldPrev = backHeld;
+
+        if (backReleasedShort)
+        {
+            if (transferState == TransferInputState.Confirm)
             {
-                transferMessageText.color = Cyan;
-                // 1P/2P は別枠の履歴。取り込み先モードを明示して混同を避ける。
-                string modeTag = PlayHistory.TwoPlayerMode ? "2人プレイ" : "1人プレイ";
-                transferMessageText.text =
-                    $"引き継ぎました[{modeTag}](プレイ {PlayHistory.TotalPlays} 回 / クリア {PlayHistory.TotalClears} 回)";
+                transferState = TransferInputState.Entry;
+                if (transferMessageText != null) transferMessageText.text = string.Empty;
             }
-            RefreshTransferCode();
-            transferInput.text = string.Empty;
-        }
-        else
-        {
-            transferInputError = true;
-            if (transferMessageText != null)
+            else if (transferDigits.Count > 0)
             {
-                transferMessageText.color = ErrorRed;
-                transferMessageText.text = error;
-            }
-        }
-    }
-
-    // 発行済みコードをクリップボードへ(CTRL+C。入力欄のフォーカスと衝突しない)。
-    public bool CopyTransferCode()
-    {
-        if (!PlayHistory.HasHistory) return false;
-        GUIUtility.systemCopyBuffer = PlayHistory.ExportCode();
-        if (transferMessageText != null)
-        {
-            transferMessageText.color = Cyan;
-            transferMessageText.text = "コードをコピーしました";
-        }
-        return true;
-    }
-
-    // 毎フレームの引き継ぎ画面装飾: 入力欄の枠色(フォーカス=シアン/エラー=赤)と
-    // 適用ボタンの点灯(入力があるときだけ明るくなる)。
-    public void TickTransfer()
-    {
-        if (!transferOpen || transferInputBorder == null || transferInput == null) return;
-        // フォーカス枠も最明度にはせず、主役のコードチップ(枠 alpha 0.85)より
-        // わずかに抑える(oracle 第29便: 主従の明確化)。
-        transferInputBorder.color = transferInputError
-            ? ErrorRed
-            : (transferInput.isFocused ? new Color(Cyan.r, Cyan.g, Cyan.b, 0.75f) : InputBorderIdle);
-        if (applyButton != null)
-        {
-            bool ready = transferInput.text.Length > 0;
-            applyButton.color = ready ? ApplyReady : ApplyIdle;
-            if (applyLabelText != null) applyLabelText.color = ready ? ApplyLabelReady : ApplyLabelIdle;
-        }
-    }
-
-    private void RefreshTransferCode()
-    {
-        bool has = PlayHistory.HasHistory;
-        if (transferCodeBlocksRoot != null) transferCodeBlocksRoot.SetActive(has);
-        if (transferCodeText != null)
-        {
-            transferCodeText.gameObject.SetActive(!has);
-            if (!has)
-            {
-                transferCodeText.text = "まだプレイ履歴がありません";
-                TmpAlign.CenterInkVertically(transferCodeText);
+                transferDigits.RemoveAt(transferDigits.Count - 1);
+                if (transferMessageText != null) transferMessageText.text = string.Empty;
+                RefreshTransferDigits();
             }
         }
-        if (!has) return;
-        // v2 コードは4文字(ハイフンなし)。第33便: 1文字=1チップの4分割をやめ、
-        // 「C4D7」のように1枚の帯に連続表示する(可読フォントは維持)。
-        string code = PlayHistory.ExportCode().Replace("-", "");
-        if (transferCodeBlockTexts.Length > 0 && transferCodeBlockTexts[0] != null)
+
+        if (transferState == TransferInputState.Entry)
         {
-            transferCodeBlockTexts[0].text = code;
-            TmpAlign.CenterInkVertically(transferCodeBlockTexts[0]);
+            if (transferDigits.Count < DirectionTransferCode.DigitCount)
+            {
+                int digit = InputManager.TryConsumeDirection(upEdge, downEdge, leftEdge, rightEdge, dt, ref transferDirCooldown);
+                if (digit >= 0)
+                {
+                    transferDigits.Add(digit);
+                    if (transferMessageText != null) transferMessageText.text = string.Empty;
+                    RefreshTransferDigits();
+                }
+            }
+
+            if (confirmEdge && transferDigits.Count == DirectionTransferCode.DigitCount)
+            {
+                if (DirectionTransferCode.TryDecode(transferDigits, out DirectionTransferCode.Payload payload, out string error))
+                {
+                    transferPendingPayload = payload;
+                    transferState = TransferInputState.Confirm;
+                    List<string> lines = TransferAchievements.SummaryLines(payload);
+                    string summary = lines.Count > 0 ? string.Join("\n", lines) : "(引き継ぐ実績はありません)";
+                    if (transferMessageText != null)
+                    {
+                        transferMessageText.color = Cyan;
+                        transferMessageText.text = summary + "\n\nA で反映 / B で戻る";
+                    }
+                }
+                else if (transferMessageText != null)
+                {
+                    transferMessageText.color = ErrorRed;
+                    transferMessageText.text = error; // 桁はそのまま保持(全消去はしない)
+                }
+            }
         }
-        if (transferCodeBlockShadows.Length > 0 && transferCodeBlockShadows[0] != null)
+        else // Confirm
         {
-            transferCodeBlockShadows[0].text = code;
-            TmpAlign.CenterInkVertically(transferCodeBlockShadows[0]);
+            if (confirmEdge)
+            {
+                TransferAchievements.ApplyPayload(transferPendingPayload);
+                transferDigits.Clear();
+                transferState = TransferInputState.Entry;
+                RefreshTransferDigits();
+                if (transferMessageText != null)
+                {
+                    transferMessageText.color = Cyan;
+                    transferMessageText.text = "反映しました。もう1件入力するか B で戻ってください。";
+                }
+            }
+        }
+
+        RefreshTransferDigits(); // カーソル点滅を毎フレーム反映
+        return false;
+    }
+    private bool transferBackHeldPrev;
+
+    // 12桁スロットの表示更新: 入力済みは矢印+明色、未入力は薄いドット、カーソル位置は点滅。
+    private void RefreshTransferDigits()
+    {
+        for (int i = 0; i < transferDigitTexts.Length; i++)
+        {
+            TMP_Text slot = transferDigitTexts[i];
+            if (slot == null) continue;
+            if (i < transferDigits.Count)
+            {
+                slot.text = DirectionTransferCode.Symbols[transferDigits[i]].ToString();
+                slot.color = DigitFilled;
+            }
+            else if (i == transferDigits.Count)
+            {
+                slot.text = "・";
+                float blink = 0.5f + 0.5f * Mathf.Sin(transferCursorBlink * 6f);
+                slot.color = Color.Lerp(DigitEmpty, DigitCursor, blink);
+            }
+            else
+            {
+                slot.text = "・";
+                slot.color = DigitEmpty;
+            }
         }
     }
 
@@ -1315,150 +1362,262 @@ public class TitleManager : MonoBehaviour
         heading.fontStyle = FontStyles.Bold;
         TMP_Text headingSub = CreateText("HeadingSub", rootRect, new Vector2(0f, 138f), new Vector2(700f, 22f), 15f, Cyan, TextAlignmentOptions.Center);
         headingSub.characterSpacing = 8f;
-        headingSub.text = "TRANSFER CODE";
+        headingSub.text = "DIRECTION CODE";
         CreatePanel("HeadingRule", rootRect, new Vector2(0f, 114f), new Vector2(240f, 1f), new Color(0.275f, 0.863f, 0.941f, 0.28f));
 
-        // コード表示: ラベル+1枚のネオン帯(第33便: 1文字=1チップの4分割をやめ、
-        // 「C4D7」のように連続した1フィールドにまとめる。可読フォントは維持)。
-        // 装飾層(外グロー→外枠→本体→ハイライト/影/帯/アクセント)はチップ時代の
-        // 見た目を踏襲しつつ、帯1枚に集約する。
-        // 第35便: コードチップ幅を入力行の全幅(contentHalf*2=544)に合わせ、チップだけ
-        // 狭かったのを解消。ラベルの左端(-contentHalf)もチップ左端に一致する。
-        const float bandW = contentHalf * 2f;
-        const float bandH = 64f;
-        // ラベルはシアン1行(ルビ・英字サブは撤去してシンプルに)。
-        TMP_Text codeLabel = CreateText("CodeLabel", rootRect, new Vector2(-contentHalf + 180f, 80f), new Vector2(360f, 30f), 20f, new Color(0.388f, 0.867f, 0.91f, 0.5f), TextAlignmentOptions.Left);
-        codeLabel.characterSpacing = 3f;
+        // 方向シーケンス入力(SPEC §1): ↑↓←→ 12桁を4桁3組で表示。埋まった桁は明色、
+        // 未入力は薄いドット、カーソル位置は点滅。TickTransfer/TickTransferInput が更新する。
+        TMP_Text hint = CreateText("Hint", rootRect, new Vector2(0f, 96f), new Vector2(720f, 26f), 18f,
+            new Color(0.388f, 0.867f, 0.91f, 0.6f), TextAlignmentOptions.Center);
+        hint.text = "スティックで入力  A:決定  B:削除(長押しで戻る)";
+        transferHintText = hint;
 
-        transferCodeBlocksRoot = new GameObject("CodeBlocks", typeof(RectTransform));
-        transferCodeBlocksRoot.layer = gameObject.layer;
-        RectTransform blocksRect = (RectTransform)transferCodeBlocksRoot.transform;
-        blocksRect.SetParent(rootRect, false);
-        blocksRect.anchorMin = blocksRect.anchorMax = new Vector2(0.5f, 0.5f);
-        blocksRect.anchoredPosition = new Vector2(0f, 32f);
-        transferCodeBlockTexts = new TMP_Text[1];
-        transferCodeBlockShadows = new TMP_Text[1]; // 背面のシアン疑似グロー文字
-        transferHyphenTexts = new TMP_Text[0];       // 分割しないのでハイフンは無し
-        Vector2 bandSize = new Vector2(bandW, bandH);
-        // 第35便: 外グロー箱を廃止し一重枠に(外グロー箱+内側枠が二重枠に見えていた)。
-        // 外枠(シアン)。fill を 2px 内側に入れて枠を残す。
-        Image border = CreatePanel("Band", blocksRect, Vector2.zero, bandSize, new Color(0.25f, 0.95f, 1f, 0.95f));
-        Image fill = CreatePanel("Fill", border.rectTransform, Vector2.zero, Vector2.zero, new Color(0.018f, 0.075f, 0.125f, 0.92f));
-        fill.rectTransform.anchorMin = Vector2.zero;
-        fill.rectTransform.anchorMax = Vector2.one;
-        fill.rectTransform.offsetMin = new Vector2(2f, 2f);
-        fill.rectTransform.offsetMax = new Vector2(-2f, -2f);
-        // 上辺ハイライト・下辺影で「入力欄」ではなくネオンプレートに見せる。
-        CreatePanel("TopHi", border.rectTransform, new Vector2(0f, bandH * 0.5f - 3f), new Vector2(bandW - 24f, 2f), new Color(0.55f, 1f, 1f, 0.55f));
-        CreatePanel("BottomSh", border.rectTransform, new Vector2(0f, -(bandH * 0.5f - 2f)), new Vector2(bandW, 4f), new Color(0f, 0.02f, 0.05f, 0.45f));
-        // 左端の内側グロー帯。
-        CreatePanel("LeftStrip", border.rectTransform, new Vector2(-(bandW * 0.5f - 5f), 0f), new Vector2(3f, bandH - 16f), new Color(0.35f, 0.95f, 1f, 0.35f));
-        // (第34便: 右上のマゼンタ斜めアクセントを削除し、帯全体をシアン系に統一)
-        // 背面のシアン疑似グロー文字(本体文字の一回り大きいコピー)。
-        // 4文字を1帯に並べるので characterSpacing で字間を広げて読みやすくする。
-        TMP_Text glowText = CreateText("TextGlow", border.rectTransform, Vector2.zero, bandSize, 46f, new Color(0.15f, 0.95f, 1f, 0.145f), TextAlignmentOptions.Center);
-        if (codeFont != null) glowText.font = codeFont;
-        glowText.fontStyle = FontStyles.Bold;
-        glowText.characterSpacing = 20f;
-        glowText.rectTransform.localScale = Vector3.one * 1.05f;
-        transferCodeBlockShadows[0] = glowText;
-        TMP_Text bt = CreateText("Text", border.rectTransform, Vector2.zero, bandSize, 46f, new Color(0.62f, 0.98f, 1f), TextAlignmentOptions.Center);
-        if (codeFont != null) bt.font = codeFont;
-        bt.fontStyle = FontStyles.Bold;
-        bt.characterSpacing = 20f;
-        transferCodeBlockTexts[0] = bt;
-        // 履歴なしのときだけ出すメッセージ(ブロックと同じ位置)。
-        transferCodeText = CreateText("Code", rootRect, new Vector2(0f, 32f), new Vector2(720f, 80f), 30f, CyanDim, TextAlignmentOptions.Center);
+        transferDigitTexts = new TMP_Text[DirectionTransferCode.DigitCount];
+        const float slotW = 40f;
+        const float slotGap = 10f;
+        const float groupGap = 26f;
+        int groups = DirectionTransferCode.DigitCount / DirectionTransferCode.DigitGroupSize;
+        float totalW = DirectionTransferCode.DigitCount * slotW
+            + (DirectionTransferCode.DigitCount - groups) * slotGap
+            + (groups - 1) * groupGap;
+        float x = -totalW * 0.5f + slotW * 0.5f;
+        for (int i = 0; i < DirectionTransferCode.DigitCount; i++)
+        {
+            TMP_Text slot = CreateText("Digit" + i, rootRect, new Vector2(x, 32f), new Vector2(slotW, 56f), 34f, DigitEmpty, TextAlignmentOptions.Center);
+            if (codeFont != null) slot.font = codeFont;
+            slot.fontStyle = FontStyles.Bold;
+            slot.text = "・";
+            transferDigitTexts[i] = slot;
 
-        // 入力: ラベル+入力欄+適用ボタン(行の左右端はチップ列に揃える)。
-        TMP_Text inputLabel = CreateText("InputLabel", rootRect, new Vector2(-contentHalf + 180f, -48f), new Vector2(360f, 30f), 20f, new Color(0.388f, 0.867f, 0.91f, 0.5f), TextAlignmentOptions.Left);
-        inputLabel.characterSpacing = 3f;
+            x += slotW + slotGap;
+            if ((i + 1) % DirectionTransferCode.DigitGroupSize == 0) x += groupGap - slotGap;
+        }
 
-        const float inputW = 420f;
-        const float applyW = 108f;
-        const float rowH = 56f;
-        BuildInputField(rootRect, new Vector2(-contentHalf + inputW * 0.5f, -104f), new Vector2(inputW, rowH));
+        transferMessageText = CreateText("Message", rootRect, new Vector2(0f, -70f), new Vector2(720f, 160f), 22f, Cyan, TextAlignmentOptions.Center);
+        transferMessageText.textWrappingMode = TextWrappingModes.Normal;
 
-        applyButton = CreatePanel("ApplyButton", rootRect, new Vector2(contentHalf - applyW * 0.5f, -104f), new Vector2(applyW, rowH), ApplyIdle);
-        TMP_Text applyLabel = CreateText("ApplyLabel", applyButton.rectTransform, Vector2.zero, new Vector2(applyW, rowH), 26f, ApplyLabelIdle, TextAlignmentOptions.Center);
-        StretchToParent(applyLabel.rectTransform);
-        applyLabel.fontStyle = FontStyles.Bold;
-        applyLabelText = applyLabel;
-
-        transferMessageText = CreateText("Message", rootRect, new Vector2(0f, -180f), new Vector2(720f, 36f), 22f, Cyan, TextAlignmentOptions.Center);
-
-        // 操作ヒント行(ENTER 適用 / CTRL+C コピー / ESC 戻る)は第34便で削除。
-        // 操作自体は有効なまま、画面の主張を抑える。
-
-        // Fill the label texts.
         SetChildText(rootRect, "Heading", "引き継ぎ");
-        SetChildText(rootRect, "CodeLabel", "あなたの引き継ぎコード");
-        SetChildText(rootRect, "InputLabel", "コードを入力");
-        SetChildText(applyButton.rectTransform, "ApplyLabel", "適用");
         transferMessageText.text = string.Empty;
 
         transferRoot.SetActive(false);
     }
 
-    private void BuildInputField(RectTransform parent, Vector2 pos, Vector2 size)
+    // ---- ランキング盤面(SPEC §2.2) -----------------------------------------
+    // 左右=難易度切替・上下=ステージ切替・A=1P/2Pモード切替・B=戻る、という解釈で実装。
+    // (SPEC本文は「スティック左右でステージ/難易度/モード切替」とだけ書いてあり、
+    // 3軸をどう1入力に割り当てるかは明記が無いため、既存の上下=一覧送りの慣習に
+    // 合わせて上下=ステージへ広げた。要親確認: Instructions/ranking-transfer/NOTES.md 参照)
+
+    public void OpenRanking()
     {
-        GameObject fieldObj = new GameObject("CodeInput", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(TMP_InputField));
-        fieldObj.layer = gameObject.layer;
-        RectTransform fieldRect = (RectTransform)fieldObj.transform;
-        fieldRect.SetParent(parent, false);
-        fieldRect.anchorMin = fieldRect.anchorMax = new Vector2(0.5f, 0.5f);
-        fieldRect.anchoredPosition = pos;
-        fieldRect.sizeDelta = size;
-        // フィールド本体の Image は枠として使い、フォーカス/エラーで色を変える。
-        Image bg = fieldObj.GetComponent<Image>();
-        bg.color = InputBorderIdle;
-        transferInputBorder = bg;
+        if (rankingRoot == null) return;
+        if (rankingCloseRoutine != null) { StopCoroutine(rankingCloseRoutine); rankingCloseRoutine = null; }
+        rankingRoot.transform.localScale = Vector3.one;
+        rankingOpen = true;
+        rankingRoot.SetActive(true);
+        rankingRoot.transform.SetAsLastSibling();
+        if (rankingCG != null) rankingCG.alpha = 0f;
+        if (rankingBackdrop != null) rankingBackdrop.gameObject.SetActive(false);
+        if (rankingCaptureRoutine != null) StopCoroutine(rankingCaptureRoutine);
+        rankingCaptureRoutine = StartCoroutine(CaptureRankingBackdrop());
+        if (!rankingInkCentered)
+        {
+            RectTransform rootRect = (RectTransform)rankingRoot.transform;
+            TMP_Text heading = rootRect.Find("Heading")?.GetComponent<TMP_Text>();
+            if (heading != null) rankingInkCentered = TmpAlign.CenterInkVertically(heading);
+        }
+        RefreshRankingBoard();
+    }
 
-        Image fieldFill = CreatePanel("Fill", fieldRect, Vector2.zero, Vector2.zero, new Color(0.016f, 0.067f, 0.114f, 1f));
-        fieldFill.rectTransform.anchorMin = Vector2.zero;
-        fieldFill.rectTransform.anchorMax = Vector2.one;
-        fieldFill.rectTransform.offsetMin = new Vector2(3f, 3f);
-        fieldFill.rectTransform.offsetMax = new Vector2(-3f, -3f);
+    public void CloseRanking()
+    {
+        rankingOpen = false;
+        if (rankingCaptureRoutine != null) { StopCoroutine(rankingCaptureRoutine); rankingCaptureRoutine = null; }
+        if (rankingCloseRoutine != null) StopCoroutine(rankingCloseRoutine);
+        if (rankingRoot != null && rankingRoot.activeInHierarchy && gameObject.activeInHierarchy)
+        {
+            rankingCloseRoutine = StartCoroutine(CloseRankingRoutine());
+        }
+        else
+        {
+            FinishCloseRanking();
+        }
+    }
 
-        GameObject areaObj = new GameObject("TextArea", typeof(RectTransform), typeof(RectMask2D));
-        areaObj.layer = gameObject.layer;
-        RectTransform areaRect = (RectTransform)areaObj.transform;
-        areaRect.SetParent(fieldRect, false);
-        areaRect.anchorMin = Vector2.zero;
-        areaRect.anchorMax = Vector2.one;
-        // プレースホルダーと入力文字は左基準で揃える(中央寄せだと入力開始時に
-        // 文字位置が跳ねる。oracle 第2周)。
-        areaRect.offsetMin = new Vector2(24f, 6f);
-        areaRect.offsetMax = new Vector2(-16f, -6f);
+    private IEnumerator CloseRankingRoutine()
+    {
+        RectTransform rootRect = rankingRoot != null ? (RectTransform)rankingRoot.transform : null;
+        float startAlpha = rankingCG != null ? rankingCG.alpha : 1f;
+        float t = 0f;
+        const float dur = 0.14f;
+        while (t < dur)
+        {
+            t += Time.unscaledDeltaTime;
+            float p = Mathf.Clamp01(t / dur);
+            if (rankingCG != null) rankingCG.alpha = startAlpha * (1f - p);
+            if (rootRect != null) rootRect.localScale = Vector3.one * Mathf.Lerp(1f, 0.98f, p);
+            yield return null;
+        }
+        rankingCloseRoutine = null;
+        FinishCloseRanking();
+    }
 
-        TMP_Text placeholder = CreateText("Placeholder", areaRect, Vector2.zero, size, 28f, new Color(0.498f, 0.682f, 0.722f, 0.5f), TextAlignmentOptions.Left);
-        StretchToParent(placeholder.rectTransform);
-        if (codeFont != null) placeholder.font = codeFont;
-        // 発行コードは4文字(v2)。旧16文字コードも引き続き入力・適用できる。
-        placeholder.text = "XXXX";
+    private void FinishCloseRanking()
+    {
+        if (rankingRoot != null)
+        {
+            rankingRoot.transform.localScale = Vector3.one;
+            rankingRoot.SetActive(false);
+        }
+        if (rankingCG != null) rankingCG.alpha = 1f;
+        if (rankingBackdrop != null) rankingBackdrop.texture = null;
+        BackdropBlurUtil.ReleaseRT(ref rankingBlurRT);
+    }
 
-        TMP_Text textComp = CreateText("Text", areaRect, Vector2.zero, size, 30f, new Color(0.953f, 0.984f, 1f, 0.95f), TextAlignmentOptions.Left);
-        StretchToParent(textComp.rectTransform);
-        if (codeFont != null) textComp.font = codeFont;
-        textComp.fontStyle = FontStyles.Bold;
-        textComp.characterSpacing = 6f;
+    private IEnumerator CaptureRankingBackdrop()
+    {
+        yield return new WaitForEndOfFrame();
+        rankingCaptureRoutine = null;
+        if (!rankingOpen) yield break;
+        BackdropBlurUtil.ReleaseRT(ref rankingBlurRT);
+        rankingBlurRT = BackdropBlurUtil.CapturePyramidBlur();
+        if (rankingBackdrop != null)
+        {
+            rankingBackdrop.texture = rankingBlurRT;
+            rankingBackdrop.gameObject.SetActive(true);
+        }
+        float t = 0f;
+        while (t < 0.14f)
+        {
+            t += Time.unscaledDeltaTime;
+            if (rankingCG != null) rankingCG.alpha = Mathf.Clamp01(t / 0.14f);
+            yield return null;
+        }
+        if (rankingCG != null) rankingCG.alpha = 1f;
+    }
 
-        transferInput = fieldObj.GetComponent<TMP_InputField>();
-        transferInput.textViewport = areaRect;
-        transferInput.textComponent = textComp;
-        transferInput.placeholder = placeholder;
-        transferInput.fontAsset = codeFont != null ? codeFont : uiFont;
-        transferInput.pointSize = 30f;
-        transferInput.characterLimit = 19; // 16 symbols + 3 grouping hyphens
-        transferInput.lineType = TMP_InputField.LineType.SingleLine;
-        transferInput.richText = false;
-        transferInput.customCaretColor = true;
-        transferInput.caretColor = Cyan;
-        transferInput.caretWidth = 3;
-        transferInput.onValidateInput += (string text, int pos, char ch) => char.ToUpperInvariant(ch);
-        // 入力し直したらエラー表示(赤枠)を解除する。
-        transferInput.onValueChanged.AddListener(_ => transferInputError = false);
-        transferInput.onSubmit.AddListener(_ => ApplyTransfer());
+    // 戻り値 true は「画面を閉じてタイトルへ戻る」(B)。
+    public bool TickRankingInput(bool leftEdge, bool rightEdge, bool upEdge, bool downEdge, bool confirmEdge, bool backEdge)
+    {
+        if (!rankingOpen) return false;
+        if (backEdge) return true;
+
+        bool changed = false;
+        if (rightEdge)
+        {
+            rankingDifficultyIndex = (rankingDifficultyIndex + 1) % DirectionTransferCode.DifficultyCount;
+            changed = true;
+        }
+        else if (leftEdge)
+        {
+            rankingDifficultyIndex = (rankingDifficultyIndex - 1 + DirectionTransferCode.DifficultyCount) % DirectionTransferCode.DifficultyCount;
+            changed = true;
+        }
+        if (downEdge)
+        {
+            rankingStageIndex = (rankingStageIndex + 1) % DirectionTransferCode.StageCount;
+            changed = true;
+        }
+        else if (upEdge)
+        {
+            rankingStageIndex = (rankingStageIndex - 1 + DirectionTransferCode.StageCount) % DirectionTransferCode.StageCount;
+            changed = true;
+        }
+        if (confirmEdge)
+        {
+            rankingModeIndex = 1 - rankingModeIndex;
+            changed = true;
+        }
+
+        if (changed) RefreshRankingBoard();
+        return false;
+    }
+
+    private void RefreshRankingBoard()
+    {
+        string stageDir = DirectionTransferCode.StageOrder[rankingStageIndex];
+        string stageName = TransferAchievements.StageDisplayName(stageDir);
+        string diffName = DifficultyUtility.GetDisplayName((Difficulty)rankingDifficultyIndex);
+        string mode = RankingModes[rankingModeIndex];
+        if (rankingHeaderText != null)
+        {
+            rankingHeaderText.text = $"{stageName}  {diffName}  {mode}";
+        }
+
+        List<RankingStore.Entry> top = RankingStore.GetTop(stageDir, rankingDifficultyIndex, mode);
+        for (int i = 0; i < rankingRowTexts.Length; i++)
+        {
+            TMP_Text row = rankingRowTexts[i];
+            if (row == null) continue;
+            if (i < top.Count)
+            {
+                RankingStore.Entry e = top[i];
+                row.text = $"{i + 1,2}   {e.name,-3}   {e.score,8:N0}   {e.dateTime}";
+                row.color = MenuTextBase;
+            }
+            else
+            {
+                row.text = $"{i + 1,2}   ---";
+                row.color = new Color(MenuTextBase.r, MenuTextBase.g, MenuTextBase.b, 0.35f);
+            }
+        }
+    }
+
+    private void BuildRankingPanel()
+    {
+        GameObject rootObj = new GameObject("RankingPanel", typeof(RectTransform));
+        rootObj.layer = gameObject.layer;
+        rankingRoot = rootObj;
+        RectTransform rootRect = (RectTransform)rootObj.transform;
+        rootRect.SetParent(transform, false);
+        rootRect.anchorMin = Vector2.zero;
+        rootRect.anchorMax = Vector2.one;
+        rootRect.offsetMin = Vector2.zero;
+        rootRect.offsetMax = Vector2.zero;
+        rankingCG = rootObj.AddComponent<CanvasGroup>();
+
+        rankingBackdrop = CreateRawImage("Backdrop", rootRect);
+        StretchToParent(rankingBackdrop.rectTransform);
+        rankingBackdrop.color = new Color(0.55f, 0.62f, 0.72f, 1f);
+        rankingBackdrop.gameObject.SetActive(false);
+
+        const float panelW = 900f;
+        const float panelH = 720f;
+        const float panelHalfW = panelW * 0.5f;
+        const float panelHalfH = panelH * 0.5f;
+        Vector2 panelSize = new Vector2(panelW, panelH);
+        CreatePanel("Scrim", rootRect, Vector2.zero, new Vector2(4000f, 4000f), new Color(0f, 0.024f, 0.071f, 0.22f));
+        CreatePanel("PanelShadow", rootRect, new Vector2(6f, -8f), panelSize, new Color(0f, 0f, 0f, 0.24f));
+        CreatePanel("Panel", rootRect, Vector2.zero, panelSize, new Color(0.008f, 0.031f, 0.078f, 0.90f));
+        Color edgeSilver = new Color(0.268f, 0.325f, 0.456f);
+        CreatePanel("EdgeTop", rootRect, new Vector2(0f, panelHalfH - 1f), new Vector2(panelW, 2f), new Color(edgeSilver.r, edgeSilver.g, edgeSilver.b, 0.80f));
+        CreatePanel("EdgeBottom", rootRect, new Vector2(0f, -(panelHalfH - 1f)), new Vector2(panelW, 2f), new Color(edgeSilver.r, edgeSilver.g, edgeSilver.b, 0.60f));
+        CreatePanel("EdgeLeft", rootRect, new Vector2(-(panelHalfW - 1f), 0f), new Vector2(2f, panelH), new Color(edgeSilver.r, edgeSilver.g, edgeSilver.b, 0.60f));
+        CreatePanel("EdgeRight", rootRect, new Vector2(panelHalfW - 1f, 0f), new Vector2(2f, panelH), new Color(edgeSilver.r, edgeSilver.g, edgeSilver.b, 0.60f));
+
+        TMP_Text heading = CreateText("Heading", rootRect, new Vector2(0f, panelHalfH - 56f), new Vector2(700f, 52f), 36f, Color.white, TextAlignmentOptions.Center);
+        heading.fontStyle = FontStyles.Bold;
+        heading.text = "ランキング";
+
+        TMP_Text header = CreateText("SubHeader", rootRect, new Vector2(0f, panelHalfH - 104f), new Vector2(820f, 30f), 22f, Cyan, TextAlignmentOptions.Center);
+        header.characterSpacing = 3f;
+        rankingHeaderText = header;
+
+        TMP_Text hint = CreateText("Hint", rootRect, new Vector2(0f, panelHalfH - 132f), new Vector2(820f, 22f), 15f,
+            new Color(0.388f, 0.867f, 0.91f, 0.55f), TextAlignmentOptions.Center);
+        hint.text = "←→ 難易度   ↑↓ ステージ   A モード切替   B 戻る";
+
+        rankingRowTexts = new TMP_Text[RankingStore.TopCount];
+        const float rowH = 40f;
+        float rowTop = panelHalfH - 176f;
+        for (int i = 0; i < rankingRowTexts.Length; i++)
+        {
+            TMP_Text row = CreateText("Row" + i, rootRect, new Vector2(0f, rowTop - i * rowH), new Vector2(760f, rowH), 22f, MenuTextBase, TextAlignmentOptions.Left);
+            if (codeFont != null) row.font = codeFont;
+            rankingRowTexts[i] = row;
+        }
+
+        rankingRoot.SetActive(false);
     }
 
     // ---- UI helpers -------------------------------------------------------
@@ -1484,6 +1643,7 @@ public class TitleManager : MonoBehaviour
     private void OnDestroy()
     {
         ReleaseBackdropTexture();
+        BackdropBlurUtil.ReleaseRT(ref rankingBlurRT);
     }
 
     private RawImage CreateRawImage(string objectName, Transform parent)

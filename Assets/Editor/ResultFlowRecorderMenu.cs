@@ -223,7 +223,7 @@ public static class ResultFlowRecorderMenu
             g.DebugShowResult(true);
             yield return WaitForEntering(g, 10f);
             yield return new WaitForSeconds(0.7f);
-            g.RManager.Tick(false, false, false, true, false); // 決定押下=スキップ
+            g.RManager.Tick(false, false, false, false, false, false, false, true, false); // 決定押下=スキップ
             yield return new WaitForSeconds(2.0f);
 
             // Phase D: 失敗版の入場アニメ全編。
@@ -233,9 +233,9 @@ public static class ResultFlowRecorderMenu
 
             // Phase E: 実ボタン経路(アーム→決定押下)でステージ選択へ戻って締め。
             // RequestExit を通すので決定 SE も録画に入る。
-            g.RManager.Tick(false, false, false, false, false); // 非押下フレームでアーム
+            g.RManager.Tick(false, false, false, false, false, false, false, false, false); // 非押下フレームでアーム
             yield return null;
-            g.RManager.Tick(false, false, false, true, false);  // 決定押下
+            g.RManager.Tick(false, false, false, false, false, false, false, true, false);  // 決定押下
             yield return WaitForState(g, GManager.GameState.ChoosingStage, 8f);
             yield return new WaitForSeconds(2.0f);
         }

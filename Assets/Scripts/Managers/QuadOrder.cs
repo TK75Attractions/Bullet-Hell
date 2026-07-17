@@ -376,6 +376,7 @@ public class QuadOrder : MonoBehaviour
 
         //敵の弾の更新
         float2 playerVelocity = GManager.Control.PController != null ? GManager.Control.PController.velocity : new float2(0, 0);
+        float2 playerPosition = GManager.Control.PController != null ? GManager.Control.PController.pos : new float2(0, 0);
         QuadGrid grid = CreateQuadGrid();
         if (hasEnemyBullets)
         {
@@ -389,6 +390,19 @@ public class QuadOrder : MonoBehaviour
             };
             JobHandle handle1 = job1.Schedule(bullets.Length, 64);
             handle1.Complete();
+
+            // v2 レーン(segments/homing を持つ弾のみ処理。同じ配列を逐次 Schedule→Complete するため
+            // job1 との書き込み競合は発生しない)。
+            BulletV2UpdateJob job2 = new()
+            {
+                bullets = bullets,
+                dt = _dt,
+                grid = grid,
+                playerVelocity = playerVelocity,
+                playerPosition = playerPosition
+            };
+            JobHandle handle2 = job2.Schedule(bullets.Length, 64);
+            handle2.Complete();
         }
 
         // areaNum を使ってセルを再構築
