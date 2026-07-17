@@ -309,7 +309,7 @@ public sealed class ResultScreen : MonoBehaviour
         Image edgeBottom = NewImage("EdgeBottom", rect, edgeSilver);
         SetRect(edgeBottom.rectTransform, new Vector2(0f, -(panelH * 0.5f - 1f)), new Vector2(panelW, 2f));
 
-        rankingOverlayHeading = NewText("Heading", rect, "Top10 圏内！", 34f, Color.white, TextAlignmentOptions.Center);
+        rankingOverlayHeading = NewText("Heading", rect, "Top10 圏内!", 34f, Color.white, TextAlignmentOptions.Center);
         SetRect((RectTransform)rankingOverlayHeading.transform, new Vector2(0f, panelH * 0.5f - 56f), new Vector2(600f, 44f));
 
         // --- イニシャル入力(3文字) ---
@@ -1747,7 +1747,7 @@ public sealed class ResultScreen : MonoBehaviour
         initialsUpRepeat = default;
         initialsDownRepeat = default;
         if (rankingOverlayRoot != null) rankingOverlayRoot.SetActive(true);
-        if (rankingOverlayHeading != null) rankingOverlayHeading.text = "Top10 圏内！";
+        if (rankingOverlayHeading != null) rankingOverlayHeading.text = "Top10 圏内!"; // 全角！は使用フォントに未収録でtofu化するため半角(♥/？？？と同じ理由)
         if (initialsGroup != null) initialsGroup.SetActive(true);
         if (boardGroup != null) boardGroup.SetActive(false);
         RefreshInitialsSlots();
