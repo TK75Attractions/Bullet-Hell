@@ -326,7 +326,7 @@ public sealed class ResultScreen : MonoBehaviour
             initialsSlotTexts[i] = slot;
         }
         TMP_Text initialsHint = NewText("Hint", initialsGroup.transform,
-            "↑↓ 文字送り　←→ 桁移動　A 決定(3桁目で登録)　B 戻る", 18f,
+            "↑↓ 文字送り / ←→ 桁移動 / A 決定(3桁目で登録) / B 戻る", 18f,
             new Color(0.7f, 0.85f, 0.95f, 0.8f), TextAlignmentOptions.Center);
         SetRect((RectTransform)initialsHint.transform, new Vector2(0f, -60f), new Vector2(700f, 30f));
 
@@ -1258,7 +1258,7 @@ public sealed class ResultScreen : MonoBehaviour
             if (showTransfer)
             {
                 string code = DirectionTransferCode.Encode(TransferAchievements.BuildPayload());
-                transferCodeLine.text = "ひきつぎコード　" + code;
+                transferCodeLine.text = "ひきつぎコード " + code;
             }
         }
 
