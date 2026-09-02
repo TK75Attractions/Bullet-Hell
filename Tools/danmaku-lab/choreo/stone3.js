@@ -1,4 +1,18 @@
-// choreo/stone3.js — 新・石工（stone3）冒頭 8 区間 v12
+// choreo/stone3.js — 新・石工（stone3）v13
+//
+// ── v13 での変更 ──────────────────────────────────────────────────────
+//   (A) 冒頭 8 区間への修正（3 点）と、ドット絵の造形改善（Tools/gen_stone3_pixel.py 側）
+//     A1/A2 スプライトの描き直し（グラデーションをやめて輪郭と線のディテールで見せる。
+//          シャベルは JSaB 参考画像の比率 握り 15% / 柄 45% / 刃 40% に合わせ直した）。
+//          本ファイルの弾データには影響しない（scale・型・色の指定は不変）。
+//     A3   タイル爆破①②（区間②④）の頻度を半分に。毎拍 2 枚 → 各小節の 1・3 拍目に 2 枚。
+//          blastPhase の beatPhase を参照（既定 [0,2]）。
+//     A4   横断シャベル（区間⑥⑧）の速度を 26 → 15.6（6 割）。前の拍のシャベルが画面に
+//          残るので、shovelSweepPhase で直前の拍と同じ行を避けるようにした。
+//   (B) 33.333s（拍 80・21 小節目）以降を 60.0s（拍 144・37 小節目）まで延長した。
+//       区間⑨〜⑯。曲の解析は Instructions/石工/stone3_section_analysis_20260903.md。
+//       既存モチーフ（タイル帯・爆破・落下シャベル・横断シャベル・放射弾）の変奏だけで
+//       構成し、新要素は入れていない。詳細は下の「── (B) 延長の設計 ──」を参照。
 //
 // 参考: Just Shapes & Beats "Tokyo Skies" の冒頭（画面全体の正方グリッドにピンクのタイルが
 // 拍ごとに点滅→実体化し、プレイヤーは残った隙間を縫って避ける）。
@@ -547,7 +561,12 @@ const POP_DURATION = 0.100;                         // 収束までの秒数（�
 const SHOVEL_SCALE = 3.68;
 const SHOVEL_SPAWN_Y = 26;     // 画面上端(18)より上・カリング境界(36)より内側
 const SHOVEL_FALL_SPEED = 24;  // 落下速度（一定）。飛来時間はタイルの高さで変わる
-const SHOVEL_SIDE_SPEED = 26;  // 横断速度
+// v13 (A4): 横断シャベルの速度を 26 → 15.6（6 割）へ下げた。
+//   画面幅 35 ユニット（-1.5 → 33.5）を渡る時間は 1.346s → 2.244s に伸びるので、毎拍
+//   （0.417s）発射だと前の拍の 2 本がまだ画面に残っている状態で次の 2 本が出る。
+//   ユーザー了承済み（「次の拍の発射と重なってよい（別の行なので）」）。行が本当に別に
+//   なるよう、shovelSweepPhase では直前の拍で使った 2 行を候補から外している。予告は無しのまま。
+const SHOVEL_SIDE_SPEED = 15.6;  // 横断速度
 const SHOVEL_LEFT_X = -1.5;    // カリング境界 x>=-2 の内側から出す
 const SHOVEL_RIGHT_X = 33.5;
 
@@ -921,15 +940,30 @@ export default stage(
     //   区間を通して左右上下へ均等に散る。
     //   ・爆破の1拍前から対象タイルが点滅、半拍前に薄い予告とリング予告
     //   ・爆破時刻ちょうどでタイルの life が尽き、同時に spinBurst（放射弾）が出る
+    //
+    //   v13 (A3): 頻度を半分にした。v12 は「毎拍 2 枚」だったが、
+    //   **各小節の 1 拍目と 3 拍目だけ・1 回 2 枚**（= 2 拍に 1 回）にする。
+    //   拍番号 n の小節内位置は n % 4（0 = 1 拍目 / 2 = 3 拍目）。BPM144・offset 0 で
+    //   小節線は拍番号 4 の倍数に来るので、この判定がそのまま楽譜上の 1・3 拍目になる。
+    //   点滅予告は従来どおり爆破の 1 拍前（BLINK_LEAD）から。
+    //   残留タイルを使い切れなくなるが、余りは区間末の bandEnd で消える（cfg.bandEnd）。
+    //     区間② 拍 23〜31 … 発火は 24 / 26 / 28 / 30 の 4 回（v12 は 9 回）
+    //     区間④ 拍 40〜47 … 発火は 40 / 42 / 44 / 46 の 4 回（v12 は 8 回）
+    //   cfg.beatPhase を渡すと 1・3 拍目の代わりに任意の拍位置集合を使える（区間⑩⑭で使用）。
     // ======================================================================
     function blastPhase(cfg) {
       const pools = {};
       SIDE_ORDER.forEach(function (nm) { pools[nm] = []; });
       shuffled(cfg.tiles, rng).forEach(function (t) { pools[sideOf(t.col, t.row)].push(t); });
 
+      // v13 (A3): 発火する拍位置（小節内 0 起点）。既定は 1 拍目と 3 拍目＝2 拍に 1 回。
+      const beatPhase = cfg.beatPhase || [0, 2];
+
       let sideIdx = 0;
       for (let b = 0; b < cfg.len; b++) {
-        const blastTime = B(cfg.firstBeat + b);
+        const beatNo = cfg.firstBeat + b;
+        if (beatPhase.indexOf(beatNo % 4) < 0) continue;   // v13: 2 拍に 1 回だけ爆破する
+        const blastTime = B(beatNo);
         const youngest = blastTime - beats(BLAST_MIN_AGE) + 1e-6;
         const group = [];
         for (let n = 0; n < BLAST_PER_BEAT; n++) {
@@ -1116,13 +1150,19 @@ export default stage(
     // ======================================================================
     const heldRows = Array.from(new Set(heldCells.map((c) => c[1]))).sort((a, b) => a - b);
 
-    function shovelSweepPhase(firstBeat) {
-      for (let i = 0; i < 4; i++) {
+    function shovelSweepPhase(firstBeat, count = 4) {
+      // v13 (A4): 速度を落としたぶん前の拍のシャベルが画面に残るので、直前の拍で使った行は
+      //   候補から外す（候補が尽きたときだけ全行に戻す）。同じ行で追いかけっこにならない。
+      let prevRows = [];
+      for (let i = 0; i < count; i++) {
         const t = B(firstBeat + i);
         if (heldRows.length === 0) continue;
-        const leftRow = heldRows[Math.floor(rng() * heldRows.length)];
-        const others = heldRows.filter((r) => r !== leftRow);
+        let pool = heldRows.filter((r) => prevRows.indexOf(r) < 0);
+        if (pool.length < 2) pool = heldRows;
+        const leftRow = pool[Math.floor(rng() * pool.length)];
+        const others = pool.filter((r) => r !== leftRow);
         const rightRow = others.length > 0 ? others[Math.floor(rng() * others.length)] : leftRow;
+        prevRows = [leftRow, rightRow];
 
         // v8 (1): 横断シャベルの経路予告（横帯 + 方向マーク）は削除した。
         //   v5(4)〜v7 では通る行に横一杯の PINK_PATH の帯と、来る側の端に PINK_MARK の
