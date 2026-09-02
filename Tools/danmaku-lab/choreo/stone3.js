@@ -1,4 +1,4 @@
-// choreo/stone3.js — 新・石工（stone3）冒頭 8 区間 v8
+// choreo/stone3.js — 新・石工（stone3）冒頭 8 区間 v9
 //
 // 参考: Just Shapes & Beats "Tokyo Skies" の冒頭（画面全体の正方グリッドにピンクのタイルが
 // 拍ごとに点滅→実体化し、プレイヤーは残った隙間を縫って避ける）。
@@ -102,6 +102,15 @@
 //       動画の予告は「実体と同じ色の暗いタイル」で、明るいピンクではない（実測値も
 //       PINK_TILE_WARN のコメントに残した）。予告→白フラッシュ→濃ピンク の色の流れが
 //       動画と揃う。爆破予告・経路帯・リング予告の PINK_WARN は従来のまま。
+//
+// ── v9 での変更（見た目 1 点のみ。弾幕本体・横断予告の削除・爆破点滅は v8 のまま）────
+//   タイル実体化ポップの作り方を変えた。v8 の「静止した 6 コマの重ね」は、各コマが自分の
+//   1 フレームのあと life 末尾 0.1 秒の減衰に入るため、はみ出した部分が白〜灰色の輪郭として
+//   0.06〜0.10 秒残っていた（Captures/stone3_v8_pop_compare.png。ユーザー評価「雑」）。
+//   v9 ではランタイムに出現アニメ（BulletDataJson の scaleEnd / colorEnd / animDuration。
+//   既定 0 で従来動作＝既存ステージへの影響なし）を追加し、1 タイル 1 発の stone_flash が
+//   拍頭の白・1.714 倍から 0.100 秒で実体色・等倍へ滑らかに縮むようにした。重なるコマが
+//   無いので白い輪郭は原理的に出ない。詳細は POP_SCALE_START 付近のコメントを参照。
 //
 // ── 乱数 ──────────────────────────────────────────────────────────────
 //   stage() は難易度の数だけビルド関数を再実行するため Math.random() は使えない。
@@ -275,9 +284,11 @@ function spinBurst(opts) {
 //   life は必ず正の値にする（life<=0 は「寿命なし」扱いで消えなくなる）。
 //   v7: it.type で弾のタイプを選べるようにした（既定は従来どおり warn_box）。爆破タイルの
 //   点滅だけは stone_flash（renderPriority 4）を使い、タイルより手前に重ねる必要がある。
+//   v9: it.scaleEnd / it.colorEnd / it.animDuration を渡すと、ランタイムの出現アニメ
+//   （BulletRenderSystem の線形補間）に乗る。指定した弾だけがこのキーを持つ。
 function warnClip(items, kind) {
   const bullets = items.map(function (it) {
-    return bulletDefaults({
+    const spec = {
       originPos: { x: it.pos[0], y: it.pos[1] },
       typeName: it.type || 'warn_box',
       scale: { x: it.scale[0], y: it.scale[1] },
@@ -286,7 +297,13 @@ function warnClip(items, kind) {
       appearDuration: it.appearDuration || 0,
       life: it.life,
       unCounterable: true,
-    });
+    };
+    if (it.animDuration > 0) {
+      spec.scaleEnd = { x: it.scaleEnd[0], y: it.scaleEnd[1] };
+      spec.colorEnd = { x: it.colorEnd[0], y: it.colorEnd[1], z: it.colorEnd[2], w: it.colorEnd[3] };
+      spec.animDuration = it.animDuration;
+    }
+    return bulletDefaults(spec);
   });
   return {
     parts: [{ offsetSec: 0, kind, buffer: { bullets, homing: false, isLaser: false }, spawner: NEUTRAL_SPAWNER() }],
@@ -328,7 +345,7 @@ const RING_DOT = 0.42;             // リングの点の一辺
 const SWEEP_LEAD = beats(1);       // 横断シャベルの経路予告のリード（発射の1拍前）
 // MARK_SIZE / MARK_INSET / MARK_HOLD（横断シャベルの方向マーク）は v8 で予告ごと削除した。
 
-// v8: タイル実体化ポップのパラメータ（JSaB "Milky Ways" の再実測に合わせて作り直した）。
+// v9: タイル実体化ポップのパラメータ（JSaB "Milky Ways" の実測 + ランタイムの出現アニメ）。
 //
 // ── 実測（参考動画 https://www.youtube.com/watch?v=UVpbc1aCJjU・60fps・1276x720）──
 //   t=91.067s と t=90.367s の 2 枚のタイルで同一の値を確認した（実測画像は
@@ -344,51 +361,27 @@ const SWEEP_LEAD = beats(1);       // 横断シャベルの経路予告のリー
 //      f4  | +4/60     | 129px     | 1.084 | (255, 83,140)
 //      f5  | +5/60     | 122px     | 1.025 | (255, 63,118)
 //      --  | +6/60     | 119px     | 1.000 | (255, 58,111) ＝ 実体色（以後静止）
-//   倍率の減り方は (倍率-1) ≒ 0.714 * (1 - t/0.1)^2 の二乗イーズアウトに乗る。
-//   色は白→実体色の補間で、G より B のほうが遅れて落ちる（f1 で B はまだ 255）。
 //   予告は同サイズ・枠なしで、実体と同じ色相の暗いタイル（PINK_TILE_WARN のコメント参照）。
 //
-// ── 本エンジンへの移し方 ──
-//   色は実測の「白→実体色の補間率」をチャンネルごとに求め、stone3 のタイル色 PINK_SOLID
-//   （1.00, 0.16, 0.52）へ同じ補間率で適用した（実測の JSaB 色をそのまま使うと stone3 の
-//   タイル色と合わないため）。補間率 u = (実測値 - 実体色) / (255 - 実体色):
-//     u_G = 1.000, 0.792, 0.513, 0.294, 0.127, 0.025
-//     u_B = 1.000, 1.000, 0.785, 0.451, 0.201, 0.049
+// ── v8 の作り方と、その問題 ──
+//   v8 は「静止した 6 枚のコマを 1/60 秒ずつずらして重ねる」方式だった。各コマは自分の
+//   1 フレームぶんは α=1（不透明）だったが、そのあと life 末尾の 0.1 秒減衰に入るため、
+//   一回り小さい次のコマからはみ出した部分が白〜灰色の輪郭として 0.06〜0.10 秒残った
+//   （Captures/stone3_v8_pop_compare.png）。動画には無い見え方で、ユーザー評価も「雑」。
 //
-//   不透明度は BulletIndirectURP.shader:283-291 の制約により直接は指定できない（color.w は
-//   着色フラグで、w>0 なら描画アルファは 1）。作者が動かせるのは
-//     ・appearDuration>0 の予告窓 … α = 0.2〜0.5 の拍同期の明滅（値は選べない）
-//     ・life の最後の FADE_OUT_SEC(0.1) 秒 … α が 1→0 へ直線減衰
-//   の 2 つだけ。v7b は各コマの life を短く（hold 0.100/0.067/0.033 秒）取ったため、
-//   出た瞬間の α が 1.0/0.67/0.33 となり、2 枚目以降が「半透明の白＝灰色」に見えていた。
-//   v8 では各コマの life を appearTime + POP_STEP + FADE_OUT_SEC に取る。こうすると
-//   そのコマが写る 1 フレームの間は減衰域に入らず α = 1（完全に不透明）が保証され、
-//   減衰が始まるのは次の（一回り小さい）コマが手前を覆ったあとになる。
-//   減衰中の 0.1 秒間は外側のはみ出しぶんが白い残光として残るが、これは中身が不透明な
-//   「縮みながら消える光」であって v6/v7 の「中抜けの灰色い枠」ではない。
-//   ユーザー方針「動画らしさ > 隙間のにじみの回避」に従いこの構成を採る。
-//
-//   実装後の実測（Unity 録画 30fps・Captures/stone3_v8_pop_compare.png）:
-//     タイル 74px（= TILE 1.84 × 40px/unit）に対しピーク 126px ＝ 1.70 倍。予告は
-//     (149,49,115)→(120,36,92) の暗いピンク、拍頭で (254,201,255) まで飛んで
-//     0.13 秒ほどで実体色へ収束する。ラボ（60fps・stone3_v8_pop_strip_lab.png）では
-//     拍頭コマが (255,255,255) の完全な白であることを確認済み。
-//   残っている動画との差（既知・未解消）:
-//     減衰中の大きいコマのはみ出しが 0.06〜0.10 秒ほど白〜灰色の輪郭として残る。
-//     動画には無い。これを消すには「短い life のコマを何枚も重ねて不透明度を稼ぐ」しか
-//     手が無く、1 タイルあたりの弾数が 3〜4 倍（tilepop の JSON が 17MB → 50MB 超）に
-//     なるうえ、コマの描画位相によって白の明るさが 0.67〜0.91 の間でばらつく。
-//     現在の構成は位相に関係なく必ず α=1 の純白が出る点を優先している。
-const POP_STEP = 1 / 60;           // 1 コマ（1 ゲームフレーム相当）
-// [スケール(実体タイル比), 色] を描画順（先頭＝大きい＝奥）に。時刻は下の tilePop() で組む。
-const POP_FRAMES = [
-  [1.714, [1.00, 1.000, 1.000, 1.0]],  // 拍頭の純白フラッシュ（実測 204/119 倍）
-  [1.487, [1.00, 0.825, 1.000, 1.0]],
-  [1.319, [1.00, 0.591, 0.897, 1.0]],
-  [1.193, [1.00, 0.407, 0.737, 1.0]],
-  [1.084, [1.00, 0.267, 0.617, 1.0]],
-  [1.025, [1.00, 0.181, 0.544, 1.0]],
-];
+// ── v9 の作り方 ──
+//   ランタイムに出現アニメ（scaleEnd / colorEnd / animDuration・既定 0 で従来動作）を足し、
+//   1 タイルにつき stone_flash 1 発だけで拍頭〜収束までを表現する。
+//     ・appearTime=0（＝拍頭）に scale 1.714 倍・純白で出る
+//     ・animDuration=0.100 秒かけて scale 1.0 倍・実体色 PINK_SOLID へ線形補間される
+//     ・補間が終わった時点で実体タイル（stone_block）と完全に同じ大きさ・同じ色になる
+//     ・life = 0.100 + FADE_OUT_SEC(0.1)。減衰する 0.1 秒の間、この弾は実体タイルと
+//       寸分違わず重なっているので、消えていく過程は画面上まったく見えない（継ぎ目なし）
+//   重なるコマが 1 枚も無いので、v8 の白い輪郭は原理的に発生しない。
+//   弾数も 1 タイル 6 発 → 1 発になり、tilepop の JSON は 17MB → 約 3MB に減る。
+const POP_SCALE_START = 1.714;                      // 拍頭の倍率（実測 204/119）
+const POP_COLOR_START = [1.00, 1.00, 1.00, 1.0];    // 拍頭の色（純白）
+const POP_DURATION = 0.100;                         // 収束までの秒数（実測どおり）
 
 const SHOVEL_SCALE = 2.6;      // 2x2 のタイルを叩くのにちょうどよい見た目（hummer の 3.5 より小さめ）
 const SHOVEL_SPAWN_Y = 26;     // 画面上端(18)より上・カリング境界(36)より内側
@@ -504,37 +497,27 @@ function blinkWarn(cells, kind) {
   return warnClip(items, kind);
 }
 
-// --- v8: タイル実体化ポップ（JSaB "Milky Ways" の実測を再現）--------------------
-// 拍頭に純白・1.714 倍で出て、6 コマ（1/60 秒刻み・計 0.100 秒）で等倍・実体色へ縮む。
-// 中心は動かさない（実測でも中心は固定で、同じ中心のまま縮む）。
-//
-// 1 コマの寿命の取り方（v8 の肝）:
-//   コマ k は appearTime = k/60 に出す。life = appearTime + POP_STEP + FADE_OUT_SEC と
-//   すると、そのコマは自分が主役の 1 フレーム（k/60 〜 (k+1)/60）の間ずっと
-//   α = 1（減衰域の外）を保つ。減衰（FADE_OUT_SEC = 0.1 秒で 1→0）が始まるのは
-//   一回り小さい次のコマが手前を覆ったあとなので、「半透明の白＝灰色」にはならない。
-//   v7b は life を短く取ったため 2 枚目以降が最初から半透明で、灰色に見えていた。
-//
-// 描画は BLINK_TYPE（stone_flash・renderPriority 4）。stone_block(1) より手前に出る。
-// 同一 priority 内は配列順で描くので（BulletRenderSystem.cs:554 SortRenderData は安定）、
-// POP_FRAMES の先頭（大きいコマ）が奥、末尾（小さいコマ）が手前になる。
+// --- v9: タイル実体化ポップ（1 タイル 1 発。ランタイムの出現アニメを使う）------------
+// 拍頭に純白・POP_SCALE_START 倍で出し、POP_DURATION 秒で実体タイルと同じ大きさ・同じ色へ
+// 線形に収束させる。収束後は実体タイルと完全に一致するので、life 末尾の減衰は見えない。
+// 描画は BLINK_TYPE（stone_flash・renderPriority 4）＝ stone_block(1) より手前。
 function tilePop(cells, kind) {
   const items = [];
   cells.forEach(function (cell) {
     const c = cellCenter(cell[0], cell[1]);
-    POP_FRAMES.forEach(function (frame, k) {
-      const sc = TILE * frame[0];
-      const t0 = k * POP_STEP;
-      items.push({
-        type: BLINK_TYPE,          // stone_flash（renderPriority 4）＝タイルより手前
-        pos: c,                    // 中心はタイルと同じ（拡大は中心対称）
-        scale: [sc, sc],
-        color: frame[1],
-        appearTime: t0,            // ここまでは完全非表示（appearDuration=0）
-        appearDuration: 0,
-        // 自分の 1 フレームぶんは α=1 を保ち、そのあと 0.1 秒かけて 0 へ減衰する
-        life: t0 + POP_STEP + FADE_OUT_SEC,
-      });
+    const big = TILE * POP_SCALE_START;
+    items.push({
+      type: BLINK_TYPE,
+      pos: c,                       // 中心はタイルと同じ（拡大・縮小は中心対称）
+      scale: [big, big],
+      color: POP_COLOR_START,
+      scaleEnd: [TILE, TILE],       // 収束後は実体タイルと同寸
+      colorEnd: PINK_SOLID,         // 収束後は実体タイルと同色
+      animDuration: POP_DURATION,
+      appearTime: 0,                // 拍頭ちょうどに出る
+      appearDuration: 0,
+      // 収束後の 0.1 秒は実体タイルと完全に重なったまま減衰するので、消え際は見えない
+      life: POP_DURATION + FADE_OUT_SEC,
     });
   });
   return warnClip(items, kind);
