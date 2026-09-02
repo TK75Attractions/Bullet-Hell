@@ -1,0 +1,2524 @@
+﻿{
+    "stageName": "石工3",
+    "MusicEvents": [
+        {
+            "barCount": 6,
+            "BPM": 144.0,
+            "beatTimings": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "measure": 4,
+            "barStartOffsetBeats": 0
+        }
+    ],
+    "delayTime": 0.0,
+    "endTime": 8.0,
+    "stageDescription": "べにぐち（冒頭パートA/B 試作）",
+    "enemyVisuals": [],
+    "enemySpawners": [],
+    "bulletSpawners": [],
+    "difficulties": [
+        {
+            "difficulty": "Easy",
+            "bulletSpawners": [
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.4583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_001_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.4583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_002_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.8750000000000002,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_003_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.8750000000000002,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_004_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.2916666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_005_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.2916666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_006_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.7083333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_007_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.7083333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_008_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.4583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_009_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 3.125,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_010_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 8,
+                    "interval": 0,
+                    "time": 3.3333333333333335,
+                    "pos": {
+                        "x": 2,
+                        "y": 13.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 45,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_011_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.4583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_012_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 3.125,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_013_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 8,
+                    "interval": 0,
+                    "time": 3.3333333333333335,
+                    "pos": {
+                        "x": 30,
+                        "y": 10.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 22.5,
+                    "angleInterval": 45,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_014_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.8750000000000002,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_015_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 3.5416666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_016_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 8,
+                    "interval": 0,
+                    "time": 3.75,
+                    "pos": {
+                        "x": 6,
+                        "y": 10.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 45,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_017_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.8750000000000002,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_018_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 3.5416666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_019_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 8,
+                    "interval": 0,
+                    "time": 3.75,
+                    "pos": {
+                        "x": 26,
+                        "y": 4.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 22.5,
+                    "angleInterval": 45,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_020_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.2916666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_021_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 3.9583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_022_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 8,
+                    "interval": 0,
+                    "time": 4.166666666666667,
+                    "pos": {
+                        "x": 2,
+                        "y": 16.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 45,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_023_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.2916666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_024_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 3.9583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_025_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 8,
+                    "interval": 0,
+                    "time": 4.166666666666667,
+                    "pos": {
+                        "x": 26,
+                        "y": 10.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 22.5,
+                    "angleInterval": 45,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_026_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.7083333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_027_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 4.375000000000001,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_028_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 8,
+                    "interval": 0,
+                    "time": 4.583333333333334,
+                    "pos": {
+                        "x": 2,
+                        "y": 4.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 45,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_029_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.7083333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_030_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 4.375000000000001,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_031_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 8,
+                    "interval": 0,
+                    "time": 4.583333333333334,
+                    "pos": {
+                        "x": 26,
+                        "y": 7.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 22.5,
+                    "angleInterval": 45,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_032_ring"
+                }
+            ]
+        },
+        {
+            "difficulty": "Normal",
+            "bulletSpawners": [
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.4583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_001_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.4583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_002_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.4583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_003_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.8750000000000002,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_004_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.8750000000000002,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_005_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.8750000000000002,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_006_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.2916666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_007_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.2916666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_008_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.2916666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_009_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.7083333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_010_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.7083333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_011_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.7083333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_012_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.4583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_013_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 3.125,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_014_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 10,
+                    "interval": 0,
+                    "time": 3.3333333333333335,
+                    "pos": {
+                        "x": 2,
+                        "y": 13.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 36,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_015_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.4583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_016_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 3.125,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_017_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 10,
+                    "interval": 0,
+                    "time": 3.3333333333333335,
+                    "pos": {
+                        "x": 30,
+                        "y": 10.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 18,
+                    "angleInterval": 36,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_018_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.8750000000000002,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_019_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 3.5416666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_020_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 10,
+                    "interval": 0,
+                    "time": 3.75,
+                    "pos": {
+                        "x": 6,
+                        "y": 10.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 36,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_021_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.8750000000000002,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_022_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 3.5416666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_023_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 10,
+                    "interval": 0,
+                    "time": 3.75,
+                    "pos": {
+                        "x": 26,
+                        "y": 4.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 18,
+                    "angleInterval": 36,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_024_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.2916666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_025_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 3.9583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_026_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 10,
+                    "interval": 0,
+                    "time": 4.166666666666667,
+                    "pos": {
+                        "x": 2,
+                        "y": 16.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 36,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_027_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.2916666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_028_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 3.9583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_029_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 10,
+                    "interval": 0,
+                    "time": 4.166666666666667,
+                    "pos": {
+                        "x": 26,
+                        "y": 10.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 18,
+                    "angleInterval": 36,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_030_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.7083333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_031_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 4.375000000000001,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_032_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 10,
+                    "interval": 0,
+                    "time": 4.583333333333334,
+                    "pos": {
+                        "x": 2,
+                        "y": 4.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 36,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_033_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.7083333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_034_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 4.375000000000001,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_035_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 10,
+                    "interval": 0,
+                    "time": 4.583333333333334,
+                    "pos": {
+                        "x": 26,
+                        "y": 7.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 18,
+                    "angleInterval": 36,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_036_ring"
+                }
+            ]
+        },
+        {
+            "difficulty": "Lunatic",
+            "bulletSpawners": [
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.4583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_001_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.4583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_002_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.4583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_003_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.4583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_004_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.8750000000000002,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_005_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.8750000000000002,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_006_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.8750000000000002,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_007_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.8750000000000002,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_008_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.2916666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_009_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.2916666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_010_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.2916666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_011_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.2916666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_012_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.7083333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_013_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.7083333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_014_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.7083333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_015_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.7083333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_016_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.4583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_017_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 3.125,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_018_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 12,
+                    "interval": 0,
+                    "time": 3.3333333333333335,
+                    "pos": {
+                        "x": 2,
+                        "y": 13.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 30,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_019_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.4583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_020_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 3.125,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_021_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 12,
+                    "interval": 0,
+                    "time": 3.3333333333333335,
+                    "pos": {
+                        "x": 30,
+                        "y": 10.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 15,
+                    "angleInterval": 30,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_022_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.8750000000000002,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_023_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 3.5416666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_024_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 12,
+                    "interval": 0,
+                    "time": 3.75,
+                    "pos": {
+                        "x": 6,
+                        "y": 10.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 30,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_025_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 1.8750000000000002,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_026_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 3.5416666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_027_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 12,
+                    "interval": 0,
+                    "time": 3.75,
+                    "pos": {
+                        "x": 26,
+                        "y": 4.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 15,
+                    "angleInterval": 30,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_028_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.2916666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_029_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 3.9583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_030_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 12,
+                    "interval": 0,
+                    "time": 4.166666666666667,
+                    "pos": {
+                        "x": 2,
+                        "y": 16.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 30,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_031_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.2916666666666665,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_032_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 3.9583333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_033_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 12,
+                    "interval": 0,
+                    "time": 4.166666666666667,
+                    "pos": {
+                        "x": 26,
+                        "y": 10.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 15,
+                    "angleInterval": 30,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_034_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.7083333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_035_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 4.375000000000001,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_036_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 12,
+                    "interval": 0,
+                    "time": 4.583333333333334,
+                    "pos": {
+                        "x": 2,
+                        "y": 4.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 30,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_037_ring"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 2.7083333333333335,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_038_tile"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 4.375000000000001,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_039_telegraph"
+                },
+                {
+                    "index": 0,
+                    "count": 12,
+                    "interval": 0,
+                    "time": 4.583333333333334,
+                    "pos": {
+                        "x": 26,
+                        "y": 7.5
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 15,
+                    "angleInterval": 30,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_040_ring"
+                }
+            ]
+        }
+    ]
+}

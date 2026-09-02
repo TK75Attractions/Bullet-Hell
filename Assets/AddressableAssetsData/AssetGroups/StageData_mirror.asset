@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: StageData_mirror
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: StageData_mirror
+  m_GUID: 0ea97b71c8297f3409297e6c00b4a8d5
+  m_SerializeEntries:
+  - m_GUID: 03d09469ae334344bbe82b5421600328
+    m_Address: Assets/StageData/mirror/mirror.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-json
+    - stage-mirror
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 59ef7b6f5190110449d337336d5a056d
+    m_Address: Assets/StageData/mirror/mirror.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-media
+    - stage-mirror
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6999012c2ad80e047adb1249839410b6
+    m_Address: Assets/StageData/mirror/mirror.mp4
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-media
+    - stage-mirror
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 74e727200a544ea48b7e5cf70ac7590c, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 1fec4df02db98e24482dbb8afd66c0cd, type: 2}
+    - {fileID: 11400000, guid: 7ac5a7b59fa2da04abb4e02d7c38085e, type: 2}

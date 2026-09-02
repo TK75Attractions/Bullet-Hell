@@ -15,8 +15,29 @@ MonoBehaviour:
   m_GroupName: StageData_debug
   m_GUID: cf763face5f8cb946838439c26decaf4
   m_SerializeEntries:
+  - m_GUID: 06b1f036e17eb1b40b7f500b036aea77
+    m_Address: Assets/StageData/debug/debug.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-json
+    - stage-debug
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 17d63a0462fddf64b9cd7ebc1994e406
+    m_Address: Assets/StageData/debug/debug_o.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-media
+    - stage-debug
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5d441df906056c14084f77e202ce303f
     m_Address: Assets/StageData/debug/debug.mp4
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-media
+    - stage-debug
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ed9aaad86f772af4c9791610a6686175
+    m_Address: Assets/StageData/debug/debug.mp3
     m_ReadOnly: 0
     m_SerializedLabels:
     - stage-data-media

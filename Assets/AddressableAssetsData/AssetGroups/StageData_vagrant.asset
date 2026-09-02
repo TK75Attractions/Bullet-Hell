@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: StageData_vagrant
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: StageData_vagrant
+  m_GUID: 4c7ba5376d137f8498f2589d0954c13c
+  m_SerializeEntries:
+  - m_GUID: 29598b580360c494798977aec540246c
+    m_Address: Assets/StageData/vagrant/vagrant.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-media
+    - stage-vagrant
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 80662cba2d46a0244bd598b5c7803e1f
+    m_Address: Assets/StageData/vagrant/vagrant.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-json
+    - stage-vagrant
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 829f088f09f0fe0439693984ac825eef
+    m_Address: Assets/StageData/vagrant/vagrant.mp4
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-media
+    - stage-vagrant
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 74e727200a544ea48b7e5cf70ac7590c, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 753c6f5191f877149b5acbb83bbbe7f6, type: 2}
+    - {fileID: 11400000, guid: 96a7d666ca8066447a781be67b3dfab2, type: 2}

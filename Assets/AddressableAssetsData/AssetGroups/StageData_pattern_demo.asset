@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: StageData_pattern_demo
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: StageData_pattern_demo
+  m_GUID: 7b93a166da6082b42af303dc13abec10
+  m_SerializeEntries:
+  - m_GUID: 3cd956d389388964f92ce9f335a78d16
+    m_Address: Assets/StageData/pattern_demo/pattern_demo.chart.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-json
+    - stage-pattern_demo
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 432a2b3545f3e2342864cd2a4cad54ec
+    m_Address: Assets/StageData/pattern_demo/pattern_demo.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-json
+    - stage-pattern_demo
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 74e727200a544ea48b7e5cf70ac7590c, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 5d7e04e6b642ba34c82a1c0318c79b76, type: 2}
+    - {fileID: 11400000, guid: d5dcf925084b7fd46ae8b7e97d9ae21a, type: 2}
