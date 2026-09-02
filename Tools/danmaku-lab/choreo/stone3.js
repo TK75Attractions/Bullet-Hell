@@ -246,6 +246,22 @@ const S7_BEAT = 64;               // シャベル爆破②
 const S8_BEAT = 72;               // シャベル飛ばし②
 const END_BEAT = 80;              // 区間⑧の末（33.333s）＝残タイル消去
 
+// --- v13 (B): 延長区間（拍番号）------------------------------------------------
+// 根拠は Instructions/石工/stone3_section_analysis_20260903.md。
+// この範囲は 8 小節周期のループ（小節 21〜28 と 29〜36 の類似度 0.94〜0.999）で、
+// 周期の内訳は「1〜4 小節目=主リフ / 5〜6 小節目=休符 / 7〜8 小節目=ビルドアップ」。
+// 次の本当のセクション境界は 60.000s（小節 37・拍 144）なので、そこで延長を終える。
+//   拍番号 n の時刻 = n * 0.4166667s。小節 m の頭 = 拍 (m-1)*4。
+const S9_BEAT = 80, S9_LEN = 8;    // 小節21-22 33.333s タイル表示③（上下の帯だけ）
+const S10_BEAT = 88;               // 小節23-24 36.667s タイル爆破③（アクセントに乗せる）
+const S11_BEAT = 96;               // 小節25-26 40.000s 休符（静止。横断シャベル 1 本ずつ）
+const S12_BEAT = 104;              // 小節27-28 43.333s 落下シャベル③（1 拍目は 2 本同時）
+const S13_BEAT = 112, S13_LEN = 8; // 小節29-30 46.667s タイル表示④（左右の帯だけ）
+const S14_BEAT = 120;              // 小節31-32 50.000s タイル爆破④（裏拍・51.875s に 3 枚）
+const S15_BEAT = 128;              // 小節33-34 53.333s 休符（横断シャベルの往復・行ずらし）
+const S16_BEAT = 136;              // 小節35-36 56.667s 落下シャベル④＋放射弾増量（頂点）
+const EXT_END_BEAT = 144;          // 60.000s 次のセクションの頭＝残タイル消去
+
 // --- 画面グリッド（正方セル）------------------------------------------------
 // playArea 32x18 を 16列 x 9行に割ると 1マス 2x2 の正方形になる。
 const COLS = 16;
@@ -273,6 +289,18 @@ const CENTER_CELLS = [];
 for (let row = 0; row < ROWS; row++) {
   for (let col = 0; col < COLS; col++) {
     (isBandCell(col, row) ? BAND_CELLS : CENTER_CELLS).push([col, row]);
+  }
+}
+
+// v13 (B): 延長区間で使う「帯」の変奏。区間⑨は上下だけ、区間⑬は左右だけに溜める。
+//   セルの総数は 上下 = 16列 x 4行 = 64 / 左右 = 4列 x 9行 = 36。
+//   帯の埋まり率の目標（BAND_TARGET）は同じなので、新規タイルの枚数はセル数に比例して減る。
+const BAND_CELLS_TB = [];   // 上下だけ（行 0-1 と 7-8 の全列）
+const BAND_CELLS_LR = [];   // 左右だけ（列 0-1 と 14-15 の全行）
+for (let row = 0; row < ROWS; row++) {
+  for (let col = 0; col < COLS; col++) {
+    if (row < BAND || row >= ROWS - BAND) BAND_CELLS_TB.push([col, row]);
+    if (col < BAND || col >= COLS - BAND) BAND_CELLS_LR.push([col, row]);
   }
 }
 
@@ -756,6 +784,15 @@ const MARKERS = {
   6: B(S6_BEAT),
   7: B(S7_BEAT),
   8: B(S8_BEAT),
+  // v13 (B): 延長の区間⑨〜⑯（ラボのシークバーからジャンプするためのマーカー）
+  9: B(S9_BEAT),
+  10: B(S10_BEAT),
+  11: B(S11_BEAT),
+  12: B(S12_BEAT),
+  13: B(S13_BEAT),
+  14: B(S14_BEAT),
+  15: B(S15_BEAT),
+  16: B(S16_BEAT),
 };
 
 export default stage(
@@ -767,8 +804,10 @@ export default stage(
     markers: MARKERS,
     playArea: [32, 18],
     difficulties: ['easy', 'normal', 'lunatic'],
-    // 区間⑧の末(33.333s)の直後。最後のシャベルが画面外へ抜けきる余裕を見て 34.5s。
-    endTime: 34.5,
+    // v13 (B): 延長の末は 60.000s（拍 144・小節 37＝次のセクションの頭）で残タイルを消す。
+    //   最後の放射弾（59.167s・速度 7〜11）が画面外へ抜け、55.833s に出た横断シャベルが
+    //   渡りきる（2.24s）余裕を見て 62.0s。
+    endTime: 62.0,
   },
   (s) => {
     const rng = makeRng(20260902);
@@ -783,10 +822,12 @@ export default stage(
     const BAND_TARGET = D(0.50, 0.64, 0.72);
 
     // burst(): 爆破の放射弾。区間②④⑤⑦で共通に使う（弾数・速度の難易度比は v3 のまま）。
-    function burst(center, index) {
+    // v13 (B): countMul で放射弾の数を増減できるようにした（曲の盛り上がりに合わせる）。
+    //   既定 1.0＝区間①〜⑧と同じ。区間⑯（2 周目の頂点）だけ 1.3 にしている。
+    function burst(center, index, countMul = 1) {
       return spinBurst({
         pos: [center[0], center[1]],
-        count: D(10, 12, 14),
+        count: Math.round(D(10, 12, 14) * countMul),
         speed: D(7, 9, 11),
         type: 'stone3_bullet',
         life: 0,                          // 寿命なし＝画面外へ出て cull されるまで飛ぶ
@@ -812,8 +853,16 @@ export default stage(
     //   戻り値 = 帯に積んだタイルの一覧 [{col,row,strike,end,lead}]。
     //   end（消える時刻）は爆破区間・シャベル区間で上書きしてから emitBandTiles() で出す。
     // ======================================================================
+    //
+    //   v13 (B): cfg.bandCells / cfg.centerCells で溜める場所の変奏を選べるようにした
+    //   （区間⑨は上下だけ・区間⑬は左右だけ）。cfg.preBlocked には「この区間の前から
+    //   画面に残っているタイル」のセルキーの集合を渡す。連結判定（emptyIsConnected）の
+    //   初期状態に入れて候補からも外すので、前の区間の帯と合わせて自機が閉じ込められない。
     function tilePhase(cfg) {
-      const bandOccupied = new Set();
+      const bandCells = cfg.bandCells || BAND_CELLS;
+      const centerCells = cfg.centerCells || CENTER_CELLS;
+      const preBlocked = cfg.preBlocked || new Set();
+      const bandOccupied = new Set(preBlocked);   // 既に埋まっている扱い（再抽選しない）
       const bandTiles = [];
       const bandRate = 1 - Math.pow(1 - cfg.bandTarget, 1 / cfg.len);
 
@@ -841,7 +890,7 @@ export default stage(
         const blocked = new Set(bandOccupied);
 
         // (b) 帯へ積むタイル（残留）。連結を壊す候補は飛ばす。
-        const free = BAND_CELLS.filter((c) => !bandOccupied.has(key(c[0], c[1])));
+        const free = bandCells.filter((c) => !bandOccupied.has(key(c[0], c[1])));
         const bandWant = Math.round(free.length * bandRate);
         const bandPicks = [];
         const bandCand = shuffled(free.filter((c) => !gapCells.has(key(c[0], c[1]))), rng);
@@ -860,8 +909,11 @@ export default stage(
 
         // (c) 中央のタイル（拍末で消える一時タイル）。こちらも連結を壊さない範囲で置く。
         const centerPicks = [];
-        const centerWant = Math.round(CENTER_CELLS.length * cfg.centerRate);
-        const centerCand = shuffled(CENTER_CELLS.filter((c) => !gapCells.has(key(c[0], c[1]))), rng);
+        const centerWant = Math.round(centerCells.length * cfg.centerRate);
+        const centerCand = shuffled(
+          centerCells.filter((c) => !gapCells.has(key(c[0], c[1])) && !preBlocked.has(key(c[0], c[1]))),
+          rng
+        );
         for (let n = 0; n < centerCand.length && centerPicks.length < centerWant; n++) {
           const cell = centerCand[n];
           const k = key(cell[0], cell[1]);
@@ -959,14 +1011,27 @@ export default stage(
       // v13 (A3): 発火する拍位置（小節内 0 起点）。既定は 1 拍目と 3 拍目＝2 拍に 1 回。
       const beatPhase = cfg.beatPhase || [0, 2];
 
+      // v13 (B): cfg.shots を渡すと拍グリッドではなく明示した拍番号（8 分＝小数可）で撃つ。
+      //   [{ beat, n }] の配列。n は 1 回に爆破する枚数（省略時 BLAST_PER_BEAT）。
+      //   区間⑩⑭で「曲のアクセントに乗せる」ために使う。
+      const shots = cfg.shots
+        ? cfg.shots.map((sh) => ({ beat: sh.beat, n: sh.n || BLAST_PER_BEAT }))
+        : (function () {
+            const out = [];
+            for (let i = 0; i < cfg.len; i++) {
+              const beatNo = cfg.firstBeat + i;
+              if (beatPhase.indexOf(beatNo % 4) < 0) continue;  // v13: 2 拍に 1 回だけ爆破する
+              out.push({ beat: beatNo, n: BLAST_PER_BEAT });
+            }
+            return out;
+          })();
+
       let sideIdx = 0;
-      for (let b = 0; b < cfg.len; b++) {
-        const beatNo = cfg.firstBeat + b;
-        if (beatPhase.indexOf(beatNo % 4) < 0) continue;   // v13: 2 拍に 1 回だけ爆破する
-        const blastTime = B(beatNo);
+      for (let b = 0; b < shots.length; b++) {
+        const blastTime = B(shots[b].beat);
         const youngest = blastTime - beats(BLAST_MIN_AGE) + 1e-6;
         const group = [];
-        for (let n = 0; n < BLAST_PER_BEAT; n++) {
+        for (let n = 0; n < shots[b].n; n++) {
           let picked = null;
           for (let tryIdx = 0; tryIdx < SIDE_ORDER.length && picked === null; tryIdx++) {
             const pool = pools[SIDE_ORDER[(sideIdx + tryIdx) % SIDE_ORDER.length]];
@@ -1002,7 +1067,7 @@ export default stage(
         const centers = cells.map((c) => cellCenter(c[0], c[1]));
         s.at(blastTime - RING_LEAD, ringWarn(centers, 'burstwarn'));
         centers.forEach(function (center) {
-          s.at(blastTime, burst(center, b));
+          s.at(blastTime, burst(center, b, cfg.burstMul || 1));
         });
       }
     }
@@ -1111,7 +1176,7 @@ export default stage(
     //   ・spinBurst が出る
     //   DSL/ランタイムに衝突判定は無いため、到達時刻を逆算して3つを同時刻に置いている。
     // ======================================================================
-    function shovelBlastPhase(impacts, targets, spinBase) {
+    function shovelBlastPhase(impacts, targets, spinBase, burstMul = 1) {
       impacts.forEach(function (impact, k) {
         const cell = targets[k];
         if (!cell) return;
@@ -1133,7 +1198,7 @@ export default stage(
             kind: 'shoveldrop',
           })
         );
-        s.at(impact, burst(center, spinBase + k));
+        s.at(impact, burst(center, spinBase + k, burstMul));
       });
     }
 
@@ -1149,6 +1214,35 @@ export default stage(
     //   タイルに当たっても何も起こらず、画面を横切って外へ抜ける（life:0＝カリング任せ）。
     // ======================================================================
     const heldRows = Array.from(new Set(heldCells.map((c) => c[1]))).sort((a, b) => a - b);
+
+    // v13 (B): 横断シャベル 1 組（左→右・右→左）を時刻 t に出す。区間⑥⑧⑪⑮で共有する。
+    //   予告は v8 で全廃したまま（ユーザー評価「帯が邪魔」）。当たり判定は元から無い。
+    function sweepPair(t, leftRow, rightRow) {
+      if (leftRow !== null) {
+        s.at(
+          t,
+          shovel({
+            pos: [SHOVEL_LEFT_X, cellCenter(0, leftRow)[1]],
+            vel: [SHOVEL_SIDE_SPEED, 0],
+            angle: SHOVEL_ANGLE_RIGHT,
+            life: 0,
+            kind: 'shovelsweep',
+          })
+        );
+      }
+      if (rightRow !== null) {
+        s.at(
+          t,
+          shovel({
+            pos: [SHOVEL_RIGHT_X, cellCenter(0, rightRow)[1]],
+            vel: [-SHOVEL_SIDE_SPEED, 0],
+            angle: SHOVEL_ANGLE_LEFT,
+            life: 0,
+            kind: 'shovelsweep',
+          })
+        );
+      }
+    }
 
     function shovelSweepPhase(firstBeat, count = 4) {
       // v13 (A4): 速度を落としたぶん前の拍のシャベルが画面に残るので、直前の拍で使った行は
@@ -1169,27 +1263,7 @@ export default stage(
         //   方向マークを出していたが、ユーザー評価で「帯が邪魔」となったため全部外す。
         //   落下シャベル（区間⑤⑦）の縦帯 dropPathWarn と、爆破対象タイルの点滅 blinkWarn は
         //   そのまま残している。シャベル本体（下の2本）の配置・時刻・サイズは v4 のまま不変。
-
-        s.at(
-          t,
-          shovel({
-            pos: [SHOVEL_LEFT_X, cellCenter(0, leftRow)[1]],
-            vel: [SHOVEL_SIDE_SPEED, 0],
-            angle: SHOVEL_ANGLE_RIGHT,
-            life: 0,
-            kind: 'shovelsweep',
-          })
-        );
-        s.at(
-          t,
-          shovel({
-            pos: [SHOVEL_RIGHT_X, cellCenter(0, rightRow)[1]],
-            vel: [-SHOVEL_SIDE_SPEED, 0],
-            angle: SHOVEL_ANGLE_LEFT,
-            life: 0,
-            kind: 'shovelsweep',
-          })
-        );
+        sweepPair(t, leftRow, rightRow);
       }
     }
 
@@ -1197,5 +1271,235 @@ export default stage(
     shovelSweepPhase(S6_BEAT);
     // 8. 30.161s → B(72)=30.000s  シャベル飛ばし②
     shovelSweepPhase(S8_BEAT);
+
+    // ======================================================================
+    // ★ v13 (B) 延長: 区間⑨〜⑯（33.333s → 60.000s・小節 21〜36 の 16 小節）
+    //
+    //   解析: Instructions/石工/stone3_section_analysis_20260903.md
+    //   この範囲は 8 小節周期のループで、周期の内訳は
+    //     1〜4 小節目 = 主リフ（低域が毎拍鳴る。4 小節目に 8 分のフィル）
+    //     5〜6 小節目 = 休符（低域が抜ける。フラックス最小）
+    //     7〜8 小節目 = ビルドアップ（高域が上がり、8 小節目が最も密）
+    //   これを 2 周ぶん（小節 21〜28 / 29〜36）そのまま構成に写した。次の本当の
+    //   セクション境界は 60.000s（中域が 7.3 → 10.9 に跳ねる）なのでそこで終える。
+    //
+    //   新要素は入れていない。既存モチーフの変奏だけ:
+    //     ・タイルの帯を「上下だけ」（⑨）と「左右だけ」（⑬）に変える
+    //     ・爆破を曲のアクセント（8 分位置を含む）に乗せる（⑩⑭）
+    //     ・落下シャベルを 2 本同時にする（⑫⑯）
+    //     ・横断シャベルを行ずらしで往復させる（⑮）
+    //     ・放射弾の数を盛り上がりで増やす（⑯だけ 1.3 倍）
+    //     ・休符の小節（⑪⑮）では新規タイルも爆破も出さない
+    // ======================================================================
+
+    // v13 (B): 落下シャベルの対象を選ぶ汎用版（区間⑤⑦の pickShovelTargets の一般化）。
+    //   区間⑤⑦は「下側の帯にあるタイル」に限っていたが、延長では帯が上下だけ／左右だけに
+    //   変わるので下側の在庫が足りない（easy で 1 本しか出せない事象を実測した）。
+    //   ここでは行の制限をやめ、**その列で最も上にあるタイル**を対象にする。上から落ちる
+    //   シャベルが最初にぶつかる 1 枚なので、貫通が一切起きない点ではむしろ正しい。
+    //   16 列を count 個のゾーンに割って 1 ゾーン 1 列だけ選ぶ（左右に散らす・列は必ず別）。
+    //   usedCols は呼び出し側で持ち回り、同じ区間の中では同じ列を使わない。
+    function pickDropTargets(tiles, count, usedCols) {
+      const topByCol = new Map();
+      tiles.forEach(function (t) {
+        if (t.claimed || usedCols.has(t.col)) return;
+        const cur = topByCol.get(t.col);
+        if (!cur || t.row > cur.row) topByCol.set(t.col, t);
+      });
+      // 落下距離が長いほうが見栄えするので、下側の帯（行 0..BAND-1）にある列を先に使い、
+      // 足りないぶんだけ上側の列で補う。
+      const low = [], high = [];
+      topByCol.forEach(function (t) { (t.row < BAND ? low : high).push(t); });
+      const out = [];
+      [low, high].forEach(function (group) {
+        if (out.length >= count) return;
+        const zones = [];
+        for (let z = 0; z < count; z++) zones.push([]);
+        group.forEach(function (t) {
+          zones[Math.min(count - 1, Math.floor((t.col * count) / COLS))].push(t);
+        });
+        zones.forEach(function (pool) {
+          if (out.length >= count || pool.length === 0) return;
+          const cand = pool.filter((t) => !usedCols.has(t.col));
+          if (cand.length === 0) return;
+          const t = cand[Math.floor(rng() * cand.length)];
+          usedCols.add(t.col);
+          out.push(t);
+        });
+        const spare = shuffled(group.filter((t) => !usedCols.has(t.col)), rng);
+        while (out.length < count && spare.length > 0) {
+          const t = spare.shift();
+          usedCols.add(t.col);
+          out.push(t);
+        }
+      });
+      return out.slice(0, count);
+    }
+
+    // 落下シャベルの対象タイルに到達時刻を書き込むヘルパ（区間⑤⑦と同じ扱い）。
+    function claimDropTargets(tiles, impacts) {
+      tiles.forEach(function (t, k) {
+        t.claimed = true;
+        t.end = impacts[k];
+        t.lead = BLAST_LEAD_OUT;
+      });
+      return tiles.map((t) => [t.col, t.row]);
+    }
+
+    // ----------------------------------------------------------------------
+    // ⑨ 小節21-22 / 33.333s / 拍 80-87 — タイル表示③（上下の帯だけ）
+    //   根拠: 33.333s はこの区間で最も強いアタック（フラックス 596）で 8 小節周期の頭。
+    //   区間⑧末で画面が空になった直後なので、ここから「上下だけ」に積み直す。
+    //   帯は上下 64 セル。左右の列（行 2-6 の列 0-1/14-15）は空いたままになり、
+    //   区間①③の「外周ぐるり」との違いが一目で分かる。
+    //   残留タイルは延長の最後（60.000s）まで消えない（⑩⑫⑯の供給源）。
+    // ----------------------------------------------------------------------
+    // v13 (B): 延長では「上下の帯」と「左右の帯」が同時に画面へ乗る（⑬以降）ので、
+    //   1 枚あたりの目標埋まり率を区間①③の 0.62 倍に下げてある。区間①③は外周ぐるり
+    //   84 セルを D(0.50,0.64,0.72) まで埋めていたが、延長は 上下 64 + 左右 36（うち角 16 は
+    //   重複）で、同じ率だと自機の通路（空きセルの 4 近傍連結）が確保できず
+    //   emptyIsConnected が全候補を弾いてしまう（lunatic で区間⑬が 0 枚になる不具合を実測）。
+    const EXT_BAND_TARGET = D(0.31, 0.40, 0.45);
+
+    const bandC = tilePhase({
+      firstBeat: S9_BEAT,
+      len: S9_LEN,
+      centerRate: CENTER_RATE,
+      bandTarget: EXT_BAND_TARGET,
+      bandCells: BAND_CELLS_TB,
+      bandEnd: B(EXT_END_BEAT),
+      pinStartGap: false,
+    });
+
+    // ----------------------------------------------------------------------
+    // ⑩ 小節23-24 / 36.667s / 拍 88-95 — タイル爆破③（曲のアクセントに乗せる）
+    //   小節23 の強拍は 1 拍目(258)・2 拍裏(361)・4 拍目(602) → 1 拍目と 4 拍目を採る。
+    //   小節24 は 8 分のフィルで 1 拍裏(655) が最大 → 1 拍裏と 4 拍目(405) を採る。
+    //   区間②④と同じ「1 回 2 枚」なので密度は同じ（4 回 × 2 枚）。
+    // ----------------------------------------------------------------------
+    blastPhase({
+      tiles: bandC,
+      shots: [
+        { beat: S10_BEAT + 0 },      // 36.667s 小節23 1拍目
+        { beat: S10_BEAT + 3 },      // 37.917s 小節23 4拍目（フラックス 602）
+        { beat: S10_BEAT + 4.5 },    // 38.542s 小節24 1拍裏（フラックス 655）
+        { beat: S10_BEAT + 7 },      // 39.583s 小節24 4拍目
+      ],
+    });
+
+    // ----------------------------------------------------------------------
+    // ⑪ 小節25-26 / 40.000s / 拍 96-103 — 休符（画面を静かにする）
+    //   小節25 は 3 拍目で、小節26 は 2 拍目でベースが完全に消える（低域 RMS 1〜5）。
+    //   フラックスも区間内最小。新規タイルも爆破も出さず、各小節の頭のアクセントに
+    //   合わせて横断シャベルを 1 本だけ流す（左→右 / 右→左）。
+    //   ※ 区間⑫の落下シャベルの縦帯予告（発射の 1 拍前から）は 41.9s 付近から出る。
+    //     予告は最暗色（STONE_PATH）なので静けさは保たれ、ビルドアップの前触れになる。
+    // ----------------------------------------------------------------------
+    const rowsC = Array.from(new Set(bandC.filter((t) => !t.claimed).map((t) => t.row)))
+      .sort((a, b) => a - b);
+    if (rowsC.length > 0) {
+      sweepPair(B(S11_BEAT + 0), rowsC[Math.floor(rng() * rowsC.length)], null);   // 40.000s
+      sweepPair(B(S11_BEAT + 6), null, rowsC[Math.floor(rng() * rowsC.length)]);   // 42.500s
+    }
+
+    // ----------------------------------------------------------------------
+    // ⑫ 小節27-28 / 43.333s / 拍 104-111 — 落下シャベル③（1 拍目は 2 本同時）
+    //   小節27 でビルドアップが始まり、小節28 が 1 周目の頂点（高域 1.36・フラックス
+    //   18367 とも区間最大）。両小節とも 1 拍目に 2 本同時、締めに 1 本を置く。
+    //     43.333s ×2（小節27 1拍目 387） / 44.583s ×1（小節27 4拍目 411）
+    //     45.000s ×2（小節28 1拍目 547＝1 周目の最大） / 46.458s ×1（小節28 4拍裏 358）
+    // ----------------------------------------------------------------------
+    const extUsedCols = new Set();
+    const S12_IMPACTS = [
+      B(S12_BEAT + 0), B(S12_BEAT + 0),     // 43.333s 小節27 1拍目・2 本同時
+      B(S12_BEAT + 4), B(S12_BEAT + 4),     // 45.000s 小節28 1拍目・2 本同時（1 周目の最大）
+      B(S12_BEAT + 7.5),                    // 46.458s 小節28 4拍裏・1 本で締める
+    ];
+    const dropC = pickDropTargets(bandC, S12_IMPACTS.length, extUsedCols);
+    shovelBlastPhase(S12_IMPACTS.slice(0, dropC.length), claimDropTargets(dropC, S12_IMPACTS), 0);
+
+    // ----------------------------------------------------------------------
+    // ⑬ 小節29-30 / 46.667s / 拍 112-119 — タイル表示④（左右の帯だけ）
+    //   8 小節周期の 2 周目の頭（小節21 との類似度 0.9985）。今度は左右の 4 列だけに積む。
+    //   上下の帯（⑨の残り）はまだ画面にあるので preBlocked に渡し、連結判定
+    //   （自機が閉じ込められない）を上下＋左右の合計で行う。
+    // ----------------------------------------------------------------------
+    const aliveC = new Set(bandC.filter((t) => !t.claimed).map((t) => key(t.col, t.row)));
+    const bandD = tilePhase({
+      firstBeat: S13_BEAT,
+      len: S13_LEN,
+      centerRate: CENTER_RATE,
+      bandTarget: EXT_BAND_TARGET,
+      bandCells: BAND_CELLS_LR,
+      preBlocked: aliveC,
+      bandEnd: B(EXT_END_BEAT),
+      pinStartGap: false,
+    });
+
+    // ----------------------------------------------------------------------
+    // ⑭ 小節31-32 / 50.000s / 拍 120-127 — タイル爆破④（裏拍のアクセント）
+    //   小節31 はアクセントが裏へ移る（2 拍裏 442・4 拍目 455）。
+    //   小節32 の 1 拍裏（51.875s・フラックス 736）は解析範囲全体で最大なので、
+    //   ここだけ 3 枚まとめて割る（他は 2 枚）。
+    // ----------------------------------------------------------------------
+    blastPhase({
+      tiles: bandD,
+      shots: [
+        { beat: S14_BEAT + 1.5 },        // 50.625s 小節31 2拍裏（442）
+        { beat: S14_BEAT + 3 },          // 51.250s 小節31 4拍目（455）
+        { beat: S14_BEAT + 4.5, n: 3 },  // 51.875s 小節32 1拍裏（736＝区間最大）→ 3 枚
+      ],
+    });
+
+    // ----------------------------------------------------------------------
+    // ⑮ 小節33-34 / 53.333s / 拍 128-135 — 休符（横断シャベルの往復・行ずらし）
+    //   低域が小節を通して 30 前後に落ちる 2 小節。爆破もタイル追加もせず、
+    //   横断シャベルだけを 2 拍おきに 4 組流す。左→右は行を下から上へ、
+    //   右→左は上から下へ 1 段ずつずらして「往復」に見せる。
+    //   行は「その時点で画面に残っているタイルの行」から採る（⑨の上下＋⑬の左右）。
+    // ----------------------------------------------------------------------
+    const rowsCD = Array.from(
+      new Set(
+        bandC.filter((t) => !t.claimed).map((t) => t.row)
+          .concat(bandD.filter((t) => !t.claimed).map((t) => t.row))
+      )
+    ).sort((a, b) => a - b);
+    if (rowsCD.length > 0) {
+      const nr = rowsCD.length;
+      for (let i = 0; i < 4; i++) {
+        const li = i % nr;                      // 左→右 は下の行から上へ 1 段ずつ
+        let ri = (nr - 1 - i + nr) % nr;        // 右→左 は上の行から下へ 1 段ずつ
+        if (ri === li && nr > 1) ri = (li + Math.floor(nr / 2)) % nr;  // 同じ行に重ならないよう避ける
+        sweepPair(B(S15_BEAT + i * 2), rowsCD[li], nr > 1 ? rowsCD[ri] : null);
+      }
+    }
+
+    // ----------------------------------------------------------------------
+    // ⑯ 小節35-36 / 56.667s / 拍 136-143 — 落下シャベル④＋放射弾増量（2 周目の頂点）
+    //   低域が戻り（rms 0.40）、小節36 は 4 分の均等なアクセント。⑫と同じ形で
+    //   1 拍目に 2 本同時、3 拍目に 1 本。放射弾だけ 1.3 倍に増やして頂点を作る。
+    //     56.667s ×2 / 57.500s ×1 / 58.333s ×2 / 59.167s ×1
+    //   対象は⑨の上下の帯の残り（⑫で使った列は避ける）。
+    // ----------------------------------------------------------------------
+    const S16_IMPACTS = [
+      B(S16_BEAT + 0), B(S16_BEAT + 0),     // 56.667s 小節35 1拍目・2 本同時
+      B(S16_BEAT + 4), B(S16_BEAT + 4),     // 58.333s 小節36 1拍目・2 本同時
+      B(S16_BEAT + 6),                      // 59.167s 小節36 3拍目・1 本で締める
+    ];
+    //   対象は⑨の上下の帯の残りに加えて⑬の左右の帯の下段（列 0-1/14-15 の行 0-1）も使う。
+    //   ⑫からは 13 秒離れていて画面にも残っていないので、列の重複を避ける集合は分ける
+    //   （共有すると Easy で候補が尽きて 1 本しか出せなくなるのを実測した）。
+    const dropD = pickDropTargets(bandC.concat(bandD), S16_IMPACTS.length, new Set());
+    shovelBlastPhase(
+      S16_IMPACTS.slice(0, dropD.length),
+      claimDropTargets(dropD, S16_IMPACTS),
+      1,
+      1.3
+    );
+
+    // 残ったタイルの実体クリップを出す（消える時刻が全部確定したあと）。
+    // 使い切らなかったタイルは bandEnd = B(144) = 60.000s＝次のセクションの頭で消える。
+    emitBandTiles(bandC);
+    emitBandTiles(bandD);
   }
 );
