@@ -1,4 +1,4 @@
-// choreo/stone3.js — 新・石工（stone3）冒頭 8 区間 v5
+// choreo/stone3.js — 新・石工（stone3）冒頭 8 区間 v6
 //
 // 参考: Just Shapes & Beats "Tokyo Skies" の冒頭（画面全体の正方グリッドにピンクのタイルが
 // 拍ごとに点滅→実体化し、プレイヤーは残った隙間を縫って避ける）。
@@ -56,6 +56,15 @@
 //     (4) 横断シャベルの経路… shovelSweepPhase() 内。通る行に横一杯の細い帯＋来る側の端に方向マーク
 //     (5) 放射弾の予告      … ringWarn()。爆破の半拍前に中心のまわりへ小点のリング
 //   弾数・配置・サイズ・タイミング（v4 の弾幕本体）は変更していない。
+//
+// ── v6 での変更（見た目のみ。v5 の弾幕・予告の配置/枚数/タイミングは一切変えない）──
+//   (1) シャベルの BulletType を stone_shovel（青いドット絵）から stone3_shovel
+//       （JSaB 風ホットピンクの新スプライト・128x128・verts 空＝当たり判定なし）へ差し替えた。
+//       既存の stone_shovel アセットは他ステージが使うので触っていない。
+//   (2) タイル実体化の瞬間に tilePop() を追加。JSaB "Milky Ways" のタイル出現を実測して
+//       「拍頭に純白フラッシュ＋スケール 1.67倍 → 約0.10秒で等倍・濃ピンクへ収束」を再現した。
+//       予告側は実測でも「実体と同じ大きさ・枠なし」だったため v5 のまま据え置き。
+//       近似した点は tilePop() のコメントを参照。
 //
 // ── 乱数 ──────────────────────────────────────────────────────────────
 //   stage() は難易度の数だけビルド関数を再実行するため Math.random() は使えない。
@@ -263,6 +272,21 @@ const MARK_SIZE = [1.1, 0.55];     // 方向マーク（来る側の端に置く
 const MARK_INSET = 0.75;           // マークの端からの距離
 const MARK_HOLD = 0.25;            // シャベル発射後にマークが残る秒
 
+// v6: タイル実体化ポップのパラメータ（JSaB "Milky Ways" の実測に合わせた）。
+// 観察値: 拍頭で 1フレームだけ純白 + スケール 1.67倍 → 約0.10秒かけて等倍・本来色へ収束。
+// ここでは白 → 淡ピンク → 濃ピンク の 3コマで収束を近似する。
+// 1コマの見え方は「出た瞬間 α = (life - appearTime)/0.1 → 自分の持ち時間で 0 へ直線減衰」
+// （BulletRenderSystem.cs:289 の fadeOut。詳細は tilePop() のコメント）。
+const POP_STEP = 0.033;            // コマ間隔（30fps の 1 フレーム相当）
+// [スケール(実体タイル比), 色, 表示時間] を拍頭から順に。1枚目の白が実測の「純白フラッシュ」。
+// 表示時間 hold は出た瞬間の α をそのまま決める（α = hold / 0.1）。参考動画では画面に数枚しか
+// 出ないが stone3 は1拍で 30〜50 枚が同時に実体化するため、白コマだけ短く（＝薄く）している。
+const POP_FRAMES = [
+  [1.50, [1.00, 1.00, 1.00, 1.0], 0.05],
+  [1.28, [1.00, 0.70, 0.85, 1.0], 0.07],
+  [1.10, [1.00, 0.35, 0.60, 1.0], 0.07],
+];
+
 const SHOVEL_SCALE = 2.6;      // 2x2 のタイルを叩くのにちょうどよい見た目（hummer の 3.5 より小さめ）
 const SHOVEL_SPAWN_Y = 26;     // 画面上端(18)より上・カリング境界(36)より内側
 const SHOVEL_FALL_SPEED = 24;  // 落下速度（一定）。飛来時間はタイルの高さで変わる
@@ -271,8 +295,10 @@ const SHOVEL_LEFT_X = -1.5;    // カリング境界 x>=-2 の内側から出す
 const SHOVEL_RIGHT_X = 33.5;
 
 // shovel(): 等速直線で飛ぶシャベル1本（無重力・当たり判定なしの演出物）。
+// v6: BulletType を stone3_shovel（JSaB 風ホットピンクの新スプライト・128x128・verts 空）へ差し替えた。
+//     既存の stone_shovel（青いドット絵）は他ステージが使うので触っていない。
 // 描画角は useVelocityAngle:false + initialAngle(rad) で明示指定する。
-// stone_shovel.png は「刃を下に向けた」向きで描かれている＝回転0で下向きなので、
+// stone3_shovel.png は「刃を下に向けた」向きで描かれている＝回転0で下向きなので、
 // useVelocityAngle:true にすると落下時（速度角 -90°）に横倒しになってしまう。
 // initialAngle は GetRotationAngle()（BulletData.cs:366）でしか使われず、軌道には影響しない。
 const SHOVEL_ANGLE_DOWN = 0;                  // 下向き（スプライトそのままの向き）
@@ -288,7 +314,7 @@ function shovel(opts) {
         bullets: [bulletDefaults({
           originPos: { x: pos[0], y: pos[1] },
           originVlc: { x: vel[0], y: vel[1] },
-          typeName: 'stone_shovel',
+          typeName: 'stone3_shovel',
           scale: { x: scale, y: scale },
           color: { x: SPRITE_AS_IS[0], y: SPRITE_AS_IS[1], z: SPRITE_AS_IS[2], w: SPRITE_AS_IS[3] },
           life,
@@ -327,6 +353,45 @@ function blinkWarn(cells, kind) {
         life: k * step + on,      // 明るいのは各周期の前半だけ
       });
     }
+  });
+  return warnClip(items, kind);
+}
+
+// --- v6: タイル実体化ポップ（JSaB "Milky Ways" の実測を反映）--------------------
+// 参考動画で観察した1枚のタイルの挙動:
+//   ・予告は「実体と同じ大きさ・枠なし」で、暗い方から本来色へ向かって薄く濃くなるだけ
+//     （小さく出て拡大する動きは無い）
+//   ・拍頭の1フレームだけ純白かつスケール 1.67倍まで膨らみ、約0.10秒で等倍・濃ピンクへ収束
+//   ・保持のあと、消えるときは中心へ 0.08秒でスケール収縮（フェードではない）
+//
+// このうち「拍頭の白フラッシュ + オーバーシュート収束」を実装する。予告側は v5 のまま
+// （すでに同サイズ・枠なし。alpha は下記の理由で作者が指定できない）。
+//
+// 実装上の制約（BulletIndirectURP.shader:283-291 を読んで判明）:
+//   通常弾では color.w は不透明度ではなく「着色するか否か」のフラグで、w>0 なら
+//   描画アルファは 1（不透明）になる。弾ごとに任意の半透明度を指定する手段は無く、
+//   実際の透明度は appear = fadeIn * fadeOut だけで決まる:
+//     ・appearDuration>0 の予告窓 … α = 0.2〜0.5 の拍同期の明滅（値は指定できない）
+//     ・life の最後の 0.1 秒     … α が 1→0 へ直線減衰
+//   そこで各コマを「life - appearTime = hold」で置き、
+//   出た瞬間 α = hold/0.1 → 自分の持ち時間で 0 へ落ちる山にしている。
+//   コマは少しずつ重なるので、大きい白が薄れながら小さいピンクが乗る＝収縮に見える。
+function tilePop(cells, kind) {
+  const items = [];
+  cells.forEach(function (cell) {
+    const c = cellCenter(cell[0], cell[1]);
+    POP_FRAMES.forEach(function (frame, k) {
+      const sc = TILE * frame[0];
+      const t0 = k * POP_STEP;
+      items.push({
+        pos: c,
+        scale: [sc, sc],
+        color: frame[1],
+        appearTime: t0,          // ここまでは完全非表示（appearDuration=0）
+        appearDuration: 0,
+        life: t0 + frame[2],
+      });
+    });
   });
   return warnClip(items, kind);
 }
@@ -483,6 +548,10 @@ export default stage(
             kind: 'tilewarn',
           })
         );
+
+        // (d2) v6: 実体化の瞬間のポップ（純白フラッシュ→濃ピンクへ収束）。
+        //      v5 の予告クリップ (d) と実体クリップ (e)(f) はそのまま残し、見た目だけ足している。
+        s.at(strike, tilePop(transient.concat(persist), 'tilepop'));
 
         // (e) 実体（濃いピンク）。最終拍だけは拍末で消さず holdUntil まで残す。
         //     cfg.onLastBeat がある場合（区間③）は、残すタイルの内訳を呼び出し側が決める。
