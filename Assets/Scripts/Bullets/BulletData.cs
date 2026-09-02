@@ -75,6 +75,16 @@ public struct BulletData
     public float2 scale;
     public float4 color;
 
+    // --- 出現アニメ(v9)。animDuration<=0 なら無効＝従来どおり scale/color は固定 -------
+    // BulletRenderSystem が「描画用の」scale/color だけを appearTime からの経過で線形補間する。
+    // 当たり判定(BulletCollisionJob)は authored な scale をそのまま使い、影響を受けない。
+    /// <summary>animDuration 経過後の scale。animDuration>0 のときだけ使う。</summary>
+    public float2 scaleEnd;
+    /// <summary>animDuration 経過後の color。animDuration>0 のときだけ使う。</summary>
+    public float4 colorEnd;
+    /// <summary>appearTime からの補間秒数。0 以下なら補間しない（既存データは全てこちら）。</summary>
+    public float animDuration;
+
     public int areaNum;
     public float time;
     public float appearTime;//通常弾: 表示時間。レーザー: 当たり判定の太さ
@@ -178,6 +188,10 @@ public struct BulletData
         v2Segments = default;
         homingTurnRate = 0f;
         homingDuration = 0f;
+        // 出現アニメ(v9): 既定は無効（animDuration<=0）＝従来どおり scale/color は固定。
+        scaleEnd = default;
+        colorEnd = default;
+        animDuration = 0f;
         v2LocalOffset = float2.zero;
 
         float x = _start;
@@ -296,6 +310,10 @@ public struct BulletData
         v2Segments = RotateSegments(data.v2Segments, _theta);
         homingTurnRate = data.homingTurnRate;
         homingDuration = data.homingDuration;
+        // 出現アニメ(v9): コピー元の設定を引き継ぐ。
+        scaleEnd = data.scaleEnd;
+        colorEnd = data.colorEnd;
+        animDuration = data.animDuration;
         v2LocalOffset = float2.zero;
 
         areaNum = 0;

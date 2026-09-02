@@ -46,6 +46,13 @@ public class BulletDataJson
     public float homingTurnRate;
     public float homingDuration;
 
+    // --- 出現アニメ(v9)。全フィールド省略可、既定 0 = 従来動作（scale/color は固定）。 ---
+    // animDuration>0 のとき、appearTime からの経過で scale→scaleEnd / color→colorEnd を
+    // 線形補間して「描画だけ」を変化させる（当たり判定は authored scale のまま）。
+    public Vector2 scaleEnd;
+    public Vector4 colorEnd;
+    public float animDuration;
+
     public BulletData ToBulletData()
     {
         float2 resolvedScale = new float2(scale.x, scale.y);
@@ -80,6 +87,9 @@ public class BulletDataJson
             typeId = BulletData.ResolveTypeId(this.typeName, GManager.Control.BTDB),
             scale = resolvedScale,
             color = new float4(this.color.x, this.color.y, this.color.z, this.color.w),
+            scaleEnd = new float2(this.scaleEnd.x, this.scaleEnd.y),
+            colorEnd = new float4(this.colorEnd.x, this.colorEnd.y, this.colorEnd.z, this.colorEnd.w),
+            animDuration = this.animDuration,
             appearTime = this.appearTime,
             appearDuration = this.appearDuration >= 0f ? this.appearDuration : BulletData.DefaultAppearDuration,
             life = this.life,

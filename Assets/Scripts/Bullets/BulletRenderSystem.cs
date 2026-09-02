@@ -300,6 +300,17 @@ public class BulletRenderSystem : MonoBehaviour
 
             appear = fadeIn * fadeOut * clearFade;
 
+            // 出現アニメ(v9): animDuration>0 の弾だけ、appearTime からの経過で描画用の
+            // scale/color を線形補間する。animDuration<=0（既存データは全て）は素通りで従来動作。
+            // 当たり判定は BulletCollisionJob が authored な b.scale を使うので影響しない。
+            float2 animScale = b.scale;
+            float4 animColor = b.color;
+            if (b.animDuration > 0f)
+            {
+                float u = math.saturate((b.time - b.appearTime) / b.animDuration);
+                animScale = math.lerp(b.scale, b.scaleEnd, u);
+                animColor = math.lerp(b.color, b.colorEnd, u);
+            }
 
             // appear <= 0f でもisActiveなら必ず描画配列に入れる（透明度0で描画し、徐々に現れる）
 
@@ -308,11 +319,11 @@ public class BulletRenderSystem : MonoBehaviour
                 // position は BulletDataUpdateJob でノイズ込みに更新済みの値を使う
                 pos = b.position,
                 angle = type.uprightSprite ? 0f : b.GetRotationAngle(),
-                scale = b.scale * type.baseSize,
+                scale = animScale * type.baseSize,
                 texIndex = b.typeId,
                 maskIndex = b.typeId,
                 appear = appear,
-                color = new float4(b.color.x, b.color.y, b.color.z, b.color.w * clearFade),
+                color = new float4(animColor.x, animColor.y, animColor.z, animColor.w * clearFade),
                 renderPriority = type.renderPriority,
                 renderMode = GetRenderMode(type),
             };
