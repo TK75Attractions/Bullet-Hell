@@ -15,8 +15,8 @@ MonoBehaviour:
   m_GroupName: BulletBuffers_stone3
   m_GUID: 937192ba3cbd00548acf1d2c0f4299f6
   m_SerializeEntries:
-  - m_GUID: 003fcee8f3622ab4082b39b48fe30179
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_043_tilewarn.json
+  - m_GUID: 006293577e87b3e4cb4a8a98f318e621
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_056_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -27,20 +27,8 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 012bd43433877a043ab74ec858108838
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_114_blast.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 012e317008cefaa4cba5f158f05f594d
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_114_blast.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 01bb788613920bc419be6c5ff55804d1
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_057_tilekeep.json
+  - m_GUID: 01c4e93d64529d04dba1185841e37b8b
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_068_tilekeep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -51,20 +39,32 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 034d37461c6eb92428aa6a009384a17c
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_075_blastwarn.json
+  - m_GUID: 02236ac6e0adfab40bc883910e56574e
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_176_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 0394b20b4ff0178459ebd32505fed4ad
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_120_shovelsweep.json
+  - m_GUID: 02c4900ec894b7c459da5f93cfb8bbdf
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_087_tilehold.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 0450960c4b0b33c4baabd12b2b509018
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_061_tilewarn.json
+  - m_GUID: 03e545bff85b18b41b3287a37d0b683e
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_059_tilekeep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 041839eab858d5a408a7d5dcf0da1558
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_165_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 045fdf2d2d3f5cf45813c6dc330c5ab9
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_126_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -81,56 +81,80 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 0503f5c9b76c1e44489a020efd92ce06
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_047_tile.json
+  - m_GUID: 04eb7838ab175be4cb4e1a040d9674b3
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_151_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 05848e3164ff63b4e9283f74612d38bc
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_060_tilekeep.json
+  - m_GUID: 04eead0c4f3225244a2564efd2a9e755
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_043_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 05a62b69187bf56449e8694d15c7c598
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_107_shoveldrop.json
+  - m_GUID: 057943120c8cbde4390ee44ba7034530
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_134_droppathwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 05e1fafbb98ca5e4498dfe8eecc8d310
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_122_shovelsweep.json
+  - m_GUID: 05f46eafb74e72a4cb6ea2710ef6ba9a
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_060_tilewarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 05f9554744eb9ed4fa7c99f893ab706c
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_113_shoveldrop.json
+  - m_GUID: 06c715f87b82bcd4caf213c2801bc9f4
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_070_tile.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 07c42b426943fbf45a702e7b17b8e1a5
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_056_tile.json
+  - m_GUID: 06f662ee55a46c34ba70ba83e05b0fb9
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_131_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 08092fbf6fef29148a08df3827637ca0
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_023_blast.json
+  - m_GUID: 078ae44a3222dae4e828a4cf121fcb03
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_171_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 0b44245a766607d4da8ee10369dd81d4
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_038_blast.json
+  - m_GUID: 07dbd4270bd32774eab977c32e7a01d1
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_191_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 0bd09ef58cc70d2458b397adf9a0580c
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_068_tiletarget.json
+  - m_GUID: 0886d076d3a6837409056616097ed05b
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_056_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0989c319212507f41acb4f416a8d1e5e
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_071_tilekeep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 09afc03bf06743e4eb7b4dd30dd9d242
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_162_shoveldrop.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0a1d3cf27d585104681f719fed165948
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_175_sweepwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0ad445f92f69bda41a8b6080aed5b18a
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_095_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -141,38 +165,44 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 0e3bf63e21cddd24cac8a96ca97a9cbf
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_091_blast.json
+  - m_GUID: 0ca3f3319d64a4c43883c65126612d38
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_172_sweepwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 104ffde8846d0794187a353a908f1f66
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_111_shoveldrop.json
+  - m_GUID: 0cfb0937777361346a5c9bea796cc94d
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_154_droppathwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 108d0e80d296e7548baf13e7e8118204
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_125_shovelsweep.json
+  - m_GUID: 0d375dce4c3cd38419bfb8390ff367c0
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_065_tilekeep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0d41574552f63e04a9f7e0677f558537
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_174_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 10342e59578f0a3448d1882115d7d332
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_096_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 110fe349c0cd9fe46a3594b706825f67
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_054_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 113feadc6bc95c542a3896cbd369c8e6
     m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_012_tilekeep.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 117f7957f8b4d5941b0ea95008740126
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_127_shovelsweep.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 11a87da6ff75f4d4abdfe3aed6fffd32
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_087_blastwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -189,38 +219,50 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 12acb7ee60fe5ef4ab6f8da3b21c63df
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_164_droppathwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 12c9ff75216ba294b83c7527b51f76b3
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_109_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 131a34b6e189ef94da3bfdda2e32cd69
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_185_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 13995d46ab5ae214bad22f12103307ed
     m_Address: Assets/BulletBuffers/stone3/stone3_normal_036_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 148e51fc76cbf214782c32fbbe967831
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_039_blast.json
+  - m_GUID: 13ba4c489f7a32945b748fc6820f316f
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_141_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 14e2dec3295467c4dbc6feb8ee1d8d95
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_038_blast.json
+  - m_GUID: 13e9cc52eaa6ba64f8726901411ee4f5
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_093_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 15212a614bc293448941ecc8642aa1bb
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_050_tile.json
+  - m_GUID: 146e4e9e27e319b4d929fd087f8b8294
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_072_tilewarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 152a9b908cd867e479ea1bcd97cde6e1
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_080_blast.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 15466f86c8a670348bacc4916515781d
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_029_blast.json
+  - m_GUID: 15611245a3f5bb1428858c64dfbc4a3e
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_155_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -237,20 +279,38 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 1797e640efcc9ec44a1debba04967712
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_032_blast.json
+  - m_GUID: 16492ab4c6ccca040ab2447b97278e67
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_121_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 17d6e41d747fb7d408b71af1aebeb234
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_069_tiletarget.json
+  - m_GUID: 16dcaebb74f968a439f11864e407819a
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_183_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 188618a45a693d34882aad995396f8a7
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_117_shovelsweep.json
+  - m_GUID: 177846f2df8e19e42922910630ecf55d
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_144_droppathwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 17f2eec5c44d23c4190bc9fd2913a69c
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_096_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 189079ce089970d4cbb80f5cc343171b
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_175_sweepwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 18be346e66d858740a3590952f09f3e6
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_099_blastwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -261,14 +321,38 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 1b61079270d494d41b29935384c89b6a
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_047_tile.json
+  - m_GUID: 194a692b190ebae4ca64125e877ad65b
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_173_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 1bf8a7ebebfe6dc49b0565af50a316ff
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_126_shovelsweep.json
+  - m_GUID: 1980f3e250ebb084fa4b10f7b05a0576
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_190_sweepwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1a0a91336ba65b04e8babee2f0a2b6e4
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_187_sweepwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1a8fe3973f9671347bad801606166f9c
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_116_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1b357dfbfe1521a43a2b7e2def236d47
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_047_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1b92891e4bfea2146a09a2b90f4de930
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_149_droppathwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -279,20 +363,26 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 1d892e9a42cc4d944b3589706a0cb4e8
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_091_blast.json
+  - m_GUID: 1d45d63c04c700f46a8b307acb79c9c6
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_148_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 1dfae8fbb9b308344ba7e3941c231d86
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_090_blastwarn.json
+  - m_GUID: 1e06295e5dcc63e4d91b1bc0ce4ded49
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_174_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 1e1d8f8f24c0e954aa18b4b289f4e0a2
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_072_tiletarget.json
+  - m_GUID: 1e0d55332a8a2d04c99d4da0c0a8a141
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_177_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1e1c95fedca26d047afc66f11ebdc109
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_123_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -303,98 +393,122 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 1e556ffc3c7c49d40b280ee17c31017d
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_083_blast.json
+  - m_GUID: 1f42adcbe981b9a47aee1cf7902e6507
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_054_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 1f750528945e13c43b07a9bd3af452d1
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_096_blastwarn.json
+  - m_GUID: 1f9658c06b5a836408342e8ee0a46167
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_061_tile.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 1fb17e75ae5caa74db282cd43356f8a3
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_055_tilewarn.json
+  - m_GUID: 2049dc9ab921a7245821f1af9f7aff2b
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_061_tile.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2062372f34fa25d4d956287911a51fc6
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_048_tilekeep.json
+  - m_GUID: 2069e3f67c64bf2469842f45ad165908
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_055_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 228e56d6ba25742429d4e230cfc2e650
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_099_shoveldrop.json
+  - m_GUID: 20c194e1c7ad8364387a93a85e2ec422
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_024_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 22ec398d8b79734428710078db50a4c6
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_033_blast.json
+  - m_GUID: 217880c4b4cf00141a782e900c7a9211
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_104_blastwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 23cee91d4eaad5643867566773a4c180
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_033_blast.json
+  - m_GUID: 234edcf46a9c86f4394c167718e83509
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_077_tilekeep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 250557c88e99fb6488c9ad989611cd86
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_043_tilewarn.json
+  - m_GUID: 23b8d68bc6cfbe34f94e9af80ac2b904
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_128_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 255bd1555beceb24b8e116924a2cf247
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_038_blast.json
+  - m_GUID: 23d4f69e459f0784ea2c934154a1ef78
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_189_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 26402e4def25c9f4c9d6d1671e7b18d8
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_118_shovelsweep.json
+  - m_GUID: 23ee61825f79bcb4f84c9afe2e8d9358
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_141_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 267ce5f808037f849b339163ab6010a3
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_077_blast.json
+  - m_GUID: 23f0775eff951d843a4633b36603a284
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_148_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 26ee279eee4f31f469e4f024a426de5d
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_119_shovelsweep.json
+  - m_GUID: 24ffcaa4ef5adeb4681ac99e3fe0a364
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_051_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 273a33f470a9e164a91f7abaddd68d9b
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_120_shovelsweep.json
+  - m_GUID: 2538de569ddaf184ba469047b04d2d9e
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_186_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 27d16532ce7017a44bbab8049860d0d4
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_124_shovelsweep.json
+  - m_GUID: 264d694c3d2e2bc43acb293c29efe512
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_029_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2805a0f02ef46e8408ed5975b99823a2
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_109_shoveldrop.json
+  - m_GUID: 2656e0684b939b44eb9f9798f87d4130
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_111_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 281fd7aa0fc71ec4c8471cac80839b6b
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_044_tile.json
+  - m_GUID: 268dc60474facd041bd4b160b8ddc4db
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_138_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2733b02a9cb142a46bc532b74bfd6d0a
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_167_shoveldrop.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 274102e44d60b1c49920c123a272bb6b
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_136_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 276c96ff103d1094f813b4cfd8aa9638
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_066_tilewarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 27d316ed3c26c05408a2c595ff33ed8f
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_081_tiletarget.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -417,20 +531,38 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 28c208ef6d0bd2648a928ae37d349a2c
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_137_shoveldrop.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 29018bbf21fbcfb41b8fbe7f25d67bb4
     m_Address: Assets/BulletBuffers/stone3/stone3_normal_001_tilewarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 29aa6b6dec03c8941903f0ff1351f810
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_064_tilewarn.json
+  - m_GUID: 291341ed2f24280468c8840dc8d7904c
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_121_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 29b88d46bee377344aa0bd20177e4a06
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_100_blast.json
+  - m_GUID: 296edf330d1722546854859f75da888c
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_160_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 29c3932ab9dd2d04783d5dbdb45223ae
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_042_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 29e1d7a218c821443807c70089b26005
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_120_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -441,14 +573,20 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2a03140e56033a34086ec6124e55da5e
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_103_shoveldrop.json
+  - m_GUID: 2a1c8e4075946184cbc372089cb36ce3
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_133_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2ac4420f18129a74ab6483891310aef5
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_128_shovelsweep.json
+  - m_GUID: 2ae7ca494eb649f4ab35600e6b3ddde9
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_150_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2b1fbd21cf42dbd44abd81a256292ef6
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_090_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -459,8 +597,8 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2bde5d327072e514b8479ebaea6848b5
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_059_tile.json
+  - m_GUID: 2b7bfce1eaaa976408cb00649399290a
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_123_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -471,8 +609,38 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2c738ef8fb3de0e4cbf47c4a8d50a825
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_093_blastwarn.json
+  - m_GUID: 2c7e01ca02f29ec41a0968ffce375618
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_184_sweepwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2df57a2bd0ab7c9468bd7cb8e266d6b3
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_160_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2e1918cba661f844c91bd5169ccdab0f
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_124_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2e212bb7478f1274b87e242a73642b82
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_089_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2e7c317e794aca545b7f03e47d4a5ca2
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_170_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2e85da430c1b8f0449e7c59d7eb3c656
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_085_tiletarget.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -483,8 +651,26 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2ee4ad7482111754688893fc3c6d0889
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_129_shovelsweep.json
+  - m_GUID: 2f0be8f1f86bf4e4caf72feedc7ebcf4
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_103_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2f1d5139f4e0d0640bb572e3b755362d
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_032_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2f62dc8797f47d44f90d360b6871ced9
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_120_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2fa87ca89075d124f88df0c7340d92cc
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_047_blastwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -501,32 +687,14 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3083b866f42f94e4aaf2ee2c34df5a51
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_084_blastwarn.json
+  - m_GUID: 3128fe7564d02ac42bd044fe723bb7af
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_187_sweepwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 311fd3405cb63ac4b99c004e0d863291
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_115_shovelsweep.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 31a5b50f73aa19c45ab56c97ccfe02af
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_069_tiletarget.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 31ec70a94745008498a2962ae0fd501e
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_105_shoveldrop.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 322fbff475bd9eb40988675ddb530c2b
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_125_shovelsweep.json
+  - m_GUID: 322d44ef2962d3a43a19c9ac134e7bdc
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_167_shoveldrop.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -537,8 +705,8 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 331e521d1f715264488d07ac028cfcc7
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_107_shoveldrop.json
+  - m_GUID: 3263843a5efbc21419eeef60fc39669a
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_185_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -549,14 +717,26 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 33d1ff45a7b2a714988f448367f910ea
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_046_tilewarn.json
+  - m_GUID: 33e2224e50ac9164ab78c9a56948ffae
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_137_shoveldrop.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 348df857231c23e40b73feb6548b7f51
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_082_blast.json
+  - m_GUID: 3470db9725d732e4dbf0c9ba076ba68c
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_129_droppathwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3509eae6d3509ba458ba0f74a777bba9
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_147_shoveldrop.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 352dfa4adf164bb4297636f50fa73472
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_143_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -567,14 +747,32 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 35f4bec181df68846a012f3ce2331477
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_029_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 363def2b08e66504b8eda0e3363fba5b
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_028_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 368edb13c7e726e4c888507b8f069d2d
     m_Address: Assets/BulletBuffers/stone3/stone3_normal_010_tilewarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 37ef0e868fd6b4945b3c4ca6389de0f9
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_073_tilehold.json
+  - m_GUID: 36de54594c78a9e479af2acbaea693f3
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_182_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 379d20c92287ba7429ad0d7bce35203a
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_135_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -585,26 +783,38 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 386ae05c32e1c8c4e9c6036b49a5c42e
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_101_shoveldrop.json
+  - m_GUID: 38d766092c186ec438e1e358ceb4d770
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_057_tilewarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3949d284de4834c42b15db2421de1e56
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_056_tile.json
+  - m_GUID: 395b8db945e0bdd4e8534cb97edca814
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_028_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3a5cb541118c0d54c8c65127c4cb6aa1
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_027_blast.json
+  - m_GUID: 39976b5759e207840828fd15dd33f2ff
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_086_tiletarget.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3ad73abfd42788c43af315e1a4eb94c5
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_090_blastwarn.json
+  - m_GUID: 39f8402836213514ead662dd202324c7
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_027_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3a36d35a27cb59d46b734f68c06850e6
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_055_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3a8816fc3e48bea4b81fbf7f9bc80f89
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_070_tile.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -615,26 +825,26 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3b352f4260ef72d4b8b8181bf673f076
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_067_tiletarget.json
+  - m_GUID: 3b5fb6f0a89d3cd4e86393235463f5b0
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_153_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3c52c0e7ec0c4964c83b64fbc4e4acee
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_047_tile.json
+  - m_GUID: 3bcbb73914304b04ba508137e377a775
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_143_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3c6532ff8d8a76047ba6c21787c51502
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_116_shovelsweep.json
+  - m_GUID: 3d3bb8b0d59b29e4798bfcff4e0214df
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_095_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3d82938f52b58d74ea85f581686b9283
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_062_tile.json
+  - m_GUID: 3daaf56f55320004291f27d2a149a629
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_106_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -645,8 +855,26 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3e2050f94fff1614a999ca801a8511c7
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_186_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3e284ad603ca9cb4daee51680664e6d8
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_131_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3e2a8421841e1a142a8c48c5a203994c
     m_Address: Assets/BulletBuffers/stone3/stone3_normal_037_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3ed499e53d130d24d93fc6c3ebb19250
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_164_droppathwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -657,38 +885,56 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3f178bedf60a07c4bbe00d4ab40aaa39
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_078_blastwarn.json
+  - m_GUID: 3f0d5e4ebb505df489dd8e4b76901c99
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_146_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 3fbb97a640d30d74e97807f044b8d1bc
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_111_shoveldrop.json
+  - m_GUID: 3f4660794dc0f1a448d7fe2e851fb7d1
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_084_tiletarget.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4021cbd9c1ac2874c9497a17e391fdd1
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_031_blastwarn.json
+  - m_GUID: 406b988adda4b63429f05cae614ed4a7
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_093_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4101978a0b9e3774a8adb4c6482120b4
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_114_blast.json
+  - m_GUID: 41a2fde5c7788404cb5c31e97ac748f5
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_168_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4277cbe2c5e72734b9e8a5d5660b9927
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_095_blast.json
+  - m_GUID: 42516c4cec95db441af4f4443c9be7f1
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_143_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 425229dfae312e246a5fad726eb4bd06
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_159_droppathwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4286b32f55ad9f5448ce8ba669fe208a
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_139_droppathwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 42b29eff8c26c94419aaaba31bf72106
     m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_011_tile.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 42cecbdf7c5266c459fc51c99ccb8d32
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_088_tilekeep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -705,116 +951,248 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4469b219a48214a46ae459111b81858c
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_063_tilewarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4487725abb00e7941b209ac30400c1a3
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_067_tile.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 449acba08a646ee4b9a77f64e1c2c728
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_062_tilekeep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 44dbb9fba57b6244ba66b6c564ceec74
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_136_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 44e4c18b7ab30334c89f8c4a187e97d3
     m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_074_tilekeep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 461a799c76afce74abe101aefc00cbd4
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_060_tilekeep.json
+  - m_GUID: 45758265917bc63498102dadefc23335
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_117_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 47048a68fd74c7f48b4091cf3ba31657
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_116_shovelsweep.json
+  - m_GUID: 461542fc5adb86a46852cec0ae3eabc9
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_180_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 47345f4ee894ab94cae35e85a22a9388
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_032_blast.json
+  - m_GUID: 46ad3599a526d224089d5b9cfe0c43a7
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_126_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4952ac878f00e1a4eb38c4a51acdc4e9
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_060_tilekeep.json
+  - m_GUID: 4764352eb0b824e4d91833bba80d042d
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_192_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4a2da70876a48aa4bb43c66a81911325
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_052_tilewarn.json
+  - m_GUID: 47833da5df2dc0444a975d711a3af1ec
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_184_sweepwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4a4e04876016af946a785a7405f29a71
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_100_blast.json
+  - m_GUID: 488adb94e5a6ec341b25795c0221eec4
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_115_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4aa15288cb0bd494e87df72d05762b86
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_040_blastwarn.json
+  - m_GUID: 48c417f404850c44c96e67a302146172
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_133_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4ac5cfcc97e4b254d8306b12cf431560
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_031_blastwarn.json
+  - m_GUID: 49db630c0e88db04897e668e0ce09b7d
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_068_tilekeep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4c5151322495bdf44be74d6482c0de98
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_051_tilekeep.json
+  - m_GUID: 4a3e9609ee2bd594faa1e2cbfce9d100
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_168_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4d56a3b1a48a85242b0b248bf36625ae
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_123_shovelsweep.json
+  - m_GUID: 4a854db5f29baa941b4b6658ab0171e2
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_060_tilewarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4d67a889cc1a6e24c95360136160d1db
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_063_tilekeep.json
+  - m_GUID: 4aadd46cfe2dade44802784ebb26a2e2
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_040_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4e13cce7f64dda24582f2a1b79278130
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_040_blastwarn.json
+  - m_GUID: 4ab1a31cb9a5862449263d12a39de514
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_059_tilekeep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4ffc5b67194b1a74db409ac4786ccbef
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_076_blast.json
+  - m_GUID: 4ac8556014530b84597ab1421bcfa15b
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_048_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 50085d5aacc36c741a2429ce896445b5
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_113_shoveldrop.json
+  - m_GUID: 4ad1981519cfa9a4288235206865d3ac
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_025_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 50394565bf8e5c24da46a8afdc4ef723
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_122_shovelsweep.json
+  - m_GUID: 4b80cfc7850d40048a3324608232c592
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_186_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 50f8b8fe1dd898e4495291128603bcca
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_045_tilekeep.json
+  - m_GUID: 4bbe675fa425a5e43a85867e8cc96017
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_082_tiletarget.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 51410eb643490794c92cb73477825fdf
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_094_blast.json
+  - m_GUID: 4bf962d2873016447b86b366b3cbd9e9
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_060_tilewarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 5222095342c505e4fb3930f94816484b
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_076_blast.json
+  - m_GUID: 4c58f9621b6d61449baa224e02d0c1aa
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_118_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4c8ca6671e408e64f8cd9d5939624c5a
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_134_droppathwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4cc8fcebd550eae4cb097a788f590d6d
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_045_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4d5460039b0902940bf48e2bb2478bc8
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_155_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4e3a1bd8caff07d45a5336e811deca61
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_091_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4f84d0bec5a6a324b9eaddd95c5c98ce
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_082_tiletarget.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4fa9a01ae31e27249a844f6896917f1d
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_050_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 502f647fbd9683440b13400585dd1b6e
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_105_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 507ccb93a8daf5c4fae4222b7be7c481
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_067_tile.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 508a6070c5f402841bdc9513b490c7dd
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_129_droppathwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 51ffb2859a79aed40a0696205c1eb837
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_177_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 523ef63829f7ae24d90e7c0082151537
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_087_tilehold.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 526cafac398e37c44bf99e6bc1ac86f0
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_110_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5281c608b318f8642b3512e2c2ad83d5
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_116_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 52c0d07bb5bffa3418a26f5460dc73ab
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_044_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 53386ed54e028b14c993c34ead9fac40
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_058_tile.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 536125c30ffe49e469eb8a81123c9f15
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_169_sweepwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 536963aba46564f41ad2f0d4a2ef3a9e
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_095_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 541ec364e5725c54a9f8cbf5c8b2c2f3
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_031_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -825,14 +1203,26 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 55dc4fd19e1f4c84b97471dbe8ac82a9
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_029_blast.json
+  - m_GUID: 56208a09725d739498618cfaa22c4ea5
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_038_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 569043a67dd774144ac104a56d5c4fe3
     m_Address: Assets/BulletBuffers/stone3/stone3_normal_007_tilewarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 56bf08beebe0fc143a8e893d118815ff
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_084_tiletarget.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 56c7bffdf41df28438d51b1baa623ae2
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_114_blastwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -849,50 +1239,38 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 5866d15ea240ff3449e8631f765e0952
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_024_blast.json
+  - m_GUID: 59cb9fd9ecefca5459a8472aa45e291e
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_087_tilehold.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 59bde2e8e4f9ed44987dcdb1cd0f9f73
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_129_shovelsweep.json
+  - m_GUID: 5a55f08fe2d302a4099062faf9d3d79d
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_190_sweepwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 59d8b686e79158d42a191f1bef814079
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_109_shoveldrop.json
+  - m_GUID: 5b073e66cadda7d4d9137f89e1a216ba
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_079_tiletarget.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 5b81e5cd6a77f3946bfa491b5de4525a
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_068_tiletarget.json
+  - m_GUID: 5c1e5334e292f4f4b83c366682add4b0
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_128_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 5c8e4aa0863fdbd45855915b791eb58c
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_095_blast.json
+  - m_GUID: 5c8acb58added6a459802d6e5b9bb8ee
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_045_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 5cb44f6dea7907a4f9098ef4a3780114
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_118_shovelsweep.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 5ccb11ce074b77a438b19da0b7fb3b01
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_127_shovelsweep.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 5d6cc68ccfc57d542b3e2edee9355d84
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_094_blast.json
+  - m_GUID: 5c8d1f380ae2606488c91725af606d28
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_079_tiletarget.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -903,20 +1281,92 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 5dda8375f7b60e448a2845fd4c1d2033
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_025_blastwarn.json
+  - m_GUID: 5da0354f0e7a84c4a9dcc46cae2bd472
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_094_blastwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 616b672346b68f54e956705d9a3e845f
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_065_tiletarget.json
+  - m_GUID: 5ddab26ae84d2c34c9af1359675ba459
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_155_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6171257d36ec5e046980cc4bb2a5639f
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_065_tiletarget.json
+  - m_GUID: 5e14249d9b73cdb47a6605c7496a8330
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_163_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5e3cd9dfbe47ef44a8776481a6490a89
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_048_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5ee2eaca316439d45bae2c3b987eb17c
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_031_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5f219b970517d2240b016fff58cdb9c5
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_156_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5f2717f34fc3de54b813137b7722954e
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_086_tiletarget.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5f8f2bc4bbc889045a05115e7aa0157d
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_073_tile.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5fb1b9fd297bded4f9cc0378c424a363
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_154_droppathwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5fb483865fd51974093dabf158974d44
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_163_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 60572a0c8dd56874f8e4f730aed81a94
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_106_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 61042b9e039d6e44aa25041a9e958736
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_027_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 615de47bdbadb4046af2cbd28fc2b2b8
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_177_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 620880ea0fcf67a48a87ff6eb688866e
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_151_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 63863c6d03ea7414488311d0cd088abe
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_034_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -927,20 +1377,32 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 642951c3bd839b545bbee30be5c24c28
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_079_blast.json
+  - m_GUID: 650c90cc3b2eecf4f9e2c63a3a1d14f9
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_057_tilewarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 64445635ba956fb47b17232ead9935f3
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_105_shoveldrop.json
+  - m_GUID: 656636d6894728c4a9d7083ef1f0c59b
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_149_droppathwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 652acf37bf6f5b4489dab9d42ad1c44e
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_079_blast.json
+  - m_GUID: 65e977b3854bad04386b30058fce3ae0
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_115_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 661006c3a9d95774ba97a9bb4ece4bdf
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_088_tilekeep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 669a3781f0fe7ad4c8e287193267acaa
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_062_tilekeep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -951,44 +1413,20 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 66f8737321aca4f48b6b03820a8cff19
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_119_shovelsweep.json
+  - m_GUID: 67daf911d1509e94d8147f1925f658fb
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_044_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6705092f5d4ebdd4da729a77f32469d2
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_119_shovelsweep.json
+  - m_GUID: 68426852e68554444a3b7f19492f433e
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_159_droppathwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 670fd32976da2e8488c608bd2e8ba851
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_081_blastwarn.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6717c79eb290f7940b14b31635ffeeda
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_045_tilekeep.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 673bba076974ae24d84cf998d0f52550
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_104_blast.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 678de15c89203f64ea829676bb3c37c4
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_099_shoveldrop.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 68271181ea499d0458b3074b8e46e374
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_073_tilehold.json
+  - m_GUID: 68970c2abf8ca2641b8299e0bd740aee
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_167_shoveldrop.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -999,8 +1437,8 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6a69fdf676f33ed42868c13fbf30f138
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_066_tiletarget.json
+  - m_GUID: 6a836c0e2729016428852974c2c814a6
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_083_tiletarget.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1011,32 +1449,110 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6b1cc608a76fc924aaba214faffcc256
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_088_blast.json
+  - m_GUID: 6ad5dacbf6e09794dbbee4fa4e18a138
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_146_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6b53844145eeee14dad966bf807647e2
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_025_blastwarn.json
+  - m_GUID: 6ad61c66303880342b7b90672faeec24
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_157_shoveldrop.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6bf6d9db88ecb7b4582d3ef33c31770f
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_121_shovelsweep.json
+  - m_GUID: 6b0020330e2eeef4695926f2311d0eb6
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_166_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6c36b64e82f4f2c47a66a7032af41021
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_083_blast.json
+  - m_GUID: 6b4dd202ba3938346b20912a63d944db
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_146_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6bffb4759c2927b41978e8a2c34b5ba7
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_107_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6c2a47db6ce08a64da5de3760f0b3a4e
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_078_tilewarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6d3c2dac25b1b3048bb777586c42d497
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_114_blastwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6db5d23733d466b42ae8822053b342fc
     m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_010_tilewarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6dbf97b166558354f91160de1309aa6a
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_188_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6dca425523e16ff4fb9c3d4c97bd3c82
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_103_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6e9c9d46a02b3494d912fd14fb9514c4
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_124_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6ea7ef62e02759a4cac28ac6c98f7f5e
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_045_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6eae2d7d6be62384e9412d312c2ddfd3
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_082_tiletarget.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6eafc98bc2bade141af5713ef734bf92
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_151_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6ef27bb94fcd08849b94ed43cc597e50
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_038_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6f20823273ef3e94886400e0b8c2669e
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_176_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6f3b219193c3bbe42935d0be7956aae5
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_052_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6f69b69ca0cd3954a841e5ca102a3ef3
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_109_blastwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1053,14 +1569,50 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7006e4a7a5f291242b7db7ed749965c7
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_069_tilewarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 70198ec33bd2f1e40ba2280ab0cac9a1
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_124_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7029b13ff70bb4645a3af57c8c2ecf14
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_162_shoveldrop.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 702ce09a257afe14cbaea46c1c734e34
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_023_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7032d6e45c7bd3f46bc73540147baaad
     m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_021_tilekeep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 70d40e7fea817e846affcc7fee62b1ae
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_106_blast.json
+  - m_GUID: 707f683ad6f5616448e0620d5c147b19
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_080_tiletarget.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 708746dc32301c4458df27350269945b
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_058_tile.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 70d5aa3b24a530a438683e3e983979f1
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_172_sweepwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1071,14 +1623,38 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7188775a0d82faf469c670643edcba28
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_123_shovelsweep.json
+  - m_GUID: 7115c6811b6220349b1aa36ab60c87ae
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_157_shoveldrop.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 71a6cc5f0bdc93041be60534b75574b9
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_028_blastwarn.json
+  - m_GUID: 71334b8bb9d750044978757728f7ec5b
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_176_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 71348a0223601a3479b4929fe3ef8709
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_100_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 71492e718ac49204e859a0d914ddcc26
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_117_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 71c828bddd479b9419ac53a3c1516876
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_053_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 71ed92317c3b09341989a502254c3062
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_138_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1089,38 +1665,50 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7215fd50a2220544eb79be107565a70e
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_064_tilewarn.json
+  - m_GUID: 724ef7283580c9844a77d9eec5474a25
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_076_tile.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 72a7329c3eb8e89469566edcbe31dc22
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_033_blast.json
+  - m_GUID: 7379fbfa19450c542a1dda67e4ab463f
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_156_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 736a418fda06f334f9d7a24b72dc35ec
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_075_blastwarn.json
+  - m_GUID: 73ec6cdf80aab0946bcdce0cb79a48ca
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_185_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7585d364995dc634b80581246e06e36a
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_087_blastwarn.json
+  - m_GUID: 74752542f8a261147a04ebf137bdc889
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_158_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 75ac35f1dd7d1704ba1767fa2ad09492
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_028_blastwarn.json
+  - m_GUID: 748a7de205db0ee4588841a5167ee266
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_047_blastwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 75be6b9a973eb7745813d5b2106f4781
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_093_blastwarn.json
+  - m_GUID: 74ced97f1cd0141468c3533509410a3d
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_104_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 74d1a2dec83ed48419cc44d3fce34e6b
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_106_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 759c0e2a8e8303845a2159e8d056ff8a
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_024_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1131,14 +1719,8 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 777d1f6d7471f9f4b9ee2139fae373e7
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_073_tilehold.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 77d5eb5bd29428545a1f3595e4565949
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_086_blast.json
+  - m_GUID: 7831d1c6599020e42b4e293d431c5327
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_069_tilewarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1149,20 +1731,26 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 793e88206b9a7d04f9a5a6cf43e0828d
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_174_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 797d46d770e084b42bc1704ed9d55057
     m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_013_tilewarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7c4ae745b84463e4782ce10d9714cd6c
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_113_shoveldrop.json
+  - m_GUID: 79d498408335ddd43a96590e68669101
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_125_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7cdb8f7432218144db0cf434fa0155ae
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_069_tiletarget.json
+  - m_GUID: 7ac8421249ccf144aac61a45c08ba205
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_046_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1173,26 +1761,8 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7dca6d66bdc64fb48b1fda0a60ae0ccf
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_032_blast.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7e0460c2799e022439dca0b498a8458b
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_052_tilewarn.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7e71b556515c15e4f9e9170cbaf8c94a
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_075_blastwarn.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7e8c19d432d780d4b95473c8be930dc9
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_080_blast.json
+  - m_GUID: 7e4a430a4ac834542bfa17bd351679fb
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_039_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1209,20 +1779,20 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 8122e850df2d37c47a8eb2b007100e06
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_096_blastwarn.json
+  - m_GUID: 7f4bc24849701414aa1dc1606111f10f
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_024_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 8123e3319a2ea4a45824ab1ca5303581
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_118_shovelsweep.json
+  - m_GUID: 7fefb5aa5095d1d4f97a78de80b83294
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_052_blastwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 81718899dbee42e4c9768ecb7588b8f4
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_051_tilekeep.json
+  - m_GUID: 812355a7fae53dc4d991e3545da1a6d8
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_093_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1233,32 +1803,32 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 8203dfe478b1d8a43bfc9bd1af96d29e
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_088_blast.json
+  - m_GUID: 823ccb929273fcd428b7378ac14cd599
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_039_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 82c488e1c9823974b9ee7ce627de13e5
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_081_blastwarn.json
+  - m_GUID: 8246816e4b25f7d41b70f1721f286e88
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_122_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 8301287297c7a234aab867f6d7989b73
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_091_blast.json
+  - m_GUID: 828eff4721632354089f20714779912f
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_140_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 8315026fe8cba164e9491c6377a28415
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_095_blast.json
+  - m_GUID: 82b6c73fa003a1d4085ee122d336fa2b
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_071_tilekeep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 83b00ac0103bffa4695a29c03bf39039
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_070_tiletarget.json
+  - m_GUID: 83715ac84e599994280473884bbf565b
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_189_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1269,20 +1839,8 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 8415a0ea87a57cd44a377a24da40b8ad
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_067_tiletarget.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 84a640fc97dfdd449b1ada4bd3623b09
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_066_tiletarget.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 850cd837fa3477c4b8f2a217211d5aea
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_062_tile.json
+  - m_GUID: 855ee892d5201d04aa9286b28e265197
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_187_sweepwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1293,26 +1851,80 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 869d9f52156548f4583a4dd7e88553fa
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_053_tile.json
+  - m_GUID: 85f98cdfe9c357f45829c64ae2146056
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_065_tilekeep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 87e477e57f49b0b4cb46ad12a0d93c1a
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_072_tiletarget.json
+  - m_GUID: 87358613d5adaa548a2b5532436d6fa5
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_032_blastwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 893e8826dd123a04da9d0202c1048f3a
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_123_shovelsweep.json
+  - m_GUID: 87745d696f4efe24ba2e5491bfcffb40
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_130_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 8b4edda24cdf3ee47a386339f5517699
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_071_tiletarget.json
+  - m_GUID: 878cd54cf63d7d240a34cd46cf41af9d
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_105_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 87dcd4af249bb7841838544ae8edc889
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_101_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 887f945894f0f1441a184752a5ec09a6
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_139_droppathwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 88c15c15587794047a972f668ec59cd4
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_094_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 88e273d231174fc4b8c87aacdb6f61af
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_086_tiletarget.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 894dd3510bbd9d14fb32fc52fee68868
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_142_shoveldrop.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8a482859ae31e304aa192347a39a0a60
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_052_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8a5e813be56c9444b92fdb45e7eec03a
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_165_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8b68ad336d0b52944a8943b47f0cafe4
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_081_tiletarget.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8bb9994765ae8474fb71c81b7354aea0
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_135_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1323,8 +1935,38 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8c8a18545cdb65146a30e42a0a174a09
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_178_sweepwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8c95e69f8d3162a4494117d384ebd769
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_127_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8ca239a789928b940b69e928813e2675
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_118_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8cad55ec2ef0be6489254986fac64f46
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_162_shoveldrop.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8d53ce32658cbbe439bf109cde38f8ad
     m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_015_tilekeep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8dbc96d829cf514408f6c67ffa820f63
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_145_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1335,32 +1977,62 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 8dfd4e1697a9ace41866d491b71909b7
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_081_blastwarn.json
+  - m_GUID: 8e5c94f9a4a856d49983f838a08f8ba5
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_129_droppathwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 8f1047e37b73f1f4688df24221cf1aba
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_043_tilewarn.json
+  - m_GUID: 8ea9efc6a40dc2d47b4b1684bef39b5c
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_051_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 909e2c8b0a498a14684af9f4da5d7e66
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_070_tiletarget.json
+  - m_GUID: 8ec1bd515ba1cce4d99c7f1d68cf39d1
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_161_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 90a153facbed81d4fbe3095f3b478895
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_104_blast.json
+  - m_GUID: 8ed5549a1d622364e97ea5cdf4d96eac
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_190_sweepwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9281618904cc3544db79692135536982
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_042_blast.json
+  - m_GUID: 8f009d6c9e79a494d8b4a65a1aec6748
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_158_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 904ae4bacf10f3f4791d426a76912bfc
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_033_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 908a0a4394a7f6442af4dd4ca73712d3
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_025_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 90c956c6ab1e17c459f03cfdb2fdc538
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_178_sweepwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 90e6885a319e87b4ea794771076bd306
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_091_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 924607182b3864f4da72f718a61e2919
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_149_droppathwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1371,44 +2043,44 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 936e34b2fbc5da64cb8cf09dbd9ee267
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_046_tilewarn.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 939361a7c2a84c64582f1823aca81240
     m_Address: Assets/BulletBuffers/stone3/stone3_easy_102_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 93c119e3f0055824f9281acf9a9174f8
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_085_blast.json
+  - m_GUID: 93c2bcfb72a6f0148bd3916a2e6bce9a
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_140_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9439372b85134a74ba479ab4b9337094
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_040_blastwarn.json
+  - m_GUID: 93f49bf62afe02a44b48d24eeed0669c
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_132_shoveldrop.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9454ccb262fbb2a498c587fba3808693
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_027_blast.json
+  - m_GUID: 94511187ce32d9445a5a206635e2ba8f
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_188_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 94c85cbc02018dd45a1609487c889864
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_042_blast.json
+  - m_GUID: 94f0b312cc279d148b60c5622da1c3e7
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_077_tilekeep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 966bdd2cc1ff71c42b58c9963b4f887b
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_079_blast.json
+  - m_GUID: 94f9fec5abc512b4d96f21ef84c0aeb1
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_049_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 952d0303534a0dc4d9cf290c9b50716f
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_049_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1419,38 +2091,68 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 96d5cf3ded7d7fb46828e3b21d41418c
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_089_blast.json
+  - m_GUID: 968943269455220429847ab00f20b6a7
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_191_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 96fa884698620b8469a2867fc0289373
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_025_blastwarn.json
+  - m_GUID: 96a1f683bd0719448b9eeabf9223f164
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_048_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 97a3e426c9a94fb41b4ef25edb16d1a5
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_044_tile.json
+  - m_GUID: 96b383b133e29ef468d1361502a9d807
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_161_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9a16da62ab8f47e4ab5e302957361d0a
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_056_tile.json
+  - m_GUID: 970cb2719d524b54a9c811bc44681889
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_046_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9a1c8bf86bbf39b458bf8adab7129a3e
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_129_shovelsweep.json
+  - m_GUID: 97959e9b370fc1d45b7417bce9a7169b
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_113_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9a2b91b84d2dfd8428f9346fe16cd642
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_059_tile.json
+  - m_GUID: 9914c83253f02ac4f9702e1cf12f4dec
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_122_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9936feeccd4d3264c9863c026479670a
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_164_droppathwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 993f4e16b37ab98468c69a4189b38e70
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_038_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 99e5dd63d4c4a5640a93d3f9324f57a0
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_136_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9a057f543daa4fb489f7e29ef5b162aa
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_105_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9a0a743e70c98a44180f488436995a22
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_166_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1461,26 +2163,56 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9c524743e4fdec749bc52375af221b33
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_046_tilewarn.json
+  - m_GUID: 9a766e057af38d64b81f2beb3b307a6a
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_079_tiletarget.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9e5039f455608744c9078b29c62c3a9d
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_088_blast.json
+  - m_GUID: 9a87a87e7726a4941a07671beb491a23
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_182_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9e66d232a4737ef4a9c71a90c8800472
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_049_tilewarn.json
+  - m_GUID: 9acb765ae636c094f8d76d826ebd1d0b
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_101_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9f5e537e943747b4a9d12b09c4fa727a
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_125_shovelsweep.json
+  - m_GUID: 9c12e32ad54906e428ee07d7985e13c5
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_141_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9cdf77647edf4a6448050028ede83c40
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_033_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9d4f9280dde2f17438e6dbaa3bfcc1a6
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_053_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9e6919a5d3d88494f8a10166a509b085
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_152_shoveldrop.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9ef4db130c08c7548808ff684335af1b
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_085_tiletarget.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9fe2cbc1d512da44d8b3d47580a25ca4
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_157_shoveldrop.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1491,14 +2223,26 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a07b00db8309de041b686a72d5cd776c
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_150_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a084f5b8c2627e5438c3dadd10c7b350
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_089_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a08992006f036ad48a14bba3c7d0385b
     m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_097_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a0b9668e993ed7d4bb2922a6a2ff0aed
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_048_tilekeep.json
+  - m_GUID: a10768b53ba9a164181876d2cdae6f41
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_122_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1521,20 +2265,26 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a21f3362f3841cd4cbf2d1b0240e76c8
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_120_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a22d15420648d3042bea4cba76f6bfd6
     m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_037_blastwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a2a5ac40f5c86554ea4e01ed765596ac
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_023_blast.json
+  - m_GUID: a254a44b9f6f4b04a964239ec83ae0fd
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_089_blastwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a34feab9a2b77c14ebdd6fd4548d386e
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_110_blast.json
+  - m_GUID: a2f9dd65584d80d4598170f770b39465
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_152_shoveldrop.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1545,32 +2295,68 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a36e2c03eb9ea05469ef6f40a780234c
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_120_shovelsweep.json
+  - m_GUID: a384b9345e7bf2b489a4013c88ebc481
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_063_tilewarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a4aa3ae59e7dbff4886ac04704e295d9
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_049_tilewarn.json
+  - m_GUID: a431d68c43088a548b5fe7a0303b9463
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_075_tilewarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a52a7d20c33eded4abc288f57d852a73
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_104_blast.json
+  - m_GUID: a43abc4d54e1b624d8c9209bac07928b
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_049_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a55698068dcf4a148ac4eb2d00db3b69
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_052_tilewarn.json
+  - m_GUID: a4bb23e9f91f6c1469f1edb1f90a6d3a
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_119_blastwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a828e9867fd62034d90cedc64e066ec3
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_130_shovelsweep.json
+  - m_GUID: a58c1398debb35c4ab9894b2bdc7dc95
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_109_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a5c24139caf5ec04f9369788935c469c
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_188_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a5de4de2d9bd5794b89825f92eafd831
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_075_tilewarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a6fb716870106e542a7bf4b484d7c69a
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_121_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a73356401ead92a4299f5460225adc36
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_183_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a7fa5848d9f641649bb20062957e86bf
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_191_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a84d2310eb5f2d94eb360bf330d6d6e6
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_064_tile.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1581,8 +2367,8 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a8df3f38a64a8cb488e5793de74ce409
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_103_shoveldrop.json
+  - m_GUID: a8ae9e01e87be50429a4a07dbdbed513
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_145_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1593,32 +2379,26 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a9cb8fcf583e91945ac2b8b9999b73f7
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_110_blast.json
+  - m_GUID: aa03eef284555fc41b3f0162807a0be5
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_119_blastwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ab80fed45ef7b0546989979dd2ae2540
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_057_tilekeep.json
+  - m_GUID: aa4e2027617d5b940a13ebdd1e6e62a8
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_183_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: abe04aaa4326361478f3643a601f6137
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_085_blast.json
+  - m_GUID: abd1d69dacb4979439d62bd36cd1d81c
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_171_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ad9c8e3cb2bfd9e4f96cddc8f5d487c7
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_105_shoveldrop.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: addf3e9b184406e439b46ba5344c22eb
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_110_blast.json
+  - m_GUID: ac64edfb7868e784f951779b46ad524c
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_061_tile.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1629,8 +2409,32 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ae5cddbb0e8d8c94b94203d720210896
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_067_tile.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: aea2103f385c76b46aa3c253919f6440
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_062_tilekeep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: af17efd3e63519e44ad42bf692f71c5f
     m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_035_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: af1eadf4655f1b748a2478bd52be8855
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_073_tile.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: afbf8991fad15ad4c9ae62eee5918e3c
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_147_shoveldrop.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1641,8 +2445,44 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b0c4b041fe6a3e7438c85166b4d5173f
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_039_blast.json
+  - m_GUID: b070f8cffa9df8e429713a716ec6f9ff
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_144_droppathwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b0899e43921b31e438e1ab8c23affb9f
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_179_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b09483e964761794f88f331156b0f0e6
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_110_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b09e552950e692d40956338a0bf0ffcc
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_104_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b0eb11f45977ba74fa212cb2a9ac375c
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_046_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b0f36ae4ae682374ca8c1192a64bc8ff
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_150_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b11c9764e0e0f8048874ebf510b7689f
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_107_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1653,14 +2493,14 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b1ea31ae1e685074bb58d3428fe6a4ea
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_130_shovelsweep.json
+  - m_GUID: b21f65200c62dda46938cd0bbace447b
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_153_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b2e2c867a71ae5f46bef0e9c30378882
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_062_tile.json
+  - m_GUID: b2c43fba75a5a15409af4a32f6528494
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_192_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1671,8 +2511,14 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b3aabd2ffffa1724b8c8e237472b5dec
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_106_blast.json
+  - m_GUID: b3be4137e01c7ab458558c6443cde461
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_144_droppathwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b4527b0328a2df541af1eacd244195c3
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_070_tile.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1683,32 +2529,50 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b5825c6b8329f3a46829188b8e40cf6b
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_034_blastwarn.json
+  - m_GUID: b4e89f89d5f19d745bca70145248ac1f
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_127_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b5a06159e5a588e4594f9528aa4a2d87
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_024_blast.json
+  - m_GUID: b6244b7d69af560428b332c132f7b72f
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_113_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b6b43cbf2eb54a741a31cb9003f781f5
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_078_blastwarn.json
+  - m_GUID: b6376b2e99c0bf84699a0efe2c19c125
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_083_tiletarget.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b72d3464ad0e49945852f3bcc9fb6a46
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_072_tiletarget.json
+  - m_GUID: b6557da2021d66643a3233d8573bc18b
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_125_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b86897a2a35a4234384602256944dfaa
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_089_blast.json
+  - m_GUID: b68278ab7de71954e87d5377c62970b1
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_170_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b6d1a0d670872d540a8dbdd1b7c19a92
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_154_droppathwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b8925f48a17b6e3419bec607f25fea12
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_090_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b92bf492e8d592042811f70e67c99d0b
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_189_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1719,20 +2583,50 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: bb3b1b9f8aa526d4a95f4f7cd24d0aee
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_039_blast.json
+  - m_GUID: b98d532fb0c1cb84086b3b3986e894d6
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_168_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: bbe1f3e7aec806546bb2d44d696c6fc8
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_063_tilekeep.json
+  - m_GUID: b9b273bc1a8fb20429d2b9d7edbe92c7
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_178_sweepwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: bbf2bebc3faa0374189d5764d69adcff
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_058_tilewarn.json
+  - m_GUID: ba3d8b35ea16da74697301b453f2cd6e
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_100_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ba3e7f865b4631041b345cf38d77367d
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_110_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bb0608bb23b0f22498523ab991539f19
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_034_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bb08db7b27b8985468efe4173bc6d7a4
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_153_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bb2254656b7dd9b4b875b5a68ba7a3ce
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_042_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bb967a6fb55dc0842867356beabc35db
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_132_shoveldrop.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1743,56 +2637,50 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: bc70bd71599e27d4c918177106ec8b6b
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_121_shovelsweep.json
+  - m_GUID: bca1b086b9929fc459d05334c172fa05
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_134_droppathwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: bc978d5df195630439a320a6201d7611
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_107_shoveldrop.json
+  - m_GUID: bcafa42a5993eec4eb1421b23136dcf4
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_142_shoveldrop.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: bd1ed822b9511b741ba922c70a53d18c
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_086_blast.json
+  - m_GUID: bce15de8258f15b4f89448a809cfb80d
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_090_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: be1897b60844a1843876237bc3c5238a
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_071_tiletarget.json
+  - m_GUID: bd5ca11b961def44aa65a093d1a5af7b
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_042_blastwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: be48241b2bd8b63489ffb605e2030843
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_101_shoveldrop.json
+  - m_GUID: bdc7f1dbf384ff14997f021e03c9a844
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_080_tiletarget.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: be813fa7ce01a664783353edef9d47bc
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_124_shovelsweep.json
+  - m_GUID: bf6ef0ae7f70c2345a7f722819e64833
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_180_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: be8e791f938d16f46a10c3e7db75e1d9
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_058_tilewarn.json
+  - m_GUID: bfc211e42aa041946a5d3f6c482e8ae7
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_056_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: bf1631ea12ff80848b039e36bfd10d8b
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_084_blastwarn.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c01755eb191a6864caa241fc0192ed0c
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_027_blast.json
+  - m_GUID: bfd13a40d9058c94a89d8c9938b92bbb
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_101_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1803,38 +2691,80 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c0f3e4575fefe4647b19c12b1d177430
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_049_tilewarn.json
+  - m_GUID: c232ef0c148031c4aa14f322db7ac799
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_156_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c17abc056615d524aa803eef6e279536
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_124_shovelsweep.json
+  - m_GUID: c242367c836457b469e2838671ccd944
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_127_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c1f8d941c99b24d488922909e7a5f8dc
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_085_blast.json
+  - m_GUID: c26c77e90b4c683438f0bb723f7649db
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_054_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c2ac24c367538ca40b695970db69dd58
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_106_blast.json
+  - m_GUID: c2b89a78c4147b04c8aae8fd03c040dc
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_119_blastwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c4b3f8f2e7f1ad44ca6d28fd4b72c825
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_082_blast.json
+  - m_GUID: c336ff680c1867842872ba79a58a3de8
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_050_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c524e206e4f73fd4b8678aa87976c657
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_130_shovelsweep.json
+  - m_GUID: c352c6798543e3440aa61ff89045ff9f
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_075_tilewarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c38f9696c9086a3428f91464c1721e2f
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_107_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c390b805172373545962d6067041a4aa
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_040_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c40bb4214dd209346b61040f936d381c
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_050_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c425d8609079e804287bdaea82b04825
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_044_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c48e7b8a86f1e5c4ab4df81e9e89952d
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_126_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c55ed698d49a3ae43bb22a0719754b7c
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_173_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c59587332b4833147af1efbc5ce52d0a
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_152_shoveldrop.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1845,68 +2775,56 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c69b4c4f095802045b443be9442d1459
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_071_tiletarget.json
+  - m_GUID: c645aebc213b50d47b375ad5b414ac1f
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_076_tile.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c6cbbd57341e3a5428f04f854da836d2
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_128_shovelsweep.json
+  - m_GUID: c6c1d45a4976b6a4396156b05b87c547
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_111_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c7b5a05ba53ae1c4fab024032edb5856
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_086_blast.json
+  - m_GUID: c782b5c4d2b624f4a8b80b80178ef85f
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_091_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c7e5b10dbd322fd47b0e9d8ead901b04
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_115_shovelsweep.json
+  - m_GUID: c8373cdd8f1171a45899e8e9cfa77faa
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_058_tile.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c820ef6b9c26859428e49fdfac3aec60
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_089_blast.json
+  - m_GUID: c9cbc8eef8c4d0a47bc69c4d961d6d60
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_181_sweepwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c82dcc985b59b2d4aa7e12b7835f5c82
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_054_tilekeep.json
+  - m_GUID: ca340a2216568c044aadcd8c18797fa9
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_160_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c95ed626ce1fb7e409501bb32ad035c1
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_066_tiletarget.json
+  - m_GUID: ca696d25b139f1345902a0b12b957740
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_043_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c966ffdd28aeadd4296913b498c8280b
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_061_tilewarn.json
+  - m_GUID: cb02463db1396e54fa09cd76de4d907b
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_172_sweepwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c97a7cb59d05898468197cc909b34f5d
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_050_tile.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ca7a69094c79883469ce8873662674dd
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_059_tile.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: cbb0f3cfba9037746a08cdd2b246bf13
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_116_shovelsweep.json
+  - m_GUID: cbc03da61dfb0d5439658dffbe178c9c
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_170_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1917,20 +2835,38 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: cc5337186b10e884fbb8fa10aff0def8
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_042_blast.json
+  - m_GUID: cc1cdfceedfe30749849abe820ffd46e
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_043_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ccdb4e8a18b0f6942bdfd3a610eff999
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_082_blast.json
+  - m_GUID: cc49819efc247014cbd63c31af2ab14f
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_084_tiletarget.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: cd59c0cffadba6249bca2482394f94ff
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_090_blastwarn.json
+  - m_GUID: cdaafd9726620de4ab84502e95da4554
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_066_tilewarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ce76d1dfcc790e74da9416cb587f196f
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_031_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cebf6ec9bd3026c4d9259bb08af418d2
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_130_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cf3a9bf91a94fe149aa94180f009d978
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_137_shoveldrop.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1941,14 +2877,8 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: cfc5d0cd192867047a5b1225ea391b86
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_111_shoveldrop.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: d05bfc0c1f766bd4d8c45b01a0ff46a8
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_084_blastwarn.json
+  - m_GUID: d1a1ab88048491946aa59cc370b7ef50
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_118_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -1959,38 +2889,62 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: d1e2ead4fd30f8a44ac261ef35701af4
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_070_tiletarget.json
+  - m_GUID: d2783091945ccb2448da29ce24554995
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_083_tiletarget.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: d2dea6a6cb170114fb8158a17719b642
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_126_shovelsweep.json
+  - m_GUID: d2b4b40c6b4b27849960b2cf3dd2342d
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_135_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: d3e282df0384ff245b43270545d8fbb1
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_100_blast.json
+  - m_GUID: d33aedec44dcdd1439b96bb23c9f3bf8
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_059_tilekeep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: d452bd10049814344a47ab9205373d11
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_061_tilewarn.json
+  - m_GUID: d365c921fc61c2946a23cb6f1eac2826
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_145_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: d4871a69542682548bbcc720052e1dfa
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_128_shovelsweep.json
+  - m_GUID: d3706755557a90e4ebc5239a1de8ea79
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_169_sweepwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: d50b97427942bfa46a8bd1f433be9734
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_054_tilekeep.json
+  - m_GUID: d3ea7370a7f596640b28cf37f8685730
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_099_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d3f3539bed874f04ea4bd3c6f9ef1d1f
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_161_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d594ab7a31bc42741abf012f3ad8cc53
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_028_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d5ce3d96e38756744b3d68dccb513543
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_033_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d6153efb9d8f49f4db7267dec5555e4f
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_169_sweepwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -2001,20 +2955,14 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: d730d497c9a95d74f8edbd7848d4b10b
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_099_shoveldrop.json
+  - m_GUID: d7b6ba500744cfb4d98e7a5d51d11801
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_057_tilewarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: d7aeda0380f68af44ad1a5a27ca1f7bd
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_034_blastwarn.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: d7e416ab0988e584fb0309d8140cf437
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_024_blast.json
+  - m_GUID: d7db90cfb61d9d842aa11571fcbcfc5c
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_111_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -2031,26 +2979,44 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: d8e51d5e003eadf4ab0011fe7d531dc3
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_117_shovelsweep.json
+  - m_GUID: d85188fd3b7d42a499166cb4de194ab5
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_072_tilewarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: d9672055fb65a0941a01df61b31aeaab
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_127_shovelsweep.json
+  - m_GUID: d8c157b004c96894baa2483f697fbf89
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_103_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: da0fac894a91598439bfbf699387edda
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_051_tilekeep.json
+  - m_GUID: d8f489ead6ad5db4b80fe7ccbf651372
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_051_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: db3cc925b36ad2e43b130ed0ad67231f
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_117_shovelsweep.json
+  - m_GUID: d952bf870f70c9741bc14ed20c5adc95
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_142_shoveldrop.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d9feddf0adba2e44fb97f9a27f8102a8
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_096_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: da59acec20f19294eb0080d21e581d26
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_180_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: dafafd7d15623c74f93f1994aa578965
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_131_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -2061,62 +3027,26 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: dbb1ea6ceecea034a837739c3c72a3c0
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_101_shoveldrop.json
+  - m_GUID: dbeb269bec3a10243b79daec30aa4dad
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_100_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: dc083dd85e67306438f34914994c3a28
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_121_shovelsweep.json
+  - m_GUID: dc526ea07d77d4d4686eaeeda5497f68
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_114_blastwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: dc2a79db60900394fb8ee8eabd7fb30b
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_115_shovelsweep.json
+  - m_GUID: dca5063c2c761164abc5a9b7a828062b
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_130_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: de0f702f0780281418cccc807959c798
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_028_blastwarn.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: de2cf894d8920d24880816c9b9512f89
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_076_blast.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: de6065e47c0f54b44bbd25ee010e0ba7
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_023_blast.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: de9caca14d4f8bd4d96f32de540dd95c
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_087_blastwarn.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: deacd0ae589a8fd46b2939c767ce71db
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_093_blastwarn.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: def4cd36a7d9a8c4b825e02dd623fb44
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_054_tilekeep.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: dfaad6b51a448f64688551411c3b7517
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_055_tilewarn.json
+  - m_GUID: deb43551026a4414c8b1a9e248710a4a
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_158_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -2127,50 +3057,176 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e26a856beb669d64aa1d339708579042
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_109_shoveldrop.json
+  - m_GUID: e0ac1e7a6b4fa0a4b88c10138d4a4b8f
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_165_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e27ad0aa7de89c54babdf0a629fce195
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_050_tile.json
+  - m_GUID: e0cb65bb58a053049a050876e7f97846
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_148_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e2e6a9927d26c954aba1936420789d9e
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_057_tilekeep.json
+  - m_GUID: e0cfb7d1c93069640a5846934f98a47d
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_078_tilewarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e4172aa827fb053488686bfac8144207
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_053_tile.json
+  - m_GUID: e132f9ce3955697499614742fa20650a
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_179_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e60618fff613402428cd0f925119c329
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_080_blast.json
+  - m_GUID: e1be3cfae1152bf499b5e5889d438c9b
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_166_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e8bece1a77c3d33468b440c62fe068dd
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_055_tilewarn.json
+  - m_GUID: e1eb2cd0fd51da34c858901713772a77
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_085_tiletarget.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e8ce6c8c2d58ff141b629c28c653a5ab
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_031_blastwarn.json
+  - m_GUID: e216b3f42a545e04db37698b3e30ec46
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_053_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: e8d82006e929fa6489eef1336557828c
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_122_shovelsweep.json
+  - m_GUID: e2a34c3ae177665458aca15b698cee50
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_171_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e31a69f4d4f651e429de880179dbea35
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_140_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e34d821d580b72e41b9e3affff3ce2d6
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_113_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e3879743f3be5194ba61c088c97dedf8
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_072_tilewarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e3beecfcf0352ce498f8d72042ce9df7
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_077_tilekeep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e3d5a655bfaaa3843adfc8694cb68c06
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_175_sweepwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e3e5ab6251f71414a98d1f7527c43ba2
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_173_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e407ec009fcf7f0469785161fc1ff823
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_063_tilewarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e4b96430d3f864643ae3cd622431a9b3
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_066_tilewarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e509396e10f2edd409729e8b55c3e683
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_040_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e54ff004ddc999e418d18a98b746c8ba
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_064_tile.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e562e9a0d3d7dce4f99e7c26d940b744
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_080_tiletarget.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e591c56f072267e46bc47c151c932eed
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_133_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e5d03f4639d060f4c8b78c88c2622e49
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_115_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e62432da776824944ad9f5f9e2339d51
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_032_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e6bfb01c9a5acb74e985a307afed2595
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_069_tilewarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e6d6f69c7efdfc64688cfda01c53ff9f
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_081_tiletarget.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e71a259ad7019f844b87b0771fedcccd
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_128_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e71ac13ca75a2b54f96dd6fc99e1d792
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_138_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e7cd2b79548cdca43bf7ae221e28e924
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_034_burstwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e91815f9492e3144cae1a14d85df3ef1
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_065_tilekeep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e936a40e8557e4546af25401d01a19b1
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_025_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -2181,8 +3237,14 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ec1a74f97c9ec6f4fa094f8adddbaea7
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_083_blast.json
+  - m_GUID: ea64ac96668374f42866cf8df2286733
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_182_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: eb641f3c4b756ef44b0d37b8d295c66f
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_192_shovelsweep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -2193,62 +3255,68 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ed12fb29a3b12d347a66c4a34972cb55
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_067_tiletarget.json
+  - m_GUID: ede1d1f4a96896141b2cf1d85c3db30b
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_029_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ed29f67f3efc533478dd3e228e3997ac
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_053_tile.json
+  - m_GUID: edfd2ac518d061640ad8f6b068228daa
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_116_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ed769535ec6cb2f459651f59992b61e7
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_034_blastwarn.json
+  - m_GUID: ee1593c84e64fad4abdaa03c854adb1d
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_073_tile.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: edf34e06cefc80343b60e66fe467feee
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_029_blast.json
+  - m_GUID: ee16969060c39974f954815860e83ebc
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_181_sweepwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: ef169e4aca494b349a0939bf6d69728f
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_048_tilekeep.json
+  - m_GUID: ee1787b04981dbf43a80f5bc052e2a2f
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_071_tilekeep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f07dcea18cbc4f94282907a880086161
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_078_blastwarn.json
+  - m_GUID: ee9004bfa7e2e4745b2a2512e11d3864
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_181_sweepwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f089136f585cba64e92a57851e86d417
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_126_shovelsweep.json
+  - m_GUID: eea8aef3178316640bdb21d10cb6125a
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_099_blastwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f0f00800409ea3e449ae2c11438cd1f1
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_058_tilewarn.json
+  - m_GUID: eec1de4dd4d3ebc48bc721bec1652a78
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_147_shoveldrop.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f141f2bea42a3254f97278e39f99eb71
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_065_tiletarget.json
+  - m_GUID: ef1df3af5b7bb064db649033c4b468d4
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_163_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f143237c44d4d514c884a8b7e1398488
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_094_blast.json
+  - m_GUID: efc08e0dbe9a20446af9ea0aa654795d
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_184_sweepwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f07a0a6e08a871845bb46ecf4bc2d742
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_039_burstwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -2259,8 +3327,32 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f2119df161e10d0438b4574461184a3a
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_077_blast.json
+  - m_GUID: f2a375f66d0187b42bce0d8947d66067
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_117_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f2a51cba50e398943aa089d7455b6fc6
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_179_shovelsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f2b97100e1e5d5c4ca2848e21a718de7
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_027_blastwarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f2d95afcff390d04d8dee07ddd47c0ad
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_078_tilewarn.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f3529832ebca1d64fa9a1cd946a9d736
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_094_blastwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -2271,38 +3363,20 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f58ca7e0657cd1348bb7d853563bb60a
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_045_tilekeep.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f5947fdc99d8ce5499c88668aab26d59
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_044_tile.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f5dcc7bd64a3ecf4d8e832be9755c019
     m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_019_tilewarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f75402d90a405904fb12fdf05bae3b3f
-    m_Address: Assets/BulletBuffers/stone3/stone3_normal_063_tilekeep.json
+  - m_GUID: f85c58a9867cce0488a82f7cffb0ac37
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_159_droppathwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f9353fa62cb69fa4e84d17a6cac9ca1f
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_068_tiletarget.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - bullet-buffer-stage-stone3
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f94f83fc054c45b45a2f3e4a8cd25e9b
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_077_blast.json
+  - m_GUID: f95788a0a98afe441928b2f3b0485248
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_076_tile.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -2313,8 +3387,26 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fa31fe05af7d9d24aa7b0a7872859544
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_064_tile.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fa5292e1141594f41afdff0167876aa8
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_023_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: fa7db93ec6a999c4c958d120ebe26918
     m_Address: Assets/BulletBuffers/stone3/stone3_normal_005_tile.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fab470cfb80ed854fb9779ce38683c2b
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_139_droppathwarn.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
@@ -2331,20 +3423,44 @@ MonoBehaviour:
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: fc124f4d3364f4f4e86dfd8d338402d0
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_103_shoveldrop.json
+  - m_GUID: fc48f7e54532aad4288e8a99da35e262
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_123_blast.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: fc4c52b085cc17a4e9e194ea0f725f5d
-    m_Address: Assets/BulletBuffers/stone3/stone3_easy_096_blastwarn.json
+  - m_GUID: fdb22b07b28e25147a2ceb3f8bed2f6c
+    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_125_blastblink.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: fc79291fec9ab3d4b9b7777bdf59daaf
-    m_Address: Assets/BulletBuffers/stone3/stone3_lunatic_064_tilewarn.json
+  - m_GUID: fdd3e5ccae86add489daa685cc3300d9
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_023_blastblink.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fdf22dd20495b7f479aa20ca281b99a6
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_068_tilekeep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fe0e66dc15479a840987e186757c9e07
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_055_blast.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fe4bee15486bd0044b08fe034ec81c39
+    m_Address: Assets/BulletBuffers/stone3/stone3_easy_132_shoveldrop.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-stone3
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ffb6d3252dd575443bad26fac5a24cd3
+    m_Address: Assets/BulletBuffers/stone3/stone3_normal_088_tilekeep.json
     m_ReadOnly: 0
     m_SerializedLabels:
     - bullet-buffer-stage-stone3

@@ -1,4 +1,4 @@
-// choreo/stone3.js — 新・石工（stone3）冒頭 8 区間 v4
+// choreo/stone3.js — 新・石工（stone3）冒頭 8 区間 v5
 //
 // 参考: Just Shapes & Beats "Tokyo Skies" の冒頭（画面全体の正方グリッドにピンクのタイルが
 // 拍ごとに点滅→実体化し、プレイヤーは残った隙間を縫って避ける）。
@@ -45,6 +45,17 @@
 //       の 3 つを同じ時刻に置いて衝突を表現している
 //   (4) 区間④の末尾でタイルを消さない（指示書 5 の前提）。残ったタイルが
 //       ⑤⑦の爆破対象と ⑥⑧のシャベル y 座標（行）の供給源になる
+//
+// ── v5 での変更（JSaB 風の予告演出の追加のみ。弾幕内容は v4 から一切変えない）──
+//   JSaB では危険物が出る前に「同じ形の薄いシルエット」を同じ場所へ出し、実体化の瞬間に
+//   濃い色へ切り替わる。経路を通る攻撃は細い光の帯で経路を先に見せ、爆発するものは
+//   直前に点滅する。これを 5 種の予告として実装した。**全て warn_box（verts 空＝当たり判定なし）**。
+//     (1) タイル出現の予告  … v4 から据え置き（薄ピンク・半拍リード＝WARN_BEATS 0.5）
+//     (2) 爆破タイルの点滅  … blinkWarn()。爆破の1拍前から 1拍の間に3回、明るいピンクが明滅
+//     (3) 落下シャベルの経路… dropPathWarn()。発射の1拍前から、通る列に細い縦帯（到達で消える）
+//     (4) 横断シャベルの経路… shovelSweepPhase() 内。通る行に横一杯の細い帯＋来る側の端に方向マーク
+//     (5) 放射弾の予告      … ringWarn()。爆破の半拍前に中心のまわりへ小点のリング
+//   弾数・配置・サイズ・タイミング（v4 の弾幕本体）は変更していない。
 //
 // ── 乱数 ──────────────────────────────────────────────────────────────
 //   stage() は難易度の数だけビルド関数を再実行するため Math.random() は使えない。
@@ -111,6 +122,10 @@ const PINK_SOLID = [1.0, 0.16, 0.52, 1.0];   // 実体: 濃いピンク
 const PINK_BULLET = [1.0, 0.42, 0.72, 1.0];  // 放射弾: 中間のピンク
 // シャベルは color.w=0 ＝ スプライト自色そのまま（hummer/cutter と同じ規約）。
 const SPRITE_AS_IS = [1, 1, 1, 0];
+// v5 の予告色。いずれも warn_box（当たり判定なし）に使う。
+const PINK_FLASH = [1.0, 0.80, 0.92, 0.85];  // 点滅の「明」側（通常ピンクより明るい）
+const PINK_PATH = [1.0, 0.45, 0.72, 0.25];   // 経路の帯（薄ピンク・alpha 0.25）
+const PINK_MARK = [1.0, 0.28, 0.60, 0.85];   // 横断シャベルの方向マーク（濃いめ）
 
 // --- 決定論的乱数（mulberry32）--------------------------------------------
 function makeRng(seed) {
@@ -199,13 +214,54 @@ function spinBurst(opts) {
   };
 }
 
+// --- v5: 予告表示（当たり判定なし）の共通クリップ ---------------------------
+// warnClip(): warn_box の予告を1クリップにまとめる。
+//   items = [{ pos:[x,y], scale:[w,h], color:[r,g,b,a], appearTime, appearDuration, life }]
+//   時刻は全てクリップ発火時刻からの相対秒。
+//   appearDuration>0 … その区間は「予告点滅」表示（BulletRenderSystem.cs:270 の fadeIn 分岐）
+//   appearDuration=0 … appearTime までは完全に非表示（同 :286）。この性質を使うと
+//     1クリップの中に時間差の点滅を全部詰め込めるので、点滅のためにクリップを量産せずに済む。
+//   life は必ず正の値にする（life<=0 は「寿命なし」扱いで消えなくなる）。
+function warnClip(items, kind) {
+  const bullets = items.map(function (it) {
+    return bulletDefaults({
+      originPos: { x: it.pos[0], y: it.pos[1] },
+      typeName: 'warn_box',
+      scale: { x: it.scale[0], y: it.scale[1] },
+      color: { x: it.color[0], y: it.color[1], z: it.color[2], w: it.color[3] },
+      appearTime: it.appearTime || 0,
+      appearDuration: it.appearDuration || 0,
+      life: it.life,
+      unCounterable: true,
+    });
+  });
+  return {
+    parts: [{ offsetSec: 0, kind, buffer: { bullets, homing: false, isLaser: false }, spawner: NEUTRAL_SPAWNER() }],
+  };
+}
+
 // --- パラメータ ------------------------------------------------------------
-const WARN_BEATS = 0.5;    // タイル出現の予告リード（拍）
+const WARN_BEATS = 0.5;    // タイル出現の予告リード（拍）＝半拍（v5 仕様の下限を満たす）
 const EDGE_PER_BEAT = 2;   // 1拍あたりに端へ積む「残留タイル」数（爆破区間の消化数と対応）
 const BLAST_PER_BEAT = 2;  // 1拍あたりの爆破数
 const GAPS_PER_BEAT = 2;   // 毎拍必ず空ける 3x3 の逃げ場の数
 const SPIN_RATE = 5.0;     // 放射弾の自転速度(rad/s)
 const BULLET_SCALE = 0.3;  // v4: v3 の 0.6 の半分。verts も scale 倍されるので当たり判定も半分
+
+// v5: 予告のパラメータ
+const BLINK_COUNT = 3;             // 爆破の1拍前から光る回数（1拍の間に3回＝明暗が交互）
+const BLINK_LEAD = beats(1);       // 点滅を始める時刻（爆破の1拍前）
+const BLINK_DUTY = 0.5;            // 1周期のうち「明」の割合
+const BLINK_SCALE = TILE * 1.25;   // タイルより一回り大きくして、描画順に依らず縁が光って見えるようにする
+const PATH_WIDTH = CELL * 0.3;     // 経路帯の幅＝タイル幅の3割
+const RING_LEAD = beats(0.5);      // 放射弾リング予告のリード（爆破の半拍前）
+const RING_COUNT = 8;              // リングの点の数
+const RING_RADIUS = 1.7;           // リングの半径
+const RING_DOT = 0.42;             // リングの点の一辺
+const SWEEP_LEAD = beats(1);       // 横断シャベルの経路予告のリード（発射の1拍前）
+const MARK_SIZE = [1.1, 0.55];     // 方向マーク（来る側の端に置く短い四角）
+const MARK_INSET = 0.75;           // マークの端からの距離
+const MARK_HOLD = 0.25;            // シャベル発射後にマークが残る秒
 
 const SHOVEL_SCALE = 2.6;      // 2x2 のタイルを叩くのにちょうどよい見た目（hummer の 3.5 より小さめ）
 const SHOVEL_SPAWN_Y = 26;     // 画面上端(18)より上・カリング境界(36)より内側
@@ -246,6 +302,71 @@ function shovel(opts) {
       spawner: NEUTRAL_SPAWNER(),
     }],
   };
+}
+
+// --- v5: 予告ビルダー（3種。いずれも warnClip＝当たり判定なし）----------------
+
+// (2) 爆破されるタイルの点滅。
+//     クリップ発火 = 爆破の BLINK_LEAD（1拍）前。1拍を BLINK_COUNT 等分し、各周期の前半だけ
+//     明るいピンクを重ねる → 「明るいピンク⇔通常ピンク」が交互に見える。
+//     色そのもののアニメは DSL に無いので、通常タイルの上に短寿命の明るい warn_box を
+//     等間隔で重ねる方式（タイルより一回り大きくして縁が光る）。
+function blinkWarn(cells, kind) {
+  const step = BLINK_LEAD / BLINK_COUNT;
+  const on = step * BLINK_DUTY;
+  const items = [];
+  cells.forEach(function (cell) {
+    const c = cellCenter(cell[0], cell[1]);
+    for (let k = 0; k < BLINK_COUNT; k++) {
+      items.push({
+        pos: c,
+        scale: [BLINK_SCALE, BLINK_SCALE],
+        color: PINK_FLASH,
+        appearTime: k * step,     // ここまで非表示（appearDuration=0）
+        appearDuration: 0,
+        life: k * step + on,      // 明るいのは各周期の前半だけ
+      });
+    }
+  });
+  return warnClip(items, kind);
+}
+
+// (5) 放射弾の予告。爆破の RING_LEAD（半拍）前に、爆破中心のまわりへ小点をリング状に置き、
+//     爆破の瞬間ちょうどで消す（life = RING_LEAD）。
+function ringWarn(centers, kind) {
+  const items = [];
+  centers.forEach(function (c) {
+    for (let i = 0; i < RING_COUNT; i++) {
+      const a = (i * 2 * Math.PI) / RING_COUNT;
+      items.push({
+        pos: [c[0] + Math.cos(a) * RING_RADIUS, c[1] + Math.sin(a) * RING_RADIUS],
+        scale: [RING_DOT, RING_DOT],
+        color: PINK_WARN,
+        appearTime: RING_LEAD,      // 予告点滅の窓に入れっぱなし（実体化しない）
+        appearDuration: RING_LEAD,
+        life: RING_LEAD,
+      });
+    }
+  });
+  return warnClip(items, kind);
+}
+
+// (3) 落下シャベルの経路予告。通る列（画面上端→対象タイル）に細い縦帯を出す。
+//     クリップ発火 = シャベル発射の1拍前、life = dur でシャベル到達と同時に消える。
+function dropPathWarn(center, dur, kind) {
+  const top = ROWS * CELL;             // 画面上端 y=18
+  const h = top - center[1];
+  return warnClip(
+    [{
+      pos: [center[0], center[1] + h / 2],
+      scale: [PATH_WIDTH, h],
+      color: PINK_PATH,
+      appearTime: dur,
+      appearDuration: dur,
+      life: dur,
+    }],
+    kind
+  );
 }
 
 // 自機の初期位置(16,2.4) が入るセル。最初の拍だけは必ずここを逃げ場にする（初見の詰み防止）。
@@ -421,8 +542,14 @@ export default stage(
           })
         );
 
-        group.forEach(function (t) {
-          const center = cellCenter(t.col, t.row);
+        // v5 (2): 爆破の1拍前から、対象タイルを1拍の間に3回点滅させる
+        s.at(blastTime - BLINK_LEAD, blinkWarn(group.map((t) => [t.col, t.row]), 'blastblink'));
+
+        const centers = group.map((t) => cellCenter(t.col, t.row));
+        // v5 (5): 爆破の半拍前に、爆破中心へ放射弾のリング予告
+        s.at(blastTime - RING_LEAD, ringWarn(centers, 'burstwarn'));
+
+        centers.forEach(function (center) {
           s.at(blastTime, burst(center, b));
         });
       }
@@ -525,6 +652,12 @@ export default stage(
         if (!cell) return;
         const center = cellCenter(cell[0], cell[1]);
         const flight = (SHOVEL_SPAWN_Y - center[1]) / SHOVEL_FALL_SPEED;
+        // v5 (3): 発射の1拍前から、シャベルが通る列に細い縦帯（到達＝爆破で消える）
+        s.at(impact - flight - SWEEP_LEAD, dropPathWarn(center, SWEEP_LEAD + flight, 'droppathwarn'));
+        // v5 (2): 爆破の1拍前から対象タイルを点滅させる
+        s.at(impact - BLINK_LEAD, blinkWarn([cell], 'blastblink'));
+        // v5 (5): 爆破の半拍前に放射弾のリング予告
+        s.at(impact - RING_LEAD, ringWarn([center], 'burstwarn'));
         s.at(
           impact - flight,
           shovel({
@@ -559,6 +692,33 @@ export default stage(
         const leftRow = heldRows[Math.floor(rng() * heldRows.length)];
         const others = heldRows.filter((r) => r !== leftRow);
         const rightRow = others.length > 0 ? others[Math.floor(rng() * others.length)] : leftRow;
+
+        // v5 (4): 横断シャベルの経路予告。
+        //   ・通る行に横一杯の細い帯を、発射の1拍前からシャベルが画面外へ抜けるまで出す
+        //   ・来る側の端に濃いめの短い四角（方向マーク）を置き、左右どちらから来るかを示す
+        const sweepDur = SWEEP_LEAD + (SHOVEL_RIGHT_X - SHOVEL_LEFT_X) / SHOVEL_SIDE_SPEED;
+        const sweepItems = [];
+        [[leftRow, true], [rightRow, false]].forEach(function (entry) {
+          const y = cellCenter(0, entry[0])[1];
+          const fromLeft = entry[1];
+          sweepItems.push({
+            pos: [(COLS * CELL) / 2, y],
+            scale: [COLS * CELL, PATH_WIDTH],
+            color: PINK_PATH,
+            appearTime: sweepDur,
+            appearDuration: sweepDur,
+            life: sweepDur,
+          });
+          sweepItems.push({
+            pos: [fromLeft ? MARK_INSET : COLS * CELL - MARK_INSET, y],
+            scale: MARK_SIZE,
+            color: PINK_MARK,
+            appearTime: SWEEP_LEAD,
+            appearDuration: SWEEP_LEAD,
+            life: SWEEP_LEAD + MARK_HOLD,  // シャベルが通り過ぎたら消える
+          });
+        });
+        s.at(t - SWEEP_LEAD, warnClip(sweepItems, 'sweepwarn'));
 
         s.at(
           t,
