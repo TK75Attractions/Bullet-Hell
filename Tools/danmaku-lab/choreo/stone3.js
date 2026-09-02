@@ -1,4 +1,4 @@
-// choreo/stone3.js — 新・石工（stone3）冒頭 8 区間 v10
+// choreo/stone3.js — 新・石工（stone3）冒頭 8 区間 v11
 //
 // 参考: Just Shapes & Beats "Tokyo Skies" の冒頭（画面全体の正方グリッドにピンクのタイルが
 // 拍ごとに点滅→実体化し、プレイヤーは残った隙間を縫って避ける）。
@@ -140,6 +140,38 @@
 //       残留タイルが帯になったので、行は上下の帯（0〜2 / 6〜8）に加えて、左右の帯にタイルが
 //       残っている中央の行（3〜5）も候補に入る。
 //
+// ── v11 での変更（3 点。区間の割り・音ハメ・弾サイズ・ポップ/点滅の作り方は v10 のまま）──
+//   (1) 帯を 2 列に細くした（BAND 3 → 2）。残留域は「縁から 2 セル」＝列 0-1/14-15・行 0-1/7-8 の
+//       84 セル（v10 は 114 セル）。中央 12x5 = 60 セルは v10 と同じく毎拍消える一時タイル。
+//       ・帯の埋まり率の目標（BAND_TARGET）は v10 と同じ（easy 0.50 / normal 0.64 / lunatic 0.72）。
+//         帯へ積む枚数は「残りの空きセル x bandRate」なので、帯が 114→84 に減れば新規枚数も
+//         自動的に 84/114 = 0.737 倍になる。
+//       ・中央の一時タイルは、セル数が 30→60 に増えるぶん CENTER_RATE を半分にし、さらに
+//         同じ 0.737 倍を掛けた（＝v10 の 0.368 倍）。1 拍あたりの中央の枚数は v10 の約 0.74 倍。
+//       ・空きセルの 4 近傍連結の検査（emptyIsConnected）、爆破対象の 4 辺めぐり、落下シャベルの
+//         「下側の帯でその列のいちばん上」のルールは変更なし（BAND を参照しているので、
+//         下側の帯は行 0-1 の 2 行になる）。
+//   (2) タイル出現の予告リードを半拍 → 1 拍に延ばした（WARN_BEATS 0.5 → 1.0）。
+//       予告は v10 と同じサイズ・同じ「実体と同じ色相の暗い版」のまま、見えている時間だけが倍。
+//       爆破対象の点滅（BLINK_LEAD＝1拍前）と縦帯（SWEEP_LEAD＝1拍前）は変更していない。
+//       リードが 1 拍になると「前の拍の中央タイル（life = 1拍 + 継ぎ目余白）」と「次の拍の予告」が
+//       同じセルに重なる時間帯ができるが、予告は warn_box（renderPriority 0）・実体は
+//       stone_block（renderPriority 1）なので予告が必ず奥に描かれ、実体を汚さない
+//       （BulletRenderSystem.SortRenderData が renderPriority 昇順に描く。ラボの render.js も同じ）。
+//       帯のセルは一度埋まると再抽選されない（bandOccupied）ので、帯側にこの重なりは起きない。
+//       爆破予告の点滅は BLAST_MIN_AGE=2 拍のままなので、出現の予告窓とは重ならない。
+//   (3) 配色を石工のテクスチャへ統一した（v6〜v10 の JSaB 風ホットピンクをやめた）。
+//       基準は stone_block.png（タイルのスプライト）＝無彩色の石テクスチャで、不透明部の
+//       平均 sRGB は (171,171,171)・分布 70〜245。既存の石工ステージ（Assets/BulletBuffers/stone/）も
+//       stone_block を color.w=0（無着色）で 467 発使っており、これが石工の「石の色」の正。
+//       ・タイル実体 … color.w=0（SPRITE_AS_IS）＝ スプライトのテクスチャそのまま。ピンク乗算をやめた
+//       ・ポップ    … 拍頭の純白は据え置き。収束先を「無着色（w=0）・石の平均灰色」にしたので、
+//                     収束した瞬間に実体タイルのテクスチャへそのまま切り替わる（tilePop 参照）
+//       ・点滅/予告/縦帯/爆破予告/リング … 石の色の明版・暗版（STONE_* 定数）
+//       ・放射弾（box）… 石の色のやや明るい版（小さいので視認性ぶん明るくしてある）
+//       ・シャベル  … stone3_shovel.png を石色で再生成（Tools/gen_stone3_shovel.py）。color.w=0 のまま
+//       色はいずれも背景（ほぼ黒 + ブルーム）に対して十分な明度差を確保している。
+//
 // ── 乱数 ──────────────────────────────────────────────────────────────
 //   stage() は難易度の数だけビルド関数を再実行するため Math.random() は使えない。
 //   mulberry32 を固定シードでビルド開始時に初期化し、再現可能かつ難易度間で整合する配置にしている。
@@ -184,9 +216,9 @@ function key(col, row) {
 }
 
 // v10: 縁の帯（上下左右すべて BAND セルぶん）＝ここに出たタイルは拍末で消さず溜める。
-// 16x9・BAND=3 なら 帯 = 列 0-2 / 13-15 と 行 0-2 / 6-8 の 114 セル、
-// 内側（中央）= 列 3-12 x 行 3-5 の 10x3 = 30 セル。中央のタイルは拍末で必ず消す。
-const BAND = 3;
+// v11: BAND 3 → 2。16x9・BAND=2 なら 帯 = 列 0-1 / 14-15 と 行 0-1 / 7-8 の 84 セル、
+// 内側（中央）= 列 2-13 x 行 2-6 の 12x5 = 60 セル。中央のタイルは拍末で必ず消す。
+const BAND = 2;
 function isBandCell(col, row) {
   return col < BAND || col >= COLS - BAND || row < BAND || row >= ROWS - BAND;
 }
@@ -243,21 +275,28 @@ function sideOf(col, row) {
 }
 const SIDE_ORDER = ['left', 'top', 'right', 'bottom'];
 
-// --- 色（JSaB 風ピンク）------------------------------------------------------
-const PINK_WARN = [1.0, 0.45, 0.72, 0.40];   // 予告: 薄いピンク・半透明（warn_box は verts:[] で無害）
-const PINK_SOLID = [1.0, 0.16, 0.52, 1.0];   // 実体: 濃いピンク
-const PINK_BULLET = [1.0, 0.42, 0.72, 1.0];  // 放射弾: 中間のピンク
-// シャベルは color.w=0 ＝ スプライト自色そのまま（hummer/cutter と同じ規約）。
-const SPRITE_AS_IS = [1, 1, 1, 0];
-// v5 の予告色。いずれも warn_box（当たり判定なし）に使う。
-const PINK_FLASH = [1.0, 0.80, 0.92, 0.85];  // 点滅の「明」側（通常ピンクより明るい）
-const PINK_PATH = [1.0, 0.45, 0.72, 0.25];   // 経路の帯（薄ピンク・alpha 0.25）
-const PINK_MARK = [1.0, 0.28, 0.60, 0.85];   // 横断シャベルの方向マーク（v8 で不使用。定義だけ残す）
-// v8: タイル出現の予告色。JSaB "Milky Ways" の実測では、予告は「実体と同じ色相の暗いタイル」で
-// 明るいピンクではない。背景 (79,17,54) の上に予告が (114,35,62)〜(118,42,71)（拍ごとに
-// じわりと明るくなり拍頭でリセット）＝ 実体色 (255,58,111) を α 0.14〜0.20 で乗せた見え方。
-// 本エンジンでは予告窓の α（0.2〜0.5 の拍同期）を作者が選べないので、色相だけ実体に合わせる。
-const PINK_TILE_WARN = [PINK_SOLID[0], PINK_SOLID[1], PINK_SOLID[2], 0.40];
+// --- 色（v11: 石工のテクスチャに統一。v6〜v10 の JSaB 風ホットピンクは全廃）------------
+//
+// 基準色 = stone_block.png（タイルのスプライト）。無彩色の石テクスチャで、不透明部の平均 sRGB は
+// (171,171,171)・分布 70〜245。既存の石工ステージも stone_block を color.w=0 で 467 発使っている。
+//
+// ★色空間: BulletBuffer の color は **linear 値**で、画面に出るのは sRGB へ変換された色。
+//   下の各定数はまず「出したい sRGB」を決め、sRGB→linear で変換した値を書いてある
+//   （コメントの (r,g,b) が実際に見える sRGB）。
+//
+// ★alpha（w）の意味: BulletIndirectURP.shader:283-291 で color.w は「着色するかどうか」の
+//   フラグでしかなく（w>0 なら RGB を完全適用・描画アルファは 1）、値の大小は見た目に出ない。
+//   w=0 だけが特別で「スプライトのテクスチャそのまま」を意味する（hummer/cutter/warn_box の規約）。
+//   予告が暗く見えるのは色ではなく appearDuration の予告窓（α 0.2〜0.5 の拍同期）による。
+const SPRITE_AS_IS = [1, 1, 1, 0];               // 無着色＝スプライトのテクスチャそのまま
+const STONE_BRIGHT = [0.8388, 0.8879, 1.0, 0.92];   // (236,242,255) 石の明版: 爆破対象の点滅
+const STONE_MID = [0.3916, 0.4287, 0.5149, 0.40];   // (168,175,190) 石の中間: 爆破予告・リング予告
+const STONE_WARN = [0.1878, 0.2086, 0.2623, 0.40];  // (120,126,140) 石の暗版: タイル出現の予告
+const STONE_PATH = [0.1221, 0.1384, 0.1812, 0.25];  // ( 98,104,118) 石のいちばん暗い版: 落下シャベルの縦帯
+const STONE_BULLET = [0.6172, 0.6584, 0.7605, 1.0]; // (206,212,226) 放射弾（box）。小さいぶん石より少し明るい
+// ポップの収束先。石テクスチャの平均 sRGB (171,171,171) に相当する linear 値で、w=0（無着色）。
+// 補間の終端で w が 0 になった瞬間に「実体タイルのテクスチャそのまま」へ入れ替わる（tilePop 参照）。
+const STONE_TILE_END = [0.4072, 0.4072, 0.4072, 0];
 
 // --- 決定論的乱数（mulberry32）--------------------------------------------
 function makeRng(seed) {
@@ -395,7 +434,10 @@ function warnClip(items, kind) {
 }
 
 // --- パラメータ ------------------------------------------------------------
-const WARN_BEATS = 0.5;    // タイル出現の予告リード（拍）＝半拍（v5 仕様の下限を満たす）
+// v11: タイル出現の予告リードを半拍 → 1 拍に延ばした（見えている時間が倍。サイズ・色は据え置き）。
+// 前の拍の中央タイルと次の拍の予告が同じセルで重なる時間帯ができるが、予告は warn_box
+// （renderPriority 0）＝ stone_block（同 1）より必ず奥に描かれるので実体を汚さない。
+const WARN_BEATS = 1.0;    // タイル出現の予告リード（拍）
 const BLAST_PER_BEAT = 2;  // 1拍あたりの爆破数
 const GAPS_PER_BEAT = 2;   // 毎拍必ず空ける 3x3 の逃げ場の数
 // v10: 爆破対象は「置かれてから BLAST_MIN_AGE 拍以上たったタイル」から選ぶ。
@@ -447,7 +489,7 @@ const SWEEP_LEAD = beats(1);       // 横断シャベルの経路予告のリー
 //      f4  | +4/60     | 129px     | 1.084 | (255, 83,140)
 //      f5  | +5/60     | 122px     | 1.025 | (255, 63,118)
 //      --  | +6/60     | 119px     | 1.000 | (255, 58,111) ＝ 実体色（以後静止）
-//   予告は同サイズ・枠なしで、実体と同じ色相の暗いタイル（PINK_TILE_WARN のコメント参照）。
+//   予告は同サイズ・枠なしで、実体と同じ色相の暗いタイル（v11 では STONE_WARN）。
 //
 // ── v8 の作り方と、その問題 ──
 //   v8 は「静止した 6 枚のコマを 1/60 秒ずつずらして重ねる」方式だった。各コマは自分の
@@ -459,7 +501,7 @@ const SWEEP_LEAD = beats(1);       // 横断シャベルの経路予告のリー
 //   ランタイムに出現アニメ（scaleEnd / colorEnd / animDuration・既定 0 で従来動作）を足し、
 //   1 タイルにつき stone_flash 1 発だけで拍頭〜収束までを表現する。
 //     ・appearTime=0（＝拍頭）に scale 1.714 倍・純白で出る
-//     ・animDuration=0.100 秒かけて scale 1.0 倍・実体色 PINK_SOLID へ線形補間される
+//     ・animDuration=0.100 秒かけて scale 1.0 倍・実体色（v11 は STONE_TILE_END）へ線形補間される
 //     ・補間が終わった時点で実体タイル（stone_block）と完全に同じ大きさ・同じ色になる
 //     ・life = 0.100 + FADE_OUT_SEC(0.1)。減衰する 0.1 秒の間、この弾は実体タイルと
 //       寸分違わず重なっているので、消えていく過程は画面上まったく見えない（継ぎ目なし）
@@ -572,7 +614,7 @@ function blinkWarn(cells, kind) {
           type: BLINK_TYPE,
           pos: c,
           scale: [TILE, TILE],      // タイルと同じ大きさ（拡大しない＝枠にならない）
-          color: PINK_FLASH,
+          color: STONE_BRIGHT,
           appearTime: t0,           // ここまで非表示（appearDuration=0）
           appearDuration: 0,
           life: t0 + hold,
@@ -598,7 +640,7 @@ function tilePop(cells, kind) {
       scale: [big, big],
       color: POP_COLOR_START,
       scaleEnd: [TILE, TILE],       // 収束後は実体タイルと同寸
-      colorEnd: PINK_SOLID,         // 収束後は実体タイルと同色
+      colorEnd: STONE_TILE_END,     // 収束後は無着色（w=0）＝実体タイルのテクスチャそのまま
       animDuration: POP_DURATION,
       appearTime: 0,                // 拍頭ちょうどに出る
       appearDuration: 0,
@@ -619,7 +661,7 @@ function ringWarn(centers, kind) {
       items.push({
         pos: [c[0] + Math.cos(a) * RING_RADIUS, c[1] + Math.sin(a) * RING_RADIUS],
         scale: [RING_DOT, RING_DOT],
-        color: PINK_WARN,
+        color: STONE_MID,
         appearTime: RING_LEAD,      // 予告点滅の窓に入れっぱなし（実体化しない）
         appearDuration: RING_LEAD,
         life: RING_LEAD,
@@ -641,7 +683,7 @@ function dropPathWarn(center, dur, kind) {
     [{
       pos: [center[0], bottom + h / 2],
       scale: [PATH_WIDTH, h],
-      color: PINK_PATH,
+      color: STONE_PATH,
       appearTime: dur,
       appearDuration: dur,
       life: dur,
@@ -679,9 +721,13 @@ export default stage(
   (s) => {
     const rng = makeRng(20260902);
     const lead = beats(WARN_BEATS);
-    // v10: 中央（10x3）に毎拍出す一時タイルの密度。v9（0.25/0.33/0.40）の半分。
-    const CENTER_RATE = D(0.125, 0.165, 0.20);
+    // v11: 中央（12x5 = 60 セル）に毎拍出す一時タイルの密度。
+    //   v10 は 10x3 = 30 セルに D(0.125, 0.165, 0.20)＝毎拍 4/5/6 枚。セル数が倍になったので
+    //   まず 1/2 にして枚数を据え置き、さらに帯の縮小と同じ比 84/114 = 0.7368 を掛けている。
+    //   ＝ v10 の 0.3684 倍。毎拍の中央の枚数は easy 3 / normal 4 / lunatic 4 枚前後。
+    const CENTER_RATE = D(0.0461, 0.0608, 0.0737);
     // v10: 表示区間の終わりに縁の帯が埋まっている割合の目安（連結判定で弾かれるぶん実測は少し下がる）。
+    // v11 でも目標値は据え置き。帯が 114→84 セルに減るので、同じ割合なら新規枚数も比例して減る。
     const BAND_TARGET = D(0.50, 0.64, 0.72);
 
     // burst(): 爆破の放射弾。区間②④⑤⑦で共通に使う（弾数・速度の難易度比は v3 のまま）。
@@ -693,7 +739,7 @@ export default stage(
         type: 'box',
         life: 0,                          // 寿命なし＝画面外へ出て cull されるまで飛ぶ
         scale: [BULLET_SCALE, BULLET_SCALE],
-        color: PINK_BULLET,
+        color: STONE_BULLET,
         angleOffset: rng() * 2 * Math.PI, // 爆破ごとに別オフセット角（rad）
         spin: SPIN_RATE * (index % 2 === 0 ? 1 : -1),
         kind: 'blast',
@@ -705,8 +751,8 @@ export default stage(
     // タイル表示区間（区間①③）— v10 で配置ルールを作り直した
     //   各拍頭で
     //     ・逃げ場 3x3 を GAPS_PER_BEAT 箇所ぶん確保（ここには絶対にタイルを置かない）
-    //     ・縁の帯（BAND=3 セルの外周）へ新しいタイルを積む。**拍末で消さずに残る**
-    //     ・中央（10x3）へ一時タイルを置く。**拍末（次の拍頭）で必ず消える**
+    //     ・縁の帯（v11: BAND=2 セルの外周・84 セル）へ新しいタイルを積む。**拍末で消さずに残る**
+    //     ・中央（v11: 12x5 = 60 セル）へ一時タイルを置く。**拍末（次の拍頭）で必ず消える**
     //     ・タイルを 1 枚置くごとに「空きセルが 4 近傍で 1 つに繋がっている」ことを検査し、
     //       崩す置き方は捨てる（＝自機が閉じ込められない。emptyIsConnected 参照）
     //   帯の追加率は「len 拍かけて bandTarget まで埋める」等比の刻みにしてある。
@@ -783,7 +829,7 @@ export default stage(
           strike - lead,
           tileField(appearing, {
             type: 'warn_box',
-            color: PINK_TILE_WARN,
+            color: STONE_WARN,
             appearTime: lead,
             appearDuration: lead,
             life: lead + SEAM_MARGIN,
@@ -800,7 +846,7 @@ export default stage(
             strike,
             tileField(centerPicks, {
               type: 'stone_block',
-              color: PINK_SOLID,
+              color: SPRITE_AS_IS,   // v11: 無着色＝石テクスチャそのまま
               life: beats(1) + SEAM_MARGIN,
               kind: 'tile',
             })
@@ -827,7 +873,7 @@ export default stage(
           g.strike,
           tileField(g.cells, {
             type: 'stone_block',
-            color: PINK_SOLID,
+            color: SPRITE_AS_IS,   // v11: 無着色＝石テクスチャそのまま
             life: g.end - g.strike - g.lead,
             kind: 'tileband',
           })
@@ -877,7 +923,7 @@ export default stage(
           blastTime - beats(0.5),
           tileField(cells, {
             type: 'warn_box',
-            color: PINK_WARN,
+            color: STONE_MID,
             appearTime: beats(0.5),
             appearDuration: beats(0.5),
             life: beats(0.5), // 爆破の瞬間ちょうどで消す（爆破中心に何も残さない）
@@ -896,7 +942,7 @@ export default stage(
 
     // ======================================================================
     // v10: 落下シャベルの対象タイルの選び方（区間⑤⑦）
-    //   対象は「下側の帯（行 0..BAND-1）にあるタイルのうち、その列でいちばん上にあるもの」。
+    //   対象は「下側の帯（行 0..BAND-1。v11 では行 0〜1）にあるタイルのうち、その列でいちばん上にあるもの」。
     //   シャベルは画面上端から落ちるが、上側の帯のタイルは（衝突判定が無いので）貫通して
     //   通り過ぎ、この対象に当たった瞬間だけ爆破する。縦帯の予告は上端から対象タイルまで。
     //   4 回とも別の列にするため、16 列を 2 列ずつ 8 ゾーンに割って 1 ゾーン 1 列だけ選び、
