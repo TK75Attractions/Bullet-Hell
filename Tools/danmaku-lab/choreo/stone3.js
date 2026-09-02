@@ -1,4 +1,4 @@
-// choreo/stone3.js — 新・石工（stone3）冒頭 8 区間 v6
+// choreo/stone3.js — 新・石工（stone3）冒頭 8 区間 v7
 //
 // 参考: Just Shapes & Beats "Tokyo Skies" の冒頭（画面全体の正方グリッドにピンクのタイルが
 // 拍ごとに点滅→実体化し、プレイヤーは残った隙間を縫って避ける）。
@@ -51,9 +51,9 @@
 //   濃い色へ切り替わる。経路を通る攻撃は細い光の帯で経路を先に見せ、爆発するものは
 //   直前に点滅する。これを 5 種の予告として実装した。**全て warn_box（verts 空＝当たり判定なし）**。
 //     (1) タイル出現の予告  … v4 から据え置き（薄ピンク・半拍リード＝WARN_BEATS 0.5）
-//     (2) 爆破タイルの点滅  … blinkWarn()。爆破の1拍前から 1拍の間に3回、明るいピンクが明滅
-//     (3) 落下シャベルの経路… dropPathWarn()。発射の1拍前から、通る列に細い縦帯（到達で消える）
-//     (4) 横断シャベルの経路… shovelSweepPhase() 内。通る行に横一杯の細い帯＋来る側の端に方向マーク
+//     (2) 爆破タイルの点滅  … blinkWarn()。爆破の1拍前から明るいピンクが明滅（v7 で山型に作り直し）
+//     (3) 落下シャベルの経路… dropPathWarn()。発射の1拍前から、通る列に縦帯（到達で消える。v7 で太くした）
+//     (4) 横断シャベルの経路… shovelSweepPhase() 内。通る行に横一杯の帯＋来る側の端に方向マーク（v7 で太くした）
 //     (5) 放射弾の予告      … ringWarn()。爆破の半拍前に中心のまわりへ小点のリング
 //   弾数・配置・サイズ・タイミング（v4 の弾幕本体）は変更していない。
 //
@@ -65,6 +65,21 @@
 //       「拍頭に純白フラッシュ＋スケール 1.67倍 → 約0.10秒で等倍・濃ピンクへ収束」を再現した。
 //       予告側は実測でも「実体と同じ大きさ・枠なし」だったため v5 のまま据え置き。
 //       近似した点は tilePop() のコメントを参照。
+//
+// ── v7 での変更（見た目の 2 点のみ。弾幕本体の配置・枚数・タイミング・弾サイズは v4 のまま）─
+//   (1) 爆破対象タイルの点滅を「タイル自体が呼吸する」見た目にした（blinkWarn）。
+//       v5/v6 はタイルより一回り大きい warn_box（renderPriority 0）を 1 拍に 3 回重ねていたが、
+//       warn_box は stone_block（renderPriority 1）より奥に描かれるのでタイルに隠れ、
+//       「はみ出した縁だけが光る」→ 録画では灰色っぽい枠に見えていた（v6 録画 t=9.44s で確認）。
+//       v7 では重ねる側を stone_flash（renderPriority 4・verts 空＝当たり判定なし。
+//       baseSprite/maskSprite は stone_block と同じ）へ変え、タイルと同じ大きさ・同じ位置に
+//       重ねる。拡大しないので枠にならず、タイルの面全体が明るいピンクへ変わる。
+//       明滅の形は矩形波ではなく山型にした。寿命の異なる短命のコマを 1/60 秒刻みで
+//       6 枚重ね、life 末尾 0.1 秒の減衰を合成して sin² の山を作る（solveBlinkPulse）。
+//       1 拍に 4 山、山の間隔は爆破へ向かって BLINK_ACCEL 倍ずつ詰まる。
+//   (2) シャベルの経路予告を太くした（PATH_WIDTH）。中心線ではなく「掃かれる幅」を見せる。
+//       落下シャベルの縦帯は画面上端から対象タイルの下端までを覆う。横断シャベルの横帯は
+//       高さを同じ値にし、画面の横幅いっぱいのまま。来る側の方向マークは残している。
 //
 // ── 乱数 ──────────────────────────────────────────────────────────────
 //   stage() は難易度の数だけビルド関数を再実行するため Math.random() は使えない。
@@ -231,11 +246,13 @@ function spinBurst(opts) {
 //   appearDuration=0 … appearTime までは完全に非表示（同 :286）。この性質を使うと
 //     1クリップの中に時間差の点滅を全部詰め込めるので、点滅のためにクリップを量産せずに済む。
 //   life は必ず正の値にする（life<=0 は「寿命なし」扱いで消えなくなる）。
+//   v7: it.type で弾のタイプを選べるようにした（既定は従来どおり warn_box）。爆破タイルの
+//   点滅だけは stone_flash（renderPriority 4）を使い、タイルより手前に重ねる必要がある。
 function warnClip(items, kind) {
   const bullets = items.map(function (it) {
     return bulletDefaults({
       originPos: { x: it.pos[0], y: it.pos[1] },
-      typeName: 'warn_box',
+      typeName: it.type || 'warn_box',
       scale: { x: it.scale[0], y: it.scale[1] },
       color: { x: it.color[0], y: it.color[1], z: it.color[2], w: it.color[3] },
       appearTime: it.appearTime || 0,
@@ -258,17 +275,31 @@ const SPIN_RATE = 5.0;     // 放射弾の自転速度(rad/s)
 const BULLET_SCALE = 0.3;  // v4: v3 の 0.6 の半分。verts も scale 倍されるので当たり判定も半分
 
 // v5: 予告のパラメータ
-const BLINK_COUNT = 3;             // 爆破の1拍前から光る回数（1拍の間に3回＝明暗が交互）
 const BLINK_LEAD = beats(1);       // 点滅を始める時刻（爆破の1拍前）
-const BLINK_DUTY = 0.5;            // 1周期のうち「明」の割合
-const BLINK_SCALE = TILE * 1.25;   // タイルより一回り大きくして、描画順に依らず縁が光って見えるようにする
-const PATH_WIDTH = CELL * 0.3;     // 経路帯の幅＝タイル幅の3割
+
+// v7 (1): 爆破タイルの点滅（山型の明滅）。
+// 重ねる弾は stone_flash（renderPriority 4 > stone_block の 1・verts 空＝当たり判定なし）。
+// baseSprite/maskSprite が stone_block と同じなので、同じ scale・同じ座標に置くとタイルの
+// 面にぴったり重なる（角丸の形まで一致する）。拡大しないので v6 のような「枠」にならない。
+const BLINK_TYPE = 'stone_flash';
+const FADE_OUT_SEC = 0.1;     // BulletRenderSystem.cs:13 disappearDuration（life 末尾の減衰時間）
+const BLINK_SUB = 1 / 60;     // 山を作るコマの間隔（1ゲームフレーム相当）
+const BLINK_STEPS = 6;        // 1山あたりのコマ数（hold=0 に解けたコマは出さない）
+const BLINK_PEAK = 0.92;      // 山の頂点で狙う合成アルファ
+const BLINK_PULSES = 4;       // 1拍あたりの山の数
+const BLINK_ACCEL = 0.7;      // 山の間隔の縮み率（爆破へ向けて詰まる＝JSaB の加速する明滅）
+
+// v7 (2): シャベルの経路予告の太さ。中心線ではなく「掃かれる幅」を予告する。
+// stone3_shovel.png の刃の最大幅は実測 68px / 128px ＝ scale の 0.531 倍で、
+// SHOVEL_SCALE 2.6 では 1.38（タイル 1.84 の 0.75 倍）。ただし実際に壊れるのはタイル1枚ぶん
+// なので、帯は刃の実測幅を丸めてタイルと同じ幅にする（v5 の 0.6 から約3倍）。
+const PATH_WIDTH = TILE;
 const RING_LEAD = beats(0.5);      // 放射弾リング予告のリード（爆破の半拍前）
 const RING_COUNT = 8;              // リングの点の数
 const RING_RADIUS = 1.7;           // リングの半径
 const RING_DOT = 0.42;             // リングの点の一辺
 const SWEEP_LEAD = beats(1);       // 横断シャベルの経路予告のリード（発射の1拍前）
-const MARK_SIZE = [1.1, 0.55];     // 方向マーク（来る側の端に置く短い四角）
+const MARK_SIZE = [1.3, 1.1];      // 方向マーク（来る側の端に置く短い四角）。v7: 太くなった帯に合わせて拡大
 const MARK_INSET = 0.75;           // マークの端からの距離
 const MARK_HOLD = 0.25;            // シャベル発射後にマークが残る秒
 
@@ -332,27 +363,71 @@ function shovel(opts) {
 
 // --- v5: 予告ビルダー（3種。いずれも warnClip＝当たり判定なし）----------------
 
-// (2) 爆破されるタイルの点滅。
-//     クリップ発火 = 爆破の BLINK_LEAD（1拍）前。1拍を BLINK_COUNT 等分し、各周期の前半だけ
-//     明るいピンクを重ねる → 「明るいピンク⇔通常ピンク」が交互に見える。
-//     色そのもののアニメは DSL に無いので、通常タイルの上に短寿命の明るい warn_box を
-//     等間隔で重ねる方式（タイルより一回り大きくして縁が光る）。
+// (2) 爆破されるタイルの点滅（v7 で作り直し）。
+//     クリップ発火 = 爆破の BLINK_LEAD（1拍）前。タイルと同じ大きさ・同じ位置の stone_flash を
+//     重ね、タイルの面そのものが 明→暗→明 と脈打って見えるようにする。
+//
+//     アルファを直接指定する手段は無い（BulletIndirectURP.shader:283-291。color.w は
+//     「着色するか否か」のフラグで、w>0 なら描画アルファは 1）。作者が動かせる透明度は
+//       ・appearDuration>0 の予告窓 … α = 0.2〜0.5 の拍同期の明滅（値は選べない）
+//       ・life の最後の FADE_OUT_SEC(0.1) 秒 … α が 1→0 へ直線減衰
+//     の 2 つだけなので、後者を使って山を作る。1 コマは
+//       「t0 に出て hold 秒後に消える」＝ 出た瞬間 α = hold/0.1 → hold 秒で 0 へ直線減衰
+//     という三角波になる。これを BLINK_SUB(1/60) 秒ずつずらして重ね、合成 α（重ね塗りなので
+//     1 - Π(1-α_i)）が sin² の山を通るように各コマの hold を前から順に逆算する。
+function solveBlinkPulse() {
+  const holds = [];
+  function alphaAt(hold, start, t) {
+    if (t < start) return 0;
+    return Math.max(0, Math.min(1, (hold - (t - start)) / FADE_OUT_SEC));
+  }
+  for (let j = 0; j < BLINK_STEPS; j++) {
+    // 山の目標形（sin² の 1 山。両端は 0 に近く、中央で BLINK_PEAK）
+    const target = BLINK_PEAK * Math.pow(Math.sin((Math.PI * (j + 1)) / (BLINK_STEPS + 1)), 2);
+    const now = j * BLINK_SUB;
+    let rest = 1;
+    for (let m = 0; m < j; m++) rest *= 1 - alphaAt(holds[m], m * BLINK_SUB, now);
+    // 既に残っているぶん rest の上に target を作るのに必要な自分のアルファ
+    const need = rest > 1e-9 ? 1 - (1 - target) / rest : 0;
+    holds.push(Math.max(0, Math.min(1, need)) * FADE_OUT_SEC);
+  }
+  return holds;
+}
+const BLINK_HOLDS = solveBlinkPulse();
+// 1 山が完全に消えるまでの長さ（＝最後まで残るコマの終了時刻）
+const BLINK_PULSE_DUR = BLINK_HOLDS.reduce(function (acc, hold, i) {
+  return hold > 0 ? Math.max(acc, i * BLINK_SUB + hold) : acc;
+}, 0);
+// 山の開始時刻。間隔は BLINK_ACCEL 倍ずつ詰まり、最後の山が爆破の瞬間ちょうどに消え終わる。
+const BLINK_PULSE_STARTS = (function () {
+  const span = BLINK_LEAD - BLINK_PULSE_DUR;
+  const weights = [];
+  for (let i = 0; i < BLINK_PULSES - 1; i++) weights.push(Math.pow(BLINK_ACCEL, i));
+  const total = weights.reduce(function (a, b) { return a + b; }, 0);
+  const out = [0];
+  weights.forEach(function (w) { out.push(out[out.length - 1] + (span * w) / total); });
+  return out;
+})();
+
 function blinkWarn(cells, kind) {
-  const step = BLINK_LEAD / BLINK_COUNT;
-  const on = step * BLINK_DUTY;
   const items = [];
   cells.forEach(function (cell) {
     const c = cellCenter(cell[0], cell[1]);
-    for (let k = 0; k < BLINK_COUNT; k++) {
-      items.push({
-        pos: c,
-        scale: [BLINK_SCALE, BLINK_SCALE],
-        color: PINK_FLASH,
-        appearTime: k * step,     // ここまで非表示（appearDuration=0）
-        appearDuration: 0,
-        life: k * step + on,      // 明るいのは各周期の前半だけ
+    BLINK_PULSE_STARTS.forEach(function (pulse) {
+      BLINK_HOLDS.forEach(function (hold, i) {
+        if (hold <= 0) return;
+        const t0 = pulse + i * BLINK_SUB;
+        items.push({
+          type: BLINK_TYPE,
+          pos: c,
+          scale: [TILE, TILE],      // タイルと同じ大きさ（拡大しない＝枠にならない）
+          color: PINK_FLASH,
+          appearTime: t0,           // ここまで非表示（appearDuration=0）
+          appearDuration: 0,
+          life: t0 + hold,
+        });
       });
-    }
+    });
   });
   return warnClip(items, kind);
 }
@@ -416,14 +491,17 @@ function ringWarn(centers, kind) {
   return warnClip(items, kind);
 }
 
-// (3) 落下シャベルの経路予告。通る列（画面上端→対象タイル）に細い縦帯を出す。
+// (3) 落下シャベルの経路予告。通る列に、刃の幅ぶん（＝タイル1枚幅）の縦帯を出す。
+//     v7: 帯の下端を対象タイルの中心から「タイルの下端」まで下げ、シャベルが掃く範囲を
+//     まるごと覆うようにした（対象タイル自体の位置は blinkWarn の点滅でも示している）。
 //     クリップ発火 = シャベル発射の1拍前、life = dur でシャベル到達と同時に消える。
 function dropPathWarn(center, dur, kind) {
   const top = ROWS * CELL;             // 画面上端 y=18
-  const h = top - center[1];
+  const bottom = center[1] - TILE / 2; // 対象タイルの下端
+  const h = top - bottom;
   return warnClip(
     [{
-      pos: [center[0], center[1] + h / 2],
+      pos: [center[0], bottom + h / 2],
       scale: [PATH_WIDTH, h],
       color: PINK_PATH,
       appearTime: dur,
@@ -721,7 +799,7 @@ export default stage(
         if (!cell) return;
         const center = cellCenter(cell[0], cell[1]);
         const flight = (SHOVEL_SPAWN_Y - center[1]) / SHOVEL_FALL_SPEED;
-        // v5 (3): 発射の1拍前から、シャベルが通る列に細い縦帯（到達＝爆破で消える）
+        // v5 (3): 発射の1拍前から、シャベルが通る列に縦帯（到達＝爆破で消える）。v7 で刃の幅ぶんに拡幅
         s.at(impact - flight - SWEEP_LEAD, dropPathWarn(center, SWEEP_LEAD + flight, 'droppathwarn'));
         // v5 (2): 爆破の1拍前から対象タイルを点滅させる
         s.at(impact - BLINK_LEAD, blinkWarn([cell], 'blastblink'));
@@ -763,7 +841,8 @@ export default stage(
         const rightRow = others.length > 0 ? others[Math.floor(rng() * others.length)] : leftRow;
 
         // v5 (4): 横断シャベルの経路予告。
-        //   ・通る行に横一杯の細い帯を、発射の1拍前からシャベルが画面外へ抜けるまで出す
+        //   ・通る行に横一杯の帯（高さ = 刃の幅 = タイル1行ぶん）を、発射の1拍前から
+        //     シャベルが画面外へ抜けるまで出す（v7 で PATH_WIDTH を拡幅）
         //   ・来る側の端に濃いめの短い四角（方向マーク）を置き、左右どちらから来るかを示す
         const sweepDur = SWEEP_LEAD + (SHOVEL_RIGHT_X - SHOVEL_LEFT_X) / SHOVEL_SIDE_SPEED;
         const sweepItems = [];
