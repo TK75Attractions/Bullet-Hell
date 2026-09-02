@@ -1,4 +1,4 @@
-// choreo/stone3.js — 新・石工（stone3）冒頭 8 区間 v11
+// choreo/stone3.js — 新・石工（stone3）冒頭 8 区間 v12
 //
 // 参考: Just Shapes & Beats "Tokyo Skies" の冒頭（画面全体の正方グリッドにピンクのタイルが
 // 拍ごとに点滅→実体化し、プレイヤーは残った隙間を縫って避ける）。
@@ -139,6 +139,37 @@
 //   (7) 横断シャベル（区間⑥⑧）の y は「残留タイルの行から選ぶ」現状ルールのまま。
 //       残留タイルが帯になったので、行は上下の帯（0〜2 / 6〜8）に加えて、左右の帯にタイルが
 //       残っている中央の行（3〜5）も候補に入る。
+//
+// ── v12 での変更（見た目だけ。区間の割り・音ハメ・配置・枚数・タイミングは v11 のまま）──
+//
+//   狙い: タイル・シャベル・放射弾を **ボスと同じドット密度のドット絵** にし、
+//        色を 1 系統（青紫）へ統一する。
+//
+//   (1) ドット密度をボスに合わせた（Tools/gen_stone3_pixel.py）
+//       ボスは pixelsPerUnit=100・scale=2.8 で出るので、GIF の 1 ドット = 0.0280 ユニット。
+//       （実測: Recordings/stone_20260715_121633.mp4 t=22s でボスの明部が縦 73px、
+//         stone_idle.gif の同条件が 68 ドット → 1.074 画面px、額装 38.4px/ユニットで割ると 0.0280）
+//       弾は 128x128 のテクスチャ全面が scale ぶんのワールドサイズになるので、
+//       1 テクスチャ px = scale/128 ユニット。ここから各スプライトのドット数を決めた。
+//         タイル   scale 1.84 → 64 ドット（1 ドット = 2 テクスチャ px = 0.02875 ユニット）
+//         シャベル scale 3.68 → 128 ドット（1 ドット = 1 テクスチャ px = 0.02875 ユニット）
+//         放射弾   scale 0.30 → 10 ドット（1 ドット = 0.0300 ユニット）
+//       ★シャベルだけ scale を 2.6 → 3.68 に上げている。2.6 のままだと 1 ドットが 1.38
+//         テクスチャ px という半端な値になるため。代わりにスプライト内のシャベル本体を
+//         128 ドット中 76 ドットに縮めたので、**画面上の大きさは v11 と同じ**
+//         （v11: 縦 2.194 ユニット / v12: 縦 2.185 ユニット）。当たり判定は元から verts 空。
+//
+//   (2) 色を 1 系統に統一した。ボス本体色 sRGB(89,89,117) を少し明るくした青紫だけを使い、
+//       赤・他の色相は一切使わない（v11 は無彩色の石テクスチャ＋純白のポップだった）。
+//         輪郭 (20,22,36) / 影 (72,72,104) / 主色 (104,104,140) /
+//         ハイライト (150,150,190) / 強ハイライト (190,190,224)
+//
+//   (3) stone3 専用の BulletType を 3 つ追加した（既存 type とスプライトは無変更）。
+//         stone3_tile   … stone_block の複製（renderPriority 1・verts ±0.5・counterPower 1）
+//         stone3_flash  … stone_flash の複製（renderPriority 4・verts 空）。スプライトは stone3_tile と同じ
+//         stone3_bullet … box の複製（verts ±0.5・counterPower 1.6384）
+//       stone3_tile / stone3_flash のマスクは輪郭ドットを白から外してあるので、
+//       予告・点滅・ポップで着色されたタイルでも輪郭が黒く残りドット絵に見える。
 //
 // ── v11 での変更（3 点。区間の割り・音ハメ・弾サイズ・ポップ/点滅の作り方は v10 のまま）──
 //   (1) 帯を 2 列に細くした（BAND 3 → 2）。残留域は「縁から 2 セル」＝列 0-1/14-15・行 0-1/7-8 の
@@ -288,15 +319,14 @@ const SIDE_ORDER = ['left', 'top', 'right', 'bottom'];
 //   フラグでしかなく（w>0 なら RGB を完全適用・描画アルファは 1）、値の大小は見た目に出ない。
 //   w=0 だけが特別で「スプライトのテクスチャそのまま」を意味する（hummer/cutter/warn_box の規約）。
 //   予告が暗く見えるのは色ではなく appearDuration の予告窓（α 0.2〜0.5 の拍同期）による。
-const SPRITE_AS_IS = [1, 1, 1, 0];               // 無着色＝スプライトのテクスチャそのまま
-const STONE_BRIGHT = [0.8388, 0.8879, 1.0, 0.92];   // (236,242,255) 石の明版: 爆破対象の点滅
-const STONE_MID = [0.3916, 0.4287, 0.5149, 0.40];   // (168,175,190) 石の中間: 爆破予告・リング予告
-const STONE_WARN = [0.1878, 0.2086, 0.2623, 0.40];  // (120,126,140) 石の暗版: タイル出現の予告
-const STONE_PATH = [0.1221, 0.1384, 0.1812, 0.25];  // ( 98,104,118) 石のいちばん暗い版: 落下シャベルの縦帯
-const STONE_BULLET = [0.6172, 0.6584, 0.7605, 1.0]; // (206,212,226) 放射弾（box）。小さいぶん石より少し明るい
-// ポップの収束先。石テクスチャの平均 sRGB (171,171,171) に相当する linear 値で、w=0（無着色）。
+const SPRITE_AS_IS = [1, 1, 1, 0];                  // 無着色＝スプライトのテクスチャそのまま
+const STONE_BRIGHT = [0.7305, 0.7305, 0.9387, 0.92];// (222,222,248) 強ハイライト: 爆破対象の点滅
+const STONE_MID = [0.3050, 0.3050, 0.5149, 0.40];   // (150,150,190) ハイライト: 爆破予告・リング予告
+const STONE_WARN = [0.0648, 0.0648, 0.1384, 0.40];  // ( 72, 72,104) 影: タイル出現の予告
+const STONE_PATH = [0.0273, 0.0273, 0.0648, 0.25];  // ( 46, 46, 72) 最暗: 落下シャベルの縦帯
+// ポップの収束先。主色 sRGB(104,104,140) に相当する linear 値で、w=0（無着色）。
 // 補間の終端で w が 0 になった瞬間に「実体タイルのテクスチャそのまま」へ入れ替わる（tilePop 参照）。
-const STONE_TILE_END = [0.4072, 0.4072, 0.4072, 0];
+const STONE_TILE_END = [0.1384, 0.1384, 0.2623, 0];
 
 // --- 決定論的乱数（mulberry32）--------------------------------------------
 function makeRng(seed) {
@@ -453,7 +483,7 @@ const BLINK_LEAD = beats(1);       // 点滅を始める時刻（爆破の1拍�
 // 重ねる弾は stone_flash（renderPriority 4 > stone_block の 1・verts 空＝当たり判定なし）。
 // baseSprite/maskSprite が stone_block と同じなので、同じ scale・同じ座標に置くとタイルの
 // 面にぴったり重なる（角丸の形まで一致する）。拡大しないので v6 のような「枠」にならない。
-const BLINK_TYPE = 'stone_flash';
+const BLINK_TYPE = 'stone3_flash';   // v12: stone_flash の複製（スプライトが stone3_tile）
 const FADE_OUT_SEC = 0.1;     // BulletRenderSystem.cs:13 disappearDuration（life 末尾の減衰時間）
 const BLINK_SUB = 1 / 60;     // 山を作るコマの間隔（1ゲームフレーム相当）
 const BLINK_STEPS = 6;        // 1山あたりのコマ数（hold=0 に解けたコマは出さない）
@@ -508,10 +538,13 @@ const SWEEP_LEAD = beats(1);       // 横断シャベルの経路予告のリー
 //   重なるコマが 1 枚も無いので、v8 の白い輪郭は原理的に発生しない。
 //   弾数も 1 タイル 6 発 → 1 発になり、tilepop の JSON は 17MB → 約 3MB に減る。
 const POP_SCALE_START = 1.714;                      // 拍頭の倍率（実測 204/119）
-const POP_COLOR_START = [1.00, 1.00, 1.00, 1.0];    // 拍頭の色（純白）
+const POP_COLOR_START = [0.8388, 0.8388, 0.9734, 1.0]; // 拍頭の色 sRGB(236,236,252)。v12 で純白から色相を持つ明色へ
 const POP_DURATION = 0.100;                         // 収束までの秒数（実測どおり）
 
-const SHOVEL_SCALE = 2.6;      // 2x2 のタイルを叩くのにちょうどよい見た目（hummer の 3.5 より小さめ）
+// v12: 2.6 → 3.68。スプライトのドット間隔をタイル（0.02875 ユニット）に揃えるため
+// 1 ドット = 1 テクスチャ px にした結果（3.68/128 = 0.02875）。スプライト内の
+// シャベル本体を 128 ドット中 76 ドットに縮めてあるので、画面上の大きさは v11 と同じ。
+const SHOVEL_SCALE = 3.68;
 const SHOVEL_SPAWN_Y = 26;     // 画面上端(18)より上・カリング境界(36)より内側
 const SHOVEL_FALL_SPEED = 24;  // 落下速度（一定）。飛来時間はタイルの高さで変わる
 const SHOVEL_SIDE_SPEED = 26;  // 横断速度
@@ -736,10 +769,10 @@ export default stage(
         pos: [center[0], center[1]],
         count: D(10, 12, 14),
         speed: D(7, 9, 11),
-        type: 'box',
+        type: 'stone3_bullet',
         life: 0,                          // 寿命なし＝画面外へ出て cull されるまで飛ぶ
         scale: [BULLET_SCALE, BULLET_SCALE],
-        color: STONE_BULLET,
+        color: SPRITE_AS_IS,   // v12: 弾スプライト自体が石色のドット絵なので無着色
         angleOffset: rng() * 2 * Math.PI, // 爆破ごとに別オフセット角（rad）
         spin: SPIN_RATE * (index % 2 === 0 ? 1 : -1),
         kind: 'blast',
@@ -845,7 +878,7 @@ export default stage(
           s.at(
             strike,
             tileField(centerPicks, {
-              type: 'stone_block',
+              type: 'stone3_tile',
               color: SPRITE_AS_IS,   // v11: 無着色＝石テクスチャそのまま
               life: beats(1) + SEAM_MARGIN,
               kind: 'tile',
@@ -872,7 +905,7 @@ export default stage(
         s.at(
           g.strike,
           tileField(g.cells, {
-            type: 'stone_block',
+            type: 'stone3_tile',
             color: SPRITE_AS_IS,   // v11: 無着色＝石テクスチャそのまま
             life: g.end - g.strike - g.lead,
             kind: 'tileband',
