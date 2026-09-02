@@ -1,4 +1,4 @@
-// choreo/stone3.js — 新・石工（stone3）冒頭 8 区間 v9
+// choreo/stone3.js — 新・石工（stone3）冒頭 8 区間 v10
 //
 // 参考: Just Shapes & Beats "Tokyo Skies" の冒頭（画面全体の正方グリッドにピンクのタイルが
 // 拍ごとに点滅→実体化し、プレイヤーは残った隙間を縫って避ける）。
@@ -14,9 +14,9 @@
 //   # | 指示書   | スナップ後       | 区間長 | 内容
 //   --+----------+------------------+--------+--------------------------------------------
 //   1 |  6.629s  | B(16) =  6.667s  | 7拍    | タイル表示①（毎拍更新。1回の配置の枚数は v3 のまま）
-//   2 |  9.694s  | B(23) =  9.583s  | 9拍    | タイル爆破①（毎拍2枚 × 7拍で残留14枚を使い切り、残2拍は静止）
+//   2 |  9.694s  | B(23) =  9.583s  | 9拍    | タイル爆破①（毎拍2枚。v10 では帯の残留から選ぶので9拍とも出る）
 //   3 | 13.380s  | B(32) = 13.333s  | 8拍    | タイル表示②（①と同構造・別シード）
-//   4 | 16.783s  | B(40) = 16.667s  | 8拍    | タイル爆破②（毎拍2枚 × 8拍で残留16枚。区間末でタイルを消さず残す）
+//   4 | 16.783s  | B(40) = 16.667s  | 8拍    | タイル爆破②（毎拍2枚 × 8拍。区間末でタイルを消さず残す）
 //   5 | 20.001s  | B(48) = 20.000s  | 8拍    | シャベル爆破①（2拍おきに4回。上から落として当たった瞬間に放射）
 //   6 | 23.189s  | B(56) = 23.333s  | 8拍    | シャベル飛ばし①（先頭4拍・毎拍2本を左右から。残4拍は静止）
 //   7 | 26.591s  | B(64) = 26.667s  | 8拍    | シャベル爆破②（⑤と同構造・別のタイルを選ぶ）
@@ -112,6 +112,34 @@
 //   拍頭の白・1.714 倍から 0.100 秒で実体色・等倍へ滑らかに縮むようにした。重なるコマが
 //   無いので白い輪郭は原理的に出ない。詳細は POP_SCALE_START 付近のコメントを参照。
 //
+// ── v10 での変更（タイルの配置ルールと爆破対象の選び方。演出は v9 のまま）────────
+//   動機はユーザー評価「ちょっとうるさい」。毎拍 40 枚前後が一斉に点滅→消滅を繰り返すのを
+//   やめ、「新しく出る枚数を減らし、出たタイルは縁に溜めて中央を空ける」構成へ変えた。
+//   出現ポップ・爆破点滅・縦帯予告・シャベルの見た目・放射弾は v9 から一切変えていない。
+//
+//   (1) 縁の帯（BAND=3。上下左右すべて 3 セルぶん＝外周 3 周・114 セル）に出たタイルは
+//       拍末で消さずに残す。帯の内側（中央 10x3 = 30 セル）に出たタイルは拍末で必ず消す。
+//       v9 の「端に 1 拍 2 枚だけ積む」残留ルールは廃止した。
+//   (2) 1 拍に新しく出す枚数を v9 の約半分にした。中央の密度 CENTER_RATE は v9 の半分、
+//       帯は「区間の拍数をかけて BAND_TARGET まで埋める」等比の刻みで積む。
+//       実測（normal）: 区間①は 20→12 枚/拍（平均 15.4・v9 は毎拍 40 前後）。
+//   (3) 表示区間の終わりに帯が BAND_TARGET まで埋まり、中央は空になる。
+//       実測の帯の埋まり率（表示区間末）: easy 51% / normal 64% / lunatic 72%。
+//   (4) 自機の閉じ込め防止。タイルを 1 枚置くごとに「タイルの無いセルが 4 近傍で
+//       1 つに繋がっているか」を検査し（emptyIsConnected）、崩す置き方は捨てる。
+//       タイルは 1 セルのほぼ全体を覆うので斜めは通れない＝4 近傍で判定するのが正しい。
+//       検証（Tools/danmaku-lab/check_stone3_safepath.mjs・0.05 秒刻み）: 安全域の主連結成分は最小でも
+//       easy 82 / normal 66 / lunatic 56 セル。主成分以外は爆破跡の 1〜2 セルの袋小路だけ。
+//   (5) 爆破①②（区間②④）の対象は、帯の 4 辺（左→上→右→下）を順に回りながら選ぶ。
+//       1 拍 2 枚なので隣り合う 2 枚は必ず別の辺になり、区間を通して左右上下へ散る。
+//   (6) 落下シャベル（区間⑤⑦）の対象は「下側の帯（行 0〜2）にあるタイルのうち、
+//       その列でいちばん上にあるもの」。上側の帯のタイルは（衝突判定が無いので）貫通して
+//       通り過ぎ、対象に当たった瞬間だけ爆破する。16 列を 2 列ずつ 8 ゾーンに割って
+//       1 ゾーン 1 列だけ選び、偶数ゾーンを⑤・奇数ゾーンを⑦へ振り分ける（4 回とも別の列）。
+//   (7) 横断シャベル（区間⑥⑧）の y は「残留タイルの行から選ぶ」現状ルールのまま。
+//       残留タイルが帯になったので、行は上下の帯（0〜2 / 6〜8）に加えて、左右の帯にタイルが
+//       残っている中央の行（3〜5）も候補に入る。
+//
 // ── 乱数 ──────────────────────────────────────────────────────────────
 //   stage() は難易度の数だけビルド関数を再実行するため Math.random() は使えない。
 //   mulberry32 を固定シードでビルド開始時に初期化し、再現可能かつ難易度間で整合する配置にしている。
@@ -155,21 +183,65 @@ function key(col, row) {
   return col + ',' + row;
 }
 
-// 端（外周フレーム）= 左右2列 + 上下1行。ここに置いたタイルは表示区間で消さずに溜める。
-function isEdgeCell(col, row) {
-  return col <= 1 || col >= COLS - 2 || row === 0 || row === ROWS - 1;
+// v10: 縁の帯（上下左右すべて BAND セルぶん）＝ここに出たタイルは拍末で消さず溜める。
+// 16x9・BAND=3 なら 帯 = 列 0-2 / 13-15 と 行 0-2 / 6-8 の 114 セル、
+// 内側（中央）= 列 3-12 x 行 3-5 の 10x3 = 30 セル。中央のタイルは拍末で必ず消す。
+const BAND = 3;
+function isBandCell(col, row) {
+  return col < BAND || col >= COLS - BAND || row < BAND || row >= ROWS - BAND;
 }
 
-const ALL_CELLS = [];
-const EDGE_LEFT = [];
-const EDGE_RIGHT = [];
+const BAND_CELLS = [];
+const CENTER_CELLS = [];
 for (let row = 0; row < ROWS; row++) {
   for (let col = 0; col < COLS; col++) {
-    ALL_CELLS.push([col, row]);
-    if (!isEdgeCell(col, row)) continue;
-    (col < COLS / 2 ? EDGE_LEFT : EDGE_RIGHT).push([col, row]);
+    (isBandCell(col, row) ? BAND_CELLS : CENTER_CELLS).push([col, row]);
   }
 }
+
+// v10: 自機が通れることを保証するための連結判定。
+// タイルは 1 セル（2x2）のほぼ全体（TILE=1.84）を占めるので、斜め隣は通れない。
+// 「空きセルが 4 近傍で 1 つに繋がっている」を保てば、画面のどこからでもどこへでも
+// 移動できる＝閉じ込めが起きない。タイルを 1 枚置くたびにこれを検査して、
+// 崩す置き方は捨てる（帯が 6〜7 割埋まっても迷路状の通路が必ず残る）。
+const NEIGHBOR_DC = [1, -1, 0, 0];
+const NEIGHBOR_DR = [0, 0, 1, -1];
+function emptyIsConnected(blocked) {
+  const total = COLS * ROWS - blocked.size;
+  if (total <= 0) return false;
+  let start = null;
+  for (let row = 0; row < ROWS && start === null; row++) {
+    for (let col = 0; col < COLS; col++) {
+      if (!blocked.has(key(col, row))) { start = [col, row]; break; }
+    }
+  }
+  const seen = new Set([key(start[0], start[1])]);
+  const stack = [start];
+  while (stack.length > 0) {
+    const cur = stack.pop();
+    for (let d = 0; d < 4; d++) {
+      const nc = cur[0] + NEIGHBOR_DC[d];
+      const nr = cur[1] + NEIGHBOR_DR[d];
+      if (nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS) continue;
+      const k = key(nc, nr);
+      if (blocked.has(k) || seen.has(k)) continue;
+      seen.add(k);
+      stack.push([nc, nr]);
+    }
+  }
+  return seen.size === total;
+}
+
+// v10: 帯タイルを 4 辺のどれに属するとみなすか（爆破対象を左右上下へ散らすために使う）。
+function sideOf(col, row) {
+  const dl = col;
+  const dr = COLS - 1 - col;
+  const db = row;
+  const dt = ROWS - 1 - row;
+  if (Math.min(dl, dr) <= Math.min(db, dt)) return dl <= dr ? 'left' : 'right';
+  return db <= dt ? 'bottom' : 'top';
+}
+const SIDE_ORDER = ['left', 'top', 'right', 'bottom'];
 
 // --- 色（JSaB 風ピンク）------------------------------------------------------
 const PINK_WARN = [1.0, 0.45, 0.72, 0.40];   // 予告: 薄いピンク・半透明（warn_box は verts:[] で無害）
@@ -197,6 +269,18 @@ function makeRng(seed) {
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+}
+
+// 配列をシャッフルした新しい配列を返す（rng は呼び出し側の mulberry32）。
+function shuffled(arr, rng) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    const t = a[i];
+    a[i] = a[j];
+    a[j] = t;
+  }
+  return a;
 }
 
 // --- タイル群 --------------------------------------------------------------
@@ -312,9 +396,11 @@ function warnClip(items, kind) {
 
 // --- パラメータ ------------------------------------------------------------
 const WARN_BEATS = 0.5;    // タイル出現の予告リード（拍）＝半拍（v5 仕様の下限を満たす）
-const EDGE_PER_BEAT = 2;   // 1拍あたりに端へ積む「残留タイル」数（爆破区間の消化数と対応）
 const BLAST_PER_BEAT = 2;  // 1拍あたりの爆破数
 const GAPS_PER_BEAT = 2;   // 毎拍必ず空ける 3x3 の逃げ場の数
+// v10: 爆破対象は「置かれてから BLAST_MIN_AGE 拍以上たったタイル」から選ぶ。
+// 出現ポップと爆破予告の点滅（1拍前から）が同じ拍に重なるのを避けるため。
+const BLAST_MIN_AGE = 2;
 const SPIN_RATE = 5.0;     // 放射弾の自転速度(rad/s)
 const BULLET_SCALE = 0.3;  // v4: v3 の 0.6 の半分。verts も scale 倍されるので当たり判定も半分
 
@@ -593,8 +679,10 @@ export default stage(
   (s) => {
     const rng = makeRng(20260902);
     const lead = beats(WARN_BEATS);
-    // 1拍あたり概ね 30/40/50 枚（v3 と同じ密度）。
-    const FILL_RATE = D(0.25, 0.33, 0.40);
+    // v10: 中央（10x3）に毎拍出す一時タイルの密度。v9（0.25/0.33/0.40）の半分。
+    const CENTER_RATE = D(0.125, 0.165, 0.20);
+    // v10: 表示区間の終わりに縁の帯が埋まっている割合の目安（連結判定で弾かれるぶん実測は少し下がる）。
+    const BAND_TARGET = D(0.50, 0.64, 0.72);
 
     // burst(): 爆破の放射弾。区間②④⑤⑦で共通に使う（弾数・速度の難易度比は v3 のまま）。
     function burst(center, index) {
@@ -614,21 +702,25 @@ export default stage(
     }
 
     // ======================================================================
-    // タイル表示区間（区間①③）
+    // タイル表示区間（区間①③）— v10 で配置ルールを作り直した
     //   各拍頭で
     //     ・逃げ場 3x3 を GAPS_PER_BEAT 箇所ぶん確保（ここには絶対にタイルを置かない）
-    //     ・残りのセルへ確率 fillRate でタイルを敷き詰める（→ 確率的な穴も多数残る）
-    //     ・敷いたタイルはその拍の終わりで消滅（最終拍だけは holdUntil / onLastBeat で延命）
-    //     ・端（外周フレーム）には別途「残留タイル」を積み、対応する爆破区間まで残す
-    //   戻り値 stacked = 端に積んだ順（＝爆破する順）のタイル列
+    //     ・縁の帯（BAND=3 セルの外周）へ新しいタイルを積む。**拍末で消さずに残る**
+    //     ・中央（10x3）へ一時タイルを置く。**拍末（次の拍頭）で必ず消える**
+    //     ・タイルを 1 枚置くごとに「空きセルが 4 近傍で 1 つに繋がっている」ことを検査し、
+    //       崩す置き方は捨てる（＝自機が閉じ込められない。emptyIsConnected 参照）
+    //   帯の追加率は「len 拍かけて bandTarget まで埋める」等比の刻みにしてある。
+    //   最初の拍がいちばん多く（帯の空きが多いので）、後半になるほど新規枚数は減る。
+    //   戻り値 = 帯に積んだタイルの一覧 [{col,row,strike,end,lead}]。
+    //   end（消える時刻）は爆破区間・シャベル区間で上書きしてから emitBandTiles() で出す。
     // ======================================================================
     function tilePhase(cfg) {
-      const usedEdge = new Set();
-      const stacked = [];
+      const bandOccupied = new Set();
+      const bandTiles = [];
+      const bandRate = 1 - Math.pow(1 - cfg.bandTarget, 1 / cfg.len);
+
       for (let i = 0; i < cfg.len; i++) {
         const strike = B(cfg.firstBeat + i);
-        const blastTime = B(cfg.blastFirstBeat + i); // この拍に積んだ残留タイルが爆破される時刻
-        const isLast = i === cfg.len - 1;
 
         // (a) 逃げ場: 3x3 の空きセル領域。区間①の1拍目の1箇所目は自機の初期位置に固定。
         const gapCells = new Set();
@@ -647,31 +739,50 @@ export default stage(
           }
         }
 
-        // (b) 残留タイル: 端から左右1枚ずつ（左右対称に溜める）。逃げ場とは重ねない。
-        const persist = [];
-        [EDGE_LEFT, EDGE_RIGHT].forEach(function (pool) {
-          const cand = pool.filter((c) => !usedEdge.has(key(c[0], c[1])) && !gapCells.has(key(c[0], c[1])));
-          for (let n = 0; n < EDGE_PER_BEAT / 2 && cand.length > 0; n++) {
-            const picked = cand.splice(Math.floor(rng() * cand.length), 1)[0];
-            usedEdge.add(key(picked[0], picked[1]));
-            persist.push(picked);
-            stacked.push({ col: picked[0], row: picked[1] });
-          }
-        });
+        // この拍に画面へ出ているタイル（帯の既存ぶん＋これから置くぶん）を溜める集合。
+        const blocked = new Set(bandOccupied);
 
-        // (c) タイル（逃げ場と端の残留タイル以外を確率で埋める）
-        //     これまでに積んだ端タイル（usedEdge）を全部除外する。最終拍のタイルは
-        //     爆破区間の間ずっと残るため、爆破対象のセルと重なると爆破後もタイルが残ってしまう。
-        const transient = ALL_CELLS.filter(
-          (c) => !gapCells.has(key(c[0], c[1])) && !usedEdge.has(key(c[0], c[1])) && rng() < cfg.fillRate
-        );
+        // (b) 帯へ積むタイル（残留）。連結を壊す候補は飛ばす。
+        const free = BAND_CELLS.filter((c) => !bandOccupied.has(key(c[0], c[1])));
+        const bandWant = Math.round(free.length * bandRate);
+        const bandPicks = [];
+        const bandCand = shuffled(free.filter((c) => !gapCells.has(key(c[0], c[1]))), rng);
+        for (let n = 0; n < bandCand.length && bandPicks.length < bandWant; n++) {
+          const cell = bandCand[n];
+          const k = key(cell[0], cell[1]);
+          blocked.add(k);
+          if (!emptyIsConnected(blocked)) {
+            blocked.delete(k);
+            continue;
+          }
+          bandPicks.push(cell);
+          bandOccupied.add(k);
+          bandTiles.push({ col: cell[0], row: cell[1], strike, end: cfg.bandEnd, lead: 0, claimed: false });
+        }
+
+        // (c) 中央のタイル（拍末で消える一時タイル）。こちらも連結を壊さない範囲で置く。
+        const centerPicks = [];
+        const centerWant = Math.round(CENTER_CELLS.length * cfg.centerRate);
+        const centerCand = shuffled(CENTER_CELLS.filter((c) => !gapCells.has(key(c[0], c[1]))), rng);
+        for (let n = 0; n < centerCand.length && centerPicks.length < centerWant; n++) {
+          const cell = centerCand[n];
+          const k = key(cell[0], cell[1]);
+          blocked.add(k);
+          if (!emptyIsConnected(blocked)) {
+            blocked.delete(k);
+            continue;
+          }
+          centerPicks.push(cell);
+        }
+
+        const appearing = centerPicks.concat(bandPicks);
+        if (appearing.length === 0) continue;
 
         // (d) 予告（暗いピンク・無害）: この拍に出る全タイルぶんを1クリップにまとめる
         s.at(
           strike - lead,
-          tileField(transient.concat(persist), {
+          tileField(appearing, {
             type: 'warn_box',
-            // v8 (3): 実体と同じ色相の暗い版（動画の予告に合わせた。旧 PINK_WARN は明るすぎた）
             color: PINK_TILE_WARN,
             appearTime: lead,
             appearDuration: lead,
@@ -680,59 +791,91 @@ export default stage(
           })
         );
 
-        // (d2) v6: 実体化の瞬間のポップ（純白フラッシュ→濃ピンクへ収束）。
-        //      v5 の予告クリップ (d) と実体クリップ (e)(f) はそのまま残し、見た目だけ足している。
-        s.at(strike, tilePop(transient.concat(persist), 'tilepop'));
+        // (d2) 実体化の瞬間のポップ（v9 の出現アニメのまま）
+        s.at(strike, tilePop(appearing, 'tilepop'));
 
-        // (e) 実体（濃いピンク）。最終拍だけは拍末で消さず holdUntil まで残す。
-        //     cfg.onLastBeat がある場合（区間③）は、残すタイルの内訳を呼び出し側が決める。
-        if (isLast && cfg.onLastBeat) {
-          cfg.onLastBeat(transient, strike);
-        } else {
+        // (e) 中央の一時タイルの実体。次の拍頭で消える。
+        if (centerPicks.length > 0) {
           s.at(
             strike,
-            tileField(transient, {
+            tileField(centerPicks, {
               type: 'stone_block',
               color: PINK_SOLID,
-              life: isLast ? cfg.holdUntil - strike : beats(1) + SEAM_MARGIN,
-              kind: isLast ? 'tilehold' : 'tile',
+              life: beats(1) + SEAM_MARGIN,
+              kind: 'tile',
             })
           );
         }
 
-        // (f) 実体（濃いピンク）: 端の残留タイル。対応する拍で爆破されるまで残る。
-        //     継ぎ目余白を足さず BLAST_LEAD_OUT ぶん手前で消す（爆破中心にタイルを残さない）。
+        // (f) 帯のタイルの実体は、消える時刻が確定してから emitBandTiles() でまとめて出す。
+      }
+      return bandTiles;
+    }
+
+    // v10: 帯タイルの実体クリップ。出た拍と消える時刻が同じものを 1 クリップにまとめる。
+    //   lead>0（爆破される）のタイルは BLAST_LEAD_OUT ぶん手前で消す（爆破中心にタイルを残さない）。
+    function emitBandTiles(tiles) {
+      const groups = new Map();
+      tiles.forEach(function (t) {
+        const gk = t.strike + '|' + t.end + '|' + t.lead;
+        if (!groups.has(gk)) groups.set(gk, { strike: t.strike, end: t.end, lead: t.lead, cells: [] });
+        groups.get(gk).cells.push([t.col, t.row]);
+      });
+      groups.forEach(function (g) {
+        if (g.cells.length === 0) return;
         s.at(
-          strike,
-          tileField(persist, {
+          g.strike,
+          tileField(g.cells, {
             type: 'stone_block',
             color: PINK_SOLID,
-            life: blastTime - strike - BLAST_LEAD_OUT,
-            kind: 'tilekeep',
+            life: g.end - g.strike - g.lead,
+            kind: 'tileband',
           })
         );
-      }
-      return stacked;
+      });
     }
 
     // ======================================================================
-    // タイル爆破区間（区間②④）
-    //   各拍で、積んだ順に端のタイルを BLAST_PER_BEAT 枚ずつ爆破する。
-    //   ・爆破の半拍前に薄いピンクの予告
+    // タイル爆破区間（区間②④）— v10 で対象の選び方を変えた
+    //   残留タイルが縁の帯になったので、帯の 4 辺（左・上・右・下）を順番に回りながら
+    //   その辺のタイルを 1 枚ずつ選ぶ。1 拍 2 枚なので、隣り合う 2 枚は必ず別の辺になり、
+    //   区間を通して左右上下へ均等に散る。
+    //   ・爆破の1拍前から対象タイルが点滅、半拍前に薄い予告とリング予告
     //   ・爆破時刻ちょうどでタイルの life が尽き、同時に spinBurst（放射弾）が出る
-    //   ・放射弾は無重力の等速直線。life:0 なので画面外へ抜けるまで消えない
-    //   ・タイルを使い切ったあとの拍は静止（何も出さない）
     // ======================================================================
     function blastPhase(cfg) {
-      const need = Math.ceil(cfg.stacked.length / BLAST_PER_BEAT);
-      for (let b = 0; b < Math.min(cfg.len, need); b++) {
+      const pools = {};
+      SIDE_ORDER.forEach(function (nm) { pools[nm] = []; });
+      shuffled(cfg.tiles, rng).forEach(function (t) { pools[sideOf(t.col, t.row)].push(t); });
+
+      let sideIdx = 0;
+      for (let b = 0; b < cfg.len; b++) {
         const blastTime = B(cfg.firstBeat + b);
-        const group = cfg.stacked.slice(b * BLAST_PER_BEAT, (b + 1) * BLAST_PER_BEAT);
+        const youngest = blastTime - beats(BLAST_MIN_AGE) + 1e-6;
+        const group = [];
+        for (let n = 0; n < BLAST_PER_BEAT; n++) {
+          let picked = null;
+          for (let tryIdx = 0; tryIdx < SIDE_ORDER.length && picked === null; tryIdx++) {
+            const pool = pools[SIDE_ORDER[(sideIdx + tryIdx) % SIDE_ORDER.length]];
+            for (let m = 0; m < pool.length; m++) {
+              if (pool[m].claimed || pool[m].strike > youngest) continue;
+              picked = pool[m];
+              break;
+            }
+            if (picked !== null) sideIdx = (sideIdx + tryIdx + 1) % SIDE_ORDER.length;
+          }
+          if (picked === null) break;
+          picked.claimed = true;
+          picked.end = blastTime;
+          picked.lead = BLAST_LEAD_OUT;
+          group.push(picked);
+        }
         if (group.length === 0) continue;
 
+        const cells = group.map((t) => [t.col, t.row]);
         s.at(
           blastTime - beats(0.5),
-          tileField(group.map((t) => [t.col, t.row]), {
+          tileField(cells, {
             type: 'warn_box',
             color: PINK_WARN,
             appearTime: beats(0.5),
@@ -741,14 +884,10 @@ export default stage(
             kind: 'blastwarn',
           })
         );
+        s.at(blastTime - BLINK_LEAD, blinkWarn(cells, 'blastblink'));
 
-        // v5 (2): 爆破の1拍前から、対象タイルを1拍の間に3回点滅させる
-        s.at(blastTime - BLINK_LEAD, blinkWarn(group.map((t) => [t.col, t.row]), 'blastblink'));
-
-        const centers = group.map((t) => cellCenter(t.col, t.row));
-        // v5 (5): 爆破の半拍前に、爆破中心へ放射弾のリング予告
+        const centers = cells.map((c) => cellCenter(c[0], c[1]));
         s.at(blastTime - RING_LEAD, ringWarn(centers, 'burstwarn'));
-
         centers.forEach(function (center) {
           s.at(blastTime, burst(center, b));
         });
@@ -756,87 +895,100 @@ export default stage(
     }
 
     // ======================================================================
-    // 1. 6.629s → B(16)=6.667s  タイル表示①（7拍）
-    // 2. 9.694s → B(23)=9.583s  タイル爆破①（9拍。7拍で14枚を消化し2拍静止）
-    //    区間末（＝区間③の頭 B(32)）で残ったタイルは消す（v3 どおり）。
+    // v10: 落下シャベルの対象タイルの選び方（区間⑤⑦）
+    //   対象は「下側の帯（行 0..BAND-1）にあるタイルのうち、その列でいちばん上にあるもの」。
+    //   シャベルは画面上端から落ちるが、上側の帯のタイルは（衝突判定が無いので）貫通して
+    //   通り過ぎ、この対象に当たった瞬間だけ爆破する。縦帯の予告は上端から対象タイルまで。
+    //   4 回とも別の列にするため、16 列を 2 列ずつ 8 ゾーンに割って 1 ゾーン 1 列だけ選び、
+    //   偶数ゾーンを区間⑤、奇数ゾーンを区間⑦へ振り分ける（どちらも左右に散る）。
     // ======================================================================
-    const stackedA = tilePhase({
-      firstBeat: S1_BEAT,
-      len: S1_LEN,
-      blastFirstBeat: S2_BEAT,
-      // 「配置の総枚数は v3 のまま」＝1回の配置（1拍ぶんの敷き詰め）の枚数を v3 と同じに保つ。
-      // 拍数だけ 4→7 に増やし、密度（fillRate）は v3 の値を据え置く。
-      fillRate: FILL_RATE,
-      holdUntil: B(S3_BEAT),
-      pinStartGap: true,
-    });
-    blastPhase({ firstBeat: S2_BEAT, len: S2_LEN, stacked: stackedA });
+    function pickShovelTargets(tiles) {
+      const topByCol = new Map();
+      tiles.forEach(function (t) {
+        if (t.claimed) return;      // 区間④で爆破済みのタイルは対象にしない
+        if (t.row >= BAND) return;  // 下側の帯だけが対象
+        const cur = topByCol.get(t.col);
+        if (!cur || t.row > cur.row) topByCol.set(t.col, t);
+      });
+
+      const zones = [];
+      for (let z = 0; z < 8; z++) zones.push([]);
+      topByCol.forEach(function (t) { zones[Math.floor(t.col / 2)].push(t); });
+
+      const first = [];   // 区間⑤
+      const second = [];  // 区間⑦
+      const usedCols = new Set();
+      zones.forEach(function (pool, z) {
+        if (pool.length === 0) return;
+        const t = pool[Math.floor(rng() * pool.length)];
+        usedCols.add(t.col);
+        (z % 2 === 0 ? first : second).push(t);
+      });
+      // ゾーンが足りなかったときの補充（列は必ず別）
+      const spare = shuffled(
+        Array.from(topByCol.values()).filter((t) => !usedCols.has(t.col)),
+        rng
+      );
+      [first, second].forEach(function (list) {
+        while (list.length < 4 && spare.length > 0) {
+          const t = spare.shift();
+          usedCols.add(t.col);
+          list.push(t);
+        }
+      });
+      return shuffled(first, rng).slice(0, 4).concat(shuffled(second, rng).slice(0, 4));
+    }
 
     // ======================================================================
-    // 3. 13.380s → B(32)=13.333s  タイル表示②（8拍・シードは rng の続き＝別配置）
-    // 4. 16.783s → B(40)=16.667s  タイル爆破②（8拍で16枚）
-    //    指示書 5 の前提により、区間末でタイルを消さず残す。残ったタイルが
-    //    区間⑤⑦の爆破対象・区間⑥⑧のシャベル y 座標の供給源になる。
+    // 1. 6.629s → B(16)=6.667s  タイル表示①（7拍）
+    // 2. 9.694s → B(23)=9.583s  タイル爆破①（9拍・毎拍2枚＝最大18枚）
+    //    帯に残ったタイルは区間③の頭 B(32) で消える（v9 どおり）。
     // ======================================================================
-    let heldCells = [];      // 区間⑤〜⑧の間ずっと画面に残るタイル
-    let shovelTargets = [];  // ⑤⑦で爆破する 8 枚（先頭4枚=⑤ / 後半4枚=⑦）
+    const bandA = tilePhase({
+      firstBeat: S1_BEAT,
+      len: S1_LEN,
+      centerRate: CENTER_RATE,
+      bandTarget: BAND_TARGET,
+      bandEnd: B(S3_BEAT),
+      pinStartGap: true,
+    });
+    blastPhase({ firstBeat: S2_BEAT, len: S2_LEN, tiles: bandA });
+    emitBandTiles(bandA);
+
+    // ======================================================================
+    // 3. 13.380s → B(32)=13.333s  タイル表示②（8拍・rng の続き＝別配置）
+    // 4. 16.783s → B(40)=16.667s  タイル爆破②（8拍・毎拍2枚＝最大16枚）
+    //    帯に残ったタイルは区間⑧の末 B(80) まで消えず、⑤⑦の爆破対象と
+    //    ⑥⑧のシャベル y 座標（行）の供給源になる。
+    // ======================================================================
 
     // ⑤⑦のシャベル到達（＝爆破）時刻。2拍おきに4回。
     const S5_IMPACTS = [0, 2, 4, 6].map((k) => B(S5_BEAT + k));
     const S7_IMPACTS = [0, 2, 4, 6].map((k) => B(S7_BEAT + k));
     const IMPACTS = S5_IMPACTS.concat(S7_IMPACTS);
 
-    const stackedB = tilePhase({
+    const bandB = tilePhase({
       firstBeat: S3_BEAT,
       len: S3_LEN,
-      blastFirstBeat: S4_BEAT,
-      fillRate: FILL_RATE,
+      centerRate: CENTER_RATE,
+      bandTarget: BAND_TARGET,
+      bandEnd: B(END_BEAT),
       pinStartGap: false,
-      // 最終拍のタイルの内訳をここで決める（爆破対象8枚は個別クリップにして個別の life を持たせる）。
-      onLastBeat: function (transient, strike) {
-        // 爆破対象は「各列でいちばん上のタイル」から列が重複しないように選ぶ。
-        // こうすると上から落とすシャベルが手前の別タイルを素通りして見えることがない。
-        const topByCol = new Map();
-        transient.forEach(function (c) {
-          const cur = topByCol.get(c[0]);
-          if (!cur || c[1] > cur[1]) topByCol.set(c[0], c);
-        });
-        const cand = Array.from(topByCol.values());
-        const picked = [];
-        for (let k = 0; k < IMPACTS.length && cand.length > 0; k++) {
-          picked.push(cand.splice(Math.floor(rng() * cand.length), 1)[0]);
-        }
-        const pickedKeys = new Set(picked.map((c) => key(c[0], c[1])));
-        const pool = transient.filter((c) => !pickedKeys.has(key(c[0], c[1])));
-        shovelTargets = picked;
-        heldCells = pool;
-
-        // 爆破対象: 1枚1クリップ。シャベル到達の BLAST_LEAD_OUT 手前で消える。
-        picked.forEach(function (cell, k) {
-          s.at(
-            strike,
-            tileField([cell], {
-              type: 'stone_block',
-              color: PINK_SOLID,
-              life: IMPACTS[k] - strike - BLAST_LEAD_OUT,
-              kind: 'tiletarget',
-            })
-          );
-        });
-
-        // 残りのタイル: 区間⑧の末まで画面に残る。
-        s.at(
-          strike,
-          tileField(pool, {
-            type: 'stone_block',
-            color: PINK_SOLID,
-            life: B(END_BEAT) - strike,
-            kind: 'tilehold',
-          })
-        );
-      },
     });
-    blastPhase({ firstBeat: S4_BEAT, len: S4_LEN, stacked: stackedB });
+    blastPhase({ firstBeat: S4_BEAT, len: S4_LEN, tiles: bandB });
+
+    // ⑤⑦で爆破する 8 枚（先頭4枚=⑤ / 後半4枚=⑦）を決め、到達時刻で消えるようにする。
+    const shovelTiles = pickShovelTargets(bandB);
+    shovelTiles.forEach(function (t, k) {
+      t.claimed = true;
+      t.end = IMPACTS[k];
+      t.lead = BLAST_LEAD_OUT;
+    });
+    const shovelTargets = shovelTiles.map((t) => [t.col, t.row]);
+    emitBandTiles(bandB);
+
+    // 区間⑤〜⑧の間ずっと画面に残るタイル（⑥⑧の横断シャベルの行の供給源）
+    const heldCells = bandB.filter((t) => !t.claimed).map((t) => [t.col, t.row]);
 
     // ======================================================================
     // シャベル爆破区間（区間⑤⑦）
