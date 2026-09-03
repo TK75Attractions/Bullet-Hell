@@ -1,4 +1,11 @@
-// choreo/stone3.js — 新・石工（stone3）v19
+// choreo/stone3.js — 新・石工（stone3）v20
+//
+// ── v20 (A) での変更（スプライト 1 枚だけ。この JS の出力は v19 と 1 byte も違わない）──
+//   (A) シャベルのスプライトを、ユーザーが用意したドット絵
+//       （.tmp_tex/shovel/4f846c82….png・1024x1536）を実解像度へ落としたものへ差し替えた。
+//       24 x 76 ドット（1 ドット = 16.4 元 px）で、本体の高さ 76 ドットは v16〜v19 と同じ。
+//       よって SHOVEL_SCALE(3.68) も 1 ドット = 1 画面 px も据え置きで、この JS は無変更。
+//       生成は Tools/gen_stone3_pixel.py の build_shovel()。
 //
 // ── v19 での変更（指示書のマーカー 9〜17 = 40.0〜50.8s の実装。〜39.6s は v18 と完全に同一）──
 //   指示書: Instructions/石工/stage-timing-instructions_20260903_chain_v2.md（17 マーカー）
