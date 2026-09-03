@@ -74,10 +74,16 @@ public class BulletV2TrajectorySnapshotTests
         }
     }
 
+    // 2026-09 石工置き換え便: 「石工」は stone3 の内容に差し替わり、旧石工の1クリップ1ファイル
+    // 形式(run_cutter_1.json / backhalf_drop.json)は Assets/BulletBuffers/_archive/
+    // stone_legacy_20260903 へ退避した。この2テストはステージ内容ではなくV2軌道計算式の
+    // 回帰検証が目的のため、退避先のバックアップデータを参照するよう更新する(データ自体は不変)。
+    private const string StoneLegacyDir = "_archive/stone_legacy_20260903";
+
     [Test]
     public void Stone_RunCutter1_TrajectoryUnchanged()
     {
-        AssertMatchesSnapshot("stone", "run_cutter_1.json", new[]
+        AssertMatchesSnapshot(StoneLegacyDir, "run_cutter_1.json", new[]
         {
             new float2(0.250980f, 17.299999f), new float2(12.250972f, 17.299999f), new float2(24.251009f, 17.299999f),
             new float2(30.651031f, 17.299999f), new float2(30.651031f, 17.299999f), new float2(30.651031f, 17.299999f),
@@ -89,7 +95,7 @@ public class BulletV2TrajectorySnapshotTests
     [Test]
     public void Stone_BackhalfDrop_TrajectoryUnchanged()
     {
-        AssertMatchesSnapshot("stone", "backhalf_drop.json", new[]
+        AssertMatchesSnapshot(StoneLegacyDir, "backhalf_drop.json", new[]
         {
             new float2(6.000001f, -0.729565f), new float2(6.000001f, -0.729565f), new float2(6.000001f, -0.729565f),
             new float2(6.000001f, -0.729565f), new float2(6.000001f, -0.729565f), new float2(6.000001f, -0.729565f),

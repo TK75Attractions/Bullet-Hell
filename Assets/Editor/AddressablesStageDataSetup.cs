@@ -50,6 +50,13 @@ public static class AddressablesStageDataSetup
         {
             string stageDirectory = ToAssetPath(directory);
             string stageName = Path.GetFileName(stageDirectory);
+            // "_" 始まりのディレクトリ(例: _archive)は退避データ置き場であり実ステージではないので
+            // Addressables 登録の対象外にする(2026-09 石工置き換え便で導入)。
+            if (stageName.StartsWith("_", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
             AddressableAssetGroup group = GetOrCreateGroup(settings, $"StageData_{SanitizeGroupName(stageName)}");
 
             foreach (string file in Directory.GetFiles(stageDirectory, "*", SearchOption.TopDirectoryOnly))
@@ -95,6 +102,13 @@ public static class AddressablesStageDataSetup
         {
             string bulletBufferDirectory = ToAssetPath(directory);
             string directoryName = Path.GetFileName(bulletBufferDirectory);
+            // "_" 始まりのディレクトリ(例: _archive)は退避データ置き場であり実ステージではないので
+            // Addressables 登録(=ビルドへの同梱)の対象外にする(2026-09 石工置き換え便で導入)。
+            if (directoryName.StartsWith("_", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
             bool isCommon = CommonBulletBufferDirectories.Contains(directoryName);
             string label = isCommon ? CommonBulletBufferLabel : StageBulletBufferLabelPrefix + directoryName;
             AddressableAssetGroup group = isCommon

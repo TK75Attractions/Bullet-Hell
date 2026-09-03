@@ -812,6 +812,14 @@ public class StageDataManager
 
             string stageName = Path.GetFileName(dir);
 
+            // "_" 始まりのディレクトリ(例: _archive)は退避データ置き場であり実ステージではない。
+            // 2026-09 石工置き換え便で Assets/StageData/_archive を導入した際、ここでスキップ
+            // しないと "stage.json が見つからない" 警告つきの空StageDataが生成されてしまうため除外する。
+            if (stageName.StartsWith("_", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
             StageData data = ReadStageDataFromDirectory(stageName);
 
             stageDataList.Add(data);

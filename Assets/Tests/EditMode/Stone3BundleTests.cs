@@ -11,12 +11,15 @@ using Unity.Mathematics;
 using UnityEngine;
 
 // 段階1(bh-bundle-1)の決定性固定テスト（BULLET-DATA-REFACTOR-PLAN_20260903.md 段階1）。
+// 2026-09 石工置き換え便で対象を Assets/BulletBuffers/stone3 から Assets/BulletBuffers/stone
+// (stone3 の内容を「石工」に設置し直したもの)へ切り替えた。クリップ名(stone3_easy_...等)は
+// 変更していないため、golden のハッシュ値は旧 stone3.golden.json から不変で持ち越している。
 //
 // 1. Stone3BundleParityTests: 旧形式(1クリップ1ファイル、.tmp_stage1/old/stone3 に退避済みの
 //    バックアップ)を旧経路(ReadBulletBufferFromJson)で読んだ結果と、bundle(bh-bundle-1)を
 //    新経路(ReadBulletBuffersFromJsonMulti/ReadBundleBulletBuffersFromJson)で読んだ結果が、
 //    クリップ名・弾数・全フィールドで一致することを固定する。
-// 2. Stone3BundleGoldenTest: bundle を読んだ結果のハッシュを Tests/Golden/stone3.golden.json
+// 2. Stone3BundleGoldenTest: bundle を読んだ結果のハッシュを Tests/Golden/stone.golden.json
 //    として登録し固定する。
 //
 // 注記: 既存の Tests/Golden/*.golden.json はステージの spawner スケジュール(t/clip/idx/pos/...)
@@ -29,9 +32,9 @@ public class Stone3BundleTests
 {
     private const string BulletTypeDatabasePath = "Assets/Scripts/Bullets/BulletTypes/BulletTypeDataBase.asset";
     private const string EnemyDatabasePath = "Assets/Scripts/Enemies/Enemies/EnemyDataBase.asset";
-    private const string OldFormatBackupDir = "../.tmp_stage1/old/stone3"; // Assets/.. からの相対＝リポジトリ直下
-    private const string BundleDir = "Assets/BulletBuffers/stone3";
-    private const string GoldenPath = "../Tests/Golden/stone3.golden.json";
+    private const string OldFormatBackupDir = "../.tmp_stage1/old/stone3"; // Assets/.. からの相対＝リポジトリ直下(旧1クリップ1ファイル形式のバックアップ。中身は不変)
+    private const string BundleDir = "Assets/BulletBuffers/stone";
+    private const string GoldenPath = "../Tests/Golden/stone.golden.json";
 
     private static string RepoRoot => Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
 
