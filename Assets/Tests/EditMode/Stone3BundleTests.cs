@@ -44,8 +44,12 @@ public class Stone3BundleTests
         string oldDir = Path.GetFullPath(Path.Combine(Application.dataPath, OldFormatBackupDir));
         string bundleDir = Path.GetFullPath(Path.Combine(RepoRoot, BundleDir));
 
-        Assert.IsTrue(Directory.Exists(oldDir),
-            $"旧形式バックアップが見つかりません: {oldDir}（.tmp_stage1/old/stone3 に退避済みである前提）");
+        // 旧形式バックアップは git 管理外のローカル退避物。無い環境（共同開発者のクローン等）では
+        // 失敗ではなくスキップ扱いにする（bundle の golden テストは別途走る）。
+        if (!Directory.Exists(oldDir))
+        {
+            Assert.Ignore($"旧形式バックアップが無いためスキップ: {oldDir}");
+        }
         Assert.IsTrue(Directory.Exists(bundleDir), $"bundle ディレクトリが見つかりません: {bundleDir}");
 
         using (new EditorStageProbe(BulletTypeDatabasePath, EnemyDatabasePath))
