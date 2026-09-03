@@ -61,7 +61,7 @@ public class BulletDataJson
             resolvedScale = new float2(1f, 1f);
         }
 
-        FixedList128Bytes<BulletV2Segment> resolvedSegments = ResolveV2Segments(segments);
+        FixedList512Bytes<BulletV2Segment> resolvedSegments = ResolveV2Segments(segments);
 
         BulletData b = new BulletData
         {
@@ -104,9 +104,9 @@ public class BulletDataJson
         return b;
     }
 
-    private static FixedList128Bytes<BulletV2Segment> ResolveV2Segments(List<BulletV2SegmentJson> source)
+    private static FixedList512Bytes<BulletV2Segment> ResolveV2Segments(List<BulletV2SegmentJson> source)
     {
-        FixedList128Bytes<BulletV2Segment> result = default;
+        FixedList512Bytes<BulletV2Segment> result = default;
         if (source == null || source.Count == 0) return result;
 
         int capacity = result.Capacity;

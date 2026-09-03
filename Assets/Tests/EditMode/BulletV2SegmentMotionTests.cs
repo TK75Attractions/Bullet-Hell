@@ -262,7 +262,7 @@ public class BulletV2SegmentMotionTests
     [Test]
     public void ResolveV2Segments_TruncatesBeyondCapacity_WithWarning()
     {
-        int capacity = new FixedList128Bytes<BulletV2Segment>().Capacity;
+        int capacity = new FixedList512Bytes<BulletV2Segment>().Capacity;
         var sb = new System.Text.StringBuilder();
         sb.Append("{\"name\":\"test\",\"bullets\":[{\"typeName\":\"tear\",\"segments\":[");
         for (int i = 0; i < capacity + 2; i++)

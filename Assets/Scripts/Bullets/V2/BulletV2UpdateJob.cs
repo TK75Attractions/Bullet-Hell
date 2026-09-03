@@ -132,7 +132,7 @@ public struct BulletV2UpdateJob : IJobParallelFor
         return bullet;
     }
 
-    private static void EvaluateSegments(in FixedList128Bytes<BulletV2Segment> segments, float lapse, out float2 offset, out float2 velocity)
+    private static void EvaluateSegments(in FixedList512Bytes<BulletV2Segment> segments, float lapse, out float2 offset, out float2 velocity)
     {
         float2 baseOffset = float2.zero;
         float cumulative = 0f;

@@ -105,7 +105,15 @@ public struct BulletData
     // --- v2 運動レーン(SPEC-RUNTIME-V2.md P1) ---------------------------------
     // 以下4フィールドはすべて省略可・既定値0/emptyで従来レーン(BulletDataUpdateJob)を通る。
     /// <summary>v2 ネイティブ区間列。空なら従来レーン。非空なら BulletV2UpdateJob が専任で処理する。</summary>
-    public FixedList128Bytes<BulletV2Segment> v2Segments;
+    /// <remarks>
+    /// v20: FixedList128Bytes(容量 5)から FixedList512Bytes(容量 21)へ拡げた。石工3 の鎖は
+    /// 1 発が moveTo 16 分割＝16 区間を持つため、容量 5 では BulletDataJson が 6 区間目以降を
+    /// 捨てて警告を出し、鎖が横揺れの端で固まっていた(実測ずれ 最大 1.885 ユニット)。
+    /// 1 区間 24 byte なので FixedList4096Bytes(容量 170)まで上げると BulletData が 1 発
+    /// 4KB 超になる。16 区間を余裕をもって収める最小の段が 512(21 区間)。
+    /// 既存データ(区間 5 以下)の解釈と全レーンの挙動は不変。
+    /// </remarks>
+    public FixedList512Bytes<BulletV2Segment> v2Segments;
     /// <summary>v2 リアルタイム自機狙いの旋回速度(rad/s)。0 なら無効。</summary>
     public float homingTurnRate;
     /// <summary>v2 自機狙いを継続する時間(秒)。経過後は最後の方向のまま直進する。</summary>
@@ -226,11 +234,11 @@ public struct BulletData
         );
     }
 
-    private static FixedList128Bytes<BulletV2Segment> RotateSegments(in FixedList128Bytes<BulletV2Segment> segments, float theta)
+    private static FixedList512Bytes<BulletV2Segment> RotateSegments(in FixedList512Bytes<BulletV2Segment> segments, float theta)
     {
         if (segments.Length == 0 || theta == 0f) return segments;
 
-        FixedList128Bytes<BulletV2Segment> rotated = default;
+        FixedList512Bytes<BulletV2Segment> rotated = default;
         for (int i = 0; i < segments.Length; i++)
         {
             BulletV2Segment segment = segments[i];

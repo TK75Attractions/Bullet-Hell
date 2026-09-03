@@ -3,7 +3,7 @@ using Unity.Mathematics;
 
 /// <summary>
 /// v2 運動レーンのネイティブ区間(SPEC-RUNTIME-V2.md P1-a)。
-/// 弾1発は最大 <see cref="BulletData.v2Segments"/> の Capacity 個までこの区間列を持ち、
+/// 弾1発は最大 <see cref="BulletData.v2Segments"/> の Capacity 個(v20 現在 21)までこの区間列を持ち、
 /// 区間境界で位置が連続するようランタイム(<see cref="BulletV2UpdateJob"/>)が閉形式で積分する。
 /// gravitySeq のような appearTime/life 連鎖による偽装(弾数3〜4倍)を置き換えるためのもの。
 /// </summary>
