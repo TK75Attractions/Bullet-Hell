@@ -1,4 +1,21 @@
-// choreo/stone3.js — 新・石工（stone3）v23
+// choreo/stone3.js — 新・石工（stone3）v24
+//
+// ── v24 (A) 「集めて爆破」（マーカー 48）の着弾位置とイージング ──────────────
+//   参考 https://www.youtube.com/watch?v=bePI-wq_lNk 1:00〜1:05 を 1/30 秒刻みで再観察した
+//   （観察表と数値は .tmp_v24/ref_notes.md）。分かったこと:
+//     ・集まる先は画面のちょうど中央 x。白いブルームの中心は画面下端から高さの 4.4%
+//       （この画面なら 0.8 ユニット）＝ **画面下端の中央**であって、画面中ほどではない。
+//     ・寄り方は等速ではなく**等加速**。初速 861 px/s・加速度 2274 px/s^2・到達速度 1468 px/s
+//       （＝初速の 1.70 倍）。距離の違う 4 個が**同じ時刻に**着く。
+//     ・到達 → 白いブルーム 0.13〜0.18 秒 → 放射弾 0.30 秒。
+//   変更:
+//     ・GATHER_POINT 5.0 → 1.2（画面下端の中央）。
+//     ・gatherTile() を等速直線から「静止 → 等加速で吸い込まれる」へ。加速度を距離に
+//       比例させる（a = 2d / flight^2）ので、どのタイルも flight ちょうどで 1 点に着く。
+//       実装は v1 レーンの gravity フィールド（h = g t^2 / 2 の厳密解）。v2 セグメントの
+//       折れ線ではなくこちらを採ったのは、v2 だと自転（thetaVlc）が消えるため（v23 の知見）。
+//     ・着弾の瞬間に集合点で白いブルーム（flashPop）を 1 発出す。爆発（2 重リング）と
+//       タイルの自転は据え置き。
 //
 // ── v23 (A) 音ハメの再調整（全マーカーの採用時刻を作り直した。配置ロジックは無変更）──
 //   ユーザー評価「音ハメがだいぶ微妙。大きな音が流れるところに合わせればよい」を受けて、
@@ -559,7 +576,12 @@ const TILE43_TIMES = Array.from({ length: 6 }, (_, i) => MK43_TILE6 + i * BEAT);
 const BLAST44_TIMES = Array.from({ length: 5 }, (_, i) => MK44_BLAST5 + i * BEAT); // 105.424〜107.091
 
 // 48 の集合攻撃。タイルは MK48 に飛び始め、次の強拍（拍 262 = 109.1667s）で 1 点に着いて爆発する。
-const GATHER_POINT = [16, 5.0];          // 自機の初期位置(16, 2.4) より少し上＝下側に逃げ場が残る
+// v24 (A): 集合点を画面下端の中央へ下げた。参考（Lightspeed 1:02 前後）の実測では、
+//   4 個のトゲ玉が集まる先は画面のちょうど中央 x で、白いブルームの中心は画面下端から
+//   高さの 4.4%（この画面なら 18 x 0.044 = 0.8 ユニット）だった。タイルの半幅 0.92 が
+//   画面内に残る下限として y = 1.2 を採る（旧 5.0）。集合点が下端になるので、爆発の
+//   下向きの弾はすぐ画面外へ抜け、実質は上向きの扇になる。
+const GATHER_POINT = [16, 1.2];          // 画面下端の中央（下端から 1.2 ユニット）
 const GATHER_IMPACT = MK48_GATHER + beats(2);  // v23: 48 から 2 拍（109.1602s）          // 拍 262（小節 66 の 3 拍目）＝ MK48 から 2 拍
 const GATHER_SPIN = 4.0;                 // 飛んでいるあいだの自転（rad/s）
 
@@ -1079,6 +1101,25 @@ function tilePop(cells, kind) {
   return warnClip(items, kind);
 }
 
+// --- v24: 白いフラッシュ 1 発（正方形が大きく光って縮みながら消える）-------------
+//   集合爆破のブルーム（マーカー 48）と、隕石の出現／着弾／タイル破壊で共用する。
+//   BLINK_TYPE（stone3_flash）は renderPriority 4 ＝ タイルや隕石本体より手前。
+//   verts 空なので当たり判定は無い。delay を入れるとその秒数だけ待ってから光る。
+function flashPop(pos, delay, s0, s1, dur, kind) {
+  return warnClip([{
+    type: BLINK_TYPE,
+    pos: [pos[0], pos[1]],
+    scale: [s0, s0],
+    color: POP_COLOR_START,
+    scaleEnd: [s1, s1],
+    colorEnd: STONE_MID,
+    animDuration: dur,
+    appearTime: delay,
+    appearDuration: 0,
+    life: delay + dur + FADE_OUT_SEC,
+  }], kind);
+}
+
 // (3) 落下シャベルの経路予告。通る列に、刃の幅ぶん（＝タイル1枚幅）の縦帯を出す。
 //     v7: 帯の下端を対象タイルの中心から「タイルの下端」まで下げ、シャベルが掃く範囲を
 //     まるごと覆うようにした（対象タイル自体の位置は blinkWarn の点滅でも示している）。
@@ -1488,13 +1529,30 @@ function meteorLineTrail(x0, x1, y, flight) {
 
 // マーカー 48 の「回転しながら 1 点へ集まるタイル」1 枚。
 //   spinBurst と同じ視覚回転トリック（useVelocityAngle:false + polarForm + thetaVlc）を
-//   等速直線の弾に付けたもの。polarForm は r=1・speed 既定なので位置には効かず、描画角だけ回る。
+//   重ねてあるので、飛行中も描画角だけが回り続ける（polarForm は r=1・speed 既定なので
+//   位置には効かない）。
+//
+//   v24 (A): 等速直線をやめ、**静止 → 等加速で 1 点へ吸い込まれる**動きにした。
+//   参考（Lightspeed 1:02）の実測は等加速度そのもので、初速 861 px/s・加速度 2274 px/s^2・
+//   到達速度 1468 px/s（＝初速の 1.70 倍）だった。こちらのタイルは 108.33s まで静止して
+//   いるので、同じ等加速度の法則を初速 0 で当てる。すなわち移動量は s(u) = u^2。
+//   到達時刻はどのタイルも flight ちょうどで、距離が違っても加速度を距離に比例させる
+//   （a = 2d / flight^2）ことで**同時刻に 1 点へ着く**。
+//
+//   実装は v2 セグメントの折れ線ではなく v1 レーンの gravity フィールドを使う。理由は 2 つ:
+//     ・BulletDataUpdateJob.cs:132 が h = gravity.x * t^2 / 2 を足す＝u^2 の厳密解で、
+//       12 分割の折れ線近似より正確（継ぎ目のフェードも出ない）。
+//     ・v2（BulletV2UpdateJob）は polarForm.y を更新しないので自転が消える（v23 で確認済み）。
+//       自転を残すという条件と両立できるのは v1 レーンだけ。
 function gatherTile(from, to, flight, spin) {
-  const vx = (to[0] - from[0]) / flight;
-  const vy = (to[1] - from[1]) / flight;
+  const dx = to[0] - from[0];
+  const dy = to[1] - from[1];
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const accel = (2 * dist) / (flight * flight);   // s(flight) = a*flight^2/2 = dist
   const bullet = bulletDefaults({
     originPos: { x: from[0], y: from[1] },
-    originVlc: { x: vx, y: vy },
+    originVlc: { x: 0, y: 0 },
+    gravity: { x: accel, y: normalizeNegativeZero(Math.atan2(dy, dx)) },
     typeName: 'stone3_tile',
     scale: { x: TILE, y: TILE },
     color: { x: SPRITE_AS_IS[0], y: SPRITE_AS_IS[1], z: SPRITE_AS_IS[2], w: SPRITE_AS_IS[3] },
@@ -2928,10 +2986,13 @@ export default stage(
 
     // --- マーカー 48: 下に集めて爆破（108.344s → 着弾 109.167s）------------------
     //   参考の「下に弾を集めて爆破する攻撃」を、45/46 で出したタイルでやる。
-    //   タイルは回転しながら中央下の 1 点（自機の初期位置 (16,2.4) より少し上の (16,5)）へ
-    //   2 拍かけて集まり、次の強拍（拍 262 = 109.167s）ちょうどで消えると同時に
-    //   2 重リングの放射弾が出る。弾数は通常の爆破（D(10,12,14)）の 4 倍。
-    //   内側は遅く外側は速いので、広がるにつれてリングが 2 枚に分かれて見える。
+    //   v24 (A): 集合点を画面下端の中央 (16, 1.2) へ下げ、動きを等速から
+    //   「静止 → 等加速（s(u)=u^2）で 1 点へ吸い込まれる」へ変えた（gatherTile 参照）。
+    //   タイルは回転しながら 2 拍かけて集まり、次の強拍（拍 262 = 109.167s）ちょうどで
+    //   全枚数が同時に 1 点へ重なって消え、同時に 2 重リングの放射弾が出る。
+    //   弾数は通常の爆破（D(10,12,14)）の 4 倍。内側は遅く外側は速いので、広がるにつれて
+    //   リングが 2 枚に分かれて見える。集合点が下端なので下向きの弾はすぐ画面外へ抜け、
+    //   実質は上向きの扇になる（＝参考どおり、下端沿いに左右へ逃げ場が残る）。
     const GATHER_FLIGHT = GATHER_IMPACT - MK48_GATHER;   // 0.8224s
     gatherCells.forEach(function (c, i) {
       s.at(MK48_GATHER, gatherTile(
@@ -2939,6 +3000,15 @@ export default stage(
         GATHER_SPIN * (i % 2 === 0 ? 1 : -1)
       ));
     });
+    // v24 (A): 参考では 4 個が着いた直後に集合点で白いブルームが膨らむ。ここでも
+    //   同じ絵を出す（当たり判定なしの stone3_flash 1 発）。タイルは life 末尾の
+    //   FADE_OUT_SEC(0.1) で薄くなりながら 1 点へ入るので、その受け皿にもなる。
+    const GATHER_BLOOM_S0 = TILE * 4.0;
+    const GATHER_BLOOM_S1 = TILE * 1.0;
+    const GATHER_BLOOM_DUR = 0.14;
+    s.at(GATHER_IMPACT, flashPop(
+      GATHER_POINT, 0, GATHER_BLOOM_S0, GATHER_BLOOM_S1, GATHER_BLOOM_DUR, 'gatherbloom'
+    ));
     const GATHER_RING_N = Math.round(D(10, 12, 14) * 2);
     s.at(GATHER_IMPACT, spinBurst({
       pos: GATHER_POINT,

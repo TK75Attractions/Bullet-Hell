@@ -25746,7 +25746,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_easy_1113_blast"
+                    "clipName": "stone3_easy_1113_gatherbloom"
                 },
                 {
                     "index": 0,
@@ -25775,6 +25775,29 @@
                     "index": 0,
                     "count": 1,
                     "interval": 0,
+                    "time": 109.16023333333332,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_easy_1115_blast"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
                     "time": 108.90283333333333,
                     "pos": {
                         "x": 0,
@@ -25792,7 +25815,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_easy_1115_meteorwarn"
+                    "clipName": "stone3_easy_1116_meteorwarn"
                 },
                 {
                     "index": 0,
@@ -25815,7 +25838,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_easy_1116_meteorline"
+                    "clipName": "stone3_easy_1117_meteorline"
                 },
                 {
                     "index": 0,
@@ -25838,7 +25861,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_easy_1117_meteorlinetrail"
+                    "clipName": "stone3_easy_1118_meteorlinetrail"
                 },
                 {
                     "index": 0,
@@ -25861,7 +25884,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_easy_1118_blast"
+                    "clipName": "stone3_easy_1119_blast"
                 },
                 {
                     "index": 0,
@@ -25884,7 +25907,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_easy_1119_meteorwarn"
+                    "clipName": "stone3_easy_1120_meteorwarn"
                 },
                 {
                     "index": 0,
@@ -25907,7 +25930,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_easy_1120_meteorline"
+                    "clipName": "stone3_easy_1121_meteorline"
                 },
                 {
                     "index": 0,
@@ -25930,7 +25953,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_easy_1121_meteorlinetrail"
+                    "clipName": "stone3_easy_1122_meteorlinetrail"
                 },
                 {
                     "index": 0,
@@ -25953,30 +25976,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_easy_1122_blast"
-                },
-                {
-                    "index": 0,
-                    "count": 1,
-                    "interval": 0,
-                    "time": 104.989,
-                    "pos": {
-                        "x": 0,
-                        "y": 0
-                    },
-                    "originVlc": {
-                        "x": 0,
-                        "y": 0
-                    },
-                    "angle": 0,
-                    "angleInterval": 0,
-                    "color": {
-                        "x": 1,
-                        "y": 1,
-                        "z": 1,
-                        "w": 1
-                    },
-                    "clipName": "stone3_easy_1123_tileband"
+                    "clipName": "stone3_easy_1123_blast"
                 },
                 {
                     "index": 0,
@@ -26028,7 +26028,7 @@
                     "index": 0,
                     "count": 1,
                     "interval": 0,
-                    "time": 105.40566666666668,
+                    "time": 104.989,
                     "pos": {
                         "x": 0,
                         "y": 0
@@ -26143,7 +26143,7 @@
                     "index": 0,
                     "count": 1,
                     "interval": 0,
-                    "time": 105.82233333333333,
+                    "time": 105.40566666666668,
                     "pos": {
                         "x": 0,
                         "y": 0
@@ -26189,7 +26189,7 @@
                     "index": 0,
                     "count": 1,
                     "interval": 0,
-                    "time": 106.239,
+                    "time": 105.82233333333333,
                     "pos": {
                         "x": 0,
                         "y": 0
@@ -26235,7 +26235,7 @@
                     "index": 0,
                     "count": 1,
                     "interval": 0,
-                    "time": 106.65566666666668,
+                    "time": 106.239,
                     "pos": {
                         "x": 0,
                         "y": 0
@@ -26258,7 +26258,7 @@
                     "index": 0,
                     "count": 1,
                     "interval": 0,
-                    "time": 107.07233333333333,
+                    "time": 106.65566666666668,
                     "pos": {
                         "x": 0,
                         "y": 0
@@ -26276,224 +26276,29 @@
                         "w": 1
                     },
                     "clipName": "stone3_easy_1136_tileband"
-                }
-            ],
-            "bossSpawners": [
-                {
-                    "bossId": "",
-                    "bossName": "demo",
-                    "visualId": "golem",
-                    "appearTime": 49.824561,
-                    "lifeTime": 0.664327,
-                    "maxHp": 100.0,
-                    "startPos": {
-                        "x": 16,
-                        "y": 19.64
-                    },
-                    "scale": {
-                        "x": 2.8,
-                        "y": 2.8
-                    },
-                    "angle": 0.0,
-                    "sortingOrder": 0,
-                    "fadeInSec": 0.0,
-                    "fadeOutSec": 0.0,
-                    "animation": {
-                        "initialClip": "fall1_descend",
-                        "events": [],
-                        "triggers": []
-                    },
-                    "moves": [
-                        {
-                            "time": 0.0,
-                            "duration": 0.833333,
-                            "type": "moveto",
-                            "to": {
-                                "x": 16.0,
-                                "y": 13.64
-                            },
-                            "control": {
-                                "x": 0,
-                                "y": 0
-                            },
-                            "easing": "linear",
-                            "relative": false
-                        }
-                    ]
                 },
                 {
-                    "bossId": "",
-                    "bossName": "demo",
-                    "visualId": "golem",
-                    "appearTime": 50.488889,
-                    "lifeTime": 62.415959,
-                    "maxHp": 100.0,
-                    "startPos": {
-                        "x": 16,
-                        "y": 13.64
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 107.07233333333333,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
                     },
-                    "scale": {
-                        "x": 2.8,
-                        "y": 2.8
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
                     },
-                    "angle": 0.0,
-                    "sortingOrder": 0,
-                    "fadeInSec": 0.0,
-                    "fadeOutSec": 0.0,
-                    "animation": {
-                        "initialClip": "fall2",
-                        "events": [
-                            {
-                                "time": 2.65731,
-                                "clip": "leftSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 3.321638,
-                                "clip": "rightSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 3.985965,
-                                "clip": "leftSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 4.650292,
-                                "clip": "bothSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 7.97193,
-                                "clip": "leftSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 8.636257,
-                                "clip": "rightSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 9.300585,
-                                "clip": "bothSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 10.62924,
-                                "clip": "bothSlam",
-                                "next": "idle"
-                            }
-                        ],
-                        "triggers": []
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
                     },
-                    "moves": []
-                },
-                {
-                    "bossId": "",
-                    "bossName": "demo",
-                    "visualId": "stone",
-                    "appearTime": 4.145404,
-                    "lifeTime": 46.343485,
-                    "maxHp": 100.0,
-                    "startPos": {
-                        "x": 16,
-                        "y": 15.6
-                    },
-                    "scale": {
-                        "x": 2.8,
-                        "y": 2.8
-                    },
-                    "angle": 0.0,
-                    "sortingOrder": 9,
-                    "fadeInSec": 0.0,
-                    "fadeOutSec": 0.4,
-                    "animation": {
-                        "initialClip": "idle",
-                        "events": [
-                            {
-                                "time": 1.169482,
-                                "clip": "cast1",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 3.826526,
-                                "clip": "cast2",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 6.483571,
-                                "clip": "cast1",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 9.141412,
-                                "clip": "cast2",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 11.798456,
-                                "clip": "cast3",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 17.113342,
-                                "clip": "cast3",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 22.42743,
-                                "clip": "cast4",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 23.423921,
-                                "clip": "cast4",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 25.085272,
-                                "clip": "cast5",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 28.738807,
-                                "clip": "cast5",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 31.728281,
-                                "clip": "cast6",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 37.840359,
-                                "clip": "cast6",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 41.029131,
-                                "clip": "cast1",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 43.353746,
-                                "clip": "cast2",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 45.015096,
-                                "clip": "cast4",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 45.679158,
-                                "clip": "cast5",
-                                "next": "idle"
-                            }
-                        ],
-                        "triggers": []
-                    },
-                    "moves": []
+                    "clipName": "stone3_easy_1137_tileband"
                 }
             ]
         },
@@ -52787,7 +52592,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_normal_1143_blast"
+                    "clipName": "stone3_normal_1143_gatherbloom"
                 },
                 {
                     "index": 0,
@@ -52816,6 +52621,29 @@
                     "index": 0,
                     "count": 1,
                     "interval": 0,
+                    "time": 109.16023333333332,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_normal_1145_blast"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
                     "time": 108.90283333333333,
                     "pos": {
                         "x": 0,
@@ -52833,7 +52661,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_normal_1145_meteorwarn"
+                    "clipName": "stone3_normal_1146_meteorwarn"
                 },
                 {
                     "index": 0,
@@ -52856,7 +52684,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_normal_1146_meteorline"
+                    "clipName": "stone3_normal_1147_meteorline"
                 },
                 {
                     "index": 0,
@@ -52879,7 +52707,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_normal_1147_meteorlinetrail"
+                    "clipName": "stone3_normal_1148_meteorlinetrail"
                 },
                 {
                     "index": 0,
@@ -52902,7 +52730,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_normal_1148_blast"
+                    "clipName": "stone3_normal_1149_blast"
                 },
                 {
                     "index": 0,
@@ -52925,7 +52753,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_normal_1149_meteorwarn"
+                    "clipName": "stone3_normal_1150_meteorwarn"
                 },
                 {
                     "index": 0,
@@ -52948,7 +52776,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_normal_1150_meteorline"
+                    "clipName": "stone3_normal_1151_meteorline"
                 },
                 {
                     "index": 0,
@@ -52971,7 +52799,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_normal_1151_meteorlinetrail"
+                    "clipName": "stone3_normal_1152_meteorlinetrail"
                 },
                 {
                     "index": 0,
@@ -52994,30 +52822,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_normal_1152_blast"
-                },
-                {
-                    "index": 0,
-                    "count": 1,
-                    "interval": 0,
-                    "time": 104.989,
-                    "pos": {
-                        "x": 0,
-                        "y": 0
-                    },
-                    "originVlc": {
-                        "x": 0,
-                        "y": 0
-                    },
-                    "angle": 0,
-                    "angleInterval": 0,
-                    "color": {
-                        "x": 1,
-                        "y": 1,
-                        "z": 1,
-                        "w": 1
-                    },
-                    "clipName": "stone3_normal_1153_tileband"
+                    "clipName": "stone3_normal_1153_blast"
                 },
                 {
                     "index": 0,
@@ -53115,7 +52920,7 @@
                     "index": 0,
                     "count": 1,
                     "interval": 0,
-                    "time": 105.40566666666668,
+                    "time": 104.989,
                     "pos": {
                         "x": 0,
                         "y": 0
@@ -53207,7 +53012,7 @@
                     "index": 0,
                     "count": 1,
                     "interval": 0,
-                    "time": 105.82233333333333,
+                    "time": 105.40566666666668,
                     "pos": {
                         "x": 0,
                         "y": 0
@@ -53253,7 +53058,7 @@
                     "index": 0,
                     "count": 1,
                     "interval": 0,
-                    "time": 106.239,
+                    "time": 105.82233333333333,
                     "pos": {
                         "x": 0,
                         "y": 0
@@ -53276,7 +53081,7 @@
                     "index": 0,
                     "count": 1,
                     "interval": 0,
-                    "time": 106.65566666666668,
+                    "time": 106.239,
                     "pos": {
                         "x": 0,
                         "y": 0
@@ -53299,7 +53104,7 @@
                     "index": 0,
                     "count": 1,
                     "interval": 0,
-                    "time": 107.07233333333333,
+                    "time": 106.65566666666668,
                     "pos": {
                         "x": 0,
                         "y": 0
@@ -53317,224 +53122,29 @@
                         "w": 1
                     },
                     "clipName": "stone3_normal_1166_tileband"
-                }
-            ],
-            "bossSpawners": [
-                {
-                    "bossId": "",
-                    "bossName": "demo",
-                    "visualId": "golem",
-                    "appearTime": 49.824561,
-                    "lifeTime": 0.664327,
-                    "maxHp": 100.0,
-                    "startPos": {
-                        "x": 16,
-                        "y": 19.64
-                    },
-                    "scale": {
-                        "x": 2.8,
-                        "y": 2.8
-                    },
-                    "angle": 0.0,
-                    "sortingOrder": 0,
-                    "fadeInSec": 0.0,
-                    "fadeOutSec": 0.0,
-                    "animation": {
-                        "initialClip": "fall1_descend",
-                        "events": [],
-                        "triggers": []
-                    },
-                    "moves": [
-                        {
-                            "time": 0.0,
-                            "duration": 0.833333,
-                            "type": "moveto",
-                            "to": {
-                                "x": 16.0,
-                                "y": 13.64
-                            },
-                            "control": {
-                                "x": 0,
-                                "y": 0
-                            },
-                            "easing": "linear",
-                            "relative": false
-                        }
-                    ]
                 },
                 {
-                    "bossId": "",
-                    "bossName": "demo",
-                    "visualId": "golem",
-                    "appearTime": 50.488889,
-                    "lifeTime": 62.415959,
-                    "maxHp": 100.0,
-                    "startPos": {
-                        "x": 16,
-                        "y": 13.64
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 107.07233333333333,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
                     },
-                    "scale": {
-                        "x": 2.8,
-                        "y": 2.8
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
                     },
-                    "angle": 0.0,
-                    "sortingOrder": 0,
-                    "fadeInSec": 0.0,
-                    "fadeOutSec": 0.0,
-                    "animation": {
-                        "initialClip": "fall2",
-                        "events": [
-                            {
-                                "time": 2.65731,
-                                "clip": "leftSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 3.321638,
-                                "clip": "rightSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 3.985965,
-                                "clip": "leftSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 4.650292,
-                                "clip": "bothSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 7.97193,
-                                "clip": "leftSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 8.636257,
-                                "clip": "rightSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 9.300585,
-                                "clip": "bothSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 10.62924,
-                                "clip": "bothSlam",
-                                "next": "idle"
-                            }
-                        ],
-                        "triggers": []
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
                     },
-                    "moves": []
-                },
-                {
-                    "bossId": "",
-                    "bossName": "demo",
-                    "visualId": "stone",
-                    "appearTime": 4.145404,
-                    "lifeTime": 46.343485,
-                    "maxHp": 100.0,
-                    "startPos": {
-                        "x": 16,
-                        "y": 15.6
-                    },
-                    "scale": {
-                        "x": 2.8,
-                        "y": 2.8
-                    },
-                    "angle": 0.0,
-                    "sortingOrder": 9,
-                    "fadeInSec": 0.0,
-                    "fadeOutSec": 0.4,
-                    "animation": {
-                        "initialClip": "idle",
-                        "events": [
-                            {
-                                "time": 1.169482,
-                                "clip": "cast1",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 3.826526,
-                                "clip": "cast2",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 6.483571,
-                                "clip": "cast1",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 9.141412,
-                                "clip": "cast2",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 11.798456,
-                                "clip": "cast3",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 17.113342,
-                                "clip": "cast3",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 22.42743,
-                                "clip": "cast4",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 23.423921,
-                                "clip": "cast4",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 25.085272,
-                                "clip": "cast5",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 28.738807,
-                                "clip": "cast5",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 31.728281,
-                                "clip": "cast6",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 37.840359,
-                                "clip": "cast6",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 41.029131,
-                                "clip": "cast1",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 43.353746,
-                                "clip": "cast2",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 45.015096,
-                                "clip": "cast4",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 45.679158,
-                                "clip": "cast5",
-                                "next": "idle"
-                            }
-                        ],
-                        "triggers": []
-                    },
-                    "moves": []
+                    "clipName": "stone3_normal_1167_tileband"
                 }
             ]
         },
@@ -80265,7 +79875,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_lunatic_1162_blast"
+                    "clipName": "stone3_lunatic_1162_gatherbloom"
                 },
                 {
                     "index": 0,
@@ -80294,6 +79904,29 @@
                     "index": 0,
                     "count": 1,
                     "interval": 0,
+                    "time": 109.16023333333332,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    },
+                    "clipName": "stone3_lunatic_1164_blast"
+                },
+                {
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
                     "time": 108.90283333333333,
                     "pos": {
                         "x": 0,
@@ -80311,7 +79944,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_lunatic_1164_meteorwarn"
+                    "clipName": "stone3_lunatic_1165_meteorwarn"
                 },
                 {
                     "index": 0,
@@ -80334,7 +79967,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_lunatic_1165_meteorline"
+                    "clipName": "stone3_lunatic_1166_meteorline"
                 },
                 {
                     "index": 0,
@@ -80357,7 +79990,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_lunatic_1166_meteorlinetrail"
+                    "clipName": "stone3_lunatic_1167_meteorlinetrail"
                 },
                 {
                     "index": 0,
@@ -80380,7 +80013,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_lunatic_1167_blast"
+                    "clipName": "stone3_lunatic_1168_blast"
                 },
                 {
                     "index": 0,
@@ -80403,7 +80036,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_lunatic_1168_meteorwarn"
+                    "clipName": "stone3_lunatic_1169_meteorwarn"
                 },
                 {
                     "index": 0,
@@ -80426,7 +80059,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_lunatic_1169_meteorline"
+                    "clipName": "stone3_lunatic_1170_meteorline"
                 },
                 {
                     "index": 0,
@@ -80449,7 +80082,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_lunatic_1170_meteorlinetrail"
+                    "clipName": "stone3_lunatic_1171_meteorlinetrail"
                 },
                 {
                     "index": 0,
@@ -80472,30 +80105,7 @@
                         "z": 1,
                         "w": 1
                     },
-                    "clipName": "stone3_lunatic_1171_blast"
-                },
-                {
-                    "index": 0,
-                    "count": 1,
-                    "interval": 0,
-                    "time": 104.989,
-                    "pos": {
-                        "x": 0,
-                        "y": 0
-                    },
-                    "originVlc": {
-                        "x": 0,
-                        "y": 0
-                    },
-                    "angle": 0,
-                    "angleInterval": 0,
-                    "color": {
-                        "x": 1,
-                        "y": 1,
-                        "z": 1,
-                        "w": 1
-                    },
-                    "clipName": "stone3_lunatic_1172_tileband"
+                    "clipName": "stone3_lunatic_1172_blast"
                 },
                 {
                     "index": 0,
@@ -80570,7 +80180,7 @@
                     "index": 0,
                     "count": 1,
                     "interval": 0,
-                    "time": 105.40566666666668,
+                    "time": 104.989,
                     "pos": {
                         "x": 0,
                         "y": 0
@@ -80662,7 +80272,7 @@
                     "index": 0,
                     "count": 1,
                     "interval": 0,
-                    "time": 105.82233333333333,
+                    "time": 105.40566666666668,
                     "pos": {
                         "x": 0,
                         "y": 0
@@ -80708,7 +80318,7 @@
                     "index": 0,
                     "count": 1,
                     "interval": 0,
-                    "time": 106.239,
+                    "time": 105.82233333333333,
                     "pos": {
                         "x": 0,
                         "y": 0
@@ -80754,7 +80364,7 @@
                     "index": 0,
                     "count": 1,
                     "interval": 0,
-                    "time": 106.65566666666668,
+                    "time": 106.239,
                     "pos": {
                         "x": 0,
                         "y": 0
@@ -80777,7 +80387,7 @@
                     "index": 0,
                     "count": 1,
                     "interval": 0,
-                    "time": 107.07233333333333,
+                    "time": 106.65566666666668,
                     "pos": {
                         "x": 0,
                         "y": 0
@@ -80795,224 +80405,29 @@
                         "w": 1
                     },
                     "clipName": "stone3_lunatic_1185_tileband"
-                }
-            ],
-            "bossSpawners": [
-                {
-                    "bossId": "",
-                    "bossName": "demo",
-                    "visualId": "golem",
-                    "appearTime": 49.824561,
-                    "lifeTime": 0.664327,
-                    "maxHp": 100.0,
-                    "startPos": {
-                        "x": 16,
-                        "y": 19.64
-                    },
-                    "scale": {
-                        "x": 2.8,
-                        "y": 2.8
-                    },
-                    "angle": 0.0,
-                    "sortingOrder": 0,
-                    "fadeInSec": 0.0,
-                    "fadeOutSec": 0.0,
-                    "animation": {
-                        "initialClip": "fall1_descend",
-                        "events": [],
-                        "triggers": []
-                    },
-                    "moves": [
-                        {
-                            "time": 0.0,
-                            "duration": 0.833333,
-                            "type": "moveto",
-                            "to": {
-                                "x": 16.0,
-                                "y": 13.64
-                            },
-                            "control": {
-                                "x": 0,
-                                "y": 0
-                            },
-                            "easing": "linear",
-                            "relative": false
-                        }
-                    ]
                 },
                 {
-                    "bossId": "",
-                    "bossName": "demo",
-                    "visualId": "golem",
-                    "appearTime": 50.488889,
-                    "lifeTime": 62.415959,
-                    "maxHp": 100.0,
-                    "startPos": {
-                        "x": 16,
-                        "y": 13.64
+                    "index": 0,
+                    "count": 1,
+                    "interval": 0,
+                    "time": 107.07233333333333,
+                    "pos": {
+                        "x": 0,
+                        "y": 0
                     },
-                    "scale": {
-                        "x": 2.8,
-                        "y": 2.8
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
                     },
-                    "angle": 0.0,
-                    "sortingOrder": 0,
-                    "fadeInSec": 0.0,
-                    "fadeOutSec": 0.0,
-                    "animation": {
-                        "initialClip": "fall2",
-                        "events": [
-                            {
-                                "time": 2.65731,
-                                "clip": "leftSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 3.321638,
-                                "clip": "rightSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 3.985965,
-                                "clip": "leftSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 4.650292,
-                                "clip": "bothSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 7.97193,
-                                "clip": "leftSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 8.636257,
-                                "clip": "rightSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 9.300585,
-                                "clip": "bothSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 10.62924,
-                                "clip": "bothSlam",
-                                "next": "idle"
-                            }
-                        ],
-                        "triggers": []
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
                     },
-                    "moves": []
-                },
-                {
-                    "bossId": "",
-                    "bossName": "demo",
-                    "visualId": "stone",
-                    "appearTime": 4.145404,
-                    "lifeTime": 46.343485,
-                    "maxHp": 100.0,
-                    "startPos": {
-                        "x": 16,
-                        "y": 15.6
-                    },
-                    "scale": {
-                        "x": 2.8,
-                        "y": 2.8
-                    },
-                    "angle": 0.0,
-                    "sortingOrder": 9,
-                    "fadeInSec": 0.0,
-                    "fadeOutSec": 0.4,
-                    "animation": {
-                        "initialClip": "idle",
-                        "events": [
-                            {
-                                "time": 1.169482,
-                                "clip": "cast1",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 3.826526,
-                                "clip": "cast2",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 6.483571,
-                                "clip": "cast1",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 9.141412,
-                                "clip": "cast2",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 11.798456,
-                                "clip": "cast3",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 17.113342,
-                                "clip": "cast3",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 22.42743,
-                                "clip": "cast4",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 23.423921,
-                                "clip": "cast4",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 25.085272,
-                                "clip": "cast5",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 28.738807,
-                                "clip": "cast5",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 31.728281,
-                                "clip": "cast6",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 37.840359,
-                                "clip": "cast6",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 41.029131,
-                                "clip": "cast1",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 43.353746,
-                                "clip": "cast2",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 45.015096,
-                                "clip": "cast4",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 45.679158,
-                                "clip": "cast5",
-                                "next": "idle"
-                            }
-                        ],
-                        "triggers": []
-                    },
-                    "moves": []
+                    "clipName": "stone3_lunatic_1186_tileband"
                 }
             ]
         }
