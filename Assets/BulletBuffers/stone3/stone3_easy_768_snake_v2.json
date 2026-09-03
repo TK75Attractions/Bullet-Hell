@@ -1,0 +1,261 @@
+﻿{
+    "name": "stone3_easy_768_snake_v2",
+    "bullets": [
+        {
+            "originPos": {
+                "x": 2.3095872693643784,
+                "y": 9.575
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": true,
+            "polarForm": {
+                "x": 0,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_chain",
+            "scale": {
+                "x": 1.15,
+                "y": 1.15
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 0.45416666666666666,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true,
+            "segments": [
+                {
+                    "duration": 0.02734375,
+                    "vlc": {
+                        "x": -8.873502084247288,
+                        "y": 0
+                    },
+                    "gravity": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "thetaVlc": 0
+                },
+                {
+                    "duration": 0.02734375,
+                    "vlc": {
+                        "x": 1.1831824668499198,
+                        "y": 0
+                    },
+                    "gravity": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "thetaVlc": 0
+                },
+                {
+                    "duration": 0.02734375,
+                    "vlc": {
+                        "x": 10.891159870239628,
+                        "y": 0
+                    },
+                    "gravity": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "thetaVlc": 0
+                },
+                {
+                    "duration": 0.02734375,
+                    "vlc": {
+                        "x": 17.389298216677844,
+                        "y": 0
+                    },
+                    "gravity": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "thetaVlc": 0
+                },
+                {
+                    "duration": 0.02734375,
+                    "vlc": {
+                        "x": 18.762468308712723,
+                        "y": 0
+                    },
+                    "gravity": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "thetaVlc": 0
+                },
+                {
+                    "duration": 0.02734375,
+                    "vlc": {
+                        "x": 14.605969908167074,
+                        "y": 0
+                    },
+                    "gravity": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "thetaVlc": 0
+                },
+                {
+                    "duration": 0.02734375,
+                    "vlc": {
+                        "x": 6.144804857397811,
+                        "y": 0
+                    },
+                    "gravity": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "thetaVlc": 0
+                },
+                {
+                    "duration": 0.02734375,
+                    "vlc": {
+                        "x": -4.127355061096783,
+                        "y": 0
+                    },
+                    "gravity": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "thetaVlc": 0
+                },
+                {
+                    "duration": 0.02734375,
+                    "vlc": {
+                        "x": -13.183102252693207,
+                        "y": 0
+                    },
+                    "gravity": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "thetaVlc": 0
+                },
+                {
+                    "duration": 0.02734375,
+                    "vlc": {
+                        "x": -18.35352988174181,
+                        "y": 0
+                    },
+                    "gravity": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "thetaVlc": 0
+                },
+                {
+                    "duration": 0.02734375,
+                    "vlc": {
+                        "x": -18.114811217029455,
+                        "y": 0
+                    },
+                    "gravity": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "thetaVlc": 0
+                },
+                {
+                    "duration": 0.02734375,
+                    "vlc": {
+                        "x": -12.537301344900941,
+                        "y": 0
+                    },
+                    "gravity": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "thetaVlc": 0
+                },
+                {
+                    "duration": 0.02734375,
+                    "vlc": {
+                        "x": -3.2648021415249104,
+                        "y": 0
+                    },
+                    "gravity": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "thetaVlc": 0
+                },
+                {
+                    "duration": 0.02734375,
+                    "vlc": {
+                        "x": 6.969898475836511,
+                        "y": 0
+                    },
+                    "gravity": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "thetaVlc": 0
+                },
+                {
+                    "duration": 0.02734375,
+                    "vlc": {
+                        "x": 15.15043290545181,
+                        "y": 0
+                    },
+                    "gravity": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "thetaVlc": 0
+                },
+                {
+                    "duration": 0.02734375,
+                    "vlc": {
+                        "x": 18.8658367292727,
+                        "y": 0
+                    },
+                    "gravity": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "thetaVlc": 0
+                }
+            ]
+        }
+    ],
+    "homing": false,
+    "isLaser": false
+}

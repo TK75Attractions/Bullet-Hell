@@ -1,0 +1,67 @@
+﻿{
+    "name": "stone3_normal_958_snakewarn2",
+    "bullets": [
+        {
+            "originPos": {
+                "x": 23,
+                "y": 9
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": true,
+            "polarForm": {
+                "x": 0,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "warn_box",
+            "scale": {
+                "x": 3.0589999999999997,
+                "y": 18
+            },
+            "color": {
+                "x": 0.0908,
+                "y": 0.0648,
+                "z": 0.1384,
+                "w": 0.4
+            },
+            "appearTime": 0.15000000000000568,
+            "appearDuration": 0.15000000000000568,
+            "life": 0.15000000000000568,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        }
+    ],
+    "homing": false,
+    "isLaser": false
+}

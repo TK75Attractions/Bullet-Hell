@@ -449,6 +449,60 @@ const TILE2_LEADS = [MK13_TILE1 - MK12_TILEWARN, MK14_TILE2 - MK13_TILE1];
 const TILE3_TIMES = [MK17_TILE1, MK17_TILE2];
 const TILE3_LEADS = [MK17_TILE1 - MK17_TILEWARN, MK17_TILE2 - MK17_TILE1];
 
+// --- v21: 指示書マーカー 18〜42（66.8〜103.3s）の採用時刻 ------------------------
+//   丸めルールは v17/v19 と同じ（16 分音符へ丸め、±80ms 以内に音源のオンセットが
+//   あればそちらを優先）。母集団は 66〜104s、閾値は flux の 95 パーセンタイル 54.2。
+//   算出スクリプトと全 25 行の表は .tmp_v21/onset_markers.py / onset_table.txt。
+//   ずれの大きかったもの: 39（99.663 → 99.5904・-73ms・flux 110.5）、
+//   40（100.092 → 100.0141・-78ms・flux 111.7）。どちらも窓（±80ms）の内側。
+const MK18_SLIDE1 = 66.7708;    // 18 右列タイル①（左向き重力）
+const MK19_SLIDE2 = 67.5120;    // 19 右列タイル②
+const MK20_SLIDE3 = 68.3479;    // 20 右列タイル③
+const MK21_SLIDE4 = 69.1780;    // 21 右列タイル④
+const MK22_METEOR1 = 70.1042;   // 22 隕石①（右→左）
+const MK23_METEOR2 = 70.8441;   // 23 隕石②
+const MK24_METEOR3 = 71.9792;   // 24 隕石③
+const MK25_METEOR4 = 72.5101;   // 25 隕石④
+const MK26_METEOR5 = 72.9223;   // 26 隕石⑤
+const MK27_METEOR_REP = 73.3460;// 27 隕石 5 連の 2 巡目（22〜26 の相対間隔を写す）
+const MK28_METEOR8 = 76.7708;   // 28 隕石 8 連（1 拍間隔）
+const MK29_SLIDE_AGAIN = 80.0102;   // 29 右列タイル again（18〜21 の相対間隔を写す）
+const MK30_TILE5 = 83.2292;     // 30 タイル攻撃 5 回（2 拍間隔）
+const MK31_SLIDE_AGAIN2 = 86.8750;  // 31 右列タイル again 2 回目
+const MK32_TILE_SHOW = 90.0122; // 32 タイル表示 again（帯へ積む・6 拍）
+const MK33_BLAST1 = 93.4375;    // 33 タイル爆破（2 枚）
+const MK34_BLAST2 = 95.0161;    // 34 タイル爆破（2 枚）
+const MK35_BLAST3 = 96.7401;    // 35 爆破（2 枚）
+const MK36_BLAST4 = 97.5122;    // 36 爆破（2 枚）
+const MK37_CHAIN_LR = 98.3423;  // 37 左右の列を鎖で消す（縦の鎖 2 本）
+const MK38_CHAIN_TB = 99.0625;  // 38 上下の列を鎖で消す（横の鎖 2 本・左→右）
+const MK39_CHAIN_MID = 99.5904; // 39 縦の鎖 2 本（右は上→下・左は下→上）
+const MK40_DROP_MID = 100.0141; // 40 中央へ隕石落下 → 着弾点から放射
+const MK41_DROP_R = 101.6802;   // 41 右へ隕石落下
+const MK42_DROP_L = 103.3462;   // 42 左へ隕石落下
+
+// マーカー 22〜26 の相対間隔。27 の 2 巡目と 29/31 の「again」はこれを写して作る。
+const METEOR_TIMES_1 = [MK22_METEOR1, MK23_METEOR2, MK24_METEOR3, MK25_METEOR4, MK26_METEOR5];
+const METEOR_OFFSETS = METEOR_TIMES_1.map((t) => t - MK22_METEOR1);
+const METEOR_TIMES_2 = METEOR_OFFSETS.map((d) => MK27_METEOR_REP + d);   // 73.346〜76.164s
+// マーカー 28: 拍に合わせて等間隔 8 回（1 拍 = 0.41667s → 8 回で 2.917s。29 の 80.010s 手前に収まる）
+const METEOR_TIMES_8 = Array.from({ length: 8 }, (_, i) => MK28_METEOR8 + i * BEAT);
+// マーカー 18〜21 の相対間隔。29/31 の「again」はこれを写す。
+const SLIDE_TIMES_A = [MK18_SLIDE1, MK19_SLIDE2, MK20_SLIDE3, MK21_SLIDE4];
+const SLIDE_OFFSETS = SLIDE_TIMES_A.map((t) => t - MK18_SLIDE1);
+const SLIDE_TIMES_B = SLIDE_OFFSETS.map((d) => MK29_SLIDE_AGAIN + d);    // 80.010〜82.417s
+const SLIDE_TIMES_C = SLIDE_OFFSETS.map((d) => MK31_SLIDE_AGAIN2 + d);   // 86.875〜89.282s
+// マーカー 30: 2 拍間隔で 5 回（83.229〜86.563s。31 の 86.875s 手前に収まる）
+const TILE5_TIMES = Array.from({ length: 5 }, (_, i) => MK30_TILE5 + i * 2 * BEAT);
+// マーカー 32: 1 拍間隔で 6 回（90.012〜92.096s）
+const TILE6_TIMES = Array.from({ length: 6 }, (_, i) => MK32_TILE_SHOW + i * BEAT);
+// マーカー 33〜36: 1 回 2 枚の爆破を 4 回
+const BLAST2_TIMES = [MK33_BLAST1, MK34_BLAST2, MK35_BLAST3, MK36_BLAST4];
+// マーカー 30/32 で積んだ帯タイルを消す時刻。マーカー 38 の横の鎖が最後の段まで
+// 通り過ぎた直後（99.0625 + 34 × 0.0357 = 100.28s）に置く。鎖で掃かれなかった
+// 取りこぼしがここで消えて、「38 で全部消えた状態」が成立する。
+const V21_BAND_END = 100.60;
+
 const S10_BEAT = 88;               // 小節23-24 36.667s タイル爆破③（アクセントに乗せる）
 // v19: 小節25〜32（40.000〜53.333s）の仮区間⑪⑫⑬⑭は指示書のマーカー 9〜17 に
 //   置き換えたので、拍番号の定数も削除した（時刻は MK9_WARN1 以降を参照）。
@@ -1159,6 +1213,253 @@ function snakeBreakTime(col, row, t0, lanes) {
 }
 
 
+// ── v21: 右列タイルの左流し（マーカー 18〜21 / 29 / 31）────────────────────────
+//   右端の列（列 15）に 4 枚のタイルを予告 → 実体化し、1 拍のあいだ静止させてから
+//   左向きの一定加速度で流す。画面外（カリング境界 x < -2）で自然に消える。
+//   v2 レーンの gravitySeq（区間 2 つ: moveTo で静止 → accel で加速）なので 1 枚 = 弾 1 発。
+const SLIDE_COL = COLS - 1;                 // 列 15（右端）
+const SLIDE_HOLD = beats(1);                // 実体化から動き出すまで（1 拍）
+const SLIDE_ACCEL = 34;                     // 左向き加速度（ユニット/s^2）
+const SLIDE_END_X = -3.2;                   // カリング境界(-2)の外まで飛ばす
+const SLIDE_WARN_LEAD = beats(0.75);        // 出現予告のリード
+const SLIDE_TILES_PER_WAVE = 4;             // 1 回に出す枚数
+
+// ── v21: 隕石（マーカー 22〜28 / 40〜42）──────────────────────────────────────
+//
+//   参考: Bossfight "Commando Steve"（https://www.youtube.com/watch?v=wZ8qdagsnbo）の
+//   1:35 前後。実測フレームは Captures/ref_commandosteve_135_a.png（動画 95.00s）と
+//   ref_commandosteve_135_b.png（同 95.55s・1280x714）。読み取った特徴:
+//     ・画面右端で白く光る頭が生まれ、そこから大きなトゲ玉が斜め左下へ飛ぶ
+//     ・玉の直径は約 92px ＝ 画面高 714px の 12.9%（この画面なら 18 × 0.129 = 2.3 ユニット）
+//     ・玉の後ろに丸い点の尾が 10〜14 個。頭に近いほど大きく白く、遠いほど小さく淡い桃色
+//     ・尾の全長は約 400px ＝ 画面高の 0.56 倍。玉は同時に 5〜6 個が別々の高さを飛ぶ
+//   本ステージへの移し替え: 見た目はタイル（stone3_tile）を拡大したもの、軌道は指示書
+//   どおり「右から左へ直線」（参考の斜めは採らない）。大きさは参考の 2.3 ユニットより
+//   やや大きい 3.2 ユニット（タイル 1.84 の 1.74 倍）で、タイルとの区別を付けている。
+//   尾は当たり判定のない stone3_flash を通過点に置き、縮みながら消えるようにした。
+const METEOR_SCALE = 3.2;                   // 隕石の一辺（タイル 1.84 の 1.74 倍）
+const METEOR_START_X = 34.5;                // 画面右外（カリング境界 36 の内側）
+const METEOR_END_X = -4.0;                  // 画面左外（同 -2 の外＝ここへ着く前に消える）
+const METEOR_FLIGHT = 1.05;                 // 端から端まで 38.5 ユニット ≒ 36.7 ユニット/s
+const METEOR_TRAIL_N = 16;                  // 尾の点の数（参考の 10〜14 より少し密）
+const METEOR_TRAIL_LIFE = 0.34;             // 1 点が縮み切るまで
+const METEOR_TRAIL_S0 = 1.55;               // 頭に近い点の一辺
+const METEOR_TRAIL_S1 = 0.35;               // 縮み切ったあとの一辺
+const METEOR_WARN_LEAD = beats(1);          // 通る行の予告のリード
+const METEOR_ROWS = [1, 2, 3, 4, 5, 6, 7];  // 隕石が通れる行（0/8 は玉が画面からはみ出す）
+const METEOR_BREAK_DY = (CELL + METEOR_SCALE) / 2;  // 残留タイルを砕く y 方向の距離
+// 落下隕石（マーカー 40〜42）。横断シャベルと同じく「着弾時刻」を先に決め、飛来時間ぶん
+// 手前で発射する。加速度 150 なら 25 ユニット落ちるのに 0.577s。
+const METEOR_DROP_SPAWN_Y = 26;             // 画面上端(18)より上・カリング境界(36)の内側
+const METEOR_DROP_ACCEL = 150;              // 落下加速度（ユニット/s^2）
+const METEOR_DROP_Y = CELL * 0.5;           // 着弾点＝最下段の中心（y = 1）
+
+// 隕石 1 発（右→左の直線）。当たり判定のあるタイルを拡大したもの。
+function meteor(y) {
+  return gravitySeq(
+    {
+      pos: [METEOR_START_X, y],
+      vel: [0, 0],
+      type: 'stone3_tile',
+      scale: [METEOR_SCALE, METEOR_SCALE],
+      color: SPRITE_AS_IS,
+      unCounterable: true,
+    },
+    [{ until: METEOR_FLIGHT, moveTo: [METEOR_END_X, y] }],
+    'meteor',
+    { v2: true }
+  );
+}
+
+// 隕石の尾。通過点に stone3_flash（当たり判定なし）を置き、縮みながら消す。
+function meteorTrail(y) {
+  const items = [];
+  for (let i = 0; i < METEOR_TRAIL_N; i++) {
+    const f = (i + 0.5) / METEOR_TRAIL_N;
+    const rel = METEOR_FLIGHT * f;
+    const x = METEOR_START_X + (METEOR_END_X - METEOR_START_X) * f;
+    items.push({
+      type: BLINK_TYPE,
+      pos: [x, y],
+      scale: [METEOR_TRAIL_S0, METEOR_TRAIL_S0],
+      color: POP_COLOR_START,
+      scaleEnd: [METEOR_TRAIL_S1, METEOR_TRAIL_S1],
+      colorEnd: STONE_TILE_END,
+      animDuration: METEOR_TRAIL_LIFE,
+      appearTime: rel,          // 隕石が通り過ぎた瞬間に出る
+      appearDuration: 0,
+      life: rel + METEOR_TRAIL_LIFE + FADE_OUT_SEC,
+    });
+  }
+  return warnClip(items, 'meteortrail');
+}
+
+// 隕石が通る行の予告（横一杯の薄い帯・当たり判定なし）。
+function meteorRowWarn(y, dur) {
+  return warnClip(
+    [{
+      pos: [(COLS * CELL) / 2, y],
+      scale: [COLS * CELL, METEOR_SCALE],
+      color: STONE_PATH,
+      appearTime: dur,
+      appearDuration: dur,
+      life: dur,
+    }],
+    'meteorwarn'
+  );
+}
+
+// 落下隕石の経路予告（通る列の縦帯・隕石の幅）。
+function meteorDropWarn(x, dur) {
+  const top = ROWS * CELL;
+  const bottom = METEOR_DROP_Y - METEOR_SCALE / 2;
+  const h = top - bottom;
+  return warnClip(
+    [{
+      pos: [x, bottom + h / 2],
+      scale: [METEOR_SCALE, h],
+      color: STONE_PATH,
+      appearTime: dur,
+      appearDuration: dur,
+      life: dur,
+    }],
+    'meteordropwarn'
+  );
+}
+
+// 落下隕石 1 発（上から下へ等加速）。着弾時刻の flight 秒前に発射する。
+function meteorDrop(x, flight) {
+  return gravitySeq(
+    {
+      pos: [x, METEOR_DROP_SPAWN_Y],
+      vel: [0, 0],
+      type: 'stone3_tile',
+      scale: [METEOR_SCALE, METEOR_SCALE],
+      color: SPRITE_AS_IS,
+      unCounterable: true,
+    },
+    [{ until: flight, accel: [METEOR_DROP_ACCEL, -Math.PI / 2] }],
+    'meteordrop',
+    { v2: true }
+  );
+}
+
+// ── v21: 鎖の向きの一般化（マーカー 37〜39）─────────────────────────────────
+//   v15〜v19 の鎖は「下から上へ這う縦の鎖」だけだった。マーカー 38 は横方向、
+//   39 は上から下なので、進む向きと揺れる向きを設定で選べる版を足す。
+//   既存の snakeTile/snakePop/snakeWarn/snakeBreakTime は一切触っていない
+//   （マーカー 1〜17 の弾を v20 と 1 バイトも変えないため）。こちらは v21 専用。
+//
+//   cfg.axis 'V' … 段が y 方向に積み上がり、揺れは x（lane.col が中心列）
+//   cfg.axis 'H' … 段が x 方向に並び、揺れは y（lane.row が中心行）
+//   cfg.reverse   … true で進行方向を反転（V なら上→下、H なら右→左）
+//
+//   マーカー 37/39 の縦の鎖は 1 段 0.0625s（16 段 = 1.000s）と v19 までの 0.09375s より
+//   速い。38 の横の鎖は幅 32 ユニットを 28 段で覆い 1 段 0.0357s（28 段 = 1.000s）。
+//   速いぶん揺れの周期も詰めてあり、どちらも「1 段が画面に居るあいだ（7 段ぶん）」が
+//   揺れの 1 周期より長い＝帯のどのセルも必ず 1 度は鎖の破壊半径に入る。
+const SNAKE_H_STEPS = 28;                                   // 28 × 1.15 = 32.2 ユニット（画面幅 32 を覆う）
+const SNAKE_H_X0 = (COLS * CELL - (SNAKE_H_STEPS - 1) * SNAKE_STEP_Y) / 2;   // 0.475
+const CHAIN_V_FAST = { axis: 'V', steps: SNAKE_STEPS, base: SNAKE_Y0, rowStep: 0.0625, period: beats(0.75), reverse: false };
+const CHAIN_V_FAST_DOWN = { axis: 'V', steps: SNAKE_STEPS, base: SNAKE_Y0, rowStep: 0.0625, period: beats(0.75), reverse: true };
+const CHAIN_H = { axis: 'H', steps: SNAKE_H_STEPS, base: SNAKE_H_X0, rowStep: 0.0357, period: beats(0.375), reverse: false };
+
+// 段 k の「進む向き」の座標（V なら y・H なら x）。
+function chainAdvance(cfg, k) {
+  const idx = cfg.reverse ? cfg.steps - 1 - k : k;
+  return cfg.base + idx * SNAKE_STEP_Y;
+}
+// 段 k の「揺れる向き」の座標（V なら x・H なら y）。
+function chainSwing(cfg, t, k, lane) {
+  const c = CELL * ((cfg.axis === 'V' ? lane.col : lane.row) + 0.5);
+  return c + SNAKE_AMP * Math.sin((2 * Math.PI * t) / cfg.period + k * SNAKE_ROW_PHASE + lane.phase);
+}
+function chainPos(cfg, t, k, lane) {
+  const a = chainAdvance(cfg, k);
+  const w = chainSwing(cfg, t, k, lane);
+  return cfg.axis === 'V' ? [w, a] : [a, w];
+}
+// 段 k が画面に居る時間帯 [生える, 消える]。
+function chainWindow(cfg, t0, k) {
+  const a = t0 + k * cfg.rowStep;
+  return [a, a + SNAKE_LEN * cfg.rowStep];
+}
+// 鎖のタイル 1 枚（v2 レーンの折れ線。段は動かず、直交方向へサインで往復）。
+function chainTile(cfg, t0, k, lane) {
+  const win = chainWindow(cfg, t0, k);
+  const dur = win[1] - win[0];
+  const segs = [];
+  for (let i = 1; i <= SNAKE_SEGMENTS; i++) {
+    const rel = (dur * i) / SNAKE_SEGMENTS;
+    segs.push({ until: rel, moveTo: chainPos(cfg, win[0] + rel, k, lane) });
+  }
+  return gravitySeq(
+    {
+      pos: chainPos(cfg, win[0], k, lane),
+      vel: [0, 0],
+      type: 'stone3_chain',
+      scale: [SNAKE_TILE, SNAKE_TILE],
+      color: SPRITE_AS_IS,
+      unCounterable: true,
+    },
+    segs,
+    'snake',
+    { v2: true }
+  );
+}
+// 出現フラッシュ。
+function chainPop(cfg, t0, k, lane) {
+  const p = chainPos(cfg, chainWindow(cfg, t0, k)[0], k, lane);
+  const big = SNAKE_TILE * SNAKE_POP_SCALE;
+  return warnClip(
+    [{
+      type: BLINK_TYPE,
+      pos: p,
+      scale: [big, big],
+      color: POP_COLOR_START,
+      scaleEnd: [SNAKE_TILE, SNAKE_TILE],
+      colorEnd: STONE_TILE_END,
+      animDuration: SNAKE_POP_DURATION,
+      appearTime: 0,
+      appearDuration: 0,
+      life: SNAKE_POP_DURATION + FADE_OUT_SEC,
+    }],
+    'snakepop'
+  );
+}
+// 予告（鎖が掃く幅の帯を、進む向きへ画面いっぱいに通しで）。
+function chainWarn(cfg, lanes, color, dur, kind) {
+  const items = lanes.map(function (lane) {
+    const c = CELL * ((cfg.axis === 'V' ? lane.col : lane.row) + 0.5);
+    return cfg.axis === 'V'
+      ? { pos: [c, (ROWS * CELL) / 2], scale: [SNAKE_HALF_W * 2, ROWS * CELL], color: color, appearTime: dur, appearDuration: dur, life: dur }
+      : { pos: [(COLS * CELL) / 2, c], scale: [COLS * CELL, SNAKE_HALF_W * 2], color: color, appearTime: dur, appearDuration: dur, life: dur };
+  });
+  return warnClip(items, kind);
+}
+// セル(col,row) の残留タイルを鎖が砕く時刻。どの鎖も通らなければ null。
+function chainBreakTime(cfg, col, row, t0, lanes) {
+  const center = cellCenter(col, row);
+  const STEP = 1 / 120;
+  let best = null;
+  for (let k = 0; k < cfg.steps; k++) {
+    const a = chainAdvance(cfg, k);
+    // 進む向きの座標がセルと重ならない段は見ない
+    if (Math.abs(a - (cfg.axis === 'V' ? center[1] : center[0])) > SNAKE_BREAK_DY) continue;
+    const win = chainWindow(cfg, t0, k);
+    lanes.forEach(function (lane) {
+      for (let t = win[0]; t <= win[1]; t += STEP) {
+        const w = chainSwing(cfg, t, k, lane);
+        if (Math.abs(w - (cfg.axis === 'V' ? center[0] : center[1])) <= SNAKE_BREAK_R) {
+          if (best === null || t < best) best = t;
+          return;
+        }
+      }
+    });
+  }
+  return best;
+}
+
 // 自機の初期位置(16,2.4) が入るセル。最初の拍だけは必ずここを逃げ場にする（初見の詰み防止）。
 const START_GAP = [Math.floor(16 / CELL), Math.floor(2.4 / CELL)];
 
@@ -1183,6 +1484,19 @@ const MARKERS = {
   16: MK17_TILEWARN,  // タイル攻撃 2 回目の予告開始（49.375s）
   17: B(S15_BEAT),    // 仮区間⑮（53.333s）
   18: B(S16_BEAT),    // 仮区間⑯（56.667s）
+  // v21: 指示書のマーカー 18〜42。
+  19: MK18_SLIDE1,        // 右列タイルの左流し①（66.771s）
+  20: MK22_METEOR1,       // 隕石 5 連の 1 発目（70.104s）
+  21: MK27_METEOR_REP,    // 隕石 5 連の 2 巡目（73.346s）
+  22: MK28_METEOR8,       // 隕石 8 連（76.771s）
+  23: MK29_SLIDE_AGAIN,   // 右列タイル again（80.010s）
+  24: MK30_TILE5,         // タイル攻撃 5 回（83.229s）
+  25: MK31_SLIDE_AGAIN2,  // 右列タイル again 2 回目（86.875s）
+  26: MK32_TILE_SHOW,     // タイル表示 again（90.012s）
+  27: MK33_BLAST1,        // タイル爆破（93.438s）
+  28: MK37_CHAIN_LR,      // 左右の列を鎖で消す（98.342s）
+  29: MK38_CHAIN_TB,      // 上下の列を鎖で消す（99.063s）
+  30: MK40_DROP_MID,      // 落下隕石①（100.014s）
 };
 
 export default stage(
@@ -1194,10 +1508,10 @@ export default stage(
     markers: MARKERS,
     playArea: [32, 18],
     difficulties: ['easy', 'normal', 'lunatic'],
-    // v13 (B): 延長の末は 60.000s（拍 144・小節 37＝次のセクションの頭）で残タイルを消す。
-    //   最後の放射弾（59.167s・速度 7〜11）が画面外へ抜け、55.833s に出た横断シャベルが
-    //   渡りきる（2.24s）余裕を見て 62.0s。
-    endTime: 62.0,
+    // v21: 最後の演出はマーカー 42（103.346s）の落下隕石と放射弾。放射弾は速度 7〜11 で
+    //   寿命なしなので、画面の対角（約 26 ユニット）を抜けるのに 2.4〜3.7s かかる。
+    //   103.346 + 2.7 ≒ 106.0s を末尾にした（指示書のマーカー 43 以降は次の便）。
+    endTime: 106.0,
   },
   (s) => {
     const rng = makeRng(20260902);
@@ -2070,10 +2384,247 @@ export default stage(
       1.3
     );
 
+    // ======================================================================
+    // ★ v21  66.771〜103.346s — 指示書のマーカー 18〜42
+    //   採用時刻はファイル上部の MK18_SLIDE1 以降の定数（根拠は .tmp_v21/onset_table.txt）。
+    //
+    //   60.000〜66.771s は曲のブレイク（Instructions/石工/gemini_song_analysis_20260903.md）。
+    //   v20 の帯は 60.000s（EXT_END_BEAT）で消え切っているので、この 6.8 秒は弾ゼロの静止。
+    //   53.333s / 56.667s の仮区間⑮⑯は 59.2s で終わり、新しい内容と重ならないので残した。
+    //
+    //   ブロックA（18〜28・66.8〜79.7s）… 右列タイルの左流し 4 回 → 隕石 5 連 ×2 → 隕石 8 連
+    //   ブロックB（29〜36・80.0〜97.5s）… 左流し 4 回 → タイル攻撃 5 回 → 左流し 4 回
+    //                                     → タイル表示 6 拍 → 爆破 2 枚 ×4
+    //   ブロックC（37〜42・98.3〜103.3s）… 左右の列を縦の鎖で / 上下の列を横の鎖で消す
+    //                                     → 中央の縦の鎖 2 本 → 落下隕石 3 発と放射
+    // ======================================================================
+
+    // --- 右列タイルの左流し 1 回分（マーカー 18〜21 / 29 / 31）-----------------
+    //   行は毎回ばらす。直前の回で使った行は候補から外すので、前の波がまだ流れている
+    //   あいだに次の波が出ても同じ行で重ならない（1 波は 1 拍静止 + 約 1.41s 飛行 ＝ 1.83s
+    //   画面に居る。波の間隔は 0.74〜0.83s なので常に 2〜3 波が同時に見える）。
+    let slidePrevRows = [];
+    function slideWave(t) {
+      const pool = shuffled(
+        Array.from({ length: ROWS }, function (_, r) { return r; })
+          .filter(function (r) { return slidePrevRows.indexOf(r) < 0; }),
+        rng
+      );
+      const rows = pool.slice(0, SLIDE_TILES_PER_WAVE).sort(function (a, b) { return a - b; });
+      slidePrevRows = rows;
+      const cells = rows.map(function (r) { return [SLIDE_COL, r]; });
+      // 予告 → 実体化ポップ（マーカー 4〜8 のタイル出現と同じ作り）
+      s.at(t - SLIDE_WARN_LEAD, tileField(cells, {
+        type: 'warn_box',
+        color: STONE_WARN,
+        appearTime: SLIDE_WARN_LEAD,
+        appearDuration: SLIDE_WARN_LEAD,
+        life: SLIDE_WARN_LEAD + SEAM_MARGIN,
+        kind: 'tilewarn',
+      }));
+      s.at(t, tilePop(cells, 'tilepop'));
+      // 実体は 1 拍静止してから左向きに等加速（画面外で消える）
+      rows.forEach(function (r) {
+        const c = cellCenter(SLIDE_COL, r);
+        const fly = Math.sqrt((2 * (c[0] - SLIDE_END_X)) / SLIDE_ACCEL);
+        s.at(t, gravitySeq(
+          { pos: c, vel: [0, 0], type: 'stone3_tile', scale: [TILE, TILE], color: SPRITE_AS_IS, unCounterable: true },
+          [
+            { until: SLIDE_HOLD, moveTo: c },
+            { until: SLIDE_HOLD + fly, accel: [SLIDE_ACCEL, Math.PI] },
+          ],
+          'slide',
+          { v2: true }
+        ));
+      });
+    }
+
+    // --- 隕石 1 発（マーカー 22〜28）------------------------------------------
+    //   通る行を 1 拍前から薄い帯で予告 → 隕石本体（右→左の直線）＋尾。
+    //   通り道に残留タイルがあれば通過の瞬間に砕き、先頭 3 枚から放射弾を出す。
+    let meteorIdx = 0;
+    let meteorPrevRow = -1;
+    function nextMeteorRow() {
+      // 直前の隕石と 2 行以上離す（同じ高さが続かないように）
+      const pool = METEOR_ROWS.filter(function (r) { return Math.abs(r - meteorPrevRow) >= 2; });
+      const r = pool[Math.floor(rng() * pool.length)];
+      meteorPrevRow = r;
+      return r;
+    }
+    function meteorShot(t, row, tiles) {
+      const y = cellCenter(0, row)[1];
+      s.at(t - METEOR_WARN_LEAD, meteorRowWarn(y, METEOR_WARN_LEAD));
+      s.at(t, meteor(y));
+      s.at(t, meteorTrail(y));
+      const speed = (METEOR_START_X - METEOR_END_X) / METEOR_FLIGHT;
+      const hits = [];
+      tiles.forEach(function (tt) {
+        if (tt.claimed) return;
+        const c = cellCenter(tt.col, tt.row);
+        if (Math.abs(c[1] - y) > METEOR_BREAK_DY) return;
+        const hit = t + (METEOR_START_X - c[0]) / speed;
+        if (hit < tt.strike || hit > t + METEOR_FLIGHT) return;
+        tt.claimed = true;
+        tt.end = hit;
+        tt.lead = BLAST_LEAD_OUT;
+        hits.push({ t: hit, c: c });
+      });
+      hits.sort(function (a, b) { return a.t - b.t; })
+        .slice(0, 3)
+        .forEach(function (h, k) { s.at(h.t, burst(h.c, meteorIdx + k, 0.5)); });
+      meteorIdx++;
+    }
+
+    // --- 鎖攻撃 1 回分（向きを選べる版。マーカー 37〜39）-----------------------
+    //   構造は v19 の chainAttack と同じ（予告①→予告②→鎖→掃かれたタイルの破壊→放射弾）で、
+    //   進む向き・揺れる向き・速さを cfg で差し替えられるようにしただけ。
+    function chainAttackG(cfg, warn1, warn2, t0, lanes, tiles) {
+      s.at(warn1, chainWarn(cfg, lanes, STONE_PATH, warn2 - warn1, 'snakewarn1'));
+      s.at(warn2, chainWarn(cfg, lanes, STONE_WARN, t0 - warn2, 'snakewarn2'));
+      lanes.forEach(function (lane) {
+        for (let k = 0; k < cfg.steps; k++) {
+          const at = chainWindow(cfg, t0, k)[0];
+          s.at(at, chainTile(cfg, t0, k, lane));
+          s.at(at, chainPop(cfg, t0, k, lane));
+        }
+      });
+      const broken = [];
+      tiles.forEach(function (t) {
+        if (t.claimed) return;
+        const hit = chainBreakTime(cfg, t.col, t.row, t0, lanes);
+        if (hit === null) return;
+        t.claimed = true;
+        t.end = hit;
+        t.lead = BLAST_LEAD_OUT;
+        broken.push(t);
+      });
+      const sorted = broken.slice().sort(function (a, b) { return a.col - b.col || a.row - b.row; });
+      if (sorted.length > 0) {
+        const step = Math.max(1, Math.ceil(sorted.length / SNAKE_BURSTS));
+        for (let i = 0, k = 0; i < sorted.length; i += step, k++) {
+          const t = sorted[i];
+          s.at(t.end, burst(cellCenter(t.col, t.row), k, 0.5));
+        }
+      }
+      return broken;
+    }
+
+    // ----------------------------------------------------------------------
+    // ブロックA — マーカー 18〜28（66.771〜79.688s）
+    // ----------------------------------------------------------------------
+    // マーカー 18-21: 右列タイルの左流し 4 回（66.771 / 67.512 / 68.348 / 69.178s）
+    SLIDE_TIMES_A.forEach(function (t) { slideWave(t); });
+
+    // マーカー 22-26: 隕石 5 連（70.104 / 70.844 / 71.979 / 72.510 / 72.922s）
+    // マーカー 27: 同じ相対間隔でもう 1 巡（73.346〜76.164s）
+    // この時間帯に残留タイルは無い（v20 の帯は 60.000s で消え切っている）ので、
+    // 破壊判定は空振りする。判定自体は 29 以降の帯と共通の作りにしてある。
+    METEOR_TIMES_1.concat(METEOR_TIMES_2).forEach(function (t) {
+      meteorShot(t, nextMeteorRow(), []);
+    });
+
+    // マーカー 28: 隕石 8 連（76.771s から 1 拍間隔で 8 回 = 79.688s まで）
+    METEOR_TIMES_8.forEach(function (t) { meteorShot(t, nextMeteorRow(), []); });
+
+    // ----------------------------------------------------------------------
+    // ブロックB — マーカー 29〜36（80.010〜97.512s）
+    // ----------------------------------------------------------------------
+    // マーカー 29: 右列タイルの左流し again（18〜21 の相対間隔を写す）
+    SLIDE_TIMES_B.forEach(function (t) { slideWave(t); });
+
+    // マーカー 30: タイル攻撃 5 回（83.229s から 2 拍間隔）。区間①③と同じ出現ポップで
+    //   外周ぐるりの帯へ積む。ここで積んだ帯がマーカー 33〜36 の爆破対象になる。
+    const bandF = tilePhase({
+      times: TILE5_TIMES,
+      leads: TILE5_TIMES.map(function () { return beats(1); }),
+      centerRate: CENTER_RATE,
+      bandTarget: BAND_TARGET,
+      bandCells: BAND_CELLS,
+      bandEnd: V21_BAND_END,
+      pinStartGap: false,
+    });
+
+    // マーカー 31: 右列タイルの左流し again 2 回目（86.875〜89.282s）
+    SLIDE_TIMES_C.forEach(function (t) { slideWave(t); });
+
+    // マーカー 32: タイル表示 again（90.012s から 1 拍間隔で 6 拍）。既に画面にある
+    //   bandF の残りを preBlocked に渡し、自機の通路が塞がらないように積み足す。
+    const aliveF = new Set(bandF.filter(function (t) { return !t.claimed; }).map(function (t) { return key(t.col, t.row); }));
+    const bandG = tilePhase({
+      times: TILE6_TIMES,
+      leads: TILE6_TIMES.map(function () { return beats(0.75); }),
+      centerRate: CENTER_RATE,
+      bandTarget: EXT_BAND_TARGET,
+      bandCells: BAND_CELLS,
+      preBlocked: aliveF,
+      bandEnd: V21_BAND_END,
+      pinStartGap: false,
+    });
+
+    // マーカー 33-36: 残留タイルを 1 回 2 枚ずつ爆破（93.438 / 95.016 / 96.740 / 97.512s）。
+    //   blastPhase の 4 辺めぐりなので 2 枚は必ず別の辺に散る。点滅予告は 1 拍前から。
+    blastPhase({
+      tiles: bandF.concat(bandG),
+      shots: BLAST2_TIMES.map(function (t) { return { time: t, n: 2 }; }),
+    });
+
+    // ----------------------------------------------------------------------
+    // ブロックC — マーカー 37〜42（98.342〜103.346s）
+    // ----------------------------------------------------------------------
+    // マーカー 37: 左右の列を縦の鎖で消す（98.342s）。中心列 1 と 14 に置くと、
+    //   破壊半径 1.8 + 揺れ 0.95 で 帯の 列 0-1 / 14-15 をどちらも掃ける。
+    //   予告①②はマーカー 36（97.512s）の直後に置いた。
+    const CHAIN37_LANES = [{ col: 1, phase: 0 }, { col: 14, phase: Math.PI }];
+    chainAttackG(
+      CHAIN_V_FAST, MK37_CHAIN_LR - 0.52, MK37_CHAIN_LR - 0.21, MK37_CHAIN_LR,
+      CHAIN37_LANES, bandF.concat(bandG)
+    );
+
+    // マーカー 38: 上下の列を横の鎖で消す（99.063s・左→右）。中心行 1 と 7 で
+    //   帯の 行 0-1 / 7-8 を掃く。これで外周の 4 辺が全部消える。
+    const CHAIN38_LANES = [{ row: 1, phase: 0 }, { row: 7, phase: Math.PI }];
+    chainAttackG(
+      CHAIN_H, MK38_CHAIN_TB - 0.40, MK38_CHAIN_TB - 0.16, MK38_CHAIN_TB,
+      CHAIN38_LANES, bandF.concat(bandG)
+    );
+
+    // マーカー 39: 縦の鎖 2 本（99.590s）。右半分の中央（列 11）は上から下、
+    //   左半分の中央（列 4）は下から上。残留タイルはもう無いので破壊は起きない。
+    chainAttackG(
+      CHAIN_V_FAST_DOWN, MK39_CHAIN_MID - 0.35, MK39_CHAIN_MID - 0.15, MK39_CHAIN_MID,
+      [{ col: 11, phase: 0 }], bandF.concat(bandG)
+    );
+    chainAttackG(
+      CHAIN_V_FAST, MK39_CHAIN_MID - 0.35, MK39_CHAIN_MID - 0.15, MK39_CHAIN_MID,
+      [{ col: 4, phase: Math.PI }], bandF.concat(bandG)
+    );
+
+    // マーカー 40-42: 落下隕石（中央 100.014s / 右 101.680s / 左 103.346s）。
+    //   横断シャベル（区間⑤⑦）と同じく「着弾時刻」を先に決め、飛来時間ぶん手前で
+    //   発射する。着弾点（最下段の中心）から放射弾を 1.6 倍の数で出す。
+    const DROP_FLIGHT = Math.sqrt((2 * (METEOR_DROP_SPAWN_Y - METEOR_DROP_Y)) / METEOR_DROP_ACCEL);
+    [
+      [MK40_DROP_MID, (COLS * CELL) / 2],   // 中央（x = 16）
+      [MK41_DROP_R, 24],                    // 右側（列 11-12 の境）
+      [MK42_DROP_L, 8],                     // 左側（列 3-4 の境）
+    ].forEach(function (d, k) {
+      const impact = d[0];
+      const x = d[1];
+      const warnDur = DROP_FLIGHT + beats(1);
+      s.at(impact - warnDur, meteorDropWarn(x, warnDur));
+      s.at(impact - DROP_FLIGHT, meteorDrop(x, DROP_FLIGHT));
+      s.at(impact - RING_LEAD, ringWarn([[x, METEOR_DROP_Y]], 'burstwarn'));
+      s.at(impact, burst([x, METEOR_DROP_Y], k, 1.6));
+    });
+
     // 残ったタイルの実体クリップを出す（消える時刻が全部確定したあと）。
     // 使い切らなかったタイルは bandEnd = B(144) = 60.000s＝次のセクションの頭で消える。
     emitBandTiles(bandC);
     emitBandTiles(bandD);
     emitBandTiles(bandE);
+    // v21: マーカー 30 / 32 で積んだ帯。使い切らなかったぶんは V21_BAND_END（100.60s）
+    //   ＝ マーカー 38 の横の鎖が通り過ぎた直後に消える。
+    emitBandTiles(bandF);
+    emitBandTiles(bandG);
   }
 );
