@@ -1,0 +1,78 @@
+﻿{
+    "name": "stone3_easy_890_snakepop",
+    "bullets": [
+        {
+            "originPos": {
+                "x": 20.025,
+                "y": 14.94597322284017
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": true,
+            "polarForm": {
+                "x": 0,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_flash",
+            "scale": {
+                "x": 1.3224999999999998,
+                "y": 1.3224999999999998
+            },
+            "color": {
+                "x": 0.8879,
+                "y": 0.8388,
+                "z": 0.9734,
+                "w": 1
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 0.15000000000000002,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true,
+            "scaleEnd": {
+                "x": 1.15,
+                "y": 1.15
+            },
+            "colorEnd": {
+                "x": 0.0742,
+                "y": 0.0561,
+                "z": 0.1095,
+                "w": 0
+            },
+            "animDuration": 0.05
+        }
+    ],
+    "homing": false,
+    "isLaser": false
+}

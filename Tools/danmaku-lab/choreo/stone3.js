@@ -884,10 +884,9 @@ const BLINK_ACCEL = 0.7;      // 山の間隔の縮み率（爆破へ向けて�
 // SHOVEL_SCALE 2.6 では 1.38（タイル 1.84 の 0.75 倍）。ただし実際に壊れるのはタイル1枚ぶん
 // なので、帯は刃の実測幅を丸めてタイルと同じ幅にする（v5 の 0.6 から約3倍）。
 const PATH_WIDTH = TILE;
-const RING_LEAD = beats(0.5);      // 放射弾リング予告のリード（爆破の半拍前）
-const RING_COUNT = 8;              // リングの点の数
-const RING_RADIUS = 1.7;           // リングの半径
-const RING_DOT = 0.42;             // リングの点の一辺
+// v23 (B)1: 爆破半拍前の小点 8 個のリング予告 ringWarn()（RING_LEAD/RING_COUNT/RING_RADIUS/
+// RING_DOT）は削除した。点滅予告（blinkWarn）は残す。放射弾（spinBurst）はタイル消滅と
+// 同時刻のまま（元々 BLAST_LEAD_OUT ぶん後ろにずらす設計ではなかったので、ここは無変更）。
 const SWEEP_LEAD = beats(1);       // 横断シャベルの経路予告のリード（発射の1拍前）
 // MARK_SIZE / MARK_INSET / MARK_HOLD（横断シャベルの方向マーク）は v8 で予告ごと削除した。
 
@@ -932,7 +931,10 @@ const POP_DURATION = 0.100;                         // 収束までの秒数（�
 // v12: 2.6 → 3.68。スプライトのドット間隔をタイル（0.02875 ユニット）に揃えるため
 // 1 ドット = 1 テクスチャ px にした結果（3.68/128 = 0.02875）。スプライト内の
 // シャベル本体を 128 ドット中 76 ドットに縮めてあるので、画面上の大きさは v11 と同じ。
-const SHOVEL_SCALE = 3.68;
+// v23 (B)2: 3.68 → 5.52（約 1.5 倍。3.68 の整数倍なので 1 ドット = 1.5 テクスチャ px の
+// まま整数比を保つ）。本体の刃幅は 24 ドット × (5.52/128) ≈ 1.04 ユニットで、経路予告の帯幅
+// PATH_WIDTH(= TILE = 1.84) より狭いままなのではみ出さない → 帯幅は無変更。
+const SHOVEL_SCALE = 5.52;
 const SHOVEL_SPAWN_Y = 26;     // 画面上端(18)より上・カリング境界(36)より内側
 const SHOVEL_FALL_SPEED = 24;  // 落下速度（一定）。飛来時間はタイルの高さで変わる
 // v13 (A4): 横断シャベルの速度を 26 → 15.6（6 割）へ下げた。
@@ -1073,26 +1075,6 @@ function tilePop(cells, kind) {
       // 収束後の 0.1 秒は実体タイルと完全に重なったまま減衰するので、消え際は見えない
       life: POP_DURATION + FADE_OUT_SEC,
     });
-  });
-  return warnClip(items, kind);
-}
-
-// (5) 放射弾の予告。爆破の RING_LEAD（半拍）前に、爆破中心のまわりへ小点をリング状に置き、
-//     爆破の瞬間ちょうどで消す（life = RING_LEAD）。
-function ringWarn(centers, kind) {
-  const items = [];
-  centers.forEach(function (c) {
-    for (let i = 0; i < RING_COUNT; i++) {
-      const a = (i * 2 * Math.PI) / RING_COUNT;
-      items.push({
-        pos: [c[0] + Math.cos(a) * RING_RADIUS, c[1] + Math.sin(a) * RING_RADIUS],
-        scale: [RING_DOT, RING_DOT],
-        color: STONE_MID,
-        appearTime: RING_LEAD,      // 予告点滅の窓に入れっぱなし（実体化しない）
-        appearDuration: RING_LEAD,
-        life: RING_LEAD,
-      });
-    }
   });
   return warnClip(items, kind);
 }
@@ -1342,21 +1324,34 @@ const METEOR_DROP_SPAWN_Y = 26;             // 画面上端(18)より上・カ�
 const METEOR_DROP_ACCEL = 150;              // 落下加速度（ユニット/s^2）
 const METEOR_DROP_Y = CELL * 0.5;           // 着弾点＝最下段の中心（y = 1）
 
+// v23 (B)3: 隕石が飛行中に自転する。v2（区間モーション）は BulletV2UpdateJob が
+// polarForm.y を更新しないため回転が付かない。よって v1 レーン（gravitySeq の非 v2 分岐と
+// 同じ originVlc/gravity による直線・放物運動）へ戻し、spinBurst/gatherTile と同じ
+// 視覚回転トリック（useVelocityAngle:false + polarForm.x=1 + thetaVlc）を重ねる。
+// speed が既定の 0 のままなので disVector は常に 0 ＝ polarForm は位置に影響せず、
+// 描画角だけが METEOR_SPIN(rad/s) で回り続ける。尾（meteorTrail/meteorLineTrail）は
+// このトリックを付けていないので回らない。
+const METEOR_SPIN = 2 * Math.PI;            // 自転速度（約 1 回転/秒）
+const METEOR_LIFE_MARGIN = 1 / 60;          // v2 handoff と同じ 1 フレーム分のマージン
+
 // 隕石 1 発（右→左の直線）。当たり判定のあるタイルを拡大したもの。
 function meteor(y) {
-  return gravitySeq(
-    {
-      pos: [METEOR_START_X, y],
-      vel: [0, 0],
-      type: 'stone3_tile',
-      scale: [METEOR_SCALE, METEOR_SCALE],
-      color: SPRITE_AS_IS,
-      unCounterable: true,
-    },
-    [{ until: METEOR_FLIGHT, moveTo: [METEOR_END_X, y] }],
-    'meteor',
-    { v2: true }
-  );
+  const vx = (METEOR_END_X - METEOR_START_X) / METEOR_FLIGHT;
+  const bullet = bulletDefaults({
+    originPos: { x: METEOR_START_X, y },
+    originVlc: { x: vx, y: 0 },
+    typeName: 'stone3_tile',
+    scale: { x: METEOR_SCALE, y: METEOR_SCALE },
+    color: { x: SPRITE_AS_IS[0], y: SPRITE_AS_IS[1], z: SPRITE_AS_IS[2], w: SPRITE_AS_IS[3] },
+    life: METEOR_FLIGHT + METEOR_LIFE_MARGIN,
+    unCounterable: true,
+    useVelocityAngle: false,
+    polarForm: { x: 1, y: 0 },
+    thetaVlc: METEOR_SPIN,
+  });
+  return {
+    parts: [{ offsetSec: 0, kind: 'meteor', buffer: { bullets: [bullet], homing: false, isLaser: false }, spawner: NEUTRAL_SPAWNER() }],
+  };
 }
 
 // 隕石の尾。通過点に stone3_flash（当たり判定なし）を置き、縮みながら消す。
@@ -1416,20 +1411,25 @@ function meteorDropWarn(x, dur) {
 }
 
 // 落下隕石 1 発（上から下へ等加速）。着弾時刻の flight 秒前に発射する。
+// v23 (B)3: meteor() と同じ理由で v1 レーン（gravity フィールドによる放物運動）へ戻し、
+// 自転（thetaVlc）を付けた。
 function meteorDrop(x, flight) {
-  return gravitySeq(
-    {
-      pos: [x, METEOR_DROP_SPAWN_Y],
-      vel: [0, 0],
-      type: 'stone3_tile',
-      scale: [METEOR_SCALE, METEOR_SCALE],
-      color: SPRITE_AS_IS,
-      unCounterable: true,
-    },
-    [{ until: flight, accel: [METEOR_DROP_ACCEL, -Math.PI / 2] }],
-    'meteordrop',
-    { v2: true }
-  );
+  const bullet = bulletDefaults({
+    originPos: { x, y: METEOR_DROP_SPAWN_Y },
+    originVlc: { x: 0, y: 0 },
+    gravity: { x: METEOR_DROP_ACCEL, y: -Math.PI / 2 },
+    typeName: 'stone3_tile',
+    scale: { x: METEOR_SCALE, y: METEOR_SCALE },
+    color: { x: SPRITE_AS_IS[0], y: SPRITE_AS_IS[1], z: SPRITE_AS_IS[2], w: SPRITE_AS_IS[3] },
+    life: flight + METEOR_LIFE_MARGIN,
+    unCounterable: true,
+    useVelocityAngle: false,
+    polarForm: { x: 1, y: 0 },
+    thetaVlc: METEOR_SPIN,
+  });
+  return {
+    parts: [{ offsetSec: 0, kind: 'meteordrop', buffer: { bullets: [bullet], homing: false, isLaser: false }, spawner: NEUTRAL_SPAWNER() }],
+  };
 }
 
 // ── v22: 壁に当てる隕石（マーカー 49〜51）と、回転しながら集まるタイル（マーカー 48）──
@@ -1443,20 +1443,24 @@ const WALL_HIT_RIGHT = COLS * CELL - WALL_M_HALF;  // 右壁に接した時の�
 const WALL_HIT_LEFT = WALL_M_HALF;                 // 左壁に接した時の中心 x（1.6）
 
 // 隕石 1 発（始点 x0 → 終点 x1・高さ y 固定・flight 秒の等速直線）。
+// v23 (B)3: meteor() と同じ理由で v1 レーンへ戻し、自転（thetaVlc）を付けた。
 function meteorLine(x0, x1, y, flight) {
-  return gravitySeq(
-    {
-      pos: [x0, y],
-      vel: [0, 0],
-      type: 'stone3_tile',
-      scale: [METEOR_SCALE, METEOR_SCALE],
-      color: SPRITE_AS_IS,
-      unCounterable: true,
-    },
-    [{ until: flight, moveTo: [x1, y] }],
-    'meteorline',
-    { v2: true }
-  );
+  const vx = (x1 - x0) / flight;
+  const bullet = bulletDefaults({
+    originPos: { x: x0, y },
+    originVlc: { x: vx, y: 0 },
+    typeName: 'stone3_tile',
+    scale: { x: METEOR_SCALE, y: METEOR_SCALE },
+    color: { x: SPRITE_AS_IS[0], y: SPRITE_AS_IS[1], z: SPRITE_AS_IS[2], w: SPRITE_AS_IS[3] },
+    life: flight + METEOR_LIFE_MARGIN,
+    unCounterable: true,
+    useVelocityAngle: false,
+    polarForm: { x: 1, y: 0 },
+    thetaVlc: METEOR_SPIN,
+  });
+  return {
+    parts: [{ offsetSec: 0, kind: 'meteorline', buffer: { bullets: [bullet], homing: false, isLaser: false }, spawner: NEUTRAL_SPAWNER() }],
+  };
 }
 
 // その尾（v21 の meteorTrail と同じ作りで、経路だけ差し替えたもの）。
@@ -1957,7 +1961,6 @@ export default stage(
         s.at(blastTime - BLINK_LEAD, blinkWarn(cells, 'blastblink'));
 
         const centers = cells.map((c) => cellCenter(c[0], c[1]));
-        s.at(blastTime - RING_LEAD, ringWarn(centers, 'burstwarn'));
         centers.forEach(function (center) {
           s.at(blastTime, burst(center, b, cfg.burstMul || 1));
         });
@@ -2101,8 +2104,6 @@ export default stage(
         s.at(impact - flight - SWEEP_LEAD, dropPathWarn(center, SWEEP_LEAD + flight, 'droppathwarn'));
         // v5 (2): 爆破の1拍前から対象タイルを点滅させる
         s.at(impact - BLINK_LEAD, blinkWarn([cell], 'blastblink'));
-        // v5 (5): 爆破の半拍前に放射弾のリング予告
-        s.at(impact - RING_LEAD, ringWarn([center], 'burstwarn'));
         s.at(
           impact - flight,
           shovel({
@@ -2590,10 +2591,13 @@ export default stage(
       }));
       s.at(t, tilePop(cells, 'tilepop'));
       // 実体は 1 拍静止してから左向きに等加速（画面外で消える）
+      // v23 (B)4: gravitySeq(v2) は既定 useVelocityAngle:true で、加速中は速度角（180°）へ
+      // 描画が回ってしまう。位置計算（gravitySeq の結果）はそのまま使い、返ってきた v2 弾の
+      // useVelocityAngle だけ false に上書きして常に正立（initialAngle 既定 0）させる。
       rows.forEach(function (r) {
         const c = cellCenter(SLIDE_COL, r);
         const fly = Math.sqrt((2 * (c[0] - SLIDE_END_X)) / SLIDE_ACCEL);
-        s.at(t, gravitySeq(
+        const clip = gravitySeq(
           { pos: c, vel: [0, 0], type: 'stone3_tile', scale: [TILE, TILE], color: SPRITE_AS_IS, unCounterable: true },
           [
             { until: SLIDE_HOLD, moveTo: c },
@@ -2601,7 +2605,9 @@ export default stage(
           ],
           'slide',
           { v2: true }
-        ));
+        );
+        clip.parts[0].buffer.bullets[0].useVelocityAngle = false;
+        s.at(t, clip);
       });
     }
 
@@ -2779,7 +2785,6 @@ export default stage(
       const warnDur = DROP_FLIGHT + beats(1);
       s.at(impact - warnDur, meteorDropWarn(x, warnDur));
       s.at(impact - DROP_FLIGHT, meteorDrop(x, DROP_FLIGHT));
-      s.at(impact - RING_LEAD, ringWarn([[x, METEOR_DROP_Y]], 'burstwarn'));
       s.at(impact, burst([x, METEOR_DROP_Y], k, 1.6));
     });
 
@@ -2860,7 +2865,6 @@ export default stage(
         kind: 'blastwarn',
       }));
       const centers = cells.map(function (c) { return cellCenter(c[0], c[1]); });
-      s.at(time - RING_LEAD, ringWarn(centers, 'burstwarn'));
       centers.forEach(function (center) {
         s.at(time, burst(center, blast44Idx, 1));
       });
@@ -2935,7 +2939,6 @@ export default stage(
         GATHER_SPIN * (i % 2 === 0 ? 1 : -1)
       ));
     });
-    s.at(GATHER_IMPACT - RING_LEAD, ringWarn([GATHER_POINT], 'burstwarn'));
     const GATHER_RING_N = Math.round(D(10, 12, 14) * 2);
     s.at(GATHER_IMPACT, spinBurst({
       pos: GATHER_POINT,
@@ -2980,7 +2983,6 @@ export default stage(
       s.at(fire - METEOR_WARN_LEAD, meteorRowWarn(y, METEOR_WARN_LEAD));
       s.at(fire, meteorLine(x0, x1, y, flight));
       s.at(fire, meteorLineTrail(x0, x1, y, flight));
-      s.at(hit - RING_LEAD, ringWarn([[x1, y]], 'burstwarn'));
       s.at(hit, burst([x1, y], k, 1.6));
     });
 

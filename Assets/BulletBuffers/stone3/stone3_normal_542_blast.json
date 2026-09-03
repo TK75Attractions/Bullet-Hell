@@ -3,12 +3,12 @@
     "bullets": [
         {
             "originPos": {
-                "x": 25,
-                "y": 3
+                "x": 13,
+                "y": 1
             },
             "originVlc": {
-                "x": -6.224356328926854,
-                "y": -6.500568305198263
+                "x": -6.404612636492062,
+                "y": -6.3230480764016175
             },
             "playerInfluence": {
                 "x": 0,
@@ -25,7 +25,7 @@
             "useVelocityAngle": false,
             "polarForm": {
                 "x": 1,
-                "y": 3.9486937830828928
+                "y": 3.920582456064715
             },
             "radiusVlc": 0,
             "radiusAccel": 0,
@@ -63,12 +63,12 @@
         },
         {
             "originPos": {
-                "x": 25,
-                "y": 3
+                "x": 13,
+                "y": 1
             },
             "originVlc": {
-                "x": 2.517479126874223,
-                "y": -8.640734855656236
+                "x": -3.497364787631317,
+                "y": -8.292673847573926
             },
             "playerInfluence": {
                 "x": 0,
@@ -85,7 +85,7 @@
             "useVelocityAngle": false,
             "polarForm": {
                 "x": 1,
-                "y": 4.995891334279491
+                "y": 4.313281537763439
             },
             "radiusVlc": 0,
             "radiusAccel": 0,
@@ -123,12 +123,12 @@
         },
         {
             "originPos": {
-                "x": 25,
-                "y": 3
+                "x": 13,
+                "y": 1
             },
             "originVlc": {
-                "x": 8.741835455801077,
-                "y": -2.140166550457976
+                "x": -0.057674853544447374,
+                "y": -8.999815198728728
             },
             "playerInfluence": {
                 "x": 0,
@@ -145,7 +145,7 @@
             "useVelocityAngle": false,
             "polarForm": {
                 "x": 1,
-                "y": 6.043088885476088
+                "y": 4.705980619462164
             },
             "radiusVlc": 0,
             "radiusAccel": 0,
@@ -183,12 +183,12 @@
         },
         {
             "originPos": {
-                "x": 25,
-                "y": 3
+                "x": 13,
+                "y": 1
             },
             "originVlc": {
-                "x": 6.224356328926852,
-                "y": 6.500568305198264
+                "x": 3.3907955541707073,
+                "y": -8.336816269405016
             },
             "playerInfluence": {
                 "x": 0,
@@ -205,7 +205,7 @@
             "useVelocityAngle": false,
             "polarForm": {
                 "x": 1,
-                "y": 7.090286436672686
+                "y": 5.098679701160887
             },
             "radiusVlc": 0,
             "radiusAccel": 0,
@@ -243,12 +243,12 @@
         },
         {
             "originPos": {
-                "x": 25,
-                "y": 3
+                "x": 13,
+                "y": 1
             },
             "originVlc": {
-                "x": -2.5174791268742145,
-                "y": 8.64073485565624
+                "x": 6.323048076401614,
+                "y": -6.4046126364920655
             },
             "playerInfluence": {
                 "x": 0,
@@ -265,7 +265,7 @@
             "useVelocityAngle": false,
             "polarForm": {
                 "x": 1,
-                "y": 8.137483987869283
+                "y": 5.491378782859611
             },
             "radiusVlc": 0,
             "radiusAccel": 0,
@@ -303,12 +303,12 @@
         },
         {
             "originPos": {
-                "x": 25,
-                "y": 3
+                "x": 13,
+                "y": 1
             },
             "originVlc": {
-                "x": -8.741835455801077,
-                "y": 2.140166550457977
+                "x": 8.292673847573926,
+                "y": -3.4973647876313176
             },
             "playerInfluence": {
                 "x": 0,
@@ -325,7 +325,607 @@
             "useVelocityAngle": false,
             "polarForm": {
                 "x": 1,
-                "y": 9.184681539065881
+                "y": 5.884077864558336
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": -5,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_bullet",
+            "scale": {
+                "x": 0.3,
+                "y": 0.3
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 0,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 13,
+                "y": 1
+            },
+            "originVlc": {
+                "x": 8.999815198728728,
+                "y": -0.057674853544447915
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 6.27677694625706
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": -5,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_bullet",
+            "scale": {
+                "x": 0.3,
+                "y": 0.3
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 0,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 13,
+                "y": 1
+            },
+            "originVlc": {
+                "x": 8.336816269405016,
+                "y": 3.390795554170707
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 6.669476027955784
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": -5,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_bullet",
+            "scale": {
+                "x": 0.3,
+                "y": 0.3
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 0,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 13,
+                "y": 1
+            },
+            "originVlc": {
+                "x": 6.404612636492066,
+                "y": 6.323048076401614
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 7.062175109654508
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": -5,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_bullet",
+            "scale": {
+                "x": 0.3,
+                "y": 0.3
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 0,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 13,
+                "y": 1
+            },
+            "originVlc": {
+                "x": 3.497364787631318,
+                "y": 8.292673847573926
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 7.454874191353232
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": -5,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_bullet",
+            "scale": {
+                "x": 0.3,
+                "y": 0.3
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 0,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 13,
+                "y": 1
+            },
+            "originVlc": {
+                "x": 0.05767485354444847,
+                "y": 8.999815198728728
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 7.847573273051957
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": -5,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_bullet",
+            "scale": {
+                "x": 0.3,
+                "y": 0.3
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 0,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 13,
+                "y": 1
+            },
+            "originVlc": {
+                "x": -3.3907955541706993,
+                "y": 8.33681626940502
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 8.24027235475068
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": -5,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_bullet",
+            "scale": {
+                "x": 0.3,
+                "y": 0.3
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 0,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 13,
+                "y": 1
+            },
+            "originVlc": {
+                "x": -6.323048076401613,
+                "y": 6.404612636492066
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 8.632971436449404
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": -5,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_bullet",
+            "scale": {
+                "x": 0.3,
+                "y": 0.3
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 0,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 13,
+                "y": 1
+            },
+            "originVlc": {
+                "x": -8.292673847573926,
+                "y": 3.4973647876313185
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 9.025670518148129
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": -5,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_bullet",
+            "scale": {
+                "x": 0.3,
+                "y": 0.3
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 0,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 13,
+                "y": 1
+            },
+            "originVlc": {
+                "x": -8.999815198728728,
+                "y": 0.05767485354444902
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 9.418369599846853
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": -5,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_bullet",
+            "scale": {
+                "x": 0.3,
+                "y": 0.3
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 0,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 13,
+                "y": 1
+            },
+            "originVlc": {
+                "x": -8.33681626940502,
+                "y": -3.390795554170699
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 9.811068681545576
             },
             "radiusVlc": 0,
             "radiusAccel": 0,

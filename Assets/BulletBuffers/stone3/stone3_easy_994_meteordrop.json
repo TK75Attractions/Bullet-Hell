@@ -1,0 +1,67 @@
+﻿{
+    "name": "stone3_easy_994_meteordrop",
+    "bullets": [
+        {
+            "originPos": {
+                "x": 8,
+                "y": 26
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 150,
+                "y": -1.5707963267948966
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 6.283185307179586,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_tile",
+            "scale": {
+                "x": 3.2,
+                "y": 3.2
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 0.5940169358562924,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        }
+    ],
+    "homing": false,
+    "isLaser": false
+}
