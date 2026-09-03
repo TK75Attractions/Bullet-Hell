@@ -220,17 +220,18 @@ public class BulletBufferManager
 
         for (int i = 0; i < jsonFiles.Length; i++)
         {
-            BulletBuffer buffer = ReadBulletBufferFromFile(jsonFiles[i]);
-            if (buffer == null)
+            List<BulletBuffer> buffers = ReadBulletBuffersFromFileMulti(jsonFiles[i]);
+            for (int j = 0; j < buffers.Count; j++)
             {
-                continue;
+                AddOrReplaceBulletBuffer(buffers[j]);
+                loadedCount++;
             }
-
-            AddOrReplaceBulletBuffer(buffer);
-            loadedCount++;
         }
 
-        Debug.Log($"Loaded {loadedCount}/{jsonFiles.Length} bullet buffer json files from {directoryPath}");
+        // bh-bundle-1 形式では1ファイルが複数クリップを含むため、ここでの母数は
+        // 「読み込んだクリップ数 / 走査したファイル数」であり、1クリップ1ファイルの
+        // 従来形式では従来どおり一致する。
+        Debug.Log($"Loaded {loadedCount} bullet buffers from {jsonFiles.Length} json files in {directoryPath}");
         return loadedCount;
     }
 
@@ -247,14 +248,12 @@ public class BulletBufferManager
 
         for (int i = 0; i < jsonFiles.Length; i++)
         {
-            BulletBuffer buffer = ReadBulletBufferFromFile(jsonFiles[i]);
-            if (buffer == null)
+            List<BulletBuffer> buffers = ReadBulletBuffersFromFileMulti(jsonFiles[i]);
+            for (int j = 0; j < buffers.Count; j++)
             {
-                continue;
+                AddOrReplaceBulletBuffer(buffers[j]);
+                loadedCount++;
             }
-
-            AddOrReplaceBulletBuffer(buffer);
-            loadedCount++;
         }
 
         return loadedCount;
@@ -289,16 +288,14 @@ public class BulletBufferManager
                     continue;
                 }
 
-                BulletBuffer buffer = ReadBulletBufferFromJson(location.PrimaryKey, jsonHandle.Result.text);
+                List<BulletBuffer> buffers = ReadBulletBuffersFromJsonMulti(location.PrimaryKey, jsonHandle.Result.text);
                 if (jsonHandle.IsValid()) Addressables.Release(jsonHandle);
 
-                if (buffer == null)
+                for (int i = 0; i < buffers.Count; i++)
                 {
-                    continue;
+                    AddOrReplaceBulletBuffer(buffers[i]);
+                    loadedCount++;
                 }
-
-                AddOrReplaceBulletBuffer(buffer);
-                loadedCount++;
             }
         }
         catch (Exception ex)
@@ -348,6 +345,235 @@ public class BulletBufferManager
             Debug.LogWarning($"Exception while reading bullet buffer file {filePath}: {ex.Message}");
             return null;
         }
+    }
+
+    // --- bh-bundle-1 (段階1: スパース化 + 難易度ごと1ファイル化) -----------------------
+    // 既存の「1クリップ1ファイル」経路(ReadBulletBufferFromJson)は無改修のまま、
+    // JSON先頭の "format":"bh-bundle-1" を見て bundle 経路に分岐する第2ローダー。
+    // bundle の "clips": { "<clipName>": {...従来の1クリップJSONと同じ構造(ただしスパース)...} }
+    // を1クリップぶんずつ切り出し、既存の ReadBulletBufferFromJson にそのまま渡す
+    // （スパースされた既定値の復元は JsonUtility の「省略フィールド=C#既定値」まかせで、
+    // useVelocityAngle/warpable の省略時 true 化も ApplyBulletDataJsonDefaults が
+    // 個々のクリップ JSON 文字列に対してそのまま効く）。
+    private const string BundleFormatSignature = "bh-bundle-1";
+
+    private List<BulletBuffer> ReadBulletBuffersFromFileMulti(string fileName)
+    {
+        string filePath = Path.IsPathRooted(fileName)
+            ? fileName
+            : Path.Combine(Application.dataPath, BulletBufferDirectoryName, fileName);
+
+        if (!File.Exists(filePath))
+        {
+            Debug.LogWarning($"Bullet buffer file not found: {filePath}");
+            return new List<BulletBuffer>();
+        }
+
+        try
+        {
+            string json = File.ReadAllText(filePath);
+            return ReadBulletBuffersFromJsonMulti(filePath, json);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning($"Exception while reading bullet buffer file {filePath}: {ex.Message}");
+            return new List<BulletBuffer>();
+        }
+    }
+
+    private List<BulletBuffer> ReadBulletBuffersFromJsonMulti(string sourceName, string json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            Debug.LogWarning($"Bullet buffer json is empty: {sourceName}");
+            return new List<BulletBuffer>();
+        }
+
+        if (IsBundleJson(json))
+        {
+            return ReadBundleBulletBuffersFromJson(sourceName, json);
+        }
+
+        BulletBuffer single = ReadBulletBufferFromJson(sourceName, json);
+        List<BulletBuffer> result = new List<BulletBuffer>();
+        if (single != null)
+        {
+            result.Add(single);
+        }
+        return result;
+    }
+
+    private static bool IsBundleJson(string json)
+    {
+        string format = ExtractJsonStringPropertyValue(json, "format");
+        return string.Equals(format, BundleFormatSignature, StringComparison.Ordinal);
+    }
+
+    private List<BulletBuffer> ReadBundleBulletBuffersFromJson(string sourceName, string json)
+    {
+        List<BulletBuffer> results = new List<BulletBuffer>();
+        List<KeyValuePair<string, string>> clipEntries = ExtractJsonObjectProperties(json, "clips");
+        if (clipEntries.Count == 0)
+        {
+            Debug.LogWarning($"Bundle bullet buffer json has no clips: {sourceName}");
+        }
+
+        foreach (KeyValuePair<string, string> entry in clipEntries)
+        {
+            BulletBuffer buffer = ReadBulletBufferFromJson($"{sourceName}#{entry.Key}", entry.Value);
+            if (buffer == null)
+            {
+                continue;
+            }
+
+            // clip の実体名は bundle の key を正とする（clip 内部の "name" は省略される想定だが、
+            // 万一残っていてもキーの方を優先し StageReader からの clipName 参照と食い違わせない）。
+            buffer.name = entry.Key;
+            results.Add(buffer);
+        }
+
+        return results;
+    }
+
+    // "clips": { "keyA": { ... }, "keyB": { ... } } の直下1階層だけを走査し、
+    // 各キーと対応するオブジェクト部分文字列を切り出す（ExtractJsonArrayObjects と同じ
+    // 手書きスキャン方式。ネストした {} や文字列中の記号は深さ/文字列状態で判定する）。
+    private static List<KeyValuePair<string, string>> ExtractJsonObjectProperties(string json, string objectPropertyName)
+    {
+        List<KeyValuePair<string, string>> results = new List<KeyValuePair<string, string>>();
+        if (string.IsNullOrEmpty(json)) return results;
+
+        int propertyIndex = FindJsonPropertyIndex(json, objectPropertyName);
+        if (propertyIndex < 0) return results;
+
+        int colonIndex = json.IndexOf(':', propertyIndex);
+        if (colonIndex < 0) return results;
+
+        int objectStart = json.IndexOf('{', colonIndex + 1);
+        if (objectStart < 0) return results;
+
+        bool inString = false;
+        bool escaped = false;
+        int depth = 0;
+        string pendingKey = null;
+        int keyStart = -1;
+        bool awaitingValue = false;
+        int valueStart = -1;
+
+        for (int i = objectStart; i < json.Length; i++)
+        {
+            char c = json[i];
+
+            if (inString)
+            {
+                if (escaped)
+                {
+                    escaped = false;
+                }
+                else if (c == '\\')
+                {
+                    escaped = true;
+                }
+                else if (c == '"')
+                {
+                    inString = false;
+                    if (depth == 1 && pendingKey == null && !awaitingValue && keyStart >= 0)
+                    {
+                        pendingKey = json.Substring(keyStart, i - keyStart);
+                        keyStart = -1;
+                    }
+                }
+                continue;
+            }
+
+            if (c == '"')
+            {
+                inString = true;
+                if (depth == 1 && pendingKey == null && !awaitingValue)
+                {
+                    keyStart = i + 1;
+                }
+                continue;
+            }
+
+            if (c == '{')
+            {
+                depth++;
+                if (depth == 2 && awaitingValue && valueStart < 0)
+                {
+                    valueStart = i;
+                }
+                continue;
+            }
+
+            if (c == '}')
+            {
+                depth--;
+                if (depth == 1 && awaitingValue && valueStart >= 0)
+                {
+                    results.Add(new KeyValuePair<string, string>(pendingKey, json.Substring(valueStart, i - valueStart + 1)));
+                    pendingKey = null;
+                    awaitingValue = false;
+                    valueStart = -1;
+                }
+                else if (depth == 0)
+                {
+                    break;
+                }
+                continue;
+            }
+
+            if (c == ':' && depth == 1 && pendingKey != null && !awaitingValue)
+            {
+                awaitingValue = true;
+                continue;
+            }
+
+            if (c == ',' && depth == 1)
+            {
+                // 値がオブジェクトでない不正なエントリなどをスキップして次のキーへ備える。
+                pendingKey = null;
+                awaitingValue = false;
+                valueStart = -1;
+                continue;
+            }
+        }
+
+        return results;
+    }
+
+    private static string ExtractJsonStringPropertyValue(string json, string propertyName)
+    {
+        int propertyIndex = FindJsonPropertyIndex(json, propertyName);
+        if (propertyIndex < 0) return null;
+
+        int colonIndex = json.IndexOf(':', propertyIndex);
+        if (colonIndex < 0) return null;
+
+        int i = colonIndex + 1;
+        while (i < json.Length && char.IsWhiteSpace(json[i])) i++;
+        if (i >= json.Length || json[i] != '"') return null;
+        i++;
+        int start = i;
+        bool escaped = false;
+        while (i < json.Length)
+        {
+            char c = json[i];
+            if (escaped)
+            {
+                escaped = false;
+            }
+            else if (c == '\\')
+            {
+                escaped = true;
+            }
+            else if (c == '"')
+            {
+                return json.Substring(start, i - start);
+            }
+            i++;
+        }
+        return null;
     }
 
     private BulletBuffer ReadBulletBufferFromJson(string sourceName, string json)
