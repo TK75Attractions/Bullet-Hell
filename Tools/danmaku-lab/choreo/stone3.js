@@ -1,4 +1,49 @@
-// choreo/stone3.js — 新・石工（stone3）v18
+// choreo/stone3.js — 新・石工（stone3）v19
+//
+// ── v19 での変更（指示書のマーカー 9〜17 = 40.0〜50.8s の実装。〜39.6s は v18 と完全に同一）──
+//   指示書: Instructions/石工/stage-timing-instructions_20260903_chain_v2.md（17 マーカー）
+//   マーカー 1〜8（〜39.2s）と 39.583s の爆破 1 発は v18 のまま 1 つも触っていない。
+//   40.0s 以降にあった v13b 由来の仮区間⑪⑫⑬⑭（横断シャベル 2 本 / 落下シャベル 5 本 /
+//   タイル表示④ 8 拍 / 爆破④ 3 回）は、新しい内容と時間帯が丸ごと重なるので削除した。
+//   仮区間⑮（53.333s〜 横断シャベルの往復）と⑯（56.667s〜 落下シャベル＋放射弾増量）は
+//   マーカー 17 の終わり（50.833s）より後なので、そのまま残している（供給源の帯だけ差し替え）。
+//
+//   採用時刻（.tmp_v19/onset_markers.py・onset_derived.py。丸めルールは v17 と同じで、
+//   16 分音符（0.1041667s）へ丸めたうえで ±80ms 以内に強いオンセット
+//   ＝ 40〜52s のスペクトルフラックスの 95 パーセンタイル 59.6 を超える局所ピーク
+//   があればそちらを優先する）:
+//     #   | ラベル            | 指示書  | 16分丸め | 採用    | 根拠
+//     ----+-------------------+---------+---------+---------+--------------------------
+//     9   | 鎖予告①           | 40.036  | 40.0000 | 40.0080 | オンセット flux 100.8
+//     10  | 鎖予告②           | 40.436  | 40.4167 | 40.4167 | 窓内最大 24.7 < 閾値 → 丸め
+//     11  | 鎖攻撃            | 41.262  | 41.2500 | 41.2619 | オンセット flux 66.7
+//     12  | タイル予告開始      | 42.587  | 42.6042 | 42.5099 | オンセット flux 81.1
+//     13  | タイル①           | 43.394  | 43.4375 | 43.3459 | オンセット flux 78.5
+//     14  | タイル②           | 43.949  | 43.9583 | 43.9670 | オンセット flux 69.2
+//     15  | タイル爆破 x4      | 44.986  | 45.0000 | 45.0061 | オンセット flux 141.2（区間最大）
+//     16  | 鎖予告①（3 回目）  | 47.255  | 47.2917 | 47.2990 | オンセット flux 62.5
+//     16b | 鎖予告②           | (+0.261)| 47.6042 | 47.5080 | オンセット flux 95.9
+//     16c | 鎖攻撃            | (+0.979)| 48.2292 | 48.3439 | オンセット flux 71.6
+//     17  | タイル予告開始      | 49.338  | 49.3750 | 49.3750 | 窓内最大 34.1 < 閾値 → 丸め
+//     17b | タイル①           | (+0.836)| 50.2083 | 50.2083 | 窓内最大 29.3 < 閾値 → 丸め
+//     17c | タイル②           | (+1.457)| 50.8333 | 50.8333 | 窓内最大 23.4 < 閾値 → 丸め
+//   16b/16c は指示書に時刻が無い（「また鎖予告→攻撃」の 1 行だけ）ので、1 回目の鎖
+//   （33.3961 / 33.6573 / 34.3750）の相対間隔 +0.2612 / +0.9789 を写してから同じ丸めを当てた。
+//   17b/17c も同様に 12→13→14 の相対間隔 +0.8360 / +1.4571 を写してある。
+//
+//   実装:
+//     ・鎖攻撃 2 回目（9-11）と 3 回目（16）は 1 回目と同じ構造（予告 2 段階 → 下から上へ
+//       這う 3 本・1 段 1.15 ユニット・16 段・1.500s）。中心列だけ変えた。
+//         1 回目 列 2 / 7 / 12（v17 から不変） → 2 回目 列 4 / 9 / 14 → 3 回目 列 1 / 6 / 11
+//       2 回目は上下の帯（マーカー 5-8 で積んだ bandC）を、3 回目は上下＋左右の帯
+//       （bandC ＋ マーカー 13/14 の bandD）を掃くので、どちらも残留タイルの破壊が起きる。
+//     ・マーカー 12-14 … 予告 → タイル①② の出現ポップ（マーカー 4-8 と同じ作り）。
+//       積む先は **左右の帯**（列 0-1 / 14-15）にして、上下（bandC）と合わせて外周が揃う。
+//     ・マーカー 15 … 45.0061s に残留タイル 4 枚を同時爆破。blastPhase の 4 辺めぐりで
+//       左 → 上 → 右 → 下 を 1 枚ずつ選ぶので、帯の左右上下に散る。1 拍前から点滅
+//       （blinkWarn）、半拍前にリング予告、爆破と同時に放射弾。
+//     ・マーカー 17 … 3 回目の鎖で砕けたセルとその 4 近傍を優先して外周へ積み直す
+//       （マーカー 5-8 の補充と同じ作り）。50.833s 以降は次の仮区間⑮まで静止。
 //
 // ── v18 での変更（色だけ。弾の配置・時刻・当たり判定は v17 と完全に同じ）──
 //   ユーザーが gpt-image-2 で作ったタイルテクスチャを stone3_tile のスプライトに採用し、
@@ -359,11 +404,33 @@ const REFILL_LEADS = [
   MK7_TILE3 - MK6_TILE2,
   MK8_TILE4 - MK7_TILE3,
 ];
+
+// --- v19: 指示書マーカー 9〜17（40.0〜50.8s）の採用時刻 ------------------------
+//   丸めルールと根拠はファイル冒頭の v19 の表を参照。
+const MK9_WARN1 = 40.0080;      //  9 鎖予告①（2 回目・薄い縦帯）
+const MK10_WARN2 = 40.4167;     // 10 鎖予告②（同じ帯を濃く）
+const MK11_CHAIN = 41.2619;     // 11 鎖攻撃（2 回目）
+const MK12_TILEWARN = 42.5099;  // 12 タイル予告開始（＝鎖を生き延びた残タイルが崩れる時刻）
+const MK13_TILE1 = 43.3459;     // 13 タイル①
+const MK14_TILE2 = 43.9670;     // 14 タイル②
+const MK15_BLAST4 = 45.0061;    // 15 タイル爆破 x4（帯の左右上下から 1 枚ずつ）
+const MK16_WARN1 = 47.2990;     // 16 鎖予告①（3 回目）
+const MK16_WARN2 = 47.5080;     // 16b 鎖予告②（1 回目の相対間隔 +0.2612 を写して丸め）
+const MK16_CHAIN = 48.3439;     // 16c 鎖攻撃（3 回目。同 +0.9789）
+const MK17_TILEWARN = 49.3750;  // 17 タイル予告開始（2 回目）
+const MK17_TILE1 = 50.2083;     // 17b タイル①（12→13 の相対間隔 +0.8360 を写して丸め）
+const MK17_TILE2 = 50.8333;     // 17c タイル②（12→14 の +1.4571 を写して丸め）
+
+// マーカー 13/14（左右の帯へ積む）と 17b/17c（外周へ積み直す）の出現時刻と予告リード。
+// 予告は「前のイベントから次のタイルの実体化まで出しっぱなし」＝ マーカー 4〜8 と同じ扱い。
+const TILE2_TIMES = [MK13_TILE1, MK14_TILE2];
+const TILE2_LEADS = [MK13_TILE1 - MK12_TILEWARN, MK14_TILE2 - MK13_TILE1];
+const TILE3_TIMES = [MK17_TILE1, MK17_TILE2];
+const TILE3_LEADS = [MK17_TILE1 - MK17_TILEWARN, MK17_TILE2 - MK17_TILE1];
+
 const S10_BEAT = 88;               // 小節23-24 36.667s タイル爆破③（アクセントに乗せる）
-const S11_BEAT = 96;               // 小節25-26 40.000s 休符（静止。横断シャベル 1 本ずつ）
-const S12_BEAT = 104;              // 小節27-28 43.333s 落下シャベル③（1 拍目は 2 本同時）
-const S13_BEAT = 112, S13_LEN = 8; // 小節29-30 46.667s タイル表示④（左右の帯だけ）
-const S14_BEAT = 120;              // 小節31-32 50.000s タイル爆破④（裏拍・51.875s に 3 枚）
+// v19: 小節25〜32（40.000〜53.333s）の仮区間⑪⑫⑬⑭は指示書のマーカー 9〜17 に
+//   置き換えたので、拍番号の定数も削除した（時刻は MK9_WARN1 以降を参照）。
 const S15_BEAT = 128;              // 小節33-34 53.333s 休符（横断シャベルの往復・行ずらし）
 const S16_BEAT = 136;              // 小節35-36 56.667s 落下シャベル④＋放射弾増量（頂点）
 const EXT_END_BEAT = 144;          // 60.000s 次のセクションの頭＝残タイル消去
@@ -926,6 +993,20 @@ const SNAKE_LANES = [
   { col: 7, phase: (2 * Math.PI) / 3 },
   { col: 12, phase: (4 * Math.PI) / 3 },
 ];
+// v19: 2 回目・3 回目の鎖は中心列を変える（同じ場所を 3 回掃かない）。
+//   1 回目 2/7/12 → 2 回目 4/9/14 → 3 回目 1/6/11。どれも間隔 5 列で、
+//   振幅 0.95 ユニットぶん往復しても画面（x = 0〜32）からはみ出さない。
+//   位相は 3 本が同時に同じ向きへ寄らないよう 120 度差のまま、組ごとに初期位相をずらす。
+const SNAKE_LANES2 = [
+  { col: 4, phase: Math.PI / 3 },
+  { col: 9, phase: Math.PI },
+  { col: 14, phase: (5 * Math.PI) / 3 },
+];
+const SNAKE_LANES3 = [
+  { col: 1, phase: (2 * Math.PI) / 3 },
+  { col: 6, phase: (4 * Math.PI) / 3 },
+  { col: 11, phase: 0 },
+];
 // v16: 鎖を専用スプライト stone3_chain（タイルより小さい正方形・一段明るい面）にした。
 // v17 でも見た目（スプライト・サイズ 1.15 ユニット）は v16 のまま。
 const SNAKE_TILE_SCALE = 0.625;
@@ -1018,8 +1099,8 @@ function snakePop(t0, k, lane) {
 // 予告。参考では「鎖が掃く幅ぶんの縦帯が画面の上から下まで通しで出て、
 // 約 1.8 秒かけて連続に濃くなり、攻撃の瞬間に閃光になって消える」。
 // こちらは拍に乗せる都合で、32.083s（薄い）→ 32.917s（濃い）の 2 段階で濃くする。
-function snakeWarn(color, dur, kind) {
-  const items = SNAKE_LANES.map(function (lane) {
+function snakeWarn(lanes, color, dur, kind) {
+  const items = lanes.map(function (lane) {
     return {
       pos: [CELL * (lane.col + 0.5), (ROWS * CELL) / 2],
       scale: [SNAKE_HALF_W * 2, ROWS * CELL],
@@ -1035,7 +1116,7 @@ function snakeWarn(color, dur, kind) {
 // セル(col,row) に残っているタイルを鎖が砕く時刻。どの鎖も通らなければ null。
 // v17: 段がグリッド行と揃わなくなったので、そのセルと y が重なる段だけを見る。
 // 各段が画面に居る間を 1/120 秒刻みで走査し、x が SNAKE_BREAK_R 以内に来た最初の時刻。
-function snakeBreakTime(col, row, t0) {
+function snakeBreakTime(col, row, t0, lanes) {
   const center = cellCenter(col, row);
   const cx = center[0];
   const cy = center[1];
@@ -1044,7 +1125,7 @@ function snakeBreakTime(col, row, t0) {
   for (let k = 0; k < SNAKE_STEPS; k++) {
     if (Math.abs(snakeY(k) - cy) > SNAKE_BREAK_DY) continue;
     const win = snakeRowWindow(t0, k);
-    SNAKE_LANES.forEach(function (lane) {
+    lanes.forEach(function (lane) {
       for (let t = win[0]; t <= win[1]; t += STEP) {
         if (Math.abs(snakeX(t, k, lane) - cx) <= SNAKE_BREAK_R) {
           if (best === null || t < best) best = t;
@@ -1069,15 +1150,18 @@ const MARKERS = {
   6: B(S6_BEAT),
   7: B(S7_BEAT),
   8: B(S8_BEAT),
-  // v13 (B): 延長の区間⑨〜⑯（ラボのシークバーからジャンプするためのマーカー）
-  9: MK1_WARN1,   // v17: 区間⑨' の頭＝鎖予告①（33.396s）
-  10: B(S10_BEAT),
-  11: B(S11_BEAT),
-  12: B(S12_BEAT),
-  13: B(S13_BEAT),
-  14: B(S14_BEAT),
-  15: B(S15_BEAT),
-  16: B(S16_BEAT),
+  // 延長のジャンプ先（ラボのシークバー用。弾データには影響しない）。
+  // v19: 仮区間⑪〜⑭を削除したので、9 以降は指示書のマーカーそのものへ貼り替えた。
+  9: MK1_WARN1,       // 鎖攻撃 1 回目の予告①（33.396s）
+  10: MK4_TILEWARN,   // タイル①〜④の予告開始（35.938s）
+  11: MK9_WARN1,      // 鎖攻撃 2 回目の予告①（40.008s）
+  12: MK11_CHAIN,     // 鎖攻撃 2 回目（41.262s）
+  13: MK12_TILEWARN,  // タイル①②の予告開始（42.510s）
+  14: MK15_BLAST4,    // タイル爆破 x4（45.006s）
+  15: MK16_WARN1,     // 鎖攻撃 3 回目の予告①（47.299s）
+  16: MK17_TILEWARN,  // タイル攻撃 2 回目の予告開始（49.375s）
+  17: B(S15_BEAT),    // 仮区間⑮（53.333s）
+  18: B(S16_BEAT),    // 仮区間⑯（56.667s）
 };
 
 export default stage(
@@ -1318,9 +1402,11 @@ export default stage(
 
       // v13 (B): cfg.shots を渡すと拍グリッドではなく明示した拍番号（8 分＝小数可）で撃つ。
       //   [{ beat, n }] の配列。n は 1 回に爆破する枚数（省略時 BLAST_PER_BEAT）。
-      //   区間⑩⑭で「曲のアクセントに乗せる」ために使う。
+      //   区間⑩で「曲のアクセントに乗せる」ために使う。
+      //   v19: beat の代わりに time（秒）を渡せるようにした。指示書のマーカーは拍グリッドに
+      //   乗らないので、マーカー 15（45.0061s）の同時 4 枚爆破はこちらを使う。
       const shots = cfg.shots
-        ? cfg.shots.map((sh) => ({ beat: sh.beat, n: sh.n || BLAST_PER_BEAT }))
+        ? cfg.shots.map((sh) => ({ beat: sh.beat, time: sh.time, n: sh.n || BLAST_PER_BEAT }))
         : (function () {
             const out = [];
             for (let i = 0; i < cfg.len; i++) {
@@ -1333,7 +1419,7 @@ export default stage(
 
       let sideIdx = 0;
       for (let b = 0; b < shots.length; b++) {
-        const blastTime = B(shots[b].beat);
+        const blastTime = shots[b].time !== undefined ? shots[b].time : B(shots[b].beat);
         const youngest = blastTime - beats(BLAST_MIN_AGE) + 1e-6;
         const group = [];
         for (let n = 0; n < shots[b].n; n++) {
@@ -1482,7 +1568,7 @@ export default stage(
     const snakeBroken = [];
     bandB.forEach(function (t) {
       if (t.claimed) return;
-      const hit = snakeBreakTime(t.col, t.row, MK3_CHAIN);
+      const hit = snakeBreakTime(t.col, t.row, MK3_CHAIN, SNAKE_LANES);
       if (hit === null) {
         t.end = MK4_TILEWARN;   // 鎖の通過後、マーカー④（タイル予告開始）でまとめて崩れる
         return;
@@ -1713,8 +1799,8 @@ export default stage(
     const EXT_BAND_TARGET = D(0.31, 0.40, 0.45);
 
     // (a)(b) 予告 2 連（同じ帯を 2 段階で濃くする）
-    s.at(MK1_WARN1, snakeWarn(STONE_PATH, MK2_WARN2 - MK1_WARN1, 'snakewarn1'));
-    s.at(MK2_WARN2, snakeWarn(STONE_WARN, MK3_CHAIN - MK2_WARN2, 'snakewarn2'));
+    s.at(MK1_WARN1, snakeWarn(SNAKE_LANES, STONE_PATH, MK2_WARN2 - MK1_WARN1, 'snakewarn1'));
+    s.at(MK2_WARN2, snakeWarn(SNAKE_LANES, STONE_WARN, MK3_CHAIN - MK2_WARN2, 'snakewarn2'));
 
     // (c) 鎖 3 本。1 段 = 弾 1 発（v2 レーンの折れ線）＋出現フラッシュ 1 発。
     //     v17: 段の間隔 1.15 ユニット（隙間なく接する）× 16 段 × 0.09375s = 1.500s で縦断。
@@ -1782,47 +1868,78 @@ export default stage(
       ],
     });
 
-    // ----------------------------------------------------------------------
-    // ⑪ 小節25-26 / 40.000s / 拍 96-103 — 休符（画面を静かにする）
-    //   小節25 は 3 拍目で、小節26 は 2 拍目でベースが完全に消える（低域 RMS 1〜5）。
-    //   フラックスも区間内最小。新規タイルも爆破も出さず、各小節の頭のアクセントに
-    //   合わせて横断シャベルを 1 本だけ流す（左→右 / 右→左）。
-    //   ※ 区間⑫の落下シャベルの縦帯予告（発射の 1 拍前から）は 41.9s 付近から出る。
-    //     予告は最暗色（STONE_PATH）なので静けさは保たれ、ビルドアップの前触れになる。
-    // ----------------------------------------------------------------------
-    const rowsC = Array.from(new Set(bandC.filter((t) => !t.claimed).map((t) => t.row)))
-      .sort((a, b) => a - b);
-    if (rowsC.length > 0) {
-      sweepPair(B(S11_BEAT + 0), rowsC[Math.floor(rng() * rowsC.length)], null);   // 40.000s
-      sweepPair(B(S11_BEAT + 6), null, rowsC[Math.floor(rng() * rowsC.length)]);   // 42.500s
+    // ======================================================================
+    // ★ v19  40.008〜50.833s — 指示書のマーカー 9〜17
+    //   鎖攻撃 2 回目 → タイル①② → 同時 4 枚爆破 → 鎖攻撃 3 回目 → タイル攻撃 2 回目。
+    //   採用時刻とその根拠はファイル冒頭の v19 の表。
+    //   ここにあった v13b 由来の仮区間は、40.0〜51.9s が丸ごと重なるので削除した:
+    //     ⑪ 40.000 / 42.500s の横断シャベル 2 本（鎖 2 回目と重なる）
+    //     ⑫ 43.333 / 45.000 / 46.458s の落下シャベル 5 本（タイル①②・4 枚爆破・鎖 3 回目と重なる）
+    //     ⑬ 46.667〜49.583s のタイル表示④ 8 拍（鎖 3 回目・タイル攻撃 2 回目と重なる）
+    //     ⑭ 50.625 / 51.250 / 51.875s の爆破④ 3 回（指示書の「その後は静止」と噛み合わない）
+    //   50.833s より後の仮区間⑮（53.333s〜）⑯（56.667s〜）はそのまま残し、
+    //   対象タイルの供給源だけ新しい帯（bandC / bandD / bandE）へ差し替えている。
+    // ======================================================================
+
+    // 鎖攻撃 1 回分をまとめて出すヘルパ。1 回目（33.4〜36.4s・SNAKE_LANES）と同じ構造で、
+    //   予告①（薄い縦帯）→ 予告②（同じ帯を濃く）→ 鎖 3 本（16 段 × 0.09375s = 1.500s で
+    //   下から上へ縦断）→ 掃かれた残留タイルの破壊 → 砕けたタイルからの放射弾
+    // を、中心列（lanes）と時刻だけ変えて出す。戻り値は砕けたタイルの一覧。
+    function chainAttack(warn1, warn2, t0, lanes, tiles) {
+      s.at(warn1, snakeWarn(lanes, STONE_PATH, warn2 - warn1, 'snakewarn1'));
+      s.at(warn2, snakeWarn(lanes, STONE_WARN, t0 - warn2, 'snakewarn2'));
+      lanes.forEach(function (lane) {
+        for (let k = 0; k < SNAKE_STEPS; k++) {
+          const at = snakeRowWindow(t0, k)[0];
+          s.at(at, snakeTile(t0, k, lane));
+          s.at(at, snakePop(t0, k, lane));
+        }
+      });
+      const broken = [];
+      tiles.forEach(function (t) {
+        if (t.claimed) return;
+        const hit = snakeBreakTime(t.col, t.row, t0, lanes);
+        if (hit === null) return;   // 掃かれなかったタイルはそのまま残す
+        t.claimed = true;
+        t.end = hit;
+        t.lead = BLAST_LEAD_OUT;
+        broken.push(t);
+      });
+      // 放射弾は全部には付けない（弾が溢れる）。列でばらけるよう等間隔に間引いて
+      // 最大 SNAKE_BURSTS 枚だけ、弾数も通常の爆破の半分にする（1 回目と同じ扱い）。
+      const sorted = broken.slice().sort(function (a, b) {
+        return a.col - b.col || a.row - b.row;
+      });
+      if (sorted.length > 0) {
+        const step = Math.max(1, Math.ceil(sorted.length / SNAKE_BURSTS));
+        for (let i = 0, k = 0; i < sorted.length; i += step, k++) {
+          const t = sorted[i];
+          s.at(t.end, burst(cellCenter(t.col, t.row), k, 0.5));
+        }
+      }
+      return broken;
     }
 
     // ----------------------------------------------------------------------
-    // ⑫ 小節27-28 / 43.333s / 拍 104-111 — 落下シャベル③（1 拍目は 2 本同時）
-    //   小節27 でビルドアップが始まり、小節28 が 1 周目の頂点（高域 1.36・フラックス
-    //   18367 とも区間最大）。両小節とも 1 拍目に 2 本同時、締めに 1 本を置く。
-    //     43.333s ×2（小節27 1拍目 387） / 44.583s ×1（小節27 4拍目 411）
-    //     45.000s ×2（小節28 1拍目 547＝1 周目の最大） / 46.458s ×1（小節28 4拍裏 358）
+    // マーカー 9-11: 鎖攻撃 2 回目（予告① 40.008 / 予告② 40.417 / 攻撃 41.262s）
+    //   中心列は 4 / 9 / 14。1 回目（2 / 7 / 12）から 2 列ずらしてあるので、
+    //   1 回目を生き延びて残っている上下の帯（bandC）のセルにも破壊が起きる。
+    //   掃かれなかったタイルはそのまま画面に残り、マーカー 15 の爆破対象になる。
     // ----------------------------------------------------------------------
-    const extUsedCols = new Set();
-    const S12_IMPACTS = [
-      B(S12_BEAT + 0), B(S12_BEAT + 0),     // 43.333s 小節27 1拍目・2 本同時
-      B(S12_BEAT + 4), B(S12_BEAT + 4),     // 45.000s 小節28 1拍目・2 本同時（1 周目の最大）
-      B(S12_BEAT + 7.5),                    // 46.458s 小節28 4拍裏・1 本で締める
-    ];
-    const dropC = pickDropTargets(bandC, S12_IMPACTS.length, extUsedCols);
-    shovelBlastPhase(S12_IMPACTS.slice(0, dropC.length), claimDropTargets(dropC, S12_IMPACTS), 0);
+    chainAttack(MK9_WARN1, MK10_WARN2, MK11_CHAIN, SNAKE_LANES2, bandC);
 
     // ----------------------------------------------------------------------
-    // ⑬ 小節29-30 / 46.667s / 拍 112-119 — タイル表示④（左右の帯だけ）
-    //   8 小節周期の 2 周目の頭（小節21 との類似度 0.9985）。今度は左右の 4 列だけに積む。
-    //   上下の帯（⑨の残り）はまだ画面にあるので preBlocked に渡し、連結判定
-    //   （自機が閉じ込められない）を上下＋左右の合計で行う。
+    // マーカー 12-14: 予告表示（42.510s）→ タイル①（43.346s）→ タイル②（43.967s）
+    //   マーカー 4-8 と同じ出現ポップ。積む先は **左右の帯**（列 0-1 / 14-15）にして、
+    //   上下（bandC の残り）と合わせて外周の 4 辺が揃うようにする（マーカー 15 の前提）。
+    //   予告は「前のイベントから実体化まで出しっぱなし」＝ TILE2_LEADS。
+    //   上下の帯は既に画面にあるので preBlocked に渡し、連結判定（自機が閉じ込められない）
+    //   を上下＋左右の合計で行う。中央（12x5）にも一時タイルが出て次のタイルで消える。
     // ----------------------------------------------------------------------
     const aliveC = new Set(bandC.filter((t) => !t.claimed).map((t) => key(t.col, t.row)));
     const bandD = tilePhase({
-      firstBeat: S13_BEAT,
-      len: S13_LEN,
+      times: TILE2_TIMES,
+      leads: TILE2_LEADS,
       centerRate: CENTER_RATE,
       bandTarget: EXT_BAND_TARGET,
       bandCells: BAND_CELLS_LR,
@@ -1832,18 +1949,55 @@ export default stage(
     });
 
     // ----------------------------------------------------------------------
-    // ⑭ 小節31-32 / 50.000s / 拍 120-127 — タイル爆破④（裏拍のアクセント）
-    //   小節31 はアクセントが裏へ移る（2 拍裏 442・4 拍目 455）。
-    //   小節32 の 1 拍裏（51.875s・フラックス 736）は解析範囲全体で最大なので、
-    //   ここだけ 3 枚まとめて割る（他は 2 枚）。
+    // マーカー 15: タイル爆破 x4（45.006s に 4 枚同時）
+    //   blastPhase の 4 辺めぐり（左 → 上 → 右 → 下）で 1 枚ずつ選ぶので、
+    //   4 枚は必ず帯の左右上下に散る。在庫は上下＝bandC・左右＝bandD。
+    //   1 拍前から対象が点滅（blinkWarn）、半拍前に薄い予告とリング予告、
+    //   45.006s ちょうどでタイルの life が尽き、同時に放射弾が 4 箇所から出る。
     // ----------------------------------------------------------------------
     blastPhase({
-      tiles: bandD,
-      shots: [
-        { beat: S14_BEAT + 1.5 },        // 50.625s 小節31 2拍裏（442）
-        { beat: S14_BEAT + 3 },          // 51.250s 小節31 4拍目（455）
-        { beat: S14_BEAT + 4.5, n: 3 },  // 51.875s 小節32 1拍裏（736＝区間最大）→ 3 枚
-      ],
+      tiles: bandC.concat(bandD),
+      shots: [{ time: MK15_BLAST4, n: 4 }],
+    });
+
+    // ----------------------------------------------------------------------
+    // マーカー 16: 鎖攻撃 3 回目（予告① 47.299 / 予告② 47.508 / 攻撃 48.344s）
+    //   中心列は 1 / 6 / 11。1 回目・2 回目のどちらとも重ならない位置で、
+    //   左端の列 0-1（bandD の左の帯）も掃く。対象は上下＋左右の残り全部。
+    // ----------------------------------------------------------------------
+    const brokenD = chainAttack(
+      MK16_WARN1, MK16_WARN2, MK16_CHAIN, SNAKE_LANES3, bandC.concat(bandD)
+    );
+
+    // ----------------------------------------------------------------------
+    // マーカー 17: タイル攻撃 2 回目（予告開始 49.375 → ① 50.208 → ② 50.833s）
+    //   マーカー 5-8 の補充と同じ作りで、3 回目の鎖で砕けたセルとその 4 近傍を
+    //   優先して外周へ積み直す。積む先は外周ぐるり（BAND_CELLS）。
+    //   50.833s から仮区間⑮（53.333s）までは新規の弾を出さない＝静止。
+    // ----------------------------------------------------------------------
+    const refill3Priority = new Set();
+    brokenD.forEach(function (t) {
+      refill3Priority.add(key(t.col, t.row));
+      for (let d = 0; d < 4; d++) {
+        const nc = t.col + NEIGHBOR_DC[d];
+        const nr = t.row + NEIGHBOR_DR[d];
+        if (nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS) continue;
+        refill3Priority.add(key(nc, nr));
+      }
+    });
+    const aliveCD = new Set(
+      bandC.concat(bandD).filter((t) => !t.claimed).map((t) => key(t.col, t.row))
+    );
+    const bandE = tilePhase({
+      times: TILE3_TIMES,
+      leads: TILE3_LEADS,
+      centerRate: CENTER_RATE,
+      bandTarget: EXT_BAND_TARGET,
+      bandCells: BAND_CELLS,
+      preBlocked: aliveCD,
+      priority: refill3Priority,
+      bandEnd: B(EXT_END_BEAT),
+      pinStartGap: false,
     });
 
     // ----------------------------------------------------------------------
@@ -1853,10 +2007,12 @@ export default stage(
     //   右→左は上から下へ 1 段ずつずらして「往復」に見せる。
     //   行は「その時点で画面に残っているタイルの行」から採る（⑨の上下＋⑬の左右）。
     // ----------------------------------------------------------------------
+    //   v19: 供給源にマーカー 17 で積み直した bandE を足した（⑬ を削除したため）。
     const rowsCD = Array.from(
       new Set(
         bandC.filter((t) => !t.claimed).map((t) => t.row)
           .concat(bandD.filter((t) => !t.claimed).map((t) => t.row))
+          .concat(bandE.filter((t) => !t.claimed).map((t) => t.row))
       )
     ).sort((a, b) => a - b);
     if (rowsCD.length > 0) {
@@ -1884,7 +2040,8 @@ export default stage(
     //   対象は⑨の上下の帯の残りに加えて⑬の左右の帯の下段（列 0-1/14-15 の行 0-1）も使う。
     //   ⑫からは 13 秒離れていて画面にも残っていないので、列の重複を避ける集合は分ける
     //   （共有すると Easy で候補が尽きて 1 本しか出せなくなるのを実測した）。
-    const dropD = pickDropTargets(bandC.concat(bandD), S16_IMPACTS.length, new Set());
+    //   v19: ⑫⑬ を削除したので、対象は bandC / bandD の残りとマーカー 17 の bandE から採る。
+    const dropD = pickDropTargets(bandC.concat(bandD).concat(bandE), S16_IMPACTS.length, new Set());
     shovelBlastPhase(
       S16_IMPACTS.slice(0, dropD.length),
       claimDropTargets(dropD, S16_IMPACTS),
@@ -1896,5 +2053,6 @@ export default stage(
     // 使い切らなかったタイルは bandEnd = B(144) = 60.000s＝次のセクションの頭で消える。
     emitBandTiles(bandC);
     emitBandTiles(bandD);
+    emitBandTiles(bandE);
   }
 );
