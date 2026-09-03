@@ -15,20 +15,6 @@ MonoBehaviour:
   m_GroupName: StageData_stone
   m_GUID: 171d6234650501441ae80d1be2fce3e4
   m_SerializeEntries:
-  - m_GUID: 05e2758330c694d439ad96c69985b7a6
-    m_Address: Assets/StageData/stone/stone.mp3
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - stage-data-media
-    - stage-stone
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2211f4bde7898914cbece619749ab307
-    m_Address: Assets/StageData/stone/stone.json
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - stage-data-json
-    - stage-stone
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 41cdfc5cbcd67004fa5373a0e771e419
     m_Address: Assets/StageData/stone/stone.chart.json
     m_ReadOnly: 0
@@ -43,8 +29,22 @@ MonoBehaviour:
     - stage-data-media
     - stage-stone
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: dfbf3984a40333e4da237871e7d1b2ef
+  - m_GUID: 7d8871b6efcdf5346a253a8804191036
     m_Address: Assets/StageData/stone/stone.mp4
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-media
+    - stage-stone
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 91cbc385d96a50740b3edb15db66a83e
+    m_Address: Assets/StageData/stone/stone.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-json
+    - stage-stone
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e4a0fdd0775032c4c93c5e6ae34f3f6c
+    m_Address: Assets/StageData/stone/stone.mp3
     m_ReadOnly: 0
     m_SerializedLabels:
     - stage-data-media
