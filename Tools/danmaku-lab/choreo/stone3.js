@@ -1,4 +1,35 @@
-// choreo/stone3.js — 新・石工（stone3）v13
+// choreo/stone3.js — 新・石工（stone3）v14
+//
+// ── v14 での変更（32 秒からの新しい指示。区間①〜⑧＝〜33.3s は不変）──────────
+//   ユーザー指示:
+//     1. 「00:32 あたりの 2 個の大きな音」に合わせて予告を 2 回出し、
+//        「その後の大きな音」で攻撃を出す
+//     2. 攻撃は Just Shapes & Beats "Tokyo Skies" 00:14 の攻撃の強化版。
+//        画面を縦断する波を出し、波の形に沿ったタイルを破壊する
+//     3. その後の 4 拍くらいは、拍に合わせて区間①のようにタイルを出現させる。
+//        破壊された場所を中心に補充し、中央にも出しつつすぐ消す
+//
+//   (V1) 音の特定（Tools/danmaku-lab/.tmp 解析。STFT N=1024 / hop=128 ≒ 5.8ms のフラックス）
+//        31.5〜37.0s の局所ピークのうち、2〜6kHz の立ち上がりが 130 を超える「大きな音」は
+//        32.917s（344.6）・33.333s（349.3）・35.833s（340.9）・36.250s（304.4）の 4 点で、
+//        1 拍差の 2 個ずつ・2 組に分かれている。00:32 台（32.0〜33.0s）に入るピークは
+//        32.083s（290.9）と 32.917s（344.6）の 2 個だけ。よって
+//          予告① = 32.083s（拍 77・小節20 の 2 拍目）
+//          予告② = 32.917s（拍 79・小節20 の 4 拍目）
+//          攻撃   = 33.333s（拍 80・小節21 の 1 拍目）＝解析範囲で最強のオンセットで、
+//                   曲の 8 小節周期の頭（stone3_section_analysis_20260903.md の境界）
+//        予告①→②が 2 拍・②→攻撃が 1 拍と詰まるので、そのまま「溜めて撃つ」形になる。
+//
+//   (V2) Tokyo Skies 00:14 の観察（アプリ内ブラウザでコマ送り。
+//        Captures/ref_tokyoskies_014_{t1355_head,t1385_wave,t1420_full}.png）
+//        ・タイル 1 枚幅の鎖が画面の上から下へ「描かれて」いく。鎖はまっすぐではなく
+//          左右に蛇行した曲線（＝波の形）で、画面の高さいっぱいを縦断する
+//        ・先頭には一回り明るい白のタイルが 1 枚だけ出て、その後ろが実体色になる
+//          （t=13.55s の白い 1 枚が予告兼ヘッド。t=13.85 では薄ピンクに落ちている）
+//        ・描き終わると後ろから消えていき、t=14.55 には上半分だけ、14.90 には消えている
+//        ・所要はおよそ 13.5→14.6s の 1.1 秒
+//        v14 はこれの強化版として **2 本・1 拍差・振幅大きめ・帯状（複数行が同時に危険）**
+//        にした。細かい設計は下の「── v14 の波 ──」を参照。
 //
 // ── v13 での変更 ──────────────────────────────────────────────────────
 //   (A) 冒頭 8 区間への修正（3 点）と、ドット絵の造形改善（Tools/gen_stone3_pixel.py 側）
@@ -252,7 +283,19 @@ const END_BEAT = 80;              // 区間⑧の末（33.333s）＝残タイル
 // 周期の内訳は「1〜4 小節目=主リフ / 5〜6 小節目=休符 / 7〜8 小節目=ビルドアップ」。
 // 次の本当のセクション境界は 60.000s（小節 37・拍 144）なので、そこで延長を終える。
 //   拍番号 n の時刻 = n * 0.4166667s。小節 m の頭 = 拍 (m-1)*4。
-const S9_BEAT = 80, S9_LEN = 8;    // 小節21-22 33.333s タイル表示③（上下の帯だけ）
+// v14: 区間⑨（v13 は「小節21-22 でタイル表示③を 8 拍」）は削除し、
+//   32.083s からの 予告2回 → 波の攻撃 → タイル補充 に置き換えた。
+//   拍 80（33.333s）が波の攻撃、拍 84-87（35.000-36.250s）がタイル補充。
+//   補充で積んだ帯が v13 の bandC の役割（区間⑩⑫⑯の供給源）をそのまま引き継ぐので、
+//   区間⑩以降（36.667s〜）は v13 から一切変えていない。
+const TELE1_BEAT = 77;             // 32.083s 予告①（輪郭・薄い）
+const TELE2_BEAT = 79;             // 32.917s 予告②（実体と同寸・濃い・2 本ぶん）
+const WAVE1_BEAT = 80;             // 33.333s 波①＝攻撃
+const WAVE2_BEAT = 81;             // 33.750s 波②（位相 π ずらし）
+const WAVE_CLEAR_BEAT = 84;        // 35.000s 波に砕かれなかった残タイルが崩れる
+const REFILL_BEAT = 84;            // 35.000s タイル補充の 1 拍目
+const REFILL_LEN = 4;              // 4 拍（35.000 / 35.417 / 35.833 / 36.250s）
+const S9_BEAT = 80;                // 小節21 33.333s 波の攻撃（マーカー⑨）
 const S10_BEAT = 88;               // 小節23-24 36.667s タイル爆破③（アクセントに乗せる）
 const S11_BEAT = 96;               // 小節25-26 40.000s 休符（静止。横断シャベル 1 本ずつ）
 const S12_BEAT = 104;              // 小節27-28 43.333s 落下シャベル③（1 拍目は 2 本同時）
@@ -772,6 +815,140 @@ function dropPathWarn(center, dur, kind) {
   );
 }
 
+// ── v14 の波（画面を縦断するサイン波）─────────────────────────────────────
+//
+// 形: 「1 行ぶんの高さの前線が、列ごとに時間差をつけながら画面の上から下へ抜ける」。
+//   列 c の時間差を WAVE_PHASE_AMP * (1 + sin(2πc/WAVE_LAMBDA + φ)) で与えると、
+//   ある瞬間に危険なセルを繋いだ形がサイン波になり、それが下へ流れていく。
+//   波長 WAVE_LAMBDA = 8 列なので、16 列の画面に山が 2 つ乗る。
+//   振幅は WAVE_PHASE_AMP / WAVE_ROW_STEP = 2.5 行ぶん（山と谷で 5 行＝画面の半分以上）。
+//   Tokyo Skies は 1 枚幅の鎖だったが、こちらは **1 セルの危険時間を行送りの 3.8 倍**に
+//   してあるので、常に 3〜4 行が同時に光る太い帯として通過する（＝強化版の「太い」）。
+//
+// 本数: 2 本。1 拍差（33.333s と 33.750s）で、2 本目は位相を π ずらしてある
+//   （1 本目の山が 2 本目の谷になる）。これが「2 本」の強化。
+//
+// 逃げ場: WAVE_GAP_COLS の列には波のタイルを一切置かない。2 本とも同じ列を空けるので、
+//   ここへ入っていれば攻撃の間ずっと安全。列 3-4 と 11-12 の 2 本の縦通路（各 4 ユニット幅）で、
+//   画面のどこからでも最大 3 セル（6 ユニット）動けば入れる。予告①（32.083s）から
+//   攻撃（33.333s）まで 1.25 秒あり、自機の歩行速度 5 ユニット/秒でも間に合う
+//   （PlayerController.moveSpeed=5・ダッシュ 20）。
+const WAVE_ROW_STEP = beats(0.15);        // 0.0625s: 前線が 1 行進む時間（9 行で 0.50s）
+const WAVE_PHASE_AMP = beats(0.375);      // 0.15625s: 列ごとの時間差の振幅（＝2.5 行）
+const WAVE_LAMBDA = 8;                    // 波長（列）
+// 1 セルが危険でいる時間。life 末尾 0.1 秒は BulletRenderSystem の減衰に入るので、
+// 0.24 秒なら「不透明 0.14 秒（＝2.2 行）＋尾を引く 0.1 秒（1.6 行）」で、
+// 石の面が見える太い前線と、その後ろの薄れる航跡になる（合計 3.8 行ぶんの帯）。
+// v14 の初回録画（0.16 秒）は不透明が 0.06 秒しかなく、白いポップのまま消えて
+// 「白い塊が散っている」ようにしか見えなかったので伸ばした。
+const WAVE_TILE_LIFE = 0.24;
+const WAVE_GAP_COLS = [3, 4, 11, 12];     // 逃げ場（波のタイルを置かない列）
+const WAVE_GAP_SET = new Set(WAVE_GAP_COLS);
+const WAVE2_PHASE = Math.PI;              // 2 本目の位相（1 本目の山＝2 本目の谷）
+// 波のタイルは寿命が 0.16 秒しかないので、出現ポップの収束も半分の 0.05 秒にする
+// （区間①③の POP_DURATION 0.10 秒のままだと、白いまま消えて石の面が一度も見えない）。
+const WAVE_POP_DURATION = 0.05;
+// 波のポップは拡大率も抑える。区間①③の POP_SCALE_START（1.714 倍）だと隣のセルまで
+// 白がはみ出し、波の形が潰れて見えた（同上の初回録画）。1.15 倍ならセル内に収まる。
+const WAVE_POP_SCALE = 1.15;
+const WAVE_BURSTS = 8;                    // 砕けたタイルのうち放射弾を出す枚数の上限（1 本あたり）
+
+// 波の前線が セル(col,row) に到達する時刻（t0 = 波の発火時刻）。
+// (1 + sin) を足してあるので最小値がちょうど t0 になる（＝攻撃の音の瞬間に最初のタイルが出る）。
+function waveHitTime(col, row, t0, phase) {
+  return (
+    t0 +
+    WAVE_PHASE_AMP * (1 + Math.sin((2 * Math.PI * col) / WAVE_LAMBDA + phase)) +
+    (ROWS - 1 - row) * WAVE_ROW_STEP
+  );
+}
+
+// 波が通る全セル（逃げ場の列を除く）。
+function waveCells() {
+  const out = [];
+  for (let col = 0; col < COLS; col++) {
+    if (WAVE_GAP_SET.has(col)) continue;
+    for (let row = 0; row < ROWS; row++) out.push([col, row]);
+  }
+  return out;
+}
+
+// 予告に使う「波の形」。列ごとに 1 セル（thick>0 なら上下へ厚みぶん）を、画面中央あたりに
+//   波形として並べる。行 = 4 - 2.5 * sin(...) を丸めるので 2〜7 行に収まる。
+//   逃げ場の列（WAVE_GAP_COLS）は空けるので、通路が 2 本あることも予告で見える。
+//   thick = 1 にすると上下 1 行ずつ足して 3 行の帯になり、実際に通過する波の太さと揃う。
+function waveShapeCells(phase, thick = 0) {
+  const amp = WAVE_PHASE_AMP / WAVE_ROW_STEP;   // 2.5 行
+  const out = [];
+  for (let col = 0; col < COLS; col++) {
+    if (WAVE_GAP_SET.has(col)) continue;
+    const base = Math.round((ROWS - 1) / 2 - amp * Math.sin((2 * Math.PI * col) / WAVE_LAMBDA + phase));
+    for (let d = -thick; d <= thick; d++) {
+      const row = base + d;
+      if (row < 0 || row >= ROWS) continue;
+      out.push([col, row]);
+    }
+  }
+  return out;
+}
+
+// waveField(): 波 1 本ぶんの「実体タイル」と「出現ポップ」のクリップ 2 枚。
+//   1 クリップ = 1 バッファに全セルを詰め、セルごとの appearTime で時間差をつける。
+//   BulletCollisionJob.cs:35 が appearTime > time の弾の衝突を切るので、
+//   前線が来るまでのセルは無害（描画も BulletRenderSystem:286 で非表示）。
+function waveField(t0, phase, kind) {
+  const tiles = [];
+  const pops = [];
+  const big = TILE * WAVE_POP_SCALE;
+  waveCells().forEach(function (cell) {
+    const c = cellCenter(cell[0], cell[1]);
+    const at = waveHitTime(cell[0], cell[1], t0, phase) - t0;   // クリップ発火からの相対秒
+    tiles.push({
+      type: 'stone3_tile',
+      pos: c,
+      scale: [TILE, TILE],
+      color: SPRITE_AS_IS,
+      appearTime: at,
+      appearDuration: 0,
+      life: at + WAVE_TILE_LIFE,
+    });
+    pops.push({
+      type: BLINK_TYPE,
+      pos: c,
+      scale: [big, big],
+      color: POP_COLOR_START,
+      scaleEnd: [TILE, TILE],
+      colorEnd: STONE_TILE_END,
+      animDuration: WAVE_POP_DURATION,
+      appearTime: at,
+      appearDuration: 0,
+      life: at + WAVE_POP_DURATION + FADE_OUT_SEC,
+    });
+  });
+  return [warnClip(tiles, kind), warnClip(pops, kind + 'pop')];
+}
+
+// 予告（当たり判定なし）。1 回目は小さい点で輪郭だけ、2 回目は実体と同じ大きさで濃く、
+// しかも 2 本ぶんの波形を重ねて見せる（逃げ場の列が空いているのも 2 回とも見える）。
+const WAVE_WARN1_DOT = TILE * 0.55;
+function waveShapeWarn(shapes, size, color, dur, kind) {
+  const items = [];
+  shapes.forEach(function (cells) {
+    cells.forEach(function (cell) {
+      const c = cellCenter(cell[0], cell[1]);
+      items.push({
+        pos: c,
+        scale: [size, size],
+        color: color,
+        appearTime: dur,
+        appearDuration: dur,   // 予告点滅の窓に入れっぱなし（実体化しない）
+        life: dur,
+      });
+    });
+  });
+  return warnClip(items, kind);
+}
+
 // 自機の初期位置(16,2.4) が入るセル。最初の拍だけは必ずここを逃げ場にする（初見の詰み防止）。
 const START_GAP = [Math.floor(16 / CELL), Math.floor(2.4 / CELL)];
 
@@ -893,7 +1070,15 @@ export default stage(
         const free = bandCells.filter((c) => !bandOccupied.has(key(c[0], c[1])));
         const bandWant = Math.round(free.length * bandRate);
         const bandPicks = [];
-        const bandCand = shuffled(free.filter((c) => !gapCells.has(key(c[0], c[1]))), rng);
+        let bandCand = shuffled(free.filter((c) => !gapCells.has(key(c[0], c[1]))), rng);
+        // v14: cfg.priority（セルキーの集合）を渡すと、その候補を先に試す。
+        //   波で砕かれたセルとその 4 近傍を優先して積み直すために使う（補充）。
+        if (cfg.priority) {
+          const pri = cfg.priority;
+          bandCand = bandCand
+            .filter((c) => pri.has(key(c[0], c[1])))
+            .concat(bandCand.filter((c) => !pri.has(key(c[0], c[1]))));
+        }
         for (let n = 0; n < bandCand.length && bandPicks.length < bandWant; n++) {
           const cell = bandCand[n];
           const k = key(cell[0], cell[1]);
@@ -1163,10 +1348,32 @@ export default stage(
       t.lead = BLAST_LEAD_OUT;
     });
     const shovelTargets = shovelTiles.map((t) => [t.col, t.row]);
-    emitBandTiles(bandB);
 
     // 区間⑤〜⑧の間ずっと画面に残るタイル（⑥⑧の横断シャベルの行の供給源）
+    // v14: 波の破壊判定より **前** に採る。ここを動かすと⑥⑧の行が変わってしまうため、
+    //   v13 と同じ集合（＝爆破・落下シャベルで使われなかった帯タイル）を維持している。
     const heldCells = bandB.filter((t) => !t.claimed).map((t) => [t.col, t.row]);
+
+    // ── v14: 33.333s の波が砕く残留タイルを確定させる ──────────────────────
+    //   波が通る列（逃げ場 WAVE_GAP_COLS 以外）に残っているタイルは、前線が届いた
+    //   瞬間に life を尽きさせる。1 本目が通った時点で対象は無くなるので、
+    //   実際に砕くのは波①だけ（波②は空いた床を通り抜ける追い打ち）。
+    //   逃げ場の列に残ったタイルは波を生き延び、WAVE_CLEAR_BEAT（35.000s）で崩れる。
+    //   emitBandTiles(bandB) より前に end を書き換える必要がある。
+    const waveBroken = [];
+    bandB.forEach(function (t) {
+      if (t.claimed) return;
+      if (WAVE_GAP_SET.has(t.col)) {
+        t.end = B(WAVE_CLEAR_BEAT);   // 波の通過後、拍頭でまとめて崩れる
+        return;
+      }
+      t.claimed = true;
+      t.end = waveHitTime(t.col, t.row, B(WAVE1_BEAT), 0);
+      t.lead = BLAST_LEAD_OUT;
+      waveBroken.push(t);
+    });
+
+    emitBandTiles(bandB);
 
     // ======================================================================
     // シャベル爆破区間（区間⑤⑦）
@@ -1347,12 +1554,31 @@ export default stage(
     }
 
     // ----------------------------------------------------------------------
-    // ⑨ 小節21-22 / 33.333s / 拍 80-87 — タイル表示③（上下の帯だけ）
-    //   根拠: 33.333s はこの区間で最も強いアタック（フラックス 596）で 8 小節周期の頭。
-    //   区間⑧末で画面が空になった直後なので、ここから「上下だけ」に積み直す。
-    //   帯は上下 64 セル。左右の列（行 2-6 の列 0-1/14-15）は空いたままになり、
-    //   区間①③の「外周ぐるり」との違いが一目で分かる。
-    //   残留タイルは延長の最後（60.000s）まで消えない（⑩⑫⑯の供給源）。
+    // ★ v14 ⑨' 32.083〜36.250s / 拍 77-87 — 予告2回 → 縦断する波 → タイル補充
+    //
+    //   v13 の区間⑨（拍 80-87 でタイル表示③を 8 拍）は丸ごと削除し、ここに置き換えた。
+    //   拍 77/79/80 は区間⑧（拍 72-79）の中に入るが、⑧が弾を出しているのは拍 72-75
+    //   （横断シャベル 4 拍ぶん）だけで拍 76-79 は空いているため、区間①〜⑧の内容には
+    //   一切触れていない（追加した予告は当たり判定のない warn_box）。
+    //
+    //   (a) 予告①（32.083s / 拍 77）… 波①の形を「輪郭」だけ。タイルの 0.55 倍の点を
+    //       列ごとに 1 個ずつ置く。色は最暗の STONE_PATH。0.5 拍で消える。
+    //   (b) 予告②（32.917s / 拍 79）… 同じ波形を上下 1 行ずつ足した 3 行の帯にし、
+    //       実体と同寸・STONE_WARN で濃く出す（＝実際に通過する波の太さそのもの）。
+    //       攻撃の瞬間ちょうどで消える（life = 1 拍）。逃げ場の列（3-4 / 11-12）が
+    //       2 回とも空いて見えるので、初見でもどこへ逃げればよいか分かる。
+    //       波②は位相が違うだけで逃げ場の列は同じなので、予告には出していない。
+    //   (c) 攻撃（33.333s / 拍 80）… 波①。上から下へ 0.5 秒＋列ごとの時間差 0〜0.3 秒で
+    //       画面を縦断する。通過した残留タイルはその瞬間に砕け（waveBroken）、
+    //       うち最大 WAVE_BURSTS 枚から放射弾が出る。
+    //   (d) 波②（33.750s / 拍 81）… 位相 π ずらしの追い打ち。1 拍差で山と谷が入れ替わる。
+    //   (e) 残タイル崩落（35.000s / 拍 84）… 逃げ場の列で波を生き延びたタイルが崩れる
+    //       （bandB の end。上の「波の破壊判定」で設定済み）。
+    //   (f) 補充（35.000〜36.250s / 拍 84-87）… 区間①と同じ出現ポップで 4 拍ぶん積む。
+    //       帯は v13 の区間⑨と同じ「上下だけ」（区間⑬の「左右だけ」との対比を残すため）で、
+    //       候補の順番だけ「波で砕けたセルとその 4 近傍」を先頭に寄せてある。
+    //       中央（12x5）にも毎拍タイルが出て、次の拍頭で消える。
+    //       ここで積んだ帯が v13 の bandC の役割をそのまま引き継ぐので、区間⑩以降は不変。
     // ----------------------------------------------------------------------
     // v13 (B): 延長では「上下の帯」と「左右の帯」が同時に画面へ乗る（⑬以降）ので、
     //   1 枚あたりの目標埋まり率を区間①③の 0.62 倍に下げてある。区間①③は外周ぐるり
@@ -1361,13 +1587,54 @@ export default stage(
     //   emptyIsConnected が全候補を弾いてしまう（lunatic で区間⑬が 0 枚になる不具合を実測）。
     const EXT_BAND_TARGET = D(0.31, 0.40, 0.45);
 
+    // (a)(b) 予告 2 回
+    s.at(
+      B(TELE1_BEAT),
+      waveShapeWarn([waveShapeCells(0)], WAVE_WARN1_DOT, STONE_PATH, beats(0.5), 'wavewarn1')
+    );
+    s.at(
+      B(TELE2_BEAT),
+      waveShapeWarn([waveShapeCells(0, 1)], TILE, STONE_WARN, beats(1), 'wavewarn2')
+    );
+
+    // (c)(d) 波 2 本
+    s.at(B(WAVE1_BEAT), waveField(B(WAVE1_BEAT), 0, 'wave'));
+    s.at(B(WAVE2_BEAT), waveField(B(WAVE2_BEAT), WAVE2_PHASE, 'wave'));
+
+    // (c) 砕けたタイルからの放射弾。全部に付けると弾が溢れるので、列でばらけるように
+    //     等間隔で間引いて最大 WAVE_BURSTS 枚だけにする。弾数は通常の爆破の半分。
+    const brokenSorted = waveBroken.slice().sort(function (a, b) {
+      return a.col - b.col || a.row - b.row;
+    });
+    if (brokenSorted.length > 0) {
+      const step = Math.max(1, Math.ceil(brokenSorted.length / WAVE_BURSTS));
+      for (let i = 0, k = 0; i < brokenSorted.length; i += step, k++) {
+        const t = brokenSorted[i];
+        const center = cellCenter(t.col, t.row);
+        s.at(t.end, burst(center, k, 0.5));
+      }
+    }
+
+    // (f) 補充（4 拍）。波で砕けたセルとその 4 近傍を優先して積み直す。
+    const refillPriority = new Set();
+    waveBroken.forEach(function (t) {
+      refillPriority.add(key(t.col, t.row));
+      for (let d = 0; d < 4; d++) {
+        const nc = t.col + NEIGHBOR_DC[d];
+        const nr = t.row + NEIGHBOR_DR[d];
+        if (nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS) continue;
+        refillPriority.add(key(nc, nr));
+      }
+    });
+
     const bandC = tilePhase({
-      firstBeat: S9_BEAT,
-      len: S9_LEN,
+      firstBeat: REFILL_BEAT,
+      len: REFILL_LEN,
       centerRate: CENTER_RATE,
       bandTarget: EXT_BAND_TARGET,
       bandCells: BAND_CELLS_TB,
       bandEnd: B(EXT_END_BEAT),
+      priority: refillPriority,
       pinStartGap: false,
     });
 
