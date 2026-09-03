@@ -1,28 +1,10 @@
 fileFormatVersion: 2
-guid: bfef3219af54c07439a637a1fca7c093
+guid: dbaec9f38dc993f42bb2ef901d9ba4bc
 TextureImporter:
   internalIDToNameTable:
   - first:
       213: 212338709715227751
     second: golem_fall2_0
-  - first:
-      213: 2996525012736973582
-    second: golem_fall2_1
-  - first:
-      213: 5431990837275097014
-    second: golem_fall2_2
-  - first:
-      213: 7416228246429203659
-    second: golem_fall2_3
-  - first:
-      213: 6319941681152890120
-    second: golem_fall2_4
-  - first:
-      213: -5231570114253926422
-    second: golem_fall2_5
-  - first:
-      213: 5256133056468069962
-    second: golem_fall2_6
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -121,10 +103,10 @@ TextureImporter:
       name: golem_fall2_0
       rect:
         serializedVersion: 2
-        x: 26
-        y: 177
-        width: 46
-        height: 26
+        x: 0
+        y: 0
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -135,138 +117,6 @@ TextureImporter:
       bones: []
       spriteID: 76414a47ee062f200800000000000000
       internalID: 212338709715227751
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: golem_fall2_1
-      rect:
-        serializedVersion: 2
-        x: 39
-        y: 146
-        width: 36
-        height: 33
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: e0b92c07f9bc59920800000000000000
-      internalID: 2996525012736973582
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: golem_fall2_2
-      rect:
-        serializedVersion: 2
-        x: 181
-        y: 146
-        width: 36
-        height: 33
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 6b775f6f2ee426b40800000000000000
-      internalID: 5431990837275097014
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: golem_fall2_3
-      rect:
-        serializedVersion: 2
-        x: 184
-        y: 177
-        width: 46
-        height: 26
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: bcc71a91c4cbbe660800000000000000
-      internalID: 7416228246429203659
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: golem_fall2_4
-      rect:
-        serializedVersion: 2
-        x: 55
-        y: 122
-        width: 30
-        height: 39
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 8059d4a7971f4b750800000000000000
-      internalID: 6319941681152890120
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: golem_fall2_5
-      rect:
-        serializedVersion: 2
-        x: 86
-        y: 62
-        width: 84
-        height: 90
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: aef485af2bab567b0800000000000000
-      internalID: -5231570114253926422
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: golem_fall2_6
-      rect:
-        serializedVersion: 2
-        x: 171
-        y: 122
-        width: 30
-        height: 39
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: a4ea7faaa2981f840800000000000000
-      internalID: 5256133056468069962
       vertices: []
       indices: 
       edges: []
@@ -286,12 +136,6 @@ TextureImporter:
       entries: []
     nameFileIdTable:
       golem_fall2_0: 212338709715227751
-      golem_fall2_1: 2996525012736973582
-      golem_fall2_2: 5431990837275097014
-      golem_fall2_3: 7416228246429203659
-      golem_fall2_4: 6319941681152890120
-      golem_fall2_5: -5231570114253926422
-      golem_fall2_6: 5256133056468069962
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

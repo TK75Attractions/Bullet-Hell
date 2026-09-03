@@ -1,28 +1,28 @@
 fileFormatVersion: 2
-guid: 0ff6362136b14da4f8e734469ac1443a
+guid: 9177170a8a4dbec478241b643b9930b6
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1214703646789757434
-    second: golem_fall1_descend_0
+      213: 2004735776032582503
+    second: golem_left_slam_0
   - first:
-      213: -4083569726360912080
-    second: golem_fall1_descend_1
+      213: -1525727586997629508
+    second: golem_left_slam_1
   - first:
-      213: -3845867837971301561
-    second: golem_fall1_descend_2
+      213: 9025939528143187575
+    second: golem_left_slam_2
   - first:
-      213: -18690515911692107
-    second: golem_fall1_descend_3
+      213: -3252731478922874569
+    second: golem_left_slam_3
   - first:
-      213: 7682223050936863254
-    second: golem_fall1_descend_4
+      213: -6810154452013255448
+    second: golem_left_slam_4
   - first:
-      213: -5127764895757040481
-    second: golem_fall1_descend_5
+      213: -518204371807087048
+    second: golem_left_slam_5
   - first:
-      213: 9110967599131850762
-    second: golem_fall1_descend_6
+      213: -2359100464421595583
+    second: golem_left_slam_6
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -118,33 +118,11 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: golem_fall1_descend_0
-      rect:
-        serializedVersion: 2
-        x: 26
-        y: 177
-        width: 46
-        height: 26
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: af9664ee78e7bd010800000000000000
-      internalID: 1214703646789757434
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: golem_fall1_descend_1
+      name: golem_left_slam_0
       rect:
         serializedVersion: 2
         x: 39
-        y: 146
+        y: 90
         width: 36
         height: 33
       alignment: 0
@@ -155,62 +133,18 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 03ff7b438fe3457c0800000000000000
-      internalID: -4083569726360912080
+      spriteID: 76b60f6119042db10800000000000000
+      internalID: 2004735776032582503
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: golem_fall1_descend_2
-      rect:
-        serializedVersion: 2
-        x: 181
-        y: 146
-        width: 36
-        height: 33
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 74bfe90e39bb0aac0800000000000000
-      internalID: -3845867837971301561
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: golem_fall1_descend_3
-      rect:
-        serializedVersion: 2
-        x: 184
-        y: 177
-        width: 46
-        height: 26
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 5b03a6623199dbff0800000000000000
-      internalID: -18690515911692107
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: golem_fall1_descend_4
+      name: golem_left_slam_1
       rect:
         serializedVersion: 2
         x: 55
-        y: 122
+        y: 108
         width: 30
         height: 39
       alignment: 0
@@ -221,20 +155,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 61ac864a92dbc9a60800000000000000
-      internalID: 7682223050936863254
+      spriteID: cbd0ef0e7d683dae0800000000000000
+      internalID: -1525727586997629508
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: golem_fall1_descend_5
+      name: golem_left_slam_2
       rect:
         serializedVersion: 2
         x: 86
         y: 63
         width: 84
-        height: 106
+        height: 89
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -243,18 +177,18 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f940fa0def486d8b0800000000000000
-      internalID: -5127764895757040481
+      spriteID: 77ea12bed24924d70800000000000000
+      internalID: 9025939528143187575
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: golem_fall1_descend_6
+      name: golem_left_slam_3
       rect:
         serializedVersion: 2
         x: 171
-        y: 122
+        y: 108
         width: 30
         height: 39
       alignment: 0
@@ -265,8 +199,74 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a08f85a62c8a07e70800000000000000
-      internalID: 9110967599131850762
+      spriteID: 731321124f9fbd2d0800000000000000
+      internalID: -3252731478922874569
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: golem_left_slam_4
+      rect:
+        serializedVersion: 2
+        x: 181
+        y: 90
+        width: 36
+        height: 33
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8e4743e8b987d71a0800000000000000
+      internalID: -6810154452013255448
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: golem_left_slam_5
+      rect:
+        serializedVersion: 2
+        x: 26
+        y: 66
+        width: 46
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83652619ed7fec8f0800000000000000
+      internalID: -518204371807087048
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: golem_left_slam_6
+      rect:
+        serializedVersion: 2
+        x: 184
+        y: 66
+        width: 46
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 14611bc60aac24fd0800000000000000
+      internalID: -2359100464421595583
       vertices: []
       indices: 
       edges: []
@@ -285,13 +285,13 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      golem_fall1_descend_0: 1214703646789757434
-      golem_fall1_descend_1: -4083569726360912080
-      golem_fall1_descend_2: -3845867837971301561
-      golem_fall1_descend_3: -18690515911692107
-      golem_fall1_descend_4: 7682223050936863254
-      golem_fall1_descend_5: -5127764895757040481
-      golem_fall1_descend_6: 9110967599131850762
+      golem_left_slam_0: 2004735776032582503
+      golem_left_slam_1: -1525727586997629508
+      golem_left_slam_2: 9025939528143187575
+      golem_left_slam_3: -3252731478922874569
+      golem_left_slam_4: -6810154452013255448
+      golem_left_slam_5: -518204371807087048
+      golem_left_slam_6: -2359100464421595583
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

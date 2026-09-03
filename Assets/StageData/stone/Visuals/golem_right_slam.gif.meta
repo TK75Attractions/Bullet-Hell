@@ -1,28 +1,10 @@
 fileFormatVersion: 2
-guid: 59d559f3a0acd5a4b905d2c264ab01fa
+guid: d6ded5e6b4d433a4bb03021c010f2bcf
 TextureImporter:
   internalIDToNameTable:
   - first:
       213: 8200099066025752726
     second: golem_right_slam_0
-  - first:
-      213: -3754336564839682834
-    second: golem_right_slam_1
-  - first:
-      213: -3420613997836447153
-    second: golem_right_slam_2
-  - first:
-      213: 8435033584977944171
-    second: golem_right_slam_3
-  - first:
-      213: 6285016120606557722
-    second: golem_right_slam_4
-  - first:
-      213: -8447339422588663609
-    second: golem_right_slam_5
-  - first:
-      213: -3228418104419890502
-    second: golem_right_slam_6
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -121,10 +103,10 @@ TextureImporter:
       name: golem_right_slam_0
       rect:
         serializedVersion: 2
-        x: 39
-        y: 90
-        width: 36
-        height: 33
+        x: 0
+        y: 0
+        width: 256
+        height: 256
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -135,138 +117,6 @@ TextureImporter:
       bones: []
       spriteID: 6983a7197aa9cc170800000000000000
       internalID: 8200099066025752726
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: golem_right_slam_1
-      rect:
-        serializedVersion: 2
-        x: 55
-        y: 108
-        width: 30
-        height: 39
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: eec687d19cae5ebc0800000000000000
-      internalID: -3754336564839682834
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: golem_right_slam_2
-      rect:
-        serializedVersion: 2
-        x: 86
-        y: 63
-        width: 84
-        height: 89
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f42da3131b98780d0800000000000000
-      internalID: -3420613997836447153
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: golem_right_slam_3
-      rect:
-        serializedVersion: 2
-        x: 171
-        y: 108
-        width: 30
-        height: 39
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: b6e9915da524f0570800000000000000
-      internalID: 8435033584977944171
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: golem_right_slam_4
-      rect:
-        serializedVersion: 2
-        x: 181
-        y: 90
-        width: 36
-        height: 33
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: a168b5cbcdcd83750800000000000000
-      internalID: 6285016120606557722
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: golem_right_slam_5
-      rect:
-        serializedVersion: 2
-        x: 26
-        y: 66
-        width: 46
-        height: 26
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 7c803731d8505ca80800000000000000
-      internalID: -8447339422588663609
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: golem_right_slam_6
-      rect:
-        serializedVersion: 2
-        x: 184
-        y: 66
-        width: 46
-        height: 26
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: abacc93c6da5233d0800000000000000
-      internalID: -3228418104419890502
       vertices: []
       indices: 
       edges: []
@@ -286,12 +136,6 @@ TextureImporter:
       entries: []
     nameFileIdTable:
       golem_right_slam_0: 8200099066025752726
-      golem_right_slam_1: -3754336564839682834
-      golem_right_slam_2: -3420613997836447153
-      golem_right_slam_3: 8435033584977944171
-      golem_right_slam_4: 6285016120606557722
-      golem_right_slam_5: -8447339422588663609
-      golem_right_slam_6: -3228418104419890502
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
