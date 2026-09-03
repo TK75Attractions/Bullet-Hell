@@ -14,8 +14,21 @@
 //       比例させる（a = 2d / flight^2）ので、どのタイルも flight ちょうどで 1 点に着く。
 //       実装は v1 レーンの gravity フィールド（h = g t^2 / 2 の厳密解）。v2 セグメントの
 //       折れ線ではなくこちらを採ったのは、v2 だと自転（thetaVlc）が消えるため（v23 の知見）。
-//     ・着弾の瞬間に集合点で白いブルーム（flashPop）を 1 発出す。爆発（2 重リング）と
-//       タイルの自転は据え置き。
+//     ・爆発（2 重リング）と自転は据え置き。
+//
+// ── v24 (B) 隕石アニメーションの改善（マーカー 22〜28 / 40〜42 / 49〜51）────────
+//   参考 https://www.youtube.com/watch?v=wZ8qdagsnbo 1:33〜1:40 の実測は
+//   METEOR_TRAIL_STEP 付近のコメントに書いた。入れた演出は 5 つ:
+//     1. 出現フラッシュ … 画面端（右端 / 上端 / 左端）に白い光を 1 発出してから本体が入る。
+//     2. 尾 … 「点線」をやめ、0.03 秒間隔・寿命 0.20 秒の連続した尾へ。本体に接する側が
+//        本体の 0.95 倍で純白、末端が 0.25 倍で中間色。描画も本体より奥（warn_box）へ。
+//        落下隕石（40〜42）にも尾を付けた（v23 まで無かった）。
+//     3. 本体 … 自転は維持。参考に脈動は見られなかったので**伸縮は入れない**。
+//     4. 着弾 … 落下隕石・壁隕石の着弾点に大きい白フラッシュ。落下隕石はさらに
+//        「縦 0.6 / 横 1.3 へ 0.10 秒」の潰れを重ねる。
+//     5. 通過中に残留タイルを砕いた瞬間、その場に小さいフラッシュ。
+//   追加した弾はすべて warn_box / stone3_flash（verts 空＝当たり判定なし）で、
+//   マーカー 1〜47 の当たり判定のある弾の位置・時刻は 1 つも変えていない。
 //
 // ── v23 (A) 音ハメの再調整（全マーカーの採用時刻を作り直した。配置ロジックは無変更）──
 //   ユーザー評価「音ハメがだいぶ微妙。大きな音が流れるところに合わせればよい」を受けて、
@@ -1352,10 +1365,45 @@ const METEOR_SCALE = 3.2;                   // 隕石の一辺（タイル 1.84 
 const METEOR_START_X = 34.5;                // 画面右外（カリング境界 36 の内側）
 const METEOR_END_X = -4.0;                  // 画面左外（同 -2 の外＝ここへ着く前に消える）
 const METEOR_FLIGHT = 1.05;                 // 端から端まで 38.5 ユニット ≒ 36.7 ユニット/s
-const METEOR_TRAIL_N = 16;                  // 尾の点の数（参考の 10〜14 より少し密）
-const METEOR_TRAIL_LIFE = 0.34;             // 1 点が縮み切るまで
-const METEOR_TRAIL_S0 = 1.55;               // 頭に近い点の一辺
-const METEOR_TRAIL_S1 = 0.35;               // 縮み切ったあとの一辺
+// ── v24 (B): 尾を「点線」から「連続した尾」へ ────────────────────────────
+//   参考 https://www.youtube.com/watch?v=wZ8qdagsnbo 1:33〜1:40 を 1/30 秒刻みで実測した
+//   （640x360 換算・20px = 1 ユニット。97.50s の 1 コマを軸方向に走査した値）:
+//     ・本体は直径 40px（2.0 ユニット）のトゲ玉。飛行中の伸縮（脈動）は**無い**＝自転だけ
+//     ・尾は本体の真後ろに続く円の列。本体に接する側が直径 38px（本体の 0.95 倍）で純白
+//       (255,252,255)、そこから 32 → 22 → 14 → 10px と細り、色も白 → 淡桃 (254,216,255)
+//       → 中桃 (255,101,183) へ変わって消える
+//     ・尾の全長は 74px ＝ 本体 1.85 個ぶん。円どうしが大きく重なって切れ目が無い
+//     ・尾は本体より**奥**に描かれている（本体が白く塗り潰されない）
+//   移し替え: 本体 3.2 ユニットに対して 尾の頭 3.04 / 末端 0.80、見えている長さ 7.3 ユニット
+//   （本体 2.3 個ぶん）。v23 までは全行程に 16 点をばらまいて 1 点ずつ 0.34 秒かけて縮めて
+//   いたので、点の間隔 2.4 ユニット > 点の直径 1.55 ユニットとなり「点線」に見えていた。
+//   v24 は 0.03 秒ごと＝ 1.1 ユニット間隔に置き、1 点の寿命を 0.20 秒に縮める。
+//   弾のタイプも stone3_flash（renderPriority 4・本体より手前）から
+//   warn_box（同 0・verts 空＝当たり判定なし）へ変えて、本体の奥へ回した。
+const METEOR_TRAIL_STEP = 0.025;            // 尾の点を置く時間間隔（36.7 ユニット/s で 0.92 ユニット）
+// 1 点の寿命 ＝ 縮むアニメの長さ。36.7 ユニット/s なら 0.16 s = 5.9 ユニット ＝ 本体 1.85 個ぶんで、
+// 参考の尾の全長（本体 1.85 個ぶん）に一致する。ランタイムは life 末尾の FADE_OUT_SEC(0.1) で
+// α を落とすので、後ろ 0.1 s ぶんが薄くなる＝「遠いほど小さく淡い」がそのまま出る。
+const METEOR_TRAIL_LIFE = 0.16;
+const METEOR_TRAIL_S0 = 3.04;               // 本体に接する点の一辺（本体 3.2 の 0.95 倍）
+const METEOR_TRAIL_S1 = 0.80;               // 末端の一辺（同 0.25 倍）
+const METEOR_TRAIL_TYPE = 'warn_box';       // 本体（stone3_tile・renderPriority 1）より奥
+// 出現フラッシュ / 着弾フラッシュ / 着地の潰れ（v24 (B) の追加演出。いずれも当たり判定なし）。
+//   参考の隕石は画面外から入ってくるので出現の瞬間は写っていない。ここはユーザー指示に従い
+//   「画面端で白く弾けてから本体が飛び出す」形を、タイルのポップ（tilePop）と同じ
+//   scaleEnd/colorEnd の縮小アニメで作る。
+const METEOR_FLASH_S0 = METEOR_SCALE * 1.9;   // 出現フラッシュの初期辺
+const METEOR_FLASH_S1 = METEOR_SCALE * 0.5;   // 同・収束辺
+const METEOR_FLASH_DUR = 0.12;                // 同・縮む秒数
+const METEOR_HIT_S0 = METEOR_SCALE * 2.4;     // 着弾フラッシュの初期辺（出現より大きい）
+const METEOR_HIT_S1 = METEOR_SCALE * 0.7;
+const METEOR_HIT_DUR = 0.09;                  // ほぼ 1 コマで弾けて消える
+const METEOR_SQUASH_DUR = 0.10;               // 落下隕石が着地でつぶれる秒数
+const METEOR_SQUASH_X = 1.3;                  // つぶれた時の横倍率
+const METEOR_SQUASH_Y = 0.6;                  // 同・縦倍率
+const METEOR_BREAK_S0 = TILE * 1.9;           // 通過中に残留タイルを砕いた時の小フラッシュ
+const METEOR_BREAK_S1 = TILE * 0.5;
+const METEOR_BREAK_DUR = 0.10;
 const METEOR_WARN_LEAD = beats(1);          // 通る行の予告のリード
 const METEOR_ROWS = [1, 2, 3, 4, 5, 6, 7];  // 隕石が通れる行（0/8 は玉が画面からはみ出す）
 const METEOR_BREAK_DY = (CELL + METEOR_SCALE) / 2;  // 残留タイルを砕く y 方向の距離
@@ -1395,27 +1443,36 @@ function meteor(y) {
   };
 }
 
-// 隕石の尾。通過点に stone3_flash（当たり判定なし）を置き、縮みながら消す。
-function meteorTrail(y) {
+// v24 (B): 尾の共通ビルダ。posAt(rel) が「発射から rel 秒後の本体の位置」を返す。
+//   本体が通った瞬間その場に点を置き、METEOR_TRAIL_LIFE で縮めながら白 → 中間色へ寄せ、
+//   さらに FADE_OUT_SEC(0.1) で消す。間隔が直径よりずっと狭いので途切れない 1 本の尾に見える。
+function meteorTrailPath(posAt, flight, kind) {
   const items = [];
-  for (let i = 0; i < METEOR_TRAIL_N; i++) {
-    const f = (i + 0.5) / METEOR_TRAIL_N;
-    const rel = METEOR_FLIGHT * f;
-    const x = METEOR_START_X + (METEOR_END_X - METEOR_START_X) * f;
+  const n = Math.max(2, Math.round(flight / METEOR_TRAIL_STEP));
+  for (let i = 1; i <= n; i++) {
+    const rel = (flight * i) / n;
+    const p = posAt(rel);
     items.push({
-      type: BLINK_TYPE,
-      pos: [x, y],
+      type: METEOR_TRAIL_TYPE,
+      pos: [p[0], p[1]],
       scale: [METEOR_TRAIL_S0, METEOR_TRAIL_S0],
       color: POP_COLOR_START,
       scaleEnd: [METEOR_TRAIL_S1, METEOR_TRAIL_S1],
-      colorEnd: STONE_TILE_END,
+      colorEnd: STONE_MID,
       animDuration: METEOR_TRAIL_LIFE,
       appearTime: rel,          // 隕石が通り過ぎた瞬間に出る
       appearDuration: 0,
-      life: rel + METEOR_TRAIL_LIFE + FADE_OUT_SEC,
+      life: rel + METEOR_TRAIL_LIFE,
     });
   }
-  return warnClip(items, 'meteortrail');
+  return warnClip(items, kind);
+}
+
+// 隕石の尾（右→左の直線）。
+function meteorTrail(y) {
+  return meteorTrailPath(function (rel) {
+    return [METEOR_START_X + ((METEOR_END_X - METEOR_START_X) * rel) / METEOR_FLIGHT, y];
+  }, METEOR_FLIGHT, 'meteortrail');
 }
 
 // 隕石が通る行の予告（横一杯の薄い帯・当たり判定なし）。
@@ -1473,6 +1530,31 @@ function meteorDrop(x, flight) {
   };
 }
 
+// v24 (B): 落下隕石の尾（v23 まで落下隕石には尾が無かった）。落下は等加速なので
+//   位置は y = SPAWN_Y - a t^2 / 2。画面上端(18)より上の点はカリングで見えない。
+function meteorDropTrail(x, flight) {
+  return meteorTrailPath(function (rel) {
+    return [x, METEOR_DROP_SPAWN_Y - (METEOR_DROP_ACCEL * rel * rel) / 2];
+  }, flight, 'meteordroptrail');
+}
+
+// v24 (B): 落下隕石の着地でつぶれる 1 コマ（縦 0.6 / 横 1.3 へ 0.10 秒）。
+//   色は w=0（無着色）のままなので、本体（stone3_tile）と同じテクスチャに見える。
+function meteorSquash(pos) {
+  return warnClip([{
+    type: BLINK_TYPE,
+    pos: [pos[0], pos[1]],
+    scale: [METEOR_SCALE, METEOR_SCALE],
+    color: STONE_TILE_END,
+    scaleEnd: [METEOR_SCALE * METEOR_SQUASH_X, METEOR_SCALE * METEOR_SQUASH_Y],
+    colorEnd: STONE_TILE_END,
+    animDuration: METEOR_SQUASH_DUR,
+    appearTime: 0,
+    appearDuration: 0,
+    life: METEOR_SQUASH_DUR + FADE_OUT_SEC,
+  }], 'meteorsquash');
+}
+
 // ── v22: 壁に当てる隕石（マーカー 49〜51）と、回転しながら集まるタイル（マーカー 48）──
 //   参考: https://www.youtube.com/watch?v=-zhZYYl8USk 1:09 付近の「壁に隕石を当てて爆破」。
 //   v21 の隕石（右→左・尾付き）を、始点/終点/飛行時間を選べる形に一般化しただけで、
@@ -1504,27 +1586,11 @@ function meteorLine(x0, x1, y, flight) {
   };
 }
 
-// その尾（v21 の meteorTrail と同じ作りで、経路だけ差し替えたもの）。
+// その尾（経路だけ差し替えたもの）。
 function meteorLineTrail(x0, x1, y, flight) {
-  const items = [];
-  for (let i = 0; i < METEOR_TRAIL_N; i++) {
-    const f = (i + 0.5) / METEOR_TRAIL_N;
-    const rel = flight * f;
-    const x = x0 + (x1 - x0) * f;
-    items.push({
-      type: BLINK_TYPE,
-      pos: [x, y],
-      scale: [METEOR_TRAIL_S0, METEOR_TRAIL_S0],
-      color: POP_COLOR_START,
-      scaleEnd: [METEOR_TRAIL_S1, METEOR_TRAIL_S1],
-      colorEnd: STONE_TILE_END,
-      animDuration: METEOR_TRAIL_LIFE,
-      appearTime: rel,
-      appearDuration: 0,
-      life: rel + METEOR_TRAIL_LIFE + FADE_OUT_SEC,
-    });
-  }
-  return warnClip(items, 'meteorlinetrail');
+  return meteorTrailPath(function (rel) {
+    return [x0 + ((x1 - x0) * rel) / flight, y];
+  }, flight, 'meteorlinetrail');
 }
 
 // マーカー 48 の「回転しながら 1 点へ集まるタイル」1 枚。
@@ -2683,10 +2749,16 @@ export default stage(
     }
     function meteorShot(t, row, tiles) {
       const y = cellCenter(0, row)[1];
+      const speed = (METEOR_START_X - METEOR_END_X) / METEOR_FLIGHT;
       s.at(t - METEOR_WARN_LEAD, meteorRowWarn(y, METEOR_WARN_LEAD));
+      // v24 (B)1: 画面右端で白く弾けてから本体が飛び出す。本体が右端(x=32)を通るのは
+      //   発射の (34.5-32)/36.7 = 0.068 秒後なので、その時刻にフラッシュを合わせる。
+      s.at(t, flashPop(
+        [COLS * CELL, y], (METEOR_START_X - COLS * CELL) / speed,
+        METEOR_FLASH_S0, METEOR_FLASH_S1, METEOR_FLASH_DUR, 'meteorspawn'
+      ));
       s.at(t, meteor(y));
       s.at(t, meteorTrail(y));
-      const speed = (METEOR_START_X - METEOR_END_X) / METEOR_FLIGHT;
       const hits = [];
       tiles.forEach(function (tt) {
         if (tt.claimed) return;
@@ -2698,6 +2770,11 @@ export default stage(
         tt.end = hit;
         tt.lead = BLAST_LEAD_OUT;
         hits.push({ t: hit, c: c });
+      });
+      // v24 (B)5: 通過中に残留タイルを砕いた瞬間、その場に小さいフラッシュを出す
+      //   （放射弾が出るのは先頭 3 枚だけだが、フラッシュは砕けた全部に付ける）。
+      hits.forEach(function (h) {
+        s.at(h.t, flashPop(h.c, 0, METEOR_BREAK_S0, METEOR_BREAK_S1, METEOR_BREAK_DUR, 'meteorbreak'));
       });
       hits.sort(function (a, b) { return a.t - b.t; })
         .slice(0, 3)
@@ -2841,8 +2918,20 @@ export default stage(
       const impact = d[0];
       const x = d[1];
       const warnDur = DROP_FLIGHT + beats(1);
+      // 本体が画面上端(y=18)へ入る時刻。26 - a t^2 / 2 = 18 → t = sqrt(16/a)
+      const enter = Math.sqrt((2 * (METEOR_DROP_SPAWN_Y - ROWS * CELL)) / METEOR_DROP_ACCEL);
       s.at(impact - warnDur, meteorDropWarn(x, warnDur));
+      // v24 (B)1: 画面上端に出現フラッシュ → 本体が飛び出す
+      s.at(impact - DROP_FLIGHT, flashPop(
+        [x, ROWS * CELL], enter, METEOR_FLASH_S0, METEOR_FLASH_S1, METEOR_FLASH_DUR, 'meteorspawn'
+      ));
       s.at(impact - DROP_FLIGHT, meteorDrop(x, DROP_FLIGHT));
+      s.at(impact - DROP_FLIGHT, meteorDropTrail(x, DROP_FLIGHT));   // v24 (B)2: 落下にも尾を付けた
+      // v24 (B)4: 着弾点に大きい白フラッシュ → 本体が縦につぶれる → 放射弾
+      s.at(impact, flashPop(
+        [x, METEOR_DROP_Y], 0, METEOR_HIT_S0, METEOR_HIT_S1, METEOR_HIT_DUR, 'meteorhit'
+      ));
+      s.at(impact, meteorSquash([x, METEOR_DROP_Y]));
       s.at(impact, burst([x, METEOR_DROP_Y], k, 1.6));
     });
 
@@ -3050,9 +3139,18 @@ export default stage(
     ].forEach(function (w, k) {
       const fire = w[0], hit = w[1], x0 = w[2], x1 = w[3], y = w[4];
       const flight = hit - fire;
+      // 本体が画面（x 0〜32）へ入る位置と、そこを通る時刻
+      const edgeX = x0 < x1 ? 0 : COLS * CELL;
+      const enter = ((edgeX - x0) / (x1 - x0)) * flight;
       s.at(fire - METEOR_WARN_LEAD, meteorRowWarn(y, METEOR_WARN_LEAD));
+      // v24 (B)1: 画面端の出現フラッシュ
+      s.at(fire, flashPop(
+        [edgeX, y], enter, METEOR_FLASH_S0, METEOR_FLASH_S1, METEOR_FLASH_DUR, 'meteorspawn'
+      ));
       s.at(fire, meteorLine(x0, x1, y, flight));
       s.at(fire, meteorLineTrail(x0, x1, y, flight));
+      // v24 (B)4: 着弾点に大きい白フラッシュ → 放射弾
+      s.at(hit, flashPop([x1, y], 0, METEOR_HIT_S0, METEOR_HIT_S1, METEOR_HIT_DUR, 'meteorhit'));
       s.at(hit, burst([x1, y], k, 1.6));
     });
 
