@@ -1,4 +1,13 @@
-// choreo/stone3.js — 新・石工（stone3）v20
+// choreo/stone3.js — 新・石工（stone3）v22
+//
+// ── v22 での変更（指示書のマーカー 43〜51 = 105.1〜111.0s の実装。〜103.3s は v21 と同一）──
+//   指示書: Instructions/石工/stage-timing-instructions_20260903_v5_51markers.md
+//   マーカー 1〜42（〜103.35s）の弾は 1 つも変えていない。追加したのは
+//     ・定数 MK43_TILE6 〜 MK51_WALL2_HIT と ALL_CELLS
+//     ・helpers: meteorLine / meteorLineTrail（始点・終点を選べる隕石）、gatherTile（回転しながら直進）
+//     ・区間「★ v22」（43〜51）
+//   だけで、既存の helper・区間には手を入れていない。endTime は 106.0 → 113.6s。
+//
 //
 // ── v20 での変更（スプライト 1 枚とランタイム 1 箇所。この JS の出力は v19 と 1 byte も違わない）──
 //   (A) シャベルのスプライトを、ユーザーが用意したドット絵
@@ -481,6 +490,41 @@ const MK40_DROP_MID = 100.0141; // 40 中央へ隕石落下 → 着弾点から�
 const MK41_DROP_R = 101.6802;   // 41 右へ隕石落下
 const MK42_DROP_L = 103.3462;   // 42 左へ隕石落下
 
+// --- v22: 指示書のマーカー 43〜51（105.1〜111.0s）------------------------------
+//   採用時刻の根拠は .tmp_v22/onset_table.txt（丸めルールは v17 以降と同じ。
+//   16 分音符へ丸めたうえで、±80ms 以内に 104〜113.5s の flux 95 パーセンタイル 47.8 を
+//   超える局所ピークがあればそちらを優先）。
+//     #  | 内容                     | 指示書  | 16分丸め | 採用     | 根拠
+//     ---+--------------------------+---------+----------+----------+-------------------
+//     43 | タイル表示 x6             | 105.133 | 105.1042 | 105.1042 | 窓内最大 46.3 < 閾値
+//     44 | タイル攻撃 x5             | 105.488 | 105.5208 | 105.4244 | オンセット flux 56.4
+//     45 | 次の攻撃の予告＋タイル      | 107.449 | 107.5000 | 107.5084 | オンセット flux 79.5
+//     46 | タイル表示完了            | 107.453 | 107.5000 | 107.5084 | 同上（45 と同じ点）
+//     47 | タイル消す                | 108.073 | 108.1250 | 108.0657 | オンセット flux 89.1
+//     48 | 下に集めて爆破            | 108.373 | 108.3333 | 108.3443 | オンセット flux 114.5（区間最大）
+//     49 | 壁隕石 1 発目を発射        | 109.305 | 109.2708 | 109.2708 | 窓内最大 34.3 < 閾値
+//     50 | 1 発目が爆破＋2 発目を発射  | 110.121 | 110.1042 | 110.1042 | 窓内最大 31.4 < 閾値
+//     51 | 2 発目が爆破              | 110.948 | 110.9375 | 110.9375 | 窓内最大 37.3 < 閾値
+const MK43_TILE6 = 105.1042;    // 43 タイル表示 x6（拍間隔）
+const MK44_BLAST5 = 105.4244;   // 44 タイル攻撃 x5（43 と並行・拍間隔）
+const MK45_NEXTWARN = 107.5084; // 45 次の攻撃の予告
+const MK46_TILE_SET = 107.5084; // 46 タイル表示完了（表示したまま）
+const MK47_TILE_CLEAR = 108.0657; // 47 43〜44 の残タイルを一斉に消す
+const MK48_GATHER = 108.3443;   // 48 45/46 のタイルが回転しながら中央下へ集まり始める
+const MK49_WALL1 = 109.2708;    // 49 壁隕石 1 発目を発射（上側・左→右）
+const MK50_WALL2 = 110.1042;    // 50 1 発目が右壁で爆破＋2 発目を発射（下側・右→左）
+const MK51_WALL2_HIT = 110.9375;// 51 2 発目が左壁で爆破
+
+// 43 のタイル表示 6 回（拍間隔）と、44 の爆破 5 回（同じく拍間隔）。
+const TILE43_TIMES = Array.from({ length: 6 }, (_, i) => MK43_TILE6 + i * BEAT);   // 105.104〜107.188
+const BLAST44_TIMES = Array.from({ length: 5 }, (_, i) => MK44_BLAST5 + i * BEAT); // 105.424〜107.091
+
+// 48 の集合攻撃。タイルは MK48 に飛び始め、次の強拍（拍 262 = 109.1667s）で 1 点に着いて爆発する。
+const GATHER_POINT = [16, 5.0];          // 自機の初期位置(16, 2.4) より少し上＝下側に逃げ場が残る
+const GATHER_IMPACT = 109.1667;          // 拍 262（小節 66 の 3 拍目）＝ MK48 から 2 拍
+const GATHER_SPIN = 4.0;                 // 飛んでいるあいだの自転（rad/s）
+
+
 // マーカー 22〜26 の相対間隔。27 の 2 巡目と 29/31 の「again」はこれを写して作る。
 const METEOR_TIMES_1 = [MK22_METEOR1, MK23_METEOR2, MK24_METEOR3, MK25_METEOR4, MK26_METEOR5];
 const METEOR_OFFSETS = METEOR_TIMES_1.map((t) => t - MK22_METEOR1);
@@ -543,6 +587,9 @@ for (let row = 0; row < ROWS; row++) {
 // v13 (B): 延長区間で使う「帯」の変奏。区間⑨は上下だけ、区間⑬は左右だけに溜める。
 //   セルの総数は 上下 = 16列 x 4行 = 64 / 左右 = 4列 x 9行 = 36。
 //   帯の埋まり率の目標（BAND_TARGET）は同じなので、新規タイルの枚数はセル数に比例して減る。
+// v22: マーカー 43 の「端っこも中央も残す」タイル表示で使う全セル（144 枚）。
+const ALL_CELLS = [];
+
 const BAND_CELLS_TB = [];   // 上下だけ（行 0-1 と 7-8 の全列）
 const BAND_CELLS_LR = [];   // 左右だけ（列 0-1 と 14-15 の全行）
 for (let row = 0; row < ROWS; row++) {
@@ -557,6 +604,8 @@ for (let row = 0; row < ROWS; row++) {
 // 「空きセルが 4 近傍で 1 つに繋がっている」を保てば、画面のどこからでもどこへでも
 // 移動できる＝閉じ込めが起きない。タイルを 1 枚置くたびにこれを検査して、
 // 崩す置き方は捨てる（帯が 6〜7 割埋まっても迷路状の通路が必ず残る）。
+for (let c = 0; c < COLS; c++) for (let r = 0; r < ROWS; r++) ALL_CELLS.push([c, r]);
+
 const NEIGHBOR_DC = [1, -1, 0, 0];
 const NEIGHBOR_DR = [0, 0, 1, -1];
 function emptyIsConnected(blocked) {
@@ -1344,6 +1393,79 @@ function meteorDrop(x, flight) {
   );
 }
 
+// ── v22: 壁に当てる隕石（マーカー 49〜51）と、回転しながら集まるタイル（マーカー 48）──
+//   参考: https://www.youtube.com/watch?v=-zhZYYl8USk 1:09 付近の「壁に隕石を当てて爆破」。
+//   v21 の隕石（右→左・尾付き）を、始点/終点/飛行時間を選べる形に一般化しただけで、
+//   見た目（大きさ・尾の数・尾の縮み方）は v21 と同一。既存の meteor()/meteorTrail() は触っていない。
+const WALL_M_HALF = METEOR_SCALE / 2;        // 隕石の半径ぶん。壁に接した時の中心 x はこのぶん内側
+const WALL_LEFT_X = -2.0;                    // 発射位置（画面左外・カリング境界のきわ）
+const WALL_RIGHT_X = 34.5;                   // 発射位置（画面右外。v21 の METEOR_START_X と同じ）
+const WALL_HIT_RIGHT = COLS * CELL - WALL_M_HALF;  // 右壁に接した時の中心 x（30.4）
+const WALL_HIT_LEFT = WALL_M_HALF;                 // 左壁に接した時の中心 x（1.6）
+
+// 隕石 1 発（始点 x0 → 終点 x1・高さ y 固定・flight 秒の等速直線）。
+function meteorLine(x0, x1, y, flight) {
+  return gravitySeq(
+    {
+      pos: [x0, y],
+      vel: [0, 0],
+      type: 'stone3_tile',
+      scale: [METEOR_SCALE, METEOR_SCALE],
+      color: SPRITE_AS_IS,
+      unCounterable: true,
+    },
+    [{ until: flight, moveTo: [x1, y] }],
+    'meteorline',
+    { v2: true }
+  );
+}
+
+// その尾（v21 の meteorTrail と同じ作りで、経路だけ差し替えたもの）。
+function meteorLineTrail(x0, x1, y, flight) {
+  const items = [];
+  for (let i = 0; i < METEOR_TRAIL_N; i++) {
+    const f = (i + 0.5) / METEOR_TRAIL_N;
+    const rel = flight * f;
+    const x = x0 + (x1 - x0) * f;
+    items.push({
+      type: BLINK_TYPE,
+      pos: [x, y],
+      scale: [METEOR_TRAIL_S0, METEOR_TRAIL_S0],
+      color: POP_COLOR_START,
+      scaleEnd: [METEOR_TRAIL_S1, METEOR_TRAIL_S1],
+      colorEnd: STONE_TILE_END,
+      animDuration: METEOR_TRAIL_LIFE,
+      appearTime: rel,
+      appearDuration: 0,
+      life: rel + METEOR_TRAIL_LIFE + FADE_OUT_SEC,
+    });
+  }
+  return warnClip(items, 'meteorlinetrail');
+}
+
+// マーカー 48 の「回転しながら 1 点へ集まるタイル」1 枚。
+//   spinBurst と同じ視覚回転トリック（useVelocityAngle:false + polarForm + thetaVlc）を
+//   等速直線の弾に付けたもの。polarForm は r=1・speed 既定なので位置には効かず、描画角だけ回る。
+function gatherTile(from, to, flight, spin) {
+  const vx = (to[0] - from[0]) / flight;
+  const vy = (to[1] - from[1]) / flight;
+  const bullet = bulletDefaults({
+    originPos: { x: from[0], y: from[1] },
+    originVlc: { x: vx, y: vy },
+    typeName: 'stone3_tile',
+    scale: { x: TILE, y: TILE },
+    color: { x: SPRITE_AS_IS[0], y: SPRITE_AS_IS[1], z: SPRITE_AS_IS[2], w: SPRITE_AS_IS[3] },
+    life: flight,
+    unCounterable: true,
+    useVelocityAngle: false,
+    polarForm: { x: 1, y: 0 },
+    thetaVlc: spin,
+  });
+  return {
+    parts: [{ offsetSec: 0, kind: 'gather', buffer: { bullets: [bullet], homing: false, isLaser: false }, spawner: NEUTRAL_SPAWNER() }],
+  };
+}
+
 // ── v21: 鎖の向きの一般化（マーカー 37〜39）─────────────────────────────────
 //   v15〜v19 の鎖は「下から上へ這う縦の鎖」だけだった。マーカー 38 は横方向、
 //   39 は上から下なので、進む向きと揺れる向きを設定で選べる版を足す。
@@ -1497,6 +1619,11 @@ const MARKERS = {
   28: MK37_CHAIN_LR,      // 左右の列を鎖で消す（98.342s）
   29: MK38_CHAIN_TB,      // 上下の列を鎖で消す（99.063s）
   30: MK40_DROP_MID,      // 落下隕石①（100.014s）
+  // v22: 指示書のマーカー 43〜51。
+  31: MK43_TILE6,         // タイル表示 x6（105.104s）
+  32: MK45_NEXTWARN,      // 次の攻撃の予告＋タイル（107.508s）
+  33: MK48_GATHER,        // 下に集めて爆破（108.344s）
+  34: MK49_WALL1,         // 壁隕石 1 発目（109.271s）
 };
 
 export default stage(
@@ -1508,10 +1635,10 @@ export default stage(
     markers: MARKERS,
     playArea: [32, 18],
     difficulties: ['easy', 'normal', 'lunatic'],
-    // v21: 最後の演出はマーカー 42（103.346s）の落下隕石と放射弾。放射弾は速度 7〜11 で
-    //   寿命なしなので、画面の対角（約 26 ユニット）を抜けるのに 2.4〜3.7s かかる。
-    //   103.346 + 2.7 ≒ 106.0s を末尾にした（指示書のマーカー 43 以降は次の便）。
-    endTime: 106.0,
+    // v22: 最後の演出はマーカー 51（110.938s）の壁隕石の爆破と放射弾。放射弾は速度 7〜11 で
+    //   寿命なしなので、画面を抜けるのに数秒かかる。v21 と同じ「最後の爆破 + 2.7s」の規則で
+    //   110.938 + 2.7 ≒ 113.6s を末尾にした（曲のアウトロは 113.33s から）。
+    endTime: 113.6,
   },
   (s) => {
     const rng = makeRng(20260902);
@@ -2626,5 +2753,201 @@ export default stage(
     //   ＝ マーカー 38 の横の鎖が通り過ぎた直後に消える。
     emitBandTiles(bandF);
     emitBandTiles(bandG);
+
+    // ======================================================================
+    // ★ v22  105.104〜110.938s — 指示書のマーカー 43〜51
+    //   採用時刻はファイル上部の MK43_TILE6 以降の定数（根拠は .tmp_v22/onset_table.txt）。
+    //
+    //   43-44 … 拍に合わせてタイルを 6 回表示（端も中央も残す）。その裏で 5 回の爆破。
+    //   45-47 … 48 の攻撃に使うタイル群を予告 → 実体化して表示したまま。
+    //            43-44 の残りは 47 で一斉に消える（48 用のタイルだけが残る）。
+    //   48    … 45/46 のタイルが回転しながら中央下の 1 点へ集まり、着いた瞬間に 2 重リングの大爆発。
+    //   49-51 … 壁に隕石を当てて爆破。1 発目は上側を左→右、2 発目は下側を右→左。
+    // ======================================================================
+
+    // --- マーカー 43: タイル表示 x6（105.104s から 1 拍間隔）---------------------
+    //   「端っこも中央も残し、このあとまとめて消す」ので、中央セルも帯と同じ扱い
+    //   （＝拍末で消えない残留タイル）にする。tilePhase の bandCells に全 144 セルを渡し、
+    //   centerRate を 0 にすると、この振る舞いになる。連結判定は積むたびに走るので、
+    //   6 拍ぶん積んでも自機の通り道は必ず残る。消える時刻はマーカー 47。
+    const band43 = tilePhase({
+      times: TILE43_TIMES,
+      leads: TILE43_TIMES.map(function () { return beats(0.75); }),
+      centerRate: 0,
+      bandTarget: D(0.26, 0.32, 0.38),
+      bandCells: ALL_CELLS,
+      bandEnd: MK47_TILE_CLEAR,
+      pinStartGap: false,
+    });
+
+    // --- マーカー 44: タイル攻撃 x5（105.424s から 1 拍間隔）---------------------
+    //   43 で並んだタイルから 1 回 2 枚ずつ爆破する。43 の 6 回とは 0.32 秒ずれるので、
+    //   「表示 → 爆破 → 表示 → 爆破」と交互に鳴る。
+    //   blastPhase は「2 拍以上前に出たタイル」しか選ばない（BLAST_MIN_AGE）ため、
+    //   置いた直後を狙うこの区間には使えない。同じ見た目の部品（半拍の予告 + リング予告 +
+    //   放射弾）を並べた専用版にした。点滅予告（1 拍リード）は対象タイルが生まれる前に
+    //   始まってしまうので、ここでは使わない。
+    let blast44Idx = 0;
+    function blastAt(time, pool, n) {
+      const usable = pool.filter(function (t) {
+        return !t.claimed && t.strike <= time - beats(0.7);
+      });
+      const cand = shuffled(usable, rng);
+      const picks = [];
+      for (let pass = 0; pass < 2 && picks.length < n; pass++) {
+        for (let i = 0; i < cand.length && picks.length < n; i++) {
+          const c = cand[i];
+          if (picks.indexOf(c) >= 0) continue;
+          // 1 回の 2 枚は離れた場所に散らす（1 パス目だけ距離を要求し、足りなければ緩める）
+          if (pass === 0 && picks.some(function (q) {
+            return Math.abs(q.col - c.col) + Math.abs(q.row - c.row) < 5;
+          })) continue;
+          picks.push(c);
+        }
+      }
+      if (picks.length === 0) return;
+      picks.forEach(function (t) {
+        t.claimed = true;
+        t.end = time;
+        t.lead = BLAST_LEAD_OUT;
+      });
+      const cells = picks.map(function (t) { return [t.col, t.row]; });
+      s.at(time - beats(0.5), tileField(cells, {
+        type: 'warn_box',
+        color: STONE_MID,
+        appearTime: beats(0.5),
+        appearDuration: beats(0.5),
+        life: beats(0.5),
+        kind: 'blastwarn',
+      }));
+      const centers = cells.map(function (c) { return cellCenter(c[0], c[1]); });
+      s.at(time - RING_LEAD, ringWarn(centers, 'burstwarn'));
+      centers.forEach(function (center) {
+        s.at(time, burst(center, blast44Idx, 1));
+      });
+      blast44Idx++;
+    }
+    BLAST44_TIMES.forEach(function (t) { blastAt(t, band43, 2); });
+
+    // --- マーカー 45/46: 48 の攻撃に使うタイルを予告 → 表示したまま --------------
+    //   45 と 46 は 4ms しか離れていない（＝同じ音）ので、予告を 0.75 拍手前から出し、
+    //   107.508s ちょうどで実体化させて「表示完了・表示したまま」にする。
+    //   場所は画面の上半分〜中央（行 3 以上）に散らす。43 のタイルが生きているセルは避ける。
+    const alive43 = new Set(
+      band43.filter(function (t) { return t.end > MK46_TILE_SET + 0.01; })
+        .map(function (t) { return key(t.col, t.row); })
+    );
+    const gatherWant = D(8, 10, 12);
+    const gatherCand = shuffled(
+      ALL_CELLS.filter(function (c) { return c[1] >= 3 && !alive43.has(key(c[0], c[1])); }),
+      rng
+    );
+    const gatherCells = [];
+    for (let pass = 0; pass < 2 && gatherCells.length < gatherWant; pass++) {
+      for (let i = 0; i < gatherCand.length && gatherCells.length < gatherWant; i++) {
+        const c = gatherCand[i];
+        if (gatherCells.indexOf(c) >= 0) continue;
+        if (pass === 0 && gatherCells.some(function (q) {
+          return Math.abs(q[0] - c[0]) + Math.abs(q[1] - c[1]) < 3;
+        })) continue;
+        gatherCells.push(c);
+      }
+    }
+    const GATHER_WARN_LEAD = beats(0.75);
+    s.at(MK45_NEXTWARN - GATHER_WARN_LEAD, tileField(gatherCells, {
+      type: 'warn_box',
+      color: STONE_WARN,
+      appearTime: GATHER_WARN_LEAD,
+      appearDuration: GATHER_WARN_LEAD,
+      life: GATHER_WARN_LEAD + SEAM_MARGIN,
+      kind: 'tilewarn',
+    }));
+    // 45 の「次の攻撃の予告」= タイルが集まってくる 1 点を、爆発の瞬間まで薄く示しておく。
+    s.at(MK45_NEXTWARN, warnClip([{
+      pos: GATHER_POINT,
+      scale: [CELL * 1.6, CELL * 1.6],
+      color: STONE_PATH,
+      appearTime: GATHER_IMPACT - MK45_NEXTWARN,
+      appearDuration: GATHER_IMPACT - MK45_NEXTWARN,
+      life: GATHER_IMPACT - MK45_NEXTWARN,
+    }], 'gatherwarn'));
+    s.at(MK46_TILE_SET, tilePop(gatherCells, 'tilepop'));
+    s.at(MK46_TILE_SET, tileField(gatherCells, {
+      type: 'stone3_tile',
+      color: SPRITE_AS_IS,
+      life: MK48_GATHER - MK46_TILE_SET,   // 48 で飛び立つ弾へバトンタッチする
+      kind: 'tile',
+    }));
+
+    // --- マーカー 47: 43〜44 の残タイルを消す ------------------------------------
+    //   band43 の bandEnd = MK47_TILE_CLEAR なので、爆破されなかったタイルは
+    //   ここで一斉に寿命が尽きる（実体クリップは末尾の emitBandTiles で出す）。
+
+    // --- マーカー 48: 下に集めて爆破（108.344s → 着弾 109.167s）------------------
+    //   参考の「下に弾を集めて爆破する攻撃」を、45/46 で出したタイルでやる。
+    //   タイルは回転しながら中央下の 1 点（自機の初期位置 (16,2.4) より少し上の (16,5)）へ
+    //   2 拍かけて集まり、次の強拍（拍 262 = 109.167s）ちょうどで消えると同時に
+    //   2 重リングの放射弾が出る。弾数は通常の爆破（D(10,12,14)）の 4 倍。
+    //   内側は遅く外側は速いので、広がるにつれてリングが 2 枚に分かれて見える。
+    const GATHER_FLIGHT = GATHER_IMPACT - MK48_GATHER;   // 0.8224s
+    gatherCells.forEach(function (c, i) {
+      s.at(MK48_GATHER, gatherTile(
+        cellCenter(c[0], c[1]), GATHER_POINT, GATHER_FLIGHT,
+        GATHER_SPIN * (i % 2 === 0 ? 1 : -1)
+      ));
+    });
+    s.at(GATHER_IMPACT - RING_LEAD, ringWarn([GATHER_POINT], 'burstwarn'));
+    const GATHER_RING_N = Math.round(D(10, 12, 14) * 2);
+    s.at(GATHER_IMPACT, spinBurst({
+      pos: GATHER_POINT,
+      count: GATHER_RING_N,
+      speed: D(7, 9, 11),
+      type: 'stone3_bullet',
+      life: 0,
+      scale: [BULLET_SCALE, BULLET_SCALE],
+      color: SPRITE_AS_IS,
+      angleOffset: rng() * 2 * Math.PI,
+      spin: SPIN_RATE,
+      kind: 'blast',
+      unCounterable: true,
+    }));
+    s.at(GATHER_IMPACT, spinBurst({
+      pos: GATHER_POINT,
+      count: GATHER_RING_N,
+      speed: D(11, 14, 17),
+      type: 'stone3_bullet',
+      life: 0,
+      scale: [BULLET_SCALE, BULLET_SCALE],
+      color: SPRITE_AS_IS,
+      angleOffset: rng() * 2 * Math.PI + Math.PI / GATHER_RING_N,
+      spin: -SPIN_RATE,
+      kind: 'blast',
+      unCounterable: true,
+    }));
+
+    // --- マーカー 49〜51: 壁に隕石を当てて爆破 -----------------------------------
+    //   1 発目は画面上側（行 6・y=13）を左→右、2 発目は下側（行 1・y=3）を右→左。
+    //   発射から着弾までは 1 マーカーぶん（0.833s ＝ 2 拍）。着弾点は隕石の半径ぶん
+    //   壁の内側（右 30.4 / 左 1.6）で、そこから v21 の落下隕石と同じ 1.6 倍の放射弾を出す。
+    const WALL_M1_Y = 13;
+    const WALL_M2_Y = 3;
+    [
+      // [発射時刻, 着弾時刻, 始点 x, 着弾 x, y]
+      [MK49_WALL1, MK50_WALL2, WALL_LEFT_X, WALL_HIT_RIGHT, WALL_M1_Y],
+      [MK50_WALL2, MK51_WALL2_HIT, WALL_RIGHT_X, WALL_HIT_LEFT, WALL_M2_Y],
+    ].forEach(function (w, k) {
+      const fire = w[0], hit = w[1], x0 = w[2], x1 = w[3], y = w[4];
+      const flight = hit - fire;
+      s.at(fire - METEOR_WARN_LEAD, meteorRowWarn(y, METEOR_WARN_LEAD));
+      s.at(fire, meteorLine(x0, x1, y, flight));
+      s.at(fire, meteorLineTrail(x0, x1, y, flight));
+      s.at(hit - RING_LEAD, ringWarn([[x1, y]], 'burstwarn'));
+      s.at(hit, burst([x1, y], k, 1.6));
+    });
+
+    // v22: マーカー 43 のタイル。爆破されなかったぶんはマーカー 47（108.066s）で消える。
+    //   v22 の区間をここ（既存の emitBandTiles のあと）に置いてあるのは、クリップの連番が
+    //   s.at() の呼び出し順で決まるため。こうすると v21 までのクリップ名が 1 つも動かない。
+    emitBandTiles(band43);
   }
 );
