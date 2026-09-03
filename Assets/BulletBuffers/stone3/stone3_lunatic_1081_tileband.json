@@ -3,8 +3,8 @@
     "bullets": [
         {
             "originPos": {
-                "x": 1,
-                "y": 11
+                "x": 15,
+                "y": 1
             },
             "originVlc": {
                 "x": 0,
@@ -54,7 +54,7 @@
             },
             "appearTime": 0,
             "appearDuration": 0,
-            "life": 9.166699999999999,
+            "life": 10.013199999999998,
             "random": 0,
             "warpCooldown": 0,
             "warpable": true,
@@ -63,7 +63,7 @@
         },
         {
             "originPos": {
-                "x": 23,
+                "x": 1,
                 "y": 15
             },
             "originVlc": {
@@ -114,7 +114,7 @@
             },
             "appearTime": 0,
             "appearDuration": 0,
-            "life": 9.166699999999999,
+            "life": 10.013199999999998,
             "random": 0,
             "warpCooldown": 0,
             "warpable": true,
@@ -123,8 +123,8 @@
         },
         {
             "originPos": {
-                "x": 23,
-                "y": 3
+                "x": 13,
+                "y": 15
             },
             "originVlc": {
                 "x": 0,
@@ -174,7 +174,7 @@
             },
             "appearTime": 0,
             "appearDuration": 0,
-            "life": 9.166699999999999,
+            "life": 10.013199999999998,
             "random": 0,
             "warpCooldown": 0,
             "warpable": true,
@@ -183,8 +183,8 @@
         },
         {
             "originPos": {
-                "x": 27,
-                "y": 3
+                "x": 5,
+                "y": 1
             },
             "originVlc": {
                 "x": 0,
@@ -234,7 +234,7 @@
             },
             "appearTime": 0,
             "appearDuration": 0,
-            "life": 9.166699999999999,
+            "life": 10.013199999999998,
             "random": 0,
             "warpCooldown": 0,
             "warpable": true,
@@ -243,8 +243,8 @@
         },
         {
             "originPos": {
-                "x": 27,
-                "y": 17
+                "x": 15,
+                "y": 15
             },
             "originVlc": {
                 "x": 0,
@@ -294,7 +294,7 @@
             },
             "appearTime": 0,
             "appearDuration": 0,
-            "life": 9.166699999999999,
+            "life": 10.013199999999998,
             "random": 0,
             "warpCooldown": 0,
             "warpable": true,
@@ -304,7 +304,7 @@
         {
             "originPos": {
                 "x": 3,
-                "y": 11
+                "y": 9
             },
             "originVlc": {
                 "x": 0,
@@ -354,7 +354,7 @@
             },
             "appearTime": 0,
             "appearDuration": 0,
-            "life": 9.166699999999999,
+            "life": 10.013199999999998,
             "random": 0,
             "warpCooldown": 0,
             "warpable": true,
@@ -363,8 +363,8 @@
         },
         {
             "originPos": {
-                "x": 1,
-                "y": 3
+                "x": 13,
+                "y": 1
             },
             "originVlc": {
                 "x": 0,
@@ -414,7 +414,7 @@
             },
             "appearTime": 0,
             "appearDuration": 0,
-            "life": 9.166699999999999,
+            "life": 10.013199999999998,
             "random": 0,
             "warpCooldown": 0,
             "warpable": true,
@@ -423,7 +423,67 @@
         },
         {
             "originPos": {
+                "x": 3,
+                "y": 13
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": true,
+            "polarForm": {
+                "x": 0,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_tile",
+            "scale": {
+                "x": 1.84,
+                "y": 1.84
+            },
+            "color": {
                 "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 10.013199999999998,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 3,
                 "y": 7
             },
             "originVlc": {
@@ -474,7 +534,7 @@
             },
             "appearTime": 0,
             "appearDuration": 0,
-            "life": 9.166699999999999,
+            "life": 10.013199999999998,
             "random": 0,
             "warpCooldown": 0,
             "warpable": true,
@@ -483,7 +543,67 @@
         },
         {
             "originPos": {
-                "x": 21,
+                "x": 13,
+                "y": 17
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": true,
+            "polarForm": {
+                "x": 0,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_tile",
+            "scale": {
+                "x": 1.84,
+                "y": 1.84
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 10.013199999999998,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 3,
                 "y": 3
             },
             "originVlc": {
@@ -534,7 +654,7 @@
             },
             "appearTime": 0,
             "appearDuration": 0,
-            "life": 9.166699999999999,
+            "life": 10.013199999999998,
             "random": 0,
             "warpCooldown": 0,
             "warpable": true,
@@ -543,7 +663,127 @@
         },
         {
             "originPos": {
-                "x": 7,
+                "x": 11,
+                "y": 3
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": true,
+            "polarForm": {
+                "x": 0,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_tile",
+            "scale": {
+                "x": 1.84,
+                "y": 1.84
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 10.013199999999998,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 3,
+                "y": 1
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": true,
+            "polarForm": {
+                "x": 0,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_tile",
+            "scale": {
+                "x": 1.84,
+                "y": 1.84
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 10.013199999999998,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 17,
                 "y": 15
             },
             "originVlc": {
@@ -594,7 +834,7 @@
             },
             "appearTime": 0,
             "appearDuration": 0,
-            "life": 9.166699999999999,
+            "life": 10.013199999999998,
             "random": 0,
             "warpCooldown": 0,
             "warpable": true,
@@ -604,6 +844,126 @@
         {
             "originPos": {
                 "x": 5,
+                "y": 17
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": true,
+            "polarForm": {
+                "x": 0,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_tile",
+            "scale": {
+                "x": 1.84,
+                "y": 1.84
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 10.013199999999998,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 1,
+                "y": 9
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": true,
+            "polarForm": {
+                "x": 0,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_tile",
+            "scale": {
+                "x": 1.84,
+                "y": 1.84
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 10.013199999999998,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 13,
                 "y": 3
             },
             "originVlc": {
@@ -654,7 +1014,127 @@
             },
             "appearTime": 0,
             "appearDuration": 0,
-            "life": 9.166699999999999,
+            "life": 10.013199999999998,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 1,
+                "y": 1
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": true,
+            "polarForm": {
+                "x": 0,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_tile",
+            "scale": {
+                "x": 1.84,
+                "y": 1.84
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 10.013199999999998,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 1,
+                "y": 13
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": true,
+            "polarForm": {
+                "x": 0,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "stone3_tile",
+            "scale": {
+                "x": 1.84,
+                "y": 1.84
+            },
+            "color": {
+                "x": 1,
+                "y": 1,
+                "z": 1,
+                "w": 0
+            },
+            "appearTime": 0,
+            "appearDuration": 0,
+            "life": 10.013199999999998,
             "random": 0,
             "warpCooldown": 0,
             "warpable": true,
