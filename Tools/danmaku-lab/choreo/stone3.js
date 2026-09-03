@@ -1,4 +1,13 @@
-// choreo/stone3.js — 新・石工（stone3）v15
+// choreo/stone3.js — 新・石工（stone3）v16
+//
+// ── v16 での変更（見た目だけ。弾の配置・タイミング・破壊判定は v15 と完全に同じ）──
+//   ユーザー指示: 「テクスチャが詳細すぎる。もっとシンプルに（JSaB と Undertale の融合）」
+//   「鎖はシンプルかつ他のタイルより小さめの正方形で描画」。
+//     1. スプライト 4 種を平坦な 1 色の面 + 太い明るい輪郭だけに描き直した
+//        （Tools/gen_stone3_pixel.py v16）。目地・ひび・欠け・リベット・影は全廃。
+//     2. 鎖に専用 type stone3_chain を追加し、サイズを タイルの 0.625 倍（1.15 ユニット・
+//        40 ドット）にした。当たり判定も同じサイズ（verts は正方の全面）。
+//        出現フラッシュも同じサイズに合わせた。
 //
 // ── v15 での変更（32 秒からの攻撃だけ作り直し。区間①〜⑧（〜33.3s）と 36.7s 以降は不変）──
 //   参考動画を 30fps で見直したところ、v14 の「画面幅のサイン波前線を上から下へ 2 本」は
@@ -856,6 +865,11 @@ const SNAKE_BREAK_R = CELL * 0.9;                          // 残留タイルを
 const SNAKE_BURSTS = 8;                                    // 砕けたタイルのうち放射弾を出す枚数の上限
 const SNAKE_POP_DURATION = 0.05;                           // 出現フラッシュ（実測 1〜2 コマ）
 const SNAKE_POP_SCALE = 1.15;
+// v16: 鎖を専用スプライト stone3_chain（タイルより小さい正方形・一段明るい面）にした。
+// 見た目も当たり判定もこの倍率。配置・タイミング・破壊判定（SNAKE_BREAK_R・SNAKE_HALF_W）は
+// v15 のまま変えていない。
+const SNAKE_TILE_SCALE = 0.625;
+const SNAKE_TILE = Math.round(TILE * SNAKE_TILE_SCALE * 1e6) / 1e6;   // 1.15 ユニット（スプライトは 40 ドット）
 
 // 段 row・鎖 lane のタイルの、時刻 t における x 座標。
 // t は曲の絶対時刻。全部の段・全部の本数が同じ時計を見るので、位相が揃う。
@@ -888,8 +902,8 @@ function snakeTile(t0, row, lane) {
     {
       pos: [snakeX(win[0], row, lane), y],
       vel: [0, 0],
-      type: 'stone3_tile',
-      scale: [TILE, TILE],
+      type: 'stone3_chain',
+      scale: [SNAKE_TILE, SNAKE_TILE],
       color: SPRITE_AS_IS,
       unCounterable: true,
     },
@@ -903,14 +917,14 @@ function snakeTile(t0, row, lane) {
 function snakePop(t0, row, lane) {
   const y = cellCenter(lane.col, row)[1];
   const a = snakeRowWindow(t0, row)[0];
-  const big = TILE * SNAKE_POP_SCALE;
+  const big = SNAKE_TILE * SNAKE_POP_SCALE;
   return warnClip(
     [{
       type: BLINK_TYPE,
       pos: [snakeX(a, row, lane), y],
       scale: [big, big],
       color: POP_COLOR_START,
-      scaleEnd: [TILE, TILE],
+      scaleEnd: [SNAKE_TILE, SNAKE_TILE],
       colorEnd: STONE_TILE_END,
       animDuration: SNAKE_POP_DURATION,
       appearTime: 0,
