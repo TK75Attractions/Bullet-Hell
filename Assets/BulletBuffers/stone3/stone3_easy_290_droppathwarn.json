@@ -1,0 +1,67 @@
+﻿{
+    "name": "stone3_easy_290_droppathwarn",
+    "bullets": [
+        {
+            "originPos": {
+                "x": 9,
+                "y": 16.04
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0,
+            "gravity": {
+                "x": 0,
+                "y": 0
+            },
+            "initialAngle": 0,
+            "angleSpeed": 0,
+            "useVelocityAngle": true,
+            "polarForm": {
+                "x": 0,
+                "y": 0
+            },
+            "radiusVlc": 0,
+            "radiusAccel": 0,
+            "thetaVlc": 0,
+            "thetaAccel": 0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "warn_box",
+            "scale": {
+                "x": 1.84,
+                "y": 3.92
+            },
+            "color": {
+                "x": 0.0273,
+                "y": 0.0273,
+                "z": 0.0648,
+                "w": 0.25
+            },
+            "appearTime": 0.875,
+            "appearDuration": 0.875,
+            "life": 0.875,
+            "random": 0,
+            "warpCooldown": 0,
+            "warpable": true,
+            "ignoreOutOfBoundsCulling": false,
+            "unCounterable": true
+        }
+    ],
+    "homing": false,
+    "isLaser": false
+}

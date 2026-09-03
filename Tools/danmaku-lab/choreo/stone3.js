@@ -1,4 +1,9 @@
-// choreo/stone3.js — 新・石工（stone3）v14
+// choreo/stone3.js — 新・石工（stone3）v15
+//
+// ── v15 での変更（32 秒からの攻撃だけ作り直し。区間①〜⑧（〜33.3s）と 36.7s 以降は不変）──
+//   参考動画を 30fps で見直したところ、v14 の「画面幅のサイン波前線を上から下へ 2 本」は
+//   誤読だった。実際は「1 タイル幅の鎖が下から上へ這い上がり、各段は高さを変えずに
+//   横へサインで往復する」攻撃。実測値と根拠は Captures/ref_tokyoskies_014_frames.md。
 //
 // ── v14 での変更（32 秒からの新しい指示。区間①〜⑧＝〜33.3s は不変）──────────
 //   ユーザー指示:
@@ -252,7 +257,7 @@
 //   stage() は難易度の数だけビルド関数を再実行するため Math.random() は使えない。
 //   mulberry32 を固定シードでビルド開始時に初期化し、再現可能かつ難易度間で整合する配置にしている。
 
-import { stage, D, bulletDefaults, normalizeNegativeZero } from '../js/dsl.js';
+import { stage, D, bulletDefaults, normalizeNegativeZero, gravitySeq } from '../js/dsl.js';
 
 // --- 拍グリッド ------------------------------------------------------------
 const BPM = 144;
@@ -288,14 +293,13 @@ const END_BEAT = 80;              // 区間⑧の末（33.333s）＝残タイル
 //   拍 80（33.333s）が波の攻撃、拍 84-87（35.000-36.250s）がタイル補充。
 //   補充で積んだ帯が v13 の bandC の役割（区間⑩⑫⑯の供給源）をそのまま引き継ぐので、
 //   区間⑩以降（36.667s〜）は v13 から一切変えていない。
-const TELE1_BEAT = 77;             // 32.083s 予告①（輪郭・薄い）
-const TELE2_BEAT = 79;             // 32.917s 予告②（実体と同寸・濃い・2 本ぶん）
-const WAVE1_BEAT = 80;             // 33.333s 波①＝攻撃
-const WAVE2_BEAT = 81;             // 33.750s 波②（位相 π ずらし）
-const WAVE_CLEAR_BEAT = 84;        // 35.000s 波に砕かれなかった残タイルが崩れる
+const TELE1_BEAT = 77;             // 32.083s 予告①（薄い縦帯）
+const TELE2_BEAT = 79;             // 32.917s 予告②（同じ縦帯を濃く）
+const SNAKE_BEAT = 80;            // 33.333s 攻撃＝鎖が下から上へ這い始める
+const SNAKE_CLEAR_BEAT = 84;       // 35.000s 鎖に砕かれなかった残タイルが崩れる
 const REFILL_BEAT = 84;            // 35.000s タイル補充の 1 拍目
 const REFILL_LEN = 4;              // 4 拍（35.000 / 35.417 / 35.833 / 36.250s）
-const S9_BEAT = 80;                // 小節21 33.333s 波の攻撃（マーカー⑨）
+const S9_BEAT = 80;                // 小節21 33.333s 鎖の攻撃（マーカー⑨）
 const S10_BEAT = 88;               // 小節23-24 36.667s タイル爆破③（アクセントに乗せる）
 const S11_BEAT = 96;               // 小節25-26 40.000s 休符（静止。横断シャベル 1 本ずつ）
 const S12_BEAT = 104;              // 小節27-28 43.333s 落下シャベル③（1 拍目は 2 本同時）
@@ -815,139 +819,143 @@ function dropPathWarn(center, dur, kind) {
   );
 }
 
-// ── v14 の波（画面を縦断するサイン波）─────────────────────────────────────
+// ── v15 の鎖（下から上へ這う蛇）─────────────────────────────────────────────
 //
-// 形: 「1 行ぶんの高さの前線が、列ごとに時間差をつけながら画面の上から下へ抜ける」。
-//   列 c の時間差を WAVE_PHASE_AMP * (1 + sin(2πc/WAVE_LAMBDA + φ)) で与えると、
-//   ある瞬間に危険なセルを繋いだ形がサイン波になり、それが下へ流れていく。
-//   波長 WAVE_LAMBDA = 8 列なので、16 列の画面に山が 2 つ乗る。
-//   振幅は WAVE_PHASE_AMP / WAVE_ROW_STEP = 2.5 行ぶん（山と谷で 5 行＝画面の半分以上）。
-//   Tokyo Skies は 1 枚幅の鎖だったが、こちらは **1 セルの危険時間を行送りの 3.8 倍**に
-//   してあるので、常に 3〜4 行が同時に光る太い帯として通過する（＝強化版の「太い」）。
+// 参考: Just Shapes & Beats "Tokyo Skies" 0:13.33〜0:14.87（曲 33.33〜34.87s に対応。
+//   動画時刻 + 20.000s = stone3.mp3 の時刻。計測ログは Captures/ref_tokyoskies_014_frames.md）。
+//   v14 は「画面幅いっぱいのサイン波前線を上から下へ 2 本」だったが、これは誤読だった。
+//   実際は **1 タイル幅の鎖が 1 本、画面の下端から上端へ這い上がる** 攻撃で、
+//   鎖の各タイルは自分の段（高さ）を変えずに **横方向へサインで往復** している。
 //
-// 本数: 2 本。1 拍差（33.333s と 33.750s）で、2 本目は位相を π ずらしてある
-//   （1 本目の山が 2 本目の谷になる）。これが「2 本」の強化。
+//   実測値（1920x1080・タイル 75px・段の間隔 82.5px）:
+//     ・先頭は 0.100s に 1 段ずつ上へ進む（10 段/秒）
+//     ・横揺れは 中心 x=510 / 振幅 75px（= 0.83 セル）/ 周期 0.400s
+//     ・隣の段との位相差は 60 度（＝波長 6 段）。模様自体は上から下へ流れる
+//     ・同時に見えているのは 7〜8 段ぶん（全 11 段中）。先頭が伸び、末尾が消える
+//     ・新しく生えたタイルはその 1〜2 コマだけ淡く光る（＝出現フラッシュ。白い頭ではない）
+//     ・鎖は壁タイルを壊さず、最上段の 1 つ下で消える
 //
-// 逃げ場: WAVE_GAP_COLS の列には波のタイルを一切置かない。2 本とも同じ列を空けるので、
-//   ここへ入っていれば攻撃の間ずっと安全。列 3-4 と 11-12 の 2 本の縦通路（各 4 ユニット幅）で、
-//   画面のどこからでも最大 3 セル（6 ユニット）動けば入れる。予告①（32.083s）から
-//   攻撃（33.333s）まで 1.25 秒あり、自機の歩行速度 5 ユニット/秒でも間に合う
-//   （PlayerController.moveSpeed=5・ダッシュ 20）。
-const WAVE_ROW_STEP = beats(0.15);        // 0.0625s: 前線が 1 行進む時間（9 行で 0.50s）
-const WAVE_PHASE_AMP = beats(0.375);      // 0.15625s: 列ごとの時間差の振幅（＝2.5 行）
-const WAVE_LAMBDA = 8;                    // 波長（列）
-// 1 セルが危険でいる時間。life 末尾 0.1 秒は BulletRenderSystem の減衰に入るので、
-// 0.24 秒なら「不透明 0.14 秒（＝2.2 行）＋尾を引く 0.1 秒（1.6 行）」で、
-// 石の面が見える太い前線と、その後ろの薄れる航跡になる（合計 3.8 行ぶんの帯）。
-// v14 の初回録画（0.16 秒）は不透明が 0.06 秒しかなく、白いポップのまま消えて
-// 「白い塊が散っている」ようにしか見えなかったので伸ばした。
-const WAVE_TILE_LIFE = 0.24;
-const WAVE_GAP_COLS = [3, 4, 11, 12];     // 逃げ場（波のタイルを置かない列）
-const WAVE_GAP_SET = new Set(WAVE_GAP_COLS);
-const WAVE2_PHASE = Math.PI;              // 2 本目の位相（1 本目の山＝2 本目の谷）
-// 波のタイルは寿命が 0.16 秒しかないので、出現ポップの収束も半分の 0.05 秒にする
-// （区間①③の POP_DURATION 0.10 秒のままだと、白いまま消えて石の面が一度も見えない）。
-const WAVE_POP_DURATION = 0.05;
-// 波のポップは拡大率も抑える。区間①③の POP_SCALE_START（1.714 倍）だと隣のセルまで
-// 白がはみ出し、波の形が潰れて見えた（同上の初回録画）。1.15 倍ならセル内に収まる。
-const WAVE_POP_SCALE = 1.15;
-const WAVE_BURSTS = 8;                    // 砕けたタイルのうち放射弾を出す枚数の上限（1 本あたり）
+//   本ステージへの移し替え: 画面は 16 列 x 9 行。段の間隔は素直に 1 行（CELL）にし、
+//   速度・周期・振幅・位相差は実測をそのまま使う。1 本では 16 列の画面に対して薄いので、
+//   **本数だけ 3 本に増やした**（強化はここだけ。動き自体は参考どおり）。
+const SNAKE_ROW_STEP = beats(0.25);      // 0.10417s: 1 行ぶん進む時間（実測 0.100s）
+const SNAKE_LEN = 6;                     // 同時に見えるタイル数（実測 7〜8 段 / 全 11 段 → 9 行なら 6）
+const SNAKE_PERIOD = beats(1);           // 0.41667s: 横揺れの周期（実測 0.400s ≒ 1 拍）
+const SNAKE_AMP = 0.83 * CELL;           // 1.66: 横揺れの振幅（実測 ±75px = ±0.83 セル）
+const SNAKE_ROW_PHASE = Math.PI / 3;     // 1 行あたりの位相差 60 度（＝波長 6 行）
+const SNAKE_SEGMENTS = 16;               // moveTo の折れ線でサインを近似する分割数（1 周期あたり約 10.7 点）
+// 3 本の中心列と位相。位相を 120 度ずつずらすと、3 本が同時に同じ向きへ寄らない。
+const SNAKE_LANES = [
+  { col: 2, phase: 0 },
+  { col: 7, phase: (2 * Math.PI) / 3 },
+  { col: 12, phase: (4 * Math.PI) / 3 },
+];
+// 鎖 1 本が掃く幅の半分（振幅 + タイルの半分）。予告の帯の幅と破壊判定に使う。
+const SNAKE_HALF_W = SNAKE_AMP + TILE / 2;                 // 2.58 ユニット
+const SNAKE_BREAK_R = CELL * 0.9;                          // 残留タイルを砕く距離（中心間）
+const SNAKE_BURSTS = 8;                                    // 砕けたタイルのうち放射弾を出す枚数の上限
+const SNAKE_POP_DURATION = 0.05;                           // 出現フラッシュ（実測 1〜2 コマ）
+const SNAKE_POP_SCALE = 1.15;
 
-// 波の前線が セル(col,row) に到達する時刻（t0 = 波の発火時刻）。
-// (1 + sin) を足してあるので最小値がちょうど t0 になる（＝攻撃の音の瞬間に最初のタイルが出る）。
-function waveHitTime(col, row, t0, phase) {
+// 段 row・鎖 lane のタイルの、時刻 t における x 座標。
+// t は曲の絶対時刻。全部の段・全部の本数が同じ時計を見るので、位相が揃う。
+function snakeX(t, row, lane) {
   return (
-    t0 +
-    WAVE_PHASE_AMP * (1 + Math.sin((2 * Math.PI * col) / WAVE_LAMBDA + phase)) +
-    (ROWS - 1 - row) * WAVE_ROW_STEP
+    CELL * (lane.col + 0.5) +
+    SNAKE_AMP * Math.sin((2 * Math.PI * t) / SNAKE_PERIOD + row * SNAKE_ROW_PHASE + lane.phase)
   );
 }
 
-// 波が通る全セル（逃げ場の列を除く）。
-function waveCells() {
-  const out = [];
-  for (let col = 0; col < COLS; col++) {
-    if (WAVE_GAP_SET.has(col)) continue;
-    for (let row = 0; row < ROWS; row++) out.push([col, row]);
-  }
-  return out;
+// 段 row のタイルが画面に居る時間帯 [生える, 消える]（t0 = 攻撃の発火時刻）。
+// 先頭は 1 行につき SNAKE_ROW_STEP で上がり、SNAKE_LEN 段ぶん後ろで末尾が消える。
+function snakeRowWindow(t0, row) {
+  const a = t0 + row * SNAKE_ROW_STEP;
+  return [a, a + SNAKE_LEN * SNAKE_ROW_STEP];
 }
 
-// 予告に使う「波の形」。列ごとに 1 セル（thick>0 なら上下へ厚みぶん）を、画面中央あたりに
-//   波形として並べる。行 = 4 - 2.5 * sin(...) を丸めるので 2〜7 行に収まる。
-//   逃げ場の列（WAVE_GAP_COLS）は空けるので、通路が 2 本あることも予告で見える。
-//   thick = 1 にすると上下 1 行ずつ足して 3 行の帯になり、実際に通過する波の太さと揃う。
-function waveShapeCells(phase, thick = 0) {
-  const amp = WAVE_PHASE_AMP / WAVE_ROW_STEP;   // 2.5 行
-  const out = [];
-  for (let col = 0; col < COLS; col++) {
-    if (WAVE_GAP_SET.has(col)) continue;
-    const base = Math.round((ROWS - 1) / 2 - amp * Math.sin((2 * Math.PI * col) / WAVE_LAMBDA + phase));
-    for (let d = -thick; d <= thick; d++) {
-      const row = base + d;
-      if (row < 0 || row >= ROWS) continue;
-      out.push([col, row]);
-    }
+// 鎖のタイル 1 枚。段（y）は動かさず、moveTo の折れ線だけで横に往復させる。
+// v2 レーン（{v2:true}）なので 1 枚 = 弾 1 発。
+function snakeTile(t0, row, lane) {
+  const y = cellCenter(lane.col, row)[1];
+  const win = snakeRowWindow(t0, row);
+  const dur = win[1] - win[0];
+  const segs = [];
+  for (let i = 1; i <= SNAKE_SEGMENTS; i++) {
+    const rel = (dur * i) / SNAKE_SEGMENTS;
+    segs.push({ until: rel, moveTo: [snakeX(win[0] + rel, row, lane), y] });
   }
-  return out;
-}
-
-// waveField(): 波 1 本ぶんの「実体タイル」と「出現ポップ」のクリップ 2 枚。
-//   1 クリップ = 1 バッファに全セルを詰め、セルごとの appearTime で時間差をつける。
-//   BulletCollisionJob.cs:35 が appearTime > time の弾の衝突を切るので、
-//   前線が来るまでのセルは無害（描画も BulletRenderSystem:286 で非表示）。
-function waveField(t0, phase, kind) {
-  const tiles = [];
-  const pops = [];
-  const big = TILE * WAVE_POP_SCALE;
-  waveCells().forEach(function (cell) {
-    const c = cellCenter(cell[0], cell[1]);
-    const at = waveHitTime(cell[0], cell[1], t0, phase) - t0;   // クリップ発火からの相対秒
-    tiles.push({
+  return gravitySeq(
+    {
+      pos: [snakeX(win[0], row, lane), y],
+      vel: [0, 0],
       type: 'stone3_tile',
-      pos: c,
       scale: [TILE, TILE],
       color: SPRITE_AS_IS,
-      appearTime: at,
-      appearDuration: 0,
-      life: at + WAVE_TILE_LIFE,
-    });
-    pops.push({
+      unCounterable: true,
+    },
+    segs,
+    'snake',
+    { v2: true }
+  );
+}
+
+// 出現フラッシュ。参考では新しいタイルが生えたコマだけ淡く光り、次のコマには通常色に戻る。
+function snakePop(t0, row, lane) {
+  const y = cellCenter(lane.col, row)[1];
+  const a = snakeRowWindow(t0, row)[0];
+  const big = TILE * SNAKE_POP_SCALE;
+  return warnClip(
+    [{
       type: BLINK_TYPE,
-      pos: c,
+      pos: [snakeX(a, row, lane), y],
       scale: [big, big],
       color: POP_COLOR_START,
       scaleEnd: [TILE, TILE],
       colorEnd: STONE_TILE_END,
-      animDuration: WAVE_POP_DURATION,
-      appearTime: at,
+      animDuration: SNAKE_POP_DURATION,
+      appearTime: 0,
       appearDuration: 0,
-      life: at + WAVE_POP_DURATION + FADE_OUT_SEC,
-    });
-  });
-  return [warnClip(tiles, kind), warnClip(pops, kind + 'pop')];
+      life: SNAKE_POP_DURATION + FADE_OUT_SEC,
+    }],
+    'snakepop'
+  );
 }
 
-// 予告（当たり判定なし）。1 回目は小さい点で輪郭だけ、2 回目は実体と同じ大きさで濃く、
-// しかも 2 本ぶんの波形を重ねて見せる（逃げ場の列が空いているのも 2 回とも見える）。
-const WAVE_WARN1_DOT = TILE * 0.55;
-function waveShapeWarn(shapes, size, color, dur, kind) {
-  const items = [];
-  shapes.forEach(function (cells) {
-    cells.forEach(function (cell) {
-      const c = cellCenter(cell[0], cell[1]);
-      items.push({
-        pos: c,
-        scale: [size, size],
-        color: color,
-        appearTime: dur,
-        appearDuration: dur,   // 予告点滅の窓に入れっぱなし（実体化しない）
-        life: dur,
-      });
-    });
+// 予告。参考では「鎖が掃く幅ぶんの縦帯が画面の上から下まで通しで出て、
+// 約 1.8 秒かけて連続に濃くなり、攻撃の瞬間に閃光になって消える」。
+// こちらは拍に乗せる都合で、32.083s（薄い）→ 32.917s（濃い）の 2 段階で濃くする。
+function snakeWarn(color, dur, kind) {
+  const items = SNAKE_LANES.map(function (lane) {
+    return {
+      pos: [CELL * (lane.col + 0.5), (ROWS * CELL) / 2],
+      scale: [SNAKE_HALF_W * 2, ROWS * CELL],
+      color: color,
+      appearTime: dur,
+      appearDuration: dur,   // 予告点滅の窓に入れっぱなし（実体化しない）
+      life: dur,
+    };
   });
   return warnClip(items, kind);
 }
+
+// セル(col,row) に残っているタイルを鎖が砕く時刻。どの鎖も通らなければ null。
+// 段 row に鎖が居る間だけを 1/120 秒刻みで見て、中心が SNAKE_BREAK_R 以内に来た最初の時刻。
+function snakeBreakTime(col, row, t0) {
+  const cx = cellCenter(col, row)[0];
+  const win = snakeRowWindow(t0, row);
+  const STEP = 1 / 120;
+  let best = null;
+  SNAKE_LANES.forEach(function (lane) {
+    for (let t = win[0]; t <= win[1]; t += STEP) {
+      if (Math.abs(snakeX(t, row, lane) - cx) <= SNAKE_BREAK_R) {
+        if (best === null || t < best) best = t;
+        return;
+      }
+    }
+  });
+  return best;
+}
+
 
 // 自機の初期位置(16,2.4) が入るセル。最初の拍だけは必ずここを逃げ場にする（初見の詰み防止）。
 const START_GAP = [Math.floor(16 / CELL), Math.floor(2.4 / CELL)];
@@ -1354,24 +1362,25 @@ export default stage(
     //   v13 と同じ集合（＝爆破・落下シャベルで使われなかった帯タイル）を維持している。
     const heldCells = bandB.filter((t) => !t.claimed).map((t) => [t.col, t.row]);
 
-    // ── v14: 33.333s の波が砕く残留タイルを確定させる ──────────────────────
-    //   波が通る列（逃げ場 WAVE_GAP_COLS 以外）に残っているタイルは、前線が届いた
-    //   瞬間に life を尽きさせる。1 本目が通った時点で対象は無くなるので、
-    //   実際に砕くのは波①だけ（波②は空いた床を通り抜ける追い打ち）。
-    //   逃げ場の列に残ったタイルは波を生き延び、WAVE_CLEAR_BEAT（35.000s）で崩れる。
+    // ── v15: 33.333s の鎖が砕く残留タイルを確定させる ──────────────────────
+    //   鎖が横に往復しながら通った先に残っているタイルは、鎖が重なった瞬間に life を尽きさせる。
+    //   3 本の鎖はそれぞれ 2.58 ユニット幅を掃くので、掃かれない列（列 4-5・9-10 の
+    //   あたり）に残ったタイルは鎖を生き延び、SNAKE_CLEAR_BEAT（35.000s）でまとめて崩れる。
     //   emitBandTiles(bandB) より前に end を書き換える必要がある。
-    const waveBroken = [];
+    const snakeBroken = [];
     bandB.forEach(function (t) {
       if (t.claimed) return;
-      if (WAVE_GAP_SET.has(t.col)) {
-        t.end = B(WAVE_CLEAR_BEAT);   // 波の通過後、拍頭でまとめて崩れる
+      const hit = snakeBreakTime(t.col, t.row, B(SNAKE_BEAT));
+      if (hit === null) {
+        t.end = B(SNAKE_CLEAR_BEAT);   // 鎖の通過後、拍頭でまとめて崩れる
         return;
       }
       t.claimed = true;
-      t.end = waveHitTime(t.col, t.row, B(WAVE1_BEAT), 0);
+      t.end = hit;
       t.lead = BLAST_LEAD_OUT;
-      waveBroken.push(t);
+      snakeBroken.push(t);
     });
+
 
     emitBandTiles(bandB);
 
@@ -1554,30 +1563,31 @@ export default stage(
     }
 
     // ----------------------------------------------------------------------
-    // ★ v14 ⑨' 32.083〜36.250s / 拍 77-87 — 予告2回 → 縦断する波 → タイル補充
+    // ★ v15 ⑨' 32.083〜36.250s / 拍 77-87 — 予告2連 → 下から上へ這う鎖 → タイル補充
     //
-    //   v13 の区間⑨（拍 80-87 でタイル表示③を 8 拍）は丸ごと削除し、ここに置き換えた。
+    //   v14 の「画面幅のサイン波前線 2 本を上から下へ」は参考動画の読み違いだったので、
+    //   ここだけ作り直した。区間①〜⑧（〜33.3s）と区間⑩以降（36.667s〜）は不変。
     //   拍 77/79/80 は区間⑧（拍 72-79）の中に入るが、⑧が弾を出しているのは拍 72-75
-    //   （横断シャベル 4 拍ぶん）だけで拍 76-79 は空いているため、区間①〜⑧の内容には
+    //   （横断シャベル 4 拍ぶん）だけで拍 76-79 は空いているため、区間⑧の内容には
     //   一切触れていない（追加した予告は当たり判定のない warn_box）。
     //
-    //   (a) 予告①（32.083s / 拍 77）… 波①の形を「輪郭」だけ。タイルの 0.55 倍の点を
-    //       列ごとに 1 個ずつ置く。色は最暗の STONE_PATH。0.5 拍で消える。
-    //   (b) 予告②（32.917s / 拍 79）… 同じ波形を上下 1 行ずつ足した 3 行の帯にし、
-    //       実体と同寸・STONE_WARN で濃く出す（＝実際に通過する波の太さそのもの）。
-    //       攻撃の瞬間ちょうどで消える（life = 1 拍）。逃げ場の列（3-4 / 11-12）が
-    //       2 回とも空いて見えるので、初見でもどこへ逃げればよいか分かる。
-    //       波②は位相が違うだけで逃げ場の列は同じなので、予告には出していない。
-    //   (c) 攻撃（33.333s / 拍 80）… 波①。上から下へ 0.5 秒＋列ごとの時間差 0〜0.3 秒で
-    //       画面を縦断する。通過した残留タイルはその瞬間に砕け（waveBroken）、
-    //       うち最大 WAVE_BURSTS 枚から放射弾が出る。
-    //   (d) 波②（33.750s / 拍 81）… 位相 π ずらしの追い打ち。1 拍差で山と谷が入れ替わる。
-    //   (e) 残タイル崩落（35.000s / 拍 84）… 逃げ場の列で波を生き延びたタイルが崩れる
-    //       （bandB の end。上の「波の破壊判定」で設定済み）。
-    //   (f) 補充（35.000〜36.250s / 拍 84-87）… 区間①と同じ出現ポップで 4 拍ぶん積む。
-    //       帯は v13 の区間⑨と同じ「上下だけ」（区間⑬の「左右だけ」との対比を残すため）で、
-    //       候補の順番だけ「波で砕けたセルとその 4 近傍」を先頭に寄せてある。
-    //       中央（12x5）にも毎拍タイルが出て、次の拍頭で消える。
+    //   (a) 予告①（32.083s / 拍 77）… 鎖が掃く幅の縦帯を、画面の下から上まで通しで。
+    //       色は最暗の STONE_PATH。2 拍ぶん出しっぱなし。
+    //   (b) 予告②（32.917s / 拍 79）… 同じ帯を STONE_WARN で濃くする。攻撃の瞬間に消える。
+    //       参考は約 1.8 秒かけて連続に濃くなる 1 本の帯だったが、曲の 32.083 / 32.917 の
+    //       2 つのアクセント（2〜6kHz の立ち上がりが 197 / 187 でほぼ同値）に乗せるため
+    //       2 段階の濃さにしてある。帯が出ている間に逃げ場（帯の隙間）が 2 回とも見える。
+    //   (c) 攻撃（33.333s / 拍 80）… 鎖 3 本。各段は 0.10417s ずつ遅れて下から生え、
+    //       6 段ぶん後ろから消えていく。段ごとに 60 度ずつずれた横揺れ（周期 1 拍・
+    //       振幅 0.83 セル）で蛇行する。9 行を上りきって最後のタイルが消えるまで約 1.46 秒。
+    //       鎖が重なった残留タイルはその瞬間に砕け（snakeBroken）、
+    //       うち最大 SNAKE_BURSTS 枚から放射弾が出る。
+    //   (d) 残タイル崩落（35.000s / 拍 84）… 鎖に掃かれなかったタイルが崩れる
+    //       （bandB の end。上の「鎖の破壊判定」で設定済み）。
+    //   (e) 補充（35.000〜36.250s / 拍 84-87）… 区間①と同じ出現ポップで 4 拍ぶん積む。
+    //       参考でも攻撃の直後（曲 35.00〜35.50）に 1 行が左から右へ 1 枚ずつ埋め直される。
+    //       帯は v13 の区間⑨と同じ「上下だけ」で、候補の順番だけ「鎖で砕けたセルと
+    //       その 4 近傍」を先頭に寄せてある。中央（12x5）にも毎拍タイルが出て、次の拍頭で消える。
     //       ここで積んだ帯が v13 の bandC の役割をそのまま引き継ぐので、区間⑩以降は不変。
     // ----------------------------------------------------------------------
     // v13 (B): 延長では「上下の帯」と「左右の帯」が同時に画面へ乗る（⑬以降）ので、
@@ -1587,27 +1597,27 @@ export default stage(
     //   emptyIsConnected が全候補を弾いてしまう（lunatic で区間⑬が 0 枚になる不具合を実測）。
     const EXT_BAND_TARGET = D(0.31, 0.40, 0.45);
 
-    // (a)(b) 予告 2 回
-    s.at(
-      B(TELE1_BEAT),
-      waveShapeWarn([waveShapeCells(0)], WAVE_WARN1_DOT, STONE_PATH, beats(0.5), 'wavewarn1')
-    );
-    s.at(
-      B(TELE2_BEAT),
-      waveShapeWarn([waveShapeCells(0, 1)], TILE, STONE_WARN, beats(1), 'wavewarn2')
-    );
+    // (a)(b) 予告 2 連（同じ帯を 2 段階で濃くする）
+    s.at(B(TELE1_BEAT), snakeWarn(STONE_PATH, B(TELE2_BEAT) - B(TELE1_BEAT), 'snakewarn1'));
+    s.at(B(TELE2_BEAT), snakeWarn(STONE_WARN, B(SNAKE_BEAT) - B(TELE2_BEAT), 'snakewarn2'));
 
-    // (c)(d) 波 2 本
-    s.at(B(WAVE1_BEAT), waveField(B(WAVE1_BEAT), 0, 'wave'));
-    s.at(B(WAVE2_BEAT), waveField(B(WAVE2_BEAT), WAVE2_PHASE, 'wave'));
+    // (c) 鎖 3 本。1 段 = 弾 1 発（v2 レーンの折れ線）＋出現フラッシュ 1 発。
+    const SNAKE_T0 = B(SNAKE_BEAT);
+    SNAKE_LANES.forEach(function (lane) {
+      for (let row = 0; row < ROWS; row++) {
+        const at = snakeRowWindow(SNAKE_T0, row)[0];
+        s.at(at, snakeTile(SNAKE_T0, row, lane));
+        s.at(at, snakePop(SNAKE_T0, row, lane));
+      }
+    });
 
     // (c) 砕けたタイルからの放射弾。全部に付けると弾が溢れるので、列でばらけるように
-    //     等間隔で間引いて最大 WAVE_BURSTS 枚だけにする。弾数は通常の爆破の半分。
-    const brokenSorted = waveBroken.slice().sort(function (a, b) {
+    //     等間隔で間引いて最大 SNAKE_BURSTS 枚だけにする。弾数は通常の爆破の半分。
+    const brokenSorted = snakeBroken.slice().sort(function (a, b) {
       return a.col - b.col || a.row - b.row;
     });
     if (brokenSorted.length > 0) {
-      const step = Math.max(1, Math.ceil(brokenSorted.length / WAVE_BURSTS));
+      const step = Math.max(1, Math.ceil(brokenSorted.length / SNAKE_BURSTS));
       for (let i = 0, k = 0; i < brokenSorted.length; i += step, k++) {
         const t = brokenSorted[i];
         const center = cellCenter(t.col, t.row);
@@ -1615,9 +1625,10 @@ export default stage(
       }
     }
 
-    // (f) 補充（4 拍）。波で砕けたセルとその 4 近傍を優先して積み直す。
+
+    // (e) 補充（4 拍）。鎖で砕けたセルとその 4 近傍を優先して積み直す。
     const refillPriority = new Set();
-    waveBroken.forEach(function (t) {
+    snakeBroken.forEach(function (t) {
       refillPriority.add(key(t.col, t.row));
       for (let d = 0; d < 4; d++) {
         const nc = t.col + NEIGHBOR_DC[d];
