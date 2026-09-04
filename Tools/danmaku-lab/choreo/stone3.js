@@ -1,4 +1,18 @@
-// choreo/stone3.js — 新・石工（stone3）v24
+// choreo/stone3.js — 新・石工（stone3）v25
+//
+// ── v25 見た目の微修正 2 点（マーカー位置・時刻は無変更） ─────────────────────
+//   (1) 隕石の尾を細く・薄く: v24(B) の尾（METEOR_TRAIL_*）が太く明るい白いくさび状に
+//       見えすぎていた（Captures/stone_v24_f2_meteor_trail_t70.30.png）。点の一辺を
+//       3.04→1.5 / 0.80→0.3、間隔を 0.025s→0.04s（点線に見えるよう広げる）、色を
+//       淡いグレー→暗色（STONE_PATH）に変更。詳細は METEOR_TRAIL_* 定義のコメント。
+//   (2) 集合点の暗いブルーム: v24(A) の gatherbloom が実フレームでは自機の足元に
+//       「暗い矩形」として出ていた（Captures/stone_v24_f4_.../f5_gather_burst_t109.30.png）。
+//       原因は BulletIndirectURP.shader の通常弾パスが color.a を透明度ではなく
+//       「着色の有無」の 0/1 スイッチとして扱うため、colorEnd=STONE_MID（暗い紫）の
+//       まま不透明な板が残っていたこと。マーカー 48 の gatherbloom を、GATHER_IMPACT の
+//       瞬間に縮む閃光から「集合の 2 拍のあいだに小さく暗い点→大きく白い点へ育ち、
+//       爆発の瞬間ちょうどに最大の白さへ達してから消える」動きへ変更。詳細は
+//       GATHER_BLOOM_* 定義の直前のコメント。
 //
 // ── v24 (A) 「集めて爆破」（マーカー 48）の着弾位置とイージング ──────────────
 //   参考 https://www.youtube.com/watch?v=bePI-wq_lNk 1:00〜1:05 を 1/30 秒刻みで再観察した
@@ -1380,14 +1394,28 @@ const METEOR_FLIGHT = 1.05;                 // 端から端まで 38.5 ユニッ
 //   v24 は 0.03 秒ごと＝ 1.1 ユニット間隔に置き、1 点の寿命を 0.20 秒に縮める。
 //   弾のタイプも stone3_flash（renderPriority 4・本体より手前）から
 //   warn_box（同 0・verts 空＝当たり判定なし）へ変えて、本体の奥へ回した。
-const METEOR_TRAIL_STEP = 0.025;            // 尾の点を置く時間間隔（36.7 ユニット/s で 0.92 ユニット）
-// 1 点の寿命 ＝ 縮むアニメの長さ。36.7 ユニット/s なら 0.16 s = 5.9 ユニット ＝ 本体 1.85 個ぶんで、
-// 参考の尾の全長（本体 1.85 個ぶん）に一致する。ランタイムは life 末尾の FADE_OUT_SEC(0.1) で
-// α を落とすので、後ろ 0.1 s ぶんが薄くなる＝「遠いほど小さく淡い」がそのまま出る。
-const METEOR_TRAIL_LIFE = 0.16;
-const METEOR_TRAIL_S0 = 3.04;               // 本体に接する点の一辺（本体 3.2 の 0.95 倍）
-const METEOR_TRAIL_S1 = 0.80;               // 末端の一辺（同 0.25 倍）
+// v25: v24 の尾は 0.025s 間隔・3.04→0.80 で「太く明るい白いくさび状」に見えてしまった
+// （Captures/stone_v24_f2_meteor_trail_t70.30.png）。参考
+// https://www.youtube.com/watch?v=wZ8qdagsnbo 1:35 は本体の後ろに丸い点が 10〜14 個、
+// 頭に近いほど大きく白く、遠いほど小さく淡い「点列」で、本体を塗り潰さない薄さだった。
+// また BulletIndirectURP.shader の通常弾パスは color.a を「透明度」ではなく
+// 「着色するかどうか」の 0/1 スイッチとして使う（a>0 ならマスク形状を不透明フルカラーで
+// 塗る）ため、v24 のように colorEnd の alpha だけ下げても薄くはならない。淡さは
+// **RGB の明度そのもの**で作る。
+const METEOR_TRAIL_STEP = 0.04;             // 尾の点を置く時間間隔（36.7 ユニット/s で 1.47 ユニット）
+                                             // v24 の 0.025s は間隔 0.92 ユニット < 点の直径で
+                                             // 「連続した帯」に見えていた。0.04s へ広げて点どうしの
+                                             // 隙間を作り、点列に見せる。
+const METEOR_TRAIL_LIFE = 0.16;             // 1 点の寿命（縮むアニメの長さ）は据え置き
+const METEOR_TRAIL_S0 = 1.5;                // 本体に接する点の一辺（本体 3.2 の 0.47 倍。v24 は 0.95 倍で本体並みに太かった）
+const METEOR_TRAIL_S1 = 0.3;                // 末端の一辺（本体の 0.09 倍）
 const METEOR_TRAIL_TYPE = 'warn_box';       // 本体（stone3_tile・renderPriority 1）より奥
+// v25: 開始色は本体（無着色のテクスチャそのまま）より淡いグレー、終端はさらに暗く
+// 背景へ溶け込む色。v24 は開始 POP_COLOR_START（sRGB 242,236,252 の明るい白）→
+// 終端 STONE_MID（166,150,190）で、どちらも面が不透明に塗り潰されるため「太く明るい」
+// 印象が強すぎた。明度を大きく落とす。
+const METEOR_TRAIL_COLOR_START = [0.42, 0.40, 0.47, 1.0];  // sRGB 約(180,175,192) の淡いグレー
+const METEOR_TRAIL_COLOR_END = STONE_PATH;                  // (56,46,72) 相当・ほぼ背景に沈む暗さ
 // 出現フラッシュ / 着弾フラッシュ / 着地の潰れ（v24 (B) の追加演出。いずれも当たり判定なし）。
 //   参考の隕石は画面外から入ってくるので出現の瞬間は写っていない。ここはユーザー指示に従い
 //   「画面端で白く弾けてから本体が飛び出す」形を、タイルのポップ（tilePop）と同じ
@@ -1456,9 +1484,9 @@ function meteorTrailPath(posAt, flight, kind) {
       type: METEOR_TRAIL_TYPE,
       pos: [p[0], p[1]],
       scale: [METEOR_TRAIL_S0, METEOR_TRAIL_S0],
-      color: POP_COLOR_START,
+      color: METEOR_TRAIL_COLOR_START,
       scaleEnd: [METEOR_TRAIL_S1, METEOR_TRAIL_S1],
-      colorEnd: STONE_MID,
+      colorEnd: METEOR_TRAIL_COLOR_END,
       animDuration: METEOR_TRAIL_LIFE,
       appearTime: rel,          // 隕石が通り過ぎた瞬間に出る
       appearDuration: 0,
@@ -3089,15 +3117,37 @@ export default stage(
         GATHER_SPIN * (i % 2 === 0 ? 1 : -1)
       ));
     });
-    // v24 (A): 参考では 4 個が着いた直後に集合点で白いブルームが膨らむ。ここでも
-    //   同じ絵を出す（当たり判定なしの stone3_flash 1 発）。タイルは life 末尾の
-    //   FADE_OUT_SEC(0.1) で薄くなりながら 1 点へ入るので、その受け皿にもなる。
-    const GATHER_BLOOM_S0 = TILE * 4.0;
-    const GATHER_BLOOM_S1 = TILE * 1.0;
-    const GATHER_BLOOM_DUR = 0.14;
-    s.at(GATHER_IMPACT, flashPop(
-      GATHER_POINT, 0, GATHER_BLOOM_S0, GATHER_BLOOM_S1, GATHER_BLOOM_DUR, 'gatherbloom'
-    ));
+    // v25: v24 は GATHER_IMPACT の瞬間に flashPop（大→小に縮む閃光。開始 POP_COLOR_START
+    //   →終了 STONE_MID）を 1 発出すだけだった。BulletIndirectURP.shader の通常弾パスは
+    //   color.a を透明度ではなく「着色の有無」の 0/1 スイッチとして扱う（a>0 なら不透明に
+    //   フルカラー塗り）ため、animDuration が終わったあとは colorEnd＝STONE_MID（暗い紫）の
+    //   まま不透明な板が残り、実フレーム（Captures/stone_v24_f4_gather_ease_t108.59_108.89.png,
+    //   f5_gather_burst_t109.30.png）では自機の足元の「暗い矩形」として写った。
+    //   （なお f4 の時点はまだ GATHER_IMPACT 前なので、そこに写っていたのは本来 45 の
+    //   「次の攻撃予告」warnClip(STONE_PATH, kind:'gatherwarn') で、これは意図どおりの
+    //   薄い予告表示。今回問題なのは f5＝GATHER_IMPACT 直後に STONE_MID の不透明な板が
+    //   居座って見える方。）
+    //   修正: 「爆発直後に縮む閃光」をやめ、「集合の 2 拍（MK48_GATHER→GATHER_IMPACT＝
+    //   GATHER_FLIGHT）のあいだに小さく暗い点から大きく白い点へ徐々に育ち、爆発の瞬間
+    //   ちょうどに最大の白さへ達してから disappearDuration(0.1s) で消える」動きに変える。
+    //   色の終端を STONE_MID ではなく POP_COLOR_START（明るい白）にすることで、
+    //   「白く明るく」なる瞬間が短い閃光ではなく explosion の直前まで持続する見た目になる。
+    const GATHER_BLOOM_S0 = TILE * 0.4;          // 集合開始時はごく小さい点
+    const GATHER_BLOOM_S1 = TILE * 3.5;          // 爆発の瞬間に最大まで広がる
+    const GATHER_BLOOM_C0 = STONE_MID;           // 開始色: 暗め（タイルの影色と揃える）
+    const GATHER_BLOOM_C1 = POP_COLOR_START;     // 終了色: 白く明るい
+    s.at(MK48_GATHER, warnClip([{
+      type: BLINK_TYPE,
+      pos: GATHER_POINT,
+      scale: [GATHER_BLOOM_S0, GATHER_BLOOM_S0],
+      color: GATHER_BLOOM_C0,
+      scaleEnd: [GATHER_BLOOM_S1, GATHER_BLOOM_S1],
+      colorEnd: GATHER_BLOOM_C1,
+      animDuration: GATHER_FLIGHT,
+      appearTime: 0,
+      appearDuration: 0,
+      life: GATHER_FLIGHT + FADE_OUT_SEC,
+    }], 'gatherbloom'));
     const GATHER_RING_N = Math.round(D(10, 12, 14) * 2);
     s.at(GATHER_IMPACT, spinBurst({
       pos: GATHER_POINT,
