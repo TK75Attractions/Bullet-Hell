@@ -2230,14 +2230,22 @@ function gatherSeg(pos, vel, accelMag, accelDir, dur, spin, last) {
   };
 }
 
+// v29b（指示 109.323「集合のアニメーションがぎこちない」）: 3 段を別々の弾で継ぐ v1 handoff を
+//   やめ、v2 の区間列（accel 3 区間）1 発にした。原因は BulletRenderSystem.cs の
+//   disappearDuration=0.1（全弾の life 末尾 0.1 秒を暗く落とす）で、区間の切れ目ごとに
+//   タイルが黒く沈んで次の弾で復帰していた（.tmp_v29/progress.md B1 の実測: 0.84 秒の
+//   集合の間に 3 回暗転）。v2 なら 1 発の中で位置も速度も閉形式で連続する。
+//   自転は BulletV2UpdateJob に「useVelocityAngle=false の弾は polarForm.y を thetaVlc で
+//   進める」処理を足して残した（dsl.js の gravitySeqV2 は base.spin でその 3 フィールドを出す）。
+//   爆発の瞬間（GATHER_IMPACT）で消すと末尾フェードが到着直前に掛かるので、集合点で
+//   GATHER_HOLD 秒だけ静止する区間を最後に足し、ブルーム（同じく impact+0.1 まで）の下で消す。
+const GATHER_HOLD = FADE_OUT_SEC;
 function gatherFly(from, seat, to, spin) {
-  const out = [];
   // (1) 進入（ease out）: 距離 d を dA で、終端速度 0 の等減速で詰める → v0 = 2d/dA
   const dA = GATHER_SETTLE - GATHER_ENTER;
   const v0x = (2 * (seat[0] - from[0])) / dA;
   const v0y = (2 * (seat[1] - from[1])) / dA;
   const v0 = Math.sqrt(v0x * v0x + v0y * v0y);
-  out.push([GATHER_ENTER, gatherSeg(from, [v0x, v0y], v0 / dA, Math.atan2(-v0y, -v0x), dA, spin, false)]);
 
   // 集合点へ向かう単位ベクトル
   const ux = to[0] - seat[0];
@@ -2250,16 +2258,34 @@ function gatherFly(from, seat, to, spin) {
   const dB = GATHER_RECOIL_END - GATHER_SETTLE;
   const aB = (2 * GATHER_RECOIL_DIST) / (dB * dB);
   const vB = aB * dB;                                   // 引き終わりの速さ（逆向き）
-  out.push([GATHER_SETTLE, gatherSeg(seat, [0, 0], aB, Math.atan2(-ey, -ex), dB, spin, false)]);
 
   // (3) 突入（ease in）: 逆向きの速度 vB を残したまま集合点向きに等加速。
   //     P(dC) = seatB + (-e*vB)*dC + (1/2)a*e*dC^2 = to より a = 2(D + vB*dC)/dC^2。
-  const seatB = [seat[0] - ex * GATHER_RECOIL_DIST, seat[1] - ey * GATHER_RECOIL_DIST];
   const dC = GATHER_IMPACT - GATHER_RECOIL_END;
   const dist = uL + GATHER_RECOIL_DIST;
   const aC = (2 * (dist + vB * dC)) / (dC * dC);
-  out.push([GATHER_RECOIL_END, gatherSeg(seatB, [-ex * vB, -ey * vB], aC, Math.atan2(ey, ex), dC, spin, true)]);
-  return out;
+
+  const segs = [
+    { until: dA, accel: [v0 / dA, normalizeNegativeZero(Math.atan2(-v0y, -v0x))] },
+    { until: dA + dB, accel: [aB, normalizeNegativeZero(Math.atan2(-ey, -ex))] },
+    { until: dA + dB + dC, accel: [aC, normalizeNegativeZero(Math.atan2(ey, ex))] },
+    { until: dA + dB + dC + GATHER_HOLD, moveTo: [to[0], to[1]] },
+  ];
+  const clip = gravitySeq(
+    {
+      pos: [from[0], from[1]],
+      vel: [normalizeNegativeZero(v0x), normalizeNegativeZero(v0y)],
+      type: 'stone3_tile',
+      scale: [TILE, TILE],
+      color: SPRITE_AS_IS,
+      unCounterable: true,
+      spin: spin,
+    },
+    segs,
+    'gather',
+    { v2: true }
+  );
+  return [[GATHER_ENTER, clip]];
 }
 
 // 画面外の飛び込み開始点。参考（bePI-wq_lNk 1:02）は上端と左右の角から入ってくるので、
@@ -2290,6 +2316,13 @@ const SNAKE_H_X0 = (COLS * CELL - (SNAKE_H_STEPS - 1) * SNAKE_STEP_Y) / 2;   // 
 const CHAIN_V_FAST = { axis: 'V', steps: SNAKE_STEPS, base: SNAKE_Y0, rowStep: 0.0625, period: beats(0.75), reverse: false };
 const CHAIN_V_FAST_DOWN = { axis: 'V', steps: SNAKE_STEPS, base: SNAKE_Y0, rowStep: 0.0625, period: beats(0.75), reverse: true };
 const CHAIN_H = { axis: 'H', steps: SNAKE_H_STEPS, base: SNAKE_H_X0, rowStep: 0.0357, period: beats(0.375), reverse: false };
+// v29b（指示 65.083「波のアニメーションが変」）: 65.0101 の横鎖の揺れ周期 beats(0.375)=0.156s は
+//   6.4Hz で、30fps の録画では 1 周期 4.7 コマ、60fps でも 9 コマしかなく、連続コマで
+//   y が毎コマ反転して見えた（.tmp_v29/progress.md B1 の実測）。この 1 本だけ縦鎖と同じ
+//   beats(0.75)=0.3125s へ緩める（マーカー 38 の横鎖は指示の範囲外なので CHAIN_H のまま）。
+//   揺れは y 方向で、砕く対象は鎖と同じ行なので破壊の有無は変わらない（隣の行のタイルは
+//   砕ける時刻が位相ぶん前後するが、65.0〜66.0s の中に閉じる）。
+const CHAIN_H_SLOW = Object.assign({}, CHAIN_H, { period: beats(0.75) });
 
 // 段 k の「進む向き」の座標（V なら y・H なら x）。
 function chainAdvance(cfg, k) {
@@ -3495,13 +3528,13 @@ export default stage(
     // --- 65.0101: 下の列を鎖攻撃で破壊（ついでに上の列にも置く）----------------------
     const V27C_LANES_TB = [{ row: 1, phase: 0 }, { row: 7, phase: Math.PI }];
     chainAttackG(
-      CHAIN_H, V27C_CHAIN_B - 0.40, V27C_CHAIN_B - 0.16, V27C_CHAIN_B,
+      CHAIN_H_SLOW, V27C_CHAIN_B - 0.40, V27C_CHAIN_B - 0.16, V27C_CHAIN_B,   // v29b: 周期を緩めた横鎖
       V27C_LANES_TB, bandAll, true   // v29 (5): 同上（65.0〜65.9s の放射弾）
     );
 
     // 落下して積み上がったタイルの実体。下の鎖が通った瞬間に砕ける（通らなければ 66.0s）。
     stacked.forEach(function (st, i) {
-      const hit = chainBreakTime(CHAIN_H, st.col, st.row, V27C_CHAIN_B, V27C_LANES_TB);
+      const hit = chainBreakTime(CHAIN_H_SLOW, st.col, st.row, V27C_CHAIN_B, V27C_LANES_TB);
       const end = hit === null ? V27C_BAND_END : hit;
       // (1) 落下（等加速。着地でぴたりと止まる）
       s.at(V27C_FALL + st.delay, {
