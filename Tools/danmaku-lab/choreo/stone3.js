@@ -3362,14 +3362,14 @@ export default stage(
     const V27C_LANES_LR = [{ col: 1, phase: 0 }, { col: 14, phase: Math.PI }];
     chainAttackG(
       CHAIN_V_FAST, V27C_CHAIN_LR - 0.52, V27C_CHAIN_LR - 0.21, V27C_CHAIN_LR,
-      V27C_LANES_LR, bandAll
+      V27C_LANES_LR, bandAll, true   // v29 (5): 指示 66.892「タイル破壊の弾はいらない」
     );
 
     // --- 65.0101: 下の列を鎖攻撃で破壊（ついでに上の列にも置く）----------------------
     const V27C_LANES_TB = [{ row: 1, phase: 0 }, { row: 7, phase: Math.PI }];
     chainAttackG(
       CHAIN_H, V27C_CHAIN_B - 0.40, V27C_CHAIN_B - 0.16, V27C_CHAIN_B,
-      V27C_LANES_TB, bandAll
+      V27C_LANES_TB, bandAll, true   // v29 (5): 同上（65.0〜65.9s の放射弾）
     );
 
     // 落下して積み上がったタイルの実体。下の鎖が通った瞬間に砕ける（通らなければ 66.0s）。
@@ -3531,7 +3531,7 @@ export default stage(
     // --- 鎖攻撃 1 回分（向きを選べる版。マーカー 37〜39）-----------------------
     //   構造は v19 の chainAttack と同じ（予告①→予告②→鎖→掃かれたタイルの破壊→放射弾）で、
     //   進む向き・揺れる向き・速さを cfg で差し替えられるようにしただけ。
-    function chainAttackG(cfg, warn1, warn2, t0, lanes, tiles) {
+    function chainAttackG(cfg, warn1, warn2, t0, lanes, tiles, noBurst) {
       s.at(warn1, chainWarn(cfg, lanes, STONE_PATH, warn2 - warn1, 'snakewarn1'));
       s.at(warn2, chainWarn(cfg, lanes, STONE_WARN, t0 - warn2, 'snakewarn2'));
       lanes.forEach(function (lane) {
@@ -3552,7 +3552,9 @@ export default stage(
         broken.push(t);
       });
       const sorted = broken.slice().sort(function (a, b) { return a.col - b.col || a.row - b.row; });
-      if (sorted.length > 0) {
+      // v29 (5): cfg.noBurst / 引数 noBurst で、掃かれたタイルからの放射弾を止める
+      //   （指示 99.733「中央の隕石爆破の破裂弾以外はなくして」＝ 98.3〜99.6s の鎖の破壊弾）。
+      if (sorted.length > 0 && !noBurst) {
         const step = Math.max(1, Math.ceil(sorted.length / SNAKE_BURSTS));
         for (let i = 0, k = 0; i < sorted.length; i += step, k++) {
           const t = sorted[i];
@@ -3645,7 +3647,7 @@ export default stage(
     const CHAIN37_LANES = [{ col: 1, phase: 0 }, { col: 14, phase: Math.PI }];
     chainAttackG(
       CHAIN_V_FAST, MK37_CHAIN_LR - 0.52, MK37_CHAIN_LR - 0.21, MK37_CHAIN_LR,
-      CHAIN37_LANES, bandF.concat(bandG)
+      CHAIN37_LANES, bandF.concat(bandG), true   // v29 (5): 破壊の放射弾なし
     );
 
     // マーカー 38: 上下の列を横の鎖で消す（99.063s・左→右）。中心行 1 と 7 で
@@ -3653,18 +3655,18 @@ export default stage(
     const CHAIN38_LANES = [{ row: 1, phase: 0 }, { row: 7, phase: Math.PI }];
     chainAttackG(
       CHAIN_H, MK38_CHAIN_TB - 0.40, MK38_CHAIN_TB - 0.16, MK38_CHAIN_TB,
-      CHAIN38_LANES, bandF.concat(bandG)
+      CHAIN38_LANES, bandF.concat(bandG), true   // v29 (5): 破壊の放射弾なし
     );
 
     // マーカー 39: 縦の鎖 2 本（99.590s）。右半分の中央（列 11）は上から下、
     //   左半分の中央（列 4）は下から上。残留タイルはもう無いので破壊は起きない。
     chainAttackG(
       CHAIN_V_FAST_DOWN, MK39_CHAIN_MID - 0.35, MK39_CHAIN_MID - 0.15, MK39_CHAIN_MID,
-      [{ col: 11, phase: 0 }], bandF.concat(bandG)
+      [{ col: 11, phase: 0 }], bandF.concat(bandG), true
     );
     chainAttackG(
       CHAIN_V_FAST, MK39_CHAIN_MID - 0.35, MK39_CHAIN_MID - 0.15, MK39_CHAIN_MID,
-      [{ col: 4, phase: Math.PI }], bandF.concat(bandG)
+      [{ col: 4, phase: Math.PI }], bandF.concat(bandG), true
     );
 
     // v29 (3): マーカー 30 のタイル表示を 5 回 → 6 回（指示の番号 1〜6）へ変え、さらに
@@ -3710,7 +3712,10 @@ export default stage(
       // v27 (15): 大きい正方形 1 枚のフラッシュ → 円周上に並べたポップのリング 2 枚へ。
       s.at(impact, roundBlastFx([x, METEOR_DROP_Y], METEOR_RING_SPEC, 'meteorhit'));
       s.at(impact, meteorSquash([x, METEOR_DROP_Y]));
-      s.at(impact, burst([x, METEOR_DROP_Y], k, 1.6));
+      // v29 (5): 指示 99.733「弾がこの場面多すぎる。中央の隕石爆破の破裂弾以外はなくして」
+      //   → 放射弾は中央（k=0・100.014s）の 1 発だけにする。右（101.680s）と左（103.346s）は
+      //   落下・着弾の演出（リング・潰れ・尾）だけ残して弾を出さない。
+      if (k === 0) s.at(impact, burst([x, METEOR_DROP_Y], k, 1.6));
     });
 
     // 残ったタイルの実体クリップを出す（消える時刻が全部確定したあと）。
@@ -3725,6 +3730,12 @@ export default stage(
     emitBandTiles(bandG);
 
     // ======================================================================
+    // v29 (5): マーカー 40〜42 の放射弾を中央 1 発だけにしたぶん rng の消費が 2 回減る。
+    //   105.1s 以降のタイル配置を動かさないよう、ここで v29(4) と同じ状態へ戻す
+    //   （マーカー 40 の reseed からの消費数は 3・実測）。
+    reseedRng((20260902 + D(2698 + 1224 + 3, 2596 + 1131 + 3, 2563 + 1089 + 3)
+      * 0x6d2b79f5) % 4294967296);
+
     // ★ v22  105.104〜110.938s — 指示書のマーカー 43〜51
     //   採用時刻はファイル上部の MK43_TILE6 以降の定数（根拠は .tmp_v22/onset_table.txt）。
     //
@@ -3790,10 +3801,8 @@ export default stage(
         life: beats(0.5),
         kind: 'blastwarn',
       }));
-      const centers = cells.map(function (c) { return cellCenter(c[0], c[1]); });
-      centers.forEach(function (center) {
-        s.at(time, burst(center, blast44Idx, 1));
-      });
+      // v29 (5): 指示 107.476「ここはタイル破裂弾不要」→ 爆破したタイルから出していた
+      //   放射弾を削除。予告とタイルが消える演出はそのまま。
       blast44Idx++;
     }
     // v27 (16): 手打ち 105.582「ここは爆破不要」→ 窓内のオンセット 105.4070（1 発目）を削除。
@@ -3830,6 +3839,12 @@ export default stage(
     //   → タイル予告（tilewarn）・実体化ポップ（tilepop）・静止する実体（tile）を全廃し、
     //     GATHER_ENTER から画面外の点を出発する 3 段モーション（gatherFly）に置き換えた。
     // 45 の「次の攻撃の予告」= タイルが集まってくる 1 点だけは、爆発の瞬間まで薄く残す。
+    // v29 (5): 上の「タイル破裂弾」削除で rng の消費が減るので、集合〜壁隕石（108.3s 以降）を
+    //   動かさないようここでも v29(4) と同じ状態へ戻す（マーカー 40 の reseed からの消費数は
+    //   easy 1152 / normal 1138 / lunatic 1125・実測）。
+    reseedRng((20260902 + D(2698 + 1224 + 1152, 2596 + 1131 + 1138, 2563 + 1089 + 1125)
+      * 0x6d2b79f5) % 4294967296);
+
     s.at(GATHER_ENTER, warnClip([{
       pos: GATHER_POINT,
       scale: [CELL * 1.6, CELL * 1.6],
@@ -3959,6 +3974,12 @@ export default stage(
     emitBandTiles(band43);
 
     // ======================================================================
+    // v29 (5): 上の「タイル破裂弾」削除で v22 ブロックの rng 消費数が変わる。111.9s 以降を
+    //   動かさないため、マーカー 40 の reseed からの消費数（実測 easy 1156 / normal 1142 /
+    //   lunatic 1129）を足した状態へ戻す。
+    reseedRng((20260902 + D(2698 + 1224 + 1156, 2596 + 1131 + 1142, 2563 + 1089 + 1129)
+      * 0x6d2b79f5) % 4294967296);
+
     // ★ v28  111.875〜141.653s — 指示書 v28_ending の 111.878 以降 22 マーカー
     //   ステージ末尾を 113.6 → 142.5 へ延ばし、そこへ末尾の一続きを足した区間。
     //   この区間の s.at() は既存クリップの**あと**にだけ並ぶので、もともと出ていた弾は
