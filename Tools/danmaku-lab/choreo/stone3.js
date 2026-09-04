@@ -4035,20 +4035,27 @@ export default stage(
       s.at(t, burst(pos, idx, 1.2));
     }
 
+    // v29 (8): 指示 117.795「ここら辺全体的に隕石爆破が早すぎるので遅くして」。
+    //   爆破の時刻はマーカー＝曲のオンセットなので動かせない。そこで「発射から爆破までの
+    //   飛行時間」を 1.4 倍に伸ばし、そのぶん発射を前へ出す（＝隕石がゆっくり長く見える）。
+    //   衝突するシャベルの飛行時間も同じだけ伸びる。
+    const V29_METEOR_SLOW = 1.4;
+
     // --- 1〜5: 打ち上げ隕石とシャベルの衝突（点対称に 2 回）→ 中央へ落下隕石 --------
     //   lightspeed = true のとき、最後の着弾をマーカー 48 の集合爆破と同じ部品
     //   （白く育つブルーム＋2 重リングの放射弾）に差し替える。
     function v28BlockA(tA1, tA2, tA3, tA4, idx, lightspeed) {
       // (a) 左下の画面外から上向きに打ち上がり、下向き重力で減速して tA2 に頂点で静止
-      const dL = tA2 - tA1;
+      const dL = (tA2 - tA1) * V29_METEOR_SLOW;   // v29 (8): 飛行を 1.4 倍に伸ばす
+      const tL0 = tA2 - dL;                       //          そのぶん発射を前へ出す
       const vyL = (2 * (V28_UP_APEX[1] - V28_UP_FROM[1])) / dL;
       const velL = [(V28_UP_APEX[0] - V28_UP_FROM[0]) / dL, vyL];
       const segL = [{ dur: dL, ax: 0, ay: -vyL / dL }];
-      s.at(tA1, meteorPath(V28_UP_FROM, velL, segL, 'meteorup'));
-      s.at(tA1, meteorPathTrail(V28_UP_FROM, velL, segL, dL, 'meteoruptrail'));
-      v28EntryFlash(tA1, meteorPathPos(V28_UP_FROM, velL, segL), dL, 'meteorspawn');
+      s.at(tL0, meteorPath(V28_UP_FROM, velL, segL, 'meteorup'));
+      s.at(tL0, meteorPathTrail(V28_UP_FROM, velL, segL, dL, 'meteoruptrail'));
+      v28EntryFlash(tL0, meteorPathPos(V28_UP_FROM, velL, segL), dL, 'meteorspawn');
       // 同時に右から 1 本シャベルが飛んできて、頂点でちょうどぶつかる
-      s.at(tA1, shovel({
+      s.at(tL0, shovel({
         pos: [SHOVEL_RIGHT_X, V28_UP_APEX[1]],
         vel: [(V28_UP_APEX[0] - SHOVEL_RIGHT_X) / dL, 0],
         angle: SHOVEL_ANGLE_LEFT,
@@ -4060,14 +4067,15 @@ export default stage(
       //     左から来るシャベルと tA3 でぶつかる。
       const symFrom = [2 * V28_CENTER[0] - V28_UP_FROM[0], 2 * V28_CENTER[1] - V28_UP_FROM[1]];
       const symApex = [2 * V28_CENTER[0] - V28_UP_APEX[0], 2 * V28_CENTER[1] - V28_UP_APEX[1]];
-      const dR = tA3 - tA2;
+      const dR = (tA3 - tA2) * V29_METEOR_SLOW;   // v29 (8)
+      const tR0 = tA3 - dR;
       const vyR = (2 * (symApex[1] - symFrom[1])) / dR;
       const velR = [(symApex[0] - symFrom[0]) / dR, vyR];
       const segR = [{ dur: dR, ax: 0, ay: -vyR / dR }];
-      s.at(tA2, meteorPath(symFrom, velR, segR, 'meteorup'));
-      s.at(tA2, meteorPathTrail(symFrom, velR, segR, dR, 'meteoruptrail'));
-      v28EntryFlash(tA2, meteorPathPos(symFrom, velR, segR), dR, 'meteorspawn');
-      s.at(tA2, shovel({
+      s.at(tR0, meteorPath(symFrom, velR, segR, 'meteorup'));
+      s.at(tR0, meteorPathTrail(symFrom, velR, segR, dR, 'meteoruptrail'));
+      v28EntryFlash(tR0, meteorPathPos(symFrom, velR, segR), dR, 'meteorspawn');
+      s.at(tR0, shovel({
         pos: [SHOVEL_LEFT_X, symApex[1]],
         vel: [(symApex[0] - SHOVEL_LEFT_X) / dR, 0],
         angle: SHOVEL_ANGLE_RIGHT,
@@ -4078,21 +4086,22 @@ export default stage(
       // (c) tA3 から中央に旧来の（等加速で落ちる）隕石。tA4 に床へ着く。
       //     落下加速度は v27 (14) で決めた METEOR_DROP_ACCEL のまま。指定時刻に着くよう
       //     初速だけを逆算する（速度感は既存の落下隕石と同じになる）。
-      const dM = tA4 - tA3;
+      const dM = (tA4 - tA3) * V29_METEOR_SLOW;   // v29 (8)
+      const tM0 = tA4 - dM;
       const dyM = V28_MID_SPAWN_Y - METEOR_DROP_Y;
       const vyM = (0.5 * METEOR_DROP_ACCEL * dM * dM - dyM) / dM;
       const midFrom = [V28_CENTER[0], V28_MID_SPAWN_Y];
       const segM = [{ dur: dM, ax: 0, ay: -METEOR_DROP_ACCEL }];
-      s.at(tA3 - beats(1), meteorDropWarn(V28_CENTER[0], beats(1)));
-      s.at(tA3, meteorPath(midFrom, [0, vyM], segM, 'meteordrop'));
-      s.at(tA3, meteorPathTrail(midFrom, [0, vyM], segM, dM, 'meteordroptrail'));
+      s.at(tM0 - beats(1), meteorDropWarn(V28_CENTER[0], beats(1)));
+      s.at(tM0, meteorPath(midFrom, [0, vyM], segM, 'meteordrop'));
+      s.at(tM0, meteorPathTrail(midFrom, [0, vyM], segM, dM, 'meteordroptrail'));
       const impact = [V28_CENTER[0], METEOR_DROP_Y];
       s.at(tA4, meteorSquash(impact));
       if (!lightspeed) {
         v28MeteorBlast(tA4, impact, idx + 2);
       } else {
         // 集合爆破（マーカー 48）と同じ「白く育つブルーム → 2 重リング」。
-        s.at(tA3, warnClip([{
+        s.at(tM0, warnClip([{
           type: BLINK_TYPE,
           pos: impact,
           scale: [GATHER_BLOOM_S0, GATHER_BLOOM_S0],
