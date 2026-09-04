@@ -1682,19 +1682,31 @@ function meteorMotion(y, jit) {
 // 「着色するかどうか」の 0/1 スイッチとして使う（a>0 ならマスク形状を不透明フルカラーで
 // 塗る）ため、v24 のように colorEnd の alpha だけ下げても薄くはならない。淡さは
 // **RGB の明度そのもの**で作る。
-const METEOR_TRAIL_STEP = 0.04;             // 尾の点を置く時間間隔（36.7 ユニット/s で 1.47 ユニット）
+// v29b（指示 101.985「尾のエフェクトも全然違う」）: 本家 Commando Steve の実測
+//   （Captures/ref_steve_096.14.png ほか。1105px 幅で観察）
+//     ・頭のすぐ後ろは本体色より明るい大きな丸が 5〜6 個重なって「連続した帯」になり、
+//       そこから後ろは本体色の小さな点が長く（本体径の約 10 倍）続いて先端ほど小さく暗い
+//     ・尾は本体と同じ色相（ピンク）。白っぽいのは頭の直後だけ
+//     ・本家の隕石は画面を横切って外へ抜け、画面内では破裂しない
+//   v25 の尾は「淡いグレーの点列・寿命 0.16s（本体径 1.2 倍の長さ）」で、色相も長さも
+//   本家と違っていた。v29b では
+//     ・色を本体（タイル）の色相に揃え、頭側は本体より一段明るい紫、末端は背景に沈む紫
+//     ・点の間隔 0.03s（直径 1.7 に対し 0.5〜1.1 ユニット）で重ね、途切れない帯にする
+//     ・寿命 0.42s で長さを 2.6 倍（本体径の 3〜5 倍）にし、縮みで先端ほど細くする
+//     ・各点を進行方向へ回して置く（斜めの経路でも帯の縁がぎざぎざにならない）
+const METEOR_TRAIL_STEP = 0.03;             // 尾の点を置く時間間隔（36.7 ユニット/s で 1.47 ユニット）
                                              // v24 の 0.025s は間隔 0.92 ユニット < 点の直径で
                                              // 「連続した帯」に見えていた。0.04s へ広げて点どうしの
                                              // 隙間を作り、点列に見せる。
-const METEOR_TRAIL_LIFE = 0.16;             // 1 点の寿命（縮むアニメの長さ）は据え置き
-const METEOR_TRAIL_S0 = 1.5;                // 本体に接する点の一辺（本体 3.2 の 0.47 倍。v24 は 0.95 倍で本体並みに太かった）
-const METEOR_TRAIL_S1 = 0.3;                // 末端の一辺（本体の 0.09 倍）
+const METEOR_TRAIL_LIFE = 0.42;             // 1 点の寿命（縮むアニメの長さ）は据え置き
+const METEOR_TRAIL_S0 = 1.7;                // 本体に接する点の一辺（本体 3.2 の 0.47 倍。v24 は 0.95 倍で本体並みに太かった）
+const METEOR_TRAIL_S1 = 0.2;                // 末端の一辺（本体の 0.09 倍）
 const METEOR_TRAIL_TYPE = 'warn_box';       // 本体（stone3_tile・renderPriority 1）より奥
 // v25: 開始色は本体（無着色のテクスチャそのまま）より淡いグレー、終端はさらに暗く
 // 背景へ溶け込む色。v24 は開始 POP_COLOR_START（sRGB 242,236,252 の明るい白）→
 // 終端 STONE_MID（166,150,190）で、どちらも面が不透明に塗り潰されるため「太く明るい」
 // 印象が強すぎた。明度を大きく落とす。
-const METEOR_TRAIL_COLOR_START = [0.42, 0.40, 0.47, 1.0];  // sRGB 約(180,175,192) の淡いグレー
+const METEOR_TRAIL_COLOR_START = [0.21, 0.16, 0.31, 1.0];  // sRGB 約(180,175,192) の淡いグレー
 const METEOR_TRAIL_COLOR_END = STONE_PATH;                  // (56,46,72) 相当・ほぼ背景に沈む暗さ
 // 出現フラッシュ / 着弾フラッシュ / 着地の潰れ（v24 (B) の追加演出。いずれも当たり判定なし）。
 //   参考の隕石は画面外から入ってくるので出現の瞬間は写っていない。ここはユーザー指示に従い
@@ -1800,6 +1812,87 @@ function debrisRing(pos, count, speed, life, size, spin, angleOffset) {
   });
 }
 
+// v29b（指示 101.985「破裂のエフェクトが破裂弾と見間違う」）: 隕石の破裂を
+//   「輪郭だけの閃光リング＋本体の欠片」に作り直す。
+//   従来（v27 (15)(19)）は小さい正方形（stone3_pop）を円周に並べた同心リング 3〜4 枚と
+//   小さい四角の破片（debrisRing）で、放射する破裂弾（stone3_bullet・一辺 0.3 の四角）と
+//   形が同じだった。v29b では
+//     ・中心の閃光 1 枚（従来の中心ポップと同じ）
+//     ・塗り潰しの無い円環（stone3_ring）1 枚を、拡大しながら明 → 暗へ薄れさせる
+//     ・本体の欠片 6 枚（本体の絵そのもの・一辺 1.34 ＝ 弾の 4.5 倍）を、回転しながら
+//       減速して止まり、縮んで消える。小さい四角の破片は使わない
+//   放射弾（burst）の数・軌道は触らない。mag は壁隕石だけ 1.2（従来の WALL_RING_SPEC が
+//   落下用より一回り大きかったのを引き継ぐ）。最後の大爆破（FINAL_RING_SPEC）は v29 (10) で
+//   調整済みなので触っていない。
+const METEOR_RING_TYPE = 'stone3_ring';               // 円環（verts 空・renderPriority 4）
+const METEOR_BURST_FLASH_S0 = METEOR_SCALE * 1.45;    // 中心の閃光（従来の中心ポップと同じ値）
+const METEOR_BURST_FLASH_S1 = METEOR_SCALE * 0.45;
+const METEOR_BURST_FLASH_DUR = 0.10;
+const METEOR_BURST_RING_S0 = METEOR_SCALE * 0.8;      // 円環の初期径（本体より少し小さい）
+const METEOR_BURST_RING_S1 = METEOR_SCALE * 3.4;      // 同・終端径（従来の外側リング半径 1.85 の直径相当）
+const METEOR_BURST_RING_DUR = 0.22;                   // 拡大しきるまで。その後 FADE_OUT_SEC で消える
+const METEOR_BURST_CHUNK_N = 6;
+const METEOR_BURST_CHUNK_S0 = METEOR_SCALE * 0.42;    // 欠片の一辺 1.34（本体の 0.42 倍）
+const METEOR_BURST_CHUNK_S1 = METEOR_SCALE * 0.18;    // 消える直前の一辺
+const METEOR_BURST_CHUNK_LIFE = 0.55;                 // 減速して止まるまで（＝寿命）
+const METEOR_BURST_CHUNK_SPEEDS = [8.0, 5.5];         // 交互に速い / 遅い（ユニット/s）
+const METEOR_BURST_CHUNK_SPIN = 5.0;                  // 自転（rad/s・交互に逆回転）
+function meteorBurstFx(pos, mag, kind) {
+  const flash = warnClip([{
+    type: POP_TYPE,
+    pos: [pos[0], pos[1]],
+    scale: [METEOR_BURST_FLASH_S0 * mag, METEOR_BURST_FLASH_S0 * mag],
+    color: POP_COLOR_START,
+    scaleEnd: [METEOR_BURST_FLASH_S1, METEOR_BURST_FLASH_S1],
+    colorEnd: STONE_MID,
+    animDuration: METEOR_BURST_FLASH_DUR,
+    appearTime: 0,
+    appearDuration: 0,
+    life: METEOR_BURST_FLASH_DUR + FADE_OUT_SEC,
+  }], kind);
+  const ring = warnClip([{
+    type: METEOR_RING_TYPE,
+    pos: [pos[0], pos[1]],
+    scale: [METEOR_BURST_RING_S0, METEOR_BURST_RING_S0],
+    color: POP_COLOR_START,
+    scaleEnd: [METEOR_BURST_RING_S1 * mag, METEOR_BURST_RING_S1 * mag],
+    colorEnd: STONE_PATH,
+    animDuration: METEOR_BURST_RING_DUR,
+    appearTime: 0,
+    appearDuration: 0,
+    life: METEOR_BURST_RING_DUR + FADE_OUT_SEC,
+  }], kind);
+  const chunks = [];
+  for (let i = 0; i < METEOR_BURST_CHUNK_N; i++) {
+    const a = (i * 2 * Math.PI) / METEOR_BURST_CHUNK_N + (i % 2) * 0.35 + 0.4;
+    const speed = METEOR_BURST_CHUNK_SPEEDS[i % 2] * mag;
+    const decel = speed / METEOR_BURST_CHUNK_LIFE;      // 寿命ちょうどで速度 0
+    chunks.push(bulletDefaults({
+      originPos: { x: pos[0], y: pos[1] },
+      originVlc: { x: normalizeNegativeZero(Math.cos(a) * speed), y: normalizeNegativeZero(Math.sin(a) * speed) },
+      gravity: { x: decel, y: normalizeNegativeZero(a + Math.PI) },
+      typeName: POP_TYPE,                              // 本体と同じ絵・verts 空＝当たり判定なし
+      scale: { x: METEOR_BURST_CHUNK_S0 * mag, y: METEOR_BURST_CHUNK_S0 * mag },
+      color: { x: SPRITE_AS_IS[0], y: SPRITE_AS_IS[1], z: SPRITE_AS_IS[2], w: SPRITE_AS_IS[3] },
+      scaleEnd: { x: METEOR_BURST_CHUNK_S1, y: METEOR_BURST_CHUNK_S1 },
+      colorEnd: { x: SPRITE_AS_IS[0], y: SPRITE_AS_IS[1], z: SPRITE_AS_IS[2], w: SPRITE_AS_IS[3] },
+      animDuration: METEOR_BURST_CHUNK_LIFE,
+      life: METEOR_BURST_CHUNK_LIFE,
+      unCounterable: true,
+      useVelocityAngle: false,
+      polarForm: { x: 1, y: normalizeNegativeZero(a) },
+      thetaVlc: (i % 2 === 0 ? 1 : -1) * METEOR_BURST_CHUNK_SPIN,
+    }));
+  }
+  return {
+    parts: [
+      flash.parts[0],
+      ring.parts[0],
+      { offsetSec: 0, kind: 'meteorchunk', buffer: { bullets: chunks, homing: false, isLaser: false }, spawner: NEUTRAL_SPAWNER() },
+    ],
+  };
+}
+
 // v23 (B)3: 隕石が飛行中に自転する。v2（区間モーション）は BulletV2UpdateJob が
 // polarForm.y を更新しないため回転が付かない。よって v1 レーン（gravitySeq の非 v2 分岐と
 // 同じ originVlc/gravity による直線・放物運動）へ戻し、spinBurst/gatherTile と同じ
@@ -1834,25 +1927,34 @@ function meteor(y, jit) {
 //   本体が通った瞬間その場に点を置き、METEOR_TRAIL_LIFE で縮めながら白 → 中間色へ寄せ、
 //   さらに FADE_OUT_SEC(0.1) で消す。間隔が直径よりずっと狭いので途切れない 1 本の尾に見える。
 function meteorTrailPath(posAt, flight, kind) {
-  const items = [];
+  const bullets = [];
   const n = Math.max(2, Math.round(flight / METEOR_TRAIL_STEP));
   for (let i = 1; i <= n; i++) {
     const rel = (flight * i) / n;
     const p = posAt(rel);
-    items.push({
-      type: METEOR_TRAIL_TYPE,
-      pos: [p[0], p[1]],
-      scale: [METEOR_TRAIL_S0, METEOR_TRAIL_S0],
-      color: METEOR_TRAIL_COLOR_START,
-      scaleEnd: [METEOR_TRAIL_S1, METEOR_TRAIL_S1],
-      colorEnd: METEOR_TRAIL_COLOR_END,
+    // v29b: 進行方向（直前の位置との差）へ向きを揃える。静止区間は 0 度のまま。
+    const q = posAt(Math.max(0, rel - 0.01));
+    const dx = p[0] - q[0], dy = p[1] - q[1];
+    const ang = (dx * dx + dy * dy) > 1e-12 ? Math.atan2(dy, dx) : 0;
+    bullets.push(bulletDefaults({
+      originPos: { x: normalizeNegativeZero(p[0]), y: normalizeNegativeZero(p[1]) },
+      typeName: METEOR_TRAIL_TYPE,
+      scale: { x: METEOR_TRAIL_S0, y: METEOR_TRAIL_S0 },
+      color: { x: METEOR_TRAIL_COLOR_START[0], y: METEOR_TRAIL_COLOR_START[1], z: METEOR_TRAIL_COLOR_START[2], w: METEOR_TRAIL_COLOR_START[3] },
+      scaleEnd: { x: METEOR_TRAIL_S1, y: METEOR_TRAIL_S1 },
+      colorEnd: { x: METEOR_TRAIL_COLOR_END[0], y: METEOR_TRAIL_COLOR_END[1], z: METEOR_TRAIL_COLOR_END[2], w: METEOR_TRAIL_COLOR_END[3] },
       animDuration: METEOR_TRAIL_LIFE,
       appearTime: rel,          // 隕石が通り過ぎた瞬間に出る
       appearDuration: 0,
       life: rel + METEOR_TRAIL_LIFE,
-    });
+      unCounterable: true,
+      useVelocityAngle: false,
+      polarForm: { x: 0, y: normalizeNegativeZero(ang) },
+    }));
   }
-  return warnClip(items, kind);
+  return {
+    parts: [{ offsetSec: 0, kind, buffer: { bullets, homing: false, isLaser: false }, spawner: NEUTRAL_SPAWNER() }],
+  };
 }
 
 // 隕石の尾（右→左の直線）。
@@ -3735,7 +3837,7 @@ export default stage(
       s.at(impact - DROP_FLIGHT, meteorDrop(x, DROP_FLIGHT));
       s.at(impact - DROP_FLIGHT, meteorDropTrail(x, DROP_FLIGHT));   // v24 (B)2: 落下にも尾を付けた
       // v27 (15): 大きい正方形 1 枚のフラッシュ → 円周上に並べたポップのリング 2 枚へ。
-      s.at(impact, roundBlastFx([x, METEOR_DROP_Y], METEOR_RING_SPEC, 'meteorhit'));
+      s.at(impact, meteorBurstFx([x, METEOR_DROP_Y], 1.0, 'meteorhit'));   // v29b: 輪郭リング＋欠片
       s.at(impact, meteorSquash([x, METEOR_DROP_Y]));
       // v29 (5): 指示 99.733「弾がこの場面多すぎる。中央の隕石爆破の破裂弾以外はなくして」
       //   → 放射弾は中央（k=0・100.014s）の 1 発だけにする。右（101.680s）と左（103.346s）は
@@ -3987,9 +4089,7 @@ export default stage(
       // v27 (19): 参考 1:10 に合わせ、同心リング 3 枚（時間差で外へ広がる衝撃波）＋
       //   個々に飛び散る破片 2 段（速い外側 20 発・遅い内側 12 発）にした。
       //   隕石本体の軌道・時刻・当たり判定は据え置き（指示「隕石はそのままでいい」）。
-      s.at(hit, roundBlastFx([x1, y], WALL_RING_SPEC, 'meteorhit'));
-      s.at(hit, debrisRing([x1, y], 20, 9.5, 0.55, TILE * 0.44, 5.5, 0));
-      s.at(hit, debrisRing([x1, y], 12, 5.0, 0.75, TILE * 0.30, -4.0, Math.PI / 12));
+      s.at(hit, meteorBurstFx([x1, y], 1.2, 'meteorhit'));   // v29b: 輪郭リング＋欠片（小さい四角の破片は廃止）
       s.at(hit, burst([x1, y], k, 1.6));
     });
 
@@ -4040,8 +4140,7 @@ export default stage(
 
     // 隕石の爆破一式（v27 (15) と同じ円形リング＋破片＋放射弾）。
     function v28MeteorBlast(t, pos, idx) {
-      s.at(t, roundBlastFx(pos, METEOR_RING_SPEC, 'meteorhit'));
-      s.at(t, debrisRing(pos, 16, 8.5, 0.50, TILE * 0.40, 5.0, 0));
+      s.at(t, meteorBurstFx(pos, 1.0, 'meteorhit'));   // v29b: 輪郭リング＋欠片
       s.at(t, burst(pos, idx, 1.2));
     }
 
@@ -4123,9 +4222,7 @@ export default stage(
           appearDuration: 0,
           life: dM + FADE_OUT_SEC,
         }], 'gatherbloom'));
-        s.at(tA4, roundBlastFx(impact, WALL_RING_SPEC, 'meteorhit'));
-        s.at(tA4, debrisRing(impact, 20, 9.5, 0.55, TILE * 0.44, 5.5, 0));
-        s.at(tA4, debrisRing(impact, 12, 5.0, 0.75, TILE * 0.30, -4.0, Math.PI / 12));
+        s.at(tA4, meteorBurstFx(impact, 1.2, 'meteorhit'));   // v29b: 輪郭リング＋欠片
         const ringN = Math.round(D(10, 12, 14) * 2);
         s.at(tA4, spinBurst({
           pos: impact, count: ringN, speed: D(7, 9, 11), type: 'stone3_bullet', life: 0,
