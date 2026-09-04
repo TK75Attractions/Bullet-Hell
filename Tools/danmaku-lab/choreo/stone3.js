@@ -4138,5 +4138,96 @@ export default stage(
       });
     });
 
+    // --- 13〜14: 静かな区間の隕石。上から下へ落ちるだけで、爆破も放射弾も出さない ----
+    [[V28_G_L, V28_QUIET_XS[0]], [V28_G_R, V28_QUIET_XS[1]]].forEach(function (q) {
+      const x = q[1];
+      const v = (V28_QUIET_END_Y - V28_QUIET_SPAWN_Y) / V28_QUIET_FLIGHT;
+      const from = [x, V28_QUIET_SPAWN_Y];
+      const segs = [{ dur: V28_QUIET_FLIGHT, ax: 0, ay: 0 }];
+      s.at(q[0] - beats(1), meteorDropWarn(x, beats(1)));
+      s.at(q[0], meteorPath(from, [0, v], segs, 'meteorquiet'));
+      s.at(q[0], meteorPathTrail(from, [0, v], segs, V28_QUIET_FLIGHT, 'meteorquiettrail'));
+      v28EntryFlash(q[0], meteorPathPos(from, [0, v], segs), V28_QUIET_FLIGHT, 'meteorspawn');
+    });
+
+    // --- 15: 上側を右→左、下側を左→右へすれ違う 2 発。爆破なし・「ゆっくりめ」 ------
+    [
+      [METEOR_START_X, METEOR_END_X, V28_CROSS_TOP_Y],
+      [-2.5, 36.0, V28_CROSS_BOT_Y],
+    ].forEach(function (c) {
+      const x0 = c[0], x1 = c[1], y = c[2];
+      s.at(V28_H - beats(1), meteorRowWarn(y, beats(1)));
+      const edgeX = x0 < x1 ? 0 : COLS * CELL;
+      s.at(V28_H, flashPop(
+        [edgeX, y], ((edgeX - x0) / (x1 - x0)) * V28_CROSS_FLIGHT,
+        METEOR_FLASH_S0, METEOR_FLASH_S1, METEOR_FLASH_DUR, 'meteorspawn'
+      ));
+      s.at(V28_H, meteorLine(x0, x1, y, V28_CROSS_FLIGHT));
+      s.at(V28_H, meteorLineTrail(x0, x1, y, V28_CROSS_FLIGHT));
+    });
+
+    // --- 16〜17: 最後の 1 発と大爆破 ---------------------------------------------
+    //   中央上から中央へ 2 拍かけて減速して寄り（イージング）、0.75 拍で 1.2 ユニット
+    //   上へ戻し（ため）、残り 1.25 拍で加速して床へ。V28_END_BLAST ちょうどに着く。
+    //   「戻り → 加速で指定時刻ちょうどに着弾」の式は集合爆破・v27(C) の横シャベルと同じ。
+    const V28_FIN_DIVE = (V28_END_BLAST - V28_I) - V28_FIN_EASE - V28_FIN_BACK;
+    const finVA = (2 * (V28_FIN_HOLD_Y - V28_FIN_FROM_Y)) / V28_FIN_EASE;
+    const finAB = (2 * V28_FIN_BACK_D) / (V28_FIN_BACK * V28_FIN_BACK);
+    const finYB = V28_FIN_HOLD_Y + V28_FIN_BACK_D;
+    const finVB = finAB * V28_FIN_BACK;
+    const finAC = (2 * (METEOR_DROP_Y - finYB - finVB * V28_FIN_DIVE))
+      / (V28_FIN_DIVE * V28_FIN_DIVE);
+    const finFrom = [V28_CENTER[0], V28_FIN_FROM_Y];
+    const finSegs = [
+      { dur: V28_FIN_EASE, ax: 0, ay: -finVA / V28_FIN_EASE },
+      { dur: V28_FIN_BACK, ax: 0, ay: finAB, vx: 0, vy: 0 },
+      { dur: V28_FIN_DIVE, ax: 0, ay: finAC },
+    ];
+    const finTotal = V28_FIN_EASE + V28_FIN_BACK + V28_FIN_DIVE;
+    const finPos = [V28_CENTER[0], METEOR_DROP_Y];
+    s.at(V28_I - beats(1), meteorDropWarn(V28_CENTER[0], beats(1)));
+    s.at(V28_I, meteorPath(finFrom, [0, finVA], finSegs, 'meteorfinal'));
+    s.at(V28_I, meteorPathTrail(finFrom, [0, finVA], finSegs, finTotal, 'meteorfinaltrail'));
+    v28EntryFlash(V28_I, meteorPathPos(finFrom, [0, finVA], finSegs), V28_FIN_EASE, 'meteorspawn');
+    // 着弾点が「ため」の頭から白く育つ（集合爆破のブルームと同じ作り）
+    const finBloomDur = V28_FIN_BACK + V28_FIN_DIVE;
+    s.at(V28_I + V28_FIN_EASE, warnClip([{
+      type: BLINK_TYPE,
+      pos: finPos,
+      scale: [GATHER_BLOOM_S0, GATHER_BLOOM_S0],
+      color: GATHER_BLOOM_C0,
+      scaleEnd: [GATHER_BLOOM_S1 * 1.4, GATHER_BLOOM_S1 * 1.4],
+      colorEnd: GATHER_BLOOM_C1,
+      animDuration: finBloomDur,
+      appearTime: 0,
+      appearDuration: 0,
+      life: finBloomDur + FADE_OUT_SEC,
+    }], 'gatherbloom'));
+    // 大爆破: 円形リング 5 枚＋破片 3 段＋放射弾 3 重リング（この曲でいちばん派手なもの）
+    s.at(V28_END_BLAST, meteorSquash(finPos));
+    s.at(V28_END_BLAST, roundBlastFx(finPos, FINAL_RING_SPEC, 'meteorhit'));
+    s.at(V28_END_BLAST, debrisRing(finPos, 28, 11.0, 0.65, TILE * 0.48, 6.0, 0));
+    s.at(V28_END_BLAST, debrisRing(finPos, 20, 7.0, 0.85, TILE * 0.34, -4.5, Math.PI / 20));
+    s.at(V28_END_BLAST, debrisRing(finPos, 14, 4.0, 1.05, TILE * 0.24, 3.0, Math.PI / 14));
+    const finRingN = Math.round(D(10, 12, 14) * 2.5);
+    [
+      [D(6, 8, 10), SPIN_RATE, 0],
+      [D(10, 13, 16), -SPIN_RATE, Math.PI / finRingN],
+      [D(15, 19, 23), SPIN_RATE, Math.PI / (2 * finRingN)],
+    ].forEach(function (r) {
+      s.at(V28_END_BLAST, spinBurst({
+        pos: finPos,
+        count: finRingN,
+        speed: r[0],
+        type: 'stone3_bullet',
+        life: 0,
+        scale: [BULLET_SCALE, BULLET_SCALE],
+        color: SPRITE_AS_IS,
+        angleOffset: rng() * 2 * Math.PI + r[2],
+        spin: r[1],
+        kind: 'blast',
+        unCounterable: true,
+      }));
+    });
   }
 );
