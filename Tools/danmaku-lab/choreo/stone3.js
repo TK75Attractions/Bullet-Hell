@@ -541,6 +541,30 @@ const TILE2_LEADS = [MK13_TILE1 - MK12_TILEWARN, MK14_TILE2 - MK13_TILE1];
 const TILE3_TIMES = [MK17_TILE1, MK17_TILE2];
 const TILE3_LEADS = [MK17_TILE1 - MK17_TILEWARN, MK17_TILE2 - MK17_TILE1];
 
+// --- v26 (A): ボス（golem）の出現・着地時刻 --------------------------------------
+//   石工のボスは stage.json 側の bossSpawners 3 件（golem 降下用 / golem 本体 /
+//   序盤の stone 詠唱ボス）でできている。choreo は弾しか吐かないので、ここに置いた
+//   4 つの定数を install_stone3.py が読み取って stage.json へ書き戻す
+//   （install_stone3.py は .gitignore 対象なので、履歴に残す正本はこちら側に置く）。
+//
+//   v25 までの値は旧「石工」（endTime 142.5）の bossSpawners を 113.6/142.5 = 0.797193
+//   倍しただけの仮置きで、moveto の duration(0.833333) にだけ倍率がかからず
+//   「降下 lifeTime 0.664327 < 降下 duration 0.833333」＝ 降下の途中でボスが消えて
+//   本体が着地点へ瞬間移動する、という破綻が残っていた。曲とも合っていない。
+//
+//   v26 は **着地（moveto 完了）の瞬間** を MK17_TILE2 = 50.6137 に合わせる。
+//   旧着地は 49.824561 + 0.833333 = 50.657894 で、
+//     ・最寄りの採用時刻 = MK17_TILE2 50.6137（-44ms）。実オンセットあり
+//       （full 262.8 ＝ 局所閾値の 2.91 倍。v23 表 #17c「タイル②(3)」）
+//     ・最寄りの拍頭 = 50.8333（BPM144・拍 122。+175ms）だが、この時刻に
+//       オンセットは立っていない（.tmp_v26/boss_pick.py の窓 [49.9,51.6] 一覧）
+//   v23 の「窓内の実オンセットを優先する」方針に従い、拍頭ではなく 50.6137 を採る。
+const BOSS_LAND_TIME = 50.6137;         // 着地＝降下 moveto 完了＝本体へ切り替わる瞬間（= MK17_TILE2）
+const BOSS_DESCEND_SEC = 0.833333;      // 降下時間（moveto duration。v25 から据え置き）
+const BOSS_BODY_END_TIME = 112.904848;  // 本体の消滅時刻（endTime 113.6 の 0.695152 秒前。v25 と同じ）
+const BOSS_CASTER_APPEAR = 4.145404;    // 詠唱ボス（stone）の出現時刻（v25 から据え置き）
+if (BOSS_LAND_TIME !== MK17_TILE2) throw new Error('BOSS_LAND_TIME は MK17_TILE2 と一致させること');
+
 // --- v21: 指示書マーカー 18〜42（66.8〜103.3s）の採用時刻 ------------------------
 //   丸めルールは v17/v19 と同じ（16 分音符へ丸め、±80ms 以内に音源のオンセットが
 //   あればそちらを優先）。母集団は 66〜104s、閾値は flux の 95 パーセンタイル 54.2。
