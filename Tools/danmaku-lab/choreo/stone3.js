@@ -645,10 +645,12 @@ const V28_SIDE_STAGGER = beats(0.5);
 const V28_TOP_XS = [2.5, 8.0, 13.5, 19.0, 24.5, 30.0];  // 左から順に落とす
 const V28_TOP_STAGGER = beats(1 / 3);
 const V28_TOP_FALL_END_Y = -4;      // 落下シャベルが消える高さ（カリング境界の外）
-// 11〜12: 一列に揃えた壁。9 レーンのうち 1 つを空けて「抜けられる穴」にする。
+// 11〜12: 一列に揃えた壁。9 レーンのうち 3 レーンおきに 1 つずつ空けて「抜けられる穴」にする。
+// v29: v28 は隙間が 1 か所だけだったが、指示「隙間は等間隔に、シャベル一個分ずつ」に合わせ
+//      3 レーンおき（= シャベル 1 本ぶんの穴が等間隔に 3 か所）へ変更。2 回目は 1 レーンずらす。
 const V28_WALL_YS = [1, 3, 5, 7, 9, 11, 13, 15, 17];
-const V28_WALL_GAP1 = 2;            // 11 の隙間（y=5）
-const V28_WALL_GAP2 = 6;            // 12 の隙間（y=13）。11 の隙間 y=5 は今度は埋まる
+const V28_WALL_GAP1 = [1, 4, 7];    // 11 の隙間（y=3 / 9 / 15）
+const V28_WALL_GAP2 = [2, 5, 8];    // 12 の隙間（y=5 / 11 / 17）。1 レーンぶん上へずらす
 // 13〜14: 静かな区間の隕石（爆破なし・弾なし）。
 const V28_QUIET_XS = [8, 24];
 const V28_QUIET_SPAWN_Y = 21;
@@ -4128,7 +4130,7 @@ export default stage(
     // --- 11〜12: 一列に揃えたシャベルの壁を右から左へ。1 レーンだけ空けて抜け穴にする -
     [[V28_F1, V28_WALL_GAP1], [V28_F2, V28_WALL_GAP2]].forEach(function (w) {
       V28_WALL_YS.forEach(function (y, k) {
-        if (k === w[1]) return;   // ここが抜け穴
+        if (w[1].indexOf(k) >= 0) return;   // ここが抜け穴
         s.at(w[0], shovel({
           pos: [SHOVEL_RIGHT_X, y],
           vel: [-SHOVEL_SIDE_SPEED, 0],
