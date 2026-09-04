@@ -563,9 +563,43 @@ const V27_BLAST4_TIMES = [0, 1, 2, 3].map(function (k) { return MK15_BLAST4 + be
 //     44.9887 / 45.4054 / 45.8220 / 46.2387（4 回目は手打ち 46.315 の -76ms）
 // (7) 51.5 タイル爆破 x4 ＋ 同じ場所にタイル攻撃 / 51.9 タイル爆破 x4
 const V27_BLAST_A = 51.5483;                        // 手打ち 51.545 / onset full x2.61・mid x2.95
-const V27_BLAST_B = 51.9314;                        // 手打ち 52.084 / onset low x1.37
-// (8) タイル攻撃（鎖 4 のあと）
-const V27_TILE_ATTACK = 55.8266;                    // 手打ち 55.898 / onset full x1.59
+// V27_BLAST_B（51.9314）は追加指示書 gap51-65 の V27C_BLAST2 に置き換えた
+
+// --- v27 (C): 指示書 stage-timing-markers_20260904_v27_gap51-65.json（13 マーカー）------
+//   「間の攻撃が少ない部分」＝ 51.3〜65.1s を埋める。この指示書は time と timeLabel が
+//   一致しているのでそのままステージ秒。採用は v23 の規則（.tmp_v27/progress.md の表）。
+//   ここで v27(A) の (8)（鎖 4 回目・55.8266 のタイル攻撃）と、仮区間 ⑮（横断シャベルの
+//   往復）・⑯（落下シャベル 5 本）は指示書の構成へ置き換える。
+const V27C_TILE_SHOW = 51.2348;   // タイル表示（手打ち 51.265 / onset full x3.55・mid x3.95）
+const V27C_BLAST2 = 51.8618;      // いくつか爆破（手打ち 51.927 / onset full x4.89・mid x4.96）
+const V27C_SIDE_IN = 53.2201;     // 右からシャベルが縦並びで登場（手打ち 53.218 / onset full x2.24）
+const V27C_SIDE_BEND = 53.8761;   // すこし右へ曲がる（手打ち 53.850 / onset full x1.81）
+const V27C_SIDE_DIVE = 54.1000;   // 曲がり終わり＝左へ加速し始める（BEND + 0.224s）
+const V27C_SIDE_HIT_L = 54.8513;  // 左に着弾／同時に左から逆向きのシャベル（手打ち 54.843）
+const V27C_SIDE_HIT_R = 56.6567;  // 右に着弾／同時に上からシャベルが降り始める（手打ち 56.646）
+// 上から落ちるシャベル 6 本。手打ちの 1 本目 56.646 と 6 本目 58.905 の間隔は 5 拍ちょうど
+// （採用オンセット 58.7407 と「1 本目 + 5 拍 = 58.7400」が 0.7ms 差）なので 1 拍間隔。
+const V27C_DROP_TIMES = [0, 1, 2, 3, 4, 5].map(function (k) { return V27C_SIDE_HIT_R + beats(k); });
+const V27C_FIRE = 59.5766;        // 6 本を発射（手打ち 59.581 / onset full x1.76）
+const V27C_FIRE_HIT = 59.9946;    // 着弾＋下側の列のタイルを破壊（手打ち 60.031 / onset full x2.37）
+const V27C_BLINK = 61.2368;       // 上 2 列のタイルが点滅（手打ち 61.292 / onset full x2.81）
+const V27C_FALL = 63.3266;        // 上 2 列が重力で落下（手打ち 63.329 / onset full x3.68）
+const V27C_CHAIN_LR = 63.8723;    // 左右の 2 列を鎖攻撃（手打ち 63.860 / onset low x1.28）
+const V27C_CHAIN_B = 65.0101;     // 下の列を鎖攻撃＋上の列にも置く（手打ち 65.095 / onset low x1.32）
+const V27C_BAND_END = 66.0;       // この区間のタイルの最終消滅（次のブロックは 66.6645 から）
+// 横から入るシャベル（縦並び 3 本）。右 2 列（列 14-15 ＝ x 28〜32）に被らない x で止める。
+const V27C_SIDE_YS = [3, 9, 15];
+const V27C_SIDE_STOP_R = 25.0;    // 右から来て止まる x（右端 25+2.76=27.76 < 28）
+const V27C_SIDE_STOP_L = 7.0;     // 左から来て止まる x（左端 7-2.76=4.24 > 4）
+const V27C_SIDE_BEND_D = 0.9;     // 「すこし曲がる」距離
+// 上から落ちるシャベルの静止位置。上 2 列（行 7-8 ＝ y 14〜18）の下側に溜める。
+const V27C_DROP_XS = [3, 8.2, 13.4, 18.6, 23.8, 29];
+const V27C_DROP_REST_Y = 11.5;    // 上端 11.5+2.76=14.26 ＝ 行 7 のすぐ下
+const V27C_DROP_FALL = 0.55;      // 落下にかける秒数（静止位置へ着くまで）
+const V27C_BOUNCE = [0.25, 0.30, 0.45, 0.50];   // バウンドの反発係数（4 回で収束）
+const V27C_SWAY_V = 6.0;          // ゆらゆらの横速度（1 往復 0.6s・振幅約 0.45 ユニット）
+const V27C_SWAY_HALF = 0.30;
+const V27C_STACK_ACCEL = 40;      // 上 2 列が落ちるときの重力
 
 // --- v26 (A): ボス（golem）の出現・着地時刻 --------------------------------------
 //   石工のボスは stage.json 側の bossSpawners 3 件（golem 降下用 / golem 本体 /
@@ -1115,6 +1149,51 @@ function shovel(opts) {
       spawner: NEUTRAL_SPAWNER(),
     }],
   };
+}
+
+// --- v27 (C): シャベルの多段モーション -------------------------------------------
+//   区間ごとに 1 発ずつ弾を分ける v1 レーンの handoff（gravitySeq の非 v2 分岐と同じ
+//   originPos/originVlc/gravity の閉形式）。gravitySeq をそのまま使わないのは、
+//   シャベルは useVelocityAngle:false + initialAngle で向きを固定する必要があるため
+//   （既定の useVelocityAngle:true だと落下中に横倒しになる）。
+//   segs = [{ dur, ax, ay }]（ax/ay はワールドの等加速度成分。0 なら等速）
+function shovelPath(pos0, vel0, segs, angle, kind) {
+  let px = pos0[0], py = pos0[1], vx = vel0[0], vy = vel0[1], t = 0;
+  const parts = [];
+  segs.forEach(function (sg, i) {
+    if (sg.vx !== undefined) vx = sg.vx;   // 区間の入り口で速度を差し替える（バウンド・発射）
+    if (sg.vy !== undefined) vy = sg.vy;
+    const mag = Math.sqrt(sg.ax * sg.ax + sg.ay * sg.ay);
+    const dir = mag > 1e-9 ? Math.atan2(sg.ay, sg.ax) : 0;
+    const last = i === segs.length - 1;
+    parts.push({
+      offsetSec: t,
+      kind: kind,
+      buffer: {
+        bullets: [bulletDefaults({
+          originPos: { x: normalizeNegativeZero(px), y: normalizeNegativeZero(py) },
+          originVlc: { x: normalizeNegativeZero(vx), y: normalizeNegativeZero(vy) },
+          gravity: { x: mag, y: normalizeNegativeZero(dir) },
+          typeName: 'stone3_shovel',
+          scale: { x: SHOVEL_SCALE, y: SHOVEL_SCALE },
+          color: { x: SPRITE_AS_IS[0], y: SPRITE_AS_IS[1], z: SPRITE_AS_IS[2], w: SPRITE_AS_IS[3] },
+          life: last ? sg.dur : sg.dur + METEOR_LIFE_MARGIN,
+          unCounterable: true,
+          useVelocityAngle: false,
+          initialAngle: normalizeNegativeZero(angle),
+        })],
+        homing: false,
+        isLaser: false,
+      },
+      spawner: NEUTRAL_SPAWNER(),
+    });
+    px += vx * sg.dur + 0.5 * sg.ax * sg.dur * sg.dur;
+    py += vy * sg.dur + 0.5 * sg.ay * sg.dur * sg.dur;
+    vx += sg.ax * sg.dur;
+    vy += sg.ay * sg.dur;
+    t += sg.dur;
+  });
+  return { parts: parts };
 }
 
 // --- v5: 予告ビルダー（3種。いずれも warnClip＝当たり判定なし）----------------
@@ -2956,106 +3035,203 @@ export default stage(
     const aliveCDE = new Set(
       bandCDE.filter(function (t) { return !t.claimed; }).map(function (t) { return key(t.col, t.row); })
     );
+    // v27 (C): 追加指示書の「51.265 タイル表示」に合わせて 51.5483 → 51.2348 へ前倒しし、
+    //   この帯は 65.1s の鎖攻撃まで使うので寿命を V27C_BAND_END（66.0s）まで延ばす。
+    //   埋まり方も外周ぐるりの本来の目標値（BAND_TARGET）に戻す。
     const bandH = tilePhase({
-      times: [V27_BLAST_A],
+      times: [V27C_TILE_SHOW],
       leads: [beats(1)],
       centerRate: CENTER_RATE,
-      bandTarget: EXT_BAND_TARGET,
+      bandTarget: BAND_TARGET,
       bandCells: BAND_CELLS,
       preBlocked: aliveCDE,
-      bandEnd: B(EXT_END_BEAT),
+      bandEnd: V27C_BAND_END,
       pinStartGap: false,
     });
 
-    blastPhase({ tiles: bandCDE, shots: [{ time: V27_BLAST_B, n: 4 }] });
+    // v27 (C): 「51.927 いくつか爆破」。v27(A) の 51.9314 を採用オンセット 51.8618 へ寄せた。
+    blastPhase({ tiles: bandCDE.concat(bandH), shots: [{ time: V27C_BLAST2, n: 4 }] });
 
-    // ----------------------------------------------------------------------
-    // ⑮ 小節33-34 / 53.333s / 拍 128-135 — 休符（横断シャベルの往復・行ずらし）
-    //   低域が小節を通して 30 前後に落ちる 2 小節。爆破もタイル追加もせず、
-    //   横断シャベルだけを 2 拍おきに 4 組流す。左→右は行を下から上へ、
-    //   右→左は上から下へ 1 段ずつずらして「往復」に見せる。
-    //   行は「その時点で画面に残っているタイルの行」から採る（⑨の上下＋⑬の左右）。
-    // ----------------------------------------------------------------------
-    //   v19: 供給源にマーカー 17 で積み直した bandE を足した（⑬ を削除したため）。
-    const rowsCD = Array.from(
-      new Set(
-        bandC.filter((t) => !t.claimed).map((t) => t.row)
-          .concat(bandD.filter((t) => !t.claimed).map((t) => t.row))
-          .concat(bandE.filter((t) => !t.claimed).map((t) => t.row))
-      )
-    ).sort((a, b) => a - b);
-    if (rowsCD.length > 0) {
-      const nr = rowsCD.length;
-      for (let i = 0; i < 4; i++) {
-        const li = i % nr;                      // 左→右 は下の行から上へ 1 段ずつ
-        let ri = (nr - 1 - i + nr) % nr;        // 右→左 は上の行から下へ 1 段ずつ
-        if (ri === li && nr > 1) ri = (li + Math.floor(nr / 2)) % nr;  // 同じ行に重ならないよう避ける
-        sweepPair(B(S15_BEAT + i * 2), rowsCD[li], nr > 1 ? rowsCD[ri] : null);
-      }
+    // ======================================================================
+    // ★ v27 (C)  53.22〜65.01s — 追加指示書 gap51-65（13 マーカー）
+    //   ここは v19 まで「休符＋仮区間⑮⑯」で攻撃が薄かった。ユーザー指示に合わせて
+    //   横から入るシャベル → 上から降って溜まるシャベル → 発射 → 上 2 列の落下 → 鎖 2 回
+    //   という一続きの構成に置き換えた（⑮の横断シャベル往復・⑯の落下シャベル 5 本、
+    //   および v27(A) の (8) 鎖 4 回目と 55.8266 のタイル攻撃は削除）。
+    // ======================================================================
+
+    // --- 53.22〜56.66s: 横から縦並びで入るシャベル -------------------------------
+    //   (1) 画面外から ease out（等減速）で入り、右 2 列に被らない x で速度 0
+    //   (2) すこし逆向き（右グループなら右）へ曲がる＝ため
+    //   (3) 加速して反対の壁へ飛び、指定時刻ちょうどに着弾。タイルは壊さない
+    function sideShovelSet(tIn, tBend, tDive, tHit, fromX, stopX, bendSign, hitX, angle) {
+      const dA = tBend - tIn;
+      const dB = tDive - tBend;
+      const dC = tHit - tDive;
+      const v0 = (2 * (stopX - fromX)) / dA;          // ease out の初速
+      const aA = -v0 / dA;                             // 終端で速度 0 になる等減速
+      const aB = (bendSign * 2 * V27C_SIDE_BEND_D) / (dB * dB);
+      const xB = stopX + bendSign * V27C_SIDE_BEND_D;  // ため終わりの x
+      const vB = aB * dB;
+      const aC = (2 * (hitX - xB - vB * dC)) / (dC * dC);
+      V27C_SIDE_YS.forEach(function (y) {
+        s.at(tIn, shovelPath([fromX, y], [v0, 0], [
+          { dur: dA, ax: aA, ay: 0 },
+          { dur: dB, ax: aB, ay: 0 },
+          { dur: dC, ax: aC, ay: 0 },
+        ], angle, 'sideshovel'));
+        // 着弾の演出（円形。指示 15 と同じ考え方で、正方形 1 枚ではなくリングにする）
+        s.at(tHit, roundBlastFx([hitX, y], METEOR_RING_SPEC, 'shovelhit'));
+      });
     }
 
-    // ----------------------------------------------------------------------
-    // ★ v27 (8) 53.7368〜55.8266s — 指示書「また鎖予告→攻撃」「またタイル攻撃」
-    //   予告① 53.7368 / 予告② 53.9451（8 分あと）→ 攻撃 54.5833（拍 131）。
-    //   1〜3 回目と中心列が重ならない SNAKE_LANES4（3 / 8 / 13）を使う。
-    //   そのあと 55.8266s にタイル攻撃を 1 回（鎖で砕けたセルとその 4 近傍を優先）。
-    //   ※ 鎖の最終段が消えるのは 54.5833 + 2.06 = 56.64s、55.8266 で積んだタイルは
-    //     他の帯と同じ B(EXT_END_BEAT)=60.000s で消える。どちらも 56s をまたぐが、
-    //     これは指示 8 の内容そのものによるもの。
-    // ----------------------------------------------------------------------
-    const brokenH = chainAttack(
-      V27_C4_WARN_A, V27_C4_WARN_B, V27_C4_CHAIN, SNAKE_LANES4,
-      bandCDE.concat(bandH)
+    // 右から入って左の壁へ（54.8513 に着弾）
+    sideShovelSet(
+      V27C_SIDE_IN, V27C_SIDE_BEND, V27C_SIDE_DIVE, V27C_SIDE_HIT_L,
+      SHOVEL_RIGHT_X, V27C_SIDE_STOP_R, +1, SHOVEL_SCALE / 2, SHOVEL_ANGLE_LEFT
     );
-    const refill4Priority = new Set();
-    brokenH.forEach(function (t) {
-      refill4Priority.add(key(t.col, t.row));
-      for (let d = 0; d < 4; d++) {
-        const nc = t.col + NEIGHBOR_DC[d];
-        const nr = t.row + NEIGHBOR_DR[d];
-        if (nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS) continue;
-        refill4Priority.add(key(nc, nr));
+    // 左から入って右の壁へ（56.6567 に着弾）。時刻の刻みは右のときと同じ比率で写す。
+    sideShovelSet(
+      V27C_SIDE_HIT_L,
+      V27C_SIDE_HIT_L + (V27C_SIDE_BEND - V27C_SIDE_IN),
+      V27C_SIDE_HIT_L + (V27C_SIDE_DIVE - V27C_SIDE_IN),
+      V27C_SIDE_HIT_R,
+      SHOVEL_LEFT_X, V27C_SIDE_STOP_L, -1, COLS * CELL - SHOVEL_SCALE / 2, SHOVEL_ANGLE_RIGHT
+    );
+
+    // --- 56.66〜58.74s: 上から降って上 2 列の下側に溜まる 6 本 ---------------------
+    //   1 拍ずつずらして落ち、着地でバウンドし、そのあと小さく左右へ揺れて待つ。
+    //   （「バウンドさせてゆらゆら」の解釈: 反発係数 0.25/0.30/0.45/0.50 の 4 回バウンド →
+    //     周期 0.6 秒・振幅 0.45 ユニットの横揺れ。発射時刻ちょうどに揺れを止める）
+    const V27C_FALL_A = (2 * (SHOVEL_SPAWN_Y - V27C_DROP_REST_Y)) / (V27C_DROP_FALL * V27C_DROP_FALL);
+    V27C_DROP_TIMES.forEach(function (land, k) {
+      const x = V27C_DROP_XS[k];
+      const vLand = V27C_FALL_A * V27C_DROP_FALL;      // 着地時の落下速度
+      const segs = [{ dur: V27C_DROP_FALL, ax: 0, ay: -V27C_FALL_A }];
+      let up = vLand;
+      let used = 0;
+      V27C_BOUNCE.forEach(function (e) {
+        up *= e;
+        const d = (2 * up) / V27C_FALL_A;
+        // 上向きの初速 up から重力で落ちて、同じ高さへ戻る 1 バウンド
+        segs.push({ dur: d, ax: 0, ay: -V27C_FALL_A, vy: up });
+        used += d;
+      });
+      // 残りの待ち時間を「ゆらゆら」に割る（半周期 V27C_SWAY_HALF ごとに向きが返る）
+      const fireDur = V27C_FIRE_HIT - V27C_FIRE;
+      const hold = V27C_FIRE - land - used;
+      const nSway = Math.max(1, Math.round(hold / V27C_SWAY_HALF));
+      const swayDur = hold / nSway;
+      const swayV = V27C_SWAY_V * Math.min(1, swayDur / V27C_SWAY_HALF);
+      for (let i = 0; i < nSway; i++) {
+        const sg = { dur: swayDur, ax: (i % 2 === 0 ? -2 : 2) * swayV / swayDur, ay: 0 };
+        if (i === 0) { sg.vx = swayV; sg.vy = 0; }   // 揺れの入り口で縦の速度を止める
+        segs.push(sg);
       }
-    });
-    const aliveCDEH = new Set(
-      bandCDE.concat(bandH).filter(function (t) { return !t.claimed; })
-        .map(function (t) { return key(t.col, t.row); })
-    );
-    const bandI = tilePhase({
-      times: [V27_TILE_ATTACK],
-      leads: [beats(1)],
-      centerRate: CENTER_RATE,
-      bandTarget: EXT_BAND_TARGET,
-      bandCells: BAND_CELLS,
-      preBlocked: aliveCDEH,
-      priority: refill4Priority,
-      bandEnd: B(EXT_END_BEAT),
-      pinStartGap: false,
+      // 発射（等速で真下へ。V27C_FIRE_HIT ちょうどに最下段へ着く）
+      segs.push({
+        dur: fireDur, ax: 0, ay: 0,
+        vx: 0, vy: -(V27C_DROP_REST_Y - METEOR_DROP_Y) / fireDur,
+      });
+      s.at(land - V27C_DROP_FALL, shovelPath([x, SHOVEL_SPAWN_Y], [0, 0], segs, SHOVEL_ANGLE_DOWN, 'dropshovel'));
+      // 着弾の放射弾（下側の列のタイル破壊と同時）
+      s.at(V27C_FIRE_HIT, burst([x, METEOR_DROP_Y], k, 1.0));
+      s.at(V27C_FIRE_HIT, roundBlastFx([x, METEOR_DROP_Y], METEOR_RING_SPEC, 'shovelhit'));
     });
 
-    // ----------------------------------------------------------------------
-    // ⑯ 小節35-36 / 56.667s / 拍 136-143 — 落下シャベル④＋放射弾増量（2 周目の頂点）
-    //   低域が戻り（rms 0.40）、小節36 は 4 分の均等なアクセント。⑫と同じ形で
-    //   1 拍目に 2 本同時、3 拍目に 1 本。放射弾だけ 1.3 倍に増やして頂点を作る。
-    //     56.667s ×2 / 57.500s ×1 / 58.333s ×2 / 59.167s ×1
-    //   対象は⑨の上下の帯の残り（⑫で使った列は避ける）。
-    // ----------------------------------------------------------------------
-    const S16_IMPACTS = [
-      B(S16_BEAT + 0), B(S16_BEAT + 0),     // 56.667s 小節35 1拍目・2 本同時
-      B(S16_BEAT + 4), B(S16_BEAT + 4),     // 58.333s 小節36 1拍目・2 本同時
-      B(S16_BEAT + 6),                      // 59.167s 小節36 3拍目・1 本で締める
-    ];
-    //   対象は⑨の上下の帯の残りに加えて⑬の左右の帯の下段（列 0-1/14-15 の行 0-1）も使う。
-    //   ⑫からは 13 秒離れていて画面にも残っていないので、列の重複を避ける集合は分ける
-    //   （共有すると Easy で候補が尽きて 1 本しか出せなくなるのを実測した）。
-    //   v19: ⑫⑬ を削除したので、対象は bandC / bandD の残りとマーカー 17 の bandE から採る。
-    const dropD = pickDropTargets(bandCDE.concat(bandH).concat(bandI), S16_IMPACTS.length, new Set());
-    shovelBlastPhase(
-      S16_IMPACTS.slice(0, dropD.length),
-      claimDropTargets(dropD, S16_IMPACTS),
-      1,
-      1.3
+    // --- 59.9946: 下側の列（行 0-1）のタイルを破壊 --------------------------------
+    const bandAll = bandCDE.concat(bandH);
+    bandAll.forEach(function (t) {
+      if (t.claimed) return;
+      if (t.row >= BAND) return;
+      t.claimed = true;
+      t.end = V27C_FIRE_HIT;
+      t.lead = BLAST_LEAD_OUT;
+    });
+
+    // --- 61.2368: 上 2 列（行 7-8）のタイルが点滅 ---------------------------------
+    const topTiles = bandAll.filter(function (t) { return !t.claimed && t.row >= ROWS - BAND; });
+    if (topTiles.length > 0) {
+      s.at(V27C_BLINK, blinkWarn(topTiles.map(function (t) { return [t.col, t.row]; }), 'blastblink'));
+    }
+
+    // --- 63.3266: 上 2 列が重力で落下し、下の空いた行へ積み重なる -------------------
+    //   「いい感じに積み重なる」の解釈: 列ごとに、下の行から順に空いているところへ落とす。
+    //   59.9946 で行 0-1 を空けてあるので、行 7 のタイルが行 0、行 8 のタイルが行 1 へ入る。
+    //   下に入るぶんを先に着地させたいので、上のタイルは 1 コマぶん遅らせて出す。
+    const stackByCol = new Map();
+    topTiles.slice().sort(function (a, b) { return a.col - b.col || a.row - b.row; })
+      .forEach(function (t) {
+        if (!stackByCol.has(t.col)) stackByCol.set(t.col, []);
+        stackByCol.get(t.col).push(t);
+      });
+    const stacked = [];
+    stackByCol.forEach(function (list, col) {
+      list.forEach(function (t, i) {
+        t.claimed = true;
+        t.end = V27C_FALL;          // 実体タイルはここで終わり、落下する弾へバトンタッチ
+        t.lead = 0;
+        const from = cellCenter(t.col, t.row);
+        const dstRow = i;            // 行 0 → 行 1 の順に積む
+        const to = cellCenter(t.col, dstRow);
+        const dist = from[1] - to[1];
+        const dur = Math.sqrt((2 * dist) / V27C_STACK_ACCEL);
+        const delay = i * 0.08;      // 下に入るぶんを先に着地させる
+        stacked.push({ col: t.col, row: dstRow, land: V27C_FALL + delay + dur, from: from, to: to, dur: dur, delay: delay });
+      });
+    });
+
+    // --- 63.8723: 左右の 2 列を鎖攻撃で破壊 ---------------------------------------
+    const V27C_LANES_LR = [{ col: 1, phase: 0 }, { col: 14, phase: Math.PI }];
+    chainAttackG(
+      CHAIN_V_FAST, V27C_CHAIN_LR - 0.52, V27C_CHAIN_LR - 0.21, V27C_CHAIN_LR,
+      V27C_LANES_LR, bandAll
     );
+
+    // --- 65.0101: 下の列を鎖攻撃で破壊（ついでに上の列にも置く）----------------------
+    const V27C_LANES_TB = [{ row: 1, phase: 0 }, { row: 7, phase: Math.PI }];
+    chainAttackG(
+      CHAIN_H, V27C_CHAIN_B - 0.40, V27C_CHAIN_B - 0.16, V27C_CHAIN_B,
+      V27C_LANES_TB, bandAll
+    );
+
+    // 落下して積み上がったタイルの実体。下の鎖が通った瞬間に砕ける（通らなければ 66.0s）。
+    stacked.forEach(function (st, i) {
+      const hit = chainBreakTime(CHAIN_H, st.col, st.row, V27C_CHAIN_B, V27C_LANES_TB);
+      const end = hit === null ? V27C_BAND_END : hit;
+      // (1) 落下（等加速。着地でぴたりと止まる）
+      s.at(V27C_FALL + st.delay, {
+        parts: [{
+          offsetSec: 0,
+          kind: 'stackfall',
+          buffer: {
+            bullets: [bulletDefaults({
+              originPos: { x: normalizeNegativeZero(st.from[0]), y: normalizeNegativeZero(st.from[1]) },
+              originVlc: { x: 0, y: 0 },
+              gravity: { x: V27C_STACK_ACCEL, y: normalizeNegativeZero(-Math.PI / 2) },
+              typeName: 'stone3_tile',
+              scale: { x: TILE, y: TILE },
+              color: { x: SPRITE_AS_IS[0], y: SPRITE_AS_IS[1], z: SPRITE_AS_IS[2], w: SPRITE_AS_IS[3] },
+              life: st.dur + METEOR_LIFE_MARGIN,
+              unCounterable: true,
+            })],
+            homing: false,
+            isLaser: false,
+          },
+          spawner: NEUTRAL_SPAWNER(),
+        }],
+      });
+      // (2) 着地後は静止したタイル
+      if (end > st.land) {
+        s.at(st.land, tileField([[st.col, st.row]], {
+          type: 'stone3_tile',
+          color: SPRITE_AS_IS,
+          life: end - st.land,
+          kind: 'stacktile',
+        }));
+        s.at(end, burst(cellCenter(st.col, st.row), i, 0.5));
+      }
+    });
 
     // ======================================================================
     // ★ v21  66.771〜103.346s — 指示書のマーカー 18〜42
@@ -3351,8 +3527,7 @@ export default stage(
     emitBandTiles(bandC);
     emitBandTiles(bandD);
     emitBandTiles(bandE);
-    emitBandTiles(bandH);   // v27 (7): 51.5483s のタイル攻撃
-    emitBandTiles(bandI);   // v27 (8): 55.8266s のタイル攻撃
+    emitBandTiles(bandH);   // v27 (7)(C): 51.2348s のタイル表示
     // v21: マーカー 30 / 32 で積んだ帯。使い切らなかったぶんは V21_BAND_END（100.60s）
     //   ＝ マーカー 38 の横の鎖が通り過ぎた直後に消える。
     emitBandTiles(bandF);
