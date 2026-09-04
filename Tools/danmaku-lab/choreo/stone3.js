@@ -601,6 +601,70 @@ const V27C_SWAY_V = 6.0;          // ゆらゆらの横速度（1 往復 0.6s・
 const V27C_SWAY_HALF = 0.30;
 const V27C_STACK_ACCEL = 40;      // 上 2 列が落ちるときの重力
 
+// --- v28: 指示書 stage-timing-markers_20260904_v28_ending.json（111.878 以降 22 マーカー）---
+//   採用時刻の根拠（手打ち／採用／差／根拠）は .tmp_v28/progress.md の表。規則は v23 と同じ
+//   （手打ちの [-180ms, +40ms] 窓に立つオンセットを優先し、無ければ 8 分音符へ丸める）。
+//   例外は #17（V28_G_L）だけで、理由は progress.md に書いた。
+const V28_A1 = 111.8750;        // 1 左下から重力隕石が打ち上がる＋右からシャベル
+const V28_A2 = 112.4891;        // 2 隕石が頂点で静止しシャベルと衝突・爆破／右側（点対称）を開始
+const V28_A3 = 113.3250;        // 3 右側の隕石が爆破／中央に旧来の落下隕石
+const V28_A4 = 113.8823;        // 4 落下隕石が床で爆破
+const V28_A5 = 114.9910;        // 5 1〜4 のブロックを繰り返す（着弾を lightspeed 風の大爆破に）
+const V28_B1 = 121.5216;        // 6 下側で止まる重力隕石①
+const V28_B2 = 122.0731;        // 6 同②
+const V28_B3 = 122.4911;        // 6 同③
+const V28_C1 = 123.3270;        // 7 ①をシャベルで爆破
+const V28_C2 = 123.7391;        // 7 ②
+const V28_C3 = 124.1571;        // 7 ③
+const V28_D_SIDE = 124.9930;    // 8 右側からシャベルを縦一列でずらして発射
+const V28_D_TOP = 126.6532;     // 9 上側からシャベルをずらして発射
+const V28_E_TOP = 128.3251;     // 10 6〜7 の隕石 x3 攻撃を上側で
+const V28_F1 = 131.8750;        // 11 シャベルを一列に揃えて右→左（隙間あり）
+const V28_F2 = 133.3290;        // 12 繰り返し（前の隙間の位置から発射・隙間は別の場所）
+const V28_G_L = 134.9892;       // 13 左側で上から下へ隕石（爆破せず弾も飛ばさない）
+const V28_G_R = 136.6552;       // 14 同じ隕石を右側で
+const V28_H = 138.3213;         // 15 上側を右→左・下側を左→右へゆっくり
+const V28_I = 139.9873;         // 16 中央上から中央へイージング → 少し戻す → 下へ
+const V28_END_BLAST = 141.6533; // 17 最後の大爆破
+
+// 1〜5 の幾何。中心 (16,9) について点対称になるよう、右側は 2*中心 − 左側で作る。
+const V28_CENTER = [16, 9];
+const V28_UP_FROM = [4, -2.5];      // 打ち上げ隕石の発射点（画面左下の外）
+const V28_UP_APEX = [8, 12];        // 重力で速度 0 になる頂点（＝シャベルとの衝突点）
+const V28_MID_SPAWN_Y = 21;         // 中央の落下隕石の発射高さ（画面上端 18 の外）
+// 6〜7 / 10 の「落ちてきて（上がってきて）止まる」隕石。
+const V28_REST_LOW_Y = 4;           // 下側で止まる高さ
+const V28_REST_HIGH_Y = 14;         // 上側で止まる高さ（10 のミラー）
+const V28_REST_XS = [8, 16, 24];    // 3 発の x（左から順）
+const V28_REST_FALL = beats(2);     // 出現から静止までの秒数
+const V28_REST_FROM_Y = 21;         // 下側版の発射高さ（画面上端の外）
+const V28_REST_UP_Y = -3;           // 上側版の発射高さ（画面下端の外）
+// 8: 右から縦一列（ずらし）。9: 上からずらして。
+const V28_SIDE_YS = [16.5, 13.0, 9.5, 6.0, 2.5];   // 上から順に撃つ
+const V28_SIDE_STAGGER = beats(0.5);
+const V28_TOP_XS = [2.5, 8.0, 13.5, 19.0, 24.5, 30.0];  // 左から順に落とす
+const V28_TOP_STAGGER = beats(1 / 3);
+const V28_TOP_FALL_END_Y = -4;      // 落下シャベルが消える高さ（カリング境界の外）
+// 11〜12: 一列に揃えた壁。9 レーンのうち 1 つを空けて「抜けられる穴」にする。
+const V28_WALL_YS = [1, 3, 5, 7, 9, 11, 13, 15, 17];
+const V28_WALL_GAP1 = 2;            // 11 の隙間（y=5）
+const V28_WALL_GAP2 = 6;            // 12 の隙間（y=13）。11 の隙間 y=5 は今度は埋まる
+// 13〜14: 静かな区間の隕石（爆破なし・弾なし）。
+const V28_QUIET_XS = [8, 24];
+const V28_QUIET_SPAWN_Y = 21;
+const V28_QUIET_END_Y = -4;
+const V28_QUIET_FLIGHT = 1.60;      // 25 ユニットを 1.60 秒 ＝ 15.6 ユニット/s
+// 15: 上下ですれ違う隕石。「ゆっくりめ」= 通常隕石（24.1 ユニット/s）の 2/3。
+const V28_CROSS_TOP_Y = 15;
+const V28_CROSS_BOT_Y = 3;
+const V28_CROSS_FLIGHT = 2.40;      // 38.5 ユニットを 2.40 秒 ＝ 16.0 ユニット/s
+// 16〜17: 最後の 1 発。中央上 (16,21) から中央 (16,9) へ減速して寄り、
+//   1.2 ユニットだけ上へ戻してから加速して床 (16,1) へ落ちる。合計ちょうど 4 拍。
+const V28_FIN_FROM_Y = 21;
+const V28_FIN_HOLD_Y = 9;
+const V28_FIN_BACK_D = 1.2;         // 「ちょっと戻す」距離
+const V28_FIN_EASE = beats(2);      // 寄る（等減速）
+const V28_FIN_BACK = beats(0.75);   // 戻す（ため）
 // --- v26 (A): ボス（golem）の出現・着地時刻 --------------------------------------
 //   石工のボスは stage.json 側の bossSpawners 3 件（golem 降下用 / golem 本体 /
 //   序盤の stone 詠唱ボス）でできている。choreo は弾しか吐かないので、ここに置いた
@@ -621,7 +685,9 @@ const V27C_STACK_ACCEL = 40;      // 上 2 列が落ちるときの重力
 //   v23 の「窓内の実オンセットを優先する」方針に従い、拍頭ではなく 50.6137 を採る。
 const BOSS_LAND_TIME = 50.6137;         // 着地＝降下 moveto 完了＝本体へ切り替わる瞬間（= MK17_TILE2）
 const BOSS_DESCEND_SEC = 0.833333;      // 降下時間（moveto duration。v25 から据え置き）
-const BOSS_BODY_END_TIME = 112.904848;  // 本体の消滅時刻（endTime 113.6 の 0.695152 秒前。v25 と同じ）
+// v28: ステージ末尾を 113.6 → 142.5 へ延ばした（最後の大爆破 141.6533 + 余韻 0.85 秒。
+//   旧「石工」と同じ末尾）。本体の消滅は endTime の 0.695152 秒前という v25 からの関係を保つ。
+const BOSS_BODY_END_TIME = 141.804848;  // 本体の消滅時刻（endTime 142.5 の 0.695152 秒前）
 const BOSS_CASTER_APPEAR = 4.145404;    // 詠唱ボス（stone）の出現時刻（v25 から据え置き）
 if (BOSS_LAND_TIME !== MK17_TILE2) throw new Error('BOSS_LAND_TIME は MK17_TILE2 と一致させること');
 
@@ -1657,6 +1723,14 @@ const WALL_RING_SPEC = [
   [METEOR_SCALE * 1.75, 18, METEOR_SCALE * 0.62, METEOR_SCALE * 0.16, 0.070],
   [METEOR_SCALE * 2.70, 24, METEOR_SCALE * 0.46, METEOR_SCALE * 0.12, 0.115],
 ];
+// v28: 最後の大爆破のリング（WALL_RING_SPEC をさらに 1 枚増やして半径を広げた一番派手なもの）。
+const FINAL_RING_SPEC = [
+  [0, 1, METEOR_SCALE * 2.10, METEOR_SCALE * 0.60, 0.000],
+  [METEOR_SCALE * 0.90, 12, METEOR_SCALE * 0.90, METEOR_SCALE * 0.24, 0.025],
+  [METEOR_SCALE * 1.80, 20, METEOR_SCALE * 0.72, METEOR_SCALE * 0.18, 0.062],
+  [METEOR_SCALE * 2.85, 28, METEOR_SCALE * 0.56, METEOR_SCALE * 0.14, 0.105],
+  [METEOR_SCALE * 4.05, 36, METEOR_SCALE * 0.42, METEOR_SCALE * 0.10, 0.155],
+];
 function roundBlastFx(pos, spec, kind) {
   const items = [];
   spec.forEach(function (r, ri) {
@@ -1839,6 +1913,86 @@ function meteorSquash(pos) {
     appearDuration: 0,
     life: METEOR_SQUASH_DUR + FADE_OUT_SEC,
   }], 'meteorsquash');
+}
+
+// ── v28: 隕石の多段モーション（shovelPath の隕石版）───────────────────────────
+//   指示書 v28 の末尾（111.9〜141.7s）は「上向き初速＋下向き重力で減速して静止」
+//   「落ちてきて下で止まる」「イージングで寄って少し戻してから落ちる」など、
+//   1 発の隕石が途中で加速度を変える動きばかりになる。既存の meteor()/meteorDrop()/
+//   meteorLine() はどれも 1 区間・固定の加速度なので使えない。
+//   shovelPath と同じ作り（v1 レーンの originPos/originVlc/gravity を区間ごとに
+//   置き直す handoff）を stone3_tile ＋ 自転つきで用意する。
+//   segs = [{ dur, ax, ay, vx?, vy? }]（ax/ay はワールドの等加速度成分。vx/vy を
+//   指定するとその区間の入り口で速度を差し替える）。
+//   既存の meteor()/meteorDrop()/meteorLine() には手を入れていない。
+function meteorPath(pos0, vel0, segs, kind, spin) {
+  let px = pos0[0], py = pos0[1], vx = vel0[0], vy = vel0[1], t = 0;
+  const parts = [];
+  segs.forEach(function (sg, i) {
+    if (sg.vx !== undefined) vx = sg.vx;
+    if (sg.vy !== undefined) vy = sg.vy;
+    const mag = Math.sqrt(sg.ax * sg.ax + sg.ay * sg.ay);
+    const dir = mag > 1e-9 ? Math.atan2(sg.ay, sg.ax) : 0;
+    const last = i === segs.length - 1;
+    parts.push({
+      offsetSec: t,
+      kind: kind,
+      buffer: {
+        bullets: [bulletDefaults({
+          originPos: { x: normalizeNegativeZero(px), y: normalizeNegativeZero(py) },
+          originVlc: { x: normalizeNegativeZero(vx), y: normalizeNegativeZero(vy) },
+          gravity: { x: mag, y: normalizeNegativeZero(dir) },
+          typeName: 'stone3_tile',
+          scale: { x: METEOR_SCALE, y: METEOR_SCALE },
+          color: { x: SPRITE_AS_IS[0], y: SPRITE_AS_IS[1], z: SPRITE_AS_IS[2], w: SPRITE_AS_IS[3] },
+          life: last ? sg.dur : sg.dur + METEOR_LIFE_MARGIN,
+          unCounterable: true,
+          useVelocityAngle: false,
+          polarForm: { x: 1, y: 0 },
+          thetaVlc: normalizeNegativeZero(spin === undefined ? METEOR_SPIN : spin),
+        })],
+        homing: false,
+        isLaser: false,
+      },
+      spawner: NEUTRAL_SPAWNER(),
+    });
+    px += vx * sg.dur + 0.5 * sg.ax * sg.dur * sg.dur;
+    py += vy * sg.dur + 0.5 * sg.ay * sg.dur * sg.dur;
+    vx += sg.ax * sg.dur;
+    vy += sg.ay * sg.dur;
+    t += sg.dur;
+  });
+  return { parts: parts };
+}
+
+// 上の経路の「発射から rel 秒後の位置」を返す関数を作る（尾を置くのに使う）。
+function meteorPathPos(pos0, vel0, segs) {
+  const marks = [];
+  let px = pos0[0], py = pos0[1], vx = vel0[0], vy = vel0[1], t = 0;
+  segs.forEach(function (sg) {
+    if (sg.vx !== undefined) vx = sg.vx;
+    if (sg.vy !== undefined) vy = sg.vy;
+    marks.push({ t0: t, dur: sg.dur, px: px, py: py, vx: vx, vy: vy, ax: sg.ax, ay: sg.ay });
+    px += vx * sg.dur + 0.5 * sg.ax * sg.dur * sg.dur;
+    py += vy * sg.dur + 0.5 * sg.ay * sg.dur * sg.dur;
+    vx += sg.ax * sg.dur;
+    vy += sg.ay * sg.dur;
+    t += sg.dur;
+  });
+  return function (rel) {
+    let m = marks[0];
+    for (let i = 0; i < marks.length; i++) {
+      if (rel >= marks[i].t0) m = marks[i];
+    }
+    const u = rel - m.t0;
+    return [m.px + m.vx * u + 0.5 * m.ax * u * u, m.py + m.vy * u + 0.5 * m.ay * u * u];
+  };
+}
+
+// その尾。静止している区間に点が積み上がると光の塊に見えるので、尾を引く長さ
+// （trailDur 秒）を呼び出し側で指定する。
+function meteorPathTrail(pos0, vel0, segs, trailDur, kind) {
+  return meteorTrailPath(meteorPathPos(pos0, vel0, segs), trailDur, kind);
 }
 
 // ── v22: 壁に当てる隕石（マーカー 49〜51）と、回転しながら集まるタイル（マーカー 48）──
@@ -2159,7 +2313,10 @@ export default stage(
     // v22: 最後の演出はマーカー 51（110.938s）の壁隕石の爆破と放射弾。放射弾は速度 7〜11 で
     //   寿命なしなので、画面を抜けるのに数秒かかる。v21 と同じ「最後の爆破 + 2.7s」の規則で
     //   110.938 + 2.7 ≒ 113.6s を末尾にした（曲のアウトロは 113.33s から）。
-    endTime: 113.6,
+    // v28: 指示書の末尾（141.6533 の大爆破）まで演出が伸びたので 142.5 へ延長した。
+    //   曲は 143.3s から急速にフェードして 150.02s で終わる。旧「石工」の endTime と同じ値。
+    //   install_stone3.py --bundle 142.5 で stage.json 側にも同じ値を書く。
+    endTime: 142.5,
   },
   (s) => {
     // v27: 前半（33.6〜56s）の内容を変えたぶん乱数の消費数が変わる。後半（66.8s〜）へ
@@ -3766,5 +3923,144 @@ export default stage(
     //   v22 の区間をここ（既存の emitBandTiles のあと）に置いてあるのは、クリップの連番が
     //   s.at() の呼び出し順で決まるため。こうすると v21 までのクリップ名が 1 つも動かない。
     emitBandTiles(band43);
+
+    // ======================================================================
+    // ★ v28  111.875〜141.653s — 指示書 v28_ending の 111.878 以降 22 マーカー
+    //   ステージ末尾を 113.6 → 142.5 へ延ばし、そこへ末尾の一続きを足した区間。
+    //   この区間の s.at() は既存クリップの**あと**にだけ並ぶので、もともと出ていた弾は
+    //   1 発も動かない（クリップ名の連番も末尾に足されるだけ）。乱数も同様に、既存の
+    //   消費のあとから使う（burst()/spinBurst() の angleOffset のみ）。
+    //
+    //   1〜5  … 打ち上げ隕石＋横から来るシャベルの衝突を、中心について点対称に 2 回。
+    //           そのあと中央に落下隕石。ブロックごと 114.991 からもう一度繰り返し、
+    //           2 回目の着弾を lightspeed 風（白く育つブルーム＋2 重リング）にする。
+    //   6〜7  … 落ちてきて下側で止まる隕石 3 発を、左から来る 1 本のシャベルが順に割る。
+    //   8〜9  … 右から縦一列（ずらし）／上からずらして落とすシャベル。
+    //   10    … 6〜7 と同じ攻撃を上下反転して上側で。
+    //   11〜12… 一列に揃えたシャベルの壁を右→左へ。1 レーンだけ空けて抜け穴を作る。
+    //           2 回目は前の抜け穴が埋まり、別のレーンが空く。
+    //   13〜15… 静かな区間。爆破も放射弾も無い隕石だけ（左→右→上下すれ違い）。
+    //   16〜17… 中央上から中央へ減速して寄り、少し戻してから床へ落として最後の大爆破。
+    // ======================================================================
+
+    // 画面（x 0〜32 / y 0〜18）へ最初に入る瞬間を探して出現フラッシュを置く。
+    function v28EntryFlash(t0, posAt, dur, kind) {
+      const step = 1 / 120;
+      for (let u = 0; u <= dur + 1e-9; u += step) {
+        const q = posAt(Math.min(u, dur));
+        if (q[0] >= 0 && q[0] <= COLS * CELL && q[1] >= 0 && q[1] <= ROWS * CELL) {
+          s.at(t0, flashPop(
+            [normalizeNegativeZero(q[0]), normalizeNegativeZero(q[1])],
+            Math.min(u, dur), METEOR_FLASH_S0, METEOR_FLASH_S1, METEOR_FLASH_DUR, kind
+          ));
+          return;
+        }
+      }
+    }
+
+    // 隕石の爆破一式（v27 (15) と同じ円形リング＋破片＋放射弾）。
+    function v28MeteorBlast(t, pos, idx) {
+      s.at(t, roundBlastFx(pos, METEOR_RING_SPEC, 'meteorhit'));
+      s.at(t, debrisRing(pos, 16, 8.5, 0.50, TILE * 0.40, 5.0, 0));
+      s.at(t, burst(pos, idx, 1.2));
+    }
+
+    // --- 1〜5: 打ち上げ隕石とシャベルの衝突（点対称に 2 回）→ 中央へ落下隕石 --------
+    //   lightspeed = true のとき、最後の着弾をマーカー 48 の集合爆破と同じ部品
+    //   （白く育つブルーム＋2 重リングの放射弾）に差し替える。
+    function v28BlockA(tA1, tA2, tA3, tA4, idx, lightspeed) {
+      // (a) 左下の画面外から上向きに打ち上がり、下向き重力で減速して tA2 に頂点で静止
+      const dL = tA2 - tA1;
+      const vyL = (2 * (V28_UP_APEX[1] - V28_UP_FROM[1])) / dL;
+      const velL = [(V28_UP_APEX[0] - V28_UP_FROM[0]) / dL, vyL];
+      const segL = [{ dur: dL, ax: 0, ay: -vyL / dL }];
+      s.at(tA1, meteorPath(V28_UP_FROM, velL, segL, 'meteorup'));
+      s.at(tA1, meteorPathTrail(V28_UP_FROM, velL, segL, dL, 'meteoruptrail'));
+      v28EntryFlash(tA1, meteorPathPos(V28_UP_FROM, velL, segL), dL, 'meteorspawn');
+      // 同時に右から 1 本シャベルが飛んできて、頂点でちょうどぶつかる
+      s.at(tA1, shovel({
+        pos: [SHOVEL_RIGHT_X, V28_UP_APEX[1]],
+        vel: [(V28_UP_APEX[0] - SHOVEL_RIGHT_X) / dL, 0],
+        angle: SHOVEL_ANGLE_LEFT,
+        life: dL,
+      }));
+      v28MeteorBlast(tA2, V28_UP_APEX, idx);
+
+      // (b) 中心 (16,9) について点対称の右側。右上から下向きに出て上向き重力で減速し、
+      //     左から来るシャベルと tA3 でぶつかる。
+      const symFrom = [2 * V28_CENTER[0] - V28_UP_FROM[0], 2 * V28_CENTER[1] - V28_UP_FROM[1]];
+      const symApex = [2 * V28_CENTER[0] - V28_UP_APEX[0], 2 * V28_CENTER[1] - V28_UP_APEX[1]];
+      const dR = tA3 - tA2;
+      const vyR = (2 * (symApex[1] - symFrom[1])) / dR;
+      const velR = [(symApex[0] - symFrom[0]) / dR, vyR];
+      const segR = [{ dur: dR, ax: 0, ay: -vyR / dR }];
+      s.at(tA2, meteorPath(symFrom, velR, segR, 'meteorup'));
+      s.at(tA2, meteorPathTrail(symFrom, velR, segR, dR, 'meteoruptrail'));
+      v28EntryFlash(tA2, meteorPathPos(symFrom, velR, segR), dR, 'meteorspawn');
+      s.at(tA2, shovel({
+        pos: [SHOVEL_LEFT_X, symApex[1]],
+        vel: [(symApex[0] - SHOVEL_LEFT_X) / dR, 0],
+        angle: SHOVEL_ANGLE_RIGHT,
+        life: dR,
+      }));
+      v28MeteorBlast(tA3, symApex, idx + 1);
+
+      // (c) tA3 から中央に旧来の（等加速で落ちる）隕石。tA4 に床へ着く。
+      //     落下加速度は v27 (14) で決めた METEOR_DROP_ACCEL のまま。指定時刻に着くよう
+      //     初速だけを逆算する（速度感は既存の落下隕石と同じになる）。
+      const dM = tA4 - tA3;
+      const dyM = V28_MID_SPAWN_Y - METEOR_DROP_Y;
+      const vyM = (0.5 * METEOR_DROP_ACCEL * dM * dM - dyM) / dM;
+      const midFrom = [V28_CENTER[0], V28_MID_SPAWN_Y];
+      const segM = [{ dur: dM, ax: 0, ay: -METEOR_DROP_ACCEL }];
+      s.at(tA3 - beats(1), meteorDropWarn(V28_CENTER[0], beats(1)));
+      s.at(tA3, meteorPath(midFrom, [0, vyM], segM, 'meteordrop'));
+      s.at(tA3, meteorPathTrail(midFrom, [0, vyM], segM, dM, 'meteordroptrail'));
+      const impact = [V28_CENTER[0], METEOR_DROP_Y];
+      s.at(tA4, meteorSquash(impact));
+      if (!lightspeed) {
+        v28MeteorBlast(tA4, impact, idx + 2);
+      } else {
+        // 集合爆破（マーカー 48）と同じ「白く育つブルーム → 2 重リング」。
+        s.at(tA3, warnClip([{
+          type: BLINK_TYPE,
+          pos: impact,
+          scale: [GATHER_BLOOM_S0, GATHER_BLOOM_S0],
+          color: GATHER_BLOOM_C0,
+          scaleEnd: [GATHER_BLOOM_S1, GATHER_BLOOM_S1],
+          colorEnd: GATHER_BLOOM_C1,
+          animDuration: dM,
+          appearTime: 0,
+          appearDuration: 0,
+          life: dM + FADE_OUT_SEC,
+        }], 'gatherbloom'));
+        s.at(tA4, roundBlastFx(impact, WALL_RING_SPEC, 'meteorhit'));
+        s.at(tA4, debrisRing(impact, 20, 9.5, 0.55, TILE * 0.44, 5.5, 0));
+        s.at(tA4, debrisRing(impact, 12, 5.0, 0.75, TILE * 0.30, -4.0, Math.PI / 12));
+        const ringN = Math.round(D(10, 12, 14) * 2);
+        s.at(tA4, spinBurst({
+          pos: impact, count: ringN, speed: D(7, 9, 11), type: 'stone3_bullet', life: 0,
+          scale: [BULLET_SCALE, BULLET_SCALE], color: SPRITE_AS_IS,
+          angleOffset: rng() * 2 * Math.PI, spin: SPIN_RATE, kind: 'blast', unCounterable: true,
+        }));
+        s.at(tA4, spinBurst({
+          pos: impact, count: ringN, speed: D(11, 14, 17), type: 'stone3_bullet', life: 0,
+          scale: [BULLET_SCALE, BULLET_SCALE], color: SPRITE_AS_IS,
+          angleOffset: rng() * 2 * Math.PI + Math.PI / ringN, spin: -SPIN_RATE,
+          kind: 'blast', unCounterable: true,
+        }));
+      }
+    }
+
+    v28BlockA(V28_A1, V28_A2, V28_A3, V28_A4, 0, false);
+    // 5: 同じブロックをもう一度。相対間隔はそのまま写す（マーカーは頭の 1 点しかない）。
+    v28BlockA(
+      V28_A5,
+      V28_A5 + (V28_A2 - V28_A1),
+      V28_A5 + (V28_A3 - V28_A1),
+      V28_A5 + (V28_A4 - V28_A1),
+      3, true
+    );
+
   }
 );
