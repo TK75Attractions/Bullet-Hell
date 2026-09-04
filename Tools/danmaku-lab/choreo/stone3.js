@@ -700,7 +700,7 @@ const BOSS_LAND_TIME = 66.6645;         // 着地＝降下 moveto 完了＝本�
 const BOSS_DESCEND_SEC = 0.833333;      // 降下時間（moveto duration。v25 から据え置き）
 // v28: ステージ末尾を 113.6 → 142.5 へ延ばした（最後の大爆破 141.6533 + 余韻 0.85 秒。
 //   旧「石工」と同じ末尾）。本体の消滅は endTime の 0.695152 秒前という v25 からの関係を保つ。
-const BOSS_BODY_END_TIME = 141.804848;  // 本体の消滅時刻（endTime 142.5 の 0.695152 秒前）
+const BOSS_BODY_END_TIME = 143.554848;  // 本体の消滅時刻（endTime 144.25 の 0.695152 秒前）
 const BOSS_CASTER_APPEAR = 4.145404;    // 詠唱ボス（stone）の出現時刻（v25 から据え置き）
 // v29 (6): 指示 52.302「敵は最前面に表示して」。ボス 3 体（降下 golem・本体 golem・詠唱 stone）の
 //   SpriteRenderer.sortingOrder。弾・タイルより前に出す。自機は PlayerController が 100 を
@@ -1748,12 +1748,16 @@ const WALL_RING_SPEC = [
   [METEOR_SCALE * 2.70, 24, METEOR_SCALE * 0.46, METEOR_SCALE * 0.12, 0.115],
 ];
 // v28: 最後の大爆破のリング（WALL_RING_SPEC をさらに 1 枚増やして半径を広げた一番派手なもの）。
+// v29 (10): 指示 141.507「最後のエフェクト大きすぎて、隕石が見えない」。
+//   中心の閃光が隕石（METEOR_SCALE）の 2.10 倍あって本体を完全に覆っていたので、
+//   中心を 1.05 倍（＝隕石と同じ大きさ）まで落とし、外側のリングも半径 0.77 倍・
+//   粒の大きさ 0.7 倍に縮めた。リングの枚数と数は変えていない。
 const FINAL_RING_SPEC = [
-  [0, 1, METEOR_SCALE * 2.10, METEOR_SCALE * 0.60, 0.000],
-  [METEOR_SCALE * 0.90, 12, METEOR_SCALE * 0.90, METEOR_SCALE * 0.24, 0.025],
-  [METEOR_SCALE * 1.80, 20, METEOR_SCALE * 0.72, METEOR_SCALE * 0.18, 0.062],
-  [METEOR_SCALE * 2.85, 28, METEOR_SCALE * 0.56, METEOR_SCALE * 0.14, 0.105],
-  [METEOR_SCALE * 4.05, 36, METEOR_SCALE * 0.42, METEOR_SCALE * 0.10, 0.155],
+  [0, 1, METEOR_SCALE * 1.05, METEOR_SCALE * 0.42, 0.000],
+  [METEOR_SCALE * 0.70, 12, METEOR_SCALE * 0.63, METEOR_SCALE * 0.17, 0.025],
+  [METEOR_SCALE * 1.39, 20, METEOR_SCALE * 0.50, METEOR_SCALE * 0.13, 0.062],
+  [METEOR_SCALE * 2.20, 28, METEOR_SCALE * 0.39, METEOR_SCALE * 0.10, 0.105],
+  [METEOR_SCALE * 3.12, 36, METEOR_SCALE * 0.29, METEOR_SCALE * 0.07, 0.155],
 ];
 function roundBlastFx(pos, spec, kind) {
   const items = [];
@@ -2340,7 +2344,13 @@ export default stage(
     // v28: 指示書の末尾（141.6533 の大爆破）まで演出が伸びたので 142.5 へ延長した。
     //   曲は 143.3s から急速にフェードして 150.02s で終わる。旧「石工」の endTime と同じ値。
     //   install_stone3.py --bundle 142.5 で stage.json 側にも同じ値を書く。
-    endTime: 142.5,
+    // v29 (10): 指示 141.507「最後のゲーム自体のフェードアウトが早すぎる」。
+    //   GManager は SReader.HasReachedEndTime になった瞬間に PixelTransition の白覆いへ
+    //   入るので、endTime ＝ 画面が白くなる時刻。142.5（最後の大爆破 141.6533 の 0.85 秒後）
+    //   では爆破の破片が消えきる前に暗転していた。**このステージの endTime だけ** 1.75 秒
+    //   伸ばして 144.25 にし、破片が散り切って曲のフェード（143.3〜）に乗る余韻を作る。
+    //   他ステージの endTime には触っていない。
+    endTime: 144.25,
   },
   (s) => {
     // v27: 前半（33.6〜56s）の内容を変えたぶん乱数の消費数が変わる。後半（66.8s〜）へ
