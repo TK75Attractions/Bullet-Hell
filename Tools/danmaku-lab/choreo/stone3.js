@@ -1444,24 +1444,21 @@ const SNAKE_PERIOD = beats(1);           // 0.41667s: 横揺れの周期（実�
 const SNAKE_ROW_PHASE = Math.PI / 3;     // 1 段あたりの位相差 60 度（＝波長 6 段）
 const SNAKE_SEGMENTS = 16;               // moveTo の折れ線でサインを近似する分割数（1 周期あたり約 10.7 点）
 // 3 本の中心列と位相。位相を 120 度ずつずらすと、3 本が同時に同じ向きへ寄らない。
+// v29 (4): 指示 33.871 / 40.664 / 48.723「鎖攻撃は 2 個にして」。1〜3 回目の鎖を
+//   3 本から 2 本へ減らす（4 回目 54.5833s は指示に無いので 3 本のまま）。
+//   16 列を 3 等分する位置（col 4 と 11）を基準に、回ごとに 2 列ずつずらして
+//   「同じ場所を 3 回掃かない」規則を保つ。位相は 2 本が同時に同じ向きへ寄らないよう 180 度差。
 const SNAKE_LANES = [
-  { col: 2, phase: 0 },
-  { col: 7, phase: (2 * Math.PI) / 3 },
-  { col: 12, phase: (4 * Math.PI) / 3 },
+  { col: 4, phase: 0 },
+  { col: 11, phase: Math.PI },
 ];
-// v19: 2 回目・3 回目の鎖は中心列を変える（同じ場所を 3 回掃かない）。
-//   1 回目 2/7/12 → 2 回目 4/9/14 → 3 回目 1/6/11。どれも間隔 5 列で、
-//   振幅 0.95 ユニットぶん往復しても画面（x = 0〜32）からはみ出さない。
-//   位相は 3 本が同時に同じ向きへ寄らないよう 120 度差のまま、組ごとに初期位相をずらす。
 const SNAKE_LANES2 = [
-  { col: 4, phase: Math.PI / 3 },
-  { col: 9, phase: Math.PI },
-  { col: 14, phase: (5 * Math.PI) / 3 },
+  { col: 6, phase: Math.PI / 3 },
+  { col: 13, phase: (4 * Math.PI) / 3 },
 ];
 const SNAKE_LANES3 = [
-  { col: 1, phase: (2 * Math.PI) / 3 },
-  { col: 6, phase: (4 * Math.PI) / 3 },
-  { col: 11, phase: 0 },
+  { col: 2, phase: (2 * Math.PI) / 3 },
+  { col: 9, phase: (5 * Math.PI) / 3 },
 ];
 // v27 (8): 鎖 4 回目（54.5833s）。1〜3 回目のどれとも中心列が重ならない 3 / 8 / 13。
 const SNAKE_LANES4 = [
