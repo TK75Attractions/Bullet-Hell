@@ -123,6 +123,14 @@ public struct BulletV2UpdateJob : IJobParallelFor
         bullet.velocity = velocity;
         bullet.position = newPosition;
 
+        // 描画角を polarForm.y で持つ弾（useVelocityAngle=false。石工の集合タイル等）は、
+        // v1 の BulletDataUpdateJob と同じく thetaVlc で自転させる。v2 の位置は segments
+        // だけで決まるので位置には影響しない。useVelocityAngle=true の弾は従来どおり不変。
+        if (!bullet.useVelocityAngle)
+        {
+            bullet.polarForm.y += bullet.thetaVlc * stepDt;
+        }
+
         if (math.lengthsq(bullet.velocity) > AngleVelocityEpsilonSq)
         {
             float a = GetAngleRad(bullet.velocity.x, bullet.velocity.y);

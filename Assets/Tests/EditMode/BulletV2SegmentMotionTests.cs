@@ -56,6 +56,46 @@ public class BulletV2SegmentMotionTests
         };
     }
 
+    // v29b: useVelocityAngle=false の v2 弾は polarForm.y が thetaVlc で進む（描画角の自転）。
+    //        useVelocityAngle=true の弾（既存の v2 弾すべて）は polarForm.y が不変。
+    [Test]
+    public void Segments_SpinAdvancesPolarFormOnlyWhenNotUsingVelocityAngle()
+    {
+        BulletData spinning = MakeBaseBullet();
+        spinning.useVelocityAngle = false;
+        spinning.thetaVlc = 2f;
+        spinning.v2Segments.Add(new BulletV2Segment { duration = 0f, vlc = new float2(1f, 0f) });
+
+        BulletData plain = MakeBaseBullet();
+        plain.useVelocityAngle = true;
+        plain.thetaVlc = 2f;
+        plain.v2Segments.Add(new BulletV2Segment { duration = 0f, vlc = new float2(1f, 0f) });
+
+        NativeArray<BulletData> arr = new NativeArray<BulletData>(2, Allocator.Temp);
+        arr[0] = spinning;
+        arr[1] = plain;
+        try
+        {
+            BulletV2UpdateJob job = new BulletV2UpdateJob
+            {
+                bullets = arr,
+                dt = 0.5f,
+                grid = CreateGrid(),
+                playerVelocity = float2.zero,
+                playerPosition = float2.zero
+            };
+            job.Execute(0);
+            job.Execute(1);
+            Assert.AreEqual(1f, arr[0].polarForm.y, 1e-4f, "useVelocityAngle=false は thetaVlc*dt だけ回る");
+            Assert.AreEqual(0.5f, arr[0].position.x, 1e-4f, "位置は segments どおり（自転は位置に影響しない）");
+            Assert.AreEqual(0f, arr[1].polarForm.y, 1e-6f, "useVelocityAngle=true は不変");
+        }
+        finally
+        {
+            arr.Dispose();
+        }
+    }
+
     [Test]
     public void HasV2Motion_FalseWhenNoSegmentsOrHoming()
     {
