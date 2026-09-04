@@ -587,8 +587,11 @@ const V27C_FALL = 63.3266;        // 上 2 列が重力で落下（手打ち 63.
 const V27C_CHAIN_LR = 63.8723;    // 左右の 2 列を鎖攻撃（手打ち 63.860 / onset low x1.28）
 const V27C_CHAIN_B = 65.0101;     // 下の列を鎖攻撃＋上の列にも置く（手打ち 65.095 / onset low x1.32）
 const V27C_BAND_END = 66.0;       // この区間のタイルの最終消滅（次のブロックは 66.6645 から）
-// 横から入るシャベル（縦並び 3 本）。右 2 列（列 14-15 ＝ x 28〜32）に被らない x で止める。
-const V27C_SIDE_YS = [3, 9, 15];
+// 横から入るシャベル（縦並び）。右 2 列（列 14-15 ＝ x 28〜32）に被らない x で止める。
+// v29 (7): 指示 56.673「どちらも数を増やして」→ 3 本 → 5 本。画面の高さ 18 を 5 等分して
+//   3.6 ユニット間隔（1.8 / 5.4 / 9.0 / 12.6 / 16.2）。シャベルの当たり幅 2.82 より広いので
+//   隣どうしは重ならず、隙間は 0.78 ユニット残る。
+const V27C_SIDE_YS = [1.8, 5.4, 9.0, 12.6, 16.2];
 const V27C_SIDE_STOP_R = 25.0;    // 右から来て止まる x（右端 25+2.76=27.76 < 28）
 const V27C_SIDE_STOP_L = 7.0;     // 左から来て止まる x（左端 7-2.76=4.24 > 4）
 const V27C_SIDE_BEND_D = 0.9;     // 「すこし曲がる」距離
@@ -597,7 +600,10 @@ const V27C_DROP_XS = [3, 8.2, 13.4, 18.6, 23.8, 29];
 const V27C_DROP_REST_Y = 11.5;    // 上端 11.5+2.76=14.26 ＝ 行 7 のすぐ下
 const V27C_DROP_FALL = 0.55;      // 落下にかける秒数（静止位置へ着くまで）
 const V27C_BOUNCE = [0.25, 0.30, 0.45, 0.50];   // バウンドの反発係数（4 回で収束）
-const V27C_SWAY_V = 6.0;          // ゆらゆらの横速度（1 往復 0.6s・振幅約 0.45 ユニット）
+// v29 (7): 指示 58.252「揺らすのは縦方向にお願い。バウンドした流れでちょっと揺れる程度で
+//   いいです」→ 揺れの向きを x から y へ変え、振幅を 0.45 → 0.15 ユニットに落とす
+//   （振幅 = V27C_SWAY_V × V27C_SWAY_HALF / 4）。
+const V27C_SWAY_V = 2.0;          // ゆらゆらの縦速度（1 往復 0.6s・振幅約 0.15 ユニット）
 const V27C_SWAY_HALF = 0.30;
 const V27C_STACK_ACCEL = 40;      // 上 2 列が落ちるときの重力
 
@@ -3266,8 +3272,7 @@ export default stage(
           { dur: dB, ax: aB, ay: 0 },
           { dur: dC, ax: aC, ay: 0 },
         ], angle, 'sideshovel'));
-        // 着弾の演出（円形。指示 15 と同じ考え方で、正方形 1 枚ではなくリングにする）
-        s.at(tHit, roundBlastFx([hitX, y], METEOR_RING_SPEC, 'shovelhit'));
+        // v29 (7): 指示 56.673「シャベルの着弾エフェクトは要らないです」→ 着弾リングを削除。
       });
     }
 
@@ -3310,8 +3315,9 @@ export default stage(
       const swayDur = hold / nSway;
       const swayV = V27C_SWAY_V * Math.min(1, swayDur / V27C_SWAY_HALF);
       for (let i = 0; i < nSway; i++) {
-        const sg = { dur: swayDur, ax: (i % 2 === 0 ? -2 : 2) * swayV / swayDur, ay: 0 };
-        if (i === 0) { sg.vx = swayV; sg.vy = 0; }   // 揺れの入り口で縦の速度を止める
+        // v29 (7): 揺れは縦方向（バウンドの流れをそのまま小さく続ける）
+        const sg = { dur: swayDur, ax: 0, ay: (i % 2 === 0 ? -2 : 2) * swayV / swayDur };
+        if (i === 0) { sg.vx = 0; sg.vy = swayV; }   // 揺れの入り口で横の速度を止める
         segs.push(sg);
       }
       // 発射（等速で真下へ。V27C_FIRE_HIT ちょうどに最下段へ着く）
@@ -3322,7 +3328,7 @@ export default stage(
       s.at(land - V27C_DROP_FALL, shovelPath([x, SHOVEL_SPAWN_Y], [0, 0], segs, SHOVEL_ANGLE_DOWN, 'dropshovel'));
       // 着弾の放射弾（下側の列のタイル破壊と同時）
       s.at(V27C_FIRE_HIT, burst([x, METEOR_DROP_Y], k, 1.0));
-      s.at(V27C_FIRE_HIT, roundBlastFx([x, METEOR_DROP_Y], METEOR_RING_SPEC, 'shovelhit'));
+      // v29 (7): 着弾エフェクト（リング）を削除。タイル破壊と同時の放射弾は残す。
     });
 
     // --- 59.9946: 下側の列（行 0-1）のタイルを破壊 --------------------------------
