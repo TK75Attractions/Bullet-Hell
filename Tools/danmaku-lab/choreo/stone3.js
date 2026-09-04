@@ -685,13 +685,21 @@ const V28_FIN_BACK = beats(0.75);   // 戻す（ため）
 //     ・最寄りの拍頭 = 50.8333（BPM144・拍 122。+175ms）だが、この時刻に
 //       オンセットは立っていない（.tmp_v26/boss_pick.py の窓 [49.9,51.6] 一覧）
 //   v23 の「窓内の実オンセットを優先する」方針に従い、拍頭ではなく 50.6137 を採る。
-const BOSS_LAND_TIME = 50.6137;         // 着地＝降下 moveto 完了＝本体へ切り替わる瞬間（= MK17_TILE2）
+// v29 (6): 指示 52.302「敵の形態変化はまだしないで」。詠唱ボス（stone）から本体（golem）への
+//   切り替えは 50.6137（MK17_TILE2）だったが、この区間ではまだ変えず、**新しい弾幕が始まる
+//   66.6645（MK18_SLIDE1・ブロック A の頭＝右列タイルの左流し 1 回目）** へ送る。
+//   曲の構造でもここが 66.667s = bar 41 の頭で、直前の 65.0〜66.6 は音が薄くなる繋ぎ。
+//   「形態が変わる ＝ 攻撃の作りが変わる」を音の切れ目にそろえられる位置はここが最初。
+const BOSS_LAND_TIME = 66.6645;         // 着地＝降下 moveto 完了＝本体へ切り替わる瞬間（= MK18_SLIDE1）
 const BOSS_DESCEND_SEC = 0.833333;      // 降下時間（moveto duration。v25 から据え置き）
 // v28: ステージ末尾を 113.6 → 142.5 へ延ばした（最後の大爆破 141.6533 + 余韻 0.85 秒。
 //   旧「石工」と同じ末尾）。本体の消滅は endTime の 0.695152 秒前という v25 からの関係を保つ。
 const BOSS_BODY_END_TIME = 141.804848;  // 本体の消滅時刻（endTime 142.5 の 0.695152 秒前）
 const BOSS_CASTER_APPEAR = 4.145404;    // 詠唱ボス（stone）の出現時刻（v25 から据え置き）
-if (BOSS_LAND_TIME !== MK17_TILE2) throw new Error('BOSS_LAND_TIME は MK17_TILE2 と一致させること');
+// v29 (6): 指示 52.302「敵は最前面に表示して」。ボス 3 体（降下 golem・本体 golem・詠唱 stone）の
+//   SpriteRenderer.sortingOrder。弾・タイルより前に出す。自機は PlayerController が 100 を
+//   直に入れて「弾より前面」を確保しているので、それより 1 段だけ後ろの 90 にする。
+const BOSS_SORTING_ORDER = 90;
 
 // --- v21: 指示書マーカー 18〜42（66.8〜103.3s）の採用時刻 ------------------------
 //   丸めルールは v17/v19 と同じ（16 分音符へ丸め、±80ms 以内に音源のオンセットが
@@ -700,6 +708,7 @@ if (BOSS_LAND_TIME !== MK17_TILE2) throw new Error('BOSS_LAND_TIME は MK17_TILE
 //   ずれの大きかったもの: 39（99.663 → 99.5904・-73ms・flux 110.5）、
 //   40（100.092 → 100.0141・-78ms・flux 111.7）。どちらも窓（±80ms）の内側。
 const MK18_SLIDE1 = 66.6645;    // 18 右列タイル①（左向き重力）
+if (BOSS_LAND_TIME !== MK18_SLIDE1) throw new Error('BOSS_LAND_TIME は MK18_SLIDE1 と一致させること');
 const MK19_SLIDE2 = 67.4946;    // 19 右列タイル②
 const MK20_SLIDE3 = 68.3247;    // 20 右列タイル③
 const MK21_SLIDE4 = 69.1606;    // 21 右列タイル④
