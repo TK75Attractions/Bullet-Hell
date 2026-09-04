@@ -945,6 +945,22 @@ const BLINK_LEAD = beats(1);       // 点滅を始める時刻（爆破の1拍�
 // baseSprite/maskSprite が stone_block と同じなので、同じ scale・同じ座標に置くとタイルの
 // 面にぴったり重なる（角丸の形まで一致する）。拡大しないので v6 のような「枠」にならない。
 const BLINK_TYPE = 'stone3_flash';   // v12: stone_flash の複製（スプライトが stone3_tile）
+// v26 (B): 拍頭のポップ（flashPop）専用の弾種。絵は stone3_tile.png と完全に同一で、
+//   差し替えたのは **着色マスクだけ**（Tools/gen_stone3_pixel.py の build_pop_mask /
+//   POP_CORNER_CUT=7）。
+//   BulletIndirectURP.shader の通常弾パスは着色時に
+//     tintStrength = mask * hasTint;  baseCol.a = max(baseCol.a, tintStrength) * appear;
+//   とし、mask は **マスク画像の R チャンネル**を読む。従来の to_mask() は背景を
+//   (255,255,255,0) で塗っていた＝アルファ 0 でも R は 255 で、インポート設定が
+//   alphaIsTransparency のため透明部の色が保たれ、シェーダから見ると mask は全面 1 だった。
+//   その結果、着色されたポップは絵の輪郭（角を 5 ドット落とした八角形）と無関係に
+//   「128x128 の塗り潰し正方形」として描かれていた（実測: Captures/stone_v26_frames）。
+//   stone3_pop のマスクは背景を不透明な黒にし、白い範囲を「絵が不透明なドット全部から
+//   4 隅を 7 ドット落としたもの」にしてある。縁まで白いのでポップは今までどおり
+//   一枚の閃光のままで、変わるのは角だけ。
+//   タイル本体・予告・点滅・tilePop は stone3_flash / stone3_tile のまま（tilePop は
+//   収束後に実体タイルと寸分違わず重なる前提なので形を変えない）。
+const POP_TYPE = 'stone3_pop';
 const FADE_OUT_SEC = 0.1;     // BulletRenderSystem.cs:13 disappearDuration（life 末尾の減衰時間）
 const BLINK_SUB = 1 / 60;     // 山を作るコマの間隔（1ゲームフレーム相当）
 const BLINK_STEPS = 6;        // 1山あたりのコマ数（hold=0 に解けたコマは出さない）
@@ -1158,7 +1174,7 @@ function tilePop(cells, kind) {
 //   verts 空なので当たり判定は無い。delay を入れるとその秒数だけ待ってから光る。
 function flashPop(pos, delay, s0, s1, dur, kind) {
   return warnClip([{
-    type: BLINK_TYPE,
+    type: POP_TYPE,      // v26 (B): 角を落としたマスクの弾種
     pos: [pos[0], pos[1]],
     scale: [s0, s0],
     color: POP_COLOR_START,
