@@ -715,8 +715,18 @@ const MK29_SLIDE_AGAIN = 79.9869;   // 29 右列タイル again（18〜21 の相
 //   +170 ms ずれていて、4 枚目が 85.5868 ＝ 手打ちの +154 ms になっていた。拍 199 へ移すと
 //   4 枚目が 85.4167 ＝ 手打ち 85.433 の -16 ms に収まる。
 const MK30_TILE5 = B(199);      // 30 タイル攻撃 5 回（2 拍間隔）82.916667
-const MK31_SLIDE_AGAIN2 = B(208.5); // 31 右列タイル again 2 回目（v27 (12): 86.8659 → 86.875）
-const MK32_TILE_SHOW = B(216);  // 32 タイル表示 again（帯へ積む・6 拍）v27 (12): 89.9889 → 90.0
+// v29 (3): 指示書 v29 で 83.356 / 84.023 / 84.635 / 85.267 / 85.895 / 86.320 の 6 点に
+//   「1〜6」の番号が振られた（＝タイルを出してほしいタイミング）。v23 の規則
+//   （手打ちの [−180ms, +40ms] 窓のオンセット優先）で採った 6 時刻に置き換える。
+//   差は順に −31 / −25 / −62 / −67 / −68 / −81 ms、拍は 199.98 / 201.60 / 202.97 /
+//   204.48 / 205.98 / 206.97。#2 だけ 8 分グリッドから外れる（low x2.19 の単独オンセット）。
+const V29_TILE6_TIMES = [83.3248, 83.9982, 84.5729, 85.1998, 85.8268, 86.2389];
+// v29 (3): 91.87 の回答「いい感じに曲のタイミングと合わせて」に従い、v27 (12) で
+//   8 分グリッドへ丸めていた 2 点をオンセットそのものへ戻す（86.875→86.8659・90.0→89.9889）。
+//   marker 32 の 6 拍は 1 拍間隔のままで、各点は最寄りのオンセットと +0〜+7 ms しか違わない
+//   （実測: full x1.04〜2.81）ので間隔は触らない。
+const MK31_SLIDE_AGAIN2 = 86.8659; // 31 右列タイル again 2 回目
+const MK32_TILE_SHOW = 89.9889;  // 32 タイル表示 again（帯へ積む・6 拍）
 const MK33_BLAST1 = B(224);     // 33 タイル爆破（2 枚）v27 (12): 93.3210 → 93.3333
 const MK34_BLAST2 = B(228);     // 34 タイル爆破（2 枚）v27 (12): 94.9928 → 95.0
 const MK35_BLAST3 = B(232);     // 35 爆破（2 枚）v27 (12): 96.6531 → 96.6667
@@ -2377,7 +2387,7 @@ export default stage(
       const bandCells = cfg.bandCells || BAND_CELLS;
       const centerCells = cfg.centerCells || CENTER_CELLS;
       const preBlocked = cfg.preBlocked || new Set();
-      const bandOccupied = new Set(preBlocked);   // 既に埋まっている扱い（再抽選しない）
+      let bandOccupied = new Set(preBlocked);   // 既に埋まっている扱い（再抽選しない）
       const bandTiles = [];
       // v17: 拍等間隔（firstBeat + len）のほかに、任意の時刻列 cfg.times を渡せるようにした。
       //   指示書のマーカーは等間隔ではないので、補充（区間⑨' の (e)）はこちらを使う。
@@ -2391,6 +2401,17 @@ export default stage(
       for (let i = 0; i < strikes.length; i++) {
         const strike = strikes[i];
         const myLead = cfg.leads ? cfg.leads[i] : lead;
+        // v29 (3): cfg.clearEachStrike を渡すと、帯へ積んだタイルも「次の表示が出るまで」で
+        //   消える（＝積み上がらない）。指示 85.42「このタイルは残さず、出すごとに消してほしい
+        //   （次の攻撃の視認性が死ぬので）」。最後の 1 回は cfg.finalEnd で消す。
+        //   消えるタイルは claimed 済みにして、あとの爆破区間・鎖が対象に取らないようにする
+        //   （blastPhase / chainAttackG は claimed を飛ばし、end を書き換えないため）。
+        const myBandEnd = cfg.clearEachStrike
+          ? (i + 1 < strikes.length ? strikes[i + 1]
+             : (cfg.finalEnd !== undefined ? cfg.finalEnd : cfg.bandEnd))
+          : cfg.bandEnd;
+        const myClaimed = !!cfg.clearEachStrike;
+        if (cfg.clearEachStrike) bandOccupied = new Set(preBlocked);   // 毎回まっさらから選び直す
         // 中央の一時タイルは「次のタイルが出るまで」に消す。等間隔（cfg.times 無し）の
         // 呼び出しでは従来どおり厳密に 1 拍にする（引き算で丸め誤差を出さないため）。
         const centerLife =
@@ -2439,7 +2460,7 @@ export default stage(
           }
           bandPicks.push(cell);
           bandOccupied.add(k);
-          bandTiles.push({ col: cell[0], row: cell[1], strike, end: cfg.bandEnd, lead: 0, claimed: false });
+          bandTiles.push({ col: cell[0], row: cell[1], strike, end: myBandEnd, lead: 0, claimed: myClaimed });
         }
 
         // (c) 中央のタイル（拍末で消える一時タイル）。こちらも連結を壊さない範囲で置く。
@@ -3581,17 +3602,21 @@ export default stage(
     // マーカー 30: タイル攻撃 5 回（83.229s から 2 拍間隔）。区間①③と同じ出現ポップで
     //   外周ぐるりの帯へ積む。ここで積んだ帯がマーカー 33〜36 の爆破対象になる。
     const bandF = tilePhase({
-      times: TILE5_TIMES,
-      leads: TILE5_TIMES.map(function () { return beats(1); }),
+      times: V29_TILE6_TIMES,
+      leads: V29_TILE6_TIMES.map(function () { return beats(1); }),
       centerRate: CENTER_RATE,
       bandTarget: BAND_TARGET,
       bandCells: BAND_CELLS,
       bandEnd: V21_BAND_END,
+      clearEachStrike: true,          // v29 (3): 出すごとに前の表示を消す
+      finalEnd: MK31_SLIDE_AGAIN2,    // 6 回目もマーカー 31 の頭で消える（残さない）
       pinStartGap: false,
     });
 
     // マーカー 31: 右列タイルの左流し again 2 回目（86.875〜89.282s）
-    SLIDE_TIMES_C.forEach(function (t) { slideWave(t); });
+    //   v29 (3): マーカー 32 の表示に被らないよう、endBy にマーカー 32 の頭を渡して
+    //   その時刻で流し終える（v27 (11) と同じ「残さず消す」扱い）。
+    SLIDE_TIMES_C.forEach(function (t) { slideWave(t, MK32_TILE_SHOW); });
 
     // マーカー 32: タイル表示 again（90.012s から 1 拍間隔で 6 拍）。既に画面にある
     //   bandF の残りを preBlocked に渡し、自機の通路が塞がらないように積み足す。
@@ -3644,6 +3669,16 @@ export default stage(
       CHAIN_V_FAST, MK39_CHAIN_MID - 0.35, MK39_CHAIN_MID - 0.15, MK39_CHAIN_MID,
       [{ col: 4, phase: Math.PI }], bandF.concat(bandG)
     );
+
+    // v29 (3): マーカー 30 のタイル表示を 5 回 → 6 回（指示の番号 1〜6）へ変え、さらに
+    //   出すごとに消す（積み上げない）ようにしたので、ここまでに rng を呼ぶ回数が v28 と
+    //   変わる。残留タイルが減ったぶん、マーカー 33〜39（爆破 2 枚 ×4・鎖 3 種）が壊す枚数も
+    //   変わるため、乱数の位置合わせはこの 3 ブロックの**あと**でないと効かない。
+    //   v27 と同じ手（mulberry32 は 1 回の呼び出しで内部状態が 0x6d2b79f5 進むだけ）で、
+    //   マーカー 40 の直前に「v28 でここへ来たときの状態」へ戻す。v28 の呼び出し回数は
+    //   3577 行の reseed 以降で easy 1224 / normal 1131 / lunatic 1089（実測）。
+    //   これで 100.0s 以降のランダムな配置は v28 から 1 発も動かない。
+    reseedRng((20260902 + D(2698 + 1224, 2596 + 1131, 2563 + 1089) * 0x6d2b79f5) % 4294967296);
 
     // マーカー 40-42: 落下隕石（中央 100.014s / 右 101.680s / 左 103.346s）。
     //   横断シャベル（区間⑤⑦）と同じく「着弾時刻」を先に決め、飛来時間ぶん手前で
