@@ -4062,5 +4062,81 @@ export default stage(
       3, true
     );
 
+    // --- 6〜7 / 10: 落ちてきて（上がってきて）止まる隕石 3 発＋順に割るシャベル ------
+    //   「重力付き」= 初速を持って入り、逆向きの一定加速度で減速して静止する。
+    //   静止したあとはシャベルが来るまでその場で自転しながら待つ。
+    function v28RestBlock(tAppear, tHit, restY, fromY, idx) {
+      const dv = (2 * (restY - fromY)) / V28_REST_FALL;   // 入ってくるときの初速
+      const acc = -dv / V28_REST_FALL;                    // 静止するための逆向き加速度
+      V28_REST_XS.forEach(function (x, k) {
+        const from = [x, fromY];
+        const segs = [
+          { dur: V28_REST_FALL, ax: 0, ay: acc },
+          { dur: tHit[k] - tAppear[k] - V28_REST_FALL, ax: 0, ay: 0, vx: 0, vy: 0 },
+        ];
+        s.at(tAppear[k], meteorPath(from, [0, dv], segs, 'meteorrest'));
+        s.at(tAppear[k], meteorPathTrail(from, [0, dv], segs, V28_REST_FALL, 'meteorresttrail'));
+        v28EntryFlash(tAppear[k], meteorPathPos(from, [0, dv], segs), V28_REST_FALL, 'meteorspawn');
+        v28MeteorBlast(tHit[k], [x, restY], idx + k);
+      });
+      // 3 発を順に割る 1 本のシャベル。①と③の時刻で決めた等速で左から入る
+      //   （②の通過は設計上 +2.9 ms ずれる。3 発が等間隔・時刻もほぼ等間隔なので実害なし）。
+      const sp = (V28_REST_XS[2] - V28_REST_XS[0]) / (tHit[2] - tHit[0]);
+      s.at(tHit[0] - (V28_REST_XS[0] - SHOVEL_LEFT_X) / sp, shovel({
+        pos: [SHOVEL_LEFT_X, restY],
+        vel: [sp, 0],
+        angle: SHOVEL_ANGLE_RIGHT,
+        life: (SHOVEL_RIGHT_X - SHOVEL_LEFT_X) / sp,
+      }));
+    }
+
+    v28RestBlock(
+      [V28_B1, V28_B2, V28_B3], [V28_C1, V28_C2, V28_C3],
+      V28_REST_LOW_Y, V28_REST_FROM_Y, 6
+    );
+    // 10: 同じ攻撃を上下反転して上側で。頭（V28_E_TOP）以外のマーカーが無いので、
+    //     6〜7 の相対間隔をそのまま写す。
+    const V28_E_SHIFT = V28_E_TOP - V28_B1;
+    v28RestBlock(
+      [V28_B1 + V28_E_SHIFT, V28_B2 + V28_E_SHIFT, V28_B3 + V28_E_SHIFT],
+      [V28_C1 + V28_E_SHIFT, V28_C2 + V28_E_SHIFT, V28_C3 + V28_E_SHIFT],
+      V28_REST_HIGH_Y, V28_REST_UP_Y, 9
+    );
+
+    // --- 8: 右側から縦一列のシャベルを、上から順に半拍ずつずらして発射 --------------
+    const V28_SIDE_LIFE = (SHOVEL_RIGHT_X - SHOVEL_LEFT_X) / SHOVEL_SIDE_SPEED;
+    V28_SIDE_YS.forEach(function (y, k) {
+      s.at(V28_D_SIDE + k * V28_SIDE_STAGGER, shovel({
+        pos: [SHOVEL_RIGHT_X, y],
+        vel: [-SHOVEL_SIDE_SPEED, 0],
+        angle: SHOVEL_ANGLE_LEFT,
+        life: V28_SIDE_LIFE,
+      }));
+    });
+
+    // --- 9: 上側から、左から順に 1/3 拍ずつずらしてシャベルを落とす -----------------
+    const V28_TOP_LIFE = (SHOVEL_SPAWN_Y - V28_TOP_FALL_END_Y) / SHOVEL_FALL_SPEED;
+    V28_TOP_XS.forEach(function (x, k) {
+      s.at(V28_D_TOP + k * V28_TOP_STAGGER, shovel({
+        pos: [x, SHOVEL_SPAWN_Y],
+        vel: [0, -SHOVEL_FALL_SPEED],
+        angle: SHOVEL_ANGLE_DOWN,
+        life: V28_TOP_LIFE,
+      }));
+    });
+
+    // --- 11〜12: 一列に揃えたシャベルの壁を右から左へ。1 レーンだけ空けて抜け穴にする -
+    [[V28_F1, V28_WALL_GAP1], [V28_F2, V28_WALL_GAP2]].forEach(function (w) {
+      V28_WALL_YS.forEach(function (y, k) {
+        if (k === w[1]) return;   // ここが抜け穴
+        s.at(w[0], shovel({
+          pos: [SHOVEL_RIGHT_X, y],
+          vel: [-SHOVEL_SIDE_SPEED, 0],
+          angle: SHOVEL_ANGLE_LEFT,
+          life: V28_SIDE_LIFE,
+        }));
+      });
+    });
+
   }
 );
