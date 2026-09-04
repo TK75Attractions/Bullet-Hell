@@ -508,7 +508,7 @@ const MK4_TILEWARN = 35.8168;      // タイル予告開始（＝鎖を生き延
 const MK5_TILE1 = 36.6527;         // タイル①
 const MK6_TILE2 = 37.3435;         // タイル②
 const MK7_TILE3 = 38.1678;         // タイル③
-const MK8_TILE4 = 39.1546;         // タイル④
+const MK8_TILE4 = 38.5277;   // v27 (3): 39.1546 から前倒し（手打ち 38.629 / onset full x4.58）//         // タイル④
 const REFILL_TIMES = [MK5_TILE1, MK6_TILE2, MK7_TILE3, MK8_TILE4];
 // 予告は各タイルの実体化まで出しっぱなし。①は MK4 から、②〜④は前のタイルの実体化直後から。
 const REFILL_LEADS = [
@@ -540,6 +540,32 @@ const TILE2_TIMES = [MK13_TILE1, MK14_TILE2];
 const TILE2_LEADS = [MK13_TILE1 - MK12_TILEWARN, MK14_TILE2 - MK13_TILE1];
 const TILE3_TIMES = [MK17_TILE1, MK17_TILE2];
 const TILE3_LEADS = [MK17_TILE1 - MK17_TILEWARN, MK17_TILE2 - MK17_TILE1];
+
+// --- v27: 指示書 Instructions/石工/stage-timing-markers_20260904_v27.json ----------
+//   timeLabel（ステージ秒）= エディタ内部時刻 + 6.559（33 マーカーとも一定）。
+//   採用は v23 と同じ規則（手打ちの [-180ms, +40ms] 窓のオンセット優先／無ければ 8 分丸め）。
+//   採用の根拠と手打ちとの差は .tmp_v27/progress.md の表。
+//
+//   (1)(4)(6)(8) 鎖攻撃は「予告①・予告②を 8 分ずらして 2 組出す → 攻撃はまとめて 1 回」へ。
+//   ユーザーの手打ち 33.615 / 33.841 がちょうど 8 分（0.2083s）差だったので、
+//   予告②は「予告① + 8 分」で置く（窓内オンセットは low x1.09 と極弱なので不採用）。
+const V27_C1_WARN_A = 33.6341;                      // 鎖1 予告①（手打ち 33.615 / onset full x1.25・mid x1.46）
+const V27_C1_WARN_B = V27_C1_WARN_A + beats(0.5);   // 33.8424（手打ち 33.841 と 1.4ms）
+const V27_C2_WARN_A = 40.1995;                      // 鎖2 予告①（手打ち 40.249 / onset low x1.30）
+const V27_C2_WARN_B = V27_C2_WARN_A + beats(0.5);   // 40.4078
+const V27_C3_WARN_A = 46.8056;                      // 鎖3 予告①（手打ち 46.889 / onset low x1.15）
+const V27_C3_WARN_B = V27_C3_WARN_A + beats(0.5);   // 47.0139
+const V27_C4_WARN_A = 53.7368;                      // 鎖4 予告①（手打ち 53.815 / onset full x1.56）
+const V27_C4_WARN_B = V27_C4_WARN_A + beats(0.5);   // 53.9451
+const V27_C4_CHAIN = B(131);                        // 54.5833 鎖4 攻撃（予告②の 1.5 拍あと）
+// (5) 45.0 の「同時 4 枚爆破」→「拍に合わせて 4 回、1 枚ずつずらして爆破」
+const V27_BLAST4_TIMES = [0, 1, 2, 3].map(function (k) { return MK15_BLAST4 + beats(k); });
+//     44.9887 / 45.4054 / 45.8220 / 46.2387（4 回目は手打ち 46.315 の -76ms）
+// (7) 51.5 タイル爆破 x4 ＋ 同じ場所にタイル攻撃 / 51.9 タイル爆破 x4
+const V27_BLAST_A = 51.5483;                        // 手打ち 51.545 / onset full x2.61・mid x2.95
+const V27_BLAST_B = 51.9314;                        // 手打ち 52.084 / onset low x1.37
+// (8) タイル攻撃（鎖 4 のあと）
+const V27_TILE_ATTACK = 55.8266;                    // 手打ち 55.898 / onset full x1.59
 
 // --- v26 (A): ボス（golem）の出現・着地時刻 --------------------------------------
 //   石工のボスは stage.json 側の bossSpawners 3 件（golem 降下用 / golem 本体 /
@@ -1260,6 +1286,12 @@ const SNAKE_LANES3 = [
   { col: 6, phase: (4 * Math.PI) / 3 },
   { col: 11, phase: 0 },
 ];
+// v27 (8): 鎖 4 回目（54.5833s）。1〜3 回目のどれとも中心列が重ならない 3 / 8 / 13。
+const SNAKE_LANES4 = [
+  { col: 3, phase: Math.PI },
+  { col: 8, phase: (5 * Math.PI) / 3 },
+  { col: 13, phase: Math.PI / 3 },
+];
 // v16: 鎖を専用スプライト stone3_chain（タイルより小さい正方形・一段明るい面）にした。
 // v17 でも見た目（スプライト・サイズ 1.15 ユニット）は v16 のまま。
 const SNAKE_TILE_SCALE = 0.625;
@@ -1876,7 +1908,11 @@ export default stage(
     endTime: 113.6,
   },
   (s) => {
-    const rng = makeRng(20260902);
+    // v27: 前半（33.6〜56s）の内容を変えたぶん乱数の消費数が変わる。後半（66.8s〜）へ
+    //   入る前に乱数の位置を v26 と同じところへ戻せるよう、差し替えられる形にしておく。
+    let rngState = makeRng(20260902);
+    const rng = function () { return rngState(); };
+    function reseedRng(seed) { rngState = makeRng(seed); }
     const lead = beats(WARN_BEATS);
     // v11: 中央（12x5 = 60 セル）に毎拍出す一時タイルの密度。
     //   v10 は 10x3 = 30 セルに D(0.125, 0.165, 0.20)＝毎拍 4/5/6 枚。セル数が倍になったので
@@ -2262,11 +2298,20 @@ export default stage(
     //   鎖を生き延び、MK4_TILEWARN（35.9375s）でまとめて崩れる。
     //   emitBandTiles(bandB) より前に end を書き換える必要がある。
     const snakeBroken = [];
+    // v27 (2): 手打ち 36.456（= 鎖の最終段が消える 36.4375）で画面のタイルが全部消えて
+    //   しまうのをやめる。鎖 1 回目を生き延びたタイルは MK4_TILEWARN で崩さず
+    //   **そのまま残し**、次の鎖（2 回目・MK11_CHAIN）が掃いた時に砕けるようにする。
+    //   掃かれなかったぶんはマーカー 12（タイル予告開始 2 回目・42.4925s）で崩れる。
+    //   emitBandTiles(bandB) はこの直後なので、消える時刻はここで確定させる必要がある。
+    const bandBHeld = [];
     bandB.forEach(function (t) {
       if (t.claimed) return;
       const hit = snakeBreakTime(t.col, t.row, MK3_CHAIN, SNAKE_LANES);
       if (hit === null) {
-        t.end = MK4_TILEWARN;   // 鎖の通過後、マーカー④（タイル予告開始）でまとめて崩れる
+        const hit2 = snakeBreakTime(t.col, t.row, MK11_CHAIN, SNAKE_LANES2);
+        t.end = hit2 === null ? MK12_TILEWARN : hit2;
+        if (hit2 !== null) t.lead = BLAST_LEAD_OUT;
+        bandBHeld.push(t);
         return;
       }
       t.claimed = true;
@@ -2492,9 +2537,9 @@ export default stage(
     //   emptyIsConnected が全候補を弾いてしまう（lunatic で区間⑬が 0 枚になる不具合を実測）。
     const EXT_BAND_TARGET = D(0.31, 0.40, 0.45);
 
-    // (a)(b) 予告 2 連（同じ帯を 2 段階で濃くする）
-    s.at(MK1_WARN1, snakeWarn(SNAKE_LANES, STONE_PATH, MK2_WARN2 - MK1_WARN1, 'snakewarn1'));
-    s.at(MK2_WARN2, snakeWarn(SNAKE_LANES, STONE_WARN, MK3_CHAIN - MK2_WARN2, 'snakewarn2'));
+    // (a)(b) v27 (1): 予告を 2 組に分け、8 分ずらして出す（外側 2 本 → 中央 1 本）。
+    //   攻撃（鎖の出現）は 34.3750 に揃えたまま＝「予告① → 予告② → まとめて攻撃」。
+    emitSplitWarn(SNAKE_LANES, V27_C1_WARN_A, V27_C1_WARN_B, MK3_CHAIN);
 
     // (c) 鎖 3 本。1 段 = 弾 1 発（v2 レーンの折れ線）＋出現フラッシュ 1 発。
     //     v17: 段の間隔 1.15 ユニット（隙間なく接する）× 16 段 × 0.09375s = 1.500s で縦断。
@@ -2534,7 +2579,11 @@ export default stage(
       }
     });
 
+    // v27 (2): 鎖 1 を生き延びて画面に残っているタイルのセル。補充（bandC）は
+    //   ここを避けて積む（重ね置きの防止と、自機の通路を残す連結判定のため）。
+    const heldKeys = new Set(bandBHeld.map(function (t) { return key(t.col, t.row); }));
     const bandC = tilePhase({
+      preBlocked: heldKeys,
       times: REFILL_TIMES,
       leads: REFILL_LEADS,
       centerRate: CENTER_RATE,
@@ -2579,9 +2628,23 @@ export default stage(
     //   予告①（薄い縦帯）→ 予告②（同じ帯を濃く）→ 鎖 3 本（16 段 × 0.09375s = 1.500s で
     //   下から上へ縦断）→ 掃かれた残留タイルの破壊 → 砕けたタイルからの放射弾
     // を、中心列（lanes）と時刻だけ変えて出す。戻り値は砕けたタイルの一覧。
-    function chainAttack(warn1, warn2, t0, lanes, tiles) {
-      s.at(warn1, snakeWarn(lanes, STONE_PATH, warn2 - warn1, 'snakewarn1'));
-      s.at(warn2, snakeWarn(lanes, STONE_WARN, t0 - warn2, 'snakewarn2'));
+    // v27 (1)(4)(6)(8): 鎖の予告を 2 組に分けて 8 分ずらして出す。
+    //   組 A = 外側の 2 本（lanes[0], lanes[2]）／組 B = 中央の 1 本（lanes[1]）。
+    //   どちらの組も「薄い STONE_PATH → 8 分後に濃い STONE_WARN」で、濃い予告は
+    //   攻撃の瞬間まで出しっぱなし。攻撃（鎖の出現）は 1 回にまとめる。
+    function emitSplitWarn(lanes, tA, tB, tAttack) {
+      const half = beats(0.5);
+      const groupA = lanes.filter(function (_, i) { return i !== 1; });
+      const groupB = lanes.filter(function (_, i) { return i === 1; });
+      [[groupA, tA], [groupB, tB]].forEach(function (g) {
+        if (g[0].length === 0) return;
+        s.at(g[1], snakeWarn(g[0], STONE_PATH, half, 'snakewarn1'));
+        s.at(g[1] + half, snakeWarn(g[0], STONE_WARN, tAttack - (g[1] + half), 'snakewarn2'));
+      });
+    }
+
+    function chainAttack(warnA, warnB, t0, lanes, tiles) {
+      emitSplitWarn(lanes, warnA, warnB, t0);
       lanes.forEach(function (lane) {
         for (let k = 0; k < SNAKE_STEPS; k++) {
           const at = snakeRowWindow(t0, k)[0];
@@ -2620,7 +2683,10 @@ export default stage(
     //   1 回目を生き延びて残っている上下の帯（bandC）のセルにも破壊が起きる。
     //   掃かれなかったタイルはそのまま画面に残り、マーカー 15 の爆破対象になる。
     // ----------------------------------------------------------------------
-    chainAttack(MK9_WARN1, MK10_WARN2, MK11_CHAIN, SNAKE_LANES2, bandC);
+    // v27 (4): 予告 40.1995 / 40.4078（手打ち 40.249）。攻撃は 41.2386 のまま。
+    //   対象には bandC に加えて「鎖 1 を生き延びて残っているタイル」も渡す
+    //   （消える時刻は emitBandTiles(bandB) の前に同じ式で確定済み）。
+    chainAttack(V27_C2_WARN_A, V27_C2_WARN_B, MK11_CHAIN, SNAKE_LANES2, bandC.concat(bandBHeld));
 
     // ----------------------------------------------------------------------
     // マーカー 12-14: 予告表示（42.510s）→ タイル①（43.346s）→ タイル②（43.967s）
@@ -2631,6 +2697,8 @@ export default stage(
     //   を上下＋左右の合計で行う。中央（12x5）にも一時タイルが出て次のタイルで消える。
     // ----------------------------------------------------------------------
     const aliveC = new Set(bandC.filter((t) => !t.claimed).map((t) => key(t.col, t.row)));
+    // v27 (2): マーカー 13/14 の時点でまだ残っている bandB のタイルも避ける
+    bandBHeld.forEach(function (t) { if (t.end > MK13_TILE1) aliveC.add(key(t.col, t.row)); });
     const bandD = tilePhase({
       times: TILE2_TIMES,
       leads: TILE2_LEADS,
@@ -2649,9 +2717,11 @@ export default stage(
     //   1 拍前から対象が点滅（blinkWarn）、半拍前に薄い予告とリング予告、
     //   45.006s ちょうどでタイルの life が尽き、同時に放射弾が 4 箇所から出る。
     // ----------------------------------------------------------------------
+    // v27 (5): 手打ち「拍に合わせて 4 回、ずらして爆破（4 回目が 46.3 付近）」に合わせ、
+    //   同時 4 枚 → 1 拍ごとに 1 枚ずつ 4 回（44.9887 / 45.4054 / 45.8220 / 46.2387）。
     blastPhase({
       tiles: bandC.concat(bandD),
-      shots: [{ time: MK15_BLAST4, n: 4 }],
+      shots: V27_BLAST4_TIMES.map(function (t) { return { time: t, n: 1 }; }),
     });
 
     // ----------------------------------------------------------------------
@@ -2659,8 +2729,9 @@ export default stage(
     //   中心列は 1 / 6 / 11。1 回目・2 回目のどちらとも重ならない位置で、
     //   左端の列 0-1（bandD の左の帯）も掃く。対象は上下＋左右の残り全部。
     // ----------------------------------------------------------------------
+    // v27 (6): 予告 46.8056 / 47.0139（手打ち 46.889）。攻撃 48.1176 は据え置き。
     const brokenD = chainAttack(
-      MK16_WARN1, MK16_WARN2, MK16_CHAIN, SNAKE_LANES3, bandC.concat(bandD)
+      V27_C3_WARN_A, V27_C3_WARN_B, MK16_CHAIN, SNAKE_LANES3, bandC.concat(bandD)
     );
 
     // ----------------------------------------------------------------------
@@ -2695,6 +2766,35 @@ export default stage(
     });
 
     // ----------------------------------------------------------------------
+    // ★ v27 (7) 51.5483 / 51.9314s — 指示書「タイル爆破 x4」「ここにもタイル攻撃」
+    //   「ここで 4 つくらいタイル爆破」
+    //   v19 では マーカー 17（50.6137s）から仮区間⑮（53.333s）まで新規の弾が無かった。
+    //   そこへ 2 回の爆破と 1 回のタイル攻撃を足す。
+    //     51.5483s … 在庫（bandC/D/E の残り）から 4 枚同時に爆破し、**同じ時刻に**
+    //                外周へタイルを積み直す（＝爆破で空いた場所へ次のタイルが来る）。
+    //     51.9314s … さらに 4 枚爆破（1 拍あと）。
+    //   爆破は blastPhase の 4 辺めぐりなので 4 枚は必ず左右上下に散る。
+    // ----------------------------------------------------------------------
+    const bandCDE = bandC.concat(bandD).concat(bandE);
+    blastPhase({ tiles: bandCDE, shots: [{ time: V27_BLAST_A, n: 4 }] });
+
+    const aliveCDE = new Set(
+      bandCDE.filter(function (t) { return !t.claimed; }).map(function (t) { return key(t.col, t.row); })
+    );
+    const bandH = tilePhase({
+      times: [V27_BLAST_A],
+      leads: [beats(1)],
+      centerRate: CENTER_RATE,
+      bandTarget: EXT_BAND_TARGET,
+      bandCells: BAND_CELLS,
+      preBlocked: aliveCDE,
+      bandEnd: B(EXT_END_BEAT),
+      pinStartGap: false,
+    });
+
+    blastPhase({ tiles: bandCDE, shots: [{ time: V27_BLAST_B, n: 4 }] });
+
+    // ----------------------------------------------------------------------
     // ⑮ 小節33-34 / 53.333s / 拍 128-135 — 休符（横断シャベルの往復・行ずらし）
     //   低域が小節を通して 30 前後に落ちる 2 小節。爆破もタイル追加もせず、
     //   横断シャベルだけを 2 拍おきに 4 組流す。左→右は行を下から上へ、
@@ -2720,6 +2820,45 @@ export default stage(
     }
 
     // ----------------------------------------------------------------------
+    // ★ v27 (8) 53.7368〜55.8266s — 指示書「また鎖予告→攻撃」「またタイル攻撃」
+    //   予告① 53.7368 / 予告② 53.9451（8 分あと）→ 攻撃 54.5833（拍 131）。
+    //   1〜3 回目と中心列が重ならない SNAKE_LANES4（3 / 8 / 13）を使う。
+    //   そのあと 55.8266s にタイル攻撃を 1 回（鎖で砕けたセルとその 4 近傍を優先）。
+    //   ※ 鎖の最終段が消えるのは 54.5833 + 2.06 = 56.64s、55.8266 で積んだタイルは
+    //     他の帯と同じ B(EXT_END_BEAT)=60.000s で消える。どちらも 56s をまたぐが、
+    //     これは指示 8 の内容そのものによるもの。
+    // ----------------------------------------------------------------------
+    const brokenH = chainAttack(
+      V27_C4_WARN_A, V27_C4_WARN_B, V27_C4_CHAIN, SNAKE_LANES4,
+      bandCDE.concat(bandH)
+    );
+    const refill4Priority = new Set();
+    brokenH.forEach(function (t) {
+      refill4Priority.add(key(t.col, t.row));
+      for (let d = 0; d < 4; d++) {
+        const nc = t.col + NEIGHBOR_DC[d];
+        const nr = t.row + NEIGHBOR_DR[d];
+        if (nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS) continue;
+        refill4Priority.add(key(nc, nr));
+      }
+    });
+    const aliveCDEH = new Set(
+      bandCDE.concat(bandH).filter(function (t) { return !t.claimed; })
+        .map(function (t) { return key(t.col, t.row); })
+    );
+    const bandI = tilePhase({
+      times: [V27_TILE_ATTACK],
+      leads: [beats(1)],
+      centerRate: CENTER_RATE,
+      bandTarget: EXT_BAND_TARGET,
+      bandCells: BAND_CELLS,
+      preBlocked: aliveCDEH,
+      priority: refill4Priority,
+      bandEnd: B(EXT_END_BEAT),
+      pinStartGap: false,
+    });
+
+    // ----------------------------------------------------------------------
     // ⑯ 小節35-36 / 56.667s / 拍 136-143 — 落下シャベル④＋放射弾増量（2 周目の頂点）
     //   低域が戻り（rms 0.40）、小節36 は 4 分の均等なアクセント。⑫と同じ形で
     //   1 拍目に 2 本同時、3 拍目に 1 本。放射弾だけ 1.3 倍に増やして頂点を作る。
@@ -2735,7 +2874,7 @@ export default stage(
     //   ⑫からは 13 秒離れていて画面にも残っていないので、列の重複を避ける集合は分ける
     //   （共有すると Easy で候補が尽きて 1 本しか出せなくなるのを実測した）。
     //   v19: ⑫⑬ を削除したので、対象は bandC / bandD の残りとマーカー 17 の bandE から採る。
-    const dropD = pickDropTargets(bandC.concat(bandD).concat(bandE), S16_IMPACTS.length, new Set());
+    const dropD = pickDropTargets(bandCDE.concat(bandH).concat(bandI), S16_IMPACTS.length, new Set());
     shovelBlastPhase(
       S16_IMPACTS.slice(0, dropD.length),
       claimDropTargets(dropD, S16_IMPACTS),
@@ -2887,6 +3026,14 @@ export default stage(
     // ----------------------------------------------------------------------
     // ブロックA — マーカー 18〜28（66.771〜79.688s）
     // ----------------------------------------------------------------------
+    // v27: 前半の変更で、ここへ来るまでの乱数の呼び出し数が
+    //   easy 2698 / normal 2596 / lunatic 2563（v26）→ 2985 / 2911 / 2871（v27）に増えた。
+    //   mulberry32 は 1 回の呼び出しで内部状態が 0x6d2b79f5 進むだけなので、
+    //   種を (20260902 + n * 0x6d2b79f5) mod 2^32 にすると「元の種で n 回呼んだ直後」と
+    //   まったく同じ続きになる。これで 66.8s 以降のランダム配置は v26 から 1 発も動かず、
+    //   後半の差分を「指示 9〜19 で意図的に変えたぶんだけ」に閉じ込められる。
+    reseedRng((20260902 + D(2698, 2596, 2563) * 0x6d2b79f5) % 4294967296);
+
     // マーカー 18-21: 右列タイルの左流し 4 回（66.771 / 67.512 / 68.348 / 69.178s）
     SLIDE_TIMES_A.forEach(function (t) { slideWave(t); });
 
@@ -3008,6 +3155,8 @@ export default stage(
     emitBandTiles(bandC);
     emitBandTiles(bandD);
     emitBandTiles(bandE);
+    emitBandTiles(bandH);   // v27 (7): 51.5483s のタイル攻撃
+    emitBandTiles(bandI);   // v27 (8): 55.8266s のタイル攻撃
     // v21: マーカー 30 / 32 で積んだ帯。使い切らなかったぶんは V21_BAND_END（100.60s）
     //   ＝ マーカー 38 の横の鎖が通り過ぎた直後に消える。
     emitBandTiles(bandF);
