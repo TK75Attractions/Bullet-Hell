@@ -20,6 +20,7 @@ public class BulletBufferManager
 
     [SerializeField] private List<BulletBuffer> bulletBuffers = new List<BulletBuffer>();
     [NonSerialized] private HashSet<string> loadedDirectoryNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    [NonSerialized] private Dictionary<string, int> bulletBufferIndexByName;
 
     [Serializable]
     private class BulletBufferJson
@@ -67,6 +68,7 @@ public class BulletBufferManager
     public void UnloadAllBulletBuffers()
     {
         bulletBuffers.Clear();
+        ClearBulletBufferIndex();
         EnsureLoadedDirectorySet();
         loadedDirectoryNames.Clear();
     }
@@ -124,6 +126,7 @@ public class BulletBufferManager
     private void ResetBuffers()
     {
         bulletBuffers.Clear();
+        ClearBulletBufferIndex();
         EnsureLoadedDirectorySet();
         loadedDirectoryNames.Clear();
 
@@ -131,6 +134,7 @@ public class BulletBufferManager
         bulletBuffers.Add(Line());
         bulletBuffers.Add(LineLaser());
         bulletBuffers.Add(Circle());
+        RebuildBulletBufferIndex();
     }
 
     private async Task LoadBaseBulletBuffersAsync()
@@ -154,6 +158,34 @@ public class BulletBufferManager
         {
             loadedDirectoryNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         }
+    }
+
+    // bulletBuffers は Unity がシリアライズする正本。辞書は実行時だけ作り、
+    // デシリアライズ直後の最初の検索でもリストから一度だけ再構築する。
+    private void EnsureBulletBufferIndex()
+    {
+        if (bulletBufferIndexByName == null)
+        {
+            RebuildBulletBufferIndex();
+        }
+    }
+
+    private void RebuildBulletBufferIndex()
+    {
+        bulletBufferIndexByName = new Dictionary<string, int>(StringComparer.Ordinal);
+        for (int i = 0; i < bulletBuffers.Count; i++)
+        {
+            string name = bulletBuffers[i].name;
+            // Dictionary は null key を受け付けない。null 名は TryGet 側で
+            // 従来どおりリストの先頭一致を検索する。
+            if (name == null || bulletBufferIndexByName.ContainsKey(name)) continue;
+            bulletBufferIndexByName.Add(name, i);
+        }
+    }
+
+    private void ClearBulletBufferIndex()
+    {
+        bulletBufferIndexByName?.Clear();
     }
 
     private void ReadCommonBulletBuffersFromDirectory()
@@ -770,7 +802,13 @@ public class BulletBufferManager
         }
         else
         {
+            int newIndex = bulletBuffers.Count;
             bulletBuffers.Add(buffer);
+            if (buffer.name != null)
+            {
+                EnsureBulletBufferIndex();
+                bulletBufferIndexByName.Add(buffer.name, newIndex);
+            }
         }
     }
 
@@ -925,13 +963,26 @@ public class BulletBufferManager
     public bool TryGetBulletBufferIndex(string name, out int index)
     {
         index = -1;
-        for (int i = 0; i < bulletBuffers.Count; i++)
+        if (name == null)
         {
-            if (bulletBuffers[i].name == name)
+            // 既存実装の null == null の意味を維持する。通常の名前検索は
+            // 下の辞書経路で全走査を避ける。
+            for (int i = 0; i < bulletBuffers.Count; i++)
             {
-                index = i;
-                return true;
+                if (bulletBuffers[i].name == null)
+                {
+                    index = i;
+                    return true;
+                }
             }
+            return false;
+        }
+
+        EnsureBulletBufferIndex();
+        if (bulletBufferIndexByName.TryGetValue(name, out int foundIndex))
+        {
+            index = foundIndex;
+            return true;
         }
         return false;
     }
