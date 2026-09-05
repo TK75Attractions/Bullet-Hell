@@ -591,15 +591,16 @@ const V27C_BAND_END = 66.0;       // この区間のタイルの最終消滅（�
 // v29 (7): 指示 56.673「どちらも数を増やして」→ 3 本 → 5 本。画面の高さ 18 を 5 等分して
 //   3.6 ユニット間隔（1.8 / 5.4 / 9.0 / 12.6 / 16.2）。シャベルの当たり幅 2.82 より広いので
 //   隣どうしは重ならず、隙間は 0.78 ユニット残る。
-const V27C_SIDE_YS = [1.8, 5.4, 9.0, 12.6, 16.2];
+const V27C_SIDE_YS = [5.0, 7.0, 9.0, 11.0, 13.0];
 const V27C_SIDE_STOP_R = 25.0;    // 右から来て止まる x（右端 25+2.76=27.76 < 28）
 const V27C_SIDE_STOP_L = 7.0;     // 左から来て止まる x（左端 7-2.76=4.24 > 4）
 const V27C_SIDE_BEND_D = 0.9;     // 「すこし曲がる」距離
 // 上から落ちるシャベルの静止位置。上 2 列（行 7-8 ＝ y 14〜18）の下側に溜める。
 const V27C_DROP_XS = [3, 8.2, 13.4, 18.6, 23.8, 29];
 const V27C_DROP_REST_Y = 11.5;    // 上端 11.5+2.76=14.26 ＝ 行 7 のすぐ下
-const V27C_DROP_FALL = 0.55;      // 落下にかける秒数（静止位置へ着くまで）
-const V27C_BOUNCE = [0.25, 0.30, 0.45, 0.50];   // バウンドの反発係数（4 回で収束）
+// v31 (6): 落下を少し長くし、最初の反発を抑えた 3 回の減衰バウンドへ。
+const V27C_DROP_FALL = 0.70;      // 落下にかける秒数（静止位置へ着くまで）
+const V27C_BOUNCE = [0.22, 0.45, 0.45];
 // v29 (7): 指示 58.252「揺らすのは縦方向にお願い。バウンドした流れでちょっと揺れる程度で
 //   いいです」→ 揺れの向きを x から y へ変え、振幅を 0.45 → 0.15 ユニットに落とす
 //   （振幅 = V27C_SWAY_V × V27C_SWAY_HALF / 4）。
@@ -696,7 +697,8 @@ const V28_FIN_BACK = beats(0.75);   // 戻す（ため）
 //   66.6645（MK18_SLIDE1・ブロック A の頭＝右列タイルの左流し 1 回目）** へ送る。
 //   曲の構造でもここが 66.667s = bar 41 の頭で、直前の 65.0〜66.6 は音が薄くなる繋ぎ。
 //   「形態が変わる ＝ 攻撃の作りが変わる」を音の切れ目にそろえられる位置はここが最初。
-const BOSS_LAND_TIME = 66.6645;         // 着地＝降下 moveto 完了＝本体へ切り替わる瞬間（= MK18_SLIDE1）
+// v31 (3): 73.3228s から始まる右列タイル攻撃の直前へ送る。83 秒案は使わない。
+const BOSS_LAND_TIME = 72.94;           // 降下開始 72.106667s、着地 72.94s
 const BOSS_DESCEND_SEC = 0.833333;      // 降下時間（moveto duration。v25 から据え置き）
 // v28: ステージ末尾を 113.6 → 142.5 へ延ばした（最後の大爆破 141.6533 + 余韻 0.85 秒。
 //   旧「石工」と同じ末尾）。本体の消滅は endTime の 0.695152 秒前という v25 からの関係を保つ。
@@ -714,7 +716,6 @@ const BOSS_SORTING_ORDER = 90;
 //   ずれの大きかったもの: 39（99.663 → 99.5904・-73ms・flux 110.5）、
 //   40（100.092 → 100.0141・-78ms・flux 111.7）。どちらも窓（±80ms）の内側。
 const MK18_SLIDE1 = 66.6645;    // 18 右列タイル①（左向き重力）
-if (BOSS_LAND_TIME !== MK18_SLIDE1) throw new Error('BOSS_LAND_TIME は MK18_SLIDE1 と一致させること');
 const MK19_SLIDE2 = 67.4946;    // 19 右列タイル②
 const MK20_SLIDE3 = 68.3247;    // 20 右列タイル③
 const MK21_SLIDE4 = 69.1606;    // 21 右列タイル④
@@ -825,6 +826,13 @@ const SLIDE_TIMES_C = SLIDE_OFFSETS.map((d) => MK31_SLIDE_AGAIN2 + d);   // 86.8
 const TILE5_TIMES = Array.from({ length: 5 }, (_, i) => MK30_TILE5 + i * 2 * BEAT);
 // マーカー 32: 1 拍間隔で 6 回（90.012〜92.096s）
 const TILE6_TIMES = Array.from({ length: 6 }, (_, i) => MK32_TILE_SHOW + i * BEAT);
+// v31 (11)(12): 86〜93 秒も、83〜86 秒で好評だった 6 点の間隔を 2 周そのまま使う。
+//   各周の頭だけ現行の MK31 / MK32 に置き、裏拍に見えた左流し 4 波は使わない。
+const V31_TILE12_TIMES = V29_TILE6_TIMES.map(function (t) {
+  return MK31_SLIDE_AGAIN2 + (t - V29_TILE6_TIMES[0]);
+}).concat(V29_TILE6_TIMES.map(function (t) {
+  return MK32_TILE_SHOW + (t - V29_TILE6_TIMES[0]);
+}));
 // マーカー 33〜36: 1 回 2 枚の爆破を 4 回
 const BLAST2_TIMES = [MK33_BLAST1, MK34_BLAST2, MK35_BLAST3, MK36_BLAST4];
 // マーカー 30/32 で積んだ帯タイルを消す時刻。マーカー 38 の横の鎖が最後の段まで
@@ -1769,16 +1777,18 @@ const METEOR_TRAIL_GAP = 0.75;              // 尾の点の距離間隔の上限
                                              // v24 の 0.025s は間隔 0.92 ユニット < 点の直径で
                                              // 「連続した帯」に見えていた。0.04s へ広げて点どうしの
                                              // 隙間を作り、点列に見せる。
-const METEOR_TRAIL_LIFE = 0.42;             // 1 点の寿命（縮むアニメの長さ）は据え置き
-const METEOR_TRAIL_S0 = 1.7;                // 本体に接する点の一辺（本体 3.2 の 0.47 倍。v24 は 0.95 倍で本体並みに太かった）
-const METEOR_TRAIL_S1 = 0.2;                // 末端の一辺（本体の 0.09 倍）
-const METEOR_TRAIL_TYPE = 'warn_box';       // 本体（stone3_tile・renderPriority 1）より奥
+const METEOR_TRAIL_LIFE = 0.42;
+// v31 (9): 本家のローカル実フレーム（ref_steve_096.14〜096.60）どおり、頭直後は
+//   白く大きい星粒を重ね、後ろほど小さく暗い同色相の粒へする。四角い帯にはしない。
+const METEOR_TRAIL_S0 = METEOR_SCALE * 0.90;
+const METEOR_TRAIL_S1 = METEOR_SCALE * 0.08;
+const METEOR_TRAIL_TYPE = 'stone_burst';    // verts 空の星粒。実弾ではなく尾専用
 // v25: 開始色は本体（無着色のテクスチャそのまま）より淡いグレー、終端はさらに暗く
 // 背景へ溶け込む色。v24 は開始 POP_COLOR_START（sRGB 242,236,252 の明るい白）→
 // 終端 STONE_MID（166,150,190）で、どちらも面が不透明に塗り潰されるため「太く明るい」
 // 印象が強すぎた。明度を大きく落とす。
-const METEOR_TRAIL_COLOR_START = [0.21, 0.16, 0.31, 1.0];  // sRGB 約(180,175,192) の淡いグレー
-const METEOR_TRAIL_COLOR_END = STONE_PATH;                  // (56,46,72) 相当・ほぼ背景に沈む暗さ
+const METEOR_TRAIL_COLOR_START = POP_COLOR_START;            // 頭直後だけ白寄り
+const METEOR_TRAIL_COLOR_END = STONE_MID;                    // 末端は石工の紫へ沈める
 // 出現フラッシュ / 着弾フラッシュ / 着地の潰れ（v24 (B) の追加演出。いずれも当たり判定なし）。
 //   参考の隕石は画面外から入ってくるので出現の瞬間は写っていない。ここはユーザー指示に従い
 //   「画面端で白く弾けてから本体が飛び出す」形を、タイルのポップ（tilePop）と同じ
@@ -1933,12 +1943,11 @@ const METEOR_BURST_FLASH_DUR = 0.10;
 const METEOR_BURST_RING_S0 = METEOR_SCALE * 0.8;      // 円環の初期径（本体より少し小さい）
 const METEOR_BURST_RING_S1 = METEOR_SCALE * 3.4;      // 同・終端径（従来の外側リング半径 1.85 の直径相当）
 const METEOR_BURST_RING_DUR = 0.22;                   // 拡大しきるまで。その後 FADE_OUT_SEC で消える
-const METEOR_BURST_CHUNK_N = 6;
+const METEOR_BURST_CHUNK_N = 8;
 const METEOR_BURST_CHUNK_S0 = METEOR_SCALE * 0.42;    // 欠片の一辺 1.34（本体の 0.42 倍）
 const METEOR_BURST_CHUNK_S1 = METEOR_SCALE * 0.18;    // 消える直前の一辺
-const METEOR_BURST_CHUNK_LIFE = 0.55;                 // 減速して止まるまで（＝寿命）
-const METEOR_BURST_CHUNK_SPEEDS = [8.0, 5.5];         // 交互に速い / 遅い（ユニット/s）
-const METEOR_BURST_CHUNK_SPIN = 5.0;                  // 自転（rad/s・交互に逆回転）
+const METEOR_BURST_CHUNK_LIFE = 0.32;
+const METEOR_BURST_CHUNK_RADIUS = METEOR_SCALE * 0.72;
 // v30 (6): 着弾リングがフィールドの下端（y=0）を突き抜けて半円にしか見えない
 //   （100.0 / 101.7 / 103.3s の落下隕石。着弾点 y=1 に対しリングの半径は 5.44 ユニット）。
 //   時刻は変えずに「中心を少し持ち上げる」＋「持ち上げきれないぶんは半径を抑える」で
@@ -1989,35 +1998,61 @@ function meteorBurstFx(pos, mag, kind) {
     appearDuration: 0,
     life: METEOR_BURST_RING_DUR + FADE_OUT_SEC,
   }], kind);
+  // v31 (17): 欠片を実弾と同じ放射移動にしない。着弾点の周囲へ固定した大きい欠片を
+  //   時間差で出して縮める。移動する小弾と、位置固定で消えるエフェクトを動きで分ける。
   const chunks = [];
   for (let i = 0; i < METEOR_BURST_CHUNK_N; i++) {
     const a = (i * 2 * Math.PI) / METEOR_BURST_CHUNK_N + (i % 2) * 0.35 + 0.4;
-    const speed = METEOR_BURST_CHUNK_SPEEDS[i % 2] * mag;
-    const decel = speed / METEOR_BURST_CHUNK_LIFE;      // 寿命ちょうどで速度 0
-    chunks.push(bulletDefaults({
-      originPos: { x: pos[0], y: pos[1] },
-      originVlc: { x: normalizeNegativeZero(Math.cos(a) * speed), y: normalizeNegativeZero(Math.sin(a) * speed) },
-      gravity: { x: decel, y: normalizeNegativeZero(a + Math.PI) },
-      typeName: POP_TYPE,                              // 本体と同じ絵・verts 空＝当たり判定なし
-      scale: { x: METEOR_BURST_CHUNK_S0 * mag, y: METEOR_BURST_CHUNK_S0 * mag },
-      color: { x: SPRITE_AS_IS[0], y: SPRITE_AS_IS[1], z: SPRITE_AS_IS[2], w: SPRITE_AS_IS[3] },
-      scaleEnd: { x: METEOR_BURST_CHUNK_S1, y: METEOR_BURST_CHUNK_S1 },
-      colorEnd: { x: SPRITE_AS_IS[0], y: SPRITE_AS_IS[1], z: SPRITE_AS_IS[2], w: SPRITE_AS_IS[3] },
+    const delay = i * 0.012;
+    const radius = METEOR_BURST_CHUNK_RADIUS * mag * (i % 2 === 0 ? 1 : 0.68);
+    chunks.push({
+      type: POP_TYPE,
+      pos: [normalizeNegativeZero(pos[0] + Math.cos(a) * radius),
+            normalizeNegativeZero(pos[1] + Math.sin(a) * radius)],
+      scale: [METEOR_BURST_CHUNK_S0 * mag, METEOR_BURST_CHUNK_S0 * mag],
+      color: SPRITE_AS_IS,
+      scaleEnd: [METEOR_BURST_CHUNK_S1, METEOR_BURST_CHUNK_S1],
+      colorEnd: STONE_PATH,
       animDuration: METEOR_BURST_CHUNK_LIFE,
-      life: METEOR_BURST_CHUNK_LIFE,
-      unCounterable: true,
-      useVelocityAngle: false,
-      polarForm: { x: 1, y: normalizeNegativeZero(a) },
-      thetaVlc: (i % 2 === 0 ? 1 : -1) * METEOR_BURST_CHUNK_SPIN,
-    }));
+      appearTime: delay,
+      appearDuration: 0,
+      life: delay + METEOR_BURST_CHUNK_LIFE + FADE_OUT_SEC,
+    });
   }
+  const chunkFx = warnClip(chunks, kind);
   return {
     parts: [
       flash.parts[0],
       ring.parts[0],
-      { offsetSec: 0, kind: 'meteorchunk', buffer: { bullets: chunks, homing: false, isLaser: false }, spawner: NEUTRAL_SPAWNER() },
+      chunkFx.parts[0],
     ],
   };
+}
+
+// v31 (17): 最後の大爆破で白転まで残す余韻。破裂弾と同じ放射移動はさせず、
+//   着弾点の周囲に固定した大きい欠片がゆっくり縮んで暗くなるだけにする。
+function meteorBurstAfterglow(pos, life) {
+  const items = [];
+  const count = 16;
+  for (let i = 0; i < count; i++) {
+    const a = (i * 2 * Math.PI) / count + (i % 2) * 0.18;
+    const radius = i % 2 === 0 ? METEOR_SCALE * 1.15 : METEOR_SCALE * 2.05;
+    const size = i % 2 === 0 ? TILE * 0.56 : TILE * 0.40;
+    items.push({
+      type: POP_TYPE,
+      pos: [normalizeNegativeZero(pos[0] + Math.cos(a) * radius),
+            normalizeNegativeZero(pos[1] + Math.sin(a) * radius)],
+      scale: [size, size],
+      color: SPRITE_AS_IS,
+      scaleEnd: [TILE * 0.08, TILE * 0.08],
+      colorEnd: STONE_PATH,
+      animDuration: life,
+      appearTime: 0,
+      appearDuration: 0,
+      life: life,
+    });
+  }
+  return warnClip(items, 'meteorafterglow');
 }
 
 // v23 (B)3: 隕石が飛行中に自転する。v2（区間モーション）は BulletV2UpdateJob が
@@ -3068,8 +3103,21 @@ export default stage(
       const hit = snakeBreakTime(t.col, t.row, MK3_CHAIN, SNAKE_LANES);
       if (hit === null) {
         const hit2 = snakeBreakTime(t.col, t.row, MK11_CHAIN, SNAKE_LANES2);
-        t.end = hit2 === null ? MK12_TILEWARN : hit2;
-        if (hit2 !== null) t.lead = BLAST_LEAD_OUT;
+        if (hit2 !== null) {
+          t.end = hit2;
+          t.lead = BLAST_LEAD_OUT;
+        } else {
+          // v31 (2): 指示 43.287 / 43.725「前まで残ってたタイルを消さないで」。
+          //   鎖 2 回目も生き延びたタイルは MK12_TILEWARN（42.4925s）でまとめて崩していた
+          //   （実測で 16 枚が一度に消え、その直後 43.3226s から次のタイル表示が始まる）。
+          //   v27 (2) が鎖 1 回目に対してやったのと同じ考え方で、ここでも崩さずそのまま残し、
+          //   **鎖 3 回目（MK16_CHAIN・48.1176s）が掃いた時に砕ける**ようにする。
+          //   3 回目にも掃かれなかったぶんは、次のタイル表示の予告開始
+          //   MK17_TILEWARN（49.3772s）で崩れる＝次の表示（49.9868s）とは重ならない。
+          const hit3 = snakeBreakTime(t.col, t.row, MK16_CHAIN, SNAKE_LANES3);
+          t.end = hit3 === null ? MK17_TILEWARN : hit3;
+          if (hit3 !== null) t.lead = BLAST_LEAD_OUT;
+        }
         bandBHeld.push(t);
         return;
       }
@@ -3543,7 +3591,8 @@ export default stage(
     //   爆破は blastPhase の 4 辺めぐりなので 4 枚は必ず左右上下に散る。
     // ----------------------------------------------------------------------
     const bandCDE = bandC.concat(bandD).concat(bandE);
-    blastPhase({ tiles: bandCDE, shots: [{ time: V27_BLAST_A, n: 4 }] });
+    // v31 (4): 2 回ぶんが画面に残って 8 箇所へ見えていたため、各 2 箇所＝合計 4 箇所へ。
+    blastPhase({ tiles: bandCDE, shots: [{ time: V27_BLAST_A, n: 2 }] });
 
     const aliveCDE = new Set(
       bandCDE.filter(function (t) { return !t.claimed; }).map(function (t) { return key(t.col, t.row); })
@@ -3563,7 +3612,7 @@ export default stage(
     });
 
     // v27 (C): 「51.927 いくつか爆破」。v27(A) の 51.9314 を採用オンセット 51.8618 へ寄せた。
-    blastPhase({ tiles: bandCDE.concat(bandH), shots: [{ time: V27C_BLAST2, n: 4 }] });
+    blastPhase({ tiles: bandCDE.concat(bandH), shots: [{ time: V27C_BLAST2, n: 2 }] });
 
     // ======================================================================
     // ★ v27 (C)  53.22〜65.01s — 追加指示書 gap51-65（13 マーカー）
@@ -3663,7 +3712,10 @@ export default stage(
     });
 
     // --- 61.2368: 上 2 列（行 7-8）のタイルが点滅 ---------------------------------
-    const topTiles = bandAll.filter(function (t) { return !t.claimed && t.row >= ROWS - BAND; });
+    // v31 (7): 左右 2 列は落下対象から外し、直後の左右鎖に残して破壊させる。
+    const topTiles = bandAll.filter(function (t) {
+      return !t.claimed && t.row >= ROWS - BAND && t.col >= BAND && t.col < COLS - BAND;
+    });
     if (topTiles.length > 0) {
       s.at(V27C_BLINK, blinkWarn(topTiles.map(function (t) { return [t.col, t.row]; }), 'blastblink'));
     }
@@ -3742,7 +3794,7 @@ export default stage(
           life: end - st.land,
           kind: 'stacktile',
         }));
-        s.at(end, burst(cellCenter(st.col, st.row), i, 0.5));
+        // v31 (8): 下段タイルを鎖が砕く場面では破裂弾を出さない。
       }
     });
 
@@ -3932,7 +3984,8 @@ export default stage(
     // ブロックB — マーカー 29〜36（80.010〜97.512s）
     // ----------------------------------------------------------------------
     // マーカー 29: 右列タイルの左流し again（18〜21 の相対間隔を写す）
-    SLIDE_TIMES_B.forEach(function (t) { slideWave(t, MK30_TILE5); });   // v27 (11): 82.9167s で残らず消える
+    // v31 (10): 最後の波を次ブロックの頭で一斉消去せず、自然に画面外まで流す。
+    SLIDE_TIMES_B.forEach(function (t) { slideWave(t); });
 
     // マーカー 30: タイル攻撃 5 回（83.229s から 2 拍間隔）。区間①③と同じ出現ポップで
     //   外周ぐるりの帯へ積む。ここで積んだ帯がマーカー 33〜36 の爆破対象になる。
@@ -3948,22 +4001,16 @@ export default stage(
       pinStartGap: false,
     });
 
-    // マーカー 31: 右列タイルの左流し again 2 回目（86.875〜89.282s）
-    //   v29 (3): マーカー 32 の表示に被らないよう、endBy にマーカー 32 の頭を渡して
-    //   その時刻で流し終える（v27 (11) と同じ「残さず消す」扱い）。
-    SLIDE_TIMES_C.forEach(function (t) { slideWave(t, MK32_TILE_SHOW); });
-
-    // マーカー 32: タイル表示 again（90.012s から 1 拍間隔で 6 拍）。既に画面にある
-    //   bandF の残りを preBlocked に渡し、自機の通路が塞がらないように積み足す。
-    const aliveF = new Set(bandF.filter(function (t) { return !t.claimed; }).map(function (t) { return key(t.col, t.row); }));
+    // v31 (11)(12): 86〜93 秒は 83〜86 秒と同じ「予告 1 拍・6 点の間隔・毎回入替」に統一。
     const bandG = tilePhase({
-      times: TILE6_TIMES,
-      leads: TILE6_TIMES.map(function () { return beats(0.75); }),
+      times: V31_TILE12_TIMES,
+      leads: V31_TILE12_TIMES.map(function () { return beats(1); }),
       centerRate: CENTER_RATE,
-      bandTarget: EXT_BAND_TARGET,
+      bandTarget: BAND_TARGET,
       bandCells: BAND_CELLS,
-      preBlocked: aliveF,
       bandEnd: V21_BAND_END,
+      clearEachStrike: true,
+      finalEnd: MK33_BLAST1,
       pinStartGap: false,
     });
 
@@ -4051,7 +4098,8 @@ export default stage(
       // v29 (5): 指示 99.733「弾がこの場面多すぎる。中央の隕石爆破の破裂弾以外はなくして」
       //   → 放射弾は中央（k=0・100.014s）の 1 発だけにする。右（101.680s）と左（103.346s）は
       //   落下・着弾の演出（リング・潰れ・尾）だけ残して弾を出さない。
-      if (k === 0) s.at(impact, burst([x, METEOR_DROP_Y], k, 1.6));
+      // v31 (13): 3 発とも着弾時の破裂弾を復元する。エフェクトとの見分けは v31 (17) 側で行う。
+      s.at(impact, burst([x, METEOR_DROP_Y], k, 1.6));
     });
 
     // 残ったタイルの実体クリップを出す（消える時刻が全部確定したあと）。
@@ -4358,13 +4406,15 @@ export default stage(
     //   飛行時間」を 1.4 倍に伸ばし、そのぶん発射を前へ出す（＝隕石がゆっくり長く見える）。
     //   衝突するシャベルの飛行時間も同じだけ伸びる。
     const V29_METEOR_SLOW = 1.4;
+    // v31 (14): 端へ当たる打ち上げ隕石だけ速度をさらに 0.7 倍へ。
+    const V31_WALL_METEOR_SLOW = V29_METEOR_SLOW / 0.7;
 
     // --- 1〜5: 打ち上げ隕石とシャベルの衝突（点対称に 2 回）→ 中央へ落下隕石 --------
     //   lightspeed = true のとき、最後の着弾をマーカー 48 の集合爆破と同じ部品
     //   （白く育つブルーム＋2 重リングの放射弾）に差し替える。
     function v28BlockA(tA1, tA2, tA3, tA4, idx, lightspeed) {
       // (a) 左下の画面外から上向きに打ち上がり、下向き重力で減速して tA2 に頂点で静止
-      const dL = (tA2 - tA1) * V29_METEOR_SLOW;   // v29 (8): 飛行を 1.4 倍に伸ばす
+      const dL = (tA2 - tA1) * V31_WALL_METEOR_SLOW;
       const tL0 = tA2 - dL;                       //          そのぶん発射を前へ出す
       const vyL = (2 * (V28_UP_APEX[1] - V28_UP_FROM[1])) / dL;
       const velL = [(V28_UP_APEX[0] - V28_UP_FROM[0]) / dL, vyL];
@@ -4385,7 +4435,7 @@ export default stage(
       //     左から来るシャベルと tA3 でぶつかる。
       const symFrom = [2 * V28_CENTER[0] - V28_UP_FROM[0], 2 * V28_CENTER[1] - V28_UP_FROM[1]];
       const symApex = [2 * V28_CENTER[0] - V28_UP_APEX[0], 2 * V28_CENTER[1] - V28_UP_APEX[1]];
-      const dR = (tA3 - tA2) * V29_METEOR_SLOW;   // v29 (8)
+      const dR = (tA3 - tA2) * V31_WALL_METEOR_SLOW;
       const tR0 = tA3 - dR;
       const vyR = (2 * (symApex[1] - symFrom[1])) / dR;
       const velR = [(symApex[0] - symFrom[0]) / dR, vyR];
@@ -4474,15 +4524,16 @@ export default stage(
         v28EntryFlash(tAppear[k], meteorPathPos(from, [0, dv], segs), V28_REST_FALL, 'meteorspawn');
         v28MeteorBlast(tHit[k], [x, restY], idx + k);
       });
-      // 3 発を順に割る 1 本のシャベル。①と③の時刻で決めた等速で左から入る
-      //   （②の通過は設計上 +2.9 ms ずれる。3 発が等間隔・時刻もほぼ等間隔なので実害なし）。
-      const sp = (V28_REST_XS[2] - V28_REST_XS[0]) / (tHit[2] - tHit[0]);
-      s.at(tHit[0] - (V28_REST_XS[0] - SHOVEL_LEFT_X) / sp, shovel({
-        pos: [SHOVEL_LEFT_X, restY],
-        vel: [sp, 0],
-        angle: SHOVEL_ANGLE_RIGHT,
-        life: (SHOVEL_RIGHT_X - SHOVEL_LEFT_X) / sp,
-      }));
+      // v31 (16): 横から 1 本でまとめて割らず、各隕石へ上から 1 本ずつ落とす。
+      const shovelFlight = beats(2);
+      V28_REST_XS.forEach(function (x, k) {
+        s.at(tHit[k] - shovelFlight, shovel({
+          pos: [x, SHOVEL_SPAWN_Y],
+          vel: [0, (restY - SHOVEL_SPAWN_Y) / shovelFlight],
+          angle: SHOVEL_ANGLE_DOWN,
+          life: shovelFlight + METEOR_LIFE_MARGIN,
+        }));
+      });
     }
 
     v28RestBlock(
@@ -4598,17 +4649,15 @@ export default stage(
       appearDuration: 0,
       life: finBloomDur + FADE_OUT_SEC,
     }], 'gatherbloom'));
-    // 大爆破: 円形リング 5 枚＋破片 3 段＋放射弾 3 重リング（この曲でいちばん派手なもの）
+    // 大爆破: 共通の輪郭リング＋固定欠片と、実弾の 3 重リング。
     s.at(V28_END_BLAST, meteorSquash(finPos));
-    s.at(V28_END_BLAST, roundBlastFx(finPos, FINAL_RING_SPEC, 'meteorhit'));
+    s.at(V28_END_BLAST, meteorBurstFx(finPos, 1.4, 'meteorhit'));
     // v30 (5): 破片を「散って止まる」ものへ。寿命を endTime（144.25s）ちょうどまで伸ばし、
     //   縮みながら減速して止まる。141.65s の爆破のあと 143.5〜144.25s に何も映らない
     //   0.75 秒があった問題への対応で、枚数・速度・自転・並びは据え置き。
     //   止まる位置は中心 (16, 1) から 速度 x 寿命 / 2 ＝ 14.3 / 9.1 / 5.2 ユニット。
     const V30_FIN_DEBRIS_LIFE = 144.25 - V28_END_BLAST;   // 2.5967 秒
-    s.at(V28_END_BLAST, debrisRingSettle(finPos, 28, 11.0, V30_FIN_DEBRIS_LIFE, TILE * 0.48, TILE * 0.14, 6.0, 0));
-    s.at(V28_END_BLAST, debrisRingSettle(finPos, 20, 7.0, V30_FIN_DEBRIS_LIFE, TILE * 0.34, TILE * 0.10, -4.5, Math.PI / 20));
-    s.at(V28_END_BLAST, debrisRingSettle(finPos, 14, 4.0, V30_FIN_DEBRIS_LIFE, TILE * 0.24, TILE * 0.07, 3.0, Math.PI / 14));
+    s.at(V28_END_BLAST, meteorBurstAfterglow(finPos, V30_FIN_DEBRIS_LIFE));
     const finRingN = Math.round(D(10, 12, 14) * 2.5);
     [
       [D(6, 8, 10), SPIN_RATE, 0],
