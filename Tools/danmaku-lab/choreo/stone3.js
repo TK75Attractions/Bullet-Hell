@@ -1409,11 +1409,28 @@ function blinkWarn(cells, kind) {
 // 拍頭に純白・POP_SCALE_START 倍で出し、POP_DURATION 秒で実体タイルと同じ大きさ・同じ色へ
 // 線形に収束させる。収束後は実体タイルと完全に一致するので、life 末尾の減衰は見えない。
 // 描画は BLINK_TYPE（stone_flash・renderPriority 4）＝ stone_block(1) より手前。
+// v30 (7): Lunatic の 85.2 / 106.7s で「隣り合うタイルのポップの白が繋がって横長の帯になり、
+//   ボスが白地に埋もれる」（3 難易度監査の指摘）。
+//   ポップの一辺は TILE(1.84) x 1.714 = 3.154 でセルの間隔 2.0 より 1.154 ユニット大きいので、
+//   同じ拍で隣り合うセルにポップが出ると必ず白が重なって 1 枚の面になる。
+//   実測の同時ポップ数は 85.200s で easy 12 / normal 17 / **lunatic 20**、
+//   106.656s で 6 / 7 / **8**。Lunatic だけ密度が高くて面が大きく育つ。
+//   そこで **Lunatic のときだけ、同じ拍で 4 近傍にもポップが出るセルの倍率を 1.06 へ落とす**。
+//   一辺 1.950 < セル間隔 2.0 になるので、隣り合っても白がつながらず目地が残る。
+//   隣にポップが無いセルは 3 難易度とも従来どおり 1.714 のまま＝ Normal / Easy は完全に不変。
+const POP_SCALE_DENSE = 1.06;                       // 隣接するポップの倍率（Lunatic のみ）
 function tilePop(cells, kind) {
   const items = [];
+  const inGroup = new Set();
+  cells.forEach(function (cell) { inGroup.add(key(cell[0], cell[1])); });
+  const denseScale = D(POP_SCALE_START, POP_SCALE_START, POP_SCALE_DENSE);
   cells.forEach(function (cell) {
     const c = cellCenter(cell[0], cell[1]);
-    const big = TILE * POP_SCALE_START;
+    let adjacent = false;
+    for (let d = 0; d < 4; d++) {
+      if (inGroup.has(key(cell[0] + NEIGHBOR_DC[d], cell[1] + NEIGHBOR_DR[d]))) { adjacent = true; break; }
+    }
+    const big = TILE * (adjacent ? denseScale : POP_SCALE_START);
     items.push({
       type: BLINK_TYPE,
       pos: c,                       // 中心はタイルと同じ（拡大・縮小は中心対称）
