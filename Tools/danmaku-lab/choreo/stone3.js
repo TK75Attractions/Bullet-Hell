@@ -4551,5 +4551,57 @@ export default stage(
         unCounterable: true,
       }));
     });
+
+    // ======================================================================
+    // v30 (4) / v31 (15): 117.0〜121.5s の空白 4.5 秒を埋める。
+    //   v28 の 1〜5 の隕石ブロックは 116.998s（2 周目の中央着弾）で終わり、次に何かが
+    //   出るのは 121.522s の「止まる隕石 3 発」なので、4.52 秒まるごと攻撃が無かった。
+    //   v28 の指示 5「1〜4 のブロックを繰り返す」と v31 の 119.824「ここもさっきと同じ
+    //   ような隕石攻撃入れて」に沿って、**同じ落下隕石を拍頭に 4 発**置く。
+    //
+    //   時刻は曲のオンセット実測（`.tmp_v30/onset30.py`・116.5〜122.5s の flux）。
+    //   採用した 4 点はいずれも拍頭の +9〜+14 ms に立つピークで、区間中央値に対する倍率は
+    //     118.3463s（拍 284）flux 91.1 / 3.94 倍 … この区間の最大
+    //     119.1764s（拍 286）flux 59.9 / 2.59 倍
+    //     120.0123s（拍 288）flux 68.0 / 2.94 倍
+    //     119.824 の手打ちはこの 2 点のあいだ（−0.65 拍 / +0.45 拍）
+    //     120.8424s（拍 290）flux 75.5 / 3.27 倍
+    //   間隔はちょうど 2 拍（0.8333s）ずつ。前の攻撃との間は 1.35 秒、次との間は 0.68 秒
+    //   になり、1.5 秒を超える空白が無くなる。
+    //
+    //   落ちてくる列は 24 → 8 → 20 → 12（移動距離 16 → 12 → 8 と詰まっていく）。
+    //   予告はマーカー 40〜42 と同じ 3 点（通る列の縦帯・上端の四角・出現フラッシュ）で、
+    //   本体・尾・着弾リング・潰れも同じ部品。**放射弾は付けない**（99.733「この場面は
+    //   弾が多すぎる」「中央の破裂弾以外はなくして」の方針を隣の区間にも合わせた。
+    //   放射弾は数が難易度で変わるので、付けると 3 難易度の弾差分がそろわなくなる）。
+    //   このブロックは choreo のいちばん最後に置いてあるので、ここで引く乱数は
+    //   他のどの区間の配置も動かさない。
+    // ======================================================================
+    const V30_GAP_DROPS = [
+      [118.3463, 24], [119.1764, 8], [120.0123, 20], [120.8424, 12],
+    ];
+    const V30_DROP_FLIGHT = Math.sqrt((2 * (METEOR_DROP_SPAWN_Y - METEOR_DROP_Y)) / METEOR_DROP_ACCEL);
+    const V30_DROP_ENTER = Math.sqrt((2 * (METEOR_DROP_SPAWN_Y - ROWS * CELL)) / METEOR_DROP_ACCEL);
+    V30_GAP_DROPS.forEach(function (d, k) {
+      const impact = d[0];
+      const x = d[1];
+      const warnDur = V30_DROP_FLIGHT + beats(1);
+      s.at(impact - warnDur, meteorDropWarn(x, warnDur));
+      s.at(impact - V30_DROP_FLIGHT - beats(1), warnClip([{
+        pos: [x, ROWS * CELL - METEOR_SCALE / 2],
+        scale: [METEOR_SCALE, METEOR_SCALE],
+        color: STONE_WARN,
+        appearTime: beats(1),
+        appearDuration: beats(1),
+        life: beats(1),
+      }], 'meteorspawnwarn'));
+      s.at(impact - V30_DROP_FLIGHT, flashPop(
+        [x, ROWS * CELL], V30_DROP_ENTER, METEOR_FLASH_S0, METEOR_FLASH_S1, METEOR_FLASH_DUR, 'meteorspawn'
+      ));
+      s.at(impact - V30_DROP_FLIGHT, meteorDrop(x, V30_DROP_FLIGHT));
+      s.at(impact - V30_DROP_FLIGHT, meteorDropTrail(x, V30_DROP_FLIGHT));
+      s.at(impact, meteorBurstFx([x, METEOR_DROP_Y], 1.0, 'meteorhit'));
+      s.at(impact, meteorSquash([x, METEOR_DROP_Y]));
+    });
   }
 );
