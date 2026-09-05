@@ -56,7 +56,9 @@ public class StageData
 
     // v30 (5): このステージだけ、終了時の白転（PixelTransition.WhiteoutCover）に
     //   かける秒数を上書きする。0 以下なら PixelTransition の既定（0.42 秒）のまま。
-    //   石工は最後の大爆破の余韻をゆっくり畳みたいので stone.json で 1.10 を入れている。
+    //   石工は最後の大爆破の余韻をゆっくり畳みたいので stone.json で 0.80 を入れている
+    //   （実測: 指定 1.10 で最初の白 → 全面白が 1.45 秒だったので、指定 + 0.35 秒ぶんの
+    //   セルのポップ時間を見込んで 0.80 ＝ 実測およそ 1.15 秒にした）。
     [Min(0f)]
     public float whiteoutCoverTime;
 
