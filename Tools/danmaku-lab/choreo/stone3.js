@@ -1922,6 +1922,27 @@ const METEOR_BURST_CHUNK_S1 = METEOR_SCALE * 0.18;    // 消える直前の一�
 const METEOR_BURST_CHUNK_LIFE = 0.55;                 // 減速して止まるまで（＝寿命）
 const METEOR_BURST_CHUNK_SPEEDS = [8.0, 5.5];         // 交互に速い / 遅い（ユニット/s）
 const METEOR_BURST_CHUNK_SPIN = 5.0;                  // 自転（rad/s・交互に逆回転）
+// v30 (6): 着弾リングがフィールドの下端（y=0）を突き抜けて半円にしか見えない
+//   （100.0 / 101.7 / 103.3s の落下隕石。着弾点 y=1 に対しリングの半径は 5.44 ユニット）。
+//   時刻は変えずに「中心を少し持ち上げる」＋「持ち上げきれないぶんは半径を抑える」で
+//   全周を画面に入れる。持ち上げは 2.0 ユニット（隕石の一辺 3.2 の 0.63 倍）までに
+//   制限して、リングが着弾点から離れて見えないようにする。上端側も同じ扱い。
+const METEOR_BURST_RING_LIFT = 2.0;
+function fitBurstRing(pos, r) {
+  const H = ROWS * CELL;
+  let rr = r;
+  let cy = pos[1];
+  if (cy - rr < 0) {                                   // 下がはみ出す
+    rr = Math.min(rr, cy + METEOR_BURST_RING_LIFT);
+    cy = Math.max(cy, rr);
+  }
+  if (cy + rr > H) {                                   // 上がはみ出す
+    rr = Math.min(rr, (H - cy) + METEOR_BURST_RING_LIFT);
+    cy = Math.min(cy, H - rr);
+  }
+  return { y: cy, r: rr };
+}
+
 function meteorBurstFx(pos, mag, kind) {
   const flash = warnClip([{
     type: POP_TYPE,
@@ -1935,12 +1956,16 @@ function meteorBurstFx(pos, mag, kind) {
     appearDuration: 0,
     life: METEOR_BURST_FLASH_DUR + FADE_OUT_SEC,
   }], kind);
+  // v30 (6): 全周が画面へ入るよう中心と半径を詰める（フィールド内の着弾では何も変わらない）。
+  const ringFit = fitBurstRing(pos, (METEOR_BURST_RING_S1 * mag) / 2);
+  const ringS1 = ringFit.r * 2;
+  const ringS0 = Math.min(METEOR_BURST_RING_S0, ringS1 * 0.8);
   const ring = warnClip([{
     type: METEOR_RING_TYPE,
-    pos: [pos[0], pos[1]],
-    scale: [METEOR_BURST_RING_S0, METEOR_BURST_RING_S0],
+    pos: [pos[0], normalizeNegativeZero(ringFit.y)],
+    scale: [ringS0, ringS0],
     color: POP_COLOR_START,
-    scaleEnd: [METEOR_BURST_RING_S1 * mag, METEOR_BURST_RING_S1 * mag],
+    scaleEnd: [ringS1, ringS1],
     colorEnd: STONE_PATH,
     animDuration: METEOR_BURST_RING_DUR,
     appearTime: 0,
