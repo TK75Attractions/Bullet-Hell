@@ -2830,14 +2830,18 @@ export default stage(
         if (group.length === 0) continue;
 
         const cells = group.map((t) => [t.col, t.row]);
+        // v30 (2): 予告窓の長さ。既定は半拍で、点滅（1 拍前）とずれるため
+        //   「点滅 → 予告 → 爆破」が半拍おきに並んで見える。cfg.warnLead に 1 を渡すと
+        //   予告窓を点滅と同じ 1 拍にそろえられる（拍おきの爆破で使う）。
+        const warnLead = beats(cfg.warnLead || 0.5);
         s.at(
-          blastTime - beats(0.5),
+          blastTime - warnLead,
           tileField(cells, {
             type: 'warn_box',
             color: STONE_MID,
-            appearTime: beats(0.5),
-            appearDuration: beats(0.5),
-            life: beats(0.5), // 爆破の瞬間ちょうどで消す（爆破中心に何も残さない）
+            appearTime: warnLead,
+            appearDuration: warnLead,
+            life: warnLead, // 爆破の瞬間ちょうどで消す（爆破中心に何も残さない）
             kind: 'blastwarn',
           })
         );
@@ -3374,9 +3378,17 @@ export default stage(
     // ----------------------------------------------------------------------
     // v27 (5): 手打ち「拍に合わせて 4 回、ずらして爆破（4 回目が 46.3 付近）」に合わせ、
     //   同時 4 枚 → 1 拍ごとに 1 枚ずつ 4 回（44.9887 / 45.4054 / 45.8220 / 46.2387）。
+    // v30 (2): 手打ち「1 拍おきに 4 回」に対し、実際の画面では 44.572〜46.239s に
+    //   **半拍おき 9 回**の発光が並んでいた（`.tmp_v30check` の指摘）。
+    //   爆破そのものは既に 1 拍おき 4 回（44.9887 / 45.4054 / 45.8220 / 46.2387）で、
+    //   余計な 5 回は予告窓の頭だった: 点滅は爆破の 1 拍前、予告窓は半拍前に始まるので
+    //   点滅 → 予告 → 爆破 → 点滅 → … と半拍ずつずれて並ぶ。
+    //   予告窓を点滅と同じ 1 拍へそろえ、発光の頭を 44.572 / 44.989 / 45.405 / 45.822 /
+    //   46.239 の **1 拍間隔**（先頭の 1 回は 1 回目の予告）にした。爆破の時刻は不変。
     blastPhase({
       tiles: bandC.concat(bandD),
       shots: V27_BLAST4_TIMES.map(function (t) { return { time: t, n: 1 }; }),
+      warnLead: 1,
     });
 
     // ----------------------------------------------------------------------
