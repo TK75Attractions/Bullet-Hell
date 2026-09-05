@@ -919,6 +919,51 @@ function emptyIsConnected(blocked) {
   return seen.size === total;
 }
 
+// v30 (1): 「前の区間から残っているタイル（preBlocked）だけで既に空きセルが分断されている」
+//   ときに、孤立した小さな空きセルの集まりを列挙する。
+//   emptyIsConnected は 1 枚置くごとの検査なので、成分が 3 つ以上に割れていると
+//   （2 枚以上を同時に置かないと繋がらないので）どの 1 枚も通らず 1 枚も置けなくなる。
+//   実測: lunatic の区間⑨' 補充は鎖 1 を生き延びた 32 枚が空きを 109 / 2 / 1 の 3 成分に
+//   割っていて、bandC が 0 枚 ＝ 35.85〜40.41s の 4.56 秒がまるごと無攻撃だった。
+//   最大成分より外側のセルを「初めから塞がっている」扱いにして最大成分の連結だけを見れば、
+//   自機が閉じ込められないという目的は変わらないまま置けるようになる。
+function strandedEmptyCells(blocked) {
+  const comps = [];
+  const seen = new Set();
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col < COLS; col++) {
+      const k0 = key(col, row);
+      if (blocked.has(k0) || seen.has(k0)) continue;
+      const comp = [k0];
+      seen.add(k0);
+      const stack = [[col, row]];
+      while (stack.length > 0) {
+        const cur = stack.pop();
+        for (let d = 0; d < 4; d++) {
+          const nc = cur[0] + NEIGHBOR_DC[d];
+          const nr = cur[1] + NEIGHBOR_DR[d];
+          if (nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS) continue;
+          const k = key(nc, nr);
+          if (blocked.has(k) || seen.has(k)) continue;
+          seen.add(k);
+          comp.push(k);
+          stack.push([nc, nr]);
+        }
+      }
+      comps.push(comp);
+    }
+  }
+  if (comps.length <= 1) return null;
+  let best = 0;
+  for (let i = 1; i < comps.length; i++) if (comps[i].length > comps[best].length) best = i;
+  const out = new Set();
+  for (let i = 0; i < comps.length; i++) {
+    if (i === best) continue;
+    comps[i].forEach(function (k) { out.add(k); });
+  }
+  return out;
+}
+
 // v10: 帯タイルを 4 辺のどれに属するとみなすか（爆破対象を左右上下へ散らすために使う）。
 function sideOf(col, row) {
   const dl = col;
@@ -2591,13 +2636,9 @@ export default stage(
           }
         }
 
-        // この拍に画面へ出ているタイル（帯の既存ぶん＋これから置くぶん）を溜める集合。
-        const blocked = new Set(bandOccupied);
-
         // (b) 帯へ積むタイル（残留）。連結を壊す候補は飛ばす。
         const free = bandCells.filter((c) => !bandOccupied.has(key(c[0], c[1])));
         const bandWant = Math.round(free.length * bandRate);
-        const bandPicks = [];
         let bandCand = shuffled(free.filter((c) => !gapCells.has(key(c[0], c[1]))), rng);
         // v14: cfg.priority（セルキーの集合）を渡すと、その候補を先に試す。
         //   波で砕かれたセルとその 4 近傍を優先して積み直すために使う（補充）。
@@ -2607,36 +2648,59 @@ export default stage(
             .filter((c) => pri.has(key(c[0], c[1])))
             .concat(bandCand.filter((c) => !pri.has(key(c[0], c[1]))));
         }
-        for (let n = 0; n < bandCand.length && bandPicks.length < bandWant; n++) {
-          const cell = bandCand[n];
-          const k = key(cell[0], cell[1]);
-          blocked.add(k);
-          if (!emptyIsConnected(blocked)) {
-            blocked.delete(k);
-            continue;
-          }
-          bandPicks.push(cell);
-          bandOccupied.add(k);
-          bandTiles.push({ col: cell[0], row: cell[1], strike, end: myBandEnd, lead: 0, claimed: myClaimed });
-        }
-
         // (c) 中央のタイル（拍末で消える一時タイル）。こちらも連結を壊さない範囲で置く。
-        const centerPicks = [];
         const centerWant = Math.round(centerCells.length * cfg.centerRate);
         const centerCand = shuffled(
           centerCells.filter((c) => !gapCells.has(key(c[0], c[1])) && !preBlocked.has(key(c[0], c[1]))),
           rng
         );
-        for (let n = 0; n < centerCand.length && centerPicks.length < centerWant; n++) {
-          const cell = centerCand[n];
-          const k = key(cell[0], cell[1]);
-          blocked.add(k);
-          if (!emptyIsConnected(blocked)) {
-            blocked.delete(k);
-            continue;
+
+        // v30 (1): 置ける枚数を数える 1 回ぶん。stranded を渡すと「preBlocked だけで既に
+        //   孤立していた空きセル」を塞がっている扱いにして連結を見る（下の再試行で使う）。
+        //   rng はここまでで消費済み（gapCells と shuffled）なので、何度呼んでも乱数は進まない。
+        function placeOnce(stranded) {
+          // この拍に画面へ出ているタイル（帯の既存ぶん＋これから置くぶん）を溜める集合。
+          const blocked = new Set(bandOccupied);
+          const ok = stranded
+            ? function () {
+                const merged = new Set(blocked);
+                stranded.forEach(function (k) { merged.add(k); });
+                return emptyIsConnected(merged);
+              }
+            : function () { return emptyIsConnected(blocked); };
+          const bandPicks = [];
+          for (let n = 0; n < bandCand.length && bandPicks.length < bandWant; n++) {
+            const cell = bandCand[n];
+            const k = key(cell[0], cell[1]);
+            blocked.add(k);
+            if (!ok()) { blocked.delete(k); continue; }
+            bandPicks.push(cell);
           }
-          centerPicks.push(cell);
+          const centerPicks = [];
+          for (let n = 0; n < centerCand.length && centerPicks.length < centerWant; n++) {
+            const cell = centerCand[n];
+            const k = key(cell[0], cell[1]);
+            blocked.add(k);
+            if (!ok()) { blocked.delete(k); continue; }
+            centerPicks.push(cell);
+          }
+          return { bandPicks: bandPicks, centerPicks: centerPicks };
         }
+
+        let picked = placeOnce(null);
+        if (picked.bandPicks.length === 0 && picked.centerPicks.length === 0) {
+          // v30 (1): 1 枚も置けなかった＝ preBlocked だけで空きセルが 3 成分以上に割れていて、
+          //   1 枚ずつの検査ではどれも通らない状態。孤立成分を除いてもう一度試す
+          //   （lunatic の 35.85〜40.41s が丸ごと無攻撃になっていた原因）。
+          const stranded = strandedEmptyCells(bandOccupied);
+          if (stranded) picked = placeOnce(stranded);
+        }
+        const bandPicks = picked.bandPicks;
+        const centerPicks = picked.centerPicks;
+        bandPicks.forEach(function (cell) {
+          bandOccupied.add(key(cell[0], cell[1]));
+          bandTiles.push({ col: cell[0], row: cell[1], strike, end: myBandEnd, lead: 0, claimed: myClaimed });
+        });
 
         const appearing = centerPicks.concat(bandPicks);
         if (appearing.length === 0) continue;
