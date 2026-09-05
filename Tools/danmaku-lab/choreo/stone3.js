@@ -1866,6 +1866,37 @@ function debrisRing(pos, count, speed, life, size, spin, angleOffset) {
   });
 }
 
+// v30 (5): 最後の大爆破だけに使う「散って止まる破片」。debrisRing は等速で飛び続けるので
+//   寿命を伸ばすと画面外へ抜けてしまい、141.65s の爆破のあと 143.5〜144.25s の 0.75 秒が
+//   何も映らない時間になっていた（白転が始まるのは endTime=144.25）。
+//   v29b の隕石の欠片と同じ作り（進行方向と逆向きの一定加速度で寿命ちょうどに停止しつつ、
+//   scaleEnd へ縮む）にして寿命を endTime まで伸ばす。止まる位置は speed * life / 2。
+function debrisRingSettle(pos, count, speed, life, size, sizeEnd, spin, angleOffset) {
+  const bullets = [];
+  for (let i = 0; i < count; i++) {
+    const a = angleOffset + (i * 2 * Math.PI) / count;
+    bullets.push(bulletDefaults({
+      originPos: { x: pos[0], y: pos[1] },
+      originVlc: { x: normalizeNegativeZero(Math.cos(a) * speed), y: normalizeNegativeZero(Math.sin(a) * speed) },
+      gravity: { x: speed / life, y: normalizeNegativeZero(a + Math.PI) },  // 寿命ちょうどで速度 0
+      typeName: POP_TYPE,
+      scale: { x: size, y: size },
+      color: { x: SPRITE_AS_IS[0], y: SPRITE_AS_IS[1], z: SPRITE_AS_IS[2], w: SPRITE_AS_IS[3] },
+      scaleEnd: { x: sizeEnd, y: sizeEnd },
+      colorEnd: { x: SPRITE_AS_IS[0], y: SPRITE_AS_IS[1], z: SPRITE_AS_IS[2], w: SPRITE_AS_IS[3] },
+      animDuration: life,
+      life: life,
+      unCounterable: true,
+      useVelocityAngle: false,
+      polarForm: { x: 1, y: normalizeNegativeZero(a) },
+      thetaVlc: spin,
+    }));
+  }
+  return {
+    parts: [{ offsetSec: 0, kind: 'debris', buffer: { bullets, homing: false, isLaser: false }, spawner: NEUTRAL_SPAWNER() }],
+  };
+}
+
 // v29b（指示 101.985「破裂のエフェクトが破裂弾と見間違う」）: 隕石の破裂を
 //   「輪郭だけの閃光リング＋本体の欠片」に作り直す。
 //   従来（v27 (15)(19)）は小さい正方形（stone3_pop）を円周に並べた同心リング 3〜4 枚と
@@ -4528,9 +4559,14 @@ export default stage(
     // 大爆破: 円形リング 5 枚＋破片 3 段＋放射弾 3 重リング（この曲でいちばん派手なもの）
     s.at(V28_END_BLAST, meteorSquash(finPos));
     s.at(V28_END_BLAST, roundBlastFx(finPos, FINAL_RING_SPEC, 'meteorhit'));
-    s.at(V28_END_BLAST, debrisRing(finPos, 28, 11.0, 0.65, TILE * 0.48, 6.0, 0));
-    s.at(V28_END_BLAST, debrisRing(finPos, 20, 7.0, 0.85, TILE * 0.34, -4.5, Math.PI / 20));
-    s.at(V28_END_BLAST, debrisRing(finPos, 14, 4.0, 1.05, TILE * 0.24, 3.0, Math.PI / 14));
+    // v30 (5): 破片を「散って止まる」ものへ。寿命を endTime（144.25s）ちょうどまで伸ばし、
+    //   縮みながら減速して止まる。141.65s の爆破のあと 143.5〜144.25s に何も映らない
+    //   0.75 秒があった問題への対応で、枚数・速度・自転・並びは据え置き。
+    //   止まる位置は中心 (16, 1) から 速度 x 寿命 / 2 ＝ 14.3 / 9.1 / 5.2 ユニット。
+    const V30_FIN_DEBRIS_LIFE = 144.25 - V28_END_BLAST;   // 2.5967 秒
+    s.at(V28_END_BLAST, debrisRingSettle(finPos, 28, 11.0, V30_FIN_DEBRIS_LIFE, TILE * 0.48, TILE * 0.14, 6.0, 0));
+    s.at(V28_END_BLAST, debrisRingSettle(finPos, 20, 7.0, V30_FIN_DEBRIS_LIFE, TILE * 0.34, TILE * 0.10, -4.5, Math.PI / 20));
+    s.at(V28_END_BLAST, debrisRingSettle(finPos, 14, 4.0, V30_FIN_DEBRIS_LIFE, TILE * 0.24, TILE * 0.07, 3.0, Math.PI / 14));
     const finRingN = Math.round(D(10, 12, 14) * 2.5);
     [
       [D(6, 8, 10), SPIN_RATE, 0],

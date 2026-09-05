@@ -221,7 +221,9 @@ public class PixelTransition : MonoBehaviour
     // ユーザーの3回目の再指摘「白が中央から広がるようにして」に合わせ、カバー
     // 工程そのものを中央発のセルポップインにする(このゲームに元からあった旧
     // Cover の中央発挙動を踏襲)。覆い切ったら白ベタのまま MosaicReveal へ渡す。
-    public async Task WhiteoutCover()
+    // v30 (5): coverTime に正の値を渡すと、この 1 回だけ覆いにかける秒数を差し替える
+    //   （石工の終了時だけ 1.10 秒にするため。省略時は従来どおり mosaicCoverTime=0.42）。
+    public async Task WhiteoutCover(float coverTime = -1f)
     {
         Build();
         EnsureTopmost();
@@ -231,7 +233,7 @@ public class PixelTransition : MonoBehaviour
         // 全セルを白ベタに戻す(色替え演出後などでも確実に白でカバーする)。
         for (int i = 0; i < cellImages.Length; i++)
             if (cellImages[i] != null) cellImages[i].color = Color.white;
-        SetCenterOutDelays(mosaicCoverTime);
+        SetCenterOutDelays(coverTime > 0f ? coverTime : mosaicCoverTime);
         // coverIn: セルが scale0→1 でポップイン。中央発の順序で外周へ広がる。
         await Animate(coverIn: true);
         await Hold(whiteoutHoldTime);

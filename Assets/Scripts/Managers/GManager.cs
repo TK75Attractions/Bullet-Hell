@@ -856,7 +856,9 @@ public class GManager : MonoBehaviour
         if (transition != null)
         {
             transition.SetColor(Color.white);
-            await transition.WhiteoutCover();
+            // v30 (5): ステージが whiteoutCoverTime を持っていればその秒数で覆う
+            //   （石工だけ 1.10 秒。他ステージは 0 のままなので既定の 0.42 秒）。
+            await transition.WhiteoutCover(stage != null ? stage.whiteoutCoverTime : -1f);
         }
 
         state = GameState.Result;
