@@ -1740,6 +1740,15 @@ function meteorMotion(y, jit) {
 //     ・寿命 0.42s で長さを 2.6 倍（本体径の 3〜5 倍）にし、縮みで先端ほど細くする
 //     ・各点を進行方向へ回して置く（斜めの経路でも帯の縁がぎざぎざにならない）
 const METEOR_TRAIL_STEP = 0.03;             // 尾の点を置く時間間隔（36.7 ユニット/s で 1.47 ユニット）
+// v30 (3): 時間等間隔だと速い隕石ほど点の間隔が開く。実測（本体 3.2・点 S0 1.7 ユニット）で
+//   ・右→左の隕石 24.1 ユニット/s … 0.72 ユニット間隔 ＝ 点が重なって 1 本の帯
+//   ・壁隕石 43.8 ユニット/s ……… 1.31 ユニット間隔
+//   ・落下隕石は等加速で着弾直前 56.6 ユニット/s … 1.70 ユニット間隔 ＝ 点が接するだけ
+//   後ろの点は縮んでいくので、1.3〜1.7 ユニットだと「四角が飛び飛び」に見える
+//   （101.5 / 103.2s の落下隕石への指摘）。そこで**距離**の上限を足し、
+//   これを超える区間だけ等分して点を足す。0.75 は帯に見えている右→左の隕石の
+//   間隔 0.72 のすぐ上＝その隕石の点は 1 つも増えない値。
+const METEOR_TRAIL_GAP = 0.75;              // 尾の点の距離間隔の上限（ユニット）
                                              // v24 の 0.025s は間隔 0.92 ユニット < 点の直径で
                                              // 「連続した帯」に見えていた。0.04s へ広げて点どうしの
                                              // 隙間を作り、点列に見せる。
@@ -1974,8 +1983,26 @@ function meteor(y, jit) {
 function meteorTrailPath(posAt, flight, kind) {
   const bullets = [];
   const n = Math.max(2, Math.round(flight / METEOR_TRAIL_STEP));
+  // v30 (3): 時間等間隔の刻みのうち、隣の点との距離が METEOR_TRAIL_GAP を超える区間だけ
+  //   等分して点を足す（速い隕石で尾が飛び飛びにならないように）。
+  //   分割が要らない区間は式をそのまま使うので、遅い隕石の尾は 1 ビットも変わらない。
+  const rels = [];
+  let prevPos = posAt(0);
   for (let i = 1; i <= n; i++) {
-    const rel = (flight * i) / n;
+    const relI = (flight * i) / n;
+    const pI = posAt(relI);
+    const dx0 = pI[0] - prevPos[0], dy0 = pI[1] - prevPos[1];
+    const sub = Math.max(1, Math.ceil(Math.sqrt(dx0 * dx0 + dy0 * dy0) / METEOR_TRAIL_GAP));
+    if (sub === 1) {
+      rels.push(relI);
+    } else {
+      const relPrev = (flight * (i - 1)) / n;
+      for (let j = 1; j <= sub; j++) rels.push(relPrev + ((relI - relPrev) * j) / sub);
+    }
+    prevPos = pI;
+  }
+  for (let i = 0; i < rels.length; i++) {
+    const rel = rels[i];
     const p = posAt(rel);
     // v29b: 進行方向（直前の位置との差）へ向きを揃える。静止区間は 0 度のまま。
     const q = posAt(Math.max(0, rel - 0.01));
