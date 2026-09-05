@@ -1003,38 +1003,22 @@ public class BulletBufferManager
             List<BulletData> spawnedBullets = new List<BulletData>(templateBullets.Count);
 
 
-            if (bulletBuffers[index].homing)
+            // 公開引数 angle は従来どおり度。以降はラジアンへ統一する。
+            float angleRadians = bulletBuffers[index].homing
+                ? math.atan2(pPos.y - emitPos.y, pPos.x - emitPos.x)
+                : angle / 180 * math.PI;
+            for (int i = 0; i < templateBullets.Count; i++)
             {
-                for (int i = 0; i < templateBullets.Count; i++)
-                {
-                    angle = math.atan2(pPos.y - emitPos.y, pPos.x - emitPos.x);
-                    BulletData template = templateBullets[i];
-                    float2 dis = -template.startPos;
-                    BulletData spawned = new BulletData(template, emitPos, _vlc, angle, _color);
-                    spawned.startPos -= dis;
-                    spawned.position = spawned.GetInitialPosition();
-                    spawned.velocity = new float2(0f, 0f);
-                    spawnedBullets.Add(spawned);
-                }
-
-                return spawnedBullets;
-
+                BulletData template = templateBullets[i];
+                float2 dis = -template.startPos;
+                BulletData spawned = new BulletData(template, emitPos, _vlc, angleRadians, _color);
+                spawned.startPos -= dis;
+                spawned.position = spawned.GetInitialPosition();
+                spawned.velocity = new float2(0f, 0f);
+                spawnedBullets.Add(spawned);
             }
-            else
-            {
-                for (int i = 0; i < templateBullets.Count; i++)
-                {
-                    BulletData template = templateBullets[i];
-                    float2 dis = -template.startPos;
-                    BulletData spawned = new BulletData(template, emitPos, _vlc, angle / 180 * math.PI, _color);
-                    spawned.startPos -= dis;
-                    spawned.position = spawned.GetInitialPosition();
-                    spawned.velocity = new float2(0f, 0f);
-                    spawnedBullets.Add(spawned);
-                }
 
-                return spawnedBullets;
-            }
+            return spawnedBullets;
 
 
         }
