@@ -173,19 +173,78 @@
 
     .app {
       display: grid;
-      grid-template-rows: 68px minmax(0, 1fr) 78px;
+      /* ヘッダー・設定バーを1つに畳んだため1行目は auto。中央を可変にして一覧と動画へ高さを回す */
+      grid-template-rows: auto minmax(0, 1fr) auto;
       height: 100vh;
-      min-width: 860px;
+      min-width: 760px;
     }
 
+    /* 子の max-content で全体が横に伸びないようにする（設定バーの横スクロール用） */
+    .app > * {
+      min-width: 0;
+    }
+
+    /* ヘッダー: 1行目=タイトルと主要ボタン、2行目=曲設定と録画。全体を低く保つ */
     .topbar {
-      display: grid;
-      grid-template-columns: minmax(236px, 0.72fr) minmax(280px, 1fr) auto;
-      align-items: center;
-      gap: 18px;
-      padding: 0 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 7px 16px 8px;
       border-bottom: 1px solid var(--hairline);
       background: rgba(17, 16, 14, 0.96);
+    }
+
+    .topbar-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+
+    .topbar button {
+      min-height: 30px;
+      padding: 0 10px;
+      font-size: 12px;
+    }
+
+    .topbar button.icon {
+      width: 30px;
+      min-width: 30px;
+      padding: 0;
+    }
+
+    .settings-bar {
+      display: flex;
+      align-items: end;
+      gap: 8px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+
+    .settings-bar > label {
+      flex: 0 1 92px;
+      min-width: 72px;
+    }
+
+    .settings-bar > label.wide {
+      flex: 0 1 136px;
+    }
+
+    .settings-bar label {
+      gap: 2px;
+      font-size: 10px;
+    }
+
+    .settings-bar input,
+    .settings-bar select {
+      min-height: 28px;
+      padding: 0 8px;
+      font-size: 12px;
+    }
+
+    .settings-bar .recording-controls {
+      margin-left: auto;
     }
 
     .brand {
@@ -197,8 +256,8 @@
 
     .brand-mark {
       position: relative;
-      width: 28px;
-      height: 28px;
+      width: 20px;
+      height: 20px;
       flex: 0 0 auto;
     }
 
@@ -210,8 +269,8 @@
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 4px;
-      height: 28px;
+      width: 3px;
+      height: 20px;
       border-radius: 999px;
       background: var(--ink);
       transform: translate(-50%, -50%);
@@ -229,26 +288,14 @@
       transform: translate(-50%, -50%) rotate(-45deg);
     }
 
-    .brand-copy {
-      min-width: 0;
-    }
-
     h1 {
       margin: 0;
       font-family: "Times New Roman", "Yu Mincho", serif;
-      font-size: 25px;
+      font-size: 17px;
       font-weight: 400;
       line-height: 1.05;
       letter-spacing: 0;
       white-space: nowrap;
-    }
-
-    .brand-sub {
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 600;
-      line-height: 1;
     }
 
     .file-row,
@@ -286,38 +333,29 @@
 
     .main {
       display: grid;
-      grid-template-columns: minmax(600px, 1fr) minmax(360px, 420px);
+      /* 動画が無いときは右カラムを細く、動画読み込み時は右を約40%にして大きく見せる */
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
       min-height: 0;
+      overflow: hidden;
     }
 
+    .main.has-video {
+      grid-template-columns: minmax(0, 1fr) minmax(380px, 40%);
+    }
+
+    .main.preview-open,
+    .main.preview-open.has-video {
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 30%) minmax(300px, 380px);
+    }
+
+    /* 左カラム: メモ一覧を主役（1fr）にし、波形タイムラインは下部の帯にする */
     .timeline-shell {
       display: grid;
-      grid-template-rows: auto auto minmax(0, 1fr) 172px;
+      grid-template-rows: minmax(0, 1fr) 196px;
       min-width: 0;
+      min-height: 0;
       border-right: 1px solid var(--hairline);
       background: var(--canvas);
-    }
-
-    .timeline-toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      align-items: end;
-      min-height: 76px;
-      padding: 12px 20px;
-      border-bottom: 1px solid var(--hairline);
-      background: var(--surface);
-    }
-
-    .timeline-toolbar > label {
-      flex: 1 1 92px;
-      min-width: 84px;
-      max-width: 150px;
-    }
-
-    .timeline-toolbar > label.wide {
-      flex: 1 1 132px;
-      max-width: 200px;
     }
 
     label,
@@ -328,17 +366,6 @@
       font-size: 11px;
       font-weight: 700;
       line-height: 1.2;
-    }
-
-    .toolbar-note {
-      flex: 1 1 240px;
-      align-self: center;
-      margin-left: auto;
-      max-width: 320px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.5;
-      text-align: right;
     }
 
     .kbd {
@@ -355,15 +382,12 @@
       font: 700 11px/1 "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
     }
 
+    /* 右カラム上部に常時表示する動画。読み込み時のみ表示し、音声のみなら畳む */
     .video-preview {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 180px;
-      max-height: 36vh;
-      padding: 10px;
+      display: block;
+      min-width: 0;
       border-bottom: 1px solid var(--hairline);
-      background: #080808;
+      background: #000;
     }
 
     .video-preview.hidden {
@@ -373,10 +397,123 @@
     .video-preview video {
       display: block;
       width: 100%;
-      height: 100%;
-      max-height: calc(36vh - 20px);
+      height: auto;
+      aspect-ratio: 16 / 9;
+      max-height: 29vh;
       object-fit: contain;
       background: #000;
+    }
+
+    /* ゲーム録画の読み込み欄（設定バー内） */
+    .recording-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+
+    .recording-controls button {
+      min-height: 28px;
+      padding: 0 8px;
+      font-size: 11px;
+    }
+
+    .recording-controls select {
+      max-width: 180px;
+    }
+
+    .speed-select {
+      min-height: 32px;
+      padding: 0 6px;
+      font-size: 12px;
+      max-width: 72px;
+    }
+    .speed-select.fast { color: var(--accent, #d98b6a); font-weight: 700; }
+
+    .recording-status {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    /* Claude からの質問セット（questions/index.json）。回答欄は質問マーカーを選んだときだけ出す */
+    #answerField[hidden] { display: none; }
+    #answerField textarea { min-height: 64px; border-color: var(--accent, #d98b6a); }
+    .marker-q {
+      display: inline-block;
+      margin-right: 6px;
+      padding: 0 5px;
+      border-radius: 4px;
+      font-size: 10px;
+      line-height: 16px;
+      background: var(--accent, #d98b6a);
+      color: #1a1614;
+    }
+    .marker-q.answered { background: #6fbf8a; }
+
+    .recording-preview {
+      position: relative;
+      width: 100%;
+      max-height: 108px;
+      aspect-ratio: 16 / 9;
+      background: #080808;
+      border-bottom: 1px solid var(--hairline);
+      overflow: hidden;
+      cursor: zoom-in;
+    }
+
+    .recording-preview.expanded {
+      max-height: 34vh;
+      cursor: zoom-out;
+    }
+
+    .recording-preview.hidden {
+      display: none;
+    }
+
+    .recording-preview.out-of-range video {
+      opacity: 0.12;
+    }
+
+    /* 録画範囲外（曲だけが鳴っている区間）であることを示す暗転表示 */
+    .recording-preview-outside {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.72);
+      color: #d8d8cf;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      pointer-events: none;
+      text-align: center;
+      padding: 0 8px;
+    }
+
+    .recording-preview.out-of-range .recording-preview-outside {
+      display: flex;
+    }
+
+    .recording-preview video {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+
+    .recording-preview-hint {
+      position: absolute;
+      right: 4px;
+      bottom: 4px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgba(0, 0, 0, 0.55);
+      color: #fafaf5;
+      font-size: 10px;
+      pointer-events: none;
     }
 
     .timeline-wrap {
@@ -416,21 +553,21 @@
 
     .time-readout {
       position: absolute;
-      left: 20px;
-      top: 18px;
-      padding: 9px 12px;
+      left: 14px;
+      top: 12px;
+      padding: 6px 9px;
       border: 1px solid rgba(250, 249, 245, 0.16);
       border-radius: var(--radius-md);
       background: rgba(37, 35, 32, 0.82);
       color: var(--on-dark);
-      font: 600 24px/1 "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+      font: 600 18px/1 "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
       pointer-events: none;
     }
 
     .status {
       position: absolute;
-      top: 18px;
-      right: 20px;
+      top: 12px;
+      right: 14px;
       max-width: min(48%, 520px);
       padding: 9px 12px;
       border: 1px solid rgba(250, 249, 245, 0.12);
@@ -443,43 +580,41 @@
       pointer-events: none;
     }
 
-    .timeline-help {
-      position: absolute;
-      left: 20px;
-      bottom: 16px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      max-width: calc(100% - 40px);
+    /* ステージプリセット適用の通知（数秒で消える小さいトースト） */
+    .preset-toast {
+      position: fixed;
+      bottom: 96px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 60;
+      padding: 9px 16px;
+      border: 1px solid var(--primary);
+      border-radius: var(--radius-md);
+      background: rgba(37, 35, 32, 0.94);
+      color: var(--ink);
+      font-size: 13px;
+      line-height: 1.3;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
       pointer-events: none;
     }
-
-    .help-chip {
-      border: 1px solid rgba(250, 249, 245, 0.12);
-      border-radius: 999px;
-      padding: 6px 9px;
-      background: rgba(37, 35, 32, 0.7);
-      color: var(--on-dark-soft);
-      font-size: 11px;
-      font-weight: 600;
-      line-height: 1;
-    }
+    .preset-toast.hidden { display: none; }
 
     .marker-strip {
       display: grid;
-      grid-template-rows: 36px minmax(0, 1fr);
+      grid-template-rows: 30px minmax(0, 1fr);
       min-height: 0;
-      border-top: 1px solid var(--hairline);
+      border-bottom: 1px solid var(--hairline);
       background: var(--canvas);
     }
 
     .marker-head,
     .marker-row {
       display: grid;
-      grid-template-columns: 104px minmax(120px, 0.72fr) minmax(160px, 1fr) 58px;
+      /* ラベル列・画像列を削除したため時刻・メモの2カラムに変更 */
+      grid-template-columns: 96px minmax(160px, 1fr);
       gap: 10px;
       align-items: center;
-      padding: 0 20px;
+      padding: 0 16px;
     }
 
     .marker-head {
@@ -495,7 +630,7 @@
     }
 
     .marker-row {
-      min-height: 42px;
+      min-height: 38px;
       border-bottom: 1px solid var(--hairline-soft);
       cursor: pointer;
     }
@@ -518,7 +653,7 @@
     .marker-comment {
       overflow: hidden;
       color: var(--body);
-      font-size: 13px;
+      font-size: 13.5px;
       line-height: 1.35;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -556,24 +691,43 @@
       color: var(--muted-soft);
     }
 
+    /* 右カラム: 動画 → 録画プレビュー → 選択マーカー編集(可変) → 書き出し(常時見える) */
     .side {
-      display: grid;
-      grid-template-rows: auto minmax(0, 1fr);
+      display: flex;
+      flex-direction: column;
       min-height: 0;
+      min-width: 0;
       background: var(--surface);
+    }
+
+    .side > .video-preview,
+    .side > .recording-preview,
+    .side > .export-panel {
+      flex: 0 0 auto;
+    }
+
+    .side > .editor {
+      flex: 1 1 auto;
     }
 
     .editor {
       display: grid;
-      gap: 14px;
-      padding: 18px;
+      align-content: start;
+      gap: 8px;
+      min-height: 0;
+      overflow: auto;
+      padding: 10px 14px 12px;
       border-bottom: 1px solid var(--hairline);
       background: var(--surface-card);
     }
 
+    .editor textarea {
+      min-height: 64px;
+    }
+
     .panel-title {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
       gap: 12px;
     }
@@ -581,7 +735,7 @@
     .panel-title h2 {
       margin: 0;
       font-family: "Times New Roman", "Yu Mincho", serif;
-      font-size: 28px;
+      font-size: 19px;
       font-weight: 400;
       line-height: 1.1;
       letter-spacing: 0;
@@ -598,7 +752,7 @@
       flex: 0 0 auto;
       border: 1px solid rgba(204, 120, 92, 0.26);
       border-radius: 999px;
-      padding: 7px 10px;
+      padding: 5px 9px;
       background: rgba(204, 120, 92, 0.16);
       color: #f0b39e;
       font-size: 12px;
@@ -679,8 +833,9 @@
       grid-template-rows: auto auto;
       align-content: start;
       min-height: 0;
-      padding: 16px 18px 18px;
-      gap: 10px;
+      padding: 10px 14px 12px;
+      gap: 8px;
+      border-top: 1px solid var(--hairline);
       background: var(--surface);
     }
 
@@ -706,7 +861,8 @@
     }
 
     .export-actions button {
-      min-height: 30px;
+      flex: 1 1 140px;
+      min-height: 32px;
       padding: 0 12px;
       font-size: 12px;
     }
@@ -731,28 +887,207 @@
       color: var(--success);
     }
 
-    .footer {
+    .preview-pane {
+      display: none;
+      grid-template-rows: auto auto auto minmax(0, 1fr);
+      min-height: 0;
+      border-left: 1px solid var(--hairline);
+      background: var(--surface);
+    }
+
+    .main.preview-open .preview-pane {
       display: grid;
-      grid-template-columns: minmax(280px, 1fr) auto;
+    }
+
+    .preview-fields {
+      display: grid;
+      gap: 10px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--hairline);
+      background: var(--surface-card);
+    }
+
+    .preview-fields .preview-actions {
+      display: flex;
+    }
+
+    #previewReload {
+      width: 100%;
+    }
+
+    .preview-status {
+      padding: 0 18px 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .preview-status.ok {
+      color: var(--accent-teal);
+    }
+
+    .preview-status.warn {
+      color: var(--warning);
+    }
+
+    .preview-frame-wrap {
+      position: relative;
+      margin: 0 18px 18px;
+      overflow: hidden;
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-md);
+      background: #000;
+      aspect-ratio: 16 / 9;
+    }
+
+    .preview-frame {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .preview-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
       align-items: center;
-      gap: 16px;
-      padding: 12px 24px;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(13, 12, 11, 0.92);
+      color: var(--body);
+      font-size: 12.5px;
+      line-height: 1.6;
+      text-align: center;
+      white-space: pre-line;
+    }
+
+    .preview-overlay.hidden {
+      display: none;
+    }
+
+    #previewToggle.preview-on {
+      border-color: var(--accent-teal);
+      background: rgba(93, 184, 166, 0.2);
+      color: var(--accent-teal);
+    }
+
+    /* フッターを縦積みにし、波形帯（.footer-wave-wrap）を再生コントロール（.footer-controls）の上に置く */
+    .footer {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px 20px 10px;
       background: var(--surface-dark);
       color: var(--on-dark);
     }
 
-    .progress {
+    /* 旧 .footer の2カラムレイアウトをそのまま移設 */
+    .footer-controls {
       display: grid;
-      grid-template-columns: 78px minmax(120px, 1fr) 78px;
-      gap: 10px;
+      grid-template-columns: minmax(280px, 1fr) auto;
       align-items: center;
-      color: var(--on-dark-soft);
-      font: 600 12px/1 "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+      gap: 16px;
     }
 
+    /* 曲全体を1本の帯として表示する波形キャンバスの土台 */
+    .footer-wave-wrap {
+      position: relative;
+      width: 100%;
+      height: 78px;
+    }
+
+    .footer-wave {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .footer-wave-status {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--on-dark-soft);
+      font-size: 11px;
+      pointer-events: none;
+    }
+
+    .footer-wave-status.hidden {
+      display: none;
+    }
+
+    /* ズーム中だけ波形帯の右上に浮かべる「全体表示に戻す」ボタン */
+    .footer-wave-reset {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      min-height: 24px;
+      padding: 0 10px;
+      font-size: 11px;
+      border-color: rgba(250, 249, 245, 0.22);
+      background: rgba(24, 23, 21, 0.72);
+      color: var(--on-dark);
+    }
+
+    .footer-wave-reset.hidden {
+      display: none;
+    }
+
+    .progress {
+      display: grid;
+      grid-template-columns: 86px minmax(120px, 1fr) 86px;
+      gap: 12px;
+      align-items: center;
+      color: var(--on-dark-soft);
+      font: 600 13px/1 "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+    }
+
+    /* シークバーはつまみ・トラックともに大きくして掴みやすくする */
     .range {
       width: 100%;
+      height: 24px;
+      margin: 0;
+      padding: 0;
+      background: transparent;
       accent-color: var(--primary);
+      -webkit-appearance: none;
+      appearance: none;
+      cursor: pointer;
+    }
+
+    .range::-webkit-slider-runnable-track {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(250, 249, 245, 0.18);
+    }
+
+    .range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      margin-top: -6px;
+      border: 2px solid rgba(255, 255, 255, 0.75);
+      border-radius: 999px;
+      background: var(--primary);
+    }
+
+    .range::-moz-range-track {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(250, 249, 245, 0.18);
+    }
+
+    .range::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.75);
+      border-radius: 999px;
+      background: var(--primary);
     }
 
     .transport {
@@ -933,7 +1268,9 @@
       line-height: 1.4;
     }
 
-    @media (max-width: 1080px) {
+    /* 幅が狭いときは1カラムに縦積みし、順序を 動画 → 一覧 → 選択マーカー編集 にする。
+       .side を display:contents にして、その子要素を .main の並び替え対象にしている。 */
+    @media (max-width: 860px) {
       body {
         overflow: auto;
       }
@@ -943,18 +1280,76 @@
         min-height: 100vh;
         min-width: 0;
         grid-template-rows: auto auto auto;
+        /* 画面下に固定したシークバーの分だけ余白を空ける */
+        padding-bottom: 200px;
       }
 
-      .topbar,
       .main,
-      .footer {
-        grid-template-columns: 1fr;
+      .main.has-video,
+      .main.preview-open,
+      .main.preview-open.has-video {
+        display: flex;
+        flex-direction: column;
+        overflow: visible;
       }
 
-      .topbar,
+      .side {
+        display: contents;
+      }
+
+      .video-preview {
+        order: 1;
+      }
+
+      .recording-preview {
+        order: 2;
+        max-height: 28vh;
+      }
+
+      .timeline-shell {
+        order: 3;
+        display: block;
+        border-right: 0;
+      }
+
+      .marker-strip {
+        height: 46vh;
+        min-height: 300px;
+      }
+
+      .timeline-wrap {
+        height: 150px;
+      }
+
+      .editor {
+        order: 4;
+        overflow: visible;
+      }
+
+      .export-panel {
+        order: 5;
+      }
+
+      .preview-pane {
+        order: 6;
+        border-left: 0;
+        border-top: 1px solid var(--hairline);
+      }
+
+      /* シークバーと波形帯は常に手が届くよう画面下に固定 */
       .footer {
-        align-items: stretch;
-        padding: 14px;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 20;
+        padding: 8px 12px 10px;
+        border-top: 1px solid var(--hairline);
+      }
+
+      .footer-controls {
+        grid-template-columns: 1fr;
+        gap: 8px;
       }
 
       .file-row,
@@ -964,23 +1359,8 @@
         flex-wrap: wrap;
       }
 
-      .timeline-shell {
-        min-height: 680px;
-        border-right: 0;
-      }
-
-      .timeline-toolbar {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .toolbar-note {
-        grid-column: 1 / -1;
-        justify-self: start;
-        text-align: left;
-      }
-
-      .side {
-        min-height: 560px;
+      .transport {
+        justify-self: stretch;
       }
     }
 
@@ -1050,20 +1430,45 @@
     }
 
     @media (max-width: 640px) {
-      .timeline-toolbar,
-      .editor-grid,
+      .topbar {
+        padding: 6px 10px 8px;
+      }
+
+      /* スマホ幅では設定バーを1行の横スクロールにして、上部の占有高さを抑える */
+      .settings-bar {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 2px;
+      }
+
+      .settings-bar > label {
+        flex: 0 0 88px;
+      }
+
+      .settings-bar > label.wide {
+        flex: 0 0 118px;
+      }
+
+      .settings-bar .recording-controls {
+        flex: 0 0 auto;
+        flex-wrap: nowrap;
+        margin-left: 8px;
+      }
+
+      .topbar button {
+        min-height: 28px;
+        padding: 0 8px;
+        font-size: 11.5px;
+      }
+
       .marker-head,
       .marker-row {
-        grid-template-columns: 1fr;
-      }
-
-      .marker-head {
-        display: none;
+        grid-template-columns: 84px minmax(0, 1fr);
+        padding: 0 12px;
       }
 
       .marker-row {
-        align-items: start;
-        padding: 12px 16px;
+        min-height: 40px;
       }
 
       .status {
@@ -1071,7 +1476,11 @@
       }
 
       .time-readout {
-        font-size: 20px;
+        font-size: 16px;
+      }
+
+      .footer-wave-wrap {
+        height: 60px;
       }
     }
   </style>
@@ -1079,12 +1488,10 @@
 <body>
   <div class="app" id="app">
     <header class="topbar">
+      <div class="topbar-main">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true"><span></span></div>
-        <div class="brand-copy">
-          <h1 id="appTitle">タイミングエディタ</h1>
-          <div class="brand-sub">音ハメ用マーカーエディタ</div>
-        </div>
+        <h1 id="appTitle">タイミングエディタ</h1>
       </div>
       <div class="file-row">
         <button id="chooseAudio" data-icon="folder-open" title="ローカルの動画または音声を読み込みます（外部送信はされません）">動画/音声を選択</button>
@@ -1093,86 +1500,100 @@
         <span id="fileName" class="file-name">未読み込み</span>
       </div>
       <div class="top-actions">
+        <button id="newProject" class="ghost" data-icon="file-plus" title="マーカーとメモを消して白紙から書き直します（曲名・BPM・読み込み済みの音源はそのまま）">新規作成</button>
         <button id="importJson" data-icon="file-input" title="「作業内容を保存」で書き出した JSON を読み込んで編集を再開します">作業内容を読込</button>
         <input id="jsonInput" class="hidden-input" type="file" accept="application/json,.json,text/plain">
+        <button id="previewToggle" data-icon="monitor" title="danmaku-lab の弾幕プレビューを表示/非表示します（要 danmaku-lab サーバー）" aria-pressed="false">プレビュー</button>
         <button id="helpButton" data-icon="help-circle" title="基本の流れとキー操作の一覧（? キーでも開けます）">使い方</button>
+      </div>
+      </div>
+
+      <!-- 曲設定と録画選択をヘッダー2行目にまとめて上部を低くする -->
+      <div class="settings-bar">
+        <label class="wide" title="タイトル・書き出すファイル名・自動保存キーに使われます">曲名
+          <input id="trackName" type="text" placeholder="例: 石工">
+        </label>
+        <label class="wide" title="空欄なら指示書の「（作曲: …）」は省略されます">作曲者
+          <input id="composer" type="text" placeholder="任意">
+        </label>
+        <label title="曲のテンポ。波形に重なる拍グリッドの基準になります">BPM
+          <input id="bpm" type="number" value="144" min="1" step="0.001">
+        </label>
+        <label title="1小節の拍数（4 なら 4/4 拍子）">拍子
+          <input id="measure" type="number" value="4" min="1" max="16" step="1">
+        </label>
+        <label title="最初の拍が鳴る秒数。小節頭が波形とずれるときに調整します">拍オフセット
+          <input id="beatOffset" type="number" value="0" step="0.001">
+        </label>
+        <label title="マーカーを置くとき拍グリッドへ吸着させる単位">スナップ
+          <select id="snap">
+            <option value="0">なし</option>
+            <option value="0.25">16分</option>
+            <option value="0.5">8分</option>
+            <option value="1">4分</option>
+          </select>
+        </label>
+        <input id="zoom" class="hidden-input" type="number" value="4" min="0.25" max="12" step="0.25">
+
+        <!-- ゲーム録画: recordings/index.json の一覧から選ぶと、主時間軸(曲)がある場合は
+             右カラムの小プレビューに offset 付きで追従表示し、
+             主時間軸がまだ無ければ録画自体を主時間軸として読み込む -->
+        <div class="recording-controls">
+          <label class="field-label" title="recordings/ 以下に登録した録画の一覧です（tools/publish_recording.py で登録）">録画
+            <select id="recordingSelect">
+              <option value="">未選択</option>
+            </select>
+          </label>
+          <button id="recordingLatest" class="ghost" data-icon="clock" title="index.json の作成日時が最新の録画を読み込みます">直近の録画</button>
+          <button id="recordingClear" class="ghost" data-icon="x" title="読み込んだ録画プレビューを外します">解除</button>
+          <span id="recordingStatus" class="recording-status">録画未選択</span>
+        </div>
+        <!-- Claude からの質問セット: questions/index.json の一覧。選ぶと質問マーカーを読み込み、対応する録画も選ぶ -->
+        <div class="recording-controls question-controls">
+          <label class="field-label" title="Claude からの質問セット（questions/index.json）。選ぶと質問マーカーと対応する録画を読み込みます">質問
+            <select id="questionSelect">
+              <option value="">未選択</option>
+            </select>
+          </label>
+          <span id="questionStatus" class="recording-status"></span>
+        </div>
       </div>
     </header>
 
-    <main class="main">
+    <!-- tabindex: ペイン自体にフォーカスして PageUp/PageDown や ↑↓ でスクロールできるようにする -->
+    <main class="main" id="mainArea" tabindex="0">
       <section class="timeline-shell" aria-label="タイムライン">
-        <div class="timeline-toolbar">
-          <label class="wide" title="タイトル・書き出すファイル名・自動保存キーに使われます">曲名
-            <input id="trackName" type="text" placeholder="例: 石工">
-          </label>
-          <label class="wide" title="空欄なら指示書の「（作曲: …）」は省略されます">作曲者
-            <input id="composer" type="text" placeholder="任意">
-          </label>
-          <label title="曲のテンポ。波形に重なる拍グリッドの基準になります">BPM
-            <input id="bpm" type="number" value="144" min="1" step="0.001">
-          </label>
-          <label title="1小節の拍数（4 なら 4/4 拍子）">拍子
-            <input id="measure" type="number" value="4" min="1" max="16" step="1">
-          </label>
-          <label title="最初の拍が鳴る秒数。小節頭が波形とずれるときに調整します">拍オフセット
-            <input id="beatOffset" type="number" value="0" step="0.001">
-          </label>
-          <label title="マーカーを置くとき拍グリッドへ吸着させる単位">スナップ
-            <select id="snap">
-              <option value="0">なし</option>
-              <option value="0.25">16分</option>
-              <option value="0.5">8分</option>
-              <option value="1">4分</option>
-            </select>
-          </label>
-          <input id="zoom" class="hidden-input" type="number" value="4" min="0.25" max="12" step="0.25">
-          <div class="toolbar-note">
-            <span class="kbd">Space</span> 再生/停止
-            <span class="kbd">K</span> 現在位置にメモ
-            <span class="kbd">I</span> 画像
-            <span class="kbd">Del</span> 選択を削除
-            <span class="kbd">←</span><span class="kbd">→</span> スクロール
-            <span class="kbd">+/-</span> ズーム
-            <span class="kbd">Shift</span> + クリックでメモ追加
+        <div class="marker-strip">
+          <!-- メモ一覧を左カラムの主役にする（時刻・メモの2列） -->
+          <div class="marker-head" aria-hidden="true">
+            <span>時刻</span>
+            <span>メモ</span>
           </div>
-        </div>
-
-        <div id="videoPreview" class="video-preview hidden">
-          <video id="video" controls playsinline preload="metadata"></video>
+          <div id="markerStrip" class="marker-list"></div>
         </div>
 
         <div class="timeline-wrap" id="timelineWrap">
           <canvas id="waveCanvas"></canvas>
           <div id="timeReadout" class="time-readout">00:00.000</div>
           <div id="status" class="status">音源を読み込んでください。動画/音声ファイルはここへドロップできます。</div>
-          <div class="timeline-help" aria-hidden="true">
-            <span class="help-chip">クリック: シーク</span>
-            <span class="help-chip">ドラッグ: 横スクロール</span>
-            <span class="help-chip">ホイール: 横スクロール</span>
-            <span class="help-chip">Ctrl+ホイール: ズーム</span>
-            <span class="help-chip">Shift+クリック: メモ追加</span>
-            <span class="help-chip">行ダブルクリック: その時刻へ</span>
-          </div>
-        </div>
-
-        <div class="marker-strip">
-          <div class="marker-head" aria-hidden="true">
-            <span>時刻</span>
-            <span>ラベル</span>
-            <span>メモ</span>
-            <span>画像</span>
-          </div>
-          <div id="markerStrip" class="marker-list"></div>
+          <div id="presetToast" class="preset-toast hidden" role="status" aria-live="polite"></div>
         </div>
       </section>
 
-      <aside class="side" aria-label="マーカー編集">
+      <aside class="side" aria-label="動画とマーカー編集">
+        <div id="videoPreview" class="video-preview hidden">
+          <video id="video" controls playsinline preload="metadata"></video>
+        </div>
+
+        <div class="recording-preview hidden" id="recordingPreviewBox" title="クリックで拡大/縮小">
+          <video id="recordingVideo" muted playsinline preload="metadata"></video>
+          <div class="recording-preview-outside" id="recordingOutside">録画範囲外（曲のみ再生中）</div>
+          <span class="recording-preview-hint">クリックで拡大</span>
+        </div>
+
         <section class="editor">
           <div class="panel-title">
-            <div>
-              <h2>選択マーカー</h2>
-              <div class="panel-sub">打点の微調整、コメント、複製までここで完結します。</div>
-            </div>
+            <h2>選択マーカー</h2>
             <span id="selectedSummary" class="selected-chip">未選択</span>
           </div>
 
@@ -1182,34 +1603,23 @@
             </label>
             <div id="beatReadout" class="beat-readout">小節:拍 —</div>
           </div>
-          <label>ラベル
-            <input id="markerLabel" type="text" placeholder="例: タイル出現 1-A">
-          </label>
+          <!-- ラベル入力欄を削除（マーカー表・書き出しの「ラベル」列と対応するため） -->
           <label>コメント
             <textarea id="markerComment" placeholder="ここに音ハメ指示を書く"></textarea>
           </label>
+          <label id="answerField" hidden>回答
+            <textarea id="markerAnswer" placeholder="Claude への回答をここに書く"></textarea>
+          </label>
 
-          <div class="field-label">メモ画像
-            <div class="image-tools">
-              <div id="imagePreview" class="image-preview empty">画像なし</div>
-              <div class="image-actions">
-                <button id="attachImage" type="button" data-icon="image">画像</button>
-                <button id="clearImage" type="button" data-icon="x" class="danger">外す</button>
-              </div>
-            </div>
-            <input id="markerImageInput" class="hidden-input" type="file" accept="image/*">
-          </div>
+          <!-- メモ画像の添付欄一式を削除（マーカー表・書き出しの「画像」列と対応するため） -->
 
           <div class="button-row">
             <button id="addMarker" class="primary" data-icon="plus">キー追加</button>
             <button id="deleteMarker" class="danger" data-icon="trash">削除</button>
           </div>
 
-          <div class="micro-actions" aria-label="微調整">
-            <button id="nudgeBackLarge">-50ms</button>
-            <button id="nudgeBack">-10ms</button>
-            <button id="nudgeForward">+10ms</button>
-            <button id="nudgeForwardLarge">+50ms</button>
+          <!-- ±50ms/±10msの微調整ボタンを削除。[ / ] キーでの±10ms微調整は維持 -->
+          <div class="micro-actions" aria-label="操作">
             <button id="snapMarker">拍へ</button>
             <button id="duplicateMarker">複製</button>
           </div>
@@ -1221,24 +1631,65 @@
             <span id="markerCount">0 keys</span>
           </div>
           <div class="export-actions">
-            <button id="saveWork" class="primary" type="button" data-icon="download" title="編集を再開するための JSON（画像込み）をダウンロード。「作業内容を読込」で復元できます">作業内容を保存</button>
+            <button id="saveWork" class="primary" type="button" data-icon="download" title="編集を再開するための JSON をダウンロード。「作業内容を読込」で復元できます">作業内容を保存</button>
             <button id="saveInstructions" type="button" data-icon="file-text" title="Claude に渡す Markdown 指示書をダウンロード">AI用指示を保存</button>
+            <button id="sendAnswers" type="button" hidden title="質問への回答をサーバーの answers/ に保存します（保存できないときは JSON をダウンロード）">回答を送信</button>
           </div>
         </section>
+      </aside>
+
+      <aside class="preview-pane" id="previewPane" aria-label="danmaku-lab プレビュー">
+        <div class="panel-title">
+          <div>
+            <h2>プレビュー</h2>
+            <div class="panel-sub">再生ヘッドに合わせて danmaku-lab の弾幕をここに同期表示します。</div>
+          </div>
+        </div>
+        <div class="preview-fields">
+          <label title="danmaku-lab embed の URL。serve.ps1 のポートを変えている場合はここを書き換えます">danmaku-lab URL
+            <input id="previewUrl" type="text" spellcheck="false" autocomplete="off">
+          </label>
+          <label title="danmaku-lab 側の Assets/StageData 配下のステージ名（例: stone2）">ステージ名
+            <input id="previewStage" type="text" placeholder="例: stone2" spellcheck="false" autocomplete="off">
+          </label>
+          <div class="preview-actions">
+            <button id="previewReload" type="button" data-icon="locate" title="URL/ステージ名を反映して再読み込み">再読み込み</button>
+          </div>
+        </div>
+        <div id="previewStatus" class="preview-status"></div>
+        <div class="preview-frame-wrap">
+          <iframe id="previewFrame" class="preview-frame" title="danmaku-lab プレビュー"></iframe>
+          <div id="previewOverlay" class="preview-overlay hidden"></div>
+        </div>
       </aside>
     </main>
 
     <footer class="footer">
-      <div class="progress">
-        <span id="currentTime">00:00.000</span>
-        <input id="seek" class="range" type="range" min="0" max="0" value="0" step="0.001" aria-label="再生位置">
-        <span id="duration">00:00.000</span>
+      <!-- シークバー上に曲全体の波形帯を表示。クリック/ドラッグでシークバーと同じ位置へシークできる。
+           tabindex: クリックでフォーカスできるようにする（Ctrl+ホイールでズーム、Shift+ホイールでスクロール） -->
+      <div class="footer-wave-wrap">
+        <canvas id="footerWave" class="footer-wave" tabindex="0" aria-label="波形（クリック/ドラッグでシーク、Ctrl+ホイールでズーム）"></canvas>
+        <div id="footerWaveStatus" class="footer-wave-status hidden">波形を解析中…</div>
+        <button id="footerWaveReset" class="footer-wave-reset hidden" type="button" title="ズームを解除して全体表示に戻す">全体表示</button>
       </div>
-      <div class="transport">
-        <button id="jumpBack" class="icon" data-icon="skip-back" title="-1秒" aria-label="1秒戻る"></button>
-        <button id="play" class="primary" data-icon="play">再生</button>
-        <button id="jumpForward" class="icon" data-icon="skip-forward" title="+1秒" aria-label="1秒進む"></button>
-        <button id="followToggle" data-icon="locate" title="再生ヘッドに追従（ON=シアン）" aria-pressed="true">追従</button>
+      <div class="footer-controls">
+        <div class="progress">
+          <span id="currentTime">00:00.000</span>
+          <input id="seek" class="range" type="range" min="0" max="0" value="0" step="0.001" aria-label="再生位置">
+          <span id="duration">00:00.000</span>
+        </div>
+        <div class="transport">
+          <button id="jumpBack" class="icon" data-icon="skip-back" title="-1秒" aria-label="1秒戻る"></button>
+          <button id="play" class="primary" data-icon="play">再生</button>
+          <button id="jumpForward" class="icon" data-icon="skip-forward" title="+1秒" aria-label="1秒進む"></button>
+          <button id="followToggle" data-icon="locate" title="再生ヘッドに追従（ON=シアン）" aria-pressed="true">追従</button>
+          <select id="speedSelect" class="speed-select" title="再生速度。Space 長押し（再生ボタン長押し）で押している間だけ 2 倍速">
+            <option value="1" selected>1x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2">2x</option>
+            <option value="0.5">0.5x</option>
+          </select>
+        </div>
       </div>
     </footer>
   </div>
@@ -1256,7 +1707,7 @@
         <ol class="steps">
           <li><strong>動画/音声を読み込む</strong> — 左上の「動画/音声を選択」か、タイムラインへ動画/音声ファイルをドロップします。手元に音源がなければ下の「デモ音源で試す」でクリック音を生成できます。</li>
           <li><strong>ステージ設定を入力</strong> — 曲名・BPM・拍子・拍オフセットを入れると、波形に拍グリッドが重なります。マーカー位置は「小節:拍」で確認できます。</li>
-          <li><strong>再生しながら打刻</strong> — <span class="kbd">Space</span> で再生し、要所で <span class="kbd">K</span> を押すとその位置にマーカーが入ります。右パネルでラベル・コメント・±10ms の微調整ができます。</li>
+          <li><strong>再生しながら打刻</strong> — <span class="kbd">Space</span> で再生し、要所で <span class="kbd">K</span> を押すとその位置にマーカーが入ります。右パネルでコメント編集・±10ms の微調整ができます。</li>
           <li><strong>書き出す</strong> — 右下の2ボタンから保存します。<strong>作業内容を保存</strong>（編集再開用 JSON）／<strong>AI用指示を保存</strong>（Claude に渡す Markdown）。</li>
         </ol>
         <div class="help-section">
@@ -1264,10 +1715,10 @@
           <table class="help-table">
             <tr><td><span class="kbd">Space</span></td><td>再生 / 停止</td></tr>
             <tr><td><span class="kbd">K</span></td><td>再生位置にマーカー追加（コメント欄にフォーカス）</td></tr>
-            <tr><td><span class="kbd">I</span></td><td>選択マーカーに画像を添付</td></tr>
+            <!-- メモ画像添付機能を削除したため I キーの行を除去 -->
             <tr><td><span class="kbd">Delete</span></td><td>選択マーカーを削除</td></tr>
             <tr><td><span class="kbd">[</span> / <span class="kbd">]</span></td><td>選択マーカーを −10ms / +10ms 微調整</td></tr>
-            <tr><td><span class="kbd">←</span> / <span class="kbd">→</span></td><td>タイムラインを横スクロール（<span class="kbd">Shift</span> で大きく）</td></tr>
+            <tr><td><span class="kbd">←</span> / <span class="kbd">→</span></td><td>再生位置を5秒スキップ（<span class="kbd">Ctrl</span>併用で1秒）。テキスト入力欄以外ならどこにフォーカスがあっても効きます</td></tr>
             <tr><td><span class="kbd">+</span> / <span class="kbd">-</span></td><td>ズームイン / ズームアウト</td></tr>
             <tr><td><span class="kbd">?</span></td><td>この画面を開く</td></tr>
           </table>
@@ -1316,8 +1767,21 @@
     const ui = {
       app: document.getElementById("app"),
       chooseAudio: document.getElementById("chooseAudio"),
+      newProject: document.getElementById("newProject"),
       audioInput: document.getElementById("audioInput"),
       videoPreview: document.getElementById("videoPreview"),
+      recordingSelect: document.getElementById("recordingSelect"),
+      questionSelect: document.getElementById("questionSelect"),
+      speedSelect: document.getElementById("speedSelect"),
+      questionStatus: document.getElementById("questionStatus"),
+      markerAnswer: document.getElementById("markerAnswer"),
+      answerField: document.getElementById("answerField"),
+      sendAnswers: document.getElementById("sendAnswers"),
+      recordingLatest: document.getElementById("recordingLatest"),
+      recordingClear: document.getElementById("recordingClear"),
+      recordingStatus: document.getElementById("recordingStatus"),
+      recordingPreviewBox: document.getElementById("recordingPreviewBox"),
+      recordingVideo: document.getElementById("recordingVideo"),
       fileName: document.getElementById("fileName"),
       appTitle: document.getElementById("appTitle"),
       trackName: document.getElementById("trackName"),
@@ -1328,27 +1792,23 @@
       snap: document.getElementById("snap"),
       zoom: document.getElementById("zoom"),
       status: document.getElementById("status"),
+      presetToast: document.getElementById("presetToast"),
       timeReadout: document.getElementById("timeReadout"),
       timelineWrap: document.getElementById("timelineWrap"),
       markerStrip: document.getElementById("markerStrip"),
       markerTime: document.getElementById("markerTime"),
-      markerLabel: document.getElementById("markerLabel"),
+      // ラベル入力欄・メモ画像欄・±50/10ms微調整ボタンは削除済みのため ui 登録も外す
       markerComment: document.getElementById("markerComment"),
       beatReadout: document.getElementById("beatReadout"),
-      markerImageInput: document.getElementById("markerImageInput"),
-      imagePreview: document.getElementById("imagePreview"),
-      attachImage: document.getElementById("attachImage"),
-      clearImage: document.getElementById("clearImage"),
       selectedSummary: document.getElementById("selectedSummary"),
       addMarker: document.getElementById("addMarker"),
       deleteMarker: document.getElementById("deleteMarker"),
-      nudgeBackLarge: document.getElementById("nudgeBackLarge"),
-      nudgeBack: document.getElementById("nudgeBack"),
-      nudgeForward: document.getElementById("nudgeForward"),
-      nudgeForwardLarge: document.getElementById("nudgeForwardLarge"),
       snapMarker: document.getElementById("snapMarker"),
       duplicateMarker: document.getElementById("duplicateMarker"),
       markerCount: document.getElementById("markerCount"),
+      footerWave: document.getElementById("footerWave"),
+      footerWaveStatus: document.getElementById("footerWaveStatus"),
+      footerWaveReset: document.getElementById("footerWaveReset"),
       seek: document.getElementById("seek"),
       currentTime: document.getElementById("currentTime"),
       duration: document.getElementById("duration"),
@@ -1360,6 +1820,15 @@
       saveInstructions: document.getElementById("saveInstructions"),
       importJson: document.getElementById("importJson"),
       jsonInput: document.getElementById("jsonInput"),
+      mainArea: document.getElementById("mainArea"),
+      previewToggle: document.getElementById("previewToggle"),
+      previewPane: document.getElementById("previewPane"),
+      previewUrl: document.getElementById("previewUrl"),
+      previewStage: document.getElementById("previewStage"),
+      previewReload: document.getElementById("previewReload"),
+      previewStatus: document.getElementById("previewStatus"),
+      previewFrame: document.getElementById("previewFrame"),
+      previewOverlay: document.getElementById("previewOverlay"),
       demoAudio: document.getElementById("demoAudio"),
       helpButton: document.getElementById("helpButton"),
       helpModal: document.getElementById("helpModal"),
@@ -1408,6 +1877,21 @@
     let canvasPixelHeight = 0;
     let canvasDpr = 0;
     let waveformDuration = 0;
+    // --- ゲーム録画の読み込み ---
+    // recordings/index.json の1件。主時間軸(曲)がある場合は "secondary"（小プレビューを offset 付きで追従再生）、
+    // まだ無い場合は "primary"（録画自体を主時間軸として読み込み、波形も録画の音声トラックから生成）で扱う
+    let recordings = [];
+    let currentRecording = null;
+    let recordingMode = "none"; // "none" | "primary" | "secondary"
+    let recordingObjectUrl = null;
+    // 主時間軸の表示時刻に足すオフセット（秒）。録画を主時間軸として読み込んだ("primary")ときだけ
+    // 録画の offset を入れ、時刻表示・書き出しの秒数をステージ秒に合わせる。曲が主時間軸のときは 0 のまま
+    let activeTimeOffset = 0;
+    // 録画を主時間軸にしていたときの offset。曲を後から読み込んで小プレビューへ切り替える際に
+    // マーカー時刻をステージ秒基準へ寄せ直すために使う（activeTimeOffset は読み込みで 0 に戻るため別持ち）
+    let primaryRecordingOffset = 0;
+    let waveformAnalyzing = false; // フッター波形の「解析中」表示の切り替えに使う
+    let footerWaveDragging = false; // フッター波形帯をドラッグ中かどうか
     let timelineDragRect = null;
     let isTimelinePanning = false;
     let isPlayheadDragging = false;
@@ -1425,12 +1909,15 @@
       copy: '<rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path>',
       download: '<path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path>',
       "file-input": '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M10 13h6"></path><path d="m13 10 3 3-3 3"></path>',
+      clock: '<circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path>',
+      "file-plus": '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M12 12v6"></path><path d="M9 15h6"></path>',
       "file-text": '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M9 13h6"></path><path d="M9 17h6"></path>',
       "folder-open": '<path d="M6 14 8 5a2 2 0 0 1 2-1h3l2 3h5a2 2 0 0 1 2 2v3"></path><path d="M3 8h5l2 3h11l-3 8a2 2 0 0 1-2 1H5a2 2 0 0 1-2-2Z"></path>',
       "help-circle": '<circle cx="12" cy="12" r="10"></circle><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.3-3 4"></path><path d="M12 17h.01"></path>',
       image: '<rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="8.5" cy="10.5" r="1.5"></circle><path d="m21 15-5-5L5 21"></path>',
       locate: '<path d="M12 2v3"></path><path d="M12 19v3"></path><path d="M2 12h3"></path><path d="M19 12h3"></path><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="2"></circle>',
       magnet: '<path d="M6 15V7a4 4 0 0 1 8 0v8"></path><path d="M6 15a6 6 0 0 0 12 0V7"></path><path d="M6 11h4"></path><path d="M14 11h4"></path>',
+      monitor: '<rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8"></path><path d="M12 17v4"></path>',
       music: '<path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle>',
       pause: '<path d="M8 5v14"></path><path d="M16 5v14"></path>',
       play: '<path d="m8 5 11 7-11 7Z"></path>',
@@ -1498,6 +1985,9 @@
       drawFrameId = requestAnimationFrame(() => {
         drawFrameId = 0;
         draw();
+        // メインタイムラインの canvas サイズが 0 の状態（未読込直後など）でも
+        // フッター波形帯は独立して更新されるようにする
+        drawFooterWave();
       });
     }
 
@@ -1557,6 +2047,7 @@
     function setAudioTime(nextTime, keepView = false) {
       const limit = duration || media.duration || fullDuration();
       const safeTime = clamp(Number(nextTime) || 0, 0, limit);
+      sendPreviewSeek(safeTime);
       if (!media.src && !duration) {
         viewCenter = clampViewCenter(safeTime);
         requestDraw();
@@ -1755,6 +2246,101 @@
       ctx.fill();
     }
 
+    // フッター波形帯の表示範囲（秒）。footerViewDuration が 0 のときは全体表示。
+    let footerViewDuration = 0;
+    let footerViewStart = 0;
+    const FOOTER_MIN_VIEW_SECONDS = 4; // 曲1秒が画面幅の1/4程度になる最大ズーム相当
+
+    // 現在の表示範囲 [start, start+dur) を返す（全体表示なら 0〜full）
+    function footerView() {
+      const full = duration || fullDuration();
+      const dur = footerViewDuration > 0 ? Math.min(footerViewDuration, full || footerViewDuration) : full;
+      const start = footerViewDuration > 0 ? clamp(footerViewStart, 0, Math.max(0, full - dur)) : 0;
+      return { full, dur: dur || 0, start };
+    }
+
+    // 再生位置が表示範囲外に出たら自動でその位置を中心にスクロールする
+    function followFooterPlayheadIfNeeded() {
+      if (!footerViewDuration) return;
+      const { dur, start, full } = footerView();
+      const t = media.currentTime || 0;
+      if (t < start || t > start + dur) {
+        footerViewStart = clamp(t - dur / 2, 0, Math.max(0, full - dur));
+      }
+    }
+
+    // フッターの波形帯を描画する。既存の全曲波形キャッシュ（waveformCanvas）から
+    // 表示範囲に対応する部分だけを切り出して引き伸ばすため、別途デコードはしない。
+    function drawFooterWave() {
+      const target = ui.footerWave;
+      if (!target) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      const rect = target.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+      const nextWidth = Math.floor(rect.width * dpr);
+      const nextHeight = Math.floor(rect.height * dpr);
+      if (target.width !== nextWidth || target.height !== nextHeight) {
+        target.width = nextWidth;
+        target.height = nextHeight;
+      }
+      const fctx = target.getContext("2d");
+      fctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      fctx.fillStyle = "#181715";
+      fctx.fillRect(0, 0, rect.width, rect.height);
+
+      if (!media.paused) followFooterPlayheadIfNeeded();
+      const { full, dur, start } = footerView();
+
+      if (waveformCanvas.width && waveformDuration && dur > 0) {
+        // 波形キャッシュのうち表示範囲に対応する部分だけを切り出して描画
+        const srcX = clamp((start / waveformDuration) * waveformCanvas.width, 0, waveformCanvas.width);
+        const srcW = clamp((dur / waveformDuration) * waveformCanvas.width, 1, waveformCanvas.width - srcX);
+        fctx.imageSmoothingEnabled = true;
+        fctx.drawImage(waveformCanvas, srcX, 0, srcW, waveformCanvas.height, 0, 0, rect.width, rect.height);
+        fctx.imageSmoothingEnabled = false;
+      } else {
+        fctx.strokeStyle = "rgba(250, 249, 245, 0.22)";
+        fctx.lineWidth = 1.5;
+        fctx.beginPath();
+        fctx.moveTo(0, rect.height / 2);
+        fctx.lineTo(rect.width, rect.height / 2);
+        fctx.stroke();
+      }
+
+      if (full > 0 && dur > 0) {
+        // マーカー位置を細い縦線で重ねる（表示範囲内のみ）
+        fctx.strokeStyle = "rgba(250, 249, 245, 0.55)";
+        fctx.lineWidth = 1;
+        markers.forEach((marker) => {
+          if (marker.time < start || marker.time > start + dur) return;
+          const x = clamp(((marker.time - start) / dur) * rect.width, 0, rect.width);
+          fctx.beginPath();
+          fctx.moveTo(x, 0);
+          fctx.lineTo(x, rect.height);
+          fctx.stroke();
+        });
+
+        // 再生位置の縦線（表示範囲外なら描かない）
+        const t = media.currentTime || 0;
+        if (t >= start && t <= start + dur) {
+          const playX = clamp(((t - start) / dur) * rect.width, 0, rect.width);
+          fctx.strokeStyle = "#cc785c";
+          fctx.lineWidth = 2;
+          fctx.beginPath();
+          fctx.moveTo(playX, 0);
+          fctx.lineTo(playX, rect.height);
+          fctx.stroke();
+        }
+      }
+
+      if (ui.footerWaveStatus) {
+        ui.footerWaveStatus.classList.toggle("hidden", !waveformAnalyzing);
+      }
+      if (ui.footerWaveReset) {
+        ui.footerWaveReset.classList.toggle("hidden", !footerViewDuration);
+      }
+    }
+
     function drawBeatGrid(rect, windowInfo, fastMode = false) {
       const offset = beatOffsetSec();
       const measure = measureCount();
@@ -1783,7 +2369,7 @@
         if (!fastMode && strong && (measurePx > 86 || i % (measure * 4) === 0)) {
           ctx.fillStyle = "rgba(250, 249, 245, 0.48)";
           ctx.font = "11px Cascadia Mono, Consolas, monospace";
-          ctx.fillText(formatTime(time), x + 4, rect.height - 12);
+          ctx.fillText(formatTime(time + activeTimeOffset), x + 4, rect.height - 12);
         }
       }
     }
@@ -1794,27 +2380,26 @@
       if (!markers.length) {
         const empty = document.createElement("div");
         empty.className = "empty-message";
-        empty.textContent = "まだマーカーがありません。再生しながらキー追加、または K でメモを追加できます。I で選択メモに画像を添付できます。";
+        empty.textContent = "まだマーカーがありません。再生しながらキー追加、または K でメモを追加できます。";
         fragment.appendChild(empty);
       }
       for (const marker of markers) {
         const row = document.createElement("div");
         row.className = `marker-row${marker.id === selectedId ? " active" : ""}`;
         row.dataset.id = marker.id;
+        // マーカー表からラベル列・画像列を削除。時刻とメモのみ表示する
+        const badge = marker.question
+          ? `<span class="marker-q${(marker.answer || "").trim() ? " answered" : ""}">${(marker.answer || "").trim() ? "回答済" : "質問"}</span>`
+          : "";
         row.innerHTML = `
-          <span class="marker-time">${formatTime(marker.time)}</span>
-          <span class="marker-text">${escapeHtml(marker.label || "")}</span>
-          <span class="marker-comment">${escapeHtml(marker.comment || "")}</span>
-          ${marker.imageDataUrl
-            ? `<img class="marker-thumb" alt="" src="${escapeAttribute(marker.imageDataUrl)}">`
-            : `<span class="marker-thumb-empty">${iconSvg("image")}</span>`}
+          <span class="marker-time">${formatTime(marker.time + activeTimeOffset)}</span>
+          <span class="marker-comment">${badge}${escapeHtml(marker.comment || "")}</span>
         `;
         fragment.appendChild(row);
       }
       ui.markerStrip.replaceChildren(fragment);
       ui.markerCount.textContent = `${markers.length} keys`;
       updateSelectedSummary();
-      updateImagePreview();
       requestDraw();
       scheduleAutoSave();
     }
@@ -1838,7 +2423,6 @@
         row.classList.toggle("active", Number(row.dataset.id) === selectedId);
       });
       updateSelectedSummary();
-      updateImagePreview();
       requestDraw();
     }
 
@@ -1847,8 +2431,10 @@
       const marker = markers.find((item) => item.id === id);
       if (!marker) return;
       ui.markerTime.value = marker.time.toFixed(3);
-      ui.markerLabel.value = marker.label || "";
+      // ラベル欄は削除済みのため値の反映も行わない
       ui.markerComment.value = marker.comment || "";
+      ui.markerAnswer.value = marker.answer || "";
+      ui.answerField.hidden = !marker.question;
       if (shouldRender) {
         renderMarkers();
       } else {
@@ -1858,15 +2444,16 @@
 
     function updateSelectedSummary() {
       const marker = markers.find((item) => item.id === selectedId);
-      ui.selectedSummary.textContent = marker ? formatTime(marker.time) : "未選択";
+      ui.selectedSummary.textContent = marker ? formatTime(marker.time + activeTimeOffset) : "未選択";
       updateBeatReadout();
     }
 
     function readEditorMarker() {
+      // ラベル入力欄は削除済みのため時刻・コメントのみ読み取る
       return {
         time: Math.max(0, Number(ui.markerTime.value) || 0),
-        label: ui.markerLabel.value.trim(),
         comment: ui.markerComment.value.trim(),
+        answer: ui.markerAnswer.value.trim(),
       };
     }
 
@@ -1880,7 +2467,7 @@
         comment: "",
       };
       markers.push(marker);
-      ui.status.textContent = `マーカーを ${formatTime(time)} に追加しました`;
+      ui.status.textContent = `マーカーを ${formatTime(time + activeTimeOffset)} に追加しました`;
       selectMarker(marker.id, true);
     }
 
@@ -1901,80 +2488,11 @@
         label: `${marker.label || "メモ"} copy`,
       };
       markers.push(duplicate);
-      ui.status.textContent = `${formatTime(duplicate.time)} に複製しました`;
+      ui.status.textContent = `${formatTime(duplicate.time + activeTimeOffset)} に複製しました`;
       selectMarker(duplicate.id, true);
     }
 
-    function updateImagePreview() {
-      const marker = markers.find((item) => item.id === selectedId);
-      if (!marker?.imageDataUrl) {
-        ui.imagePreview.className = "image-preview empty";
-        ui.imagePreview.textContent = "画像なし";
-        ui.clearImage.disabled = true;
-        return;
-      }
-      ui.imagePreview.className = "image-preview";
-      ui.imagePreview.innerHTML = `
-        <img src="${escapeAttribute(marker.imageDataUrl)}" alt="">
-        <span>${escapeHtml(marker.imageName || "添付画像")}</span>
-      `;
-      ui.clearImage.disabled = false;
-    }
-
-    function readFileAsDataUrl(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result || ""));
-        reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(file);
-      });
-    }
-
-    async function makeImageDataUrl(file) {
-      const original = await readFileAsDataUrl(file);
-      if (file.type === "image/svg+xml") return original;
-      return new Promise((resolve) => {
-        const image = new Image();
-        image.onload = () => {
-          const maxEdge = 480;
-          const scale = Math.min(1, maxEdge / Math.max(image.width, image.height));
-          const width = Math.max(1, Math.round(image.width * scale));
-          const height = Math.max(1, Math.round(image.height * scale));
-          const previewCanvas = document.createElement("canvas");
-          previewCanvas.width = width;
-          previewCanvas.height = height;
-          const previewCtx = previewCanvas.getContext("2d");
-          previewCtx.fillStyle = "#181715";
-          previewCtx.fillRect(0, 0, width, height);
-          previewCtx.drawImage(image, 0, 0, width, height);
-          resolve(previewCanvas.toDataURL("image/jpeg", 0.84));
-        };
-        image.onerror = () => resolve(original);
-        image.src = original;
-      });
-    }
-
-    async function attachImageFile(file) {
-      if (!file) return;
-      if (selectedId == null) addMarker("メモ");
-      const marker = markers.find((item) => item.id === selectedId);
-      if (!marker) return;
-      marker.imageName = file.name;
-      marker.imageDataUrl = await makeImageDataUrl(file);
-      ui.status.textContent = `画像を追加しました: ${file.name}`;
-      updateImagePreview();
-      renderMarkers();
-    }
-
-    function clearSelectedImage() {
-      const marker = markers.find((item) => item.id === selectedId);
-      if (!marker) return;
-      delete marker.imageName;
-      delete marker.imageDataUrl;
-      ui.status.textContent = "画像を外しました";
-      updateImagePreview();
-      renderMarkers();
-    }
+    // メモ画像添付機能（updateImagePreview / makeImageDataUrl / attachImageFile / clearSelectedImage）は削除
 
     function deleteSelected() {
       if (selectedId == null) return;
@@ -1985,7 +2503,7 @@
         selectMarker(selectedId, true);
       } else {
         ui.markerTime.value = "";
-        ui.markerLabel.value = "";
+        // ラベル欄は削除済みのためリセット対象から外す
         ui.markerComment.value = "";
         renderMarkers();
       }
@@ -1996,7 +2514,7 @@
       if (!marker) return;
       tourFlags.nudged = true;
       marker.time = Math.max(0, marker.time + delta);
-      ui.status.textContent = `${delta > 0 ? "+" : ""}${Math.round(delta * 1000)}ms: ${formatTime(marker.time)}`;
+      ui.status.textContent = `${delta > 0 ? "+" : ""}${Math.round(delta * 1000)}ms: ${formatTime(marker.time + activeTimeOffset)}`;
       selectMarker(marker.id, true);
     }
 
@@ -2062,7 +2580,7 @@
       const marker = markers.find((item) => item.id === selectedId);
       if (!marker) return;
       marker.time = Math.max(0, snapTime(marker.time));
-      ui.status.textContent = `拍へ吸着: ${formatTime(marker.time)}`;
+      ui.status.textContent = `拍へ吸着: ${formatTime(marker.time + activeTimeOffset)}`;
       selectMarker(marker.id, true);
     }
 
@@ -2165,14 +2683,15 @@
       {
         target: () => ui.addMarker,
         title: "メモ追加",
-        text: "合わせたい瞬間に K キー（または「キー追加」）を押すと、再生位置にマーカー（♪）が入ります。続けて右の「ラベル」「コメント」に音ハメのメモを書きましょう。",
+        text: "合わせたい瞬間に K キー（または「キー追加」）を押すと、再生位置にマーカー（♪）が入ります。続けて右の「コメント」に音ハメのメモを書きましょう。",
         enter: () => { tourFlags.markerBaseline = markers.length; },
         done: () => markers.length > tourFlags.markerBaseline,
       },
       {
-        target: () => ui.nudgeBack.parentElement,
+        // ±50ms/±10msボタンを削除したため、残る「拍へ」ボタン側を対象にする
+        target: () => ui.snapMarker.parentElement,
         title: "タイミングの調整",
-        text: "選択中のマーカーをここで ±10ms / ±50ms 動かしたり、「拍へ」でグリッドに吸着できます（[ / ] キーでも可）。狙った瞬間にぴったり合わせられます。",
+        text: "選択中のマーカーは [ / ] キーで ±10ms 動かしたり、「拍へ」でグリッドに吸着できます。狙った瞬間にぴったり合わせられます。",
         done: () => tourFlags.nudged,
       },
       {
@@ -2216,6 +2735,8 @@
       }
       const step = tourSteps[tourIndex];
       step.enter?.();
+      // 右パネルがスクロール領域になったため、対象が画面外なら見える位置まで送る
+      try { step.target()?.scrollIntoView({ block: "nearest", inline: "nearest" }); } catch (_) {}
       ui.tourCount.textContent = `ステップ ${tourIndex + 1} / ${tourSteps.length}`;
       ui.tourTitle.textContent = step.title;
       ui.tourText.textContent = step.text;
@@ -2333,6 +2854,7 @@
         ui.beatOffset.value = "0";
         const blob = await generateDemoAudio();
         await loadMediaBlob(blob, "デモ音源（144BPM クリック）");
+        reattachRecordingAsSecondaryIfNeeded();
         closeHelp();
         updateBeatReadout();
         requestDraw();
@@ -2378,7 +2900,29 @@
       return false;
     }
 
-    // 保存/往復用。画像は base64 も含めて完全な状態で残す。
+    // マーカーとメモだけを白紙に戻す。曲名・作曲者・BPM・拍子・拍オフセット・スナップ、
+    // および読み込み済みの音源/動画/録画はそのまま残す（同じ曲に別のメモを書き始めるため）。
+    function startNewProject() {
+      const ok = window.confirm("現在のマーカーとメモを消して白紙にします。書き出していない内容は失われます。");
+      if (!ok) return;
+      markers = [];
+      selectedId = null;
+      ui.markerTime.value = "";
+      ui.markerComment.value = "";
+      renderMarkers();
+      updateSelectedSummary();
+      // 直後に「1秒後の自動保存」が走って古い内容が書き戻らないよう、保留中のタイマーを消して
+      // その場で空の状態を保存キーへ確定させる（再読込しても白紙のまま復元される）
+      if (autoSaveTimer) {
+        window.clearTimeout(autoSaveTimer);
+        autoSaveTimer = 0;
+      }
+      saveToStorage();
+      ui.status.textContent = "新規作成: マーカーとメモを白紙にしました（曲名・BPM・音源は残しています）";
+      requestDraw();
+    }
+
+    // 保存/往復用。ラベル・画像は書き出さない（機能自体を削除したため）。
     function buildJson() {
       const payload = {
         track: trackName(),
@@ -2387,26 +2931,26 @@
         bpm: Number(ui.bpm.value) || 144,
         measure: measureCount(),
         beatOffset: beatOffsetSec(),
-        markers: sortedMarkers().map(({ time, label, comment, imageName, imageDataUrl }) => ({
+        markers: sortedMarkers().map(({ time, comment, question, answer, stageTime }) => ({
+          ...(question ? { question: true, answer: answer || "", stageTime } : {}),
           time: Number(time.toFixed(3)),
-          timeLabel: formatTime(time),
+          // timeLabel は人が読む表示用のみ。録画を主時間軸にしている場合はステージ秒(offset込み)で見せる。
+          // 再読込時に使う time 自体は録画/曲そのものの秒（録画ローカル秒）のまま変えない
+          timeLabel: formatTime(time + activeTimeOffset),
           position: positionLabel(time),
-          label,
           comment,
-          image: imageDataUrl ? { name: imageName || "", dataUrl: imageDataUrl } : null,
         })),
       };
       return JSON.stringify(payload, null, 2);
     }
 
-    // Claude に渡す指示書。base64 は載せず、画像は名前で参照させる。
+    // Claude に渡す指示書。
     function buildMarkdown() {
       const bpm = Number(ui.bpm.value) || 144;
       const measure = measureCount();
       const beatDur = beatDuration();
       const list = sortedMarkers();
       const total = duration || fullDuration();
-      const escapeCell = (value) => String(value || "").replace(/\|/g, "\\|").replace(/\r?\n/g, " ").trim();
 
       const name = trackName() || "ステージ";
       const composer = composerName();
@@ -2418,56 +2962,41 @@
       lines.push(`- 1拍 = ${beatDur.toFixed(4)}s / 1小節 = ${(beatDur * measure).toFixed(4)}s`);
       lines.push(`- マーカー数: ${list.length} / 音源長: ${formatTime(total)}`);
       lines.push("");
-      lines.push("> 各行は音源上の演出タイミング。`秒` は Unity 側 BulletBuffer の発火/`appearTime` 基準に対応させる値。`小節:拍` は BPM グリッド上の位置（1始まり）。`間隔` は直前マーカーからの差（秒 / 拍数）。画像列に名前がある行は別途スクショを添付。");
+      lines.push("> 各行は音源上の演出タイミング。`秒` は Unity 側 BulletBuffer の発火/`appearTime` 基準に対応させる値。`小節:拍` は BPM グリッド上の位置（1始まり）。`間隔` は直前マーカーからの差（秒 / 拍数）。");
       lines.push("");
       lines.push("## タイミング一覧");
       lines.push("");
-      lines.push("| # | 時刻 | 秒 | 小節:拍 | 間隔(秒/拍) | ラベル | 画像 |");
-      lines.push("|---:|---|---:|---|---|---|---|");
+      // ラベル列・画像列を削除し、#・時刻・秒・小節:拍・間隔のみの表にする
+      lines.push("| # | 時刻 | 秒 | 小節:拍 | 間隔(秒/拍) |");
+      lines.push("|---:|---|---:|---|---|");
       let prev = null;
-      const imageRefs = [];
       list.forEach((marker, index) => {
         const num = index + 1;
         const interval = prev == null
           ? "—"
           : `+${(marker.time - prev.time).toFixed(3)} / ${((marker.time - prev.time) / beatDur).toFixed(2)}拍`;
-        let imageCell = "—";
-        if (marker.imageDataUrl) {
-          const name = marker.imageName || `image_${num}`;
-          imageRefs.push({ num, name });
-          imageCell = name;
-        }
-        lines.push(`| ${num} | ${formatTime(marker.time)} | ${marker.time.toFixed(3)} | ${positionLabel(marker.time)} | ${interval} | ${escapeCell(marker.label) || "—"} | ${imageCell} |`);
+        // 秒 列は Unity 側で使う値なので、録画を主時間軸にしている場合はステージ秒(offset込み)にする
+        lines.push(`| ${num} | ${formatTime(marker.time + activeTimeOffset)} | ${(marker.time + activeTimeOffset).toFixed(3)} | ${positionLabel(marker.time)} | ${interval} |`);
         prev = marker;
       });
 
-      const detailed = list.filter((marker) => (marker.comment || "").trim() || marker.imageDataUrl);
+      // 詳細セクション（各マーカーのメモ本文）はそのまま残す
+      const detailed = list.filter((marker) => (marker.comment || "").trim());
       if (detailed.length) {
         lines.push("");
         lines.push("## 指示（詳細）");
-        prev = null;
         list.forEach((marker, index) => {
           const comment = (marker.comment || "").trim();
-          if (!comment && !marker.imageDataUrl) return;
+          if (!comment) return;
           const num = index + 1;
           lines.push("");
-          lines.push(`### ${num}. ${formatTime(marker.time)} ・ ${positionLabel(marker.time)} ・ ${marker.label || "（無題）"}`);
-          if (marker.imageDataUrl) {
-            lines.push(`- 画像: ${marker.imageName || `image_${num}`}（別途添付）`);
-          }
-          if (comment) {
-            lines.push(comment);
+          lines.push(`### ${num}. ${formatTime(marker.time + activeTimeOffset)} ・ ${positionLabel(marker.time)}`);
+          lines.push(comment);
+          if (marker.question && (marker.answer || "").trim()) {
+            lines.push("");
+            lines.push(`回答: ${marker.answer.trim()}`);
           }
         });
-      }
-
-      if (imageRefs.length) {
-        lines.push("");
-        lines.push("## 添付画像");
-        lines.push("");
-        imageRefs.forEach(({ num, name }) => lines.push(`- ${name} … マーカー #${num}`));
-        lines.push("");
-        lines.push("※ base64 は含めていません。上記の名前のスクショをこのチャットに添付してください。");
       }
 
       lines.push("");
@@ -2486,6 +3015,142 @@
       URL.revokeObjectURL(url);
     }
 
+    // ---- danmaku-lab プレビュー（SPEC-TIMING-INTEGRATION.md §2） ----
+    // 既存のエクスポート（buildJson/buildMarkdown）や書き出しフローには一切影響しない、独立した同期レイヤー。
+    const PREVIEW_URL_KEY = "timingEditor:previewUrl";
+    const PREVIEW_STAGE_KEY = "timingEditor:previewStage";
+    const DEFAULT_PREVIEW_URL = "http://localhost:8090/Tools/danmaku-lab/index.html?embed=1";
+    const PREVIEW_READY_TIMEOUT_MS = 4000;
+
+    let previewOpen = false;
+    let previewReady = false;
+    let previewCheckToken = 0;
+    let previewReadyTimer = 0;
+
+    function previewBaseUrl() {
+      return (ui.previewUrl.value || "").trim() || DEFAULT_PREVIEW_URL;
+    }
+
+    function previewStageName() {
+      return (ui.previewStage.value || "").trim();
+    }
+
+    // ステージ名入力欄の値を URL の stage クエリへ反映する。base URL が相対パス等で
+    // URL として解釈できない場合は stage 指定を諦めてそのまま返す。
+    function buildPreviewSrc() {
+      const base = previewBaseUrl();
+      const stage = previewStageName();
+      if (!stage) return base;
+      try {
+        const url = new URL(base, window.location.href);
+        url.searchParams.set("stage", stage);
+        return url.toString();
+      } catch (error) {
+        return base;
+      }
+    }
+
+    function setPreviewStatus(text, kind = "") {
+      ui.previewStatus.textContent = text;
+      ui.previewStatus.className = "preview-status" + (kind ? ` ${kind}` : "");
+    }
+
+    function setPreviewOverlay(text) {
+      if (text) {
+        ui.previewOverlay.textContent = text;
+        ui.previewOverlay.classList.remove("hidden");
+      } else {
+        ui.previewOverlay.textContent = "";
+        ui.previewOverlay.classList.add("hidden");
+      }
+    }
+
+    // dl-ready を受け取れなければ「未起動」案内を出す（自動起動はしない）。
+    function reloadPreview() {
+      if (!previewOpen) return;
+      const token = ++previewCheckToken;
+      previewReady = false;
+      window.clearTimeout(previewReadyTimer);
+      setPreviewStatus("読み込み中…");
+      setPreviewOverlay("");
+      ui.previewFrame.src = buildPreviewSrc();
+      previewReadyTimer = window.setTimeout(() => {
+        if (token !== previewCheckToken || previewReady) return;
+        setPreviewStatus("サーバー未起動（serve.ps1 で起動）", "warn");
+        setPreviewOverlay("サーバー未起動（serve.ps1 で起動）\ndanmaku-lab サーバーが応答していません。");
+      }, PREVIEW_READY_TIMEOUT_MS);
+    }
+
+    function openPreview() {
+      if (previewOpen) return;
+      previewOpen = true;
+      ui.mainArea.classList.add("preview-open");
+      ui.previewToggle.classList.add("preview-on");
+      ui.previewToggle.setAttribute("aria-pressed", "true");
+      reloadPreview();
+    }
+
+    function closePreview() {
+      if (!previewOpen) return;
+      previewOpen = false;
+      previewReady = false;
+      previewCheckToken += 1;
+      window.clearTimeout(previewReadyTimer);
+      ui.mainArea.classList.remove("preview-open");
+      ui.previewToggle.classList.remove("preview-on");
+      ui.previewToggle.setAttribute("aria-pressed", "false");
+      ui.previewFrame.src = "about:blank";
+      setPreviewStatus("");
+      setPreviewOverlay("");
+    }
+
+    function previewTargetWindow() {
+      return ui.previewFrame && ui.previewFrame.contentWindow;
+    }
+
+    function sendToPreview(message) {
+      if (!previewOpen || !previewReady) return;
+      const win = previewTargetWindow();
+      if (!win) return;
+      try {
+        win.postMessage(message, "*");
+      } catch (error) {
+        // iframe 未読込等は無視（プレビューは補助機能のため本体操作は継続する）
+      }
+    }
+
+    function sendPreviewSeek(time) {
+      sendToPreview({ type: "dl-seek", t: Number(time) || 0 });
+    }
+
+    function sendPreviewPlay(time) {
+      sendToPreview({ type: "dl-play", t: Number(time) || 0 });
+    }
+
+    function sendPreviewPause() {
+      sendToPreview({ type: "dl-pause" });
+    }
+
+    window.addEventListener("message", (event) => {
+      if (!previewOpen || event.source !== previewTargetWindow()) return;
+      const data = event.data;
+      if (!data || typeof data !== "object" || data.type !== "dl-ready") return;
+      previewReady = true;
+      window.clearTimeout(previewReadyTimer);
+      setPreviewOverlay("");
+      const stageCount = Array.isArray(data.stages) ? data.stages.length : 0;
+      const dur = Number(data.duration) || 0;
+      // file:// で開いている場合、danmaku-lab 側の origin 検証（localhost/127.0.0.1 のみ許可）により
+      // こちらからの postMessage の origin が "null" と見なされ、シーク等が届かないことがある
+      // （dl-ready 自体は danmaku-lab → timing-maker 方向で origin 検証の対象外のため届く）。
+      const fileOriginNote = window.location.protocol === "file:"
+        ? " ※ file:// で開いているため、danmaku-lab 側の設定によってはシークが反映されない場合があります"
+        : "";
+      setPreviewStatus(`同期中（ステージ候補 ${stageCount}件 / 曲長 ${dur.toFixed(1)}s）${fileOriginNote}`, "ok");
+      sendPreviewSeek(media.currentTime || 0);
+      if (!media.paused) sendPreviewPlay(media.currentTime || 0);
+    });
+
     async function loadAudioFromUrl(url, name) {
       ui.status.textContent = "音源を読み込み中";
       const response = await fetch(url);
@@ -2496,6 +3161,9 @@
 
     async function loadMediaBlob(blob, name) {
       if (audioObjectUrl) URL.revokeObjectURL(audioObjectUrl);
+      // 新しく主時間軸を読み込むタイミングでは、いったん表示オフセットをリセットする
+      // （録画を主時間軸として読み込んだ場合は呼び出し側で offset を入れ直す）
+      activeTimeOffset = 0;
       const lowerName = String(name || "").toLowerCase();
       const isVideo = String(blob.type || "").startsWith("video/")
         || /\.(mp4|webm|mov|m4v)$/i.test(lowerName);
@@ -2506,6 +3174,8 @@
       video.removeAttribute("src");
       media = isVideo ? video : audio;
       ui.videoPreview.classList.toggle("hidden", !isVideo);
+      // 動画のときだけ右カラムを広げて動画を大きく見せる
+      ui.mainArea.classList.toggle("has-video", isVideo);
 
       const fallbackType = isVideo
         ? (lowerName.endsWith(".webm") ? "video/webm" : "video/mp4")
@@ -2525,12 +3195,19 @@
       media.load();
       ui.fileName.textContent = name;
       media.addEventListener("loadedmetadata", applyMetadata, { once: true });
+      // フッター波形帯に「解析中」を表示しつつデコードを開始（成否に関わらず終了時に消す）
+      waveformAnalyzing = true;
+      requestDraw();
       window.setTimeout(() => {
         playableBlob.arrayBuffer()
           .then(decodeWaveform)
           .catch(() => {
+            // デコードできない形式（動画の音声トラックが非対応 等）でも波形なしで従来どおり動かす
             peaks = [];
             resetWaveformCache();
+          })
+          .finally(() => {
+            waveformAnalyzing = false;
             requestDraw();
           });
       }, 40);
@@ -2556,6 +3233,240 @@
       requestDraw();
     }
 
+    // --- ゲーム録画の読み込み ---
+
+    function formatOffset(offset) {
+      const n = Number(offset) || 0;
+      return `${n >= 0 ? "+" : ""}${n.toFixed(2)}s`;
+    }
+
+    function recordingLabel(rec) {
+      const stagePart = rec.stage ? `[${rec.stage}] ` : "";
+      return `${stagePart}${rec.name || rec.file}`;
+    }
+
+    // ---- ステージプリセット（曲設定の自動適用）--------------------------------
+    // 録画の stage 名・読み込んだファイル名・曲名欄の入力からステージを見分けて、
+    // 曲名 / BPM / 拍子 / 拍オフセット をまとめて入れる（BPM の手打ちを省くため）。
+    // 値は Unity 側 Assets/StageData/<stage>/<stage>.json の MusicEvents[0] に合わせている。
+    // 拍オフセットは stone のみ実測 0 で確認済み。captain / vagrant は 0 を仮置き。
+    const STAGE_PRESETS = {
+      stone:   { title: "石工",   bpm: 144,   beatsPerBar: 4, beatOffset: 0, keywords: ["stone", "石工"] },
+      captain: { title: "艦長",   bpm: 110,   beatsPerBar: 6, beatOffset: 0, keywords: ["captain", "艦長"] },
+      vagrant: { title: "浮浪者", bpm: 199.5, beatsPerBar: 4, beatOffset: 0, keywords: ["vagrant", "浮浪者"] },
+    };
+
+    function normalizePresetKey(value) {
+      return String(value || "").toLowerCase().replace(/[\s_\-.]/g, "");
+    }
+
+    // 文字列（stage 名・ファイル名・曲名欄の入力）からプリセットを1件選ぶ。無ければ null
+    function findStagePreset(text) {
+      const raw = String(text || "");
+      if (!raw) return null;
+      const key = normalizePresetKey(raw);
+      if (STAGE_PRESETS[key]) return STAGE_PRESETS[key];
+      const lower = raw.toLowerCase();
+      for (const preset of Object.values(STAGE_PRESETS)) {
+        const hit = preset.keywords.some((word) => {
+          const w = String(word).toLowerCase();
+          return lower.includes(w) || key.includes(normalizePresetKey(w));
+        });
+        if (hit) return preset;
+      }
+      return null;
+    }
+
+    let presetToastTimer = 0;
+    function showPresetToast(message) {
+      const el = ui.presetToast;
+      if (!el) return;
+      el.textContent = message;
+      el.classList.remove("hidden");
+      window.clearTimeout(presetToastTimer);
+      presetToastTimer = window.setTimeout(() => el.classList.add("hidden"), 4000);
+    }
+
+    // 読み込み/選択の瞬間だけ呼ぶ（その後ユーザーが手で直した値は再適用で潰さない）。
+    // 4項目すべてが既に同じ値なら何もしない＝通知も出さない。
+    function applyStagePreset(source) {
+      const preset = findStagePreset(source);
+      if (!preset) return false;
+      const same = ui.trackName.value === preset.title
+        && Number(ui.bpm.value) === preset.bpm
+        && Number(ui.measure.value) === preset.beatsPerBar
+        && Number(ui.beatOffset.value) === preset.beatOffset;
+      if (same) return false;
+      ui.trackName.value = preset.title;
+      ui.bpm.value = String(preset.bpm);
+      ui.measure.value = String(preset.beatsPerBar);
+      ui.beatOffset.value = String(preset.beatOffset);
+      updateTitle();
+      updateBeatReadout();
+      requestDraw();
+      scheduleAutoSave();
+      showPresetToast(`${preset.title}のプリセットを適用（BPM ${preset.bpm} / ${preset.beatsPerBar}拍子）`);
+      return true;
+    }
+
+    // recordings/index.json を読み込み、セレクトボックスへ反映する。
+    // ファイルが無い/壊れている場合は録画一覧なしとして黙って続行する（既存機能には影響しない）
+    async function loadRecordingIndex() {
+      try {
+        const res = await fetch("recordings/index.json", { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        recordings = Array.isArray(data.recordings) ? data.recordings : [];
+      } catch (error) {
+        recordings = [];
+      }
+      renderRecordingOptions();
+    }
+
+    function renderRecordingOptions() {
+      const sel = ui.recordingSelect;
+      const prevValue = sel.value;
+      sel.innerHTML = "";
+      const emptyOpt = document.createElement("option");
+      emptyOpt.value = "";
+      emptyOpt.textContent = recordings.length ? "未選択" : "録画なし（recordings/index.json 未登録）";
+      sel.appendChild(emptyOpt);
+      recordings.forEach((rec, index) => {
+        const opt = document.createElement("option");
+        opt.value = String(index);
+        opt.textContent = recordingLabel(rec);
+        sel.appendChild(opt);
+      });
+      if (prevValue && Number(prevValue) < recordings.length) sel.value = prevValue;
+    }
+
+    function latestRecordingIndex() {
+      if (!recordings.length) return -1;
+      let bestIndex = 0;
+      let bestTime = -Infinity;
+      recordings.forEach((rec, index) => {
+        const t = Date.parse(rec.createdAt || "") || 0;
+        if (t >= bestTime) {
+          bestTime = t;
+          bestIndex = index;
+        }
+      });
+      return bestIndex;
+    }
+
+    // 録画を主時間軸として読み込む（まだ曲/動画を読み込んでいないとき）。
+    // 波形も録画自身の音声トラックから生成され、時刻表示・書き出しの秒数には
+    // activeTimeOffset（= 録画の offset）を足してステージ秒に合わせる
+    async function attachPrimaryRecording(rec) {
+      recordingMode = "primary";
+      ui.recordingStatus.textContent = `${recordingLabel(rec)} を読み込み中…`;
+      ui.recordingPreviewBox.classList.add("hidden");
+      ui.recordingVideo.pause();
+      ui.recordingVideo.removeAttribute("src");
+      try {
+        const res = await fetch(`recordings/${encodeURIComponent(rec.file)}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const blob = await res.blob();
+        await loadMediaBlob(blob, recordingLabel(rec));
+        // loadMediaBlob は読み込みのたびに activeTimeOffset を 0 に戻すため、録画読み込み時はここで入れ直す
+        activeTimeOffset = Number(rec.offset) || 0;
+        primaryRecordingOffset = activeTimeOffset;
+        ui.recordingStatus.textContent = `${recordingLabel(rec)}（主時間軸・オフセット ${formatOffset(rec.offset)}）※曲を読み込むと録画範囲外も再生できます`;
+        requestDraw();
+        updateTransport();
+      } catch (error) {
+        ui.recordingStatus.textContent = `${recordingLabel(rec)} の読み込みに失敗しました`;
+      }
+    }
+
+    // 曲(または他の動画)が主時間軸として既に読み込まれているときに、
+    // 録画を小プレビューとして offset 付きで追従表示する
+    function attachSecondaryRecording(rec) {
+      recordingMode = "secondary";
+      activeTimeOffset = 0; // 主時間軸(曲)がそのままステージ秒なのでオフセット表示は不要
+      if (recordingObjectUrl) {
+        URL.revokeObjectURL(recordingObjectUrl);
+        recordingObjectUrl = null;
+      }
+      ui.recordingVideo.muted = true;
+      ui.recordingVideo.src = `recordings/${encodeURIComponent(rec.file)}`;
+      ui.recordingVideo.load();
+      ui.recordingPreviewBox.classList.remove("hidden");
+      ui.recordingStatus.textContent = `${recordingLabel(rec)}（小プレビュー・オフセット ${formatOffset(rec.offset)}）`;
+      syncSecondaryRecordingVideo();
+    }
+
+    // 主時間軸(media.currentTime)に合わせて、小プレビュー動画の再生位置・再生/停止を追従させる。
+    // stage_time = rec_time + offset なので rec_time = stage_time - offset
+    function syncSecondaryRecordingVideo() {
+      if (recordingMode !== "secondary" || !currentRecording) return;
+      const rv = ui.recordingVideo;
+      if (!rv || !rv.src) return;
+      const offset = Number(currentRecording.offset) || 0;
+      const stageTime = media.currentTime || 0;
+      const recTime = stageTime - offset;
+      const recDuration = Number.isFinite(rv.duration) && rv.duration > 0
+        ? rv.duration
+        : (Number(currentRecording.duration) || 0);
+      // 録画範囲外（曲だけが鳴っている区間）でも曲の再生は止めず、動画側だけを止めて暗転表示にする
+      const inRange = recTime >= -0.25 && (!recDuration || recTime <= recDuration + 0.25);
+      ui.recordingPreviewBox.classList.toggle("out-of-range", !inRange);
+      const clamped = clamp(recTime, 0, recDuration || Math.max(recTime, 0));
+      if (Number.isFinite(clamped) && Math.abs((rv.currentTime || 0) - clamped) > 0.15) {
+        try { rv.currentTime = clamped; } catch (error) { /* シーク不可な状態は無視して次tickへ */ }
+      }
+      if (rv.playbackRate !== media.playbackRate) rv.playbackRate = media.playbackRate;
+      if (!media.paused && inRange) {
+        if (rv.paused) rv.play().catch(() => {});
+      } else if (!rv.paused) {
+        rv.pause();
+      }
+    }
+
+    function clearRecording() {
+      currentRecording = null;
+      recordingMode = "none";
+      activeTimeOffset = 0;
+      primaryRecordingOffset = 0;
+      ui.recordingSelect.value = "";
+      ui.recordingVideo.pause();
+      ui.recordingVideo.removeAttribute("src");
+      ui.recordingPreviewBox.classList.add("hidden");
+      ui.recordingPreviewBox.classList.remove("expanded", "out-of-range");
+      ui.recordingStatus.textContent = "録画未選択";
+      requestDraw();
+    }
+
+    async function selectRecordingByIndex(index) {
+      const rec = recordings[index];
+      if (!rec) return;
+      currentRecording = rec;
+      ui.recordingSelect.value = String(index);
+      // 録画の stage 名（無ければファイル名/表示名）からステージ設定を自動で入れる
+      applyStagePreset(rec.stage || rec.file || rec.name);
+      if (media.src) {
+        attachSecondaryRecording(rec);
+      } else {
+        await attachPrimaryRecording(rec);
+      }
+    }
+
+    // 主時間軸(曲など)を通常のUIから読み込んだ直後に呼ぶ。既に録画が選択されていれば
+    // 小プレビューへ切り替える（例: 先に「直近の録画」を読み込んでから曲を読み込む操作）
+    function reattachRecordingAsSecondaryIfNeeded() {
+      if (!currentRecording || recordingMode === "secondary") return;
+      // 録画を主時間軸にしていた間のマーカーは「録画ローカル秒」で持っている。
+      // 曲が主時間軸になるとステージ秒＝曲の秒になるので、offset を足して打点の意味を保つ。
+      const shift = recordingMode === "primary" ? (Number(primaryRecordingOffset) || 0) : 0;
+      if (shift) {
+        markers = markers.map((marker) => ({ ...marker, time: Math.max(0, marker.time + shift) }));
+      }
+      attachSecondaryRecording(currentRecording);
+      primaryRecordingOffset = 0;
+      renderMarkers();
+      updateSelectedSummary();
+    }
+
     async function ensureAudioLoaded() {
       if (media.src) return true;
       ui.status.textContent = "動画または音声を読み込んでください。「動画/音声を選択」またはドロップで指定できます。";
@@ -2565,7 +3476,7 @@
     function syncTransport() {
       const time = media.currentTime || 0;
       applyPlayheadFollow();
-      const label = formatTime(time);
+      const label = formatTime(time + activeTimeOffset);
       if (label !== lastTimeLabel) {
         ui.timeReadout.textContent = label;
         ui.currentTime.textContent = label;
@@ -2577,6 +3488,7 @@
         lastSeekValue = seekValue;
       }
       setButtonIcon(ui.play, media.paused ? "play" : "pause", media.paused ? "再生" : "停止");
+      syncSecondaryRecordingVideo();
       requestDraw();
     }
 
@@ -2585,6 +3497,7 @@
       if (frameTime - lastPlaybackFrameAt >= 32) {
         lastPlaybackFrameAt = frameTime;
         syncTransport();
+        if (!media.paused) sendPreviewSeek(media.currentTime || 0);
       }
       if (!media.paused) startPlaybackLoop();
     }
@@ -2610,13 +3523,13 @@
       try {
         const payload = JSON.parse(text);
         if (!Array.isArray(payload.markers)) throw new Error("markers missing");
+        // 旧形式の label / image(imageName・imageDataUrl) が含まれていても読み込まず無視する
         markers = payload.markers.map((marker) => ({
           id: idSeed++,
           time: Number(marker.time) || 0,
-          label: marker.label || "",
           comment: marker.comment || "",
-          imageName: marker.image?.name || marker.imageName || "",
-          imageDataUrl: marker.image?.dataUrl || marker.imageDataUrl || "",
+          // Claude からの質問マーカー（質問セット読込・自動保存の往復で保持する）
+          ...(marker.question ? { question: true, answer: marker.answer || "", stageTime: marker.stageTime } : {}),
         }));
         if (payload.bpm != null) ui.bpm.value = Number(payload.bpm) || 144;
         if (payload.measure != null) ui.measure.value = Math.max(1, Math.round(Number(payload.measure) || 4));
@@ -2635,25 +3548,30 @@
       }
     }
 
+    ui.newProject.addEventListener("click", startNewProject);
     ui.chooseAudio.addEventListener("click", () => ui.audioInput.click());
     ui.audioInput.addEventListener("change", async () => {
       const file = ui.audioInput.files?.[0];
       if (!file) return;
       await loadMediaBlob(file, file.name);
+      reattachRecordingAsSecondaryIfNeeded();
+      applyStagePreset(file.name);
     });
 
-    ui.attachImage.addEventListener("click", () => ui.markerImageInput.click());
-    ui.clearImage.addEventListener("click", clearSelectedImage);
-    ui.markerImageInput.addEventListener("change", async () => {
-      const file = ui.markerImageInput.files?.[0];
-      ui.markerImageInput.value = "";
-      await attachImageFile(file);
-    });
+    // メモ画像添付ボタン（attachImage/clearImage/markerImageInput）は削除済み
 
     ui.markerStrip.addEventListener("click", (event) => {
       const row = event.target.closest(".marker-row");
       if (!row) return;
-      selectMarker(Number(row.dataset.id));
+      const id = Number(row.dataset.id);
+      selectMarker(id);
+      // 行クリックでその時刻へシークする（ダブルクリックの表示追従はそのまま）
+      const marker = markers.find((item) => item.id === id);
+      if (marker) {
+        followPlayhead = true;
+        setAudioTime(marker.time, true);
+        sendPreviewSeek(marker.time);
+      }
     });
 
     ui.markerStrip.addEventListener("dblclick", (event) => {
@@ -2662,6 +3580,7 @@
       const marker = markers.find((item) => item.id === Number(row.dataset.id));
       if (!marker) return;
       media.currentTime = marker.time;
+      sendPreviewSeek(marker.time);
       centerTimelineOn(marker.time, false);
       updateTransport();
     });
@@ -2700,6 +3619,94 @@
       setAudioTime(Number(ui.seek.value) || 0, true);
     });
 
+    // フッター波形帯のクリック/ドラッグでシークバーと同じ位置へシークする（表示範囲=footerView()基準）
+    function footerWaveTimeFromEvent(event) {
+      const rect = ui.footerWave.getBoundingClientRect();
+      const ratio = clamp((event.clientX - rect.left) / Math.max(1, rect.width), 0, 1);
+      const { dur, start } = footerView();
+      return start + ratio * dur;
+    }
+    // 波形帯上のマーカーにカーソルを近づけたら、そのマーカーの時刻とコメント冒頭を title で表示する
+    function updateFooterWaveHoverTitle(event) {
+      const { dur } = footerView();
+      if (!dur || !markers.length) {
+        ui.footerWave.title = "";
+        return;
+      }
+      const rect = ui.footerWave.getBoundingClientRect();
+      const hoverTime = footerWaveTimeFromEvent(event);
+      const pxPerSec = rect.width / dur;
+      let nearest = null;
+      let nearestDist = Infinity;
+      for (const marker of markers) {
+        const dist = Math.abs(marker.time - hoverTime);
+        if (dist < nearestDist) {
+          nearestDist = dist;
+          nearest = marker;
+        }
+      }
+      if (nearest && nearestDist * pxPerSec <= 6) {
+        const commentHead = (nearest.comment || "").trim().slice(0, 40);
+        ui.footerWave.title = `${formatTime(nearest.time + activeTimeOffset)}${commentHead ? " ・ " + commentHead : ""}`;
+      } else {
+        ui.footerWave.title = "";
+      }
+    }
+    ui.footerWave.addEventListener("pointerdown", (event) => {
+      footerWaveDragging = true;
+      followPlayhead = true;
+      ui.footerWave.focus(); // クリックでフォーカスし、直後もキー操作が効くようにする
+      // pointerId が無効な状況（一部の入力デバイス・自動操作等）でも落ちないように保護する
+      try { ui.footerWave.setPointerCapture?.(event.pointerId); } catch (err) { /* 無視 */ }
+      setAudioTime(footerWaveTimeFromEvent(event), true);
+    });
+    ui.footerWave.addEventListener("pointermove", (event) => {
+      if (footerWaveDragging) {
+        setAudioTime(footerWaveTimeFromEvent(event), true);
+        return;
+      }
+      updateFooterWaveHoverTitle(event);
+    });
+    ["pointerup", "pointercancel"].forEach((type) => {
+      ui.footerWave.addEventListener(type, () => {
+        footerWaveDragging = false;
+      });
+    });
+    // Ctrl(⌘)+ホイールでカーソル位置を中心にズーム、Shift+ホイールで表示範囲をスクロール。
+    // 通常のホイールはページ/ペインのスクロールに残すため何もしない
+    ui.footerWave.addEventListener("wheel", (event) => {
+      const full = duration || fullDuration();
+      if (!full) return;
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault();
+        const rect = ui.footerWave.getBoundingClientRect();
+        const { dur, start } = footerView();
+        const cursorRatio = clamp((event.clientX - rect.left) / Math.max(1, rect.width), 0, 1);
+        const cursorTime = start + cursorRatio * dur;
+        const factor = event.deltaY < 0 ? 0.85 : 1 / 0.85;
+        const nextDur = clamp(dur * factor, FOOTER_MIN_VIEW_SECONDS, full);
+        const nextStart = clamp(cursorTime - cursorRatio * nextDur, 0, Math.max(0, full - nextDur));
+        footerViewDuration = nextDur >= full ? 0 : nextDur;
+        footerViewStart = footerViewDuration ? nextStart : 0;
+        requestDraw();
+      } else if (event.shiftKey && footerViewDuration) {
+        event.preventDefault();
+        const rect = ui.footerWave.getBoundingClientRect();
+        const { dur, full: f } = footerView();
+        const delta = (event.deltaY || event.deltaX) * (dur / rect.width);
+        footerViewStart = clamp(footerViewStart + delta, 0, Math.max(0, f - dur));
+        requestDraw();
+      }
+    }, { passive: false });
+    // 全体表示に戻す
+    if (ui.footerWaveReset) {
+      ui.footerWaveReset.addEventListener("click", () => {
+        footerViewDuration = 0;
+        footerViewStart = 0;
+        requestDraw();
+      });
+    }
+
     ui.jumpBack.addEventListener("click", () => {
       followPlayhead = true;
       setAudioTime((media.currentTime || 0) - 1, true);
@@ -2712,19 +3719,16 @@
 
     ui.addMarker.addEventListener("click", () => addMarker());
     ui.deleteMarker.addEventListener("click", deleteSelected);
-    ui.nudgeBackLarge.addEventListener("click", () => nudgeSelected(-0.05));
-    ui.nudgeBack.addEventListener("click", () => nudgeSelected(-0.01));
-    ui.nudgeForward.addEventListener("click", () => nudgeSelected(0.01));
-    ui.nudgeForwardLarge.addEventListener("click", () => nudgeSelected(0.05));
+    // ±50ms/±10msの微調整ボタンは削除済み。nudgeSelected 自体は [ / ] キーから引き続き呼ばれる
     ui.snapMarker.addEventListener("click", snapSelected);
     ui.duplicateMarker.addEventListener("click", duplicateSelected);
 
-    [ui.markerTime, ui.markerLabel, ui.markerComment].forEach((control) => {
+    [ui.markerTime, ui.markerComment].forEach((control) => {
       control.addEventListener("input", autoUpdateSelected);
       control.addEventListener("change", autoUpdateSelected);
     });
 
-    // 作業内容を保存: 編集を再開できる JSON をダウンロード（画像 base64 込み）。
+    // 作業内容を保存: 編集を再開できる JSON をダウンロード。
     ui.saveWork.addEventListener("click", () => {
       download(`${fileSlug()}-timing-markers.json`, buildJson(), "application/json");
       ui.status.textContent = "作業内容(JSON)を保存しました";
@@ -2748,7 +3752,166 @@
       }
     });
 
+    ui.previewToggle.addEventListener("click", () => {
+      if (previewOpen) closePreview(); else openPreview();
+    });
+    ui.previewReload.addEventListener("click", () => reloadPreview());
+    [ui.previewUrl, ui.previewStage].forEach((control) => {
+      control.addEventListener("change", () => {
+        storageSet(PREVIEW_URL_KEY, ui.previewUrl.value.trim());
+        storageSet(PREVIEW_STAGE_KEY, ui.previewStage.value.trim());
+        if (previewOpen) reloadPreview();
+      });
+    });
+
     ui.demoAudio.addEventListener("click", loadDemoAudio);
+
+    // 録画パネル: 一覧から選ぶ／直近の録画／解除／小プレビューの拡大トグル
+    // ---- Claude からの質問セット（questions/index.json）----------------------
+    // 質問ファイルは「作業内容を保存」と同じ形式で、各 marker に question:true / stageTime（ステージ秒）を持つ。
+    // 読み込み後に対応する録画を選び、marker.time は「ステージ秒 − 録画オフセット」に合わせ直す。
+    let questions = [];
+    let activeQuestion = null;
+
+    async function loadQuestionIndex() {
+      try {
+        const res = await fetch("questions/index.json", { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        questions = Array.isArray(data.questions) ? data.questions : [];
+      } catch (error) {
+        questions = [];
+      }
+      const sel = ui.questionSelect;
+      sel.innerHTML = "";
+      const emptyOpt = document.createElement("option");
+      emptyOpt.value = "";
+      emptyOpt.textContent = questions.length ? "未選択" : "質問なし";
+      sel.appendChild(emptyOpt);
+      questions.forEach((q, index) => {
+        const opt = document.createElement("option");
+        opt.value = String(index);
+        opt.textContent = q.title || q.file || `質問 ${index + 1}`;
+        sel.appendChild(opt);
+      });
+    }
+
+    function realignQuestionMarkers() {
+      let changed = false;
+      for (const marker of markers) {
+        if (!marker.question || marker.stageTime == null) continue;
+        const t = Math.max(0, Number(marker.stageTime) - activeTimeOffset);
+        if (Math.abs(t - marker.time) > 0.0005) { marker.time = t; changed = true; }
+      }
+      if (changed) renderMarkers();
+    }
+
+    async function selectQuestionByIndex(index) {
+      const q = questions[index];
+      if (!q) return;
+      const hasOwn = markers.some((m) => !m.question);
+      if (hasOwn && !window.confirm("現在のマーカーを質問セットで置き換えます。書き出していない内容は失われます。よろしいですか？")) {
+        ui.questionSelect.value = "";
+        return;
+      }
+      ui.questionStatus.textContent = "質問を読み込み中…";
+      try {
+        const res = await fetch(`questions/${encodeURIComponent(q.file)}`, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+        if (!applyImportedJson(text, q.title || "質問セット")) throw new Error("形式が不正");
+        activeQuestion = q;
+        ui.sendAnswers.hidden = false;
+        // 対応する録画を選ぶ（recordings/index.json の file 名で照合）
+        const recIndex = q.recording ? recordings.findIndex((rec) => rec.file === q.recording) : -1;
+        if (recIndex >= 0) {
+          ui.recordingSelect.value = String(recIndex);
+          await selectRecordingByIndex(recIndex);
+        }
+        realignQuestionMarkers();
+        const n = markers.filter((m) => m.question).length;
+        ui.questionStatus.textContent = `${q.title || q.file}（質問 ${n} 件）。各マーカーの回答欄に書いて「回答を送信」`;
+        selectedId = markers[0]?.id ?? null;
+        if (selectedId != null) selectMarker(selectedId, true);
+      } catch (error) {
+        ui.questionStatus.textContent = `質問を読み込めません: ${error.message || error}`;
+      }
+    }
+
+    async function sendAnswers() {
+      if (!activeQuestion) {
+        ui.status.textContent = "質問セットを選んでいません";
+        return;
+      }
+      const items = sortedMarkers().filter((m) => m.question).map((m) => ({
+        stageTime: Number((m.time + activeTimeOffset).toFixed(3)),
+        timeLabel: formatTime(m.time + activeTimeOffset),
+        comment: m.comment || "",
+        answer: (m.answer || "").trim(),
+      }));
+      const payload = {
+        questionId: activeQuestion.id || activeQuestion.file,
+        questionFile: activeQuestion.file,
+        title: activeQuestion.title || "",
+        answeredAt: new Date().toISOString(),
+        answered: items.filter((i) => i.answer).length,
+        total: items.length,
+        markers: items,
+      };
+      const body = JSON.stringify(payload, null, 2);
+      try {
+        const res = await fetch("api/answers", { method: "POST", headers: { "Content-Type": "application/json" }, body });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const r = await res.json();
+        ui.status.textContent = `回答を保存しました（${payload.answered}/${payload.total} 件・${r.file || "answers/"}）`;
+        ui.questionStatus.textContent = `回答を送信済み（${payload.answered}/${payload.total} 件）`;
+      } catch (error) {
+        download(`${String(payload.questionId || "questions").replace(/[^A-Za-z0-9_.-]+/g, "-")}-answers.json`, body, "application/json");
+        ui.status.textContent = "サーバーに保存できなかったので JSON をダウンロードしました。Claude にアップロードしてください";
+      }
+    }
+
+    ui.questionSelect.addEventListener("change", () => {
+      const value = ui.questionSelect.value;
+      if (value === "") {
+        activeQuestion = null;
+        ui.sendAnswers.hidden = true;
+        ui.questionStatus.textContent = "";
+        return;
+      }
+      selectQuestionByIndex(Number(value));
+    });
+    ui.sendAnswers.addEventListener("click", sendAnswers);
+    ui.markerAnswer.addEventListener("input", autoUpdateSelected);
+    ui.markerAnswer.addEventListener("change", autoUpdateSelected);
+    // ---------------------------------------------------------------------------
+
+    ui.recordingSelect.addEventListener("change", () => {
+      const value = ui.recordingSelect.value;
+      if (value === "") {
+        clearRecording();
+        return;
+      }
+      selectRecordingByIndex(Number(value));
+    });
+    ui.recordingLatest.addEventListener("click", () => {
+      const index = latestRecordingIndex();
+      if (index < 0) {
+        ui.recordingStatus.textContent = "録画がありません（recordings/index.json 未登録）";
+        return;
+      }
+      ui.recordingSelect.value = String(index);
+      selectRecordingByIndex(index);
+    });
+    ui.recordingClear.addEventListener("click", clearRecording);
+    ui.recordingPreviewBox.addEventListener("click", () => {
+      ui.recordingPreviewBox.classList.toggle("expanded");
+    });
+    ui.recordingVideo.addEventListener("error", () => {
+      if (recordingMode !== "secondary") return;
+      ui.recordingStatus.textContent = "録画プレビューを再生できません（recordings/ 以下にファイルがあるか確認してください）";
+    });
+
     ui.helpButton.addEventListener("click", openHelp);
     ui.helpClose.addEventListener("click", closeHelp);
     ui.helpDemo.addEventListener("click", loadDemoAudio);
@@ -2769,7 +3932,8 @@
         if (element === media) tourFlags.played = true;
       });
     });
-    ui.nudgeBack.parentElement.addEventListener("click", (event) => {
+    // nudgeBack ボタンは削除済みのため、残っている微調整操作の親要素(snapMarker側)を対象にする
+    ui.snapMarker.parentElement.addEventListener("click", (event) => {
       if (event.target.closest("button")) tourFlags.nudged = true;
     });
     ui.saveWork.parentElement.addEventListener("click", (event) => {
@@ -2805,6 +3969,8 @@
         scheduleAutoSave();
       });
     });
+    // 曲名欄に「石工」などプリセット名を手入力して確定したときも、まとめて設定を入れる
+    ui.trackName.addEventListener("change", () => applyStagePreset(ui.trackName.value));
 
     ui.zoom.addEventListener("input", () => requestDraw());
     ui.snap.addEventListener("change", () => requestDraw());
@@ -2812,11 +3978,19 @@
       element.addEventListener("timeupdate", () => {
         if (element === media && media.paused) updateTransport();
       });
+      // 再生ループ(rAF)が回っていない状況でも、シーク直後に録画プレビューの範囲内/外を反映させる
+      element.addEventListener("seeked", () => {
+        if (element === media) updateTransport();
+      });
       element.addEventListener("play", () => {
-        if (element === media) startPlaybackLoop();
+        if (element !== media) return;
+        startPlaybackLoop();
+        sendPreviewPlay(media.currentTime || 0);
       });
       element.addEventListener("pause", () => {
-        if (element === media) stopPlaybackLoop();
+        if (element !== media) return;
+        stopPlaybackLoop();
+        sendPreviewPause();
       });
       element.addEventListener("error", () => {
         if (element !== media) return;
@@ -2894,7 +4068,7 @@
         suppressTimelineClick = true;
         ui.markerTime.value = next.toFixed(3);
         updateBeatReadout();
-        ui.status.textContent = `${marker.label || "メモ"} → ${formatTime(next)}`;
+        ui.status.textContent = `${marker.label || "メモ"} → ${formatTime(next + activeTimeOffset)}`;
         requestDraw();
         return;
       }
@@ -2923,7 +4097,7 @@
         if (event?.pointerId != null) ui.timelineWrap.releasePointerCapture?.(event.pointerId);
         const marker = markers.find((item) => item.id === id);
         if (moved && marker) {
-          ui.status.textContent = `${marker.label || "メモ"} を ${formatTime(marker.time)} へ移動しました`;
+          ui.status.textContent = `${marker.label || "メモ"} を ${formatTime(marker.time + activeTimeOffset)} へ移動しました`;
         }
         selectMarker(id, true);
         window.setTimeout(() => {
@@ -3001,7 +4175,96 @@
         return;
       }
       await loadMediaBlob(file, file.name);
+      reattachRecordingAsSecondaryIfNeeded();
+      applyStagePreset(file.name);
     });
+
+    // ---- 再生速度（セレクト）と Space / 再生ボタン長押しの一時 2 倍速 ---------------
+    // 短く押す＝再生/停止の切替（従来どおり）。250ms 以上押し続ける＝押している間だけ 2 倍速
+    // （停止中なら再生を始め、離すと元の状態へ戻す）。速度は媒体と小プレビュー動画の両方に効く。
+    const HOLD_FAST_MS = 250;
+    const HOLD_FAST_RATE = 2;
+    let baseRate = 1;
+    let holdTimer = 0;
+    let holdActive = false;
+    let holdStartedPlayback = false;
+    let holdPointerActive = false;
+
+    function applyRate(rate) {
+      media.playbackRate = rate;
+      media.preservesPitch = true;
+      if (ui.recordingVideo && ui.recordingVideo.src) ui.recordingVideo.playbackRate = rate;
+      ui.speedSelect.classList.toggle("fast", rate !== baseRate);
+    }
+
+    function beginHoldFast() {
+      holdActive = true;
+      holdStartedPlayback = media.paused;
+      if (media.paused) ui.play.click();
+      applyRate(HOLD_FAST_RATE);
+      ui.status.textContent = `${HOLD_FAST_RATE} 倍速（離すと ${baseRate}x に戻ります）`;
+    }
+
+    function endHoldFast() {
+      if (!holdActive) return;
+      holdActive = false;
+      applyRate(baseRate);
+      if (holdStartedPlayback && !media.paused) ui.play.click();
+      holdStartedPlayback = false;
+      ui.status.textContent = media.paused ? "停止" : `${ui.fileName.textContent} / 再生中（${baseRate}x）`;
+    }
+
+    // キー押下の開始（repeat は無視）。離すまでに 250ms 経てば長押し扱い。
+    function holdPress() {
+      if (holdTimer || holdActive) return;
+      holdTimer = window.setTimeout(() => { holdTimer = 0; beginHoldFast(); }, HOLD_FAST_MS);
+    }
+    // 離した: 長押しに達していなければ従来の「再生/停止」切替、達していれば速度を戻す
+    function holdRelease() {
+      if (holdTimer) {
+        window.clearTimeout(holdTimer);
+        holdTimer = 0;
+        ui.play.click();
+        return;
+      }
+      endHoldFast();
+    }
+
+    ui.speedSelect.addEventListener("change", () => {
+      baseRate = Number(ui.speedSelect.value) || 1;
+      if (!holdActive) applyRate(baseRate);
+    });
+    window.addEventListener("keyup", (event) => {
+      if (event.code !== "Space") return;
+      const tag = document.activeElement?.tagName;
+      const el = document.activeElement;
+      const typing = tag === "TEXTAREA" || (tag === "INPUT" && (!el.type || el.type === "text" || el.type === "search")) || Boolean(el?.isContentEditable);
+      if (typing) return;
+      event.preventDefault();
+      holdRelease();
+    });
+    window.addEventListener("blur", () => { if (holdTimer) { window.clearTimeout(holdTimer); holdTimer = 0; } endHoldFast(); });
+    // 再生ボタンの長押し（スマホ・マウス）。クリック自体は holdRelease 側で発行するので既定の click を抑止
+    ui.play.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0 && event.pointerType === "mouse") return;
+      holdPointerActive = true;
+      holdPress();
+    });
+    const endPointerHold = () => { if (!holdPointerActive) return; holdPointerActive = false; holdRelease(); };
+    ui.play.addEventListener("pointerup", endPointerHold);
+    ui.play.addEventListener("pointercancel", endPointerHold);
+    ui.play.addEventListener("pointerleave", () => { if (holdPointerActive && holdActive) endPointerHold(); });
+    // pointer 起点の「本物の」クリック（isTrusted）は holdRelease が合成 click() を出すので二重にならないよう抑止する。
+    // 合成クリック（ui.play.click()）は isTrusted=false なので通る。
+    let pointerClickGuard = false;
+    ui.play.addEventListener("pointerdown", () => { pointerClickGuard = true; window.setTimeout(() => { pointerClickGuard = false; }, 600); });
+    ui.play.addEventListener("click", (event) => {
+      if (event.isTrusted && pointerClickGuard) {
+        event.stopImmediatePropagation();
+        event.preventDefault();
+      }
+    }, true);
+    // -----------------------------------------------------------------------------
 
     window.addEventListener("keydown", async (event) => {
       if (isHelpOpen()) {
@@ -3016,8 +4279,16 @@
         endTour(false);
         return;
       }
-      const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      const activeEl = document.activeElement;
+      const tag = activeEl?.tagName;
+      // ショートカットを無効化するのは「実際に文字を入力するテキスト入力欄」だけに統一する。
+      // input[type=text]相当・textarea・contenteditable 以外（シークバー・数値欄・セレクト・
+      // ボタン・波形canvas・マーカー一覧・何もフォーカスしていない状態など）ではどこにいても効く
+      const isTypingTarget = tag === "TEXTAREA"
+        || (tag === "INPUT" && (!activeEl.type || activeEl.type === "text" || activeEl.type === "search"))
+        || Boolean(activeEl?.isContentEditable);
+      if (isTypingTarget) return;
+
       if (event.key === "?") {
         event.preventDefault();
         openHelp();
@@ -3025,27 +4296,30 @@
       }
       if (event.code === "Space") {
         event.preventDefault();
-        ui.play.click();
+        if (!event.repeat) holdPress();
+        return;
       }
       if (event.key.toLowerCase() === "k") {
         event.preventDefault();
         addMarker("メモ");
         ui.markerComment.focus();
+        return;
       }
-      if (event.key.toLowerCase() === "i") ui.markerImageInput.click();
       if ((event.key === "Delete" || event.key === "Backspace") && selectedId != null) {
         event.preventDefault();
         deleteSelected();
+        return;
       }
-      if (event.key === "[") nudgeSelected(-0.01);
-      if (event.key === "]") nudgeSelected(0.01);
+      if (event.key === "[") { nudgeSelected(-0.01); return; }
+      if (event.key === "]") { nudgeSelected(0.01); return; }
       if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        // シークバー(range)などが持つ既定の移動も打ち消し、Ctrl(⌘)併用時は1秒・通常は5秒スキップにする
         event.preventDefault();
         const direction = event.key === "ArrowRight" ? 1 : -1;
-        const amount = visibleWindow().windowDuration * (event.shiftKey ? 0.18 : 0.06);
-        followPlayhead = false;
-        viewCenter = clampViewCenter(viewCenter + direction * amount);
-        requestDraw();
+        const amount = (event.ctrlKey || event.metaKey) ? 1 : 5;
+        followPlayhead = true;
+        setAudioTime((media.currentTime || 0) + direction * amount, true);
+        return;
       }
       if (event.key === "+" || event.key === "=" || event.key === "-") {
         event.preventDefault();
@@ -3054,6 +4328,9 @@
       }
     });
 
+    ui.previewUrl.value = storageGet(PREVIEW_URL_KEY) || DEFAULT_PREVIEW_URL;
+    ui.previewStage.value = storageGet(PREVIEW_STAGE_KEY) || "";
+    loadRecordingIndex().then(loadQuestionIndex);
     decorateIcons();
     updateTitle();
     const restoredSession = restoreLastSession();
