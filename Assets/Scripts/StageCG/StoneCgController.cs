@@ -31,6 +31,15 @@ public class StoneCgController : MonoBehaviour
     public Renderer displayQuad;
     public GameObject cgSceneRoot;
 
+    [Header("表示板の前後関係")]
+    // URP 2D Renderer は MeshRenderer も 2D のソート(sortingLayer/sortingOrder)に載せるため、
+    // 「不透明キューだから必ず奥」にはならない。実測(.tmp_cg)では
+    //   板 0(既定) → 弾より奥だが sortingOrder -10 のボスより手前でボスを隠す
+    //   板 -11 / -20 → CG・ボス・弾がすべて意図どおり(奥→手前)
+    //   板 -100 以下 → CG が描かれなくなる(BackCamera 側の描画順との兼ね合い)
+    // ボスの sortingOrder は stage.json の -10。その 10 段下の -20 を使う。
+    public int quadSortingOrder = -20;
+
     [Header("明るさ")]
     [Tooltip("表示板の露出。実運用では Astra のレンダーよりかなり暗くする。")]
     [Range(0f, 2f)] public float exposure = 0.45f;
@@ -121,6 +130,7 @@ public class StoneCgController : MonoBehaviour
     void ApplyDisplay()
     {
         if (displayQuad == null) return;
+        if (displayQuad.sortingOrder != quadSortingOrder) displayQuad.sortingOrder = quadSortingOrder;
         mpb ??= new MaterialPropertyBlock();
         displayQuad.GetPropertyBlock(mpb);
         mpb.SetFloat(ExposureId, exposure);

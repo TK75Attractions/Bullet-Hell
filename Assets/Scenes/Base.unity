@@ -3419,7 +3419,7 @@ MeshRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -20
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &423558165
@@ -6124,6 +6124,7 @@ MonoBehaviour:
   cgCamera: {fileID: 1941531419}
   displayQuad: {fileID: 423558164}
   cgSceneRoot: {fileID: 6238401648102859579}
+  quadSortingOrder: -20
   exposure: 0.45
   centerDarken: 0.55
   sunFrom: {x: -30, y: 55, z: -12}
@@ -14323,8 +14324,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1941531416}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 16, y: 20, z: -36}
+  m_LocalRotation: {x: -0.18057744, y: -0, z: -0, w: 0.9835608}
+  m_LocalPosition: {x: 16, y: 20, z: -28}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -14385,7 +14386,7 @@ Camera:
   serializedVersion: 2
   m_ClearFlags: 2
   m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
-  m_projectionMatrixMode: 1
+  m_projectionMatrixMode: 0
   m_GateFitMode: 2
   m_FOVAxisMode: 0
   m_Iso: 200
