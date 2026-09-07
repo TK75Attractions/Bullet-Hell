@@ -110,7 +110,7 @@ public struct BulletData
     /// 1 発が moveTo 16 分割＝16 区間を持つため、容量 5 では BulletDataJson が 6 区間目以降を
     /// 捨てて警告を出し、鎖が横揺れの端で固まっていた(実測ずれ 最大 1.885 ユニット)。
     /// 1 区間 24 byte なので FixedList4096Bytes(容量 170)まで上げると BulletData が 1 発
-    /// 4KB 超になる。16 区間を余裕をもって収める最小の段が 512(21 区間)。
+    /// 4KB 超になる。16 区間を余裕をもって収める最小の段が 512(v32 で easing を足して 1 区間 28 バイト＝18 区間)。
     /// 既存データ(区間 5 以下)の解釈と全レーンの挙動は不変。
     /// </remarks>
     public FixedList512Bytes<BulletV2Segment> v2Segments;

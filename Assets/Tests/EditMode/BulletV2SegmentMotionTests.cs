@@ -41,6 +41,30 @@ public class BulletV2SegmentMotionTests
         }
     }
 
+    private static float2 VelocityAtLapse(BulletData bullet, float lapse)
+    {
+        bullet.time = bullet.appearTime + lapse;
+        NativeArray<BulletData> arr = new NativeArray<BulletData>(1, Allocator.Temp);
+        arr[0] = bullet;
+        try
+        {
+            BulletV2UpdateJob job = new BulletV2UpdateJob
+            {
+                bullets = arr,
+                dt = 0f,
+                grid = CreateGrid(),
+                playerVelocity = float2.zero,
+                playerPosition = float2.zero
+            };
+            job.Execute(0);
+            return arr[0].velocity;
+        }
+        finally
+        {
+            arr.Dispose();
+        }
+    }
+
     private static BulletData MakeBaseBullet()
     {
         return new BulletData
@@ -201,6 +225,108 @@ public class BulletV2SegmentMotionTests
 
         float2 afterSecondBoundary = PositionAtLapse(bullet, 1.25f);
         AssertApprox(new float2(1f, 2f), afterSecondBoundary, "past second boundary");
+    }
+
+    // ── v32: 区間イージング（BulletV2Segment.easing）────────────────────────────
+
+    [Test]
+    public void Easing_DefaultZero_MatchesLinear()
+    {
+        // 既定値 easing=0 は従来（linear）と完全一致。既存データの挙動不変を固定する。
+        BulletData eased = MakeBaseBullet();
+        eased.v2Segments.Add(new BulletV2Segment { duration = 2f, vlc = new float2(3f, -1f), easing = 0 });
+        BulletData plain = MakeBaseBullet();
+        plain.v2Segments.Add(new BulletV2Segment { duration = 2f, vlc = new float2(3f, -1f) });
+
+        foreach (float lapse in new[] { 0f, 0.37f, 1f, 1.99f, 2f })
+        {
+            Assert.AreEqual(PositionAtLapse(plain, lapse), PositionAtLapse(eased, lapse), $"pos lapse={lapse}");
+            Assert.AreEqual(VelocityAtLapse(plain, lapse), VelocityAtLapse(eased, lapse), $"vel lapse={lapse}");
+        }
+    }
+
+    [Test]
+    public void EaseOut_EndsAtSameDisplacement_WithZeroVelocity()
+    {
+        // easeOut(3次) は E(1)=1, E'(1)=0。終端の変位は linear と同じで、終端速度は 0。
+        const float T = 2f;
+        float2 vlc = new float2(4f, 0f);
+        BulletData bullet = MakeBaseBullet();
+        bullet.v2Segments.Add(new BulletV2Segment { duration = T, vlc = vlc, easing = 2 });
+
+        AssertApprox(float2.zero, PositionAtLapse(bullet, 0f), "start position");
+        AssertApprox(vlc * T, PositionAtLapse(bullet, T), "end position");
+
+        // 終端で速度 0（区間頭では linear の 3 倍の速さで入る）。
+        float2 endVelocity = VelocityAtLapse(bullet, T);
+        Assert.Less(math.length(endVelocity), 1e-4f, $"終端速度が 0 でない: {endVelocity}");
+        AssertApprox(vlc * 3f, VelocityAtLapse(bullet, 0f), "start velocity");
+
+        // 途中は必ず linear より先行する（easeOut は前半で速い）。
+        float2 mid = PositionAtLapse(bullet, T * 0.5f);
+        Assert.Greater(mid.x, vlc.x * T * 0.5f, "easeOut の中間点が linear より手前にある");
+    }
+
+    [Test]
+    public void EaseOut_BoundaryIsContinuous_AndNextSegmentStartsFromEnd()
+    {
+        // 区間 0: easeOut で 2 秒かけて (0,0)→(4,0)。区間 1: 以降ずっと下へ等速。
+        // 境界の前後で位置が連続し、次の区間が easeOut の終端から始まることを固定する。
+        const float T = 2f;
+        BulletData bullet = MakeBaseBullet();
+        bullet.v2Segments.Add(new BulletV2Segment { duration = T, vlc = new float2(2f, 0f), easing = 2 });
+        bullet.v2Segments.Add(new BulletV2Segment { duration = 0f, vlc = new float2(0f, -3f) });
+
+        float2 before = PositionAtLapse(bullet, T - 1e-3f);
+        float2 at = PositionAtLapse(bullet, T);
+        float2 after = PositionAtLapse(bullet, T + 1e-3f);
+
+        AssertApprox(new float2(4f, 0f), at, "boundary position");
+        Assert.Less(math.distance(before, at), 1e-3f, $"境界手前で跳んでいる: {before} -> {at}");
+        Assert.Less(math.distance(at, after), 1e-2f, $"境界直後で跳んでいる: {at} -> {after}");
+
+        AssertApprox(new float2(4f, -3f), PositionAtLapse(bullet, T + 1f), "next segment continues from end");
+    }
+
+    [Test]
+    public void EasingKinds_ReachFullDisplacementAtSegmentEnd()
+    {
+        // 全種別で E(1)=1（区間終端の変位が linear と一致＝区間の到達点が設計どおり）。
+        const float T = 1.5f;
+        float2 vlc = new float2(2f, -3f);
+        foreach (int kind in new[] { 1, 2, 3, 4, 5 })
+        {
+            BulletData bullet = MakeBaseBullet();
+            bullet.v2Segments.Add(new BulletV2Segment { duration = T, vlc = vlc, easing = kind });
+            AssertApprox(vlc * T, PositionAtLapse(bullet, T), $"easing={kind} end position");
+            AssertApprox(float2.zero, PositionAtLapse(bullet, 0f), $"easing={kind} start position");
+        }
+    }
+
+    [Test]
+    public void Easing_IgnoredWhenGravityPresent()
+    {
+        // gravity を持つ区間は easing を無視して従来の等加速度式で評価する（仕様）。
+        BulletData eased = MakeBaseBullet();
+        eased.v2Segments.Add(new BulletV2Segment
+        {
+            duration = 1f,
+            vlc = new float2(1f, 0f),
+            gravity = new float2(10f, -math.PI / 2f),
+            easing = 2
+        });
+        BulletData plain = MakeBaseBullet();
+        plain.v2Segments.Add(new BulletV2Segment
+        {
+            duration = 1f,
+            vlc = new float2(1f, 0f),
+            gravity = new float2(10f, -math.PI / 2f)
+        });
+
+        foreach (float lapse in new[] { 0.25f, 0.5f, 1f })
+        {
+            Assert.AreEqual(PositionAtLapse(plain, lapse), PositionAtLapse(eased, lapse), $"lapse={lapse}");
+        }
     }
 
     [Test]
