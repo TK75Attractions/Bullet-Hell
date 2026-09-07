@@ -730,9 +730,12 @@ const BOSS_DESCEND_SEC = 0.833333;      // 降下時間（moveto duration。v25 
 const BOSS_BODY_END_TIME = 143.554848;  // 本体の消滅時刻（endTime 144.25 の 0.695152 秒前）
 const BOSS_CASTER_APPEAR = 4.145404;    // 詠唱ボス（stone）の出現時刻（v25 から据え置き）
 // v29 (6): 指示 52.302「敵は最前面に表示して」。ボス 3 体（降下 golem・本体 golem・詠唱 stone）の
-//   SpriteRenderer.sortingOrder。弾・タイルより前に出す。自機は PlayerController が 100 を
-//   直に入れて「弾より前面」を確保しているので、それより 1 段だけ後ろの 90 にする。
-const BOSS_SORTING_ORDER = 90;
+//   SpriteRenderer.sortingOrder。
+// v33 (背景 CG 組み込み・2026-09-07 ユーザー決定): 構図を「奥に CG の舞台 → その手前にボス →
+//   最前面に弾幕（不透明）」へ変更する。ボスを弾の背面へ落とすため 90 → -10。
+//   弾は DrawMeshInstancedIndirect（Transparent・sortingOrder 相当 0）なので -10 で必ず奥、
+//   背景 CG の表示板は不透明キューなのでさらに奥になる。自機の 100 は変えない。
+const BOSS_SORTING_ORDER = -10;
 
 // --- v21: 指示書マーカー 18〜42（66.8〜103.3s）の採用時刻 ------------------------
 //   丸めルールは v17/v19 と同じ（16 分音符へ丸め、±80ms 以内に音源のオンセットが
