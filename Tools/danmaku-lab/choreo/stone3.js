@@ -592,6 +592,11 @@ const V27C_BAND_END = 66.0;       // この区間のタイルの最終消滅（�
 //   3.6 ユニット間隔（1.8 / 5.4 / 9.0 / 12.6 / 16.2）。シャベルの当たり幅 2.82 より広いので
 //   隣どうしは重ならず、隙間は 0.78 ユニット残る。
 const V27C_SIDE_YS = [5.0, 7.0, 9.0, 11.0, 13.0];
+// v32 (9): 指示 95.353「加えて、右からシャベル。t=126s あたりの感じで、ただし上下 2 列と
+//   重ならないよう間隔は調整。」 124.99s の縦一列（V28_SIDE_YS = 16.5〜2.5）は上下 2 列
+//   （行 0-1 ＝ y<4 / 行 7-8 ＝ y>14）に掛かるので、内側の 5 段へ詰める。シャベルのインク幅は
+//   24/128 × 5.52 = 1.035（半幅 0.5175）なので、y=5 の下端 4.48 > 4 / y=13 の上端 13.52 < 14。
+const V32_SIDE_YS = [5.0, 7.0, 9.0, 11.0, 13.0];
 const V27C_SIDE_STOP_R = 25.0;    // 右から来て止まる x（右端 25+2.76=27.76 < 28）
 const V27C_SIDE_STOP_L = 7.0;     // 左から来て止まる x（左端 7-2.76=4.24 > 4）
 const V27C_SIDE_BEND_D = 0.9;     // 「すこし曲がる」距離
@@ -761,12 +766,21 @@ const V29_TILE6_TIMES = [83.3248, 83.9982, 84.5729, 85.1998, 85.8268, 86.2389];
 //   8 分グリッドへ丸めていた 2 点をオンセットそのものへ戻す（86.875→86.8659・90.0→89.9889）。
 //   marker 32 の 6 拍は 1 拍間隔のままで、各点は最寄りのオンセットと +0〜+7 ms しか違わない
 //   （実測: full x1.04〜2.81）ので間隔は触らない。
-const MK31_SLIDE_AGAIN2 = 86.8659; // 31 右列タイル again 2 回目
-const MK32_TILE_SHOW = 89.9889;  // 32 タイル表示 again（帯へ積む・6 拍）
-const MK33_BLAST1 = B(224);     // 33 タイル爆破（2 枚）v27 (12): 93.3210 → 93.3333
-const MK34_BLAST2 = B(228);     // 34 タイル爆破（2 枚）v27 (12): 94.9928 → 95.0
-const MK35_BLAST3 = B(232);     // 35 爆破（2 枚）v27 (12): 96.6531 → 96.6667
-const MK36_BLAST4 = B(234);     // 36 爆破（2 枚）v27 (12): 97.4890 → 97.5
+// v32 (6)〜(11): 指示書 v32 で 86.778 / 90.209 / 93.610 / 95.353 / 96.789 / 97.625 に
+//   打ち直された 6 点を、v23 の規則（手打ちの [−180ms, +40ms] 窓の実オンセット優先／
+//   無ければ 8 分丸め）で採り直す。根拠は .tmp_v32/progress_b.md の採用時刻表。
+//     31 … 86.6569（onset full x3.25/low x1.78/mid x3.24・−121ms）
+//     32 … 90.2084（窓内は x1.02 止まり＝地の高さ → 8 分 433・−1ms）
+//     33 … 93.6461（onset low x1.27・+36ms。full/mid はこの窓では地の高さ以下）
+//     34 … 95.1960（onset full x2.55/mid x2.67・−157ms）
+//     35 … 96.6531（onset full x3.73/mid x3.91・−136ms。v27 で 8 分へ丸めた点をオンセットへ戻す）
+//     36 … 97.4890（onset full x1.94/mid x1.90・−136ms。同上）
+const MK31_SLIDE_AGAIN2 = 86.6569; // 31 右列タイル again 2 回目（v32 (6) で左向き重力タイル攻撃へ）
+const MK32_TILE_SHOW = 90.2084;  // 32 タイル表示 again（帯へ積む・6 点）
+const MK33_BLAST1 = 93.6461;    // 33 タイル爆破（2 枚）
+const MK34_BLAST2 = 95.1960;    // 34 タイル爆破（2 枚）＋右からシャベル（v32 (9)）
+const MK35_BLAST3 = 96.6531;    // 35 爆破（2 枚）
+const MK36_BLAST4 = 97.4890;    // 36 爆破（2 枚）
 // v27 (13): 手打ち 98.596「ここからの複数の波、もっと早くして」。37→38→39 の間隔
 //   0.627 / 0.621s（1.5 拍）を 1 拍（0.4167s）＝ちょうど 2/3 に詰めた。頭は拍 236 へ。
 const MK37_CHAIN_LR = B(236);   // 37 左右の列を鎖で消す（縦の鎖 2 本）98.3333
@@ -846,13 +860,13 @@ const SLIDE_TIMES_C = SLIDE_OFFSETS.map((d) => MK31_SLIDE_AGAIN2 + d);   // 86.8
 const TILE5_TIMES = Array.from({ length: 5 }, (_, i) => MK30_TILE5 + i * 2 * BEAT);
 // マーカー 32: 1 拍間隔で 6 回（90.012〜92.096s）
 const TILE6_TIMES = Array.from({ length: 6 }, (_, i) => MK32_TILE_SHOW + i * BEAT);
-// v31 (11)(12): 86〜93 秒も、83〜86 秒で好評だった 6 点の間隔を 2 周そのまま使う。
-//   各周の頭だけ現行の MK31 / MK32 に置き、裏拍に見えた左流し 4 波は使わない。
-const V31_TILE12_TIMES = V29_TILE6_TIMES.map(function (t) {
-  return MK31_SLIDE_AGAIN2 + (t - V29_TILE6_TIMES[0]);
-}).concat(V29_TILE6_TIMES.map(function (t) {
+// v31 (11)(12): 86〜93 秒も、83〜86 秒で好評だった 6 点の間隔を 2 周そのまま使っていた。
+// v32 (6)(7): 指示 86.778「ここはタイル表示ではなく左向き重力タイルの攻撃にして。前のと同じ感じで」
+//   ＋ 指示 90.209「タイル表示はこれから」。1 周目（MK31 起点）をタイル表示から
+//   左流し（slideWave・SLIDE_TIMES_C）へ戻し、タイル表示は 2 周目（MK32 起点）だけにする。
+const V32_TILE6_TIMES = V29_TILE6_TIMES.map(function (t) {
   return MK32_TILE_SHOW + (t - V29_TILE6_TIMES[0]);
-}));
+});
 // マーカー 33〜36: 1 回 2 枚の爆破を 4 回
 const BLAST2_TIMES = [MK33_BLAST1, MK34_BLAST2, MK35_BLAST3, MK36_BLAST4];
 // マーカー 30/32 で積んだ帯タイルを消す時刻。マーカー 38 の横の鎖が最後の段まで
@@ -1291,6 +1305,10 @@ const SHOVEL_RIGHT_X = 33.5;
 const SHOVEL_ANGLE_DOWN = 0;                  // 下向き（スプライトそのままの向き）
 const SHOVEL_ANGLE_RIGHT = Math.PI / 2;       // 右向き
 const SHOVEL_ANGLE_LEFT = -Math.PI / 2;       // 左向き
+// v32 (15): 指示 130.158「ここのシャベルは下から出して」。画面下（y=0）の外から上向きに出す。
+//   弾のカリング境界は y >= -2 なので、その内側の -1.9 から出す（PlayFrame で隠れる）。
+const SHOVEL_ANGLE_UP = Math.PI;              // 上向き
+const SHOVEL_RISE_Y = -1.9;
 function shovel(opts) {
   const { pos, vel, angle = SHOVEL_ANGLE_DOWN, life = 0, scale = SHOVEL_SCALE, kind = 'shovel' } = opts;
   return {
@@ -2097,6 +2115,53 @@ function meteorBurstAfterglow(pos, life) {
     });
   }
   return warnClip(items, 'meteorafterglow');
+}
+
+// v32 (4)(12): 指示 65.546「破壊時、放射弾はこのままなしでいいんだけど、軽くエフェクトが欲しい」／
+//   指示 99.524「ここら辺の鎖攻撃で残ったタイルを爆破。放射弾は不要、エフェクトのみ」。
+//   隕石の破裂（meteorBurstFx）の縮小版を、放射弾を出さない鎖の破壊に付ける。
+//   ・輪郭リング（stone3_ring）1 枚をタイルの 0.55 倍 → 1.85 倍へ広げながら暗く沈める
+//   ・欠片（stone3_pop）3 枚をタイルの周囲に少しずらして出し、縮めて消す
+//   どちらも verts 空の弾種なので当たり判定は増えない（放射弾は増やさない）。
+const TILE_BREAK_RING_S0 = TILE * 0.55;
+const TILE_BREAK_RING_S1 = TILE * 1.85;
+const TILE_BREAK_RING_DUR = 0.16;
+const TILE_BREAK_CHUNK_N = 3;
+const TILE_BREAK_CHUNK_S0 = TILE * 0.30;
+const TILE_BREAK_CHUNK_S1 = TILE * 0.10;
+const TILE_BREAK_CHUNK_LIFE = 0.24;
+const TILE_BREAK_CHUNK_RADIUS = TILE * 0.42;
+function tileBreakFx(pos, index, kind) {
+  const items = [{
+    type: METEOR_RING_TYPE,
+    pos: [normalizeNegativeZero(pos[0]), normalizeNegativeZero(pos[1])],
+    scale: [TILE_BREAK_RING_S0, TILE_BREAK_RING_S0],
+    color: POP_COLOR_START,
+    scaleEnd: [TILE_BREAK_RING_S1, TILE_BREAK_RING_S1],
+    colorEnd: STONE_PATH,
+    animDuration: TILE_BREAK_RING_DUR,
+    appearTime: 0,
+    appearDuration: 0,
+    life: TILE_BREAK_RING_DUR + FADE_OUT_SEC,
+  }];
+  for (let i = 0; i < TILE_BREAK_CHUNK_N; i++) {
+    const a = (i * 2 * Math.PI) / TILE_BREAK_CHUNK_N + (index % 3) * 0.42 + 0.3;
+    const delay = i * 0.012;
+    items.push({
+      type: POP_TYPE,
+      pos: [normalizeNegativeZero(pos[0] + Math.cos(a) * TILE_BREAK_CHUNK_RADIUS),
+            normalizeNegativeZero(pos[1] + Math.sin(a) * TILE_BREAK_CHUNK_RADIUS)],
+      scale: [TILE_BREAK_CHUNK_S0, TILE_BREAK_CHUNK_S0],
+      color: SPRITE_AS_IS,
+      scaleEnd: [TILE_BREAK_CHUNK_S1, TILE_BREAK_CHUNK_S1],
+      colorEnd: STONE_PATH,
+      animDuration: TILE_BREAK_CHUNK_LIFE,
+      appearTime: delay,
+      appearDuration: 0,
+      life: delay + TILE_BREAK_CHUNK_LIFE + FADE_OUT_SEC,
+    });
+  }
+  return warnClip(items, kind);
 }
 
 // v23 (B)3: 隕石が飛行中に自転する。v2（区間モーション）は BulletV2UpdateJob が
@@ -4014,6 +4079,13 @@ export default stage(
         broken.push(t);
       });
       const sorted = broken.slice().sort(function (a, b) { return a.col - b.col || a.row - b.row; });
+      // v32 (4)(12): 放射弾を出さない鎖でも、砕けた瞬間に軽いエフェクト（輪郭リング＋欠片 3）を出す。
+      //   放射弾を出す鎖は従来どおり burst だけ（エフェクトを二重に重ねない）。
+      if (noBurst) {
+        sorted.forEach(function (t, i) {
+          s.at(t.end, tileBreakFx(cellCenter(t.col, t.row), i, 'tilebreakfx'));
+        });
+      }
       // v29 (5): cfg.noBurst / 引数 noBurst で、掃かれたタイルからの放射弾を止める
       //   （指示 99.733「中央の隕石爆破の破裂弾以外はなくして」＝ 98.3〜99.6s の鎖の破壊弾）。
       if (sorted.length > 0 && !noBurst) {
@@ -4075,16 +4147,22 @@ export default stage(
       pinStartGap: false,
     });
 
-    // v31 (11)(12): 86〜93 秒は 83〜86 秒と同じ「予告 1 拍・6 点の間隔・毎回入替」に統一。
+    // v32 (6): 86.6569〜89.15s は、73.32〜75.82s（V27_SLIDE_TIMES_D）と同じ左向き重力タイル。
+    //   間隔はマーカー 18〜21 の相対間隔（SLIDE_OFFSETS）をそのまま写した SLIDE_TIMES_C。
+    SLIDE_TIMES_C.forEach(function (t) { slideWave(t); });
+
+    // v32 (7): 指示 90.209「タイル表示はこれから。あとこっからのブロックで表示するタイルに
+    //   ついては周囲の 2 列のは残すように」。83〜86 秒（V29_TILE6_TIMES）と同じ 6 点の間隔で
+    //   90.2084 から出し、**周囲 2 列（BAND_CELLS）へ積んだタイルは消さずに残す**
+    //   （clearEachStrike を外す＝中央の一時タイルだけが次の点で消える）。
+    //   残ったタイルはマーカー 33〜36 の爆破と 37〜39 の鎖（指示 12）が片付ける。
     const bandG = tilePhase({
-      times: V31_TILE12_TIMES,
-      leads: V31_TILE12_TIMES.map(function () { return beats(1); }),
+      times: V32_TILE6_TIMES,
+      leads: V32_TILE6_TIMES.map(function () { return beats(1); }),
       centerRate: CENTER_RATE,
       bandTarget: BAND_TARGET,
       bandCells: BAND_CELLS,
       bandEnd: V21_BAND_END,
-      clearEachStrike: true,
-      finalEnd: MK33_BLAST1,
       pinStartGap: false,
     });
 
@@ -4093,6 +4171,18 @@ export default stage(
     blastPhase({
       tiles: bandF.concat(bandG),
       shots: BLAST2_TIMES.map(function (t) { return { time: t, n: 2 }; }),
+    });
+
+    // v32 (9): マーカー 34（95.1960）の爆破に重ねて、右から縦一列のシャベルを半拍ずつ
+    //   ずらして流す（124.99s の 8 と同じ作り。y だけ上下 2 列の内側へ詰めた）。
+    const V32_SIDE_LIFE = (SHOVEL_RIGHT_X - SHOVEL_LEFT_X) / SHOVEL_SIDE_SPEED;
+    V32_SIDE_YS.forEach(function (y, k) {
+      s.at(MK34_BLAST2 + k * beats(0.5), shovel({
+        pos: [SHOVEL_RIGHT_X, y],
+        vel: [-SHOVEL_SIDE_SPEED, 0],
+        angle: SHOVEL_ANGLE_LEFT,
+        life: V32_SIDE_LIFE,
+      }));
     });
 
     // ----------------------------------------------------------------------
@@ -4275,7 +4365,9 @@ export default stage(
       band43.filter(function (t) { return t.end > MK46_TILE_SET + 0.01; })
         .map(function (t) { return key(t.col, t.row); })
     );
-    const gatherWant = D(8, 10, 12);
+    // v32 (13): 指示 108.025「ここ難易度が高すぎる。4 個程度に減らし、予告も入れて」。
+    //   集める枚数を D(8,10,12) → D(3,4,5) へ落とす（normal で 4 枚＝指示どおり）。
+    const gatherWant = D(3, 4, 5);
     const gatherCand = shuffled(
       ALL_CELLS.filter(function (c) { return c[1] >= 3 && !alive43.has(key(c[0], c[1])); }),
       rng
@@ -4311,6 +4403,19 @@ export default stage(
       appearDuration: GATHER_IMPACT - GATHER_ENTER,
       life: GATHER_IMPACT - GATHER_ENTER,
     }], 'gatherwarn'));
+    // v32 (13): 「予告も入れて」。上の gatherwarn はタイル 1 枚半ぶんしかなく、爆発の
+    //   広がり（放射弾の出どころ）が読めなかった。爆発の 1 拍前から、集合点を中心に
+    //   タイル 3 枚ぶんの半透明の予告（warn_box・当たり判定なし）を重ねて出す。
+    const GATHER_WARN2_LEAD = beats(1);
+    const GATHER_WARN2_SIZE = CELL * 3.2;
+    s.at(GATHER_IMPACT - GATHER_WARN2_LEAD, warnClip([{
+      pos: GATHER_POINT,
+      scale: [GATHER_WARN2_SIZE, GATHER_WARN2_SIZE],
+      color: STONE_WARN,
+      appearTime: 0,
+      appearDuration: GATHER_WARN2_LEAD,
+      life: GATHER_WARN2_LEAD,
+    }], 'gatherwarn2'));
 
     // --- マーカー 47: 43〜44 の残タイルを消す ------------------------------------
     //   band43 の bandEnd = MK47_TILE_CLEAR なので、爆破されなかったタイルは
@@ -4584,27 +4689,40 @@ export default stage(
     // --- 6〜7 / 10: 落ちてきて（上がってきて）止まる隕石 3 発＋順に割るシャベル ------
     //   「重力付き」= 初速を持って入り、逆向きの一定加速度で減速して静止する。
     //   静止したあとはシャベルが来るまでその場で自転しながら待つ。
-    function v28RestBlock(tAppear, tHit, restY, fromY, idx) {
-      const dv = (2 * (restY - fromY)) / V28_REST_FALL;   // 入ってくるときの初速
-      const acc = -dv / V28_REST_FALL;                    // 静止するための逆向き加速度
+    // v32 (14): 指示 122.648「ここ、重力をもっと弱くすることで、シャベルが付くタイミングで
+    //   速度ゼロになるようにして」。旧実装は V28_REST_FALL（2 拍 = 0.8333s）で急減速して
+    //   静止し、そのあとシャベルが来るまで止まったまま待っていた（速度 0 になるのは到達の
+    //   0.97〜0.83 秒も前）。減速区間を「出現 → シャベル到達」の全長へ伸ばすと、
+    //   加速度は (2×距離)/T² なので T が 2 倍になれば重力は 1/4 になり、**到達時刻ちょうどに
+    //   速度 0** になる。停止用の第 2 区間は不要になる。
+    // v32 (15): 指示 130.158「ここのシャベルは下から出して」。上側版（fromBelow）は
+    //   シャベルを画面下の外から上向きに出す。
+    function v28RestBlock(tAppear, tHit, restY, fromY, idx, shovelFromBelow) {
       V28_REST_XS.forEach(function (x, k) {
+        const fall = tHit[k] - tAppear[k];               // 出現から静止（＝シャベル到達）まで
+        const dv = (2 * (restY - fromY)) / fall;         // 入ってくるときの初速
+        const acc = -dv / fall;                          // 到達時刻ちょうどに速度 0 になる逆向き加速度
         const from = [x, fromY];
-        const segs = [
-          { dur: V28_REST_FALL, ax: 0, ay: acc },
-          { dur: tHit[k] - tAppear[k] - V28_REST_FALL, ax: 0, ay: 0, vx: 0, vy: 0 },
-        ];
-        s.at(tAppear[k], meteorPath(from, [0, dv], segs, 'meteorrest'));
-        s.at(tAppear[k], meteorPathTrail(from, [0, dv], segs, V28_REST_FALL, 'meteorresttrail'));
+        const segs = [{ dur: fall, ax: 0, ay: acc }];
+        const clip = meteorPath(from, [0, dv], segs, 'meteorrest');
+        // v32 (15): 上側版は発射点 y=-3 が生存域 [-2,36) の外。旧実装は初速 40.8 で 1.5 コマ
+        //   しか外に居なかったが、重力を弱めた（初速 18.8）ぶん 3 コマ強かかるようになるので、
+        //   カリングを明示的に免除する。life = fall で必ず消えるので取り残しは出ない。
+        if (fromY < -2 || fromY >= 36) clip.parts[0].buffer.bullets[0].ignoreOutOfBoundsCulling = true;
+        s.at(tAppear[k], clip);
+        s.at(tAppear[k], meteorPathTrail(from, [0, dv], segs, fall, 'meteorresttrail'));
         v28EntryFlash(tAppear[k], meteorPathPos(from, [0, dv], segs), V28_REST_FALL, 'meteorspawn');
         v28MeteorBlast(tHit[k], [x, restY], idx + k);
       });
-      // v31 (16): 横から 1 本でまとめて割らず、各隕石へ上から 1 本ずつ落とす。
+      // v31 (16): 横から 1 本でまとめて割らず、各隕石へ 1 本ずつ差し向ける。
       const shovelFlight = beats(2);
+      const shovelFrom = shovelFromBelow ? SHOVEL_RISE_Y : SHOVEL_SPAWN_Y;
+      const shovelAngle = shovelFromBelow ? SHOVEL_ANGLE_UP : SHOVEL_ANGLE_DOWN;
       V28_REST_XS.forEach(function (x, k) {
         s.at(tHit[k] - shovelFlight, shovel({
-          pos: [x, SHOVEL_SPAWN_Y],
-          vel: [0, (restY - SHOVEL_SPAWN_Y) / shovelFlight],
-          angle: SHOVEL_ANGLE_DOWN,
+          pos: [x, shovelFrom],
+          vel: [0, (restY - shovelFrom) / shovelFlight],
+          angle: shovelAngle,
           life: shovelFlight + METEOR_LIFE_MARGIN,
         }));
       });
@@ -4620,7 +4738,7 @@ export default stage(
     v28RestBlock(
       [V28_B1 + V28_E_SHIFT, V28_B2 + V28_E_SHIFT, V28_B3 + V28_E_SHIFT],
       [V28_C1 + V28_E_SHIFT, V28_C2 + V28_E_SHIFT, V28_C3 + V28_E_SHIFT],
-      V28_REST_HIGH_Y, V28_REST_UP_Y, 9
+      V28_REST_HIGH_Y, V28_REST_UP_Y, 9, true   // v32 (15): シャベルは下から
     );
 
     // --- 8: 右側から縦一列のシャベルを、上から順に半拍ずつずらして発射 --------------
