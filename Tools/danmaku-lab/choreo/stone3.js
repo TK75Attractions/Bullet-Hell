@@ -1826,7 +1826,9 @@ function meteorMotion(y, jit) {
 //     ・点の間隔 0.03s（直径 1.7 に対し 0.5〜1.1 ユニット）で重ね、途切れない帯にする
 //     ・寿命 0.42s で長さを 2.6 倍（本体径の 3〜5 倍）にし、縮みで先端ほど細くする
 //     ・各点を進行方向へ回して置く（斜めの経路でも帯の縁がぎざぎざにならない）
-const METEOR_TRAIL_STEP = 0.03;             // 尾の点を置く時間間隔（36.7 ユニット/s で 1.47 ユニット）
+const METEOR_TRAIL_STEP = 0.04;             // v32 (5): 尾の円を置く時間間隔。24.1 ユニット/s で 0.96 ユニット
+                                            //   ＝ 頭の円の直径 3.04 の 32%。本家（ref_steve_096.41）の実測 40% と同じ桁で、
+                                            //   頭側は重なって 1 本の帯・末端は小さな円が並ぶ見え方になる。
 // v30 (3): 時間等間隔だと速い隕石ほど点の間隔が開く。実測（本体 3.2・点 S0 1.7 ユニット）で
 //   ・右→左の隕石 24.1 ユニット/s … 0.72 ユニット間隔 ＝ 点が重なって 1 本の帯
 //   ・壁隕石 43.8 ユニット/s ……… 1.31 ユニット間隔
@@ -1835,16 +1837,35 @@ const METEOR_TRAIL_STEP = 0.03;             // 尾の点を置く時間間隔（
 //   （101.5 / 103.2s の落下隕石への指摘）。そこで**距離**の上限を足し、
 //   これを超える区間だけ等分して点を足す。0.75 は帯に見えている右→左の隕石の
 //   間隔 0.72 のすぐ上＝その隕石の点は 1 つも増えない値。
-const METEOR_TRAIL_GAP = 0.75;              // 尾の点の距離間隔の上限（ユニット）
+const METEOR_TRAIL_GAP = 1.10;              // 尾の円の距離間隔の上限（ユニット）
                                              // v24 の 0.025s は間隔 0.92 ユニット < 点の直径で
                                              // 「連続した帯」に見えていた。0.04s へ広げて点どうしの
                                              // 隙間を作り、点列に見せる。
-const METEOR_TRAIL_LIFE = 0.42;
-// v31 (9): 本家のローカル実フレーム（ref_steve_096.14〜096.60）どおり、頭直後は
-//   白く大きい星粒を重ね、後ろほど小さく暗い同色相の粒へする。四角い帯にはしない。
-const METEOR_TRAIL_S0 = METEOR_SCALE * 0.90;
-const METEOR_TRAIL_S1 = METEOR_SCALE * 0.08;
-const METEOR_TRAIL_TYPE = 'stone_burst';    // verts 空の星粒。実弾ではなく尾専用
+// v32 (5): 指示 71.494「ここの軌跡なかなか治らないな。Command Steve の該当部分把握してる？」。
+//   本家の実フレーム（Captures/ref_commandosteve_135_a.png・ref_steve_096.41〜096.60）を
+//   もう一度見ると、尾は**本体と同径から始まる円（ディスク）が重なって 1 本の帯**になり、
+//   遠ざかるほど小さく薄くなる。先頭寄りは白〜淡色、後方は本体色。点列には見えない。
+//   帯とは別に、小さな棘つきの粒が軌道の**両脇**にばらけて散る（軌道上の直線には並ばない）。
+//   v31 までは 4 芒星（stone_burst）を軌道上に一直線に並べていたので「点列」に見えていた。
+//   → 帯は新しい弾種 stone3_disc（vcirc の丸スプライトを verts 空・renderPriority 0 で
+//     登録し直したもの＝当たり判定なし・本体より奥）に置き換え、
+//     従来の 4 芒星は「両脇に散る棘粒」として数を絞って残す。
+const METEOR_TRAIL_LIFE = 0.42;             // 帯の長さ＝速度×寿命（24.1 ユニット/s で 10.1 ＝ 本体 3.2 個ぶん）
+const METEOR_TRAIL_S0 = METEOR_SCALE * 0.95;  // 頭は本体とほぼ同径
+const METEOR_TRAIL_S1 = METEOR_SCALE * 0.12;  // 末端は本体の 1/8（本家は頭 55px → 末端 8〜10px の強い先細り）
+const METEOR_TRAIL_TYPE = 'stone3_disc';    // verts 空の丸。実弾ではなく尾専用
+// 両脇に散らす棘粒（従来の 4 芒星を流用）。軌道から垂直方向へ離して置くので線には並ばない。
+const METEOR_TRAIL_SPARK_TYPE = 'stone_burst';
+const METEOR_TRAIL_SPARK_EVERY = 2;           // 帯の円 2 個につき 1 個
+const METEOR_TRAIL_SPARK_S0 = METEOR_SCALE * 0.26;
+const METEOR_TRAIL_SPARK_S1 = METEOR_SCALE * 0.05;
+const METEOR_TRAIL_SPARK_LIFE = 0.24;
+const METEOR_TRAIL_SPARK_OFF = [0.60, 1.55];  // 軌道からの垂直距離（ユニット）
+// 乱数ストリームを消費せずに散らすための決定的ハッシュ（同じ入力なら常に同じ値）。
+function trailHash(i, x, y) {
+  const s = Math.sin(i * 12.9898 + x * 78.233 + y * 37.719) * 43758.5453;
+  return s - Math.floor(s);
+}
 // v25: 開始色は本体（無着色のテクスチャそのまま）より淡いグレー、終端はさらに暗く
 // 背景へ溶け込む色。v24 は開始 POP_COLOR_START（sRGB 242,236,252 の明るい白）→
 // 終端 STONE_MID（166,150,190）で、どちらも面が不透明に塗り潰されるため「太く明るい」
@@ -2240,6 +2261,36 @@ function meteorTrailPath(posAt, flight, kind) {
       useVelocityAngle: false,
       polarForm: { x: 0, y: normalizeNegativeZero(ang) },
     }));
+    // v32 (5): 帯の脇へ散らす棘粒。軌道の法線方向へ 0.60〜1.55 ユニット離し、
+    //   進行方向にも少しずらす（＝軌道上の直線には並ばない）。
+    if (i % METEOR_TRAIL_SPARK_EVERY === 0 && (dx * dx + dy * dy) > 1e-12) {
+      const h1 = trailHash(i, p[0], p[1]);
+      const h2 = trailHash(i + 101, p[0], p[1]);
+      const h3 = trailHash(i + 211, p[0], p[1]);
+      const L = Math.sqrt(dx * dx + dy * dy);
+      const nx = -dy / L, ny = dx / L;               // 進行方向の法線
+      const side = h1 < 0.5 ? -1 : 1;
+      const off = METEOR_TRAIL_SPARK_OFF[0]
+        + (METEOR_TRAIL_SPARK_OFF[1] - METEOR_TRAIL_SPARK_OFF[0]) * h2;
+      const along = (h3 - 0.5) * 1.2;
+      const sx = p[0] + nx * off * side + (dx / L) * along;
+      const sy = p[1] + ny * off * side + (dy / L) * along;
+      bullets.push(bulletDefaults({
+        originPos: { x: normalizeNegativeZero(sx), y: normalizeNegativeZero(sy) },
+        typeName: METEOR_TRAIL_SPARK_TYPE,
+        scale: { x: METEOR_TRAIL_SPARK_S0, y: METEOR_TRAIL_SPARK_S0 },
+        color: { x: METEOR_TRAIL_COLOR_START[0], y: METEOR_TRAIL_COLOR_START[1], z: METEOR_TRAIL_COLOR_START[2], w: METEOR_TRAIL_COLOR_START[3] },
+        scaleEnd: { x: METEOR_TRAIL_SPARK_S1, y: METEOR_TRAIL_SPARK_S1 },
+        colorEnd: { x: METEOR_TRAIL_COLOR_END[0], y: METEOR_TRAIL_COLOR_END[1], z: METEOR_TRAIL_COLOR_END[2], w: METEOR_TRAIL_COLOR_END[3] },
+        animDuration: METEOR_TRAIL_SPARK_LIFE,
+        appearTime: rel,
+        appearDuration: 0,
+        life: rel + METEOR_TRAIL_SPARK_LIFE,
+        unCounterable: true,
+        useVelocityAngle: false,
+        polarForm: { x: 0, y: normalizeNegativeZero(ang) },
+      }));
+    }
   }
   return {
     parts: [{ offsetSec: 0, kind, buffer: { bullets, homing: false, isLaser: false }, spawner: NEUTRAL_SPAWNER() }],
