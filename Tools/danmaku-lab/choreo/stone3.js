@@ -1298,48 +1298,59 @@ function shovel(opts) {
 }
 
 // --- v27 (C): シャベルの多段モーション -------------------------------------------
-//   区間ごとに 1 発ずつ弾を分ける v1 レーンの handoff（gravitySeq の非 v2 分岐と同じ
-//   originPos/originVlc/gravity の閉形式）。gravitySeq をそのまま使わないのは、
-//   シャベルは useVelocityAngle:false + initialAngle で向きを固定する必要があるため
-//   （既定の useVelocityAngle:true だと落下中に横倒しになる）。
-//   segs = [{ dur, ax, ay }]（ax/ay はワールドの等加速度成分。0 なら等速）
+//   segs = [{ dur, ax, ay, vx?, vy? }]（ax/ay はワールドの等加速度成分。0 なら等速。
+//   vx/vy を指定するとその区間の入り口で速度を差し替える＝バウンド・発射）
+//
+//   v32 (1): 区間ごとに 1 発ずつ弾を分ける v1 レーンの handoff をやめ、1 発の v2 弾＋
+//   区間列（BulletV2Segment[]）にした。handoff だと BulletRenderSystem の
+//   disappearDuration=0.1（全弾の life 末尾 0.1 秒を暗く落とす）が区間の切れ目ごとに
+//   掛かり、動いているシャベルが継ぎ目で点滅していた（指示 55.72）。v2 なら 1 発の中で
+//   位置も速度も閉形式で連続するので、暗転はステージ上で消える最後の 1 回だけになる。
+//   位置の式は v1 と同一（区間頭の速度を vlc、等加速度を gravity に写すだけ）なので、
+//   軌跡は完全に不変。useVelocityAngle:false + initialAngle は維持する
+//   （BulletData.GetRotationAngle は false のとき polarForm.y + initialAngle を使い、
+//   v2 弾でも thetaVlc=0 なら polarForm.y は 0 のまま＝向きが固定される）。
 function shovelPath(pos0, vel0, segs, angle, kind) {
-  let px = pos0[0], py = pos0[1], vx = vel0[0], vy = vel0[1], t = 0;
-  const parts = [];
-  segs.forEach(function (sg, i) {
+  let vx = vel0[0], vy = vel0[1], total = 0;
+  const v2Segments = [];
+  segs.forEach(function (sg) {
     if (sg.vx !== undefined) vx = sg.vx;   // 区間の入り口で速度を差し替える（バウンド・発射）
     if (sg.vy !== undefined) vy = sg.vy;
     const mag = Math.sqrt(sg.ax * sg.ax + sg.ay * sg.ay);
     const dir = mag > 1e-9 ? Math.atan2(sg.ay, sg.ax) : 0;
-    const last = i === segs.length - 1;
-    parts.push({
-      offsetSec: t,
+    v2Segments.push({
+      duration: sg.dur,
+      vlc: { x: normalizeNegativeZero(vx), y: normalizeNegativeZero(vy) },
+      gravity: { x: mag, y: normalizeNegativeZero(dir) },
+      thetaVlc: 0,
+    });
+    vx += sg.ax * sg.dur;
+    vy += sg.ay * sg.dur;
+    total += sg.dur;
+  });
+  return {
+    parts: [{
+      offsetSec: 0,
       kind: kind,
       buffer: {
         bullets: [bulletDefaults({
-          originPos: { x: normalizeNegativeZero(px), y: normalizeNegativeZero(py) },
-          originVlc: { x: normalizeNegativeZero(vx), y: normalizeNegativeZero(vy) },
-          gravity: { x: mag, y: normalizeNegativeZero(dir) },
+          originPos: { x: normalizeNegativeZero(pos0[0]), y: normalizeNegativeZero(pos0[1]) },
           typeName: 'stone3_shovel',
           scale: { x: SHOVEL_SCALE, y: SHOVEL_SCALE },
           color: { x: SPRITE_AS_IS[0], y: SPRITE_AS_IS[1], z: SPRITE_AS_IS[2], w: SPRITE_AS_IS[3] },
-          life: last ? sg.dur : sg.dur + METEOR_LIFE_MARGIN,
+          // 旧 handoff の最終区間は life=sg.dur（マージン無し）だったので、合計＝消える時刻は不変。
+          life: total,
           unCounterable: true,
           useVelocityAngle: false,
           initialAngle: normalizeNegativeZero(angle),
+          segments: v2Segments,
         })],
         homing: false,
         isLaser: false,
       },
       spawner: NEUTRAL_SPAWNER(),
-    });
-    px += vx * sg.dur + 0.5 * sg.ax * sg.dur * sg.dur;
-    py += vy * sg.dur + 0.5 * sg.ay * sg.dur * sg.dur;
-    vx += sg.ax * sg.dur;
-    vy += sg.ay * sg.dur;
-    t += sg.dur;
-  });
-  return { parts: parts };
+    }],
+  };
 }
 
 // --- v5: 予告ビルダー（3種。いずれも warnClip＝当たり判定なし）----------------
@@ -2230,49 +2241,55 @@ function meteorSquash(pos) {
 //   「落ちてきて下で止まる」「イージングで寄って少し戻してから落ちる」など、
 //   1 発の隕石が途中で加速度を変える動きばかりになる。既存の meteor()/meteorDrop()/
 //   meteorLine() はどれも 1 区間・固定の加速度なので使えない。
-//   shovelPath と同じ作り（v1 レーンの originPos/originVlc/gravity を区間ごとに
-//   置き直す handoff）を stone3_tile ＋ 自転つきで用意する。
 //   segs = [{ dur, ax, ay, vx?, vy? }]（ax/ay はワールドの等加速度成分。vx/vy を
 //   指定するとその区間の入り口で速度を差し替える）。
 //   既存の meteor()/meteorDrop()/meteorLine() には手を入れていない。
+//
+//   v32 (1): shovelPath と同じ理由で v1 handoff をやめ、1 発の v2 弾＋区間列にした。
+//   位置の式は同一なので軌跡は不変。副次的に、handoff だと区間ごとに polarForm.y が 0 に
+//   戻って自転の角度が飛んでいたのが、1 発になって連続回転になる
+//   （BulletV2UpdateJob は useVelocityAngle=false の弾の polarForm.y を thetaVlc で進める）。
 function meteorPath(pos0, vel0, segs, kind, spin) {
-  let px = pos0[0], py = pos0[1], vx = vel0[0], vy = vel0[1], t = 0;
-  const parts = [];
-  segs.forEach(function (sg, i) {
+  let vx = vel0[0], vy = vel0[1], total = 0;
+  const v2Segments = [];
+  segs.forEach(function (sg) {
     if (sg.vx !== undefined) vx = sg.vx;
     if (sg.vy !== undefined) vy = sg.vy;
     const mag = Math.sqrt(sg.ax * sg.ax + sg.ay * sg.ay);
     const dir = mag > 1e-9 ? Math.atan2(sg.ay, sg.ax) : 0;
-    const last = i === segs.length - 1;
-    parts.push({
-      offsetSec: t,
+    v2Segments.push({
+      duration: sg.dur,
+      vlc: { x: normalizeNegativeZero(vx), y: normalizeNegativeZero(vy) },
+      gravity: { x: mag, y: normalizeNegativeZero(dir) },
+      thetaVlc: 0,
+    });
+    vx += sg.ax * sg.dur;
+    vy += sg.ay * sg.dur;
+    total += sg.dur;
+  });
+  return {
+    parts: [{
+      offsetSec: 0,
       kind: kind,
       buffer: {
         bullets: [bulletDefaults({
-          originPos: { x: normalizeNegativeZero(px), y: normalizeNegativeZero(py) },
-          originVlc: { x: normalizeNegativeZero(vx), y: normalizeNegativeZero(vy) },
-          gravity: { x: mag, y: normalizeNegativeZero(dir) },
+          originPos: { x: normalizeNegativeZero(pos0[0]), y: normalizeNegativeZero(pos0[1]) },
           typeName: 'stone3_tile',
           scale: { x: METEOR_SCALE, y: METEOR_SCALE },
           color: { x: SPRITE_AS_IS[0], y: SPRITE_AS_IS[1], z: SPRITE_AS_IS[2], w: SPRITE_AS_IS[3] },
-          life: last ? sg.dur : sg.dur + METEOR_LIFE_MARGIN,
+          life: total,
           unCounterable: true,
           useVelocityAngle: false,
           polarForm: { x: 1, y: 0 },
           thetaVlc: normalizeNegativeZero(spin === undefined ? METEOR_SPIN : spin),
+          segments: v2Segments,
         })],
         homing: false,
         isLaser: false,
       },
       spawner: NEUTRAL_SPAWNER(),
-    });
-    px += vx * sg.dur + 0.5 * sg.ax * sg.dur * sg.dur;
-    py += vy * sg.dur + 0.5 * sg.ay * sg.dur * sg.dur;
-    vx += sg.ax * sg.dur;
-    vy += sg.ay * sg.dur;
-    t += sg.dur;
-  });
-  return { parts: parts };
+    }],
+  };
 }
 
 // 上の経路の「発射から rel 秒後の位置」を返す関数を作る（尾を置くのに使う）。
