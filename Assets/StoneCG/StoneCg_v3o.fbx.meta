@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 16c8b3c3ed6d50147bd66c101ab641b7
+guid: 6d490f11138f8294b9d80ab9be44d960
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
@@ -74,6 +74,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: label
     second: {fileID: 2100000, guid: cac32a782bad14f499a7b5c574218906, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lip_notch
+    second: {fileID: 2100000, guid: 1410b2440946c2a4591b37331fce794a, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
