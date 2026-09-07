@@ -596,11 +596,31 @@ const V27C_SIDE_STOP_R = 25.0;    // 右から来て止まる x（右端 25+2.76
 const V27C_SIDE_STOP_L = 7.0;     // 左から来て止まる x（左端 7-2.76=4.24 > 4）
 const V27C_SIDE_BEND_D = 0.9;     // 「すこし曲がる」距離
 // 上から落ちるシャベルの静止位置。上 2 列（行 7-8 ＝ y 14〜18）の下側に溜める。
-const V27C_DROP_XS = [3, 8.2, 13.4, 18.6, 23.8, 29];
+// v32 (2): 指示 59.119「間隔が広すぎる。左右の列とは重ならないようにして」。
+//   左右 2 列（列 0-1 ＝ x<4 と 列 14-15 ＝ x>28）の内側へ 6 本を 3.4 ユニット間隔で収める。
+//   stone3_shovel.png の実インク幅は 24/128 × SHOVEL_SCALE(5.52) = 1.035（半幅 0.518）なので、
+//   左端 7.5−0.518 = 6.982 > 4 / 右端 24.5+0.518 = 25.018 < 28 で、どちらの列にも掛からない。
+//   旧 [3, 8.2, …, 29]（間隔 5.2）は x=3 が左列に、x=29 が右列に重なっていた。
+const V27C_DROP_SPACING = 3.4;
+const V27C_DROP_XS = [0, 1, 2, 3, 4, 5].map(function (k) {
+  return 16 + (k - 2.5) * V27C_DROP_SPACING;   // 16 = 画面幅 32 の中央（COLS*CELL/2。定義はこの下）
+});
 const V27C_DROP_REST_Y = 11.5;    // 上端 11.5+2.76=14.26 ＝ 行 7 のすぐ下
 // v31 (6): 落下を少し長くし、最初の反発を抑えた 3 回の減衰バウンドへ。
 const V27C_DROP_FALL = 0.70;      // 落下にかける秒数（静止位置へ着くまで）
-const V27C_BOUNCE = [0.22, 0.45, 0.45];
+// v32 (2): 指示 59.119「落ちてきてから跳ね返ってるように見える。スムーズにバウンドさせてほしい」。
+//   旧 V27C_BOUNCE = [0.22, 0.45, 0.45] は等加速度の弾道アークを 3 回続けるもので、
+//   2 回目 0.14 ユニット / 3 回目 0.029 ユニット（約 1 px）と極端に小さく速く、
+//   「跳ね返り」ではなく接地時の震えに見えていた。v2 区間のイージングで
+//   「大きく 1 回 → 小さく 1 回 → ふわりと静止」に作り直す。
+//     上り = easeOut(3 次。入り口が最速・頂点で速度 0)
+//     下り = easeIn(3 次。頂点で 0 → 接地で最速)。最後の下りだけ smoothstep(両端で速度 0)
+//   最後を smoothstep にすると接地の瞬間に速度 0 まで落ちるので、揺れ（V27C_SWAY_*）へ
+//   速度の飛びなしで繋がる。合計 0.76 秒は 6 本目（着地 58.7400）から発射 59.5766 までの
+//   0.8366 秒に収まる。
+const V27C_BOUNCE_E = [0.30, 0.42];        // 反発係数（接地速度に対する跳ね上がりの比）
+const V27C_BOUNCE_UP = [0.22, 0.14];       // 上りの秒数
+const V27C_BOUNCE_DOWN = [0.22, 0.18];     // 下りの秒数（最後の 1 回は smoothstep）
 // v29 (7): 指示 58.252「揺らすのは縦方向にお願い。バウンドした流れでちょっと揺れる程度で
 //   いいです」→ 揺れの向きを x から y へ変え、振幅を 0.45 → 0.15 ユニットに落とす
 //   （振幅 = V27C_SWAY_V × V27C_SWAY_HALF / 4）。
@@ -1310,22 +1330,35 @@ function shovel(opts) {
 //   軌跡は完全に不変。useVelocityAngle:false + initialAngle は維持する
 //   （BulletData.GetRotationAngle は false のとき polarForm.y + initialAngle を使い、
 //   v2 弾でも thetaVlc=0 なら polarForm.y は 0 のまま＝向きが固定される）。
+// v32 (2): イージング区間（sg.ez）の終端での E'(1)。BulletV2UpdateJob.EaseDerivative と同じ値。
+//   イージング区間の変位は vlc * dur（E(1)=1）で、終端速度は vlc * E'(1) になる。
+const EASE_END_SLOPE = [1, 3, 0, 0, 0, 0.6875];   // 0=linear 1=easeIn 2=easeOut 3=easeInOut 4=smoothstep 5=bounce
 function shovelPath(pos0, vel0, segs, angle, kind) {
   let vx = vel0[0], vy = vel0[1], total = 0;
   const v2Segments = [];
   segs.forEach(function (sg) {
     if (sg.vx !== undefined) vx = sg.vx;   // 区間の入り口で速度を差し替える（バウンド・発射）
     if (sg.vy !== undefined) vy = sg.vy;
-    const mag = Math.sqrt(sg.ax * sg.ax + sg.ay * sg.ay);
+    // v32 (2): sg.ez を渡すと等速度成分にイージングを掛ける（gravity とは併用しない規約）。
+    //   このとき vx/vy は「区間の平均速度 = 変位 / dur」として渡す（BulletV2Segment.easing 参照）。
+    const ez = sg.ez || 0;
+    const mag = ez ? 0 : Math.sqrt(sg.ax * sg.ax + sg.ay * sg.ay);
     const dir = mag > 1e-9 ? Math.atan2(sg.ay, sg.ax) : 0;
-    v2Segments.push({
+    const seg = {
       duration: sg.dur,
       vlc: { x: normalizeNegativeZero(vx), y: normalizeNegativeZero(vy) },
       gravity: { x: mag, y: normalizeNegativeZero(dir) },
       thetaVlc: 0,
-    });
-    vx += sg.ax * sg.dur;
-    vy += sg.ay * sg.dur;
+    };
+    if (ez) seg.easing = ez;   // 既定 0 のときはキーごと出さない＝既存の出力バイトは不変
+    v2Segments.push(seg);
+    if (ez) {
+      vx *= EASE_END_SLOPE[ez];
+      vy *= EASE_END_SLOPE[ez];
+    } else {
+      vx += sg.ax * sg.dur;
+      vy += sg.ay * sg.dur;
+    }
     total += sg.dur;
   });
   return {
@@ -3686,26 +3719,39 @@ export default stage(
       const x = V27C_DROP_XS[k];
       const vLand = V27C_FALL_A * V27C_DROP_FALL;      // 着地時の落下速度
       const segs = [{ dur: V27C_DROP_FALL, ax: 0, ay: -V27C_FALL_A }];
-      let up = vLand;
+      // v32 (2): イージング区間による減衰バウンド。
+      //   上り: easeOut(3 次) は初速 3h/dU・終端 0 なので、接地速度 vIn の e 倍で跳ね上げるには
+      //         高さ h = e*vIn*dU/3 を取ればよい（vlc は平均速度 h/dU）。
+      //   下り: easeIn(3 次) は初速 0・終端 3h/dD。dU==dD なら跳ね上がった速さで接地に戻る。
+      //   最後の下り: smoothstep（両端で速度 0）＝静かに着地して止まる。
+      let vIn = vLand;
       let used = 0;
-      V27C_BOUNCE.forEach(function (e) {
-        up *= e;
-        const d = (2 * up) / V27C_FALL_A;
-        // 上向きの初速 up から重力で落ちて、同じ高さへ戻る 1 バウンド
-        segs.push({ dur: d, ax: 0, ay: -V27C_FALL_A, vy: up });
-        used += d;
+      V27C_BOUNCE_E.forEach(function (e, bi) {
+        const last = bi === V27C_BOUNCE_E.length - 1;
+        const dU = V27C_BOUNCE_UP[bi];
+        const dD = V27C_BOUNCE_DOWN[bi];
+        const h = (e * vIn * dU) / 3;
+        segs.push({ dur: dU, ax: 0, ay: 0, vx: 0, vy: h / dU, ez: 2 });
+        segs.push({ dur: dD, ax: 0, ay: 0, vx: 0, vy: -h / dD, ez: last ? 4 : 1 });
+        vIn = last ? 0 : (3 * h) / dD;
+        used += dU + dD;
       });
       // 残りの待ち時間を「ゆらゆら」に割る（半周期 V27C_SWAY_HALF ごとに向きが返る）
       const fireDur = V27C_FIRE_HIT - V27C_FIRE;
-      const hold = V27C_FIRE - land - used;
-      const nSway = Math.max(1, Math.round(hold / V27C_SWAY_HALF));
-      const swayDur = hold / nSway;
+      const hold = Math.max(0, V27C_FIRE - land - used);
+      // v32 (2): バウンドで待ち時間を使い切る 6 本目は hold≈0.077s。1 コマ未満なら
+      //   duration<=0 の区間（＝v2 の「最終区間として life まで継続」）を作らないよう省く。
+      const nSway = hold > 1 / 60 ? Math.max(1, Math.round(hold / V27C_SWAY_HALF)) : 0;
+      const swayDur = nSway > 0 ? hold / nSway : 0;
       const swayV = V27C_SWAY_V * Math.min(1, swayDur / V27C_SWAY_HALF);
       for (let i = 0; i < nSway; i++) {
         // v29 (7): 揺れは縦方向（バウンドの流れをそのまま小さく続ける）
         const sg = { dur: swayDur, ax: 0, ay: (i % 2 === 0 ? -2 : 2) * swayV / swayDur };
         if (i === 0) { sg.vx = 0; sg.vy = swayV; }   // 揺れの入り口で横の速度を止める
         segs.push(sg);
+      }
+      if (nSway === 0 && hold > 0) {
+        segs.push({ dur: hold, ax: 0, ay: 0, vx: 0, vy: 0 });   // 揺らさず静止して待つ
       }
       // 発射（等速で真下へ。V27C_FIRE_HIT ちょうどに最下段へ着く）
       segs.push({
@@ -3747,20 +3793,31 @@ export default stage(
         if (!stackByCol.has(t.col)) stackByCol.set(t.col, []);
         stackByCol.get(t.col).push(t);
       });
+    // v32 (3): 指示 63.409「上のを落とすタイミングが遅い。ここら辺の拍で下に落ちきるイメージ」。
+    //   V27C_FALL(63.3266) を「落下の開始」ではなく「落ちきる（最後の 1 枚が着地する）時刻」に
+    //   読み替え、開始をその手前へ前倒しする。落下の作り（重力 V27C_STACK_ACCEL・列ごとの
+    //   0.08 秒ずらし）は変えない。
     const stacked = [];
     stackByCol.forEach(function (list, col) {
       list.forEach(function (t, i) {
-        t.claimed = true;
-        t.end = V27C_FALL;          // 実体タイルはここで終わり、落下する弾へバトンタッチ
-        t.lead = 0;
         const from = cellCenter(t.col, t.row);
         const dstRow = i;            // 行 0 → 行 1 の順に積む
         const to = cellCenter(t.col, dstRow);
         const dist = from[1] - to[1];
         const dur = Math.sqrt((2 * dist) / V27C_STACK_ACCEL);
         const delay = i * 0.08;      // 下に入るぶんを先に着地させる
-        stacked.push({ col: t.col, row: dstRow, land: V27C_FALL + delay + dur, from: from, to: to, dur: dur, delay: delay });
+        stacked.push({ tile: t, col: t.col, row: dstRow, from: from, to: to, dur: dur, delay: delay });
       });
+    });
+    // 最後に着地する 1 枚が V27C_FALL ちょうどに着くよう、開始時刻を逆算する。
+    const V27C_FALL_START = V27C_FALL - stacked.reduce(function (m, st) {
+      return Math.max(m, st.delay + st.dur);
+    }, 0);
+    stacked.forEach(function (st) {
+      st.land = V27C_FALL_START + st.delay + st.dur;
+      st.tile.claimed = true;
+      st.tile.end = V27C_FALL_START;   // 実体タイルはここで終わり、落下する弾へバトンタッチ
+      st.tile.lead = 0;
     });
 
     // --- 63.8723: 左右の 2 列を鎖攻撃で破壊 ---------------------------------------
@@ -3782,7 +3839,7 @@ export default stage(
       const hit = chainBreakTime(CHAIN_H_SLOW, st.col, st.row, V27C_CHAIN_B, V27C_LANES_TB);
       const end = hit === null ? V27C_BAND_END : hit;
       // (1) 落下（等加速。着地でぴたりと止まる）
-      s.at(V27C_FALL + st.delay, {
+      s.at(V27C_FALL_START + st.delay, {
         parts: [{
           offsetSec: 0,
           kind: 'stackfall',
