@@ -75,6 +75,51 @@ public class StoneCgController : MonoBehaviour
     public float nearClip = 0.05f;
     public float farClip = 450f;
 
+    [Header("形態変化（ゴーレム降臨）")]
+    [Tooltip("ゴーレムが着地する時刻。Tools/danmaku-lab/choreo/stone3.js の BOSS_LAND_TIME。")]
+    public float landTime = 72.94f;
+    [Tooltip("降下にかかる時間。stone3.js の BOSS_DESCEND_SEC（降下開始 = landTime - この値）。")]
+    public float descendSec = 0.833333f;
+
+    [Header("拍連動（BPM144・offset 0）")]
+    public float beatSec = 60f / 144f;
+    [Tooltip("拍頭でランタン・街の灯りを何割増やすか。")]
+    [Range(0f, 1f)] public float beatPulse = 0.2f;
+    [Tooltip("拍頭の増分が戻るまでの時間。")]
+    public float beatDecaySec = 0.15f;
+
+    [Header("降臨の瞬間")]
+    [Tooltip("着地時に CG カメラを揺らす振幅（既存 CameraShake の石工着地と同じ 0.6/0.34/18Hz）。")]
+    public float shakeAmplitude = 0.6f;
+    public float shakeDuration = 0.34f;
+    public float shakeFrequency = 18f;
+    [Tooltip("着地でランタンを消しておく時間。")]
+    public float lanternBlackoutSec = 0.3f;
+    [Tooltip("落ちる粉に使うマテリアル（シェーダ StoneCG/Flat）。未設定なら粉を出さない。")]
+    public Material dustMaterial;
+    public int dustCount = 60;
+    public float dustLifeSec = 1.5f;
+
+    [Header("後半（降臨後）の照明")]
+    [Tooltip("コアの赤い点光源の位置（CG の core_red_off 空オブジェクトの実測値）。")]
+    public Vector3 coreLightPosition = new Vector3(16f, 13.1f, 5.7f);
+    [Tooltip("コアの色（リニア）。")]
+    public Vector3 coreColorLinear = new Vector3(1f, 0.25f, 0.2f);
+    [Tooltip("コアの減衰半径（ユニット）。")]
+    public float coreRadius = 10f;
+    [Tooltip("コアの強さ。岩棚天面で +12 レベル程度になる値（実測で決めた）。")]
+    public float coreIntensity = 1.7f;
+    [Tooltip("後半の拍連動はコアの明滅に切り替わる。拍頭での増分。")]
+    [Range(0f, 1f)] public float corePulse = 0.25f;
+    [Tooltip("後半のランタンの明るさ（前半比）。")]
+    [Range(0f, 1f)] public float lateLanternScale = 0.6f;
+    [Tooltip("後半の遠景の街の灯り（前半比）。1/3 を消すぶん。")]
+    [Range(0f, 1f)] public float lateCityScale = 0.6667f;
+    [Tooltip("後半の空の色（前半比）。わずかに赤紫へ寄せる。")]
+    public Vector3 lateSkyTint = new Vector3(1.06f, 0.94f, 1.02f);
+    [Tooltip("後半の露出。コアの赤い光で中央が明るくならないよう、実測で決めた係数を掛ける。")]
+    [Range(0f, 1f)] public float lateExposureScale = 1f;
+
     [Header("カメラ（見上げ姿勢 = v3n_lookup.png の実値）")]
     public Vector3 lookupPosition = new Vector3(16f, 20f, -28f);
     public Vector3 lookupTarget = new Vector3(16f, 58f, 72f);
@@ -93,10 +138,31 @@ public class StoneCgController : MonoBehaviour
     static readonly int CenterDarkenId = Shader.PropertyToID("_CenterDarken");
     static readonly int BossBrightnessId = Shader.PropertyToID("_BossBrightness");
     static readonly int FadeId = Shader.PropertyToID("_Fade");
+    static readonly int CoreParamsId = Shader.PropertyToID("_StoneCgCoreParams");
+    static readonly int CoreColorId = Shader.PropertyToID("_StoneCgCoreColor");
+    static readonly int EmisGrp1Id = Shader.PropertyToID("_StoneCgEmisGrp1");
+    static readonly int EmisGrp2Id = Shader.PropertyToID("_StoneCgEmisGrp2");
+    static readonly int EmisGrp3Id = Shader.PropertyToID("_StoneCgEmisGrp3");
+    static readonly int EmisGrp4Id = Shader.PropertyToID("_StoneCgEmisGrp4");
+    static readonly int EmisLinId = Shader.PropertyToID("_EmisLin");
 
     MaterialPropertyBlock mpb;
+    MaterialPropertyBlock dustMpb;
+    Mesh dustMesh;
     bool active;
     float introFade = 1f;
+    float currentExposureScale = 1f;
+
+    // 拍の通し番号（OnBeat を 1 拍 1 回だけ呼ぶための記録。絵づくりは拍頭からの位相で作るので
+    // シークしてもこの値には依存しない）。
+    int lastBeatIndex = -1;
+
+    // 直近フレームで計算した演出量（検証で読む）。
+    public float LastLanternScale { get; private set; } = 1f;
+    public float LastCityScale { get; private set; } = 1f;
+    public float LastCrackScale { get; private set; }
+    public float LastCoreScale { get; private set; }
+    public Vector2 LastShakeOffset { get; private set; }
 
     // ボスの代理スプライト（CG の 3D 空間側）。key = 元のボス GameObject の instanceID。
     readonly Dictionary<int, SpriteRenderer> bossProxies = new Dictionary<int, SpriteRenderer>();
@@ -133,9 +199,11 @@ public class StoneCgController : MonoBehaviour
             return;
         }
         introFade = StoneCgIntro.BlackFade(stageTime);
+        UpdateStageFx(stageTime);
         ApplyCamera(stageTime);
         ApplyDisplay();
         UpdateBossProxies();
+        DrawDust(stageTime);
     }
 
     bool ShouldShow(out float stageTime)
@@ -170,7 +238,7 @@ public class StoneCgController : MonoBehaviour
         if (displayQuad.sortingOrder != quadSortingOrder) displayQuad.sortingOrder = quadSortingOrder;
         mpb ??= new MaterialPropertyBlock();
         displayQuad.GetPropertyBlock(mpb);
-        mpb.SetFloat(ExposureId, exposure);
+        mpb.SetFloat(ExposureId, exposure * currentExposureScale);
         mpb.SetFloat(CenterDarkenId, centerDarken);
         mpb.SetFloat(BossBrightnessId, bossBrightness);
         mpb.SetFloat(FadeId, introFade);
@@ -201,7 +269,9 @@ public class StoneCgController : MonoBehaviour
         float e = StoneCgIntro.CameraProgress(stageTime);
 
         Quaternion lookupRot = Quaternion.LookRotation((lookupTarget - lookupPosition).normalized, Vector3.up);
-        cgCamera.transform.position = Vector3.Lerp(lookupPosition, normalPosition, e);
+        Vector2 shake = LastShakeOffset;
+        cgCamera.transform.position = Vector3.Lerp(lookupPosition, normalPosition, e)
+                                      + new Vector3(shake.x, shake.y, 0f);
         cgCamera.transform.rotation = Quaternion.Slerp(lookupRot, Quaternion.identity, e);
 
         Matrix4x4 a = LookupProjection();
@@ -324,11 +394,164 @@ public class StoneCgController : MonoBehaviour
         if (Application.isPlaying) Destroy(go); else DestroyImmediate(go);
     }
 
-    // --- 今回は未実装（パラメータの置き場だけ用意する。拍連動・降臨の赤ライト） ---
+    // --- 形態変化（ゴーレム降臨）の演出 -------------------------------------------
+    //
+    // すべてステージ時計 stageTime だけから決まる（内部状態を持たない）ので、シーク・
+    // ポーズ・録画のどれでも同じ絵になる。降下開始 = landTime - descendSec = 72.107、
+    // 着地 = landTime = 72.94。
+    //   前半: 拍頭でランタン(warm)と街の灯り(city_light)を +beatPulse、beatDecaySec で戻す。
+    //   着地: CG カメラを揺らす / 端と上部から粉が落ちる / ランタンを lanternBlackoutSec 消す。
+    //   後半: コアの赤い点光源が灯り、割れ目(crack_glow)が発光。ランタンは lateLanternScale、
+    //         街の灯りは lateCityScale、空は lateSkyTint。拍連動はコアの明滅に移る。
 
-    /// <summary>拍に合わせた CG の微動。今回は未実装。</summary>
+    /// <summary>拍頭からの減衰エンベロープ 0..1（拍頭で 1、beatDecaySec で 0）。</summary>
+    float BeatEnvelope(float stageTime, out int beatIndex)
+    {
+        float b = Mathf.Max(1e-4f, beatSec);
+        beatIndex = Mathf.FloorToInt(stageTime / b);
+        if (stageTime < 0f) return 0f;
+        float phase = stageTime - beatIndex * b;
+        float u = Mathf.Clamp01(1f - phase / Mathf.Max(1e-4f, beatDecaySec));
+        return u * u;   // 拍頭で立ち上がり、戻りはゆっくり
+    }
+
+    /// <summary>着地の揺れ（既存 CameraShake と同じ減衰余弦）。範囲外では 0。</summary>
+    Vector2 ShakeOffset(float stageTime)
+    {
+        float t = stageTime - landTime;
+        if (t < 0f || t >= shakeDuration || shakeAmplitude <= 0f) return Vector2.zero;
+        float remaining = 1f - t / Mathf.Max(1e-4f, shakeDuration);
+        float decay = remaining * remaining;
+        float w = t * shakeFrequency * (2f * Mathf.PI);
+        float oy = -Mathf.Cos(w);
+        float ox = Mathf.Cos(w * 0.9f + 1.7f) * 0.6f;   // 横は 0.6 倍（CameraShake と同じ）
+        return new Vector2(ox, oy) * (shakeAmplitude * decay);
+    }
+
+    void UpdateStageFx(float stageTime)
+    {
+        float env = BeatEnvelope(stageTime, out int beatIndex);
+        if (beatIndex != lastBeatIndex)
+        {
+            lastBeatIndex = beatIndex;
+            OnBeat();
+        }
+
+        bool late = stageTime >= landTime;
+        // コアは着地から lanternBlackoutSec かけて立ち上がる（ランタンが消えている間に入れ替わる）。
+        float coreRamp = Mathf.Clamp01((stageTime - landTime) / Mathf.Max(1e-4f, lanternBlackoutSec));
+        coreRamp = coreRamp * coreRamp * (3f - 2f * coreRamp);
+
+        float lantern;
+        if (!late) lantern = 1f + beatPulse * env;
+        else if (stageTime < landTime + lanternBlackoutSec) lantern = 0f;
+        else lantern = lateLanternScale;
+
+        float city = late ? lateCityScale : 1f + beatPulse * env;
+        float pulsed = coreRamp * (1f + corePulse * env);
+        Vector3 sky = late ? lateSkyTint : Vector3.one;
+
+        LastLanternScale = lantern;
+        LastCityScale = city;
+        LastCrackScale = pulsed;
+        LastCoreScale = pulsed;
+        LastShakeOffset = ShakeOffset(stageTime);
+        currentExposureScale = late ? lateExposureScale : 1f;
+
+        Shader.SetGlobalVector(EmisGrp1Id, new Vector4(lantern, lantern, lantern, 1f));
+        Shader.SetGlobalVector(EmisGrp2Id, new Vector4(city, city, city, 1f));
+        Shader.SetGlobalVector(EmisGrp3Id, new Vector4(pulsed, pulsed, pulsed, 1f));
+        Shader.SetGlobalVector(EmisGrp4Id, new Vector4(sky.x, sky.y, sky.z, 1f));
+        SetCoreLight(pulsed);
+    }
+
+    /// <summary>拍頭で 1 回だけ呼ばれるフック（明滅そのものは stageTime から作る）。</summary>
     public void OnBeat() { }
 
-    /// <summary>ゴーレム降臨時のコア赤ライト。今回は未実装。</summary>
-    public void SetCoreLight(bool on) { }
+    /// <summary>ゴーレム降臨時のコア赤ライト。on=false で完全消灯。</summary>
+    public void SetCoreLight(bool on) { SetCoreLight(on ? 1f : 0f); }
+
+    /// <summary>コア赤ライトの強さ（0 で消灯）。シェーダのグローバル 1 灯ぶんを書く。</summary>
+    public void SetCoreLight(float scale)
+    {
+        Shader.SetGlobalVector(CoreParamsId, new Vector4(
+            coreLightPosition.x, coreLightPosition.y, coreLightPosition.z, coreRadius));
+        float k = coreIntensity * Mathf.Max(0f, scale);
+        Shader.SetGlobalVector(CoreColorId, new Vector4(
+            coreColorLinear.x * k, coreColorLinear.y * k, coreColorLinear.z * k, 0f));
+    }
+
+    // --- 着地の粉 -----------------------------------------------------------------
+    //
+    // ParticleSystem は再生位置に依存して破綻するので、粉は stageTime の閉じた式で置く。
+    // 粒 i の発生時刻・位置・大きさは Hash(i) で決まる決定的な値。中央（論理 x4..28・y2..16）
+    // には落とさず、左右の端と画面上部だけに出す。
+
+    static float Hash(int i, int salt)
+    {
+        uint h = (uint)(i * 73856093) ^ (uint)(salt * 19349663);
+        h ^= h >> 13; h *= 0x5bd1e995u; h ^= h >> 15;
+        return (h & 0xFFFFFFu) / 16777215f;
+    }
+
+    void DrawDust(float stageTime)
+    {
+        if (dustMaterial == null || dustCount <= 0 || cgCamera == null) return;
+        float t0 = landTime;
+        if (stageTime < t0 || stageTime > t0 + dustLifeSec + 0.6f) return;
+
+        if (dustMesh == null) dustMesh = BuildQuad();
+        dustMpb ??= new MaterialPropertyBlock();
+        Vector4 emis = dustMaterial.GetVector(EmisLinId);
+        const float depth = 10f;
+        float k = (36f + depth) / 36f;
+        int layer = cgSceneRoot != null ? cgSceneRoot.layer : gameObject.layer;
+
+        for (int i = 0; i < dustCount; i++)
+        {
+            float ts = t0 + 0.5f * Hash(i, 1);
+            float age = stageTime - ts;
+            if (age < 0f || age > dustLifeSec) continue;
+
+            bool top = (i % 3) == 2;
+            float fx, fy0, g;
+            if (top)
+            {
+                // 上部（天井）から。中央の帯（y 2..16）へは落ちきらない速さにする。
+                fx = Mathf.Lerp(1f, 31f, Hash(i, 2));
+                fy0 = Mathf.Lerp(18.2f, 19.6f, Hash(i, 3));
+                g = 2.0f;
+            }
+            else
+            {
+                // 左右の端（論理 x 4..28 の外）だけ。
+                bool left = Hash(i, 4) < 0.5f;
+                fx = left ? Mathf.Lerp(0.3f, 3.9f, Hash(i, 2)) : Mathf.Lerp(28.1f, 31.7f, Hash(i, 2));
+                fy0 = Mathf.Lerp(13.5f, 17.5f, Hash(i, 3));
+                g = 8.0f;
+            }
+            float fy = fy0 - 0.5f * g * age * age;
+            float size = Mathf.Lerp(0.05f, 0.13f, Hash(i, 5));
+            float fade = Mathf.Clamp01((dustLifeSec - age) / 0.4f) * Mathf.Clamp01(age / 0.08f);
+
+            Vector3 pos = new Vector3(16f + (fx - 16f) * k, 20f + (fy - 20f) * k, depth);
+            Matrix4x4 m = Matrix4x4.TRS(pos, Quaternion.identity, new Vector3(size * k, size * k, 1f));
+            dustMpb.SetVector(EmisLinId, emis * fade);
+            Graphics.DrawMesh(dustMesh, m, dustMaterial, layer, cgCamera, 0, dustMpb, false, false, false);
+        }
+    }
+
+    static Mesh BuildQuad()
+    {
+        Mesh mesh = new Mesh { name = "StoneCgDustQuad", hideFlags = HideFlags.HideAndDontSave };
+        mesh.vertices = new[]
+        {
+            new Vector3(-0.5f, -0.5f, 0f), new Vector3(0.5f, -0.5f, 0f),
+            new Vector3(-0.5f, 0.5f, 0f), new Vector3(0.5f, 0.5f, 0f),
+        };
+        mesh.normals = new[] { -Vector3.forward, -Vector3.forward, -Vector3.forward, -Vector3.forward };
+        mesh.uv = new[] { new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, 1f), new Vector2(1f, 1f) };
+        mesh.triangles = new[] { 0, 2, 1, 2, 3, 1 };
+        return mesh;
+    }
 }
