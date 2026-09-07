@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: StoneCgDisplay
-  m_Shader: {fileID: 4800000, guid: 903bfdbc1730a6c489eb298421c62c52, type: 3}
+  m_Name: StoneCgBossSprite
+  m_Shader: {fileID: 4800000, guid: 53a93b84a0316af4cb6b22604b46f5b8, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -24,16 +24,12 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _MainTex:
-        m_Texture: {fileID: 8400000, guid: be0621320fed78449886cdf0e4e3c848, type: 2}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
-    m_Floats:
-    - _BossBrightness: 0.8
-    - _CenterDarken: 0.55
-    - _Exposure: 0.35
-    - _Fade: 1
+    m_Floats: []
     m_Colors:
-    - _Tint: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

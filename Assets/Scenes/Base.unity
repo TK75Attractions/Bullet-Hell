@@ -6125,8 +6125,11 @@ MonoBehaviour:
   displayQuad: {fileID: 423558164}
   cgSceneRoot: {fileID: 6825870135657775262}
   quadSortingOrder: -20
-  exposure: 0.45
+  exposure: 0.35
   centerDarken: 0.55
+  bossSpriteMaterial: {fileID: 2100000, guid: 57815bfb70e386b4d8ab8b394abe1f30, type: 2}
+  bossDepth: 5.5
+  bossBrightness: 0.8
   sunFrom: {x: -30, y: 55, z: -12}
   sunTo: {x: 16, y: 2, z: 12}
   sunColorLinear: {x: 0.64, y: 0.59, z: 1}
@@ -6138,8 +6141,6 @@ MonoBehaviour:
   lookupPosition: {x: 16, y: 20, z: -28}
   lookupTarget: {x: 16, y: 58, z: 72}
   lookupLensMm: 32
-  lookupHoldTime: 4.1
-  settleTime: 6.5
 --- !u!1 &881801474
 GameObject:
   m_ObjectHideFlags: 0
@@ -14324,8 +14325,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1941531416}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.18057744, y: -0, z: -0, w: 0.9835608}
-  m_LocalPosition: {x: 16, y: 20, z: -28}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 16, y: 20, z: -36}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -14385,7 +14386,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 0
   m_GateFitMode: 2
   m_FOVAxisMode: 0

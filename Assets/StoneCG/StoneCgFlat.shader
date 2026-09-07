@@ -54,7 +54,9 @@ Shader "StoneCG/Flat"
                 float3 tex = SAMPLE_TEXTURE2D(_EmisTex, sampler_EmisTex, i.uv).rgb;
                 float3 col = _BaseLin.rgb * (_StoneCgAmbient.rgb + _StoneCgSunColor.rgb * ndl)
                            + _EmisLin.rgb * tex;
-                return half4(col, 1);
+                // アルファは「表示板でボスとして扱う量」。CG 本体は 0、ボスの代理スプライトだけ
+                // 1 を書く（StoneCgDisplay が alpha で露出/中央減光の適用を切り替える）。
+                return half4(col, 0);
             }
             ENDHLSL
         }

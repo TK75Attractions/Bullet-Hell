@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -16,7 +17,12 @@ using UnityEngine;
 /// リザルトでは CGCamera と板を非アクティブにするので、従来どおり黒背景のまま。
 ///
 /// カメラの投影は Blender 側と同じ非対称フラスタムを直接与える（v3_notes.md §カメラ・導入）。
-/// 導入は 0〜lookupHoldTime 秒が見上げ、そこから settleTime 秒で ease-out cubic で通常姿勢へ。
+/// 導入（時刻は StoneCgIntro が正本）: 0.56〜1.30 秒で黒から空へフェードし、1.06〜4.56 秒で
+/// 見上げ姿勢から通常姿勢へ ease in-out（中点 2.81 秒で速度最大）。自機は 4.07〜4.73 秒に
+/// 画面下から上がってくる（PlayerController 側）。
+///
+/// ボスは石工の CG 有効時だけ 2D の SpriteRenderer を止め、CG 空間（z = bossDepth）へ
+/// 逆投影した代理スプライトとして CGCamera に描かせる。画面上の位置・大きさは 2D のときと同じ。
 /// </summary>
 [ExecuteAlways]
 public class StoneCgController : MonoBehaviour
@@ -41,10 +47,18 @@ public class StoneCgController : MonoBehaviour
     public int quadSortingOrder = -20;
 
     [Header("明るさ")]
-    [Tooltip("表示板の露出。実運用では Astra のレンダーよりかなり暗くする。")]
-    [Range(0f, 2f)] public float exposure = 0.45f;
+    [Tooltip("表示板の露出。実運用では Astra のレンダーよりかなり暗くする（2026-09-07 ユーザー決定 0.35）。")]
+    [Range(0f, 2f)] public float exposure = 0.35f;
     [Tooltip("フィールド中央（弾が飛ぶ帯）を落として弾の視認性を上げる量。")]
     [Range(0f, 1f)] public float centerDarken = 0.55f;
+
+    [Header("ボスを CG の 3D 空間へ置く")]
+    [Tooltip("ボスの代理スプライトに使うマテリアル（シェーダ StoneCG/BossSprite）。")]
+    public Material bossSpriteMaterial;
+    [Tooltip("ボスを置く奥行き。岩棚の手前縁と同じ z。")]
+    public float bossDepth = 5.5f;
+    [Tooltip("ボスの明度。CG の露出・中央減光とは別に掛かる（表示板の _BossBrightness）。")]
+    [Range(0f, 2f)] public float bossBrightness = 0.8f;
 
     [Header("ライティング（Blender 側の数値をリニアで再現）")]
     // moon SUN: 位置 (-30,55,-12) → 注視 (16,2,12)、energy 1.65、色 (.64,.59,1)
@@ -67,11 +81,9 @@ public class StoneCgController : MonoBehaviour
     [Tooltip("見上げのレンズ mm（sensor 36mm・水平フィット・対称フラスタム）。")]
     public float lookupLensMm = 32f;
 
-    [Header("導入（ステージ時計 秒）")]
-    [Tooltip("0〜この秒までは見上げ姿勢を保つ。")]
-    public float lookupHoldTime = 4.1f;
-    [Tooltip("この秒に通常姿勢へ着地する。")]
-    public float settleTime = 6.5f;
+    // 導入の時刻表は StoneCgIntro（自機の登場と共有）が正本。
+    //   0.56〜1.30 黒 → 空のフェード / 1.06〜4.56 見上げ → 通常（中点 2.81 で速度最大）
+    //   4.07〜4.73 自機が下から登場（PlayerController 側）
 
     // シェーダのグローバル uniform 名
     static readonly int SunDirId = Shader.PropertyToID("_StoneCgSunDir");
@@ -79,11 +91,30 @@ public class StoneCgController : MonoBehaviour
     static readonly int AmbientId = Shader.PropertyToID("_StoneCgAmbient");
     static readonly int ExposureId = Shader.PropertyToID("_Exposure");
     static readonly int CenterDarkenId = Shader.PropertyToID("_CenterDarken");
+    static readonly int BossBrightnessId = Shader.PropertyToID("_BossBrightness");
+    static readonly int FadeId = Shader.PropertyToID("_Fade");
 
     MaterialPropertyBlock mpb;
     bool active;
+    float introFade = 1f;
 
-    void OnEnable() { ApplyGlobals(); }
+    // ボスの代理スプライト（CG の 3D 空間側）。key = 元のボス GameObject の instanceID。
+    readonly Dictionary<int, SpriteRenderer> bossProxies = new Dictionary<int, SpriteRenderer>();
+    readonly List<int> proxyScratch = new List<int>();
+    Transform bossParent;
+    Transform proxyRoot;
+
+    void OnEnable()
+    {
+        ApplyGlobals();
+        if (Application.isPlaying) StoneCgIntro.Available = true;
+    }
+
+    void OnDisable()
+    {
+        StoneCgIntro.Available = false;
+        ClearBossProxies();
+    }
 
     void LateUpdate()
     {
@@ -96,9 +127,15 @@ public class StoneCgController : MonoBehaviour
             if (cgSceneRoot != null) cgSceneRoot.SetActive(want);
             if (displayQuad != null) displayQuad.gameObject.SetActive(want);
         }
-        if (!want) return;
+        if (!want)
+        {
+            ClearBossProxies();
+            return;
+        }
+        introFade = StoneCgIntro.BlackFade(stageTime);
         ApplyCamera(stageTime);
         ApplyDisplay();
+        UpdateBossProxies();
     }
 
     bool ShouldShow(out float stageTime)
@@ -135,6 +172,8 @@ public class StoneCgController : MonoBehaviour
         displayQuad.GetPropertyBlock(mpb);
         mpb.SetFloat(ExposureId, exposure);
         mpb.SetFloat(CenterDarkenId, centerDarken);
+        mpb.SetFloat(BossBrightnessId, bossBrightness);
+        mpb.SetFloat(FadeId, introFade);
         displayQuad.SetPropertyBlock(mpb);
     }
 
@@ -157,9 +196,9 @@ public class StoneCgController : MonoBehaviour
     void ApplyCamera(float stageTime)
     {
         if (cgCamera == null) return;
-        float u = Mathf.InverseLerp(lookupHoldTime, Mathf.Max(lookupHoldTime + 1e-3f, settleTime), stageTime);
-        u = Mathf.Clamp01(u);
-        float e = 1f - Mathf.Pow(1f - u, 3f); // ease-out cubic
+        // 見上げ姿勢を 1.06 秒まで保ち、4.56 秒で通常姿勢へ着地する ease in-out（smoothstep）。
+        // 中点 2.81 秒が最大速度＝指示書 2.530（+0.28）の「ここで速度最大」。
+        float e = StoneCgIntro.CameraProgress(stageTime);
 
         Quaternion lookupRot = Quaternion.LookRotation((lookupTarget - lookupPosition).normalized, Vector3.up);
         cgCamera.transform.position = Vector3.Lerp(lookupPosition, normalPosition, e);
@@ -169,9 +208,120 @@ public class StoneCgController : MonoBehaviour
         Matrix4x4 b = NormalProjection();
         Matrix4x4 p = new Matrix4x4();
         for (int i = 0; i < 16; i++) p[i] = Mathf.Lerp(a[i], b[i], e);
+        // RT のアルファは「ボスの被覆率」として表示板が読むので、背景は透明の黒で消す。
+        if (cgCamera.backgroundColor.a != 0f) cgCamera.backgroundColor = new Color(0f, 0f, 0f, 0f);
         cgCamera.nearClipPlane = nearClip;
         cgCamera.farClipPlane = farClip;
         cgCamera.projectionMatrix = p;
+    }
+
+    // --- ボスを CG の 3D 空間へ置く -------------------------------------------------
+    //
+    // 2D の論理座標 (x,y) と同じ画面位置に見えるよう、CGCamera の非対称フラスタムで
+    // 平面 z = bossDepth へ逆投影する。カメラは (16,20,-36) にいるので、深さ z の平面では
+    // 画面が (36+z)/36 倍に広がる。だから
+    //   x_world = 16 + (x_field - 16) * (36+z)/36
+    //   y_world = 20 + (y_field - 20) * (36+z)/36
+    // と置き、大きさも同じ倍率を掛けると、投影後の位置・大きさが 2D のときと一致する。
+    // これで足元 y_field=10 が岩棚の天面に載ったまま、ボスが CG と同じ空間の住人になる。
+
+    /// <summary>論理座標を CG 空間（z = bossDepth の平面）へ逆投影する倍率。</summary>
+    public float BossScaleFactor => (36f + bossDepth) / 36f;
+
+    public Vector3 FieldToCgSpace(Vector2 fieldPos)
+    {
+        float k = BossScaleFactor;
+        return new Vector3(16f + (fieldPos.x - 16f) * k, 20f + (fieldPos.y - 20f) * k, bossDepth);
+    }
+
+    void UpdateBossProxies()
+    {
+        if (bossParent == null || !bossParent)
+        {
+            BossManager bm = FindFirstObjectByType<BossManager>();
+            bossParent = bm != null ? bm.transform.Find("Bosses") : null;
+        }
+        if (bossParent == null) { ClearBossProxies(); return; }
+        if (proxyRoot == null || !proxyRoot)
+        {
+            GameObject go = new GameObject("BossProxies");
+            go.transform.SetParent(transform, false);
+            go.layer = gameObject.layer;
+            proxyRoot = go.transform;
+        }
+
+        proxyScratch.Clear();
+        proxyScratch.AddRange(bossProxies.Keys);
+
+        int cgLayer = cgSceneRoot != null ? cgSceneRoot.layer : LayerMask.NameToLayer("StageCG");
+        float k = BossScaleFactor;
+
+        for (int i = 0; i < bossParent.childCount; i++)
+        {
+            Transform src = bossParent.GetChild(i);
+            SpriteRenderer srcRenderer = src.GetComponent<SpriteRenderer>();
+            if (srcRenderer == null) continue;
+            // 2D 側の描画は止める（見えるのは CG 空間の代理だけ）。
+            if (srcRenderer.enabled) srcRenderer.enabled = false;
+
+            int id = src.gameObject.GetInstanceID();
+            proxyScratch.Remove(id);
+            if (!bossProxies.TryGetValue(id, out SpriteRenderer proxy) || proxy == null)
+            {
+                GameObject go = new GameObject("BossProxy");
+                go.transform.SetParent(proxyRoot, false);
+                go.layer = cgLayer;
+                proxy = go.AddComponent<SpriteRenderer>();
+                if (bossSpriteMaterial != null) proxy.sharedMaterial = bossSpriteMaterial;
+                bossProxies[id] = proxy;
+            }
+
+            proxy.sprite = srcRenderer.sprite;
+            proxy.flipX = srcRenderer.flipX;
+            proxy.flipY = srcRenderer.flipY;
+            proxy.enabled = srcRenderer.sprite != null;
+            // 明度は表示板の _BossBrightness 側で掛けるので、ここでは元の色（フェード α）をそのまま。
+            proxy.color = srcRenderer.color;
+
+            Vector3 p = src.position;
+            proxy.transform.position = FieldToCgSpace(new Vector2(p.x, p.y));
+            proxy.transform.rotation = src.rotation;
+            Vector3 sc = src.lossyScale;
+            proxy.transform.localScale = new Vector3(sc.x * k, sc.y * k, 1f);
+        }
+
+        for (int i = 0; i < proxyScratch.Count; i++)
+        {
+            if (bossProxies.TryGetValue(proxyScratch[i], out SpriteRenderer dead) && dead != null)
+            {
+                DestroyProxy(dead.gameObject);
+            }
+            bossProxies.Remove(proxyScratch[i]);
+        }
+    }
+
+    void ClearBossProxies()
+    {
+        if (bossProxies.Count == 0) return;
+        foreach (SpriteRenderer proxy in bossProxies.Values)
+        {
+            if (proxy != null) DestroyProxy(proxy.gameObject);
+        }
+        bossProxies.Clear();
+        // CG を止めるときは 2D 側の描画を戻す（他ステージ・リザルトで従来どおりに見える）。
+        if (bossParent != null)
+        {
+            for (int i = 0; i < bossParent.childCount; i++)
+            {
+                SpriteRenderer sr = bossParent.GetChild(i).GetComponent<SpriteRenderer>();
+                if (sr != null) sr.enabled = true;
+            }
+        }
+    }
+
+    static void DestroyProxy(GameObject go)
+    {
+        if (Application.isPlaying) Destroy(go); else DestroyImmediate(go);
     }
 
     // --- 今回は未実装（パラメータの置き場だけ用意する。拍連動・降臨の赤ライト） ---
