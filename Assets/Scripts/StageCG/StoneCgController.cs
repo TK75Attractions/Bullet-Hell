@@ -57,8 +57,8 @@ public class StoneCgController : MonoBehaviour
     public Material bossSpriteMaterial;
     [Tooltip("ボスを置く奥行き。岩棚の手前縁と同じ z。")]
     public float bossDepth = 5.5f;
-    [Tooltip("ボスの明度。CG の露出・中央減光とは別に掛かる（表示板の _BossBrightness）。")]
-    [Range(0f, 2f)] public float bossBrightness = 0.8f;
+    [Tooltip("ボスの明度。CG の露出・中央減光とは別に掛かる（表示板の _BossBrightness）。露出 0.35 の背景に対して 0.8 では明るすぎて浮くので 0.5 にした（2026-09-08 実測比較）。")]
+    [Range(0f, 2f)] public float bossBrightness = 0.5f;
 
     [Header("ライティング（Blender 側の数値をリニアで再現）")]
     // moon SUN: 位置 (-30,55,-12) → 注視 (16,2,12)、energy 1.65、色 (.64,.59,1)

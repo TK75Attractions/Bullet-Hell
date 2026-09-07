@@ -9,7 +9,7 @@ Shader "StoneCG/Display"
         _Exposure ("Exposure", Range(0,2)) = 0.35
         _CenterDarken ("Center Darken", Range(0,1)) = 0.55
         _Tint ("Tint", Color) = (1,1,1,1)
-        _BossBrightness ("Boss Brightness", Range(0,2)) = 0.8
+        _BossBrightness ("Boss Brightness", Range(0,2)) = 0.5
         _Fade ("Intro Fade", Range(0,1)) = 1
     }
     SubShader
