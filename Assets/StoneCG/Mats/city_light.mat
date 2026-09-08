@@ -28,7 +28,8 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
-    m_Floats: []
+    m_Floats:
+    - _EmisGroup: 2
     m_Colors:
     - _BaseLin: {r: 0, g: 0, b: 0, a: 1}
     - _EmisLin: {r: 0.4452012, g: 0.18447499, b: 0.06847817, a: 1}

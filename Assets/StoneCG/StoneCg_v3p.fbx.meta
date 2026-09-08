@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 6d490f11138f8294b9d80ab9be44d960
+guid: 3edc39ff06e7dd04c97e701f02d27e5b
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
@@ -44,6 +44,16 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: cloud_lit
     second: {fileID: 2100000, guid: 0a0f3bb7ac60d7f47896a5150cffe50e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: crack_front
+    second: {fileID: 2100000, guid: 8a10110a3d305f94ca8350ae315263e2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: crack_glow
+    second: {fileID: 2100000, guid: 32af663b5e1446b4391bd085218e60fd, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -94,11 +104,6 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: moon
     second: {fileID: 2100000, guid: 7abba908a5c10f04d99cfc2e4cb6e1ae, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: moon_crater
-    second: {fileID: 2100000, guid: dbc425bdc90be7d44a4d9ca27a53dfc9, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule

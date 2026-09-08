@@ -81,6 +81,9 @@ public class StoneCgController : MonoBehaviour
     [Tooltip("降下にかかる時間。stone3.js の BOSS_DESCEND_SEC（降下開始 = landTime - この値）。")]
     public float descendSec = 0.833333f;
 
+    [Tooltip("false にすると形態変化の演出（拍連動・揺れ・粉・コアの赤い光・割れ目の発光）を全て切る。")]
+    public bool stageFxEnabled = true;
+
     [Header("拍連動（BPM144・offset 0）")]
     public float beatSec = 60f / 144f;
     [Tooltip("拍頭でランタン・街の灯りを何割増やすか。")]
@@ -118,7 +121,7 @@ public class StoneCgController : MonoBehaviour
     [Tooltip("後半の空の色（前半比）。わずかに赤紫へ寄せる。")]
     public Vector3 lateSkyTint = new Vector3(1.06f, 0.94f, 1.02f);
     [Tooltip("後半の露出。コアの赤い光で中央が明るくならないよう、実測で決めた係数を掛ける。")]
-    [Range(0f, 1f)] public float lateExposureScale = 1f;
+    [Range(0f, 1f)] public float lateExposureScale = 0.98f;
 
     [Header("カメラ（見上げ姿勢 = v3n_lookup.png の実値）")]
     public Vector3 lookupPosition = new Vector3(16f, 20f, -28f);
@@ -149,6 +152,9 @@ public class StoneCgController : MonoBehaviour
     MaterialPropertyBlock mpb;
     MaterialPropertyBlock dustMpb;
     Mesh dustMesh;
+    // 割れ目の発光メッシュ（Astra v3p の ledge_crack_glow_*）。消灯中は描画そのものを止める。
+    MeshRenderer[] crackGlowRenderers;
+    bool crackGlowVisible = true;
     bool active;
     float introFade = 1f;
     float currentExposureScale = 1f;
@@ -415,6 +421,13 @@ public class StoneCgController : MonoBehaviour
         return u * u;   // 拍頭で立ち上がり、戻りはゆっくり
     }
 
+    /// <summary>拍頭からの位相（秒）。検証で拍頭・拍裏のコマを選ぶのに使う。</summary>
+    public float BeatPhase(float stageTime)
+    {
+        float b = Mathf.Max(1e-4f, beatSec);
+        return stageTime - Mathf.Floor(stageTime / b) * b;
+    }
+
     /// <summary>着地の揺れ（既存 CameraShake と同じ減衰余弦）。範囲外では 0。</summary>
     Vector2 ShakeOffset(float stageTime)
     {
@@ -430,6 +443,22 @@ public class StoneCgController : MonoBehaviour
 
     void UpdateStageFx(float stageTime)
     {
+        if (!stageFxEnabled)
+        {
+            LastLanternScale = LastCityScale = 1f;
+            LastCrackScale = LastCoreScale = 0f;
+            LastShakeOffset = Vector2.zero;
+            currentExposureScale = 1f;
+            Vector4 one = new Vector4(1f, 1f, 1f, 1f);
+            Shader.SetGlobalVector(EmisGrp1Id, one);
+            Shader.SetGlobalVector(EmisGrp2Id, one);
+            Shader.SetGlobalVector(EmisGrp3Id, Vector4.zero);
+            Shader.SetGlobalVector(EmisGrp4Id, one);
+            SetCoreLight(0f);
+            ApplyCrackGlow(false);
+            return;
+        }
+
         float env = BeatEnvelope(stageTime, out int beatIndex);
         if (beatIndex != lastBeatIndex)
         {
@@ -463,6 +492,29 @@ public class StoneCgController : MonoBehaviour
         Shader.SetGlobalVector(EmisGrp3Id, new Vector4(pulsed, pulsed, pulsed, 1f));
         Shader.SetGlobalVector(EmisGrp4Id, new Vector4(sky.x, sky.y, sky.z, 1f));
         SetCoreLight(pulsed);
+        ApplyCrackGlow(pulsed > 0.001f);
+    }
+
+    /// <summary>
+    /// 割れ目の発光メッシュの表示。emission を 0 にしても板そのものは黒く描かれて岩棚に
+    /// 黒い線が残るので、消灯中は MeshRenderer ごと切る（前半の絵は v3o と同じになる）。
+    /// </summary>
+    void ApplyCrackGlow(bool visible)
+    {
+        if (crackGlowRenderers == null || crackGlowRenderers.Length == 0)
+        {
+            if (cgSceneRoot == null) return;
+            var list = new List<MeshRenderer>();
+            foreach (MeshRenderer mr in cgSceneRoot.GetComponentsInChildren<MeshRenderer>(true))
+                if (mr.name.StartsWith("ledge_crack_glow_")) list.Add(mr);
+            crackGlowRenderers = list.ToArray();
+            crackGlowVisible = true;   // 次の代入で必ず反映させる
+            if (crackGlowRenderers.Length == 0) return;
+        }
+        if (visible == crackGlowVisible) return;
+        crackGlowVisible = visible;
+        for (int i = 0; i < crackGlowRenderers.Length; i++)
+            if (crackGlowRenderers[i] != null) crackGlowRenderers[i].enabled = visible;
     }
 
     /// <summary>拍頭で 1 回だけ呼ばれるフック（明滅そのものは stageTime から作る）。</summary>
@@ -496,7 +548,7 @@ public class StoneCgController : MonoBehaviour
 
     void DrawDust(float stageTime)
     {
-        if (dustMaterial == null || dustCount <= 0 || cgCamera == null) return;
+        if (!stageFxEnabled || dustMaterial == null || dustCount <= 0 || cgCamera == null) return;
         float t0 = landTime;
         if (stageTime < t0 || stageTime > t0 + dustLifeSec + 0.6f) return;
 
@@ -531,7 +583,7 @@ public class StoneCgController : MonoBehaviour
                 g = 8.0f;
             }
             float fy = fy0 - 0.5f * g * age * age;
-            float size = Mathf.Lerp(0.05f, 0.13f, Hash(i, 5));
+            float size = Mathf.Lerp(0.10f, 0.22f, Hash(i, 5));
             float fade = Mathf.Clamp01((dustLifeSec - age) / 0.4f) * Mathf.Clamp01(age / 0.08f);
 
             Vector3 pos = new Vector3(16f + (fx - 16f) * k, 20f + (fy - 20f) * k, depth);

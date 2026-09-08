@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: warm
+  m_Name: crack_glow
   m_Shader: {fileID: 4800000, guid: e93768f9b36c09a4aa6c6e73bab6c6ee, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -29,9 +29,9 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _EmisGroup: 1
+    - _EmisGroup: 3
     m_Colors:
-    - _BaseLin: {r: 0, g: 0, b: 0, a: 1}
-    - _EmisLin: {r: 0.8631572, g: 0.3049873, b: 0.0703601, a: 1}
+    - _BaseLin: {r: 0, g: 0, b: 0, a: 0}
+    - _EmisLin: {r: 1, g: 0.0613, b: 0.0433, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
