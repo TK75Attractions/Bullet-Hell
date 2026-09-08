@@ -1533,8 +1533,10 @@ function shovelPath(pos0, vel0, segs, angle, kind, opts) {
 //   予告窓のあいだは当たり判定が無いので、画面内から撃っても理不尽にならない。
 const SHOVEL_TELE_LEAD = beats(1);        // 白い予告を出しておく長さ（1 拍）
 const SHOVEL_TELE_ANIM = 0.07;            // 発射の瞬間に 白 → 本体色 へ戻す秒数
-const SHOVEL_WAIT_L = 1.0;                // 左から流すときの待機 x（刃の左端 0.48）
-const SHOVEL_WAIT_R = 31.0;               // 右から流すときの待機 x（同 31.52）
+// 横向きのシャベルは絵の長辺（3.23 ユニット）が横になるので、画面（0〜32）に全身が
+//   入る待機 x は 1.62 〜 30.38。実フレームで端が切れていたので内側へ寄せた。
+const SHOVEL_WAIT_L = 1.7;                // 左から流すときの待機 x
+const SHOVEL_WAIT_R = 30.3;               // 右から流すときの待機 x
 const SHOVEL_EXIT_L = -2.5;               // 消える x（カリング境界 -2 の外）
 const SHOVEL_EXIT_R = 36.5;               // 同（36 の外）
 // 待機位置 pos から速度 vel で直進する 1 本。クリップは fire - lead に置く。
@@ -2005,15 +2007,19 @@ const METEOR_TRAIL_GAP = 1.90;              // 尾の円の距離間隔の上限
 //     (b) 噴射: 各円の発生時に、進行方向の逆 ±25° と真後ろの 3 方向へ小さい円を撃つ。
 //     (c) 4 芒星（キラキラ）は全廃。
 const METEOR_TRAIL_LIFE = 0.55;             // 帯の 1 粒の寿命（0.5〜0.6）
+// 参考コマ（ref2_zoom_124.5-126.png）では白いのは本体の直後 3 個ぶんだけで、そこから
+//   一気に本体色の小さい点へ変わって長く残る。色と径の補間はこの短い時間で終える。
+const METEOR_TRAIL_ANIM = 0.20;
 const METEOR_TRAIL_S0 = METEOR_SCALE * 0.90;  // 頭は本体の 0.9 倍
 const METEOR_TRAIL_S1 = METEOR_SCALE * 0.25;  // 末端は本体の 0.25 倍
 const METEOR_TRAIL_TYPE = 'stone3_disc';    // verts 空の丸。実弾ではなく尾専用
 // 噴射（煙）。帯の円 1 個につき 3 方向へ 1 個ずつ。
 const METEOR_JET_ANGLES = [-0.4363, 0, 0.4363];  // 進行方向の逆から ±25 度
-const METEOR_JET_SPEED = [1.5, 3.0];        // ユニット/s（ハッシュで散らす）
+const METEOR_JET_SPEED = [3.0, 8.0];        // ユニット/s（ハッシュで散らす）
 const METEOR_JET_S0 = METEOR_SCALE * 0.30;
 const METEOR_JET_S1 = METEOR_SCALE * 0.06;
-const METEOR_JET_LIFE = 0.40;
+const METEOR_JET_LIFE = 0.45;
+const METEOR_JET_ANIM = 0.22;               // 白 → 本体色・小へ変わる秒数
 // 乱数ストリームを消費せずに散らすための決定的ハッシュ（同じ入力なら常に同じ値）。
 function trailHash(i, x, y) {
   const s = Math.sin(i * 12.9898 + x * 78.233 + y * 37.719) * 43758.5453;
@@ -2409,7 +2415,7 @@ function meteorTrailPath(posAt, flight, kind) {
       color: { x: METEOR_TRAIL_COLOR_START[0], y: METEOR_TRAIL_COLOR_START[1], z: METEOR_TRAIL_COLOR_START[2], w: METEOR_TRAIL_COLOR_START[3] },
       scaleEnd: { x: METEOR_TRAIL_S1, y: METEOR_TRAIL_S1 },
       colorEnd: { x: METEOR_TRAIL_COLOR_END[0], y: METEOR_TRAIL_COLOR_END[1], z: METEOR_TRAIL_COLOR_END[2], w: METEOR_TRAIL_COLOR_END[3] },
-      animDuration: METEOR_TRAIL_LIFE,
+      animDuration: METEOR_TRAIL_ANIM,
       appearTime: rel,          // 隕石が通り過ぎた瞬間に出る
       appearDuration: 0,
       life: rel + METEOR_TRAIL_LIFE,
@@ -2434,7 +2440,7 @@ function meteorTrailPath(posAt, flight, kind) {
           color: { x: METEOR_TRAIL_COLOR_START[0], y: METEOR_TRAIL_COLOR_START[1], z: METEOR_TRAIL_COLOR_START[2], w: METEOR_TRAIL_COLOR_START[3] },
           scaleEnd: { x: METEOR_JET_S1, y: METEOR_JET_S1 },
           colorEnd: { x: METEOR_TRAIL_COLOR_END[0], y: METEOR_TRAIL_COLOR_END[1], z: METEOR_TRAIL_COLOR_END[2], w: METEOR_TRAIL_COLOR_END[3] },
-          animDuration: METEOR_JET_LIFE,
+          animDuration: METEOR_JET_ANIM,
           appearTime: rel,
           appearDuration: 0,
           life: rel + METEOR_JET_LIFE,
@@ -4680,7 +4686,7 @@ export default stage(
         gatherPathItems.push({
           pos: [normalizeNegativeZero(px), normalizeNegativeZero(py)],
           scale: [GATHER_PATH_SIZE, GATHER_PATH_SIZE],
-          color: STONE_WARN,
+          color: STONE_MID,
           appearTime: GATHER_PATH_DUR,
           appearDuration: GATHER_PATH_DUR,
           life: GATHER_PATH_DUR,
