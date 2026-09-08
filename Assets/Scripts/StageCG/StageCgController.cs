@@ -372,9 +372,10 @@ public class StageCgController : MonoBehaviour
     float BeatEnvelope(StageCgProfile p, float stageTime, out int beatIndex)
     {
         float b = Mathf.Max(1e-4f, p.beatSec);
-        beatIndex = Mathf.FloorToInt(stageTime / b);
-        if (stageTime < 0f) return 0f;
-        float phase = stageTime - beatIndex * b;
+        float t = stageTime - p.beatOffsetSec;
+        beatIndex = Mathf.FloorToInt(t / b);
+        if (t < 0f) return 0f;
+        float phase = t - beatIndex * b;
         float u = Mathf.Clamp01(1f - phase / Mathf.Max(1e-4f, p.beatDecaySec));
         return u * u;   // 拍頭で立ち上がり、戻りはゆっくり
     }
@@ -383,7 +384,8 @@ public class StageCgController : MonoBehaviour
     public float BeatPhase(float stageTime)
     {
         float b = Profile != null ? Mathf.Max(1e-4f, Profile.beatSec) : 0.4166667f;
-        return stageTime - Mathf.Floor(stageTime / b) * b;
+        float t = stageTime - (Profile != null ? Profile.beatOffsetSec : 0f);
+        return t - Mathf.Floor(t / b) * b;
     }
 
     /// <summary>着地の揺れ（既存 CameraShake と同じ減衰余弦）。範囲外では 0。</summary>

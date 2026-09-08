@@ -80,8 +80,10 @@ public class StageCgProfile
     public float playerGoalY = 3f;
 
     [Header("拍連動")]
-    [Tooltip("1 拍の長さ（秒）。石工 BPM144 = 0.4166667。")]
+    [Tooltip("1 拍の長さ（秒）。石工 BPM144 = 0.4166667 / 艦長 BPM110 = 0.5454545 / 浮浪者 BPM199.5 = 0.3007519。")]
     public float beatSec = 60f / 144f;
+    [Tooltip("拍格子の原点（ステージ秒）。曲の頭がステージ時計の 0 でないステージ（艦長は delayTime -2.76 なので 2.76）で使う。")]
+    public float beatOffsetSec = 0f;
     [Tooltip("拍頭で発光グループ 1・2 を何割増やすか。")]
     [Range(0f, 1f)] public float beatPulse = 0.2f;
     [Tooltip("拍頭の増分が戻るまでの時間。")]
