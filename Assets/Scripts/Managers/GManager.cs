@@ -852,13 +852,25 @@ public class GManager : MonoBehaviour
             ? SReader.CurrentTime
             : (cleared ? endTime : endTime * 0.63f);
 
+        // 石工 v34 (#23): ピクセルの白転はコードを残したまま使わず、背景 → 全体の黒フェードで
+        //   リザルトへ渡す。対象は StageCgProfile.useBlackEnding のステージだけで、
+        //   他ステージは従来どおり白転する。
+        bool blackEnding = StageCgController.UsesBlackEnding(stage);
         PixelTransition transition = FindPixelTransition();
         if (transition != null)
         {
-            transition.SetColor(Color.white);
-            // v30 (5): ステージが whiteoutCoverTime を持っていればその秒数で覆う
-            //   （石工だけ 1.10 秒。他ステージは 0 のままなので既定の 0.42 秒）。
-            await transition.WhiteoutCover(stage != null ? stage.whiteoutCoverTime : -1f);
+            if (blackEnding)
+            {
+                // ステージ時計側（StageCgController）が 146.72 から黒くしてきた続きを詰める。
+                await transition.UniformCoverTo(0.15f);
+            }
+            else
+            {
+                transition.SetColor(Color.white);
+                // v30 (5): ステージが whiteoutCoverTime を持っていればその秒数で覆う
+                //   （石工だけ 1.10 秒。他ステージは 0 のままなので既定の 0.42 秒）。
+                await transition.WhiteoutCover(stage != null ? stage.whiteoutCoverTime : -1f);
+            }
         }
 
         state = GameState.Result;
@@ -891,7 +903,11 @@ public class GManager : MonoBehaviour
             counterHitBossCount, elapsed, endTime, twoPlayer, playerHitCount2);
         SReader?.StopStage();
 
-        if (transition != null) await transition.MosaicReveal();
+        if (transition != null)
+        {
+            if (blackEnding) await transition.UniformReveal(0.45f);
+            else await transition.MosaicReveal();
+        }
         RManager.PlayEntrance();
         resultTransitioning = false;
     }

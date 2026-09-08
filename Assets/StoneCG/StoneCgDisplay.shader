@@ -11,6 +11,7 @@ Shader "StoneCG/Display"
         _Tint ("Tint", Color) = (1,1,1,1)
         _BossBrightness ("Boss Brightness", Range(0,2)) = 0.5
         _Fade ("Intro Fade", Range(0,1)) = 1
+        _CgFade ("CG Blackout", Range(0,1)) = 1
     }
     SubShader
     {
@@ -32,6 +33,7 @@ Shader "StoneCG/Display"
             float4 _Tint;
             float _BossBrightness;
             float _Fade;
+            float _CgFade;
 
             struct Attributes { float4 positionOS : POSITION; float2 uv : TEXCOORD0; };
             struct Varyings { float4 positionCS : SV_POSITION; float2 uv : TEXCOORD0; };
@@ -52,7 +54,8 @@ Shader "StoneCG/Display"
                 float2 d = (f - float2(16.0, 9.0)) / float2(12.0, 7.0);
                 float m = 1.0 - saturate(dot(d, d));
                 m = m * m * (3.0 - 2.0 * m); // smoothstep 状の減衰
-                float cgGain = _Exposure * (1.0 - _CenterDarken * m);
+                // _CgFade は終端の「背景だけ黒へ」(石工 v34 #22)。ボスには掛からない。
+                float cgGain = _Exposure * (1.0 - _CenterDarken * m) * _CgFade;
                 // src.a は「ボスとして描かれた被覆率」(CG 本体は 0)。ボスの画素には露出でも
                 // 中央減光でもなく _BossBrightness を掛ける = ボスの明度を CG と独立に決める。
                 float gain = lerp(cgGain, _BossBrightness, saturate(src.a));
