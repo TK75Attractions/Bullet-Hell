@@ -623,9 +623,18 @@ const V27C_DROP_FALL = 0.70;      // 落下にかける秒数（静止位置へ�
 //   最後を smoothstep にすると接地の瞬間に速度 0 まで落ちるので、揺れ（V27C_SWAY_*）へ
 //   速度の飛びなしで繋がる。合計 0.76 秒は 6 本目（着地 58.7400）から発射 59.5766 までの
 //   0.8366 秒に収まる。
-const V27C_BOUNCE_E = [0.30, 0.42];        // 反発係数（接地速度に対する跳ね上がりの比）
-const V27C_BOUNCE_UP = [0.22, 0.14];       // 上りの秒数
-const V27C_BOUNCE_DOWN = [0.22, 0.18];     // 下りの秒数（最後の 1 回は smoothstep）
+// v34 (2): 指示 58.365「最初のバウンドが急にバウンドしてる。速度が連続になるようにして」。
+//   v32 の作りは接地の瞬間に速度が −41.4 → +12.4 へ飛ぶ（＝1 コマで反転）ので、
+//   30fps では「ぶつかった次のコマでもう上がっている」に見えていた。
+//   → 接地を「有限時間の接触」に変える。接触区間（V27C_CONTACT_SEC）のあいだ一定の
+//     大きな加速度で 下向き速度 → 上向き速度（反発係数 e 倍）へ **連続に**折り返し、
+//     跳ねているあいだは落下と同じ重力（V27C_FALL_A）で放物線を描く。
+//     こうすると速度の時系列に飛びが 1 つも無くなり（加速度だけが接触の入り口/出口で
+//     切り替わる）、跳ね上がりも「上り easeOut・下り easeIn」の等加速度そのものになる。
+//   反発係数: 落下速度が 41.4 ユニット/s と速いので 0.45 だと 2.9 ユニット（画面上端に届く）
+//     跳ねてしまう。跳ね上がりの高さを v32 と同じ 1.2 / 0.24 ユニット付近に保つ e を採った。
+const V27C_BOUNCE_E = [0.29, 0.40];        // 反発係数（接地速度に対する跳ね上がりの比）
+const V27C_CONTACT_SEC = 0.04;             // 接地（速度を折り返す）のに掛ける秒数
 // v29 (7): 指示 58.252「揺らすのは縦方向にお願い。バウンドした流れでちょっと揺れる程度で
 //   いいです」→ 揺れの向きを x から y へ変え、振幅を 0.45 → 0.15 ユニットに落とす
 //   （振幅 = V27C_SWAY_V × V27C_SWAY_HALF / 4）。
@@ -1442,7 +1451,9 @@ function shovel(opts) {
 // v32 (2): イージング区間（sg.ez）の終端での E'(1)。BulletV2UpdateJob.EaseDerivative と同じ値。
 //   イージング区間の変位は vlc * dur（E(1)=1）で、終端速度は vlc * E'(1) になる。
 const EASE_END_SLOPE = [1, 3, 0, 0, 0, 0.6875];   // 0=linear 1=easeIn 2=easeOut 3=easeInOut 4=smoothstep 5=bounce
-function shovelPath(pos0, vel0, segs, angle, kind) {
+// v34 (1): opts で「予告窓（appearTime/appearDuration）」と「出現アニメ（color→colorEnd）」を
+//   足せるようにした。opts を渡さない呼び出しの出力バイトは 1 ビットも変わらない。
+function shovelPath(pos0, vel0, segs, angle, kind, opts) {
   let vx = vel0[0], vy = vel0[1], total = 0;
   const v2Segments = [];
   segs.forEach(function (sg) {
@@ -1470,29 +1481,75 @@ function shovelPath(pos0, vel0, segs, angle, kind) {
     }
     total += sg.dur;
   });
+  const o = opts || {};
+  const tele = o.appearTime || 0;
+  const spec = {
+    originPos: { x: normalizeNegativeZero(pos0[0]), y: normalizeNegativeZero(pos0[1]) },
+    typeName: 'stone3_shovel',
+    scale: { x: SHOVEL_SCALE, y: SHOVEL_SCALE },
+    color: { x: SPRITE_AS_IS[0], y: SPRITE_AS_IS[1], z: SPRITE_AS_IS[2], w: SPRITE_AS_IS[3] },
+    // 旧 handoff の最終区間は life=sg.dur（マージン無し）だったので、合計＝消える時刻は不変。
+    life: total,
+    unCounterable: true,
+    useVelocityAngle: false,
+    initialAngle: normalizeNegativeZero(angle),
+    segments: v2Segments,
+  };
+  if (tele > 0) {
+    // 予告窓: appearTime まで当たり判定なし（BulletCollisionJob.cs:35）・v2 の lapse も 0 で
+    //   固定される（BulletV2UpdateJob.cs:98 の max(0,lapse)）ので待機位置で静止して見える。
+    //   life は「クリップ発火からの絶対秒」なので予告ぶんを足す。
+    spec.appearTime = tele;
+    spec.appearDuration = o.appearDuration !== undefined ? o.appearDuration : tele;
+    spec.life = tele + total;
+  }
+  if (o.color) spec.color = { x: o.color[0], y: o.color[1], z: o.color[2], w: o.color[3] };
+  if (o.animDuration > 0) {
+    spec.scaleEnd = { x: SHOVEL_SCALE, y: SHOVEL_SCALE };
+    spec.colorEnd = { x: o.colorEnd[0], y: o.colorEnd[1], z: o.colorEnd[2], w: o.colorEnd[3] };
+    spec.animDuration = o.animDuration;
+  }
   return {
     parts: [{
       offsetSec: 0,
       kind: kind,
       buffer: {
-        bullets: [bulletDefaults({
-          originPos: { x: normalizeNegativeZero(pos0[0]), y: normalizeNegativeZero(pos0[1]) },
-          typeName: 'stone3_shovel',
-          scale: { x: SHOVEL_SCALE, y: SHOVEL_SCALE },
-          color: { x: SPRITE_AS_IS[0], y: SPRITE_AS_IS[1], z: SPRITE_AS_IS[2], w: SPRITE_AS_IS[3] },
-          // 旧 handoff の最終区間は life=sg.dur（マージン無し）だったので、合計＝消える時刻は不変。
-          life: total,
-          unCounterable: true,
-          useVelocityAngle: false,
-          initialAngle: normalizeNegativeZero(angle),
-          segments: v2Segments,
-        })],
+        bullets: [bulletDefaults(spec)],
         homing: false,
         isLaser: false,
       },
       spawner: NEUTRAL_SPAWNER(),
     }],
   };
+}
+
+// ── v34 (1): 「左右に流す」シャベルの共通の作り ────────────────────────────────
+//   指示 25.672「ここの左右のシャベルのアニメーションを変えたい（同じアニメーションを
+//   してる他の部分＝左右に流すやつだけ）」。参考動画 0:34 の実測（.tmp_fx/ref/
+//   ref1_barstrip_32.5-34.5.png）では、シャベルは **その場に白い姿で現れ（予告）→
+//   本体色に変わって → 止まらず一直線に飛ぶ**。曲がり・減速・停止は無い。
+//   → 画面外から入って止まって曲がる動きをやめ、待機位置（画面端の内側）に
+//     白い予告で静止 → 発射拍で本体色へ切り替えて等速直進、に統一する。
+//   予告窓のあいだは当たり判定が無いので、画面内から撃っても理不尽にならない。
+const SHOVEL_TELE_LEAD = beats(1);        // 白い予告を出しておく長さ（1 拍）
+const SHOVEL_TELE_ANIM = 0.07;            // 発射の瞬間に 白 → 本体色 へ戻す秒数
+const SHOVEL_WAIT_L = 1.0;                // 左から流すときの待機 x（刃の左端 0.48）
+const SHOVEL_WAIT_R = 31.0;               // 右から流すときの待機 x（同 31.52）
+const SHOVEL_EXIT_L = -2.5;               // 消える x（カリング境界 -2 の外）
+const SHOVEL_EXIT_R = 36.5;               // 同（36 の外）
+// 待機位置 pos から速度 vel で直進する 1 本。クリップは fire - lead に置く。
+function sideFlowShovel(pos, vel, angle, kind, lead) {
+  const L = lead === undefined ? SHOVEL_TELE_LEAD : lead;
+  const exitX = vel[0] < 0 ? SHOVEL_EXIT_L : SHOVEL_EXIT_R;
+  const flight = (exitX - pos[0]) / vel[0];
+  return shovelPath(pos, [0, 0], [{ dur: flight, ax: 0, ay: 0, vx: vel[0], vy: vel[1] }],
+    angle, kind, {
+      appearTime: L,
+      appearDuration: L,
+      color: POP_COLOR_START,
+      colorEnd: SPRITE_AS_IS,
+      animDuration: SHOVEL_TELE_ANIM,
+    });
 }
 
 // --- v5: 予告ビルダー（3種。いずれも warnClip＝当たり判定なし）----------------
@@ -1917,7 +1974,7 @@ function meteorMotion(y, jit) {
 //     ・点の間隔 0.03s（直径 1.7 に対し 0.5〜1.1 ユニット）で重ね、途切れない帯にする
 //     ・寿命 0.42s で長さを 2.6 倍（本体径の 3〜5 倍）にし、縮みで先端ほど細くする
 //     ・各点を進行方向へ回して置く（斜めの経路でも帯の縁がぎざぎざにならない）
-const METEOR_TRAIL_STEP = 0.04;             // v32 (5): 尾の円を置く時間間隔。24.1 ユニット/s で 0.96 ユニット
+const METEOR_TRAIL_STEP = 0.07;             // v34 (4): 尾の円を置く時間間隔（0.06〜0.08）。24.1 ユニット/s で 1.69 ユニット
                                             //   ＝ 頭の円の直径 3.04 の 32%。本家（ref_steve_096.41）の実測 40% と同じ桁で、
                                             //   頭側は重なって 1 本の帯・末端は小さな円が並ぶ見え方になる。
 // v30 (3): 時間等間隔だと速い隕石ほど点の間隔が開く。実測（本体 3.2・点 S0 1.7 ユニット）で
@@ -1928,7 +1985,7 @@ const METEOR_TRAIL_STEP = 0.04;             // v32 (5): 尾の円を置く時間
 //   （101.5 / 103.2s の落下隕石への指摘）。そこで**距離**の上限を足し、
 //   これを超える区間だけ等分して点を足す。0.75 は帯に見えている右→左の隕石の
 //   間隔 0.72 のすぐ上＝その隕石の点は 1 つも増えない値。
-const METEOR_TRAIL_GAP = 1.10;              // 尾の円の距離間隔の上限（ユニット）
+const METEOR_TRAIL_GAP = 1.90;              // 尾の円の距離間隔の上限（ユニット。頭の直径 2.88 より狭いので途切れない）
                                              // v24 の 0.025s は間隔 0.92 ユニット < 点の直径で
                                              // 「連続した帯」に見えていた。0.04s へ広げて点どうしの
                                              // 隙間を作り、点列に見せる。
@@ -1941,17 +1998,22 @@ const METEOR_TRAIL_GAP = 1.10;              // 尾の円の距離間隔の上限
 //   → 帯は新しい弾種 stone3_disc（vcirc の丸スプライトを verts 空・renderPriority 0 で
 //     登録し直したもの＝当たり判定なし・本体より奥）に置き換え、
 //     従来の 4 芒星は「両脇に散る棘粒」として数を絞って残す。
-const METEOR_TRAIL_LIFE = 0.42;             // 帯の長さ＝速度×寿命（24.1 ユニット/s で 10.1 ＝ 本体 3.2 個ぶん）
-const METEOR_TRAIL_S0 = METEOR_SCALE * 0.95;  // 頭は本体とほぼ同径
-const METEOR_TRAIL_S1 = METEOR_SCALE * 0.12;  // 末端は本体の 1/8（本家は頭 55px → 末端 8〜10px の強い先細り）
+// v34 (4): 指示 71.554「隕石の後ろ三方向くらいに煙みたいなのを噴射してて、キラキラの
+//   エフェクトは要らない。噴射直後のエフェクトは白く、そのあと色があざやかになって
+//   いきつつ小さくなって消える」。参考 .tmp_fx/ref/ref2_zoom_124.5-126.png。
+//   → (a) 本体直後の帯: 大きめの円を密に置き、白 → 本体色（紫）へ、径 0.9 → 0.25 倍へ。
+//     (b) 噴射: 各円の発生時に、進行方向の逆 ±25° と真後ろの 3 方向へ小さい円を撃つ。
+//     (c) 4 芒星（キラキラ）は全廃。
+const METEOR_TRAIL_LIFE = 0.55;             // 帯の 1 粒の寿命（0.5〜0.6）
+const METEOR_TRAIL_S0 = METEOR_SCALE * 0.90;  // 頭は本体の 0.9 倍
+const METEOR_TRAIL_S1 = METEOR_SCALE * 0.25;  // 末端は本体の 0.25 倍
 const METEOR_TRAIL_TYPE = 'stone3_disc';    // verts 空の丸。実弾ではなく尾専用
-// 両脇に散らす棘粒（従来の 4 芒星を流用）。軌道から垂直方向へ離して置くので線には並ばない。
-const METEOR_TRAIL_SPARK_TYPE = 'stone_burst';
-const METEOR_TRAIL_SPARK_EVERY = 2;           // 帯の円 2 個につき 1 個
-const METEOR_TRAIL_SPARK_S0 = METEOR_SCALE * 0.26;
-const METEOR_TRAIL_SPARK_S1 = METEOR_SCALE * 0.05;
-const METEOR_TRAIL_SPARK_LIFE = 0.24;
-const METEOR_TRAIL_SPARK_OFF = [0.60, 1.55];  // 軌道からの垂直距離（ユニット）
+// 噴射（煙）。帯の円 1 個につき 3 方向へ 1 個ずつ。
+const METEOR_JET_ANGLES = [-0.4363, 0, 0.4363];  // 進行方向の逆から ±25 度
+const METEOR_JET_SPEED = [1.5, 3.0];        // ユニット/s（ハッシュで散らす）
+const METEOR_JET_S0 = METEOR_SCALE * 0.30;
+const METEOR_JET_S1 = METEOR_SCALE * 0.06;
+const METEOR_JET_LIFE = 0.40;
 // 乱数ストリームを消費せずに散らすための決定的ハッシュ（同じ入力なら常に同じ値）。
 function trailHash(i, x, y) {
   const s = Math.sin(i * 12.9898 + x * 78.233 + y * 37.719) * 43758.5453;
@@ -2127,25 +2189,25 @@ const METEOR_BURST_CHUNK_RADIUS = METEOR_SCALE * 0.72;
 //   時刻は変えずに「中心を少し持ち上げる」＋「持ち上げきれないぶんは半径を抑える」で
 //   全周を画面に入れる。持ち上げは 2.0 ユニット（隕石の一辺 3.2 の 0.63 倍）までに
 //   制限して、リングが着弾点から離れて見えないようにする。上端側も同じ扱い。
-const METEOR_BURST_RING_LIFT = 2.0;
+// v34 (5): 指示 103.367「エフェクトが隕石の上から出てるのが気になる。隕石の着弾位置に
+//   合わせて」。v30 (6) の持ち上げ（LIFT 2.0）が、着弾点 y=1 のリングを y=3 まで
+//   引き上げていたのが原因（本体の見た目の中心より 2 ユニット上）。持ち上げも半径の
+//   切り詰めもやめ、**エフェクトの中心＝接触点**にする。床より下はフィールド枠
+//   （PlayFrame）が隠すので、床の着弾は半円の衝撃波として見える。
 function fitBurstRing(pos, r) {
-  const H = ROWS * CELL;
-  let rr = r;
-  let cy = pos[1];
-  if (cy - rr < 0) {                                   // 下がはみ出す
-    rr = Math.min(rr, cy + METEOR_BURST_RING_LIFT);
-    cy = Math.max(cy, rr);
-  }
-  if (cy + rr > H) {                                   // 上がはみ出す
-    rr = Math.min(rr, (H - cy) + METEOR_BURST_RING_LIFT);
-    cy = Math.min(cy, H - rr);
-  }
-  return { y: cy, r: rr };
+  return { y: pos[1], r: r };
 }
+// 「本体の下端が床に触れる点」＝床の高さ。落下隕石は着弾で中心が METEOR_DROP_Y(=1) に
+//   来るので、接触点はその下の床（y=0）になる。
+const METEOR_FLOOR_Y = 0;
+function floorHit(x) { return [x, METEOR_FLOOR_Y]; }
 
 function meteorBurstFx(pos, mag, kind) {
+  // v34 (7)(8): 指示 107.991 / 141.427「エフェクトの大きい部分は四角ではなく丸で」。
+  //   中心の閃光だけ stone3_pop（角丸四角）→ stone3_disc（塗り潰しの円）へ。
+  //   中・小の欠片（chunks）は指示どおり現状のまま。
   const flash = warnClip([{
-    type: POP_TYPE,
+    type: METEOR_TRAIL_TYPE,
     pos: [pos[0], pos[1]],
     scale: [METEOR_BURST_FLASH_S0 * mag, METEOR_BURST_FLASH_S0 * mag],
     color: POP_COLOR_START,
@@ -2210,8 +2272,11 @@ function meteorBurstAfterglow(pos, life) {
   const count = 16;
   for (let i = 0; i < count; i++) {
     const a = (i * 2 * Math.PI) / count + (i % 2) * 0.18;
-    const radius = i % 2 === 0 ? METEOR_SCALE * 1.15 : METEOR_SCALE * 2.05;
-    const size = i % 2 === 0 ? TILE * 0.56 : TILE * 0.40;
+    // v34 (8): 指示 141.427「周りの角丸しかくも攻撃に見えて紛らわしいので、もっと
+    //   着弾地点に集めて」→ 散布半径を 1/2 以下（1.15/2.05 → 0.50/0.92 倍）にする。
+    //   もともと移動しない固定の欠片なので、外へ飛ばさず着弾点の周りで縮んで消える。
+    const radius = i % 2 === 0 ? METEOR_SCALE * 0.50 : METEOR_SCALE * 0.92;
+    const size = i % 2 === 0 ? TILE * 0.46 : TILE * 0.33;
     items.push({
       type: POP_TYPE,
       pos: [normalizeNegativeZero(pos[0] + Math.cos(a) * radius),
@@ -2352,35 +2417,32 @@ function meteorTrailPath(posAt, flight, kind) {
       useVelocityAngle: false,
       polarForm: { x: 0, y: normalizeNegativeZero(ang) },
     }));
-    // v32 (5): 帯の脇へ散らす棘粒。軌道の法線方向へ 0.60〜1.55 ユニット離し、
-    //   進行方向にも少しずらす（＝軌道上の直線には並ばない）。
-    if (i % METEOR_TRAIL_SPARK_EVERY === 0 && (dx * dx + dy * dy) > 1e-12) {
-      const h1 = trailHash(i, p[0], p[1]);
-      const h2 = trailHash(i + 101, p[0], p[1]);
-      const h3 = trailHash(i + 211, p[0], p[1]);
-      const L = Math.sqrt(dx * dx + dy * dy);
-      const nx = -dy / L, ny = dx / L;               // 進行方向の法線
-      const side = h1 < 0.5 ? -1 : 1;
-      const off = METEOR_TRAIL_SPARK_OFF[0]
-        + (METEOR_TRAIL_SPARK_OFF[1] - METEOR_TRAIL_SPARK_OFF[0]) * h2;
-      const along = (h3 - 0.5) * 1.2;
-      const sx = p[0] + nx * off * side + (dx / L) * along;
-      const sy = p[1] + ny * off * side + (dy / L) * along;
-      bullets.push(bulletDefaults({
-        originPos: { x: normalizeNegativeZero(sx), y: normalizeNegativeZero(sy) },
-        typeName: METEOR_TRAIL_SPARK_TYPE,
-        scale: { x: METEOR_TRAIL_SPARK_S0, y: METEOR_TRAIL_SPARK_S0 },
-        color: { x: METEOR_TRAIL_COLOR_START[0], y: METEOR_TRAIL_COLOR_START[1], z: METEOR_TRAIL_COLOR_START[2], w: METEOR_TRAIL_COLOR_START[3] },
-        scaleEnd: { x: METEOR_TRAIL_SPARK_S1, y: METEOR_TRAIL_SPARK_S1 },
-        colorEnd: { x: METEOR_TRAIL_COLOR_END[0], y: METEOR_TRAIL_COLOR_END[1], z: METEOR_TRAIL_COLOR_END[2], w: METEOR_TRAIL_COLOR_END[3] },
-        animDuration: METEOR_TRAIL_SPARK_LIFE,
-        appearTime: rel,
-        appearDuration: 0,
-        life: rel + METEOR_TRAIL_SPARK_LIFE,
-        unCounterable: true,
-        useVelocityAngle: false,
-        polarForm: { x: 0, y: normalizeNegativeZero(ang) },
-      }));
+    // v34 (4): 噴射（煙）。本体の進行方向の逆 ±25° と真後ろの 3 方向へ小さい円を撃つ。
+    //   appearTime を持つ弾は appearTime からの経過で位置が進む（BulletDataUpdateJob.cs:86）
+    //   ので、円が置かれた瞬間にその点から吹き出す。当たり判定なし（stone3_disc は verts 空）。
+    if ((dx * dx + dy * dy) > 1e-12) {
+      const back = Math.atan2(-dy, -dx);            // 進行方向の逆
+      METEOR_JET_ANGLES.forEach(function (da, j) {
+        const h = trailHash(i * 3 + j, p[0], p[1]);
+        const sp = METEOR_JET_SPEED[0] + (METEOR_JET_SPEED[1] - METEOR_JET_SPEED[0]) * h;
+        const a = back + da;
+        bullets.push(bulletDefaults({
+          originPos: { x: normalizeNegativeZero(p[0]), y: normalizeNegativeZero(p[1]) },
+          originVlc: { x: normalizeNegativeZero(Math.cos(a) * sp), y: normalizeNegativeZero(Math.sin(a) * sp) },
+          typeName: METEOR_TRAIL_TYPE,
+          scale: { x: METEOR_JET_S0, y: METEOR_JET_S0 },
+          color: { x: METEOR_TRAIL_COLOR_START[0], y: METEOR_TRAIL_COLOR_START[1], z: METEOR_TRAIL_COLOR_START[2], w: METEOR_TRAIL_COLOR_START[3] },
+          scaleEnd: { x: METEOR_JET_S1, y: METEOR_JET_S1 },
+          colorEnd: { x: METEOR_TRAIL_COLOR_END[0], y: METEOR_TRAIL_COLOR_END[1], z: METEOR_TRAIL_COLOR_END[2], w: METEOR_TRAIL_COLOR_END[3] },
+          animDuration: METEOR_JET_LIFE,
+          appearTime: rel,
+          appearDuration: 0,
+          life: rel + METEOR_JET_LIFE,
+          unCounterable: true,
+          useVelocityAngle: false,
+          polarForm: { x: 0, y: normalizeNegativeZero(a) },
+        }));
+      });
     }
   }
   return {
@@ -3434,30 +3496,22 @@ export default stage(
 
     // v13 (B): 横断シャベル 1 組（左→右・右→左）を時刻 t に出す。区間⑥⑧⑪⑮で共有する。
     //   予告は v8 で全廃したまま（ユーザー評価「帯が邪魔」）。当たり判定は元から無い。
+    //   v34 (1): 指示 25.672 の「左右に流すシャベル」はここ（区間⑥⑧の横断シャベル）。
+    //   画面外から入ってくる代わりに、画面端の内側で白い予告として静止 → 発射拍で
+    //   本体色に変わって直進する（sideFlowShovel）。予告のあいだは当たり判定なし。
+    //   クリップは発射の 1 拍前に置くので、飛び始める時刻 t は従来と同じ＝音ハメ不変。
     function sweepPair(t, leftRow, rightRow) {
       if (leftRow !== null) {
-        s.at(
-          t,
-          shovel({
-            pos: [SHOVEL_LEFT_X, cellCenter(0, leftRow)[1]],
-            vel: [SHOVEL_SIDE_SPEED, 0],
-            angle: SHOVEL_ANGLE_RIGHT,
-            life: 0,
-            kind: 'shovelsweep',
-          })
-        );
+        s.at(t - SHOVEL_TELE_LEAD, sideFlowShovel(
+          [SHOVEL_WAIT_L, cellCenter(0, leftRow)[1]],
+          [SHOVEL_SIDE_SPEED, 0], SHOVEL_ANGLE_RIGHT, 'shovelsweep'
+        ));
       }
       if (rightRow !== null) {
-        s.at(
-          t,
-          shovel({
-            pos: [SHOVEL_RIGHT_X, cellCenter(0, rightRow)[1]],
-            vel: [-SHOVEL_SIDE_SPEED, 0],
-            angle: SHOVEL_ANGLE_LEFT,
-            life: 0,
-            kind: 'shovelsweep',
-          })
-        );
+        s.at(t - SHOVEL_TELE_LEAD, sideFlowShovel(
+          [SHOVEL_WAIT_R, cellCenter(0, rightRow)[1]],
+          [-SHOVEL_SIDE_SPEED, 0], SHOVEL_ANGLE_LEFT, 'shovelsweep'
+        ));
       }
     }
 
@@ -3880,41 +3934,30 @@ export default stage(
     // ======================================================================
 
     // --- 53.22〜56.66s: 横から縦並びで入るシャベル -------------------------------
-    //   (1) 画面外から ease out（等減速）で入り、右 2 列に被らない x で速度 0
-    //   (2) すこし逆向き（右グループなら右）へ曲がる＝ため
-    //   (3) 加速して反対の壁へ飛び、指定時刻ちょうどに着弾。タイルは壊さない
-    function sideShovelSet(tIn, tBend, tDive, tHit, fromX, stopX, bendSign, hitX, angle) {
-      const dA = tBend - tIn;
-      const dB = tDive - tBend;
-      const dC = tHit - tDive;
-      const v0 = (2 * (stopX - fromX)) / dA;          // ease out の初速
-      const aA = -v0 / dA;                             // 終端で速度 0 になる等減速
-      const aB = (bendSign * 2 * V27C_SIDE_BEND_D) / (dB * dB);
-      const xB = stopX + bendSign * V27C_SIDE_BEND_D;  // ため終わりの x
-      const vB = aB * dB;
-      const aC = (2 * (hitX - xB - vB * dC)) / (dC * dC);
+    //   v34 (1): 「入場 → 停止 → すこし曲がる → 反対側へ加速」をやめ、参考動画どおり
+    //   「待機位置に白い予告で静止 → 発射拍で本体色に変わって等速直進 → 画面外へ」に統一。
+    //   音ハメは不変: 予告の出はじめ = tIn（53.2201「登場」）、発射 = tDive（従来の加速開始）、
+    //   従来の着弾 x を通過する時刻 = tHit（54.8513 / 56.6567）になるよう速度を決める。
+    function sideShovelSet(tIn, tDive, tHit, stopX, hitX, angle) {
+      const lead = tDive - tIn;
+      const v = (hitX - stopX) / (tHit - tDive);       // 着弾時刻ちょうどに hitX を通る等速
       V27C_SIDE_YS.forEach(function (y) {
-        s.at(tIn, shovelPath([fromX, y], [v0, 0], [
-          { dur: dA, ax: aA, ay: 0 },
-          { dur: dB, ax: aB, ay: 0 },
-          { dur: dC, ax: aC, ay: 0 },
-        ], angle, 'sideshovel'));
+        s.at(tIn, sideFlowShovel([stopX, y], [v, 0], angle, 'sideshovel', lead));
         // v29 (7): 指示 56.673「シャベルの着弾エフェクトは要らないです」→ 着弾リングを削除。
       });
     }
 
-    // 右から入って左の壁へ（54.8513 に着弾）
+    // 右で待って左へ（54.8513 に従来の着弾点 x=2.76 を通過し、そのまま画面外へ）
     sideShovelSet(
-      V27C_SIDE_IN, V27C_SIDE_BEND, V27C_SIDE_DIVE, V27C_SIDE_HIT_L,
-      SHOVEL_RIGHT_X, V27C_SIDE_STOP_R, +1, SHOVEL_SCALE / 2, SHOVEL_ANGLE_LEFT
+      V27C_SIDE_IN, V27C_SIDE_DIVE, V27C_SIDE_HIT_L,
+      V27C_SIDE_STOP_R, SHOVEL_SCALE / 2, SHOVEL_ANGLE_LEFT
     );
-    // 左から入って右の壁へ（56.6567 に着弾）。時刻の刻みは右のときと同じ比率で写す。
+    // 左で待って右へ（56.6567）。時刻の刻みは右のときと同じ比率で写す。
     sideShovelSet(
       V27C_SIDE_HIT_L,
-      V27C_SIDE_HIT_L + (V27C_SIDE_BEND - V27C_SIDE_IN),
       V27C_SIDE_HIT_L + (V27C_SIDE_DIVE - V27C_SIDE_IN),
       V27C_SIDE_HIT_R,
-      SHOVEL_LEFT_X, V27C_SIDE_STOP_L, -1, COLS * CELL - SHOVEL_SCALE / 2, SHOVEL_ANGLE_RIGHT
+      V27C_SIDE_STOP_L, COLS * CELL - SHOVEL_SCALE / 2, SHOVEL_ANGLE_RIGHT
     );
 
     // --- 56.66〜58.74s: 上から降って上 2 列の下側に溜まる 6 本 ---------------------
@@ -3926,44 +3969,57 @@ export default stage(
       const x = V27C_DROP_XS[k];
       const vLand = V27C_FALL_A * V27C_DROP_FALL;      // 着地時の落下速度
       const segs = [{ dur: V27C_DROP_FALL, ax: 0, ay: -V27C_FALL_A }];
-      // v32 (2): イージング区間による減衰バウンド。
-      //   上り: easeOut(3 次) は初速 3h/dU・終端 0 なので、接地速度 vIn の e 倍で跳ね上げるには
-      //         高さ h = e*vIn*dU/3 を取ればよい（vlc は平均速度 h/dU）。
-      //   下り: easeIn(3 次) は初速 0・終端 3h/dD。dU==dD なら跳ね上がった速さで接地に戻る。
-      //   最後の下り: smoothstep（両端で速度 0）＝静かに着地して止まる。
+      // v34 (2): 接触区間（速度を連続に折り返す）＋放物線の跳ね、を e の数だけ繰り返し、
+      //   最後にもう一度だけ接触区間を置いて速度 0 へ落とす。速度は全区間で連続。
       let vIn = vLand;
       let used = 0;
-      V27C_BOUNCE_E.forEach(function (e, bi) {
-        const last = bi === V27C_BOUNCE_E.length - 1;
-        const dU = V27C_BOUNCE_UP[bi];
-        const dD = V27C_BOUNCE_DOWN[bi];
-        const h = (e * vIn * dU) / 3;
-        segs.push({ dur: dU, ax: 0, ay: 0, vx: 0, vy: h / dU, ez: 2 });
-        segs.push({ dur: dD, ax: 0, ay: 0, vx: 0, vy: -h / dD, ez: last ? 4 : 1 });
-        vIn = last ? 0 : (3 * h) / dD;
-        used += dU + dD;
+      let dy = 0;   // 接触区間で沈む量の合計（静止 y の逆算に使う）
+      V27C_BOUNCE_E.forEach(function (e) {
+        const vUp = e * vIn;
+        // 接触: −vIn → +vUp まで一定加速度（＝速度は直線的につながる）。沈む量は台形面積。
+        segs.push({ dur: V27C_CONTACT_SEC, ax: 0, ay: (vUp + vIn) / V27C_CONTACT_SEC });
+        dy += ((vUp - vIn) / 2) * V27C_CONTACT_SEC;
+        // 跳ね: 落下と同じ重力の放物線（上り＝減速・下り＝加速で加速度も連続）。
+        segs.push({ dur: (2 * vUp) / V27C_FALL_A, ax: 0, ay: -V27C_FALL_A });
+        used += V27C_CONTACT_SEC + (2 * vUp) / V27C_FALL_A;
+        vIn = vUp;
       });
+      // 最後の接触で速度 0 まで落とし切る（静止へ速度の飛びなしで繋がる）。
+      segs.push({ dur: V27C_CONTACT_SEC, ax: 0, ay: vIn / V27C_CONTACT_SEC });
+      dy += (-vIn / 2) * V27C_CONTACT_SEC;
+      used += V27C_CONTACT_SEC;
       // 残りの待ち時間を「ゆらゆら」に割る（半周期 V27C_SWAY_HALF ごとに向きが返る）
       const fireDur = V27C_FIRE_HIT - V27C_FIRE;
       const hold = Math.max(0, V27C_FIRE - land - used);
       // v32 (2): バウンドで待ち時間を使い切る 6 本目は hold≈0.077s。1 コマ未満なら
       //   duration<=0 の区間（＝v2 の「最終区間として life まで継続」）を作らないよう省く。
-      const nSway = hold > 1 / 60 ? Math.max(1, Math.round(hold / V27C_SWAY_HALF)) : 0;
-      const swayDur = nSway > 0 ? hold / nSway : 0;
-      const swayV = V27C_SWAY_V * Math.min(1, swayDur / V27C_SWAY_HALF);
-      for (let i = 0; i < nSway; i++) {
-        // v29 (7): 揺れは縦方向（バウンドの流れをそのまま小さく続ける）
-        const sg = { dur: swayDur, ax: 0, ay: (i % 2 === 0 ? -2 : 2) * swayV / swayDur };
-        if (i === 0) { sg.vx = 0; sg.vy = swayV; }   // 揺れの入り口で横の速度を止める
-        segs.push(sg);
-      }
-      if (nSway === 0 && hold > 0) {
+      // v34 (2): 揺れの入り口も速度を飛ばさない。v32 は入り口で vy を +2.0 に差し替えて
+      //   いたので、接地で 0 まで落とした速度が 1 コマで 2.0 ユニット/s へ飛んでいた。
+      //   → 半分の長さの区間で始めて半分の長さの区間で終える三角波
+      //     （0 → −v → +v → … → 0）にする。区間の合計は hold のまま。
+      if (hold > 1 / 60) {
+        // 全区間の数を奇数にすると、前後の半区間の変位（∓v*T/4）が打ち消し合って
+        //   揺れの正味の移動が 0 になる＝6 本の静止 y がきれいにそろう。
+        let kFull = Math.max(1, Math.round(hold / V27C_SWAY_HALF) - 1);
+        if (kFull % 2 === 0) kFull += 1;
+        const swayDur = hold / (kFull + 1);                       // 半周期
+        const swayV = V27C_SWAY_V * Math.min(1, swayDur / V27C_SWAY_HALF);
+        const acc = (2 * swayV) / swayDur;
+        for (let i = 0; i < kFull + 2; i++) {
+          const half = (i === 0 || i === kFull + 1);
+          const sg = { dur: half ? swayDur / 2 : swayDur, ax: 0, ay: (i % 2 === 0 ? -acc : acc) };
+          if (i === 0) { sg.vx = 0; sg.vy = 0; }   // 横の速度だけ止める（縦は接地の 0 から連続）
+          segs.push(sg);
+        }
+        // 最初と最後の半区間ぶんの変位は kFull が奇数なので打ち消し合う（正味 0）。
+      } else if (hold > 0) {
         segs.push({ dur: hold, ax: 0, ay: 0, vx: 0, vy: 0 });   // 揺らさず静止して待つ
       }
       // 発射（等速で真下へ。V27C_FIRE_HIT ちょうどに最下段へ着く）
+      // v34 (2): 接触区間で dy（負）だけ沈んだぶん、待機中の実際の y は REST_Y + dy。
       segs.push({
         dur: fireDur, ax: 0, ay: 0,
-        vx: 0, vy: -(V27C_DROP_REST_Y - METEOR_DROP_Y) / fireDur,
+        vx: 0, vy: -(V27C_DROP_REST_Y + dy - METEOR_DROP_Y) / fireDur,
       });
       s.at(land - V27C_DROP_FALL, shovelPath([x, SHOVEL_SPAWN_Y], [0, 0], segs, SHOVEL_ANGLE_DOWN, 'dropshovel'));
       // 着弾の放射弾（下側の列のタイル破壊と同時）
@@ -4076,6 +4132,13 @@ export default stage(
           kind: 'stacktile',
         }));
         // v31 (8): 下段タイルを鎖が砕く場面では破裂弾を出さない。
+      }
+      // v34 (3): 指示 65.456「上下の鎖攻撃、壊すときのアニメーションを前と同じように」。
+      //   65.0101 の横鎖が砕くのは **落ちて積み上がったタイル（stacked）** で、
+      //   chainAttackG の noBurst 経路（bandAll 側）に載っていないため v32 の
+      //   tileBreakFx が付いていなかった。63.8723 の左右の鎖と同じものをここでも出す。
+      if (hit !== null) {
+        s.at(end, tileBreakFx(cellCenter(st.col, st.row), i, 'tilebreakfx'));
       }
     });
 
@@ -4317,14 +4380,12 @@ export default stage(
 
     // v32 (9): マーカー 34（95.1960）の爆破に重ねて、右から縦一列のシャベルを半拍ずつ
     //   ずらして流す（124.99s の 8 と同じ作り。y だけ上下 2 列の内側へ詰めた）。
-    const V32_SIDE_LIFE = (SHOVEL_RIGHT_X - SHOVEL_LEFT_X) / SHOVEL_SIDE_SPEED;
+    //   v34 (1): 右端の内側で白い予告 → 発射拍で本体色になって直進（sideFlowShovel）。
     V32_SIDE_YS.forEach(function (y, k) {
-      s.at(MK34_BLAST2 + k * beats(0.5), shovel({
-        pos: [SHOVEL_RIGHT_X, y],
-        vel: [-SHOVEL_SIDE_SPEED, 0],
-        angle: SHOVEL_ANGLE_LEFT,
-        life: V32_SIDE_LIFE,
-      }));
+      const fire = MK34_BLAST2 + k * beats(0.5);
+      s.at(fire - SHOVEL_TELE_LEAD, sideFlowShovel(
+        [SHOVEL_WAIT_R, y], [-SHOVEL_SIDE_SPEED, 0], SHOVEL_ANGLE_LEFT, 'shovel'
+      ));
     });
 
     // ----------------------------------------------------------------------
@@ -4399,7 +4460,7 @@ export default stage(
       s.at(impact - DROP_FLIGHT, meteorDrop(x, DROP_FLIGHT));
       s.at(impact - DROP_FLIGHT, meteorDropTrail(x, DROP_FLIGHT));   // v24 (B)2: 落下にも尾を付けた
       // v27 (15): 大きい正方形 1 枚のフラッシュ → 円周上に並べたポップのリング 2 枚へ。
-      s.at(impact, meteorBurstFx([x, METEOR_DROP_Y], 1.0, 'meteorhit'));   // v29b: 輪郭リング＋欠片
+      s.at(impact, meteorBurstFx(floorHit(x), 1.0, 'meteorhit'));   // v34 (5): 中心＝接触点（床）
       s.at(impact, meteorSquash([x, METEOR_DROP_Y]));
       // v29 (5): 指示 99.733「弾がこの場面多すぎる。中央の隕石爆破の破裂弾以外はなくして」
       //   → 放射弾は中央（k=0・100.014s）の 1 発だけにする。右（101.680s）と左（103.346s）は
@@ -4510,21 +4571,51 @@ export default stage(
     // v32 (13): 指示 108.025「ここ難易度が高すぎる。4 個程度に減らし、予告も入れて」。
     //   集める枚数を D(8,10,12) → D(3,4,5) へ落とす（normal で 4 枚＝指示どおり）。
     const gatherWant = D(3, 4, 5);
-    const gatherCand = shuffled(
-      ALL_CELLS.filter(function (c) { return c[1] >= 3 && !alive43.has(key(c[0], c[1])); }),
-      rng
-    );
-    const gatherCells = [];
-    for (let pass = 0; pass < 2 && gatherCells.length < gatherWant; pass++) {
-      for (let i = 0; i < gatherCand.length && gatherCells.length < gatherWant; i++) {
-        const c = gatherCand[i];
-        if (gatherCells.indexOf(c) >= 0) continue;
-        if (pass === 0 && gatherCells.some(function (q) {
-          return Math.abs(q[0] - c[0]) + Math.abs(q[1] - c[1]) < 3;
-        })) continue;
-        gatherCells.push(c);
+    // v34 (6): 指示 107.605「ここの飛ばすタイル、等角度に配置して。左側 2 つ、右側 2 つ
+    //   みたいな。あと軌跡も予告で表示して」。
+    //   → セルからランダムに選ぶのをやめ、集合点 GATHER_POINT を中心にした左右対称の
+    //     扇（真上を 0 とした 30 度刻み）へ置く。偶数枚は ±25/±55 度、奇数枚は 0/±30/±60 度。
+    //     出発点も同じ直線の延長上（画面外・カリング境界の内側）に取るので、
+    //     進入 → ため → 突入 の 3 段がすべて 1 本の直線に乗り、軌跡の予告が引ける。
+    const GATHER_LANE_R = 11.0;     // 集合点 → 待機位置（座席）の距離
+    const GATHER_ENTRY_MARGIN = 2.0;  // 画面の外へ出したぶん（カリング境界 -2〜36 の内側に収める）
+    // レーンごとに「画面（0〜32 / 0〜18）を出る距離」を求め、そこから少し外を出発点にする。
+    //   一律の半径にすると、寝た角度のレーンだけ x が -2 を割ってカリングで即消えてしまう。
+    function gatherEntryR(ux, uy) {
+      let r = 0;
+      for (let k = 1; k <= 4000; k++) {
+        const rr = k * 0.01;
+        const px = GATHER_POINT[0] + ux * rr, py = GATHER_POINT[1] + uy * rr;
+        if (px < 0 || px > COLS * CELL || py < 0 || py > ROWS * CELL) { r = rr; break; }
+      }
+      return r + GATHER_ENTRY_MARGIN;
+    }
+    const gatherAngles = [];
+    if (gatherWant % 2 === 0) {
+      for (let j = 0; j < gatherWant / 2; j++) {
+        const a0 = (25 + 30 * j) * Math.PI / 180;
+        gatherAngles.push(-a0, a0);
+      }
+    } else {
+      gatherAngles.push(0);
+      for (let j = 1; j <= (gatherWant - 1) / 2; j++) {
+        const a0 = (30 * j) * Math.PI / 180;
+        gatherAngles.push(-a0, a0);
       }
     }
+    gatherAngles.sort(function (x, y) { return x - y; });
+    // 角度 → [座席, 出発点]。真上を 0・右回りを正とした極座標。
+    const gatherLanes = gatherAngles.map(function (th) {
+      const ux = Math.sin(th), uy = Math.cos(th);
+      const er = gatherEntryR(ux, uy);
+      return {
+        angle: th,
+        seat: [GATHER_POINT[0] + ux * GATHER_LANE_R, GATHER_POINT[1] + uy * GATHER_LANE_R],
+        from: [GATHER_POINT[0] + ux * er, GATHER_POINT[1] + uy * er],
+        u: [ux, uy],
+        entryR: er,
+      };
+    });
     // v27 (17): 手打ち 108.082「ここで下にあつめるタイルは他と同じような表示は不要で、
     //   単に画面外から飛んでくるようにして」。参考 bePI-wq_lNk 1:02 でも 4 個の弾は
     //   予告もポップも無く画面の外に現れてそのまま飛び込んでくる。
@@ -4573,9 +4664,33 @@ export default stage(
     //   リングが 2 枚に分かれて見える。集合点が下端なので下向きの弾はすぐ画面外へ抜け、
     //   実質は上向きの扇になる（＝参考どおり、下端沿いに左右へ逃げ場が残る）。
     const GATHER_FLIGHT = GATHER_IMPACT - GATHER_ENTER;   // 0.8359s（飛び込み〜爆発）
-    gatherCells.forEach(function (c, i) {
+    // v34 (6): 軌跡の予告。飛来の 1 拍前から、各レーンの直線に沿って細かい帯（warn_box・
+    //   当たり判定なし）をパンくずのように並べ、爆発まで予告窓に入れっぱなしにする
+    //   （appearTime == appearDuration == life ＝ 実体化しない薄い点滅表示）。
+    const GATHER_PATH_LEAD = beats(1);
+    const GATHER_PATH_DUR = GATHER_PATH_LEAD + GATHER_FLIGHT;
+    const GATHER_PATH_STEP = 1.4;        // パンくずの間隔（ユニット）
+    const GATHER_PATH_SIZE = 0.66;       // 1 個の一辺
+    const gatherPathItems = [];
+    gatherLanes.forEach(function (ln) {
+      for (let r = 1.2; r <= ln.entryR + 1e-9; r += GATHER_PATH_STEP) {
+        const px = GATHER_POINT[0] + ln.u[0] * r;
+        const py = GATHER_POINT[1] + ln.u[1] * r;
+        if (px < 0 || px > COLS * CELL || py < 0 || py > ROWS * CELL) continue;   // 画面内だけ
+        gatherPathItems.push({
+          pos: [normalizeNegativeZero(px), normalizeNegativeZero(py)],
+          scale: [GATHER_PATH_SIZE, GATHER_PATH_SIZE],
+          color: STONE_WARN,
+          appearTime: GATHER_PATH_DUR,
+          appearDuration: GATHER_PATH_DUR,
+          life: GATHER_PATH_DUR,
+        });
+      }
+    });
+    s.at(GATHER_ENTER - GATHER_PATH_LEAD, warnClip(gatherPathItems, 'gatherpathwarn'));
+    gatherLanes.forEach(function (ln, i) {
       gatherFly(
-        gatherEntry(c), cellCenter(c[0], c[1]), GATHER_POINT,
+        ln.from, ln.seat, GATHER_POINT,
         GATHER_SPIN * (i % 2 === 0 ? 1 : -1)
       ).forEach(function (seg) { s.at(seg[0], seg[1]); });
     });
@@ -4601,8 +4716,9 @@ export default stage(
     // v27 (18): 爆発が 109.1602 → 108.3269 へ前倒しになったので、ブルームは
     //   「所定位置に着いた瞬間（108.0424）から爆発まで（0.2845s）で白く育つ」形にする。
     const GATHER_BLOOM_DUR = GATHER_IMPACT - GATHER_SETTLE;
+    // v34 (7): 集合爆破の「大きい部分」も丸へ（BLINK_TYPE=角丸四角 → stone3_disc）。
     s.at(GATHER_SETTLE, warnClip([{
-      type: BLINK_TYPE,
+      type: METEOR_TRAIL_TYPE,
       pos: GATHER_POINT,
       scale: [GATHER_BLOOM_S0, GATHER_BLOOM_S0],
       color: GATHER_BLOOM_C0,
@@ -4717,8 +4833,8 @@ export default stage(
     }
 
     // 隕石の爆破一式（v27 (15) と同じ円形リング＋破片＋放射弾）。
-    function v28MeteorBlast(t, pos, idx) {
-      s.at(t, meteorBurstFx(pos, 1.0, 'meteorhit'));   // v29b: 輪郭リング＋欠片
+    function v28MeteorBlast(t, pos, idx, fxPos) {
+      s.at(t, meteorBurstFx(fxPos || pos, 1.0, 'meteorhit'));   // v29b: 輪郭リング＋欠片
       s.at(t, burst(pos, idx, 1.2));
     }
 
@@ -4787,11 +4903,12 @@ export default stage(
       const impact = [V28_CENTER[0], METEOR_DROP_Y];
       s.at(tA4, meteorSquash(impact));
       if (!lightspeed) {
-        v28MeteorBlast(tA4, impact, idx + 2);
+        v28MeteorBlast(tA4, impact, idx + 2, floorHit(impact[0]));   // v34 (5): 中心＝接触点（床）
       } else {
         // 集合爆破（マーカー 48）と同じ「白く育つブルーム → 2 重リング」。
+        // v34 (7): 大きいブルームは丸へ。
         s.at(tM0, warnClip([{
-          type: BLINK_TYPE,
+          type: METEOR_TRAIL_TYPE,
           pos: impact,
           scale: [GATHER_BLOOM_S0, GATHER_BLOOM_S0],
           color: GATHER_BLOOM_C0,
@@ -4802,7 +4919,7 @@ export default stage(
           appearDuration: 0,
           life: dM + FADE_OUT_SEC,
         }], 'gatherbloom'));
-        s.at(tA4, meteorBurstFx(impact, 1.2, 'meteorhit'));   // v29b: 輪郭リング＋欠片
+        s.at(tA4, meteorBurstFx(floorHit(impact[0]), 1.2, 'meteorhit'));   // v34 (5): 中心＝接触点（床）
         const ringN = Math.round(D(10, 12, 14) * 2);
         s.at(tA4, spinBurst({
           pos: impact, count: ringN, speed: D(7, 9, 11), type: 'stone3_bullet', life: 0,
@@ -4884,14 +5001,12 @@ export default stage(
     );
 
     // --- 8: 右側から縦一列のシャベルを、上から順に半拍ずつずらして発射 --------------
-    const V28_SIDE_LIFE = (SHOVEL_RIGHT_X - SHOVEL_LEFT_X) / SHOVEL_SIDE_SPEED;
+    //   v34 (1): 右端の内側で白い予告 → 発射拍で本体色になって直進（sideFlowShovel）。
     V28_SIDE_YS.forEach(function (y, k) {
-      s.at(V28_D_SIDE + k * V28_SIDE_STAGGER, shovel({
-        pos: [SHOVEL_RIGHT_X, y],
-        vel: [-SHOVEL_SIDE_SPEED, 0],
-        angle: SHOVEL_ANGLE_LEFT,
-        life: V28_SIDE_LIFE,
-      }));
+      const fire = V28_D_SIDE + k * V28_SIDE_STAGGER;
+      s.at(fire - SHOVEL_TELE_LEAD, sideFlowShovel(
+        [SHOVEL_WAIT_R, y], [-SHOVEL_SIDE_SPEED, 0], SHOVEL_ANGLE_LEFT, 'shovel'
+      ));
     });
 
     // --- 9: 上側から、左から順に 1/3 拍ずつずらしてシャベルを落とす -----------------
@@ -4909,12 +5024,10 @@ export default stage(
     [[V28_F1, V28_WALL_GAP1], [V28_F2, V28_WALL_GAP2]].forEach(function (w) {
       V28_WALL_YS.forEach(function (y, k) {
         if (w[1].indexOf(k) >= 0) return;   // ここが抜け穴
-        s.at(w[0], shovel({
-          pos: [SHOVEL_RIGHT_X, y],
-          vel: [-SHOVEL_SIDE_SPEED, 0],
-          angle: SHOVEL_ANGLE_LEFT,
-          life: V28_SIDE_LIFE,
-        }));
+        // v34 (1): 壁も同じ作り。予告のあいだに抜け穴が読めるようになる。
+        s.at(w[0] - SHOVEL_TELE_LEAD, sideFlowShovel(
+          [SHOVEL_WAIT_R, y], [-SHOVEL_SIDE_SPEED, 0], SHOVEL_ANGLE_LEFT, 'shovel'
+        ));
       });
     });
 
@@ -4971,8 +5084,9 @@ export default stage(
     v28EntryFlash(V28_I, meteorPathPos(finFrom, [0, finVA], finSegs), V28_FIN_EASE, 'meteorspawn');
     // 着弾点が「ため」の頭から白く育つ（集合爆破のブルームと同じ作り）
     const finBloomDur = V28_FIN_BACK + V28_FIN_DIVE;
+    // v34 (8): 最後の大爆破のブルームも丸へ。
     s.at(V28_I + V28_FIN_EASE, warnClip([{
-      type: BLINK_TYPE,
+      type: METEOR_TRAIL_TYPE,
       pos: finPos,
       scale: [GATHER_BLOOM_S0, GATHER_BLOOM_S0],
       color: GATHER_BLOOM_C0,
@@ -4985,13 +5099,13 @@ export default stage(
     }], 'gatherbloom'));
     // 大爆破: 共通の輪郭リング＋固定欠片と、実弾の 3 重リング。
     s.at(V28_END_BLAST, meteorSquash(finPos));
-    s.at(V28_END_BLAST, meteorBurstFx(finPos, 1.4, 'meteorhit'));
+    s.at(V28_END_BLAST, meteorBurstFx(floorHit(finPos[0]), 1.4, 'meteorhit'));   // v34 (5): 中心＝接触点（床）
     // v30 (5): 破片を「散って止まる」ものへ。寿命を endTime（144.25s）ちょうどまで伸ばし、
     //   縮みながら減速して止まる。141.65s の爆破のあと 143.5〜144.25s に何も映らない
     //   0.75 秒があった問題への対応で、枚数・速度・自転・並びは据え置き。
     //   止まる位置は中心 (16, 1) から 速度 x 寿命 / 2 ＝ 14.3 / 9.1 / 5.2 ユニット。
     const V30_FIN_DEBRIS_LIFE = 144.25 - V28_END_BLAST;   // 2.5967 秒
-    s.at(V28_END_BLAST, meteorBurstAfterglow(finPos, V30_FIN_DEBRIS_LIFE));
+    s.at(V28_END_BLAST, meteorBurstAfterglow(floorHit(finPos[0]), V30_FIN_DEBRIS_LIFE));
     const finRingN = Math.round(D(10, 12, 14) * 2.5);
     [
       [D(6, 8, 10), SPIN_RATE, 0],
@@ -5061,7 +5175,7 @@ export default stage(
       ));
       s.at(impact - V30_DROP_FLIGHT, meteorDrop(x, V30_DROP_FLIGHT));
       s.at(impact - V30_DROP_FLIGHT, meteorDropTrail(x, V30_DROP_FLIGHT));
-      s.at(impact, meteorBurstFx([x, METEOR_DROP_Y], 1.0, 'meteorhit'));
+      s.at(impact, meteorBurstFx(floorHit(x), 1.0, 'meteorhit'));   // v34 (5): 中心＝接触点（床）
       s.at(impact, meteorSquash([x, METEOR_DROP_Y]));
     });
   }
