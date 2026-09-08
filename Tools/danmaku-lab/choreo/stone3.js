@@ -1976,7 +1976,7 @@ function meteorMotion(y, jit) {
 //     ・点の間隔 0.03s（直径 1.7 に対し 0.5〜1.1 ユニット）で重ね、途切れない帯にする
 //     ・寿命 0.42s で長さを 2.6 倍（本体径の 3〜5 倍）にし、縮みで先端ほど細くする
 //     ・各点を進行方向へ回して置く（斜めの経路でも帯の縁がぎざぎざにならない）
-const METEOR_TRAIL_STEP = 0.07;             // v34 (4): 尾の円を置く時間間隔（0.06〜0.08）。24.1 ユニット/s で 1.69 ユニット
+const METEOR_TRAIL_STEP = 0.06;             // v34 (4): 尾の円を置く時間間隔（0.06〜0.08）。24.1 ユニット/s で 1.45 ユニット
                                             //   ＝ 頭の円の直径 3.04 の 32%。本家（ref_steve_096.41）の実測 40% と同じ桁で、
                                             //   頭側は重なって 1 本の帯・末端は小さな円が並ぶ見え方になる。
 // v30 (3): 時間等間隔だと速い隕石ほど点の間隔が開く。実測（本体 3.2・点 S0 1.7 ユニット）で
@@ -2011,11 +2011,11 @@ const METEOR_TRAIL_LIFE = 0.55;             // 帯の 1 粒の寿命（0.5〜0.6
 //   一気に本体色の小さい点へ変わって長く残る。色と径の補間はこの短い時間で終える。
 const METEOR_TRAIL_ANIM = 0.20;
 const METEOR_TRAIL_S0 = METEOR_SCALE * 0.90;  // 頭は本体の 0.9 倍
-const METEOR_TRAIL_S1 = METEOR_SCALE * 0.25;  // 末端は本体の 0.25 倍
+const METEOR_TRAIL_S1 = METEOR_SCALE * 0.16;  // 末端は本体の 0.16 倍（参考コマの末端は頭の 1/6 ほど）
 const METEOR_TRAIL_TYPE = 'stone3_disc';    // verts 空の丸。実弾ではなく尾専用
 // 噴射（煙）。帯の円 1 個につき 3 方向へ 1 個ずつ。
-const METEOR_JET_ANGLES = [-0.4363, 0, 0.4363];  // 進行方向の逆から ±25 度
-const METEOR_JET_SPEED = [3.0, 8.0];        // ユニット/s（ハッシュで散らす）
+const METEOR_JET_ANGLES = [-0.6109, 0, 0.6109];  // 進行方向の逆から ±35 度（雲の広がりを参考に寄せた）
+const METEOR_JET_SPEED = [4.0, 10.0];       // ユニット/s（ハッシュで散らす）
 const METEOR_JET_S0 = METEOR_SCALE * 0.30;
 const METEOR_JET_S1 = METEOR_SCALE * 0.06;
 const METEOR_JET_LIFE = 0.45;
