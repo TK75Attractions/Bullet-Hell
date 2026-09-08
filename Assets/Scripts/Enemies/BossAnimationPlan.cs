@@ -53,7 +53,10 @@ public class BossAnimationPlan
                 clip = source.clip,
                 next = source.next,
                 overrideLoop = source.overrideLoop,
-                loop = source.loop
+                loop = source.loop,
+                hold = source.hold,
+                holdFrame = source.holdFrame,
+                resume = source.resume
             });
         }
 
@@ -83,6 +86,10 @@ public class BossAnimationEventData
     public string next = "";
     public bool overrideLoop;
     public bool loop;
+    // 石工 v34: コマ停止（hold + holdFrame）と再開（resume）。EnemyAnimationEventData と同じ意味。
+    public bool hold;
+    public int holdFrame;
+    public bool resume;
 }
 
 [Serializable]

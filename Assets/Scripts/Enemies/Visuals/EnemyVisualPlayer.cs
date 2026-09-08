@@ -13,6 +13,10 @@ public class EnemyVisualPlayer
     private int frameIndex;
     private int eventIndex;
     private float frameTimer;
+    // 石工 v34: コマ停止。holdFrame へ達したらそこで止まり、resume イベントが来るまで進まない。
+    // 既定は無効（holdActive=false）なので、hold を書かない既存の敵・ボスの挙動は不変。
+    private bool holdActive;
+    private int holdFrame;
     private List<EnemyAnimationEventData> sortedEvents = new List<EnemyAnimationEventData>();
 
     public void Init(SpriteRenderer renderer, EnemyVisualSetRuntime set, EnemyAnimationPlan plan, Sprite fallbackSprite)
@@ -23,6 +27,8 @@ public class EnemyVisualPlayer
         frameIndex = 0;
         eventIndex = 0;
         frameTimer = 0f;
+        holdActive = false;
+        holdFrame = 0;
         currentClip = null;
         currentNextOverride = "";
         hasLoopOverride = false;
@@ -76,7 +82,18 @@ public class EnemyVisualPlayer
             EnemyAnimationEventData animationEvent = sortedEvents[eventIndex];
             if (animationEvent != null)
             {
-                PlayClip(animationEvent.clip, animationEvent.next, animationEvent.overrideLoop, animationEvent.loop);
+                if (animationEvent.resume)
+                {
+                    // 止めていたコマから続きを再生する（クリップは差し替えない）。
+                    holdActive = false;
+                    frameTimer = 0f;
+                }
+                if (!string.IsNullOrWhiteSpace(animationEvent.clip)
+                    && PlayClip(animationEvent.clip, animationEvent.next, animationEvent.overrideLoop, animationEvent.loop))
+                {
+                    holdActive = animationEvent.hold;
+                    holdFrame = animationEvent.holdFrame;
+                }
             }
             eventIndex++;
         }
@@ -138,6 +155,13 @@ public class EnemyVisualPlayer
             return;
         }
 
+        if (holdActive && frameIndex >= holdFrame)
+        {
+            // 指定コマに達したらそこで固定する（resume が来るまで進めない）。
+            frameTimer = 0f;
+            return;
+        }
+
         frameTimer += dt;
         while (frameTimer >= currentClip.GetFrameDuration(frameIndex))
         {
@@ -166,6 +190,12 @@ public class EnemyVisualPlayer
             }
 
             ApplyFrame();
+
+            if (holdActive && frameIndex >= holdFrame)
+            {
+                frameTimer = 0f;
+                return;
+            }
         }
     }
 
