@@ -202,6 +202,9 @@ public class StoneCgController : MonoBehaviour
         if (!want)
         {
             ClearBossProxies();
+            // 演出のグローバルは他ステージへ持ち越さない（材質を共有していないので絵には出ないが、
+            // 石工を抜けた時点で必ず素の値に戻しておく）。
+            ResetStageFxGlobals();
             return;
         }
         introFade = StoneCgIntro.BlackFade(stageTime);
@@ -441,21 +444,27 @@ public class StoneCgController : MonoBehaviour
         return new Vector2(ox, oy) * (shakeAmplitude * decay);
     }
 
+    /// <summary>発光スケールとコア光を素の値へ戻す（演出オフ・石工以外）。</summary>
+    void ResetStageFxGlobals()
+    {
+        LastLanternScale = LastCityScale = 1f;
+        LastCrackScale = LastCoreScale = 0f;
+        LastShakeOffset = Vector2.zero;
+        currentExposureScale = 1f;
+        Vector4 one = new Vector4(1f, 1f, 1f, 1f);
+        Shader.SetGlobalVector(EmisGrp1Id, one);
+        Shader.SetGlobalVector(EmisGrp2Id, one);
+        Shader.SetGlobalVector(EmisGrp3Id, Vector4.zero);
+        Shader.SetGlobalVector(EmisGrp4Id, one);
+        SetCoreLight(0f);
+        ApplyCrackGlow(false);
+    }
+
     void UpdateStageFx(float stageTime)
     {
         if (!stageFxEnabled)
         {
-            LastLanternScale = LastCityScale = 1f;
-            LastCrackScale = LastCoreScale = 0f;
-            LastShakeOffset = Vector2.zero;
-            currentExposureScale = 1f;
-            Vector4 one = new Vector4(1f, 1f, 1f, 1f);
-            Shader.SetGlobalVector(EmisGrp1Id, one);
-            Shader.SetGlobalVector(EmisGrp2Id, one);
-            Shader.SetGlobalVector(EmisGrp3Id, Vector4.zero);
-            Shader.SetGlobalVector(EmisGrp4Id, one);
-            SetCoreLight(0f);
-            ApplyCrackGlow(false);
+            ResetStageFxGlobals();
             return;
         }
 
