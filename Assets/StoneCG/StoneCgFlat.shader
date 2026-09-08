@@ -18,6 +18,8 @@ Shader "StoneCG/Flat"
         _BaseLin ("Base (linear)", Vector) = (0,0,0,1)
         _EmisLin ("Emission (linear)", Vector) = (0,0,0,1)
         _EmisGroup ("Emission Group (0=none 1=lantern 2=city 3=crack 4=sky)", Float) = 0
+        _Alpha ("Alpha (material)", Range(0,1)) = 1
+        _FadeAlpha ("Fade Alpha (per renderer)", Range(0,1)) = 1
         [NoScaleOffset] _EmisTex ("Emission Tex", 2D) = "white" {}
     }
     SubShader
@@ -38,6 +40,8 @@ Shader "StoneCG/Flat"
             float4 _BaseLin;
             float4 _EmisLin;
             float _EmisGroup;
+            float _Alpha;
+            float _FadeAlpha;
             TEXTURE2D(_EmisTex); SAMPLER(sampler_EmisTex);
 
             float4 _StoneCgSunDir;    // xyz = ライトへ向かう単位ベクトル
@@ -53,6 +57,20 @@ Shader "StoneCG/Flat"
             struct Attributes { float4 positionOS : POSITION; float3 normalOS : NORMAL; float2 uv : TEXCOORD0; };
             struct Varyings { float4 positionCS : SV_POSITION; float3 normalWS : TEXCOORD0; float2 uv : TEXCOORD1; float3 positionWS : TEXCOORD2; };
 
+            // 4x4 Bayer によるディザ抜き。不透明キュー・ZWrite のまま半透明とクロスフェードを
+            // 表現できるので、材質を共有するオブジェクト(鎖・帆など)でも per-renderer で
+            // フェードできる(MaterialPropertyBlock の _FadeAlpha)。
+            static const float BAYER4[16] = {
+                 0.5/16.0,  8.5/16.0,  2.5/16.0, 10.5/16.0,
+                12.5/16.0,  4.5/16.0, 14.5/16.0,  6.5/16.0,
+                 3.5/16.0, 11.5/16.0,  1.5/16.0,  9.5/16.0,
+                15.5/16.0,  7.5/16.0, 13.5/16.0,  5.5/16.0 };
+            float DitherThreshold(float2 pixel)
+            {
+                int2 p = int2(fmod(pixel, 4.0));
+                return BAYER4[p.y * 4 + p.x];
+            }
+
             Varyings vert (Attributes v)
             {
                 Varyings o;
@@ -65,6 +83,9 @@ Shader "StoneCG/Flat"
 
             half4 frag (Varyings i) : SV_Target
             {
+                float a = _Alpha * _FadeAlpha;
+                clip(a - DitherThreshold(i.positionCS.xy) - 1e-5);
+
                 float3 n = normalize(i.normalWS);
                 float ndl = saturate(dot(n, _StoneCgSunDir.xyz));
                 float3 tex = SAMPLE_TEXTURE2D(_EmisTex, sampler_EmisTex, i.uv).rgb;

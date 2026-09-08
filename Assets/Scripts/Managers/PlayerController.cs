@@ -55,8 +55,8 @@ public class PlayerController
     // ダッシュエフェクト(Spell 子)の縮小率。親スケール(1.85)とは独立の子スケール乗数。
     private const float DashEffectScale = 0.6f;
 
-    // 石工 CG の導入(0〜4.73 秒)で自機を画面下から登場させている間。true の間は
-    // 入力を読まず、被弾もしない(StoneCgIntro が石工・1P・Playing のときだけ true を返す)。
+    // 背景 CG の導入で自機を画面下から登場させている間。true の間は
+    // 入力を読まず、被弾もしない(StageCgIntro が背景 CG のあるステージ・1P・Playing のときだけ true を返す)。
     private bool introEntryActive;
     public bool IntroEntryActive => introEntryActive;
 
@@ -221,7 +221,7 @@ public class PlayerController
     {
         // 石工 CG の導入。指示書の 4.07 秒に画面下から現れ、4.73 秒で初期位置に着いて
         // 操作可能になる。それまでは入力・ダッシュ・被弾を止め、位置は時刻から決める。
-        if (playerIndex == 0 && StoneCgIntro.TryGetPlayerEntry(out float2 introPos, out bool introVisible))
+        if (playerIndex == 0 && StageCgIntro.TryGetPlayerEntry(out float2 introPos, out bool introVisible))
         {
             if (!introEntryActive)
             {

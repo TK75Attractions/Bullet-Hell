@@ -6083,7 +6083,7 @@ GameObject:
   - component: {fileID: 873188359}
   - component: {fileID: 873188360}
   m_Layer: 0
-  m_Name: StoneCgRig
+  m_Name: StageCgRig
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6119,50 +6119,71 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 250e6e11fc2ee7b459d969a8c4502b9b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BulletHell.Core::StoneCgController
-  targetStageDirectory: stone
-  targetStageNameFallback: "\u77F3\u5DE5"
+  profiles:
+  - stageDirectory: stone
+    stageNameFallback: "\u77F3\u5DE5"
+    sceneRoot: {fileID: 956523387554764199}
+    exposure: 0.35
+    centerDarken: 0.55
+    bossBrightness: 0.5
+    bossDepth: 5.5
+    sunFrom: {x: -30, y: 55, z: -12}
+    sunTo: {x: 16, y: 2, z: 12}
+    sunColorLinear: {x: 0.64, y: 0.59, z: 1}
+    sunIntensity: 0.5252
+    ambientLinear: {x: 0.0345, y: 0.0294, z: 0.054}
+    lookupPosition: {x: 16, y: 20, z: -28}
+    lookupTarget: {x: 16, y: 58, z: 72}
+    lookupLensMm: 32
+    blackFadeStart: 0.56
+    blackFadeEnd: 1.3
+    cameraHoldEnd: 1.06
+    cameraSettleEnd: 4.56
+    playerIntroEnabled: 1
+    playerRiseStart: 4.071
+    playerRiseEnd: 4.726
+    playerEnterY: -3
+    playerGoalX: 16
+    playerGoalY: 3
+    beatSec: 0.41666666
+    beatPulse: 0.2
+    beatDecaySec: 0.15
+    phase: 1
+    phaseTime: 72.94
+    phaseCrossfadeSec: 0.5
+    hideInPhase2: []
+    descendSec: 0.833333
+    shakeAmplitude: 0.6
+    shakeDuration: 0.34
+    shakeFrequency: 18
+    lanternBlackoutSec: 0.3
+    dustMaterial: {fileID: 2100000, guid: 31da661477ff2644097d724a5602c529, type: 2}
+    dustCount: 60
+    dustLifeSec: 1.5
+    coreLightPosition: {x: 16, y: 13.1, z: 5.7}
+    coreColorLinear: {x: 1, y: 0.25, z: 0.2}
+    coreRadius: 10
+    coreIntensity: 1.7
+    corePulse: 0.25
+    lateLanternScale: 0.6
+    lateCityScale: 0.6667
+    lateSkyTint: {x: 1.06, y: 0.94, z: 1.02}
+    lateExposureScale: 0.98
+    wispAmplitude: 0.15
+    wispPeriodMin: 2
+    wispPeriodMax: 3
+    fogDriftSpeed: 0.06
+    fogDriftRange: 0.9
+    dustDriftSpeed: 0.1
+    dustDriftRange: 1.2
   cgCamera: {fileID: 1941531419}
   displayQuad: {fileID: 423558164}
-  cgSceneRoot: {fileID: 956523387554764199}
   quadSortingOrder: -20
-  exposure: 0.35
-  centerDarken: 0.55
   bossSpriteMaterial: {fileID: 2100000, guid: 57815bfb70e386b4d8ab8b394abe1f30, type: 2}
-  bossDepth: 5.5
-  bossBrightness: 0.5
-  sunFrom: {x: -30, y: 55, z: -12}
-  sunTo: {x: 16, y: 2, z: 12}
-  sunColorLinear: {x: 0.64, y: 0.59, z: 1}
-  sunIntensity: 0.5252
-  ambientLinear: {x: 0.0345, y: 0.0294, z: 0.054}
   normalPosition: {x: 16, y: 20, z: -36}
   nearClip: 0.05
   farClip: 450
-  landTime: 72.94
-  descendSec: 0.833333
   stageFxEnabled: 1
-  beatSec: 0.41666666
-  beatPulse: 0.2
-  beatDecaySec: 0.15
-  shakeAmplitude: 0.6
-  shakeDuration: 0.34
-  shakeFrequency: 18
-  lanternBlackoutSec: 0.3
-  dustMaterial: {fileID: 2100000, guid: 31da661477ff2644097d724a5602c529, type: 2}
-  dustCount: 60
-  dustLifeSec: 1.5
-  coreLightPosition: {x: 16, y: 13.1, z: 5.7}
-  coreColorLinear: {x: 1, y: 0.25, z: 0.2}
-  coreRadius: 10
-  coreIntensity: 1.7
-  corePulse: 0.25
-  lateLanternScale: 0.6
-  lateCityScale: 0.6667
-  lateSkyTint: {x: 1.06, y: 0.94, z: 1.02}
-  lateExposureScale: 0.98
-  lookupPosition: {x: 16, y: 20, z: -28}
-  lookupTarget: {x: 16, y: 58, z: 72}
-  lookupLensMm: 32
 --- !u!1 &881801474
 GameObject:
   m_ObjectHideFlags: 0
@@ -23314,7 +23335,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2507904850217580821}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -29080,7 +29101,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4055143179327212024}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -33917,7 +33938,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5528753488065685566}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -34459,7 +34480,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4699399570200737535}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -35534,7 +35555,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3652598594799783049}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
