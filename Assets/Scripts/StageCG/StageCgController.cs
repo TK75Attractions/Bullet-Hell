@@ -61,6 +61,7 @@ public class StageCgController : MonoBehaviour
     static readonly int CenterDarkenId = Shader.PropertyToID("_CenterDarken");
     static readonly int BossBrightnessId = Shader.PropertyToID("_BossBrightness");
     static readonly int FadeId = Shader.PropertyToID("_Fade");
+    static readonly int CgFadeId = Shader.PropertyToID("_CgFade");
     static readonly int CoreParamsId = Shader.PropertyToID("_StoneCgCoreParams");
     static readonly int CoreColorId = Shader.PropertyToID("_StoneCgCoreColor");
     static readonly int EmisGrp1Id = Shader.PropertyToID("_StoneCgEmisGrp1");
@@ -76,6 +77,8 @@ public class StageCgController : MonoBehaviour
     Mesh dustMesh;
     bool active;
     float introFade = 1f;
+    float cgFade = 1f;      // 終端の「背景だけ黒へ」(v34 #22)
+
     float currentExposureScale = 1f;
 
     /// <summary>いま使っているプロファイル（CG 非表示なら null）。</summary>
@@ -122,11 +125,13 @@ public class StageCgController : MonoBehaviour
 
     void OnEnable()
     {
+        instance = this;
         if (Application.isPlaying) StageCgIntro.Available = true;
     }
 
     void OnDisable()
     {
+        if (instance == this) instance = null;
         StageCgIntro.Available = false;
         StageCgIntro.ActiveProfile = null;
         ClearBossProxies();
@@ -165,6 +170,14 @@ public class StageCgController : MonoBehaviour
 
         ApplyGlobals(want);
         introFade = want.BlackFade(stageTime);
+        cgFade = want.CgBlackout(stageTime);
+        // v34 #23: 画面全体の黒フェード。白転（PixelTransition のモザイク）は残したまま、
+        // 石工だけ黒フェード経路へ回す（useBlackEnding）。
+        if (want.useBlackEnding)
+        {
+            PixelTransition pt = FindPixelTransition();
+            if (pt != null) pt.ApplyStageBlackout(want.ScreenBlackout(stageTime));
+        }
         UpdateStageFx(want, stageTime);
         ApplyCamera(want, stageTime);
         ApplyDisplay(want);
@@ -212,6 +225,7 @@ public class StageCgController : MonoBehaviour
         mpb.SetFloat(CenterDarkenId, p.centerDarken);
         mpb.SetFloat(BossBrightnessId, p.bossBrightness);
         mpb.SetFloat(FadeId, introFade);
+        mpb.SetFloat(CgFadeId, cgFade);
         displayQuad.SetPropertyBlock(mpb);
     }
 
@@ -291,7 +305,8 @@ public class StageCgController : MonoBehaviour
         proxyScratch.AddRange(bossProxies.Keys);
 
         int cgLayer = p.sceneRoot != null ? p.sceneRoot.layer : LayerMask.NameToLayer("StageCG");
-        float k = BossScaleFactor(p);
+        float stageTime = GManager.Control != null && GManager.Control.SReader != null
+            ? GManager.Control.SReader.CurrentTime : 0f;
 
         for (int i = 0; i < bossParent.childCount; i++)
         {
@@ -321,8 +336,16 @@ public class StageCgController : MonoBehaviour
             // 明度は表示板の _BossBrightness 側で掛けるので、ここでは元の色（フェード α）をそのまま。
             proxy.color = srcRenderer.color;
 
+            // v34: ボス個体ごとに奥行きを変えられる（老人が棚の奥へ回り込む）。
+            //   逆投影は画面上の位置・大きさを保つ写像なので、z を変えても見た目は動かず、
+            //   変わるのは CG のジオメトリとの前後関係（棚に隠れるかどうか）だけ。
+            Boss bossComponent = src.GetComponent<Boss>();
+            float depth = p.BossDepthAt(bossComponent != null ? bossComponent.bossId : null, stageTime);
+            float k = (36f + depth) / 36f;
+
             Vector3 pos = src.position;
-            proxy.transform.position = FieldToCgSpace(p, new Vector2(pos.x, pos.y));
+            proxy.transform.position = new Vector3(
+                16f + (pos.x - 16f) * k, 20f + (pos.y - 20f) * k, depth);
             proxy.transform.rotation = src.rotation;
             Vector3 sc = src.lossyScale;
             proxy.transform.localScale = new Vector3(sc.x * k, sc.y * k, 1f);
@@ -336,6 +359,35 @@ public class StageCgController : MonoBehaviour
             }
             bossProxies.Remove(proxyScratch[i]);
         }
+    }
+
+    static StageCgController instance;
+
+    /// <summary>
+    /// このステージが終端で黒フェードを使うか（石工 v34 #23）。GManager がリザルトへ移るときに
+    /// 白のピクセルモザイクと分岐するために使う。プロファイルが無いステージは false ＝従来どおり。
+    /// </summary>
+    public static bool UsesBlackEnding(StageData stage)
+    {
+        if (instance == null || stage == null) return false;
+        for (int i = 0; i < instance.profiles.Length; i++)
+        {
+            StageCgProfile p = instance.profiles[i];
+            if (p != null && p.Matches(stage)) return p.useBlackEnding;
+        }
+        return false;
+    }
+
+    PixelTransition cachedTransition;
+
+    /// <summary>終端の黒フェードで使う全画面の覆い（白転と同じ Canvas を色だけ変えて使う）。</summary>
+    PixelTransition FindPixelTransition()
+    {
+        if (cachedTransition != null) return cachedTransition;
+        PixelTransition[] found = FindObjectsByType<PixelTransition>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None);
+        cachedTransition = found.Length > 0 ? found[0] : null;
+        return cachedTransition;
     }
 
     void ClearBossProxies()

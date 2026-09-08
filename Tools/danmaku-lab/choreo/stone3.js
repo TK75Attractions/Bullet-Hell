@@ -723,31 +723,101 @@ const V28_FIN_BACK = beats(0.75);   // 戻す（ため）
 //   曲の構造でもここが 66.667s = bar 41 の頭で、直前の 65.0〜66.6 は音が薄くなる繋ぎ。
 //   「形態が変わる ＝ 攻撃の作りが変わる」を音の切れ目にそろえられる位置はここが最初。
 // v31 (3): 73.3228s から始まる右列タイル攻撃の直前へ送る。83 秒案は使わない。
-const BOSS_LAND_TIME = 72.94;           // 降下開始 72.106667s、着地 72.94s
+// --- v34 (2026-09-08): 敵アニメの指示書（23 マーカー・.tmp_cg/unity_goal5.md）------
+//   秒はすべて **ステージ秒**（指示書は石工 CG v3 の通し録画 stone_cg3 に打たれており、
+//   その録画は offset 補正済み ＝ 表の秒がそのままステージ時計の秒）。
+//   ここに置いた定数と 2 つのイベント表を install_stone3.py が読み取り、
+//   stone.json の bossSpawners（appearTime / lifeTime / fadeInSec / startPos /
+//   animation.events / moves）へ書き戻す。stone.json は手で編集しない。
+//   弾のバッファは一切参照していない（これらの const は choreo の弾生成から使われない）。
+
+// #10 ゴーレム着地 01:00.027。降下開始は 60.028 - 0.833333 = 59.194667。
+//   v31 までの着地は 72.94 で、CG の形態変化もそこに紐づいていた（→ 60.028 へ移す）。
+const BOSS_LAND_TIME = 60.028;
 const BOSS_DESCEND_SEC = 0.833333;      // 降下時間（moveto duration。v25 から据え置き）
-// v28: ステージ末尾を 113.6 → 142.5 へ延ばした（最後の大爆破 141.6533 + 余韻 0.85 秒。
-//   旧「石工」と同じ末尾）。本体の消滅は endTime の 0.695152 秒前という v25 からの関係を保つ。
-const BOSS_BODY_END_TIME = 143.554848;  // 本体の消滅時刻（endTime 144.25 の 0.695152 秒前）
-const BOSS_CASTER_APPEAR = 4.145404;    // 詠唱ボス（stone）の出現時刻（v25 から据え置き）
-// v33 (背景 CG 組み込み): 導入で空を見上げている間は 4.145s に出る詠唱ボスが空に浮いて見える。
-//   出現時刻は動かさず、フェードインの完了時刻でごまかす。
-// v33b (2026-09-08 導入作り直し): カメラの着地を 6.5s → 4.56s へ、自機の登場完了を 4.73s へ
-//   前倒ししたので、詠唱ボスも 5.3s 完了へ寄せる（5.3 - 4.145404）。4.7s 付近で見え始める。
-const BOSS_CASTER_FADE_IN = 1.154596;
-// v33c (2026-09-08 ユーザー指摘「詠唱ボスが棚の上に浮いている」): 詠唱ボス（stone）の中心 y。
-//   スプライトは 128px・pixelsPerUnit 100・scale 2.8 なので世界サイズは 3.584 ユニット角。
-//   不透明画素の下端は下から 24px（stone_idle.gif 実測・cast1〜6 も同じ）＝
-//   中心から下へ (64-24)/100*2.8 = 1.12 ユニット。
-//   ゴーレム（256px・下から 64px 余白・中心 13.64）の足元は 13.64 - 1.792 = 11.848 で、
-//   これが岩棚の天面に接地して見えている位置（.tmp_cg/progress.md の接地確認）。
-//   詠唱ボスの足元を同じ 11.848 に合わせると中心 = 11.848 + 1.12 = 12.968。
+
+// #23 02:26.719 で画面全体が黒 → リザルト。endTime は 144.25 → 147.0（音源は 150.02 秒）。
+//   ボス本体は「最後まで表示し続ける」（#22）ので消滅時刻を endTime と同じにする。
+//   v31 までの「endTime の 0.695152 秒前に消す」関係はここで廃止した。
+const STAGE_END_TIME = 147.0;
+const BOSS_BODY_END_TIME = 147.0;
+
+// #1 00:04.940「老人は曲の最初から表示。カメラ回転で表示するかんじ」。
+//   v33/v33b のフェードイン（4.145 出現・5.30 完了）は廃止し、曲頭から実体で置く。
+const BOSS_CASTER_APPEAR = 0.0;
+const BOSS_CASTER_FADE_IN = 0.0;
+// v33c: 詠唱ボス（stone）の中心 y。スプライト 128px・pixelsPerUnit 100・scale 2.8 で
+//   世界サイズ 3.584 ユニット角、不透明画素の下端は下から 24px ＝ 中心から下へ 1.12。
+//   ゴーレムの足元 11.848 に合わせると中心 = 12.968。
 const BOSS_CASTER_Y = 12.968;
-// v29 (6): 指示 52.302「敵は最前面に表示して」。ボス 3 体（降下 golem・本体 golem・詠唱 stone）の
-//   SpriteRenderer.sortingOrder。
-// v33 (背景 CG 組み込み・2026-09-07 ユーザー決定): 構図を「奥に CG の舞台 → その手前にボス →
-//   最前面に弾幕（不透明）」へ変更する。ボスを弾の背面へ落とすため 90 → -10。
-//   弾は DrawMeshInstancedIndirect（Transparent・sortingOrder 相当 0）なので -10 で必ず奥、
-//   背景 CG の表示板は不透明キューなのでさらに奥になる。自機の 100 は変えない。
+
+// #9 00:58.337「老人が後ろ（石版）の奥に移動。詠唱5で動かすといいかも」。
+//   58.337〜59.200 で棚の奥（CG 空間 z 5.5 → 9）へ引き、論理 y も +1.0 して
+//   棚の稜線の裏に入る高さにする。z の時間変化は StageCgProfile の bossDepthTracks 側。
+const BOSS_CASTER_BACK_START = 58.337;
+const BOSS_CASTER_BACK_SEC = 0.863;
+const BOSS_CASTER_BACK_Y = 13.968;
+
+// #11 01:03.344「老人がゴーレムのすぐ後ろまで移動し、飛び乗る」。
+//   63.345〜63.745 でゴーレムの頭の箱の高さ（中心 14.55・CG 空間 z 6.5）へ寄り、
+//   63.745〜64.095 で 2 次ベジェの放物線を描いて騎乗位置へ上がる。
+//   騎乗位置 15.964 の根拠: ゴーレム 256px・scale 2.8（＝7.168 ユニット）・中心 13.64 で、
+//   GIF 上の騎乗者の足元 y=85 は世界 y = 13.64 + (128-85)/100*2.8 = 14.844。
+//   詠唱ボスの足元は中心の 1.12 下なので中心 = 14.844 + 1.12 = 15.964。
+//   到達（64.095）で詠唱ボスは消え（lifeTime）、同時にゴーレムが騎乗者あり版へ変わる。
+const BOSS_MOUNT_START = 63.345;
+const BOSS_MOUNT_APPROACH_SEC = 0.4;
+const BOSS_MOUNT_APPROACH_Y = 14.55;    // 頭の箱（世界 y 14.284..14.816）の中央
+const BOSS_MOUNT_HOP_SEC = 0.35;
+const BOSS_MOUNT_Y = 15.964;
+const BOSS_MOUNT_ARC_Y = 16.9;          // ベジェの制御点（t=0.5 で 16.08 まで跳ね上がる）
+const BOSS_CASTER_END = 64.095;         // = BOSS_MOUNT_START + 0.4 + 0.35
+
+// 詠唱ボス（stone）のアニメ。秒はステージ秒（appearTime 0 なので相対 = 絶対）。
+//   指示書 #2〜#9。cast3 は 10 コマ×0.1s、cast4 は 7 コマ×0.1s、終わると idle へ戻る。
+const BOSS_CASTER_EVENTS = [
+  { "time": 33.360, "clip": "cast3", "note": "#2 詠唱3" },
+  { "time": 34.276, "clip": "cast4", "note": "#3 詠唱4" },
+  { "time": 40.041, "clip": "cast3", "note": "#4 詠唱3" },
+  { "time": 41.424, "clip": "cast4", "note": "#5 詠唱4" },
+  { "time": 46.672, "clip": "cast3", "note": "#6 詠唱3" },
+  { "time": 47.582, "clip": "cast4", "note": "#7 詠唱4" },
+  { "time": 56.718, "clip": "cast1", "note": "#8 詠唱1" },
+  { "time": 58.337, "clip": "cast5", "note": "#9 詠唱5（奥へ下がりながら）" }
+];
+
+// ゴーレム本体のアニメ。秒はステージ秒（install が appearTime=60.028 を引いて相対にする）。
+//   64.095 までは騎乗者なし版（*_norider）で、老人が飛び乗った瞬間に騎乗者あり版へ変わる。
+//   #15〜#17 の 3 連は #12〜#14 の間隔（0.792 / 0.903 秒）をそのまま写す。
+//   #20 は「両手を上げて保持」＝ bothSlam のコマ 3（0 始まり。腕が最も上がる絵で、
+//   元 GIF もこのコマだけ 400ms 保持している）で停止し、#21 でそこから残りを再生する。
+const BOSS_GOLEM_EVENTS = [
+  { "time": 64.095, "clip": "idle",      "note": "#11 騎乗完了（騎乗者あり版へ）" },
+  { "time": 66.770, "clip": "rightSlam", "note": "#12 右手" },
+  { "time": 67.562, "clip": "leftSlam",  "note": "#13 左手" },
+  { "time": 68.465, "clip": "bothSlam",  "note": "#14 両手" },
+  { "time": 73.323, "clip": "rightSlam", "note": "#15 右手" },
+  { "time": 74.115, "clip": "leftSlam",  "note": "#15 左手" },
+  { "time": 75.018, "clip": "bothSlam",  "note": "#15 両手" },
+  { "time": 79.961, "clip": "rightSlam", "note": "#16 右手" },
+  { "time": 80.753, "clip": "leftSlam",  "note": "#16 左手" },
+  { "time": 81.656, "clip": "bothSlam",  "note": "#16 両手" },
+  { "time": 86.710, "clip": "rightSlam", "note": "#17 右手" },
+  { "time": 87.502, "clip": "leftSlam",  "note": "#17 左手" },
+  { "time": 88.405, "clip": "bothSlam",  "note": "#17 両手" },
+  { "time": 98.398, "clip": "rightSlam", "note": "#18 右手" },
+  { "time": 98.962, "clip": "leftSlam",  "note": "#19 左手" },
+  { "time": 99.626, "clip": "bothSlam", "hold": true, "holdFrame": 3, "note": "#20 両手を上げて保持" },
+  { "time": 100.189, "resume": true,     "note": "#21 両手を下ろす（保持コマから続き）" }
+];
+
+// #22 02:21.745 背景を黒へ / #23 02:26.719 画面全体を黒へ。
+//   CG 側の値は StageCgProfile（シーン）に持つが、正本の秒はここに書いておく。
+const CG_BLACKOUT_TIME = 141.745;
+const CG_BLACKOUT_SEC = 0.6;
+const SCREEN_BLACKOUT_TIME = 146.72;
+const SCREEN_BLACKOUT_SEC = 0.4;
+
 const BOSS_SORTING_ORDER = -10;
 
 // --- v21: 指示書マーカー 18〜42（66.8〜103.3s）の採用時刻 ------------------------

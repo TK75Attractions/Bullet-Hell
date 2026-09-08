@@ -6129,6 +6129,21 @@ MonoBehaviour:
     centerDarken: 0.55
     bossBrightness: 0.5
     bossDepth: 5.5
+    bossDepthTracks:
+    - bossId: caster
+      keys:
+      - time: 0
+        depth: 5.5
+      - time: 58.337
+        depth: 5.5
+      - time: 59.2
+        depth: 9
+      - time: 63.345
+        depth: 9
+      - time: 63.745
+        depth: 6.5
+      - time: 64.095
+        depth: 5.3
     sunFrom: {x: -30, y: 55, z: -12}
     sunTo: {x: 16, y: 2, z: 12}
     sunColorLinear: {x: 0.64, y: 0.59, z: 1}
@@ -6152,7 +6167,7 @@ MonoBehaviour:
     beatPulse: 0.2
     beatDecaySec: 0.15
     phase: 1
-    phaseTime: 72.94
+    phaseTime: 60.028
     phaseCrossfadeSec: 0.5
     hideInPhase2: []
     descendSec: 0.833333
@@ -6179,6 +6194,11 @@ MonoBehaviour:
     fogDriftRange: 0.9
     dustDriftSpeed: 0.1
     dustDriftRange: 1.2
+    useBlackEnding: 1
+    cgBlackoutTime: 141.745
+    cgBlackoutSec: 0.6
+    screenBlackoutTime: 146.72
+    screenBlackoutSec: 0.4
   - stageDirectory: captain
     stageNameFallback: Captain
     sceneRoot: {fileID: 2096961545931297563}
@@ -6186,6 +6206,7 @@ MonoBehaviour:
     centerDarken: 0.55
     bossBrightness: 0.5
     bossDepth: 6
+    bossDepthTracks: []
     sunFrom: {x: -25, y: 60, z: -20}
     sunTo: {x: 16, y: -3, z: 15}
     sunColorLinear: {x: 0.67, y: 0.81, z: 1}
@@ -6245,6 +6266,11 @@ MonoBehaviour:
     fogDriftRange: 0.9
     dustDriftSpeed: 0.1
     dustDriftRange: 1.2
+    useBlackEnding: 0
+    cgBlackoutTime: 141.745
+    cgBlackoutSec: 0.6
+    screenBlackoutTime: 146.72
+    screenBlackoutSec: 0.4
   - stageDirectory: vagrant
     stageNameFallback: "\u6D6E\u6D6A\u8005"
     sceneRoot: {fileID: 2619162719476133728}
@@ -6252,6 +6278,7 @@ MonoBehaviour:
     centerDarken: 0.55
     bossBrightness: 0.5
     bossDepth: 6
+    bossDepthTracks: []
     sunFrom: {x: -24, y: 55, z: -18}
     sunTo: {x: 16, y: 1, z: 17}
     sunColorLinear: {x: 0.78, y: 0.9, z: 1}
@@ -6304,6 +6331,11 @@ MonoBehaviour:
     fogDriftRange: 0.8
     dustDriftSpeed: 0.35
     dustDriftRange: 1
+    useBlackEnding: 0
+    cgBlackoutTime: 141.745
+    cgBlackoutSec: 0.6
+    screenBlackoutTime: 146.72
+    screenBlackoutSec: 0.4
   cgCamera: {fileID: 1941531419}
   displayQuad: {fileID: 423558164}
   quadSortingOrder: -20

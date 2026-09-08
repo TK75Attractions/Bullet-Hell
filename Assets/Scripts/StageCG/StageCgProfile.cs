@@ -18,6 +18,31 @@ public enum StageCgPhaseKind
 }
 
 /// <summary>
+/// ボス 1 体ぶんの「時刻 → CG 空間の奥行き z」。石工 v34 で老人が岩棚の奥へ回り込み、
+/// ゴーレムの後ろから飛び乗るために足した。キーの間は線形補間する。
+/// </summary>
+[Serializable]
+public class StageCgBossDepthKey
+{
+    [Tooltip("ステージ秒。")]
+    public float time;
+    [Tooltip("その時刻の奥行き z（プロファイルの bossDepth と同じ意味）。")]
+    public float depth = 5.5f;
+}
+
+/// <summary>
+/// 1 体のボス（bossSpawner の bossId）に対する奥行きの上書き。
+/// bossId が一致しないボスと、トラックを持たないステージは bossDepth のまま。
+/// </summary>
+[Serializable]
+public class StageCgBossDepthTrack
+{
+    [Tooltip("stone.json の bossSpawner.bossId。")]
+    public string bossId = "";
+    public StageCgBossDepthKey[] keys = new StageCgBossDepthKey[0];
+}
+
+/// <summary>
 /// ステージ 1 本ぶんの背景 CG 設定。<see cref="StageCgController"/> が
 /// ステージ id で 1 つ選び、その値だけを使って描く。
 ///
@@ -44,6 +69,8 @@ public class StageCgProfile
     [Range(0f, 2f)] public float bossBrightness = 0.5f;
     [Tooltip("ボスを置く奥行き。舞台の手前縁と同じ z。")]
     public float bossDepth = 5.5f;
+    [Tooltip("ボス個体ごとに奥行きを時間で上書きする（石工の老人が棚の奥へ回り込む用）。空なら bossDepth のまま。")]
+    public StageCgBossDepthTrack[] bossDepthTracks = new StageCgBossDepthTrack[0];
 
     [Header("ライティング（Blender 側の数値をリニアで再現）")]
     public Vector3 sunFrom = new Vector3(-30f, 55f, -12f);
@@ -91,8 +118,8 @@ public class StageCgProfile
 
     [Header("形態変化")]
     public StageCgPhaseKind phase = StageCgPhaseKind.None;
-    [Tooltip("フェーズが切り替わるステージ秒。石工 72.94 / 艦長 35.2 / 浮浪者 45.714。")]
-    public float phaseTime = 72.94f;
+    [Tooltip("フェーズが切り替わるステージ秒。石工 60.028（v34 で 72.94 から移動）/ 艦長 35.2 / 浮浪者 45.714。")]
+    public float phaseTime = 60.028f;
     [Tooltip("p1_* → p2_* のクロスフェードにかける時間。")]
     public float phaseCrossfadeSec = 0.5f;
     [Tooltip("第 2 フェーズで隠す既存オブジェクトの名前（前方一致）。")]
@@ -133,6 +160,54 @@ public class StageCgProfile
     [Tooltip("p1_dust_* が横へ流れる速さ。")]
     public float dustDriftSpeed = 0.10f;
     public float dustDriftRange = 1.2f;
+
+    [Header("終端の暗転（石工 v34・指示書 #22 #23）")]
+    [Tooltip("true のとき、白転（PixelTransition のモザイク）ではなく黒フェードでリザルトへ移る。")]
+    public bool useBlackEnding = false;
+    [Tooltip("#22 背景 CG だけを黒へ落とし始めるステージ秒。ボスはそのまま見え続ける。")]
+    public float cgBlackoutTime = 141.745f;
+    public float cgBlackoutSec = 0.6f;
+    [Tooltip("#23 画面全体を黒へ落とし始めるステージ秒（ボスも弾も含む）。")]
+    public float screenBlackoutTime = 146.72f;
+    public float screenBlackoutSec = 0.4f;
+
+    /// <summary>背景 CG だけに掛ける減光 1..0（1=そのまま / 0=真っ黒）。ボスには掛からない。</summary>
+    public float CgBlackout(float stageTime)
+    {
+        if (!useBlackEnding) return 1f;
+        float u = Mathf.Clamp01((stageTime - cgBlackoutTime) / Mathf.Max(1e-4f, cgBlackoutSec));
+        return 1f - u * u * (3f - 2f * u);
+    }
+
+    /// <summary>画面全体を覆う黒の濃さ 0..1。</summary>
+    public float ScreenBlackout(float stageTime)
+    {
+        if (!useBlackEnding) return 0f;
+        float u = Mathf.Clamp01((stageTime - screenBlackoutTime) / Mathf.Max(1e-4f, screenBlackoutSec));
+        return u * u * (3f - 2f * u);
+    }
+
+    /// <summary>ボス個体の奥行き。トラックが無ければ bossDepth。</summary>
+    public float BossDepthAt(string bossId, float stageTime)
+    {
+        if (bossDepthTracks == null || string.IsNullOrEmpty(bossId)) return bossDepth;
+        for (int i = 0; i < bossDepthTracks.Length; i++)
+        {
+            StageCgBossDepthTrack track = bossDepthTracks[i];
+            if (track == null || track.bossId != bossId || track.keys == null || track.keys.Length == 0) continue;
+            StageCgBossDepthKey[] k = track.keys;
+            if (stageTime <= k[0].time) return k[0].depth;
+            for (int j = 1; j < k.Length; j++)
+            {
+                if (stageTime > k[j].time) continue;
+                float span = Mathf.Max(1e-4f, k[j].time - k[j - 1].time);
+                float u = Mathf.Clamp01((stageTime - k[j - 1].time) / span);
+                return Mathf.Lerp(k[j - 1].depth, k[j].depth, u * u * (3f - 2f * u));
+            }
+            return k[k.Length - 1].depth;
+        }
+        return bossDepth;
+    }
 
     /// <summary>このプロファイルがそのステージのものか。</summary>
     public bool Matches(StageData stage)

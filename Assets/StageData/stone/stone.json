@@ -15,7 +15,7 @@
         }
     ],
     "delayTime": 0.0,
-    "endTime": 144.25,
+    "endTime": 147.0,
     "whiteoutCoverTime": 0.8,
     "stageDescription": "べにぐち",
     "enemyVisuals": [
@@ -141,6 +141,55 @@
                     "path": "golem_both_slam.gif",
                     "loop": false,
                     "next": "idle",
+                    "frameDuration": 0.1
+                },
+                {
+                    "name": "idleNorider",
+                    "path": "golem_idle_norider.gif",
+                    "loop": true,
+                    "frameDuration": 0.1,
+                    "maxFrames": 1
+                },
+                {
+                    "name": "fall1Norider",
+                    "path": "golem_fall1_norider.gif",
+                    "loop": false,
+                    "next": "idleNorider",
+                    "frameDuration": 0.1
+                },
+                {
+                    "name": "fall1_descendNorider",
+                    "path": "golem_fall1_descend_norider.gif",
+                    "loop": false,
+                    "next": "idleNorider",
+                    "frameDuration": 0.1
+                },
+                {
+                    "name": "fall2Norider",
+                    "path": "golem_fall2_norider.gif",
+                    "loop": false,
+                    "next": "idleNorider",
+                    "frameDuration": 0.1
+                },
+                {
+                    "name": "leftSlamNorider",
+                    "path": "golem_left_slam_norider.gif",
+                    "loop": false,
+                    "next": "idleNorider",
+                    "frameDuration": 0.1
+                },
+                {
+                    "name": "rightSlamNorider",
+                    "path": "golem_right_slam_norider.gif",
+                    "loop": false,
+                    "next": "idleNorider",
+                    "frameDuration": 0.1
+                },
+                {
+                    "name": "bothSlamNorider",
+                    "path": "golem_both_slam_norider.gif",
+                    "loop": false,
+                    "next": "idleNorider",
                     "frameDuration": 0.1
                 }
             ]
@@ -35550,10 +35599,10 @@
             ],
             "bossSpawners": [
                 {
-                    "bossId": "",
+                    "bossId": "golem_descend",
                     "bossName": "demo",
                     "visualId": "golem",
-                    "appearTime": 72.106667,
+                    "appearTime": 59.194667,
                     "lifeTime": 0.833333,
                     "maxHp": 100.0,
                     "startPos": {
@@ -35569,7 +35618,7 @@
                     "fadeInSec": 0.0,
                     "fadeOutSec": 0.0,
                     "animation": {
-                        "initialClip": "fall1_descend",
+                        "initialClip": "fall1_descendNorider",
                         "events": [],
                         "triggers": []
                     },
@@ -35592,11 +35641,11 @@
                     ]
                 },
                 {
-                    "bossId": "",
+                    "bossId": "golem",
                     "bossName": "demo",
                     "visualId": "golem",
-                    "appearTime": 72.94,
-                    "lifeTime": 70.614848,
+                    "appearTime": 60.028,
+                    "lifeTime": 86.972,
                     "maxHp": 100.0,
                     "startPos": {
                         "x": 16,
@@ -35611,47 +35660,95 @@
                     "fadeInSec": 0.0,
                     "fadeOutSec": 0.0,
                     "animation": {
-                        "initialClip": "fall2",
+                        "initialClip": "fall2Norider",
                         "events": [
                             {
-                                "time": 2.65731,
-                                "clip": "leftSlam",
+                                "time": 4.067,
+                                "clip": "idle",
                                 "next": "idle"
                             },
                             {
-                                "time": 3.321638,
+                                "time": 6.742,
                                 "clip": "rightSlam",
                                 "next": "idle"
                             },
                             {
-                                "time": 3.985965,
+                                "time": 7.534,
                                 "clip": "leftSlam",
                                 "next": "idle"
                             },
                             {
-                                "time": 4.650292,
+                                "time": 8.437,
                                 "clip": "bothSlam",
                                 "next": "idle"
                             },
                             {
-                                "time": 7.97193,
-                                "clip": "leftSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 8.636257,
+                                "time": 13.295,
                                 "clip": "rightSlam",
                                 "next": "idle"
                             },
                             {
-                                "time": 9.300585,
+                                "time": 14.087,
+                                "clip": "leftSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 14.99,
                                 "clip": "bothSlam",
                                 "next": "idle"
                             },
                             {
-                                "time": 10.62924,
+                                "time": 19.933,
+                                "clip": "rightSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 20.725,
+                                "clip": "leftSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 21.628,
                                 "clip": "bothSlam",
                                 "next": "idle"
+                            },
+                            {
+                                "time": 26.682,
+                                "clip": "rightSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 27.474,
+                                "clip": "leftSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 28.377,
+                                "clip": "bothSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 38.37,
+                                "clip": "rightSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 38.934,
+                                "clip": "leftSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 39.598,
+                                "clip": "bothSlam",
+                                "next": "idle",
+                                "hold": true,
+                                "holdFrame": 3
+                            },
+                            {
+                                "time": 40.161,
+                                "clip": "",
+                                "next": "",
+                                "resume": true
                             }
                         ],
                         "triggers": []
@@ -35659,11 +35756,11 @@
                     "moves": []
                 },
                 {
-                    "bossId": "",
+                    "bossId": "caster",
                     "bossName": "demo",
                     "visualId": "stone",
-                    "appearTime": 4.145404,
-                    "lifeTime": 68.794596,
+                    "appearTime": 0.0,
+                    "lifeTime": 64.095,
                     "maxHp": 100.0,
                     "startPos": {
                         "x": 16,
@@ -35675,95 +35772,101 @@
                     },
                     "angle": 0.0,
                     "sortingOrder": -10,
-                    "fadeInSec": 1.154596,
-                    "fadeOutSec": 0.4,
+                    "fadeInSec": 0.0,
+                    "fadeOutSec": 0.0,
                     "animation": {
                         "initialClip": "idle",
                         "events": [
                             {
-                                "time": 1.169482,
-                                "clip": "cast1",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 3.826526,
-                                "clip": "cast2",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 6.483571,
-                                "clip": "cast1",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 9.141412,
-                                "clip": "cast2",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 11.798456,
+                                "time": 33.36,
                                 "clip": "cast3",
                                 "next": "idle"
                             },
                             {
-                                "time": 17.113342,
+                                "time": 34.276,
+                                "clip": "cast4",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 40.041,
                                 "clip": "cast3",
                                 "next": "idle"
                             },
                             {
-                                "time": 22.42743,
+                                "time": 41.424,
                                 "clip": "cast4",
                                 "next": "idle"
                             },
                             {
-                                "time": 23.423921,
+                                "time": 46.672,
+                                "clip": "cast3",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 47.582,
                                 "clip": "cast4",
                                 "next": "idle"
                             },
                             {
-                                "time": 25.085272,
-                                "clip": "cast5",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 28.738807,
-                                "clip": "cast5",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 31.728281,
-                                "clip": "cast6",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 37.840359,
-                                "clip": "cast6",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 41.029131,
+                                "time": 56.718,
                                 "clip": "cast1",
                                 "next": "idle"
                             },
                             {
-                                "time": 43.353746,
-                                "clip": "cast2",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 45.015096,
-                                "clip": "cast4",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 45.679158,
+                                "time": 58.337,
                                 "clip": "cast5",
                                 "next": "idle"
                             }
                         ],
                         "triggers": []
                     },
-                    "moves": []
+                    "moves": [
+                        {
+                            "time": 58.337,
+                            "duration": 0.863,
+                            "type": "moveto",
+                            "to": {
+                                "x": 16,
+                                "y": 13.968
+                            },
+                            "control": {
+                                "x": 0,
+                                "y": 0
+                            },
+                            "easing": "easeinoutsine",
+                            "relative": false
+                        },
+                        {
+                            "time": 63.345,
+                            "duration": 0.4,
+                            "type": "moveto",
+                            "to": {
+                                "x": 16,
+                                "y": 14.55
+                            },
+                            "control": {
+                                "x": 0,
+                                "y": 0
+                            },
+                            "easing": "easeinoutsine",
+                            "relative": false
+                        },
+                        {
+                            "time": 63.745,
+                            "duration": 0.35,
+                            "type": "bezierto",
+                            "to": {
+                                "x": 16,
+                                "y": 15.964
+                            },
+                            "control": {
+                                "x": 16,
+                                "y": 16.9
+                            },
+                            "easing": "linear",
+                            "relative": false
+                        }
+                    ]
                 }
             ]
         },
@@ -72435,10 +72538,10 @@
             ],
             "bossSpawners": [
                 {
-                    "bossId": "",
+                    "bossId": "golem_descend",
                     "bossName": "demo",
                     "visualId": "golem",
-                    "appearTime": 72.106667,
+                    "appearTime": 59.194667,
                     "lifeTime": 0.833333,
                     "maxHp": 100.0,
                     "startPos": {
@@ -72454,7 +72557,7 @@
                     "fadeInSec": 0.0,
                     "fadeOutSec": 0.0,
                     "animation": {
-                        "initialClip": "fall1_descend",
+                        "initialClip": "fall1_descendNorider",
                         "events": [],
                         "triggers": []
                     },
@@ -72477,11 +72580,11 @@
                     ]
                 },
                 {
-                    "bossId": "",
+                    "bossId": "golem",
                     "bossName": "demo",
                     "visualId": "golem",
-                    "appearTime": 72.94,
-                    "lifeTime": 70.614848,
+                    "appearTime": 60.028,
+                    "lifeTime": 86.972,
                     "maxHp": 100.0,
                     "startPos": {
                         "x": 16,
@@ -72496,47 +72599,95 @@
                     "fadeInSec": 0.0,
                     "fadeOutSec": 0.0,
                     "animation": {
-                        "initialClip": "fall2",
+                        "initialClip": "fall2Norider",
                         "events": [
                             {
-                                "time": 2.65731,
-                                "clip": "leftSlam",
+                                "time": 4.067,
+                                "clip": "idle",
                                 "next": "idle"
                             },
                             {
-                                "time": 3.321638,
+                                "time": 6.742,
                                 "clip": "rightSlam",
                                 "next": "idle"
                             },
                             {
-                                "time": 3.985965,
+                                "time": 7.534,
                                 "clip": "leftSlam",
                                 "next": "idle"
                             },
                             {
-                                "time": 4.650292,
+                                "time": 8.437,
                                 "clip": "bothSlam",
                                 "next": "idle"
                             },
                             {
-                                "time": 7.97193,
-                                "clip": "leftSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 8.636257,
+                                "time": 13.295,
                                 "clip": "rightSlam",
                                 "next": "idle"
                             },
                             {
-                                "time": 9.300585,
+                                "time": 14.087,
+                                "clip": "leftSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 14.99,
                                 "clip": "bothSlam",
                                 "next": "idle"
                             },
                             {
-                                "time": 10.62924,
+                                "time": 19.933,
+                                "clip": "rightSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 20.725,
+                                "clip": "leftSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 21.628,
                                 "clip": "bothSlam",
                                 "next": "idle"
+                            },
+                            {
+                                "time": 26.682,
+                                "clip": "rightSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 27.474,
+                                "clip": "leftSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 28.377,
+                                "clip": "bothSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 38.37,
+                                "clip": "rightSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 38.934,
+                                "clip": "leftSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 39.598,
+                                "clip": "bothSlam",
+                                "next": "idle",
+                                "hold": true,
+                                "holdFrame": 3
+                            },
+                            {
+                                "time": 40.161,
+                                "clip": "",
+                                "next": "",
+                                "resume": true
                             }
                         ],
                         "triggers": []
@@ -72544,11 +72695,11 @@
                     "moves": []
                 },
                 {
-                    "bossId": "",
+                    "bossId": "caster",
                     "bossName": "demo",
                     "visualId": "stone",
-                    "appearTime": 4.145404,
-                    "lifeTime": 68.794596,
+                    "appearTime": 0.0,
+                    "lifeTime": 64.095,
                     "maxHp": 100.0,
                     "startPos": {
                         "x": 16,
@@ -72560,95 +72711,101 @@
                     },
                     "angle": 0.0,
                     "sortingOrder": -10,
-                    "fadeInSec": 1.154596,
-                    "fadeOutSec": 0.4,
+                    "fadeInSec": 0.0,
+                    "fadeOutSec": 0.0,
                     "animation": {
                         "initialClip": "idle",
                         "events": [
                             {
-                                "time": 1.169482,
-                                "clip": "cast1",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 3.826526,
-                                "clip": "cast2",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 6.483571,
-                                "clip": "cast1",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 9.141412,
-                                "clip": "cast2",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 11.798456,
+                                "time": 33.36,
                                 "clip": "cast3",
                                 "next": "idle"
                             },
                             {
-                                "time": 17.113342,
+                                "time": 34.276,
+                                "clip": "cast4",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 40.041,
                                 "clip": "cast3",
                                 "next": "idle"
                             },
                             {
-                                "time": 22.42743,
+                                "time": 41.424,
                                 "clip": "cast4",
                                 "next": "idle"
                             },
                             {
-                                "time": 23.423921,
+                                "time": 46.672,
+                                "clip": "cast3",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 47.582,
                                 "clip": "cast4",
                                 "next": "idle"
                             },
                             {
-                                "time": 25.085272,
-                                "clip": "cast5",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 28.738807,
-                                "clip": "cast5",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 31.728281,
-                                "clip": "cast6",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 37.840359,
-                                "clip": "cast6",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 41.029131,
+                                "time": 56.718,
                                 "clip": "cast1",
                                 "next": "idle"
                             },
                             {
-                                "time": 43.353746,
-                                "clip": "cast2",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 45.015096,
-                                "clip": "cast4",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 45.679158,
+                                "time": 58.337,
                                 "clip": "cast5",
                                 "next": "idle"
                             }
                         ],
                         "triggers": []
                     },
-                    "moves": []
+                    "moves": [
+                        {
+                            "time": 58.337,
+                            "duration": 0.863,
+                            "type": "moveto",
+                            "to": {
+                                "x": 16,
+                                "y": 13.968
+                            },
+                            "control": {
+                                "x": 0,
+                                "y": 0
+                            },
+                            "easing": "easeinoutsine",
+                            "relative": false
+                        },
+                        {
+                            "time": 63.345,
+                            "duration": 0.4,
+                            "type": "moveto",
+                            "to": {
+                                "x": 16,
+                                "y": 14.55
+                            },
+                            "control": {
+                                "x": 0,
+                                "y": 0
+                            },
+                            "easing": "easeinoutsine",
+                            "relative": false
+                        },
+                        {
+                            "time": 63.745,
+                            "duration": 0.35,
+                            "type": "bezierto",
+                            "to": {
+                                "x": 16,
+                                "y": 15.964
+                            },
+                            "control": {
+                                "x": 16,
+                                "y": 16.9
+                            },
+                            "easing": "linear",
+                            "relative": false
+                        }
+                    ]
                 }
             ]
         },
@@ -109688,10 +109845,10 @@
             ],
             "bossSpawners": [
                 {
-                    "bossId": "",
+                    "bossId": "golem_descend",
                     "bossName": "demo",
                     "visualId": "golem",
-                    "appearTime": 72.106667,
+                    "appearTime": 59.194667,
                     "lifeTime": 0.833333,
                     "maxHp": 100.0,
                     "startPos": {
@@ -109707,7 +109864,7 @@
                     "fadeInSec": 0.0,
                     "fadeOutSec": 0.0,
                     "animation": {
-                        "initialClip": "fall1_descend",
+                        "initialClip": "fall1_descendNorider",
                         "events": [],
                         "triggers": []
                     },
@@ -109730,11 +109887,11 @@
                     ]
                 },
                 {
-                    "bossId": "",
+                    "bossId": "golem",
                     "bossName": "demo",
                     "visualId": "golem",
-                    "appearTime": 72.94,
-                    "lifeTime": 70.614848,
+                    "appearTime": 60.028,
+                    "lifeTime": 86.972,
                     "maxHp": 100.0,
                     "startPos": {
                         "x": 16,
@@ -109749,47 +109906,95 @@
                     "fadeInSec": 0.0,
                     "fadeOutSec": 0.0,
                     "animation": {
-                        "initialClip": "fall2",
+                        "initialClip": "fall2Norider",
                         "events": [
                             {
-                                "time": 2.65731,
-                                "clip": "leftSlam",
+                                "time": 4.067,
+                                "clip": "idle",
                                 "next": "idle"
                             },
                             {
-                                "time": 3.321638,
+                                "time": 6.742,
                                 "clip": "rightSlam",
                                 "next": "idle"
                             },
                             {
-                                "time": 3.985965,
+                                "time": 7.534,
                                 "clip": "leftSlam",
                                 "next": "idle"
                             },
                             {
-                                "time": 4.650292,
+                                "time": 8.437,
                                 "clip": "bothSlam",
                                 "next": "idle"
                             },
                             {
-                                "time": 7.97193,
-                                "clip": "leftSlam",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 8.636257,
+                                "time": 13.295,
                                 "clip": "rightSlam",
                                 "next": "idle"
                             },
                             {
-                                "time": 9.300585,
+                                "time": 14.087,
+                                "clip": "leftSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 14.99,
                                 "clip": "bothSlam",
                                 "next": "idle"
                             },
                             {
-                                "time": 10.62924,
+                                "time": 19.933,
+                                "clip": "rightSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 20.725,
+                                "clip": "leftSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 21.628,
                                 "clip": "bothSlam",
                                 "next": "idle"
+                            },
+                            {
+                                "time": 26.682,
+                                "clip": "rightSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 27.474,
+                                "clip": "leftSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 28.377,
+                                "clip": "bothSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 38.37,
+                                "clip": "rightSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 38.934,
+                                "clip": "leftSlam",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 39.598,
+                                "clip": "bothSlam",
+                                "next": "idle",
+                                "hold": true,
+                                "holdFrame": 3
+                            },
+                            {
+                                "time": 40.161,
+                                "clip": "",
+                                "next": "",
+                                "resume": true
                             }
                         ],
                         "triggers": []
@@ -109797,11 +110002,11 @@
                     "moves": []
                 },
                 {
-                    "bossId": "",
+                    "bossId": "caster",
                     "bossName": "demo",
                     "visualId": "stone",
-                    "appearTime": 4.145404,
-                    "lifeTime": 68.794596,
+                    "appearTime": 0.0,
+                    "lifeTime": 64.095,
                     "maxHp": 100.0,
                     "startPos": {
                         "x": 16,
@@ -109813,95 +110018,101 @@
                     },
                     "angle": 0.0,
                     "sortingOrder": -10,
-                    "fadeInSec": 1.154596,
-                    "fadeOutSec": 0.4,
+                    "fadeInSec": 0.0,
+                    "fadeOutSec": 0.0,
                     "animation": {
                         "initialClip": "idle",
                         "events": [
                             {
-                                "time": 1.169482,
-                                "clip": "cast1",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 3.826526,
-                                "clip": "cast2",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 6.483571,
-                                "clip": "cast1",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 9.141412,
-                                "clip": "cast2",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 11.798456,
+                                "time": 33.36,
                                 "clip": "cast3",
                                 "next": "idle"
                             },
                             {
-                                "time": 17.113342,
+                                "time": 34.276,
+                                "clip": "cast4",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 40.041,
                                 "clip": "cast3",
                                 "next": "idle"
                             },
                             {
-                                "time": 22.42743,
+                                "time": 41.424,
                                 "clip": "cast4",
                                 "next": "idle"
                             },
                             {
-                                "time": 23.423921,
+                                "time": 46.672,
+                                "clip": "cast3",
+                                "next": "idle"
+                            },
+                            {
+                                "time": 47.582,
                                 "clip": "cast4",
                                 "next": "idle"
                             },
                             {
-                                "time": 25.085272,
-                                "clip": "cast5",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 28.738807,
-                                "clip": "cast5",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 31.728281,
-                                "clip": "cast6",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 37.840359,
-                                "clip": "cast6",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 41.029131,
+                                "time": 56.718,
                                 "clip": "cast1",
                                 "next": "idle"
                             },
                             {
-                                "time": 43.353746,
-                                "clip": "cast2",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 45.015096,
-                                "clip": "cast4",
-                                "next": "idle"
-                            },
-                            {
-                                "time": 45.679158,
+                                "time": 58.337,
                                 "clip": "cast5",
                                 "next": "idle"
                             }
                         ],
                         "triggers": []
                     },
-                    "moves": []
+                    "moves": [
+                        {
+                            "time": 58.337,
+                            "duration": 0.863,
+                            "type": "moveto",
+                            "to": {
+                                "x": 16,
+                                "y": 13.968
+                            },
+                            "control": {
+                                "x": 0,
+                                "y": 0
+                            },
+                            "easing": "easeinoutsine",
+                            "relative": false
+                        },
+                        {
+                            "time": 63.345,
+                            "duration": 0.4,
+                            "type": "moveto",
+                            "to": {
+                                "x": 16,
+                                "y": 14.55
+                            },
+                            "control": {
+                                "x": 0,
+                                "y": 0
+                            },
+                            "easing": "easeinoutsine",
+                            "relative": false
+                        },
+                        {
+                            "time": 63.745,
+                            "duration": 0.35,
+                            "type": "bezierto",
+                            "to": {
+                                "x": 16,
+                                "y": 15.964
+                            },
+                            "control": {
+                                "x": 16,
+                                "y": 16.9
+                            },
+                            "easing": "linear",
+                            "relative": false
+                        }
+                    ]
                 }
             ]
         }
@@ -109909,10 +110120,10 @@
     "multiBulletSpawners": [],
     "bossSpawners": [
         {
-            "bossId": "",
+            "bossId": "golem_descend",
             "bossName": "demo",
             "visualId": "golem",
-            "appearTime": 72.106667,
+            "appearTime": 59.194667,
             "lifeTime": 0.833333,
             "maxHp": 100.0,
             "startPos": {
@@ -109928,7 +110139,7 @@
             "fadeInSec": 0.0,
             "fadeOutSec": 0.0,
             "animation": {
-                "initialClip": "fall1_descend",
+                "initialClip": "fall1_descendNorider",
                 "events": [],
                 "triggers": []
             },
@@ -109951,11 +110162,11 @@
             ]
         },
         {
-            "bossId": "",
+            "bossId": "golem",
             "bossName": "demo",
             "visualId": "golem",
-            "appearTime": 72.94,
-            "lifeTime": 70.614848,
+            "appearTime": 60.028,
+            "lifeTime": 86.972,
             "maxHp": 100.0,
             "startPos": {
                 "x": 16,
@@ -109970,47 +110181,95 @@
             "fadeInSec": 0.0,
             "fadeOutSec": 0.0,
             "animation": {
-                "initialClip": "fall2",
+                "initialClip": "fall2Norider",
                 "events": [
                     {
-                        "time": 2.65731,
-                        "clip": "leftSlam",
+                        "time": 4.067,
+                        "clip": "idle",
                         "next": "idle"
                     },
                     {
-                        "time": 3.321638,
+                        "time": 6.742,
                         "clip": "rightSlam",
                         "next": "idle"
                     },
                     {
-                        "time": 3.985965,
+                        "time": 7.534,
                         "clip": "leftSlam",
                         "next": "idle"
                     },
                     {
-                        "time": 4.650292,
+                        "time": 8.437,
                         "clip": "bothSlam",
                         "next": "idle"
                     },
                     {
-                        "time": 7.97193,
-                        "clip": "leftSlam",
-                        "next": "idle"
-                    },
-                    {
-                        "time": 8.636257,
+                        "time": 13.295,
                         "clip": "rightSlam",
                         "next": "idle"
                     },
                     {
-                        "time": 9.300585,
+                        "time": 14.087,
+                        "clip": "leftSlam",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 14.99,
                         "clip": "bothSlam",
                         "next": "idle"
                     },
                     {
-                        "time": 10.62924,
+                        "time": 19.933,
+                        "clip": "rightSlam",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 20.725,
+                        "clip": "leftSlam",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 21.628,
                         "clip": "bothSlam",
                         "next": "idle"
+                    },
+                    {
+                        "time": 26.682,
+                        "clip": "rightSlam",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 27.474,
+                        "clip": "leftSlam",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 28.377,
+                        "clip": "bothSlam",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 38.37,
+                        "clip": "rightSlam",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 38.934,
+                        "clip": "leftSlam",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 39.598,
+                        "clip": "bothSlam",
+                        "next": "idle",
+                        "hold": true,
+                        "holdFrame": 3
+                    },
+                    {
+                        "time": 40.161,
+                        "clip": "",
+                        "next": "",
+                        "resume": true
                     }
                 ],
                 "triggers": []
@@ -110018,11 +110277,11 @@
             "moves": []
         },
         {
-            "bossId": "",
+            "bossId": "caster",
             "bossName": "demo",
             "visualId": "stone",
-            "appearTime": 4.145404,
-            "lifeTime": 68.794596,
+            "appearTime": 0.0,
+            "lifeTime": 64.095,
             "maxHp": 100.0,
             "startPos": {
                 "x": 16,
@@ -110034,95 +110293,101 @@
             },
             "angle": 0.0,
             "sortingOrder": -10,
-            "fadeInSec": 1.154596,
-            "fadeOutSec": 0.4,
+            "fadeInSec": 0.0,
+            "fadeOutSec": 0.0,
             "animation": {
                 "initialClip": "idle",
                 "events": [
                     {
-                        "time": 1.169482,
-                        "clip": "cast1",
-                        "next": "idle"
-                    },
-                    {
-                        "time": 3.826526,
-                        "clip": "cast2",
-                        "next": "idle"
-                    },
-                    {
-                        "time": 6.483571,
-                        "clip": "cast1",
-                        "next": "idle"
-                    },
-                    {
-                        "time": 9.141412,
-                        "clip": "cast2",
-                        "next": "idle"
-                    },
-                    {
-                        "time": 11.798456,
+                        "time": 33.36,
                         "clip": "cast3",
                         "next": "idle"
                     },
                     {
-                        "time": 17.113342,
+                        "time": 34.276,
+                        "clip": "cast4",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 40.041,
                         "clip": "cast3",
                         "next": "idle"
                     },
                     {
-                        "time": 22.42743,
+                        "time": 41.424,
                         "clip": "cast4",
                         "next": "idle"
                     },
                     {
-                        "time": 23.423921,
+                        "time": 46.672,
+                        "clip": "cast3",
+                        "next": "idle"
+                    },
+                    {
+                        "time": 47.582,
                         "clip": "cast4",
                         "next": "idle"
                     },
                     {
-                        "time": 25.085272,
-                        "clip": "cast5",
-                        "next": "idle"
-                    },
-                    {
-                        "time": 28.738807,
-                        "clip": "cast5",
-                        "next": "idle"
-                    },
-                    {
-                        "time": 31.728281,
-                        "clip": "cast6",
-                        "next": "idle"
-                    },
-                    {
-                        "time": 37.840359,
-                        "clip": "cast6",
-                        "next": "idle"
-                    },
-                    {
-                        "time": 41.029131,
+                        "time": 56.718,
                         "clip": "cast1",
                         "next": "idle"
                     },
                     {
-                        "time": 43.353746,
-                        "clip": "cast2",
-                        "next": "idle"
-                    },
-                    {
-                        "time": 45.015096,
-                        "clip": "cast4",
-                        "next": "idle"
-                    },
-                    {
-                        "time": 45.679158,
+                        "time": 58.337,
                         "clip": "cast5",
                         "next": "idle"
                     }
                 ],
                 "triggers": []
             },
-            "moves": []
+            "moves": [
+                {
+                    "time": 58.337,
+                    "duration": 0.863,
+                    "type": "moveto",
+                    "to": {
+                        "x": 16,
+                        "y": 13.968
+                    },
+                    "control": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "easing": "easeinoutsine",
+                    "relative": false
+                },
+                {
+                    "time": 63.345,
+                    "duration": 0.4,
+                    "type": "moveto",
+                    "to": {
+                        "x": 16,
+                        "y": 14.55
+                    },
+                    "control": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "easing": "easeinoutsine",
+                    "relative": false
+                },
+                {
+                    "time": 63.745,
+                    "duration": 0.35,
+                    "type": "bezierto",
+                    "to": {
+                        "x": 16,
+                        "y": 15.964
+                    },
+                    "control": {
+                        "x": 16,
+                        "y": 16.9
+                    },
+                    "easing": "linear",
+                    "relative": false
+                }
+            ]
         }
     ],
     "bulletSpawners": []
