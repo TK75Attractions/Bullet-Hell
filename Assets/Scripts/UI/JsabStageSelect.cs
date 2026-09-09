@@ -1255,10 +1255,20 @@ public class JsabStageSelect : MonoBehaviour
         return diffBar != null && diffBar.IsRowEnabled(diffBar.index);
     }
 
+    // 街モードの右半分(既存カード・ステージ名・説明)の表示。難易度モーダルのあいだ下ろす。
+    private void SetCityRightColumnVisible(bool on)
+    {
+        if (!cityMode) return;
+        SetGoActive(cardRect, on);
+        SetGoActive(stageNameRect, on);
+        if (city != null) city.SetRightInfoVisible(on);
+    }
+
     public void CloseDifficulty()
     {
         difficultyOpen = false;
         cityZoomPending = false;
+        SetCityRightColumnVisible(true);
         if (cityMode && city != null) city.SetCloseUp(false);
         RestoreTopBar();
         if (diffRoot == null || !diffRoot.gameObject.activeSelf) return;
@@ -1553,6 +1563,9 @@ public class JsabStageSelect : MonoBehaviour
         }
         if (diffScrim != null) diffScrim.enabled = true;
         if (diffPanel != null) diffPanel.gameObject.SetActive(true);
+        // 街モードの右半分(既存カード・ステージ名・説明)は、ぼかしスナップショットを
+        // 撮り終えてから下ろす。生きたまま残すと動画がぼかしの上に鮮明に出てしまう。
+        SetCityRightColumnVisible(false);
 
         // スナップショットが揃ったのでフェードイン開始(閉じられていなければ)。
         if (difficultyOpen)

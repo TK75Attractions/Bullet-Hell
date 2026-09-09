@@ -84,6 +84,7 @@ public class CitySelectView : MonoBehaviour
     private TMP_Text rightDesc;
     private TMP_Text rightMeta;
     private TMP_Text timeLeftText;
+    private TMP_Text timeLeftShadow;
     private float timeLeftAlpha;
 
     private CityMapController map;
@@ -164,15 +165,21 @@ public class CitySelectView : MonoBehaviour
         mr.anchoredPosition = new Vector2(0f, -66f);
 
         // 残り 10 秒を切ったときだけ画面下端に小さく出す(上部バーは街モードでは隠す)。
+        // 明るい石壁の上でも読めるよう、▼のラベルと同じ右下 2px の落ち影を 1 枚敷く。
+        timeLeftShadow = NewText("TimeLeftShadow", root, "", 26f, MarkerLabelShadow, TextAlignmentOptions.Center);
         timeLeftText = NewText("TimeLeft", root, "", 26f, new Color(0.90f, 0.88f, 0.84f, 1f), TextAlignmentOptions.Center);
-        RectTransform tr = (RectTransform)timeLeftText.transform;
-        tr.anchorMin = tr.anchorMax = new Vector2(0.5f, 0f);
-        tr.pivot = new Vector2(0.5f, 0f);
-        tr.sizeDelta = new Vector2(400f, 40f);
-        tr.anchoredPosition = new Vector2(0f, 26f);
-        StyleLabel(timeLeftText);
-        timeLeftText.characterSpacing = 2f;
-        timeLeftText.alpha = 0f;
+        foreach (TMP_Text t in new[] { timeLeftShadow, timeLeftText })
+        {
+            RectTransform tr = (RectTransform)t.transform;
+            tr.anchorMin = tr.anchorMax = new Vector2(0.5f, 0f);
+            tr.pivot = new Vector2(0.5f, 0f);
+            tr.sizeDelta = new Vector2(400f, 40f);
+            tr.anchoredPosition = new Vector2(0f, 26f)
+                + (t == timeLeftShadow ? MarkerLabelShadowOffset : Vector2.zero);
+            StyleLabel(t);
+            t.characterSpacing = 2f;
+            t.alpha = 0f;
+        }
     }
 
     /// <summary>右半分の説明ブロックの位置(既存カードの真下)。x=0 で街モード以外。</summary>
@@ -185,14 +192,27 @@ public class CitySelectView : MonoBehaviour
         if (rightMeta != null) ((RectTransform)rightMeta.transform).sizeDelta = new Vector2(width, 30f);
     }
 
+    /// <summary>右半分の説明ブロックの表示(難易度モーダルのあいだは下ろす)。</summary>
+    public void SetRightInfoVisible(bool on)
+    {
+        if (rightInfoRect != null && rightInfoRect.gameObject.activeSelf != on)
+            rightInfoRect.gameObject.SetActive(on);
+    }
+
     /// <summary>残り時間の最小表示。10 秒を切ったときだけ出す。</summary>
     public void SetRemainingTime(float seconds, bool cityMode)
     {
         if (timeLeftText == null) return;
         bool show = cityMode && seconds <= 10.5f && seconds > 0.05f;
-        if (show) timeLeftText.text = string.Format("のこり {0}", Mathf.CeilToInt(seconds));
+        if (show)
+        {
+            string label = string.Format("のこり {0}", Mathf.CeilToInt(seconds));
+            timeLeftText.text = label;
+            if (timeLeftShadow != null) timeLeftShadow.text = label;
+        }
         timeLeftAlpha = Mathf.MoveTowards(timeLeftAlpha, show ? 1f : 0f, Time.unscaledDeltaTime / 0.2f);
         timeLeftText.alpha = timeLeftAlpha;
+        if (timeLeftShadow != null) timeLeftShadow.alpha = timeLeftAlpha * MarkerLabelShadow.a;
     }
 
     private void BuildMarker()
