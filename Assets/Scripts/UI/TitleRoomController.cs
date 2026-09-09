@@ -32,8 +32,31 @@ public class TitleRoomController : MonoBehaviour
     public RenderTexture targetTexture;
     [Tooltip("UniversalRenderer3D の RendererDataList 上の index。既定 1。")]
     public int rendererIndex = 1;
-    [Tooltip("班員が描いた主人公の立ち絵(背景透過済み)。タイトルの右手前に 2D の板として出す。")]
+    [Tooltip("班員が描いた主人公の立ち絵(背景透過済み)。部屋の 3D 空間へ板として立てる。")]
     public Sprite heroSprite;
+
+    [Header("立ち絵(部屋の 3D 空間に立てる板)")]
+    // Canvas の 2D 画像ではなく、部屋の中に Quad を立てて URP/Lit のアルファカットアウトで
+    // 描く。こうすると部屋のライト(ランタンの暖色・月光・環境光)を受け、低解像度の
+    // ドット風描画も部屋と同じだけ掛かるので粗さが揃う。
+    [Tooltip("足元の位置(部屋のワールド座標)。床は y=0。")]
+    public Vector3 heroFootPos = new Vector3(1.75f, 0f, -2.6f);
+    [Tooltip("板の高さ(ワールド単位)。全景カメラで画面高さの約 75% になる値。")]
+    public float heroHeight = 5.1f;
+    [Tooltip("立ち絵の明るさ(材質のベース色。1 で原画そのまま)。部屋の中景と同じ明度まで落とす。")]
+    [Range(0f, 1.5f)] public float heroBrightness = 0.9f;
+    [Tooltip("足元の接地影の直径(ワールド単位)。0 で影なし。")]
+    public float heroShadowSize = 2.2f;
+    [Tooltip("足元の接地影の濃さ。")]
+    [Range(0f, 1f)] public float heroShadowAlpha = 0.55f;
+
+    Transform heroBoard;
+    Renderer heroRenderer;
+    Transform heroShadow;
+    Renderer heroShadowRenderer;
+    MaterialPropertyBlock heroMpb;
+    static readonly int HeroBaseColorId = Shader.PropertyToID("_BaseColor");
+    static readonly int HeroCutoffId = Shader.PropertyToID("_Cutoff");
 
     [Header("明るさ")]
     [Tooltip("全ライトに掛かる倍率。v3 の参考レンダーより +15% 明るくする指示のため既定 1.15。")]
@@ -52,10 +75,10 @@ public class TitleRoomController : MonoBehaviour
     [Header("ドット風表示(部屋だけ低解像度で描く)")]
     [Tooltip("ON で部屋を pixelWidth x pixelHeight の RenderTexture へ描き、Point(最近傍)で画面いっぱいに引き伸ばす。ロゴ・立ち絵・メニュー文字は従来の解像度のまま。")]
     public bool pixelate = true;
-    [Tooltip("ドット風の内部解像度(幅)。既定 480(=1920 の 1/4)。比較用に 320 / 640。")]
-    public int pixelWidth = 480;
-    [Tooltip("ドット風の内部解像度(高さ)。既定 270。16:9 を保つこと。")]
-    public int pixelHeight = 270;
+    [Tooltip("ドット風の内部解像度(幅)。既定 640(=1920 の 1/3)。タイトル・街・プレイ中の CG で 640x360 に統一している。")]
+    public int pixelWidth = 640;
+    [Tooltip("ドット風の内部解像度(高さ)。既定 360。16:9 を保つこと。")]
+    public int pixelHeight = 360;
     [Tooltip("1 チャンネルあたりの階調数。0 で色数の減衰なし(既定)。4〜8 でレトロなポスタリゼーション。")]
     public int pixelatePalette = 0;
     [Tooltip("色数を減らしたときの 4x4 順序ディザの強さ。0 でディザなし。")]
@@ -280,6 +303,8 @@ public class TitleRoomController : MonoBehaviour
             CollectRenderers("shelf_books", "shelf_scrolls_and_chests"),
         };
 
+        BuildHeroBoard(layer);
+
         // ---- カメラ ----
         GameObject camObj = new GameObject("TitleRoomCamera");
         camObj.transform.SetParent(transform, false);
@@ -339,6 +364,151 @@ public class TitleRoomController : MonoBehaviour
         BuildDust(layer);
         ApplyExposure();
     }
+
+    // 立ち絵を部屋の 3D 空間へ板として立てる。
+    //   ・URP/Lit のアルファカットアウト(両面)。部屋のライトを受ける。
+    //   ・カメラの方を水平にだけ向く(あおりは付けない)。
+    //   ・足元に接地の影(円形グラデーションの板)を敷く。
+    // フェード(カメラが寄るときに消える)はベース色の alpha とカットオフを
+    // 同じ比率で動かす。比率が同じなので抜きの形はフェード中も変わらない。
+    void BuildHeroBoard(int layer)
+    {
+        Texture heroTex = heroSprite != null ? heroSprite.texture : null;
+        if (heroTex == null) return;
+
+        Shader lit = Shader.Find("Universal Render Pipeline/Lit");
+        if (lit == null) return;
+        Material mat = new Material(lit) { hideFlags = HideFlags.DontSave, name = "HeroBoardMat" };
+        mat.SetFloat("_Surface", 1f);              // Transparent
+        mat.SetFloat("_Blend", 0f);                // Alpha
+        mat.SetFloat("_AlphaClip", 1f);
+        mat.SetFloat("_Cutoff", 0.5f);
+        mat.SetFloat("_Cull", 0f);                 // 両面
+        mat.SetFloat("_Smoothness", 0.05f);
+        mat.SetFloat("_SpecularHighlights", 0f);
+        mat.SetFloat("_EnvironmentReflections", 0f);
+        mat.SetFloat("_ZWrite", 1f);
+        mat.EnableKeyword("_ALPHATEST_ON");
+        mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        mat.EnableKeyword("_SPECULARHIGHLIGHTS_OFF");
+        mat.EnableKeyword("_ENVIRONMENTREFLECTIONS_OFF");
+        mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
+        mat.SetTexture("_BaseMap", heroTex);
+        mat.SetColor("_BaseColor", Color.white);
+
+        GameObject board = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        board.name = "HeroBoard";
+        DestroyImmediate(board.GetComponent<Collider>());
+        // 部屋プレハブのルートには X 反転(scale -1)が入っているので、板は Rig 直下へ置く。
+        board.transform.SetParent(transform, false);
+        heroRenderer = board.GetComponent<Renderer>();
+        heroRenderer.sharedMaterial = mat;
+        heroRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        heroRenderer.receiveShadows = true;
+        heroBoard = board.transform;
+        SetLayerRecursive(board, layer);
+
+        // 足元の接地影(円形のグラデーションを焼いた Unlit の板)。
+        Shader unlit = Shader.Find("Universal Render Pipeline/Unlit");
+        if (unlit != null)
+        {
+            Material sm = new Material(unlit) { hideFlags = HideFlags.DontSave, name = "HeroShadowMat" };
+            sm.SetFloat("_Surface", 1f);
+            sm.SetFloat("_Blend", 0f);
+            sm.SetFloat("_ZWrite", 0f);
+            sm.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            sm.SetTexture("_BaseMap", CreateSoftDiscTexture(64));
+            sm.SetColor("_BaseColor", new Color(0f, 0f, 0f, heroShadowAlpha));
+            sm.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+
+            GameObject shade = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            shade.name = "HeroShadow";
+            DestroyImmediate(shade.GetComponent<Collider>());
+            shade.transform.SetParent(transform, false);
+            heroShadowRenderer = shade.GetComponent<Renderer>();
+            heroShadowRenderer.sharedMaterial = sm;
+            heroShadowRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            heroShadowRenderer.receiveShadows = false;
+            heroShadow = shade.transform;
+            SetLayerRecursive(shade, layer);
+        }
+        ApplyHeroTransform(0f);
+    }
+
+    // 中心が濃く外周で 0 になる円。接地影に使う。
+    static Texture2D CreateSoftDiscTexture(int size)
+    {
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false)
+        {
+            hideFlags = HideFlags.DontSave,
+            wrapMode = TextureWrapMode.Clamp,
+            filterMode = FilterMode.Bilinear,
+        };
+        float c = (size - 1) * 0.5f;
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float d = Mathf.Sqrt((x - c) * (x - c) + (y - c) * (y - c)) / c;
+                float av = Mathf.Clamp01(1f - d);
+                av *= av;               // 中心を濃く、外周をなだらかに
+                tex.SetPixel(x, y, new Color(1f, 1f, 1f, av));
+            }
+        }
+        tex.Apply();
+        return tex;
+    }
+
+    // 板の位置・大きさ・向きを現在の設定から作り直す。slide は寄りのときに右へ逃がす量。
+    void ApplyHeroTransform(float slide)
+    {
+        if (heroBoard == null) return;
+        Texture tex = heroSprite != null ? heroSprite.texture : null;
+        float aspect = tex != null && tex.height > 0 ? (float)tex.width / tex.height : 709f / 1024f;
+        float h = Mathf.Max(0.01f, heroHeight);
+        Vector3 foot = heroFootPos + new Vector3(slide, 0f, 0f);
+        heroBoard.localPosition = foot + new Vector3(0f, h * 0.5f, 0f);
+        heroBoard.localScale = new Vector3(h * aspect, h, 1f);
+        // 水平方向だけ全景カメラの方を向く。
+        Vector3 toCam = TitlePos - foot;
+        toCam.y = 0f;
+        if (toCam.sqrMagnitude > 1e-4f)
+            heroBoard.localRotation = Quaternion.LookRotation(-toCam.normalized, Vector3.up);
+        if (heroShadow != null)
+        {
+            heroShadow.localPosition = foot + new Vector3(0f, 0.03f, 0.05f);
+            heroShadow.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            heroShadow.localScale = new Vector3(heroShadowSize, heroShadowSize * 0.55f, 1f);
+        }
+    }
+
+    /// <summary>立ち絵の見え方を更新する。fade=1 で表示、0 で消える。slide は右へ逃がす量。</summary>
+    public void SetHeroState(float fade, float slide)
+    {
+        if (heroRenderer == null) return;
+        fade = Mathf.Clamp01(fade);
+        ApplyHeroTransform(slide);
+        bool visible = fade > 0.01f;
+        if (heroRenderer.enabled != visible) heroRenderer.enabled = visible;
+        if (heroShadowRenderer != null && heroShadowRenderer.enabled != visible)
+            heroShadowRenderer.enabled = visible;
+        if (!visible) return;
+        heroMpb ??= new MaterialPropertyBlock();
+        heroRenderer.GetPropertyBlock(heroMpb);
+        float bb = heroBrightness;
+        heroMpb.SetColor(HeroBaseColorId, new Color(bb, bb, bb, fade));
+        heroMpb.SetFloat(HeroCutoffId, 0.5f * fade);
+        heroRenderer.SetPropertyBlock(heroMpb);
+        if (heroShadowRenderer != null)
+        {
+            heroShadowRenderer.GetPropertyBlock(heroMpb);
+            heroMpb.SetColor(HeroBaseColorId, new Color(0f, 0f, 0f, heroShadowAlpha * fade));
+            heroShadowRenderer.SetPropertyBlock(heroMpb);
+        }
+    }
+
+    /// <summary>立ち絵の板があるか(TitleManager が 2D の立ち絵を出すかの判断に使う)。</summary>
+    public bool HasHeroBoard => heroRenderer != null;
 
     Light CreateLight(string objectName, LightType type, Vector3 pos, Color color, float intensity, int layer)
     {
@@ -558,6 +728,8 @@ public class TitleRoomController : MonoBehaviour
         if (!built) return;
         activeNow = on;
         if (roomRoot != null) roomRoot.gameObject.SetActive(on);
+        if (heroBoard != null) heroBoard.gameObject.SetActive(on);
+        if (heroShadow != null) heroShadow.gameObject.SetActive(on);
         if (roomCamera != null) roomCamera.gameObject.SetActive(on);
         foreach (Light light in new[] { moonLight, fillLight, lanternLight, selectionLight, cloakLight1, cloakLight2 })
             if (light != null) light.gameObject.SetActive(on);
