@@ -265,6 +265,22 @@ public class TitleManager : MonoBehaviour
         new Vector2(20f, 0f),          // 2P
     };
 
+    // ---- 部屋モードのロゴ(第9便) -------------------------------------------
+    // 旧ロゴ(シーンの Logo・RawImage)はそのまま残し、部屋モードのときだけ隠して
+    // 新ロゴ(Resources/UI/jbi-logo-v2)を代わりに置く。浮遊・ビートパルス・
+    // スタート時の上抜けは logoRect を差し替えるだけで従来どおり効く
+    // (演出コードには一切触っていない)。
+    private Image roomLogoImage;
+    private RectTransform roomLogoRect;
+    private RectTransform sceneLogoRect;
+    // 新ロゴの表示幅と原画(2146x733)の縦横比。位置は旧ロゴと同じ窓の中央上部。
+    // 新ロゴは横長で背が低いので、幅 660 でも下端は「設定」のラベル帯よりずっと
+    // 上に来る(実フレームで確認)。
+    private const float RoomLogoWidth = 660f;
+    private const float RoomLogoAspect = 2146f / 733f;
+    private const float RoomLogoX = 20f;
+    private const float RoomLogoY = 352f;
+
     private TitleRoomController Room => TitleRoomController.Instance;
 
     public void Init()
@@ -283,6 +299,7 @@ public class TitleManager : MonoBehaviour
         if (logo != null)
         {
             logoRect = logo.GetComponent<RectTransform>();
+            sceneLogoRect = logoRect;
             // Lift the logo above its scene-authored spot (float / beat pulse are
             // applied on top of this raised base position).
             logoBaseY = logoRect.anchoredPosition.y + LogoRaiseOffset;
@@ -366,9 +383,21 @@ public class TitleManager : MonoBehaviour
         objectMenuOn = useObjectMenu;
         if (objectMenuOn)
         {
-            // ロゴは窓の中央上部へ(実測: 窓の中心は画面 x≈960・上端 y≈115)。幅 640。
-            if (logoRect != null)
+            // ロゴは窓の中央上部へ(実測: 窓の中心は画面 x≈960・上端 y≈115)。
+            // 部屋モードでは新ロゴ(v2)を出し、旧ロゴは隠す(コードは残す)。
+            EnsureRoomLogo();
+            if (roomLogoRect != null)
             {
+                if (sceneLogoRect != null) sceneLogoRect.gameObject.SetActive(false);
+                logoRect = roomLogoRect;
+                logoRect.gameObject.SetActive(true);
+                logoRect.sizeDelta = new Vector2(RoomLogoWidth, RoomLogoWidth / RoomLogoAspect);
+                logoRect.anchoredPosition = new Vector2(RoomLogoX, RoomLogoY);
+                logoBaseY = RoomLogoY;
+            }
+            else if (logoRect != null)
+            {
+                // 新ロゴが読めなかったときは旧ロゴのまま(第8便の値)。
                 logoRect.sizeDelta = new Vector2(620f, 350f);
                 logoRect.anchoredPosition = new Vector2(20f, 352f);
                 logoBaseY = 352f;
@@ -381,6 +410,12 @@ public class TitleManager : MonoBehaviour
         else
         {
             // ロゴは左上へ。デザインは変えず、大きさと位置だけ整える。
+            if (roomLogoRect != null) roomLogoRect.gameObject.SetActive(false);
+            if (sceneLogoRect != null)
+            {
+                sceneLogoRect.gameObject.SetActive(true);
+                logoRect = sceneLogoRect;
+            }
             if (logoRect != null)
             {
                 logoRect.sizeDelta = new Vector2(560f, 317f);
@@ -404,6 +439,25 @@ public class TitleManager : MonoBehaviour
         BuildHero();
         room.SetTwoPlayer(pcTwoPlayer);
         roomLayout = true;
+    }
+
+    // 部屋モード用の新ロゴを 1 度だけ作る。旧ロゴの直後に置いて描画順を揃える。
+    private void EnsureRoomLogo()
+    {
+        if (roomLogoRect != null) return;
+        Sprite sprite = Resources.Load<Sprite>("UI/jbi-logo-v2");
+        if (sprite == null) return;
+        GameObject go = new GameObject("LogoRoom", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        go.layer = gameObject.layer;
+        roomLogoRect = (RectTransform)go.transform;
+        roomLogoRect.SetParent(transform, false);
+        roomLogoRect.anchorMin = roomLogoRect.anchorMax = new Vector2(0.5f, 0.5f);
+        roomLogoRect.pivot = new Vector2(0.5f, 0.5f);
+        roomLogoImage = go.GetComponent<Image>();
+        roomLogoImage.sprite = sprite;
+        roomLogoImage.raycastTarget = false;
+        roomLogoImage.preserveAspect = true;
+        if (sceneLogoRect != null) roomLogoRect.SetSiblingIndex(sceneLogoRect.GetSiblingIndex() + 1);
     }
 
     private void BuildHero()
