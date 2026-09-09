@@ -314,7 +314,11 @@ public class TitleRoomController : MonoBehaviour
         psr.renderMode = ParticleSystemRenderMode.Billboard;
         psr.alignment = ParticleSystemRenderSpace.View;
 
+        // AddComponent 直後の ParticleSystem は再生中で、そのまま duration を書くと
+        // Assert が出る。設定前に完全停止させる。
+        dust.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         ParticleSystem.MainModule main = dust.main;
+        main.playOnAwake = false;
         main.loop = true;
         main.duration = 8f;
         main.startLifetime = 9f;

@@ -112,6 +112,23 @@ public static class TitleRoomCapture
                 case "hold":
                     yield return PressKey(ToKey(a[1]), float.Parse(a[2]));
                     break;
+                case "fps":
+                {
+                    // 毎フレーム 1/smoothDeltaTime を積んで最小値・平均を出す。
+                    float dur = float.Parse(a[1]);
+                    float el = 0f; float mn = float.MaxValue; float sum = 0f; int n = 0;
+                    while (el < dur)
+                    {
+                        yield return null;
+                        float dt = Time.smoothDeltaTime;
+                        el += Time.unscaledDeltaTime;
+                        if (dt <= 0f) continue;
+                        float f = 1f / dt;
+                        mn = Mathf.Min(mn, f); sum += f; n++;
+                    }
+                    Saved.Add($"fps {dur:F0}s min={mn:F1} avg={(n > 0 ? sum / n : 0f):F1} samples={n}");
+                    break;
+                }
                 case "wait":
                 {
                     float t = 0f;
