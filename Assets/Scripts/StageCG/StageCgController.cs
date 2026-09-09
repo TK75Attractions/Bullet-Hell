@@ -53,6 +53,23 @@ public class StageCgController : MonoBehaviour
     [Tooltip("false にすると形態変化の演出（拍連動・揺れ・粉・光の切替）を全て切る。")]
     public bool stageFxEnabled = true;
 
+    [Header("ドット風表示（背景 CG を低解像度で描く）")]
+    // タイトルの部屋・ステージ選択の街と同じ「専用カメラ→低解像度 RT→Point 拡大」。
+    // ボスも CG 空間にいるので一緒に粗くなる（ドット絵なので意図どおり）。
+    // 弾・HUD は表示板より手前の別レイヤーなので従来の解像度のまま。
+    [Tooltip("ON で CG を pixelWidth x pixelHeight の RenderTexture へ描き、Point(最近傍)で表示板へ引き伸ばす。弾・HUD は従来の解像度のまま。")]
+    public bool pixelate = true;
+    [Tooltip("ドット風の内部解像度（幅）。既定 640（タイトル・街と統一）。")]
+    public int pixelWidth = 640;
+    [Tooltip("ドット風の内部解像度（高さ）。既定 360。16:9 を保つこと。")]
+    public int pixelHeight = 360;
+
+    // ドット風のときだけ使う低解像度の描画先（実行時生成）。null ならシーンの RT をそのまま使う。
+    RenderTexture pixelRT;
+    // シーンで cgCamera に割り当てられている 1920x1080 の RT（戻すときに使う）。
+    RenderTexture sceneTargetTexture;
+    bool sceneTargetCaptured;
+
     // シェーダのグローバル uniform 名
     static readonly int SunDirId = Shader.PropertyToID("_StoneCgSunDir");
     static readonly int SunColorId = Shader.PropertyToID("_StoneCgSunColor");
@@ -79,6 +96,7 @@ public class StageCgController : MonoBehaviour
     static readonly int TintColorId = Shader.PropertyToID("_TintColor");
     static readonly int TintAmountId = Shader.PropertyToID("_TintAmount");
     static readonly int FlashId = Shader.PropertyToID("_Flash");
+    static readonly int MainTexId = Shader.PropertyToID("_MainTex");
 
     MaterialPropertyBlock mpb;
     MaterialPropertyBlock dustMpb;
@@ -161,6 +179,7 @@ public class StageCgController : MonoBehaviour
         StageCgIntro.Available = false;
         StageCgIntro.ActiveProfile = null;
         ClearBossProxies();
+        ReleasePixelTexture();
     }
 
     // --- 第 6 便 (D): 画面の揺れ -----------------------------------------------------
@@ -245,6 +264,7 @@ public class StageCgController : MonoBehaviour
             return;
         }
 
+        EnsurePixelTexture();
         ApplyGlobals(want);
         introFade = want.BlackFade(stageTime);
         cgFade = want.CgBlackout(stageTime, endTime);
@@ -351,6 +371,72 @@ public class StageCgController : MonoBehaviour
         }
     }
 
+    // --- ドット風表示 ---------------------------------------------------------
+    //
+    // 低解像度の描画先を用意して cgCamera を向ける。filterMode=Point なので表示板へ
+    // 貼ったときに最近傍で拡大され、1 ドットが四角いまま残る。MSAA は切る
+    //（1 ドットの縁がぼけると最近傍拡大の意味が薄れる）。
+    void EnsurePixelTexture()
+    {
+        if (cgCamera == null) return;
+        if (!sceneTargetCaptured)
+        {
+            sceneTargetTexture = cgCamera.targetTexture;
+            sceneTargetCaptured = true;
+        }
+        if (!pixelate || !Application.isPlaying)
+        {
+            ReleasePixelTexture();
+            return;
+        }
+        int w = Mathf.Clamp(pixelWidth, 32, 1920);
+        int h = Mathf.Clamp(pixelHeight, 18, 1080);
+        if (pixelRT != null && (pixelRT.width != w || pixelRT.height != h)) ReleasePixelTexture();
+        if (pixelRT == null)
+        {
+            pixelRT = new RenderTexture(w, h, 24,
+                sceneTargetTexture != null ? sceneTargetTexture.format : RenderTextureFormat.DefaultHDR)
+            {
+                name = "StageCgPixelRT",
+                filterMode = FilterMode.Point,
+                antiAliasing = 1,
+                useMipMap = false,
+                autoGenerateMips = false,
+                wrapMode = TextureWrapMode.Clamp,
+                hideFlags = HideFlags.DontSave
+            };
+            pixelRT.Create();
+        }
+        if (cgCamera.targetTexture != pixelRT) cgCamera.targetTexture = pixelRT;
+        cgCamera.allowMSAA = false;
+    }
+
+    void ReleasePixelTexture()
+    {
+        if (pixelRT == null) return;
+        if (cgCamera != null && cgCamera.targetTexture == pixelRT)
+            cgCamera.targetTexture = sceneTargetTexture;
+        if (displayQuad != null && sceneTargetTexture != null)
+        {
+            mpb ??= new MaterialPropertyBlock();
+            displayQuad.GetPropertyBlock(mpb);
+            mpb.SetTexture(MainTexId, sceneTargetTexture);
+            displayQuad.SetPropertyBlock(mpb);
+        }
+        pixelRT.Release();
+        DestroyImmediate(pixelRT);
+        pixelRT = null;
+    }
+
+    /// <summary>ドット風表示を切り替える（比較用）。既定は 640x360 の ON。</summary>
+    public void SetPixelate(bool on, int width = 0, int height = 0)
+    {
+        pixelate = on;
+        if (width > 0) pixelWidth = width;
+        if (height > 0) pixelHeight = height;
+        EnsurePixelTexture();
+    }
+
     void ApplyGlobals(StageCgProfile p)
     {
         Vector3 toLight = (p.sunFrom - p.sunTo).normalized;
@@ -366,6 +452,8 @@ public class StageCgController : MonoBehaviour
         if (displayQuad.sortingOrder != quadSortingOrder) displayQuad.sortingOrder = quadSortingOrder;
         mpb ??= new MaterialPropertyBlock();
         displayQuad.GetPropertyBlock(mpb);
+        // ドット風のときは低解像度 RT を貼る（Point なので最近傍で拡大される）。
+        if (pixelRT != null) mpb.SetTexture(MainTexId, pixelRT);
         mpb.SetFloat(ExposureId, p.exposure * currentExposureScale);
         mpb.SetFloat(CenterDarkenId, p.centerDarken);
         mpb.SetFloat(BossBrightnessId, p.bossBrightness * currentBossFade);

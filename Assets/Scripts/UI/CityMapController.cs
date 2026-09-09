@@ -34,12 +34,12 @@ public class CityMapController : MonoBehaviour
     public int rendererIndex = 1;
 
     [Header("ドット風表示(街だけ低解像度で描く)")]
-    [Tooltip("ON で街を pixelWidth x pixelHeight の RenderTexture へ描き、Point(最近傍)で拡大する。既定は OFF(タイトルの部屋と違い、街は情報量が多いので既定は等倍)。")]
-    public bool pixelate = false;
-    [Tooltip("ドット風の内部解像度(幅)。480 が既定値の目安。")]
-    public int pixelWidth = 480;
-    [Tooltip("ドット風の内部解像度(高さ)。")]
-    public int pixelHeight = 270;
+    [Tooltip("ON で街を pixelWidth x pixelHeight の RenderTexture へ描き、Point(最近傍)で拡大する。タイトルの部屋・プレイ中の CG と同じ 640x360 に揃えてある。")]
+    public bool pixelate = true;
+    [Tooltip("ドット風の内部解像度(幅)。既定 640(タイトル・プレイ中の CG と統一)。")]
+    public int pixelWidth = 640;
+    [Tooltip("ドット風の内部解像度(高さ)。既定 360。16:9 を保つこと。")]
+    public int pixelHeight = 360;
     [Tooltip("1 チャンネルあたりの階調数。0 で色数の減衰なし。")]
     public int pixelatePalette = 0;
     [Tooltip("色数を減らしたときの 4x4 順序ディザの強さ。")]
