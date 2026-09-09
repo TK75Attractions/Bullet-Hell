@@ -19,8 +19,12 @@ public class CitySelectView : MonoBehaviour
 {
     // ---- ▼とラベル(タイトルの部屋と同じ様式) --------------------------------
     private const string MinchoFontResource = "Fonts/ShipporiMincho-Regular SDF";
-    private const float MarkerArrowW = 40f;
-    private const float MarkerArrowH = 26f;
+    // ▼はタイトルと同じ 12x8 ドットの三角を Point で 3 倍に拡大したドット絵。
+    private const int MarkerArrowDotW = 12;
+    private const int MarkerArrowDotH = 8;
+    private const float MarkerArrowPixel = 3f;
+    private const float MarkerArrowW = MarkerArrowDotW * MarkerArrowPixel;
+    private const float MarkerArrowH = MarkerArrowDotH * MarkerArrowPixel;
     private const float MarkerFloatPx = 4f;
     private const float MarkerLabelGap = 46f;
     private const float MarkerLabelH = 46f;
@@ -120,7 +124,7 @@ public class CitySelectView : MonoBehaviour
 
     private void BuildMarker()
     {
-        arrowSprite = CreateDownTriangleSprite(96, 62);
+        arrowSprite = TitleManager.CreatePixelDownTriangleSprite(MarkerArrowDotW, MarkerArrowDotH);
 
         GameObject markerObj = new GameObject("DistrictMarker", typeof(RectTransform));
         markerObj.transform.SetParent(root, false);
@@ -388,7 +392,9 @@ public class CitySelectView : MonoBehaviour
         float zoomFade = 1f - Mathf.Clamp01((map.ZoomAmount - 0.55f) / 0.45f);
         if (show)
         {
-            float floatY = Mathf.Sin(animTime * 1.9f) * MarkerFloatPx;
+            // 浮遊は 3px 単位のステップ移動(ドットが滑らかに滑らないようにする)。
+            float floatY = Mathf.Round(Mathf.Sin(animTime * 1.9f)
+                * MarkerFloatPx / MarkerArrowPixel) * MarkerArrowPixel;
             markerRoot.anchoredPosition = new Vector2(
                 (vp.x - 0.5f) * canvas.width,
                 (vp.y - 0.5f) * canvas.height + floatY);
@@ -404,6 +410,11 @@ public class CitySelectView : MonoBehaviour
             Color c = MarkerArrowInk;
             c.a = markerAlpha * zoomFade;
             markerArrow.color = c;
+            // ▼だけ画面のドット格子(3px)へ吸着させる。ラベルは滑らかなまま。
+            Vector2 mp = markerRoot.anchoredPosition;
+            markerArrow.rectTransform.anchoredPosition = new Vector2(
+                Mathf.Round(mp.x / MarkerArrowPixel) * MarkerArrowPixel - mp.x,
+                Mathf.Round(mp.y / MarkerArrowPixel) * MarkerArrowPixel - mp.y);
         }
 
         // 情報パネル: 区画へ寄り切ってからプレビューを出す。
@@ -452,39 +463,6 @@ public class CitySelectView : MonoBehaviour
             }
             return minchoFont;
         }
-    }
-
-    private static Sprite CreateDownTriangleSprite(int w, int h)
-    {
-        Texture2D tex = new Texture2D(w, h, TextureFormat.RGBA32, false)
-        {
-            hideFlags = HideFlags.DontSave,
-            wrapMode = TextureWrapMode.Clamp,
-            filterMode = FilterMode.Bilinear,
-        };
-        const int ss = 4;
-        for (int y = 0; y < h; y++)
-        {
-            for (int x = 0; x < w; x++)
-            {
-                int hit = 0;
-                for (int sy = 0; sy < ss; sy++)
-                {
-                    for (int sx = 0; sx < ss; sx++)
-                    {
-                        float px = (x + (sx + 0.5f) / ss) / w;
-                        float py = (y + (sy + 0.5f) / ss) / h;
-                        float half = 0.5f * py;
-                        if (Mathf.Abs(px - 0.5f) <= half) hit++;
-                    }
-                }
-                tex.SetPixel(x, y, new Color(1f, 1f, 1f, hit / (float)(ss * ss)));
-            }
-        }
-        tex.Apply();
-        Sprite sprite = Sprite.Create(tex, new Rect(0f, 0f, w, h), new Vector2(0.5f, 0.5f), 100f);
-        sprite.hideFlags = HideFlags.DontSave;
-        return sprite;
     }
 
     private Image NewImage(string name, Transform parent, Color color)

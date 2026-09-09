@@ -207,6 +207,10 @@ public class TitleManager : MonoBehaviour
     // 部屋が用意できていない(Rig 未配置・素材欠落)ときは、従来の JSAB 背景
     // (Back + Shapes)のまま動く。
     private RawImage roomView;
+    // 立ち絵だけを元解像度で描いた RT を、粗い部屋の上へ重ねる板(第 14 便)。
+    // 部屋の RawImage の 1 つ上に置くので、ロゴ・▼・ラベル・暗幕より奥に来る。
+    private RawImage heroView;
+    private Material heroViewMaterial;
     // roomView へ最後に入れたマテリアル(null=既定)。ドット風の色数減衰でだけ使う。
     private Material appliedRoomMaterial;
     private Image roomScrim;
@@ -246,8 +250,15 @@ public class TitleManager : MonoBehaviour
     private TMP_FontAsset minchoFont;
     private bool minchoFontTried;
     // ▼の寸法・浮遊量・ラベルまでの距離(px・1920x1080 基準)。
-    private const float MarkerArrowW = 34f;
-    private const float MarkerArrowH = 22f;
+    // ▼は 12x8 ドットの三角を Point で整数倍に拡大したドット絵(第 14 便)。
+    // 非選択は 3px/ドット(36x24)、選択中は 4px/ドット(48x32)。中間の倍率は使わない
+    // (半端な倍率にするとドットの階段が不揃いになる)。
+    private const int MarkerArrowDotW = 12;
+    private const int MarkerArrowDotH = 8;
+    private const float MarkerArrowPixel = 3f;      // 1 ドットあたりの画面 px
+    private const float MarkerArrowPixelSel = 4f;   // 選択中
+    private const float MarkerArrowW = MarkerArrowDotW * MarkerArrowPixel;
+    private const float MarkerArrowH = MarkerArrowDotH * MarkerArrowPixel;
     private const float MarkerLift = 30f;     // 対象の上端から▼までの距離
     private const float MarkerFloatPx = 4f;   // 上下の浮遊
     private const float MarkerLabelGap = 40f; // ▼の中心からラベル中心まで
@@ -403,6 +414,7 @@ public class TitleManager : MonoBehaviour
         roomView.material = appliedRoomMaterial;
         roomView.gameObject.SetActive(true);
         roomView.rectTransform.SetSiblingIndex(0);
+        ApplyHeroView(room);
 
         if (roomScrim == null)
         {
@@ -530,7 +542,8 @@ public class TitleManager : MonoBehaviour
         markerLabelShadows = new TMP_Text[n];
         markerLabelAlpha = new float[n];
 
-        if (markerArrowSprite == null) markerArrowSprite = CreateDownTriangleSprite(96, 62);
+        if (markerArrowSprite == null)
+            markerArrowSprite = CreatePixelDownTriangleSprite(MarkerArrowDotW, MarkerArrowDotH);
 
         for (int i = 0; i < n; i++)
         {
@@ -612,35 +625,29 @@ public class TitleManager : MonoBehaviour
         }
     }
 
-    // 下向きの三角(▼)。フォントの ▼ は UI フォントに収録が無く豆腐になるため、
-    // アンチエイリアス付きのスプライトを自前で焼く(◀▶ 豆腐と同じ既知の罠)。
-    private static Sprite CreateDownTriangleSprite(int w, int h)
+    // ▼の画面位置をドット格子へ吸着させる。
+    private static float SnapToArrowGrid(float v)
+        => Mathf.Round(v / MarkerArrowPixel) * MarkerArrowPixel;
+
+    // ドット絵の▼。アンチエイリアスを掛けず、Point フィルタで整数倍に拡大して使う。
+    internal static Sprite CreatePixelDownTriangleSprite(int w, int h)
     {
         Texture2D tex = new Texture2D(w, h, TextureFormat.RGBA32, false)
         {
             hideFlags = HideFlags.DontSave,
             wrapMode = TextureWrapMode.Clamp,
-            filterMode = FilterMode.Bilinear,
+            filterMode = FilterMode.Point,
         };
-        const int ss = 4; // 4x4 スーパーサンプル
         for (int y = 0; y < h; y++)
         {
             for (int x = 0; x < w; x++)
             {
-                int hit = 0;
-                for (int sy = 0; sy < ss; sy++)
-                {
-                    for (int sx = 0; sx < ss; sx++)
-                    {
-                        float px = (x + (sx + 0.5f) / ss) / w;          // 0..1 左→右
-                        float py = (y + (sy + 0.5f) / ss) / h;          // 0..1 下→上
-                        // 上辺が幅いっぱい、下端が頂点の二等辺三角形。
-                        float half = 0.5f * py;
-                        if (Mathf.Abs(px - 0.5f) <= half) hit++;
-                    }
-                }
-                float a = hit / (float)(ss * ss);
-                tex.SetPixel(x, y, new Color(1f, 1f, 1f, a));
+                // 上辺が幅いっぱい、下端が頂点の二等辺三角形。画素の中心で 1/0 を決める。
+                // 行の上端で幅を決める(画素の中心で測ると最下段が空になる)。
+                float px = (x + 0.5f) / w;
+                float py = (y + 1f) / h;     // 0..1 下→上
+                bool on = Mathf.Abs(px - 0.5f) <= 0.5f * py;
+                tex.SetPixel(x, y, new Color(1f, 1f, 1f, on ? 1f : 0f));
             }
         }
         tex.Apply();
@@ -684,7 +691,9 @@ public class TitleManager : MonoBehaviour
             if (marker.gameObject.activeSelf != onScreen) marker.gameObject.SetActive(onScreen);
             if (!onScreen) continue;
 
-            float floatY = Mathf.Sin(animTime * 1.9f + i * 0.9f) * MarkerFloatPx;
+            // 浮遊は 3px 単位のステップ移動(ドットが滑らかに滑らないようにする)。
+            float floatY = Mathf.Round(Mathf.Sin(animTime * 1.9f + i * 0.9f)
+                * MarkerFloatPx / MarkerArrowPixel) * MarkerArrowPixel;
             Vector2 nudge = i < MarkerScreenOffset.Length ? MarkerScreenOffset[i] : Vector2.zero;
             marker.anchoredPosition = new Vector2(
                 (vp.x - 0.5f) * canvas.width + nudge.x,
@@ -701,8 +710,14 @@ public class TitleManager : MonoBehaviour
                 Color c = Color.Lerp(MarkerArrowInkDim, MarkerArrowInk, markerLabelAlpha[i]);
                 c.a *= zoomFade;
                 markerArrows[i].color = c;
-                float s = Mathf.Lerp(1f, 1.18f, markerLabelAlpha[i]);
+                // 拡大率はドット単位で切り替える(3px/4px)。中間の倍率は挟まない。
+                float s = markerLabelAlpha[i] >= 0.5f
+                    ? MarkerArrowPixelSel / MarkerArrowPixel : 1f;
                 markerArrows[i].rectTransform.localScale = new Vector3(s, s, 1f);
+                // ▼だけ画面のドット格子(3px)へ吸着させる。ラベルは滑らかなまま。
+                Vector2 mp = marker.anchoredPosition;
+                markerArrows[i].rectTransform.anchoredPosition = new Vector2(
+                    SnapToArrowGrid(mp.x) - mp.x, SnapToArrowGrid(mp.y) - mp.y);
             }
         }
     }
@@ -745,6 +760,35 @@ public class TitleManager : MonoBehaviour
     }
 
     // 部屋の毎フレーム更新。選択中のオブジェクトのハイライトと、立ち絵の視差・退避。
+    // 立ち絵の重ね板を用意する(部屋が立ち絵を分離して描いているときだけ)。
+    private void ApplyHeroView(TitleRoomController room)
+    {
+        RenderTexture heroTex = room != null ? room.HeroTexture : null;
+        if (heroTex == null)
+        {
+            if (heroView != null) heroView.gameObject.SetActive(false);
+            return;
+        }
+        if (heroView == null)
+        {
+            heroView = CreateRawImage("HeroView", transform);
+            StretchToParent(heroView.rectTransform);
+            heroView.color = Color.white;
+            heroView.raycastTarget = false;
+            if (heroViewMaterial == null)
+            {
+                Shader sh = Shader.Find("BulletHell/UI/Premultiplied");
+                if (sh != null)
+                    heroViewMaterial = new Material(sh) { hideFlags = HideFlags.DontSave };
+            }
+            if (heroViewMaterial != null) heroView.material = heroViewMaterial;
+        }
+        if (heroView.texture != heroTex) heroView.texture = heroTex;
+        heroView.gameObject.SetActive(true);
+        // 部屋の真上(暗幕・ロゴ・▼より奥)。
+        heroView.rectTransform.SetSiblingIndex(1);
+    }
+
     private void TickRoom(float dt)
     {
         TitleRoomController room = Room;
@@ -767,6 +811,8 @@ public class TitleManager : MonoBehaviour
                 roomView.material = appliedRoomMaterial;
             }
         }
+        if (heroView != null && room.HeroTexture != null && heroView.texture != room.HeroTexture)
+            heroView.texture = room.HeroTexture;
 
         float zoom = room.ZoomAmount;
         {

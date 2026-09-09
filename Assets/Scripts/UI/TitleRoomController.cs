@@ -40,15 +40,17 @@ public class TitleRoomController : MonoBehaviour
     // 描く。こうすると部屋のライト(ランタンの暖色・月光・環境光)を受け、低解像度の
     // ドット風描画も部屋と同じだけ掛かるので粗さが揃う。
     [Tooltip("足元の位置(部屋のワールド座標)。床は y=0。")]
-    public Vector3 heroFootPos = new Vector3(1.75f, 0f, -2.6f);
-    [Tooltip("板の高さ(ワールド単位)。全景カメラで画面高さの約 75% になる値。")]
-    public float heroHeight = 5.1f;
+    public Vector3 heroFootPos = new Vector3(2.6f, 0f, -2.6f);
+    [Tooltip("板の高さ(ワールド単位)。全景カメラで画面高さの約 60% になる値。")]
+    public float heroHeight = 4.08f;
     [Tooltip("立ち絵の明るさ(材質のベース色。1 で原画そのまま)。部屋の中景と同じ明度まで落とす。")]
     [Range(0f, 1.5f)] public float heroBrightness = 0.9f;
     [Tooltip("足元の接地影の直径(ワールド単位)。0 で影なし。")]
-    public float heroShadowSize = 2.2f;
+    public float heroShadowSize = 1.76f;
     [Tooltip("足元の接地影の濃さ。")]
     [Range(0f, 1f)] public float heroShadowAlpha = 0.55f;
+    [Tooltip("ON で立ち絵だけを専用レイヤー・専用カメラで 1920x1080 の RT へ描き、粗い部屋の上に元解像度で重ねる(プレイ中のボスと同じ方式)。OFF で部屋と同じ低解像度。")]
+    public bool heroFullRes = true;
 
     Transform heroBoard;
     Renderer heroRenderer;
@@ -57,6 +59,12 @@ public class TitleRoomController : MonoBehaviour
     MaterialPropertyBlock heroMpb;
     static readonly int HeroBaseColorId = Shader.PropertyToID("_BaseColor");
     static readonly int HeroCutoffId = Shader.PropertyToID("_Cutoff");
+    // 立ち絵だけを元解像度で描く 2 台目のカメラと、その描画先(実行時生成)。
+    Camera heroCamera;
+    RenderTexture heroRT;
+    int roomLayer;      // 部屋のジオメトリ(TitleCG)
+    int heroLayer = -1; // 立ち絵と接地影(TitleHero)。分離しないときは roomLayer と同じ
+    int lightLayer = -1;// 部屋のライト(TitleLight)。両方のカメラから見える
 
     [Header("明るさ")]
     [Tooltip("全ライトに掛かる倍率。v3 の参考レンダーより +15% 明るくする指示のため既定 1.15。")]
@@ -218,6 +226,8 @@ public class TitleRoomController : MonoBehaviour
     public RenderTexture Texture => pixelRT != null ? pixelRT : targetTexture;
     /// <summary>色数を落とすときに RawImage へ貼るマテリアル。既定(pixelatePalette=0)は null。</summary>
     public Material ViewMaterial => pixelMat;
+    /// <summary>立ち絵だけを元解像度で描いた RT。分離していないときは null(部屋の RT に含まれる)。</summary>
+    public RenderTexture HeroTexture => heroCamera != null ? heroRT : null;
     public bool Ready => built && roomCamera != null && targetTexture != null;
     /// <summary>部屋がいま画面に出ているか(退場演出で落としたあとは false)。</summary>
     public bool RoomVisible => Ready && activeNow;
@@ -231,7 +241,7 @@ public class TitleRoomController : MonoBehaviour
 
     void OnApplicationQuit() { RestoreAmbient(); }
 
-    void OnDestroy() { ReleasePixelTexture(); }
+    void OnDestroy() { ReleasePixelTexture(); ReleaseHeroCamera(); }
 
     void RestoreAmbient()
     {
@@ -272,6 +282,15 @@ public class TitleRoomController : MonoBehaviour
 
         int layer = LayerMask.NameToLayer("TitleCG");
         if (layer < 0) layer = 0;
+        roomLayer = layer;
+        // 立ち絵を元解像度で重ねるときだけ、立ち絵とライトを別レイヤーへ分ける。
+        // ライトを別にするのは、カメラのカリングマスクがライトにも効くため
+        // (部屋カメラと立ち絵カメラの両方から見えるレイヤーが要る)。
+        int hero = LayerMask.NameToLayer("TitleHero");
+        int lit = LayerMask.NameToLayer("TitleLight");
+        bool separate = heroFullRes && hero >= 0 && lit >= 0;
+        heroLayer = separate ? hero : layer;
+        lightLayer = separate ? lit : layer;
 
         // 部屋本体。プレハブルートの transform(Blender の右手系相殺の名残で回転・スケールが
         // 入っていることがある)は絶対に上書きしない。位置だけ原点へ置く。
@@ -303,7 +322,7 @@ public class TitleRoomController : MonoBehaviour
             CollectRenderers("shelf_books", "shelf_scrolls_and_chests"),
         };
 
-        BuildHeroBoard(layer);
+        BuildHeroBoard(heroLayer);
 
         // ---- カメラ ----
         GameObject camObj = new GameObject("TitleRoomCamera");
@@ -311,7 +330,7 @@ public class TitleRoomController : MonoBehaviour
         roomCamera = camObj.AddComponent<Camera>();
         roomCamera.clearFlags = CameraClearFlags.SolidColor;
         roomCamera.backgroundColor = new Color(0.008f, 0.010f, 0.020f, 1f);
-        roomCamera.cullingMask = 1 << layer;
+        roomCamera.cullingMask = RoomCullingMask();
         roomCamera.nearClipPlane = 0.05f;
         roomCamera.farClipPlane = 150f;
         roomCamera.depth = -100f;
@@ -326,6 +345,7 @@ public class TitleRoomController : MonoBehaviour
         data.requiresColorOption = CameraOverrideOption.Off;
         data.requiresDepthOption = CameraOverrideOption.Off;
         data.SetRenderer(rendererIndex);
+        EnsureHeroCamera();
         ApplyPose(TitlePos, Quaternion.Euler(TitleEuler), TitleVFov);
 
         // ---- ライト ----
@@ -371,6 +391,84 @@ public class TitleRoomController : MonoBehaviour
     //   ・足元に接地の影(円形グラデーションの板)を敷く。
     // フェード(カメラが寄るときに消える)はベース色の alpha とカットオフを
     // 同じ比率で動かす。比率が同じなので抜きの形はフェード中も変わらない。
+    int RoomCullingMask()
+    {
+        int m = 1 << roomLayer;
+        if (lightLayer >= 0) m |= 1 << lightLayer;
+        // 立ち絵を分離していないときは同じレイヤーなのでこのまま部屋カメラが描く。
+        return m;
+    }
+
+    // 透明の RT へ描くとき、アルファチャンネルが二重に掛からないようにする。
+    // 色は SrcAlpha/OneMinusSrcAlpha のまま、アルファだけ One/OneMinusSrcAlpha にすると
+    // RT の中身が (色 x アルファ, アルファ) = プリマルチプライドになる。
+    // 表示側は BulletHell/UI/Premultiplied で重ねる。
+    static void SetPremultipliedAlphaWrite(Material mat)
+    {
+        if (mat.HasProperty("_SrcBlendAlpha"))
+            mat.SetFloat("_SrcBlendAlpha", (float)UnityEngine.Rendering.BlendMode.One);
+        if (mat.HasProperty("_DstBlendAlpha"))
+            mat.SetFloat("_DstBlendAlpha", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+    }
+
+    // 立ち絵だけを 1920x1080 で描く 2 台目のカメラ。部屋カメラを複製して作る
+    // (URP のレンダラ番号・設定をそのまま引き継ぐため)。
+    void EnsureHeroCamera()
+    {
+        bool want = heroFullRes && heroRenderer != null && heroLayer >= 0 && heroLayer != roomLayer;
+        if (!want) { ReleaseHeroCamera(); return; }
+        if (roomCamera == null) return;
+
+        if (heroRT == null)
+        {
+            // 書式・MSAA はシーンの 1920x1080 RT に合わせる(合わせないと立ち絵の
+            // 線の縁だけ従来と変わる)。
+            heroRT = new RenderTexture(1920, 1080, 32,
+                targetTexture != null ? targetTexture.format : RenderTextureFormat.DefaultHDR)
+            {
+                name = "TitleHeroRT",
+                filterMode = FilterMode.Bilinear,
+                antiAliasing = targetTexture != null ? targetTexture.antiAliasing : 1,
+                useMipMap = false,
+                autoGenerateMips = false,
+                wrapMode = TextureWrapMode.Clamp,
+                hideFlags = HideFlags.DontSave
+            };
+            heroRT.Create();
+        }
+        if (heroCamera == null)
+        {
+            GameObject go = Instantiate(roomCamera.gameObject, transform);
+            go.name = "TitleHeroCamera";
+            go.hideFlags = HideFlags.DontSave;
+            heroCamera = go.GetComponent<Camera>();
+        }
+        heroCamera.cullingMask = (1 << heroLayer) | (lightLayer >= 0 ? 1 << lightLayer : 0);
+        heroCamera.clearFlags = CameraClearFlags.SolidColor;
+        heroCamera.backgroundColor = new Color(0f, 0f, 0f, 0f);
+        heroCamera.targetTexture = heroRT;
+        heroCamera.allowMSAA = heroRT.antiAliasing > 1;
+        // 部屋より後に描く(表示は RawImage の重ね順で決めるので描画順は問わない)。
+        heroCamera.depth = roomCamera.depth + 1f;
+        heroCamera.useOcclusionCulling = false;
+    }
+
+    void ReleaseHeroCamera()
+    {
+        if (heroCamera != null)
+        {
+            heroCamera.targetTexture = null;
+            DestroyImmediate(heroCamera.gameObject);
+            heroCamera = null;
+        }
+        if (heroRT != null)
+        {
+            heroRT.Release();
+            DestroyImmediate(heroRT);
+            heroRT = null;
+        }
+    }
+
     void BuildHeroBoard(int layer)
     {
         Texture heroTex = heroSprite != null ? heroSprite.texture : null;
@@ -395,6 +493,7 @@ public class TitleRoomController : MonoBehaviour
         mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
         mat.SetTexture("_BaseMap", heroTex);
         mat.SetColor("_BaseColor", Color.white);
+        SetPremultipliedAlphaWrite(mat);
 
         GameObject board = GameObject.CreatePrimitive(PrimitiveType.Quad);
         board.name = "HeroBoard";
@@ -419,6 +518,7 @@ public class TitleRoomController : MonoBehaviour
             sm.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
             sm.SetTexture("_BaseMap", CreateSoftDiscTexture(64));
             sm.SetColor("_BaseColor", new Color(0f, 0f, 0f, heroShadowAlpha));
+            SetPremultipliedAlphaWrite(sm);
             sm.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
 
             GameObject shade = GameObject.CreatePrimitive(PrimitiveType.Quad);
@@ -515,7 +615,8 @@ public class TitleRoomController : MonoBehaviour
         GameObject go = new GameObject(objectName);
         go.transform.SetParent(transform, false);
         go.transform.localPosition = pos;
-        go.layer = layer;
+        // ライトは部屋カメラと立ち絵カメラの両方から見える必要がある(分離時は TitleLight)。
+        go.layer = lightLayer >= 0 ? lightLayer : layer;
         Light light = go.AddComponent<Light>();
         light.type = type;
         light.color = color;
@@ -731,6 +832,7 @@ public class TitleRoomController : MonoBehaviour
         if (heroBoard != null) heroBoard.gameObject.SetActive(on);
         if (heroShadow != null) heroShadow.gameObject.SetActive(on);
         if (roomCamera != null) roomCamera.gameObject.SetActive(on);
+        if (heroCamera != null) heroCamera.gameObject.SetActive(on);
         foreach (Light light in new[] { moonLight, fillLight, lanternLight, selectionLight, cloakLight1, cloakLight2 })
             if (light != null) light.gameObject.SetActive(on);
         if (dust != null)
@@ -844,6 +946,12 @@ public class TitleRoomController : MonoBehaviour
         if (roomCamera == null) return;
         roomCamera.transform.SetPositionAndRotation(pos, rot);
         roomCamera.fieldOfView = vFov;
+        if (heroCamera != null)
+        {
+            // 立ち絵カメラは部屋カメラと同じ姿勢・同じ画角(RT の縦横比も 16:9 で同じ)。
+            heroCamera.transform.SetPositionAndRotation(pos, rot);
+            heroCamera.fieldOfView = vFov;
+        }
     }
 
     // ランタンの炎: 3〜5Hz のゆらぎ(拍とは無関係)。窓の外の灯りも弱く明滅させる。
