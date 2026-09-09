@@ -314,13 +314,15 @@ public class TitleManager : MonoBehaviour
     private Image roomLogoImage;
     private RectTransform roomLogoRect;
     private RectTransform sceneLogoRect;
-    // 新ロゴの表示幅と原画(2146x733)の縦横比。位置は旧ロゴと同じ窓の中央上部。
-    // 新ロゴは横長で背が低いので、幅 660 でも下端は「設定」のラベル帯よりずっと
-    // 上に来る(実フレームで確認)。
-    private const float RoomLogoWidth = 660f;
+    // 新ロゴの表示幅と原画(2146x733)の縦横比。位置は窓の中へ下げて拡大した(第11便)。
+    // 幅 740 で rect は 740x252.8px。1080p 実フレームでの実測は、絵の最下点(リボンの
+    // 尾)が rect 上端から +220px、「設定」のラベル上端が y=382。浮遊(±10px)と
+    // ビートパルス(x1.035)を足した最下点でもラベルまで 40px 以上あく上限が y=320 で、
+    // 窓(ガラス y=168..514)の 1/3 まで下げるとラベルに掛かるのでここで止めている。
+    private const float RoomLogoWidth = 740f;
     private const float RoomLogoAspect = 2146f / 733f;
     private const float RoomLogoX = 20f;
-    private const float RoomLogoY = 352f;
+    private const float RoomLogoY = 320f;
 
     private TitleRoomController Room => TitleRoomController.Instance;
 
