@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
 /// <summary>
-/// ステージ選択の背景を Astra 制作の 3D「城壁の街」(Instructions/ステージ選択/cg/v2.fbx) にする。
+/// ステージ選択の背景を Astra 制作の 3D「城壁の街」(Instructions/ステージ選択/cg/v4.fbx) にする。
 ///
 /// 仕組みはタイトルの部屋 (<see cref="TitleRoomController"/>) と同じ「専用カメラ → RenderTexture →
 /// 選択画面 Canvas 最背面の RawImage」方式。街はレイヤー <c>CityCG</c>(12) に置き、専用カメラだけが
@@ -41,13 +41,13 @@ public class CityMapController : MonoBehaviour
     [Tooltip("ドット風の内部解像度(高さ)。既定 360。16:9 を保つこと。")]
     public int pixelHeight = 360;
     [Tooltip("1 チャンネルあたりの階調数。0 で色数の減衰なし。既定 8(タイトルの質感に合わせる)。")]
-    public int pixelatePalette = 8;
+    public int pixelatePalette = 0;
     [Tooltip("色数を減らしたときの 4x4 順序ディザの強さ。")]
-    [Range(0f, 1f)] public float pixelateDither = 0.5f;
+    [Range(0f, 1f)] public float pixelateDither = 0f;
 
     [Header("色の調整(タイトルの質感に合わせる)")]
     [Tooltip("ON で彩度・コントラストの調整と区画の基調色を掛ける。")]
-    public bool colorGrade = true;
+    public bool colorGrade = false;
     [Tooltip("彩度。1 で素、0.75 で少し落とす。窓灯り・ランタンの橙は別扱いで残る。")]
     [Range(0f, 1.5f)] public float saturation = 0.78f;
     [Tooltip("コントラスト。1 で素、1 未満でハイライトが下がる。")]

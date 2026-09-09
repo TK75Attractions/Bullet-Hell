@@ -1,15 +1,15 @@
 fileFormatVersion: 2
-guid: 3ac9d8333ad2c154d97cf01aa35095ad
+guid: dcda4ab902756294cb75a3a19d19425f
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7473527972483714590
-    second: v2_albedo_0
+      213: 8994500811216535003
+    second: v4_albedo_common_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
     mipMapMode: 0
-    enableMipMap: 1
+    enableMipMap: 0
     sRGBTexture: 1
     linearTexture: 0
     fadeOut: 0
@@ -55,9 +55,9 @@ TextureImporter:
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
-  alphaIsTransparency: 0
+  alphaIsTransparency: 1
   spriteTessellationDetail: -1
-  textureType: 0
+  textureType: 8
   textureShape: 1
   singleChannelComponent: 0
   flipbookRows: 1
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: v2_albedo_0
+      name: v4_albedo_common_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 1024
-        height: 1024
+        width: 512
+        height: 512
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2e1b92dc7e1b84890800000000000000
-      internalID: -7473527972483714590
+      spriteID: bdd368835d2e2dc70800000000000000
+      internalID: 8994500811216535003
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      v2_albedo_0: -7473527972483714590
+      v4_albedo_common_0: 8994500811216535003
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
