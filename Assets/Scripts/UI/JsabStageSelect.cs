@@ -219,6 +219,15 @@ public class JsabStageSelect : MonoBehaviour
     // 寄る前にモーダルを出すと、ぼかしスナップショットが寄りを丸ごと覆い隠す
     // (タイトルの部屋で実証済みの罠)。
     private bool cityZoomPending;
+    // 街モードで隠す既存 UI(コードも style 0/1 の表示もそのまま残す)。
+    private RectTransform hintBarRect;
+    private RectTransform hintBarLineRect;
+    // 街モードの左右レイアウト: 街の CG は全画面のまま、既存カードとステージ名を
+    // 右半分(x 50〜100%)へ移す。区画はカメラ側で画面左 27% に来るようずらす。
+    private static readonly Vector2 CityCardPos = new Vector2(480f, 40f);
+    private static readonly Vector2 CityCardSize = new Vector2(792f, 448f);
+    private const float CityStageNameY = 310f;
+    private bool cityLayoutApplied;
 
     /// <summary>いまが街スタイル(style 2)か。</summary>
     public bool CityMode => cityMode;
@@ -954,6 +963,7 @@ public class JsabStageSelect : MonoBehaviour
     {
         Image bar = NewImage("HintBar", root, new Color(0.02f, 0.05f, 0.08f, 0.95f));
         RectTransform br = bar.rectTransform;
+        hintBarRect = br;
         br.anchorMin = new Vector2(0f, 0f);
         br.anchorMax = new Vector2(1f, 0f);
         br.pivot = new Vector2(0.5f, 0f);
@@ -962,6 +972,7 @@ public class JsabStageSelect : MonoBehaviour
 
         Image topLine = NewImage("HintBarLine", root, Cyan);
         RectTransform tlr = topLine.rectTransform;
+        hintBarLineRect = tlr;
         tlr.anchorMin = new Vector2(0f, 0f);
         tlr.anchorMax = new Vector2(1f, 0f);
         tlr.pivot = new Vector2(0.5f, 0f);
@@ -1580,8 +1591,40 @@ public class JsabStageSelect : MonoBehaviour
             }
             city.SetVisible(cityMode && Visible);
         }
-        // 街モードでは中央カードの動画は止める(RT も表示しない)。
-        if (cityMode && videoPlayer != null && videoPlayer.isPlaying) videoPlayer.Pause();
+        ApplyCityChrome();
+        // 街モードでも中央カード(プレビュー動画)はそのまま右半分で使う。
+        if (videoPlayer != null && !videoPlayer.isPlaying && !string.IsNullOrEmpty(videoPlayer.url) && Visible)
+            videoPlayer.Play();
+    }
+
+    // 街モード(style 2)で隠す既存 UI と、左右レイアウトの適用。
+    // 上部バー(曲選択/MUSIC SELECT・残り時間)と下部の操作ヒントは GameObject を
+    // 落とすだけで、クローン処理もタイマー本体も生きたまま(style 0/1 は不変)。
+    private void ApplyCityChrome()
+    {
+        bool hide = cityMode;
+        if (topBarBaseRoot != null && topBarBaseRoot.gameObject.activeSelf == hide)
+            topBarBaseRoot.gameObject.SetActive(!hide);
+        if (topBarTextRoot != null && topBarTextRoot.gameObject.activeSelf == hide)
+            topBarTextRoot.gameObject.SetActive(!hide);
+        SetGoActive(hintBarRect, !hide);
+        SetGoActive(hintBarLineRect, !hide);
+
+        if (cityMode == cityLayoutApplied) return;
+        cityLayoutApplied = cityMode;
+        if (cardRect != null)
+        {
+            cardRect.anchoredPosition = cityMode ? CityCardPos : CenterSlotPos;
+            cardRect.sizeDelta = cityMode ? CityCardSize : CenterSlotSize;
+        }
+        if (stageNameRect != null)
+        {
+            stageNameRect.anchoredPosition = new Vector2(
+                cityMode ? CityCardPos.x : 0f,
+                cityMode ? CityStageNameY : CenterSlotPos.y + CenterSlotSize.y * 0.5f + 46f);
+        }
+        if (city != null) city.SetRightColumn(cityMode ? CityCardPos.x : 0f,
+            cityMode ? CityCardPos.y - CityCardSize.y * 0.5f - 30f : 0f, CityCardSize.x);
     }
 
     // カルーセル固有の部品(サイドカード・中央カード・ステージ名・進捗行・背景図形)の
@@ -1591,8 +1634,8 @@ public class JsabStageSelect : MonoBehaviour
         SetGoActive(leftPanel != null ? leftPanel.rect : null, on);
         SetGoActive(rightPanel != null ? rightPanel.rect : null, on);
         SetGoActive(sparePanel != null ? sparePanel.rect : null, on);
-        SetGoActive(cardRect, on);
-        SetGoActive(stageNameRect, on);
+        SetGoActive(cardRect, true);        // 街モードでは右半分へ移して使う
+        SetGoActive(stageNameRect, true);
         SetGoActive(progressRow, on);
         SetGoActive(bgShapesRoot, on);
     }
@@ -1620,7 +1663,7 @@ public class JsabStageSelect : MonoBehaviour
         }
         if (visible)
         {
-            if (!cityMode && videoPlayer != null && !string.IsNullOrEmpty(videoPlayer.url) && !videoPlayer.isPlaying)
+            if (videoPlayer != null && !string.IsNullOrEmpty(videoPlayer.url) && !videoPlayer.isPlaying)
             {
                 videoPlayer.Play();
             }
@@ -1629,6 +1672,13 @@ public class JsabStageSelect : MonoBehaviour
         {
             if (videoPlayer != null && videoPlayer.isPlaying) videoPlayer.Pause();
         }
+    }
+
+    /// <summary>残り時間(秒)。街モードでは上部バーを隠しているので、10 秒を切ったときだけ
+    /// 画面下端に小さく出すために使う。タイマー本体・自動スタートは従来どおり動く。</summary>
+    public void SetRemainingTime(float seconds)
+    {
+        if (city != null) city.SetRemainingTime(seconds, cityMode);
     }
 
     public void SetStage(int index, int total, bool animate)
@@ -1643,6 +1693,9 @@ public class JsabStageSelect : MonoBehaviour
                 StageData data = GetStage(currentIndex);
                 city.SetStage(data, StageCityProfile.DistrictOf(data), animate);
             }
+            // 右半分の既存カード(名前・プレビュー動画)も更新する。カルーセルの
+            // 飛行アニメーションは通さない(街モードでは部品を下ろしてあるため)。
+            ApplyCenterContent(false);
             return;
         }
         if (transTime >= 0f)
@@ -2035,6 +2088,12 @@ public class JsabStageSelect : MonoBehaviour
     {
         StageData cur = GetStage(currentIndex);
         string curName = cur != null && !string.IsNullOrWhiteSpace(cur.stageName) ? cur.stageName : ("Stage " + currentIndex);
+        // 街モードだけ日本語の表示名を使う(艦長は StageData 側が "Captain" のまま)。
+        if (cityMode && cur != null)
+        {
+            string jp = StageCityProfile.DisplayNameOf(cur);
+            if (!string.IsNullOrWhiteSpace(jp)) curName = jp;
+        }
         // Japanese stage names ride high under Middle alignment (Latin UI font +
         // CJK fallback metrics); optically center each by its ink bounds.
         if (stageNameText != null) { stageNameText.text = curName; TmpAlign.CenterInkVertically(stageNameText); }

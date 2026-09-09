@@ -40,6 +40,9 @@ public class CitySelectView : MonoBehaviour
     private static readonly Vector2 MarkerLabelShadowOffset = new Vector2(2f, -2f);
 
     // ---- 情報パネル ----------------------------------------------------------
+    // 第 14 便: 右下の小パネルは廃止(右半分へ既存の JSAB カードを移したため)。
+    // 生成コードはそのまま残してあり、この定数を true にすれば元どおり出る。
+    private static readonly bool ShowLegacyInfoPanel = false;
     private const float PanelW = 640f;
     private const float PanelH = 400f;
     private const float PanelInsetX = 96f;   // 19° の斜辺を避ける左右の余白
@@ -73,6 +76,15 @@ public class CitySelectView : MonoBehaviour
     private Sprite arrowSprite;
     private readonly System.Collections.Generic.List<Texture2D> ownedTextures = new System.Collections.Generic.List<Texture2D>();
     private readonly System.Collections.Generic.List<Sprite> ownedSprites = new System.Collections.Generic.List<Sprite>();
+
+    // 右半分(既存カードの下)に置く説明・プレイ時間と、残り 10 秒を切ったときだけ
+    // 画面下端へ出す明朝の残り秒数。
+    private CanvasGroup rightInfoCG;
+    private RectTransform rightInfoRect;
+    private TMP_Text rightDesc;
+    private TMP_Text rightMeta;
+    private TMP_Text timeLeftText;
+    private float timeLeftAlpha;
 
     private CityMapController map;
     private int district;
@@ -120,6 +132,67 @@ public class CitySelectView : MonoBehaviour
 
         BuildMarker();
         BuildPanel();
+        BuildRightInfo();
+    }
+
+    // 右半分の既存カードの下に置く説明とプレイ時間、および残り時間の最小表示。
+    private void BuildRightInfo()
+    {
+        GameObject go = new GameObject("RightInfo", typeof(RectTransform), typeof(CanvasGroup));
+        go.transform.SetParent(root, false);
+        rightInfoRect = (RectTransform)go.transform;
+        rightInfoRect.anchorMin = rightInfoRect.anchorMax = new Vector2(0.5f, 0.5f);
+        rightInfoRect.pivot = new Vector2(0.5f, 1f);
+        rightInfoRect.sizeDelta = new Vector2(792f, 120f);
+        rightInfoCG = go.GetComponent<CanvasGroup>();
+        rightInfoCG.blocksRaycasts = false;
+        rightInfoCG.alpha = 0f;
+
+        rightDesc = NewText("Desc", rightInfoRect, "", 24f, new Color(0.78f, 0.86f, 0.92f, 1f), TextAlignmentOptions.Top);
+        RectTransform dr = (RectTransform)rightDesc.transform;
+        dr.anchorMin = dr.anchorMax = new Vector2(0.5f, 1f);
+        dr.pivot = new Vector2(0.5f, 1f);
+        dr.sizeDelta = new Vector2(792f, 62f);
+        dr.anchoredPosition = Vector2.zero;
+        rightDesc.textWrappingMode = TextWrappingModes.Normal;
+
+        rightMeta = NewText("Meta", rightInfoRect, "", 22f, Cyan, TextAlignmentOptions.Top);
+        RectTransform mr = (RectTransform)rightMeta.transform;
+        mr.anchorMin = mr.anchorMax = new Vector2(0.5f, 1f);
+        mr.pivot = new Vector2(0.5f, 1f);
+        mr.sizeDelta = new Vector2(792f, 30f);
+        mr.anchoredPosition = new Vector2(0f, -66f);
+
+        // 残り 10 秒を切ったときだけ画面下端に小さく出す(上部バーは街モードでは隠す)。
+        timeLeftText = NewText("TimeLeft", root, "", 26f, new Color(0.90f, 0.88f, 0.84f, 1f), TextAlignmentOptions.Center);
+        RectTransform tr = (RectTransform)timeLeftText.transform;
+        tr.anchorMin = tr.anchorMax = new Vector2(0.5f, 0f);
+        tr.pivot = new Vector2(0.5f, 0f);
+        tr.sizeDelta = new Vector2(400f, 40f);
+        tr.anchoredPosition = new Vector2(0f, 26f);
+        StyleLabel(timeLeftText);
+        timeLeftText.characterSpacing = 2f;
+        timeLeftText.alpha = 0f;
+    }
+
+    /// <summary>右半分の説明ブロックの位置(既存カードの真下)。x=0 で街モード以外。</summary>
+    public void SetRightColumn(float x, float y, float width)
+    {
+        if (rightInfoRect == null) return;
+        rightInfoRect.anchoredPosition = new Vector2(x, y);
+        rightInfoRect.sizeDelta = new Vector2(width, rightInfoRect.sizeDelta.y);
+        if (rightDesc != null) ((RectTransform)rightDesc.transform).sizeDelta = new Vector2(width, 62f);
+        if (rightMeta != null) ((RectTransform)rightMeta.transform).sizeDelta = new Vector2(width, 30f);
+    }
+
+    /// <summary>残り時間の最小表示。10 秒を切ったときだけ出す。</summary>
+    public void SetRemainingTime(float seconds, bool cityMode)
+    {
+        if (timeLeftText == null) return;
+        bool show = cityMode && seconds <= 10.5f && seconds > 0.05f;
+        if (show) timeLeftText.text = string.Format("のこり {0}", Mathf.CeilToInt(seconds));
+        timeLeftAlpha = Mathf.MoveTowards(timeLeftAlpha, show ? 1f : 0f, Time.unscaledDeltaTime / 0.2f);
+        timeLeftText.alpha = timeLeftAlpha;
     }
 
     private void BuildMarker()
@@ -174,6 +247,7 @@ public class CitySelectView : MonoBehaviour
         panel.sizeDelta = new Vector2(PanelW, PanelH);
         panelCG = panelGO.GetComponent<CanvasGroup>();
         panelCG.blocksRaycasts = false;
+        if (!ShowLegacyInfoPanel) panelGO.SetActive(false);
 
         // 平行四辺形(19°)の統一様式パネル。街(明るい面もある)の上に乗るので、
         // 同じスプライトを暗く着色したものを 1 枚下に敷いて地を締める(文字の可読性)。
@@ -278,25 +352,28 @@ public class CitySelectView : MonoBehaviour
         district = districtNumber;
         if (map != null) map.SelectDistrict(districtNumber, animate);
 
-        string stageName = data != null && !string.IsNullOrWhiteSpace(data.stageName) ? data.stageName : "";
+        // ▼のラベルは日本語の表示名(艦長は StageData 側が "Captain" のままなので profile で補う)。
+        string stageName = StageCityProfile.DisplayNameOf(data);
         if (markerLabel != null) markerLabel.text = stageName;
         if (markerLabelShadows != null)
             foreach (TMP_Text t in markerLabelShadows) if (t != null) t.text = stageName;
         markerInkCentered = false;
 
-        if (panelName != null) panelName.text = stageName;
-        if (panelDesc != null)
-            panelDesc.text = data != null && !string.IsNullOrWhiteSpace(data.stageDescription) ? data.stageDescription : "";
-        if (panelMeta != null)
+        // 説明は仮文(英語のプレースホルダ)なら空欄にする。
+        string desc = StageCityProfile.DescriptionOf(data);
+        string meta = "";
+        if (data != null && data.audioClip != null)
         {
-            if (data != null && data.audioClip != null)
-            {
-                int len = (int)data.audioClip.length;
-                panelMeta.text = string.Format("プレイ時間 {0}:{1:00}", len / 60, len % 60);
-            }
-            else panelMeta.text = "";
+            int len = (int)data.audioClip.length;
+            meta = string.Format("プレイ時間 {0}:{1:00}", len / 60, len % 60);
         }
-        UpdatePreviewClip(data);
+        if (panelName != null) panelName.text = stageName;
+        if (panelDesc != null) panelDesc.text = desc;
+        if (panelMeta != null) panelMeta.text = meta;
+        if (rightDesc != null) rightDesc.text = desc;
+        if (rightMeta != null) rightMeta.text = meta;
+        // 廃止した右下パネルの動画は回さない(右半分の既存カードが動画を持つ)。
+        if (ShowLegacyInfoPanel) UpdatePreviewClip(data);
     }
 
     private void UpdatePreviewClip(StageData data)
@@ -417,7 +494,16 @@ public class CitySelectView : MonoBehaviour
                 Mathf.Round(mp.y / MarkerArrowPixel) * MarkerArrowPixel - mp.y);
         }
 
+        // 右半分の説明ブロック: 区画へ寄り切ってから出し、決定の寄り込みで消す。
+        if (rightInfoCG != null)
+        {
+            float want = map.Arrived && district >= 1
+                ? 1f - Mathf.Clamp01((map.ZoomAmount - 0.2f) / 0.5f) : 0f;
+            rightInfoCG.alpha = Mathf.MoveTowards(rightInfoCG.alpha, want, dt / 0.25f);
+        }
+
         // 情報パネル: 区画へ寄り切ってからプレビューを出す。
+        if (!ShowLegacyInfoPanel) return;
         float previewWant = map.Arrived && district >= 1 ? 1f : 0f;
         if (previewCG != null)
             previewCG.alpha = Mathf.MoveTowards(previewCG.alpha, previewWant, dt / 0.25f);
