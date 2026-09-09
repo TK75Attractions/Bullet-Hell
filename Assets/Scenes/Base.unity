@@ -6352,7 +6352,7 @@ MonoBehaviour:
     beatOffsetSec: 0
     beatPulse: 0.2
     beatDecaySec: 0.15
-    hueShiftDeg: 25
+    hueShiftDeg: -25
     saturation: 1.15
     tintColor: {r: 1, g: 1, b: 1, a: 1}
     tintAmount: 0
@@ -6365,7 +6365,7 @@ MonoBehaviour:
     phaseFlashSec: 0.12
     phaseFlashAmount: 0.15
     phaseColorBlendSec: 0.5
-    phase2HueShiftDeg: 25
+    phase2HueShiftDeg: -25
     phase2Saturation: 1.15
     phase2TintColor: {r: 1, g: 0.45, b: 0.9, a: 1}
     phase2TintAmount: 0.2
@@ -14089,6 +14089,7 @@ MonoBehaviour:
     bossSpawners: []
     bulletSpawners: []
     stageEvents: []
+    screenShakes: []
   spawnEvents: []
   time: 0
   multiBulletSpawnerCount: 0
