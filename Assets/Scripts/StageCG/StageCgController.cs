@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -334,13 +334,21 @@ public class StageCgController : MonoBehaviour
             proxy.flipY = srcRenderer.flipY;
             proxy.enabled = srcRenderer.sprite != null;
             // 明度は表示板の _BossBrightness 側で掛けるので、ここでは元の色（フェード α）をそのまま。
-            proxy.color = srcRenderer.color;
+            // v35 (#4): ボス個体だけ明るくしたいときは、表示板の一律 gain（bossBrightness）に対する
+            //   比を代理スプライトの色へ掛ける。表示板側は 1 つの値しか持てないので、
+            //   ボスの RT に書く時点で差をつける（α は触らないので「ボスとして扱う量」は不変）。
+            Boss bossForColor = src.GetComponent<Boss>();
+            string bossIdForColor = bossForColor != null ? bossForColor.bossId : null;
+            float mul = p.bossBrightness > 1e-4f ? p.BossBrightnessAt(bossIdForColor) / p.bossBrightness : 1f;
+            Color srcColor = srcRenderer.color;
+            proxy.color = mul == 1f
+                ? srcColor
+                : new Color(srcColor.r * mul, srcColor.g * mul, srcColor.b * mul, srcColor.a);
 
             // v34: ボス個体ごとに奥行きを変えられる（老人が棚の奥へ回り込む）。
             //   逆投影は画面上の位置・大きさを保つ写像なので、z を変えても見た目は動かず、
             //   変わるのは CG のジオメトリとの前後関係（棚に隠れるかどうか）だけ。
-            Boss bossComponent = src.GetComponent<Boss>();
-            float depth = p.BossDepthAt(bossComponent != null ? bossComponent.bossId : null, stageTime);
+            float depth = p.BossDepthAt(bossIdForColor, stageTime);
             float k = (36f + depth) / 36f;
 
             Vector3 pos = src.position;

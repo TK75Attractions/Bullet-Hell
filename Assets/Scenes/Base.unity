@@ -6133,19 +6133,20 @@ MonoBehaviour:
     - bossId: caster
       keys:
       - time: 0
-        depth: 5.5
+        depth: 4
       - time: 58.337
-        depth: 5.5
+        depth: 4
       - time: 59.2
         depth: 9
       - time: 63.345
         depth: 9
-      - time: 63.545
-        depth: 6.5
       - time: 63.745
-        depth: 5.2
-      - time: 64.095
-        depth: 5.2
+        depth: 7.5
+      - time: 64.1
+        depth: 7.5
+    bossBrightnessOverrides:
+    - bossId: caster
+      brightness: 0.65
     sunFrom: {x: -30, y: 55, z: -12}
     sunTo: {x: 16, y: 2, z: 12}
     sunColorLinear: {x: 0.64, y: 0.59, z: 1}
@@ -6209,6 +6210,7 @@ MonoBehaviour:
     bossBrightness: 0.5
     bossDepth: 6
     bossDepthTracks: []
+    bossBrightnessOverrides: []
     sunFrom: {x: -25, y: 60, z: -20}
     sunTo: {x: 16, y: -3, z: 15}
     sunColorLinear: {x: 0.67, y: 0.81, z: 1}
@@ -6281,6 +6283,7 @@ MonoBehaviour:
     bossBrightness: 0.5
     bossDepth: 6
     bossDepthTracks: []
+    bossBrightnessOverrides: []
     sunFrom: {x: -24, y: 55, z: -18}
     sunTo: {x: 16, y: 1, z: 17}
     sunColorLinear: {x: 0.78, y: 0.9, z: 1}

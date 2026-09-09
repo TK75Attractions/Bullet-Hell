@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 /// <summary>
@@ -43,6 +43,18 @@ public class StageCgBossDepthTrack
 }
 
 /// <summary>
+/// 1 体のボスだけ明度を変える上書き（石工 v35 #4「老人をもっと手前に・少し明るく」）。
+/// 一覧に無いボスと、上書きを持たないステージは bossBrightness のまま。
+/// </summary>
+[Serializable]
+public class StageCgBossBrightnessOverride
+{
+    [Tooltip("stone.json の bossSpawner.bossId。")]
+    public string bossId = "";
+    [Range(0f, 2f)] public float brightness = 0.5f;
+}
+
+/// <summary>
 /// ステージ 1 本ぶんの背景 CG 設定。<see cref="StageCgController"/> が
 /// ステージ id で 1 つ選び、その値だけを使って描く。
 ///
@@ -71,6 +83,8 @@ public class StageCgProfile
     public float bossDepth = 5.5f;
     [Tooltip("ボス個体ごとに奥行きを時間で上書きする（石工の老人が棚の奥へ回り込む用）。空なら bossDepth のまま。")]
     public StageCgBossDepthTrack[] bossDepthTracks = new StageCgBossDepthTrack[0];
+    [Tooltip("ボス個体ごとの明度の上書き。空なら bossBrightness のまま。")]
+    public StageCgBossBrightnessOverride[] bossBrightnessOverrides = new StageCgBossBrightnessOverride[0];
 
     [Header("ライティング（Blender 側の数値をリニアで再現）")]
     public Vector3 sunFrom = new Vector3(-30f, 55f, -12f);
@@ -207,6 +221,18 @@ public class StageCgProfile
             return k[k.Length - 1].depth;
         }
         return bossDepth;
+    }
+
+    /// <summary>ボス個体の明度。上書きが無ければ bossBrightness。</summary>
+    public float BossBrightnessAt(string bossId)
+    {
+        if (bossBrightnessOverrides == null || string.IsNullOrEmpty(bossId)) return bossBrightness;
+        for (int i = 0; i < bossBrightnessOverrides.Length; i++)
+        {
+            StageCgBossBrightnessOverride o = bossBrightnessOverrides[i];
+            if (o != null && o.bossId == bossId) return o.brightness;
+        }
+        return bossBrightness;
     }
 
     /// <summary>このプロファイルがそのステージのものか。</summary>
