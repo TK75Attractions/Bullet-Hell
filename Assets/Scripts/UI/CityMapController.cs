@@ -254,8 +254,10 @@ public class CityMapController : MonoBehaviour
         // 面光源 3 灯は Unity では平行光で近似し、向きは FBX に入っている同名の空オブジェクトから取る。
         moonLight = CreateLight("CityMoon", LinearToSrgb(new Color(0.57f, 0.63f, 0.85f)), moonIntensity, layer);
         AimFromEmpty(moonLight, "moon_directional", new Vector3(0.30f, -0.86f, 0.41f));
-        moonLight.shadows = LightShadows.Soft;
-        moonLight.shadowStrength = 0.55f;
+        // 影は落とさない。街全体(100 メッシュ)にかかる平行光の影は実測で
+        // 平均 55fps → 116fps(最小 35.9 → 65.1)の差になり、俯瞰では見た目の差が
+        // ほとんど無かった(.tmp_select/f2/cmp_shadow.png で実フレーム比較)。
+        moonLight.shadows = LightShadows.None;
 
         rimLight = CreateLight("CityRim", LinearToSrgb(new Color(0.46f, 0.53f, 0.78f)), rimIntensity, layer);
         AimFromEmpty(rimLight, "moon_north_rim", new Vector3(-0.32f, -0.62f, -0.72f));
