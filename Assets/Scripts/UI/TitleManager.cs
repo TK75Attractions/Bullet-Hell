@@ -222,9 +222,9 @@ public class TitleManager : MonoBehaviour
     public const float StartZoomLead = 0.4f;
 
     // ---- オブジェクト上の▼メニュー(第8便) ---------------------------------
-    // 平行四辺形のボタン列をやめ、部屋のオブジェクトの真上に小さな金色の▼を出す。
-    // ▼は常時表示(弱い上下の浮遊)で、選択中のものだけ▼の上にラベル(暗い羊皮紙色の
-    // 帯+金の縁)が出る。▼・ラベルは 3D の位置を毎フレーム投影して置くので、
+    // 平行四辺形のボタン列をやめ、部屋のオブジェクトの真上に小さな白い▼を出す。
+    // ▼は常時表示(弱い上下の浮遊)で、選択中のものだけ▼の上にラベル(枠も帯も無い
+    // 明朝体の文字だけ)が出る。▼・ラベルは 3D の位置を毎フレーム投影して置くので、
     // カメラが寄っても対象の上に留まる。旧ボタン列はコードを残したまま隠す。
     [SerializeField] private bool useObjectMenu = true;
     private RectTransform objectMenuRoot;
@@ -232,10 +232,16 @@ public class TitleManager : MonoBehaviour
     private Image[] markerArrows = new Image[0];
     private CanvasGroup[] markerLabelCG = new CanvasGroup[0];
     private TMP_Text[] markerLabelTexts = new TMP_Text[0];
+    private TMP_Text[] markerLabelShadows = new TMP_Text[0];
     private float[] markerLabelAlpha = new float[0];
     private bool markerInkCentered;
     private bool objectMenuOn;
     private static Sprite markerArrowSprite;
+    // ラベルの明朝体(しっぽり明朝)。差し替えるときはこの 1 行だけを変える。
+    // 読めなかったときは従来どおり uiFont(M PLUS 1 Code)で描く。
+    private const string MinchoFontResource = "Fonts/ShipporiMincho-Regular SDF";
+    private TMP_FontAsset minchoFont;
+    private bool minchoFontTried;
     // ▼の寸法・浮遊量・ラベルまでの距離(px・1920x1080 基準)。
     private const float MarkerArrowW = 34f;
     private const float MarkerArrowH = 22f;
@@ -245,11 +251,46 @@ public class TitleManager : MonoBehaviour
     private const float MarkerLabelH = 40f;
     private const float MarkerLabelFont = 26f;
     private const float MarkerFadeSpeed = 1f / 0.15f;
-    private static readonly Color MarkerGold = new Color(0.86f, 0.70f, 0.34f, 1f);
-    private static readonly Color MarkerGoldDim = new Color(0.62f, 0.50f, 0.26f, 0.88f);
-    private static readonly Color MarkerBandFill = new Color(0.098f, 0.075f, 0.047f, 0.96f);
-    private static readonly Color MarkerBandEdge = new Color(0.79f, 0.64f, 0.33f, 1f);
-    private static readonly Color MarkerLabelInk = new Color(0.98f, 0.94f, 0.82f, 1f);
+    // ▼は白(#F2F2F2)。非選択は同じ白のまま alpha だけ落とす(金には戻さない)。
+    // 夜の室内は明部(窓・ランタン)も暗部もあるので、白 1 色では窓に重なると
+    // 埋もれる。▼の後ろに一回り大きい暗い三角を敷いて縁取り代わりにする。
+    private static readonly Color MarkerArrowInk = new Color(0.949f, 0.949f, 0.949f, 1f);
+    private static readonly Color MarkerArrowInkDim = new Color(0.949f, 0.949f, 0.949f, 0.58f);
+    private static readonly Color MarkerArrowEdge = new Color(0.02f, 0.02f, 0.04f, 0.70f);
+    private const float MarkerArrowEdgeScale = 1.30f;  // 影三角の拡大率
+    private const float MarkerArrowEdgeDrop = 1.5f;    // 影三角を下へずらす量(px)
+    // ラベルは枠・帯・背景板なしの明朝体。白〜生成りの文字 1 枚と、その後ろに
+    // 1px ずらした暗い影 1 枚だけ(読みやすさのため)。
+    private static readonly Color MarkerLabelInk = new Color(0.976f, 0.961f, 0.918f, 1f);
+    // 白い明朝を、窓の街明かりやランタンの炎(明部)の上でも読ませるための影。
+    // 落ち影 1 枚だけだと明部に重なった側の輪郭が消えるので、8 方向へ 1.4px
+    // ずらした薄い影を重ねて細い暗縁にする(帯・背景板は置かない)。
+    private static readonly Color MarkerLabelShadow = new Color(0.01f, 0.01f, 0.02f, 1f);
+    private static readonly Vector2[] MarkerLabelShadowDirs =
+    {
+        new Vector2(1f, 0f), new Vector2(-1f, 0f), new Vector2(0f, 1f), new Vector2(0f, -1f),
+        new Vector2(0.71f, 0.71f), new Vector2(-0.71f, 0.71f),
+        new Vector2(0.71f, -0.71f), new Vector2(-0.71f, -0.71f),
+    };
+    // 内側の濃い縁(1.5px)と、外側の薄いにじみ(3px)の 2 重。窓の街明かりの上でも
+    // 白い明朝が沈まないだけの暗さを、帯を置かずに作る。
+    private static readonly float[] MarkerLabelShadowRadius = { 3.0f, 1.5f };
+    private static readonly float[] MarkerLabelShadowAlpha = { 0.50f, 0.85f };
+    // 字間 +4%。TMP の characterSpacing は 1/100em 単位なので 4 = +4%。
+    private const float MarkerLabelSpacing = 4f;
+    private const float MarkerLabelBoxW = 360f;  // 折り返さないための十分な幅
+    // ▼から見たラベルの追加ずらし(px)。帯が無くなったぶん文字が直接背景に乗るので、
+    // 明るい実体の真上に来るものだけ横へ逃がす。引き継ぎはランタンの炎に
+    // 「引」が完全に埋まっていたので右へ、設定は窓の桟から少し右へ寄せる。
+    private static readonly Vector2[] MarkerLabelOffset =
+    {
+        Vector2.zero,             // スタート
+        new Vector2(0f, 6f),      // 設定
+        new Vector2(62f, 4f),     // 引き継ぎ(ランタンの炎を外す)
+        Vector2.zero,             // ランキング
+        Vector2.zero,             // 1P
+        Vector2.zero,             // 2P
+    };
     private static readonly string[] MarkerLabels =
         { "スタート", "設定", "引き継ぎ", "ランキング", "1P", "2P" };
     // 投影点からの微調整(px・+y は上)。実フレームで詰めた値:
@@ -508,6 +549,7 @@ public class TitleManager : MonoBehaviour
         markerArrows = new Image[n];
         markerLabelCG = new CanvasGroup[n];
         markerLabelTexts = new TMP_Text[n];
+        markerLabelShadows = new TMP_Text[n * MarkerLabelShadowDirs.Length * MarkerLabelShadowRadius.Length];
         markerLabelAlpha = new float[n];
 
         if (markerArrowSprite == null) markerArrowSprite = CreateDownTriangleSprite(96, 62);
@@ -523,22 +565,31 @@ public class TitleManager : MonoBehaviour
             marker.sizeDelta = Vector2.zero;
             markerRoots[i] = marker;
 
+            // 縁取り(暗い三角)を先に置いて、その上に白い▼を重ねる。
+            Image arrowEdge = CreatePanel("ArrowEdge", marker,
+                new Vector2(0f, -MarkerArrowEdgeDrop),
+                new Vector2(MarkerArrowW * MarkerArrowEdgeScale, MarkerArrowH * MarkerArrowEdgeScale),
+                MarkerArrowEdge);
+            arrowEdge.sprite = markerArrowSprite;
+            arrowEdge.type = Image.Type.Simple;
+
             Image arrow = CreatePanel("Arrow", marker, Vector2.zero,
-                new Vector2(MarkerArrowW, MarkerArrowH), MarkerGold);
+                new Vector2(MarkerArrowW, MarkerArrowH), MarkerArrowInk);
             arrow.sprite = markerArrowSprite;
             arrow.type = Image.Type.Simple;
             markerArrows[i] = arrow;
 
-            // ラベル帯: 金の縁(外)+暗い羊皮紙色の地(内 2px インセット)。
+            // ラベル: 帯も縁も背景板も置かず、明朝体の文字と 1px の影だけ。
             string text = i < MarkerLabels.Length ? MarkerLabels[i] : string.Empty;
-            float bandW = MarkerLabelWidth(text);
+            float bandW = MarkerLabelBoxW;
             GameObject labelObj = new GameObject("Label", typeof(RectTransform), typeof(CanvasGroup));
             labelObj.layer = gameObject.layer;
             RectTransform label = (RectTransform)labelObj.transform;
             label.SetParent(marker, false);
             label.anchorMin = label.anchorMax = new Vector2(0.5f, 0.5f);
             label.pivot = new Vector2(0.5f, 0.5f);
-            label.anchoredPosition = new Vector2(0f, MarkerLabelGap);
+            Vector2 labelNudge = i < MarkerLabelOffset.Length ? MarkerLabelOffset[i] : Vector2.zero;
+            label.anchoredPosition = new Vector2(labelNudge.x, MarkerLabelGap + labelNudge.y);
             label.sizeDelta = new Vector2(bandW, MarkerLabelH);
             CanvasGroup cg = labelObj.GetComponent<CanvasGroup>();
             cg.alpha = 0f;
@@ -546,23 +597,58 @@ public class TitleManager : MonoBehaviour
             cg.interactable = false;
             markerLabelCG[i] = cg;
 
-            CreatePanel("Edge", label, Vector2.zero, new Vector2(bandW, MarkerLabelH), MarkerBandEdge);
-            CreatePanel("Fill", label, Vector2.zero, new Vector2(bandW - 4f, MarkerLabelH - 4f), MarkerBandFill);
+            int shadowsPerLabel = MarkerLabelShadowDirs.Length * MarkerLabelShadowRadius.Length;
+            // 外側のリングを先に作る(先に作った子ほど奥に描かれる)。
+            for (int r = 0; r < MarkerLabelShadowRadius.Length; r++)
+            {
+                Color sc = MarkerLabelShadow;
+                sc.a = MarkerLabelShadowAlpha[r];
+                for (int k = 0; k < MarkerLabelShadowDirs.Length; k++)
+                {
+                    TMP_Text shadow = CreateText("Shadow" + r + "_" + k, label,
+                        MarkerLabelShadowDirs[k] * MarkerLabelShadowRadius[r],
+                        new Vector2(bandW, MarkerLabelH), MarkerLabelFont, sc,
+                        TextAlignmentOptions.Center);
+                    StyleMarkerLabel(shadow, text);
+                    markerLabelShadows[i * shadowsPerLabel + r * MarkerLabelShadowDirs.Length + k] = shadow;
+                }
+            }
+
             TMP_Text ink = CreateText("Text", label, new Vector2(0f, 0f),
                 new Vector2(bandW, MarkerLabelH), MarkerLabelFont, MarkerLabelInk,
                 TextAlignmentOptions.Center);
+            StyleMarkerLabel(ink, text);
             markerLabelTexts[i] = ink;
-            ink.text = text;
         }
         objectMenuRoot.SetAsLastSibling();
     }
 
-    // 帯の幅。全角は font サイズ相当・半角はその 0.56 倍で見積もり、左右に余白を足す。
-    private static float MarkerLabelWidth(string text)
+    // ラベル 1 枚(本体・影とも)に明朝体・字間・折り返し無しを適用する。
+    private void StyleMarkerLabel(TMP_Text label, string text)
     {
-        float ink = 0f;
-        foreach (char c in text) ink += c < 0x80 ? MarkerLabelFont * 0.56f : MarkerLabelFont;
-        return Mathf.Max(84f, ink + 34f);
+        if (label == null) return;
+        TMP_FontAsset mincho = MinchoFont;
+        if (mincho != null) label.font = mincho;
+        label.characterSpacing = MarkerLabelSpacing;
+        label.textWrappingMode = TextWrappingModes.NoWrap;
+        label.overflowMode = TextOverflowModes.Overflow;
+        label.text = text;
+    }
+
+    // 明朝体は Resources から 1 度だけ読む(見つからなければ uiFont のまま)。
+    private TMP_FontAsset MinchoFont
+    {
+        get
+        {
+            if (!minchoFontTried)
+            {
+                minchoFontTried = true;
+                minchoFont = Resources.Load<TMP_FontAsset>(MinchoFontResource);
+                if (minchoFont == null)
+                    Debug.LogWarning("TitleManager: 明朝フォントが見つかりません: " + MinchoFontResource);
+            }
+            return minchoFont;
+        }
     }
 
     // 下向きの三角(▼)。フォントの ▼ は UI フォントに収録が無く豆腐になるため、
@@ -620,6 +706,8 @@ public class TitleManager : MonoBehaviour
             bool all = true;
             foreach (TMP_Text t in markerLabelTexts)
                 if (t != null) all &= TmpAlign.CenterInkVertically(t);
+            foreach (TMP_Text t in markerLabelShadows)
+                if (t != null) all &= TmpAlign.CenterInkVertically(t);
             markerInkCentered = all;
         }
 
@@ -649,7 +737,7 @@ public class TitleManager : MonoBehaviour
             if (markerLabelCG[i] != null) markerLabelCG[i].alpha = markerLabelAlpha[i] * zoomFade;
             if (markerArrows[i] != null)
             {
-                Color c = Color.Lerp(MarkerGoldDim, MarkerGold, markerLabelAlpha[i]);
+                Color c = Color.Lerp(MarkerArrowInkDim, MarkerArrowInk, markerLabelAlpha[i]);
                 c.a *= zoomFade;
                 markerArrows[i].color = c;
                 float s = Mathf.Lerp(1f, 1.18f, markerLabelAlpha[i]);
