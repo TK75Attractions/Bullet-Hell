@@ -60,6 +60,9 @@ public class StageCgController : MonoBehaviour
     static readonly int ExposureId = Shader.PropertyToID("_Exposure");
     static readonly int CenterDarkenId = Shader.PropertyToID("_CenterDarken");
     static readonly int BossBrightnessId = Shader.PropertyToID("_BossBrightness");
+    // v35 (#4): ボス代理スプライトの個体ごとの色（1 を超える倍率を通すため MPB で渡す）。
+    static readonly int BossTintId = Shader.PropertyToID("_Color");
+    MaterialPropertyBlock bossMpb;
     static readonly int FadeId = Shader.PropertyToID("_Fade");
     static readonly int CgFadeId = Shader.PropertyToID("_CgFade");
     static readonly int CoreParamsId = Shader.PropertyToID("_StoneCgCoreParams");
@@ -334,16 +337,18 @@ public class StageCgController : MonoBehaviour
             proxy.flipY = srcRenderer.flipY;
             proxy.enabled = srcRenderer.sprite != null;
             // 明度は表示板の _BossBrightness 側で掛けるので、ここでは元の色（フェード α）をそのまま。
+            proxy.color = srcRenderer.color;
             // v35 (#4): ボス個体だけ明るくしたいときは、表示板の一律 gain（bossBrightness）に対する
-            //   比を代理スプライトの色へ掛ける。表示板側は 1 つの値しか持てないので、
-            //   ボスの RT に書く時点で差をつける（α は触らないので「ボスとして扱う量」は不変）。
+            //   比をボスの RT へ書く時点で掛ける（α は触らないので「ボスとして扱う量」は不変）。
+            //   SpriteRenderer.color は Color32（8bit）に丸められて 1.0 で頭打ちになるので、
+            //   1 を超える倍率は MaterialPropertyBlock の _Color（float4）側で掛ける。
             Boss bossForColor = src.GetComponent<Boss>();
             string bossIdForColor = bossForColor != null ? bossForColor.bossId : null;
             float mul = p.bossBrightness > 1e-4f ? p.BossBrightnessAt(bossIdForColor) / p.bossBrightness : 1f;
-            Color srcColor = srcRenderer.color;
-            proxy.color = mul == 1f
-                ? srcColor
-                : new Color(srcColor.r * mul, srcColor.g * mul, srcColor.b * mul, srcColor.a);
+            bossMpb ??= new MaterialPropertyBlock();
+            proxy.GetPropertyBlock(bossMpb);
+            bossMpb.SetColor(BossTintId, new Color(mul, mul, mul, 1f));
+            proxy.SetPropertyBlock(bossMpb);
 
             // v34: ボス個体ごとに奥行きを変えられる（老人が棚の奥へ回り込む）。
             //   逆投影は画面上の位置・大きさを保つ写像なので、z を変えても見た目は動かず、
