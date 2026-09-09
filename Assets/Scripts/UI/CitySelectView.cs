@@ -28,20 +28,12 @@ public class CitySelectView : MonoBehaviour
     private const float MarkerLabelBoxW = 520f;
     private const float MarkerLabelSpacing = 4f;
     private const float MarkerFadeSpeed = 1f / 0.15f;
-    private static readonly Color MarkerArrowInk = new Color(0.949f, 0.949f, 0.949f, 1f);
-    private static readonly Color MarkerArrowEdge = new Color(0.02f, 0.02f, 0.04f, 0.70f);
-    private const float MarkerArrowEdgeScale = 1.30f;
-    private const float MarkerArrowEdgeDrop = 1.5f;
+    // ▼は枠なしの真っ白。縁取り(背後の暗い三角)は置かない(タイトルと同じ様式)。
+    private static readonly Color MarkerArrowInk = new Color(1f, 1f, 1f, 1f);
     private static readonly Color MarkerLabelInk = new Color(0.976f, 0.961f, 0.918f, 1f);
-    private static readonly Color MarkerLabelShadow = new Color(0.01f, 0.01f, 0.02f, 1f);
-    private static readonly Vector2[] ShadowDirs =
-    {
-        new Vector2(1f, 0f), new Vector2(-1f, 0f), new Vector2(0f, 1f), new Vector2(0f, -1f),
-        new Vector2(0.71f, 0.71f), new Vector2(-0.71f, 0.71f),
-        new Vector2(0.71f, -0.71f), new Vector2(-0.71f, -0.71f),
-    };
-    private static readonly float[] ShadowRadius = { 3.0f, 1.5f };
-    private static readonly float[] ShadowAlpha = { 0.50f, 0.85f };
+    // ラベルは縁なし・右下 2px の落ち影 1 枚だけ。
+    private static readonly Color MarkerLabelShadow = new Color(0f, 0f, 0f, 0.60f);
+    private static readonly Vector2 MarkerLabelShadowOffset = new Vector2(2f, -2f);
 
     // ---- 情報パネル ----------------------------------------------------------
     private const float PanelW = 640f;
@@ -137,11 +129,6 @@ public class CitySelectView : MonoBehaviour
         markerRoot.pivot = new Vector2(0.5f, 0.5f);
         markerRoot.sizeDelta = Vector2.zero;
 
-        Image edge = NewImage("ArrowEdge", markerRoot, MarkerArrowEdge);
-        edge.sprite = arrowSprite;
-        edge.rectTransform.sizeDelta = new Vector2(MarkerArrowW * MarkerArrowEdgeScale, MarkerArrowH * MarkerArrowEdgeScale);
-        edge.rectTransform.anchoredPosition = new Vector2(0f, -MarkerArrowEdgeDrop);
-
         markerArrow = NewImage("Arrow", markerRoot, MarkerArrowInk);
         markerArrow.sprite = arrowSprite;
         markerArrow.rectTransform.sizeDelta = new Vector2(MarkerArrowW, MarkerArrowH);
@@ -157,21 +144,14 @@ public class CitySelectView : MonoBehaviour
         markerLabelCG.alpha = 0f;
         markerLabelCG.blocksRaycasts = false;
 
-        int n = ShadowDirs.Length * ShadowRadius.Length;
-        markerLabelShadows = new TMP_Text[n];
-        for (int r = 0; r < ShadowRadius.Length; r++)
+        markerLabelShadows = new TMP_Text[1];
         {
-            Color sc = MarkerLabelShadow;
-            sc.a = ShadowAlpha[r];
-            for (int k = 0; k < ShadowDirs.Length; k++)
-            {
-                TMP_Text shadow = NewText("Shadow" + r + "_" + k, label, "", MarkerLabelFont, sc, TextAlignmentOptions.Center);
-                RectTransform sr = (RectTransform)shadow.transform;
-                sr.sizeDelta = new Vector2(MarkerLabelBoxW, MarkerLabelH);
-                sr.anchoredPosition = ShadowDirs[k] * ShadowRadius[r];
-                StyleLabel(shadow);
-                markerLabelShadows[r * ShadowDirs.Length + k] = shadow;
-            }
+            TMP_Text shadow = NewText("Shadow", label, "", MarkerLabelFont, MarkerLabelShadow, TextAlignmentOptions.Center);
+            RectTransform sr = (RectTransform)shadow.transform;
+            sr.sizeDelta = new Vector2(MarkerLabelBoxW, MarkerLabelH);
+            sr.anchoredPosition = MarkerLabelShadowOffset;
+            StyleLabel(shadow);
+            markerLabelShadows[0] = shadow;
         }
         markerLabel = NewText("Text", label, "", MarkerLabelFont, MarkerLabelInk, TextAlignmentOptions.Center);
         ((RectTransform)markerLabel.transform).sizeDelta = new Vector2(MarkerLabelBoxW, MarkerLabelH);

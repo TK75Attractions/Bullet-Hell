@@ -211,14 +211,15 @@ public class TitleManager : MonoBehaviour
     private Material appliedRoomMaterial;
     private Image roomScrim;
     private Image heroImage;
-    private RectTransform heroRect;
-    private Vector2 heroBasePos;
     private GameObject backObj;
     private GameObject shapesObj;
     private bool roomLayout;
     // 立ち絵は寄りのあいだフェードアウトする(寄った先のカメラでは画面外にいる、
     // という読み方になる)。全景では数 px の視差だけ付ける。
-    private const float HeroParallaxPx = 10f;
+    // 立ち絵の視差と、寄りで右へ逃がす量(部屋のワールド単位)。全景カメラでの
+    // 実寸は、立ち絵の奥行きで 1 ワールド = 約 220px。
+    private const float HeroParallaxWorld = 0.045f;
+    private const float HeroZoomSlideWorld = 1.0f;
     // スタート決定時に「地図へ寄る」ぶんの先行時間。GManager はこの分だけ
     // ステージ選択の重ね始めを遅らせる。
     public const float StartZoomLead = 0.4f;
@@ -253,31 +254,17 @@ public class TitleManager : MonoBehaviour
     private const float MarkerLabelH = 40f;
     private const float MarkerLabelFont = 26f;
     private const float MarkerFadeSpeed = 1f / 0.15f;
-    // ▼は白(#F2F2F2)。非選択は同じ白のまま alpha だけ落とす(金には戻さない)。
-    // 夜の室内は明部(窓・ランタン)も暗部もあるので、白 1 色では窓に重なると
-    // 埋もれる。▼の後ろに一回り大きい暗い三角を敷いて縁取り代わりにする。
-    private static readonly Color MarkerArrowInk = new Color(0.949f, 0.949f, 0.949f, 1f);
-    private static readonly Color MarkerArrowInkDim = new Color(0.949f, 0.949f, 0.949f, 0.58f);
-    private static readonly Color MarkerArrowEdge = new Color(0.02f, 0.02f, 0.04f, 0.70f);
-    private const float MarkerArrowEdgeScale = 1.30f;  // 影三角の拡大率
-    private const float MarkerArrowEdgeDrop = 1.5f;    // 影三角を下へずらす量(px)
+    // ▼は枠なしの真っ白(#FFFFFF)。縁取り(背後の暗い三角)は置かない。
+    // 非選択も同じ白のまま alpha だけ落とす。
+    private static readonly Color MarkerArrowInk = new Color(1f, 1f, 1f, 1f);
+    private static readonly Color MarkerArrowInkDim = new Color(1f, 1f, 1f, 0.58f);
     // ラベルは枠・帯・背景板なしの明朝体。白〜生成りの文字 1 枚と、その後ろに
     // 1px ずらした暗い影 1 枚だけ(読みやすさのため)。
     private static readonly Color MarkerLabelInk = new Color(0.976f, 0.961f, 0.918f, 1f);
-    // 白い明朝を、窓の街明かりやランタンの炎(明部)の上でも読ませるための影。
-    // 落ち影 1 枚だけだと明部に重なった側の輪郭が消えるので、8 方向へ 1.4px
-    // ずらした薄い影を重ねて細い暗縁にする(帯・背景板は置かない)。
-    private static readonly Color MarkerLabelShadow = new Color(0.01f, 0.01f, 0.02f, 1f);
-    private static readonly Vector2[] MarkerLabelShadowDirs =
-    {
-        new Vector2(1f, 0f), new Vector2(-1f, 0f), new Vector2(0f, 1f), new Vector2(0f, -1f),
-        new Vector2(0.71f, 0.71f), new Vector2(-0.71f, 0.71f),
-        new Vector2(0.71f, -0.71f), new Vector2(-0.71f, -0.71f),
-    };
-    // 内側の濃い縁(1.5px)と、外側の薄いにじみ(3px)の 2 重。窓の街明かりの上でも
-    // 白い明朝が沈まないだけの暗さを、帯を置かずに作る。
-    private static readonly float[] MarkerLabelShadowRadius = { 3.0f, 1.5f };
-    private static readonly float[] MarkerLabelShadowAlpha = { 0.50f, 0.85f };
+    // 縁取り(8 方向の暗縁)はやめ、右下 2px の落ち影 1 枚だけにする。
+    // 読みにくいときも縁は付けず、影を濃く/少し離す範囲で調整する。
+    private static readonly Color MarkerLabelShadow = new Color(0f, 0f, 0f, 0.60f);
+    private static readonly Vector2 MarkerLabelShadowOffset = new Vector2(2f, -2f);
     // 字間 +4%。TMP の characterSpacing は 1/100em 単位なので 4 = +4%。
     private const float MarkerLabelSpacing = 4f;
     private const float MarkerLabelBoxW = 360f;  // 折り返さないための十分な幅
@@ -301,7 +288,7 @@ public class TitleManager : MonoBehaviour
     private static readonly Vector2[] MarkerScreenOffset =
     {
         Vector2.zero,                  // スタート(地図)
-        new Vector2(0f, -29f),         // 設定(ランタン。ラベルをロゴの下端から離す)
+        new Vector2(0f, -49f),         // 設定(ランタン。ロゴを下げたぶん▼とラベルも 20px 下げる)
         new Vector2(30f, -60f),        // 引き継ぎ(手紙。ランタンの炎を避けて封筒の右上へ)
         new Vector2(0f, 55f),          // ランキング(本棚)
         new Vector2(-30f, 0f),         // 1P(2 枚のマントの帯が重ならないよう左右へ開く)
@@ -316,15 +303,17 @@ public class TitleManager : MonoBehaviour
     private Image roomLogoImage;
     private RectTransform roomLogoRect;
     private RectTransform sceneLogoRect;
-    // 新ロゴの表示幅と原画(2146x733)の縦横比。位置は窓の中へ下げて拡大した(第11便)。
-    // 幅 740 で rect は 740x252.8px。1080p 実フレームでの実測は、絵の最下点(リボンの
-    // 尾)が rect 上端から +220px、「設定」のラベル上端が y=382。浮遊(±10px)と
-    // ビートパルス(x1.035)を足した最下点でもラベルまで 40px 以上あく上限が y=320 で、
-    // 窓(ガラス y=168..514)の 1/3 まで下げるとラベルに掛かるのでここで止めている。
-    private const float RoomLogoWidth = 740f;
+    // 新ロゴの表示位置と幅。**Inspector で編集できる**(シーンの TitleManager を選び、
+    // 「部屋モードのロゴ」の 2 項目を変えると次の Play から反映される)。
+    // 原画は 2146x733 なので高さは幅 / RoomLogoAspect で自動的に決まる。
+    // 既定は第 12 便より下げてあり、ロゴの絵の下端が「設定」のラベルの 20px 以内に来る
+    //(ラベル側も MarkerScreenOffset[1] で 20px 下げた)。
+    [Header("部屋モードのロゴ")]
+    [Tooltip("部屋モードのロゴの位置(Canvas 中心からの px。+x=右 / +y=上)。")]
+    [SerializeField] private Vector2 roomLogoAnchoredPos = new Vector2(20f, 258f);
+    [Tooltip("部屋モードのロゴの表示幅(px)。高さは原画 2146x733 の比で決まる。")]
+    [SerializeField] private float roomLogoWidth = 740f;
     private const float RoomLogoAspect = 2146f / 733f;
-    private const float RoomLogoX = 20f;
-    private const float RoomLogoY = 320f;
 
     private TitleRoomController Room => TitleRoomController.Instance;
 
@@ -438,9 +427,10 @@ public class TitleManager : MonoBehaviour
                 if (sceneLogoRect != null) sceneLogoRect.gameObject.SetActive(false);
                 logoRect = roomLogoRect;
                 logoRect.gameObject.SetActive(true);
-                logoRect.sizeDelta = new Vector2(RoomLogoWidth, RoomLogoWidth / RoomLogoAspect);
-                logoRect.anchoredPosition = new Vector2(RoomLogoX, RoomLogoY);
-                logoBaseY = RoomLogoY;
+                float logoW = Mathf.Max(1f, roomLogoWidth);
+                logoRect.sizeDelta = new Vector2(logoW, logoW / RoomLogoAspect);
+                logoRect.anchoredPosition = roomLogoAnchoredPos;
+                logoBaseY = roomLogoAnchoredPos.y;
             }
             else if (logoRect != null)
             {
@@ -507,31 +497,13 @@ public class TitleManager : MonoBehaviour
         if (sceneLogoRect != null) roomLogoRect.SetSiblingIndex(sceneLogoRect.GetSiblingIndex() + 1);
     }
 
+    // 立ち絵は Canvas の 2D 画像をやめ、部屋の 3D 空間に立てた板
+    //(TitleRoomController.BuildHeroBoard)へ移した。部屋のライトを受け、
+    // ドット風の低解像度描画も部屋と同じだけ掛かる。ここでは 2D 側が
+    // 残っていたら下ろすだけにする(部屋の板が作れないときは何も出ない)。
     private void BuildHero()
     {
-        if (heroImage == null)
-        {
-            Sprite sprite = Room != null ? Room.heroSprite : null;
-            if (sprite == null) return;
-            GameObject go = new GameObject("Hero", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-            go.layer = gameObject.layer;
-            heroRect = (RectTransform)go.transform;
-            heroRect.SetParent(transform, false);
-            heroRect.anchorMin = heroRect.anchorMax = new Vector2(1f, 0f);
-            heroRect.pivot = new Vector2(1f, 0f);
-            heroImage = go.GetComponent<Image>();
-            heroImage.sprite = sprite;
-            heroImage.raycastTarget = false;
-            heroImage.preserveAspect = true;
-        }
-        // 画面高さの約 60%(1080 の 0.60 = 648px)。原寸 709x1024 の比を保つ。
-        const float heroH = 648f;
-        float heroW = heroH * 709f / 1024f;
-        heroRect.sizeDelta = new Vector2(heroW, heroH);
-        heroBasePos = new Vector2(-26f, -8f);
-        heroRect.anchoredPosition = heroBasePos;
-        heroRect.SetSiblingIndex(2); // 部屋と暗幕の上・ロゴ/メニューの下
-        heroImage.gameObject.SetActive(true);
+        if (heroImage != null) heroImage.gameObject.SetActive(false);
     }
 
     // ---- オブジェクト上の▼メニュー ----------------------------------------
@@ -555,7 +527,7 @@ public class TitleManager : MonoBehaviour
         markerArrows = new Image[n];
         markerLabelCG = new CanvasGroup[n];
         markerLabelTexts = new TMP_Text[n];
-        markerLabelShadows = new TMP_Text[n * MarkerLabelShadowDirs.Length * MarkerLabelShadowRadius.Length];
+        markerLabelShadows = new TMP_Text[n];
         markerLabelAlpha = new float[n];
 
         if (markerArrowSprite == null) markerArrowSprite = CreateDownTriangleSprite(96, 62);
@@ -571,14 +543,7 @@ public class TitleManager : MonoBehaviour
             marker.sizeDelta = Vector2.zero;
             markerRoots[i] = marker;
 
-            // 縁取り(暗い三角)を先に置いて、その上に白い▼を重ねる。
-            Image arrowEdge = CreatePanel("ArrowEdge", marker,
-                new Vector2(0f, -MarkerArrowEdgeDrop),
-                new Vector2(MarkerArrowW * MarkerArrowEdgeScale, MarkerArrowH * MarkerArrowEdgeScale),
-                MarkerArrowEdge);
-            arrowEdge.sprite = markerArrowSprite;
-            arrowEdge.type = Image.Type.Simple;
-
+            // 縁取りは置かない(白い三角 1 枚だけ)。
             Image arrow = CreatePanel("Arrow", marker, Vector2.zero,
                 new Vector2(MarkerArrowW, MarkerArrowH), MarkerArrowInk);
             arrow.sprite = markerArrowSprite;
@@ -603,22 +568,12 @@ public class TitleManager : MonoBehaviour
             cg.interactable = false;
             markerLabelCG[i] = cg;
 
-            int shadowsPerLabel = MarkerLabelShadowDirs.Length * MarkerLabelShadowRadius.Length;
-            // 外側のリングを先に作る(先に作った子ほど奥に描かれる)。
-            for (int r = 0; r < MarkerLabelShadowRadius.Length; r++)
-            {
-                Color sc = MarkerLabelShadow;
-                sc.a = MarkerLabelShadowAlpha[r];
-                for (int k = 0; k < MarkerLabelShadowDirs.Length; k++)
-                {
-                    TMP_Text shadow = CreateText("Shadow" + r + "_" + k, label,
-                        MarkerLabelShadowDirs[k] * MarkerLabelShadowRadius[r],
-                        new Vector2(bandW, MarkerLabelH), MarkerLabelFont, sc,
-                        TextAlignmentOptions.Center);
-                    StyleMarkerLabel(shadow, text);
-                    markerLabelShadows[i * shadowsPerLabel + r * MarkerLabelShadowDirs.Length + k] = shadow;
-                }
-            }
+            // 落ち影 1 枚(右下)。先に作った子ほど奥に描かれるので本体より前に作る。
+            TMP_Text shadow = CreateText("Shadow", label, MarkerLabelShadowOffset,
+                new Vector2(bandW, MarkerLabelH), MarkerLabelFont, MarkerLabelShadow,
+                TextAlignmentOptions.Center);
+            StyleMarkerLabel(shadow, text);
+            markerLabelShadows[i] = shadow;
 
             TMP_Text ink = CreateText("Text", label, new Vector2(0f, 0f),
                 new Vector2(bandW, MarkerLabelH), MarkerLabelFont, MarkerLabelInk,
@@ -814,17 +769,13 @@ public class TitleManager : MonoBehaviour
         }
 
         float zoom = room.ZoomAmount;
-        if (heroRect != null)
         {
-            // 全景では左右に数 px だけ揺れる視差。寄っているあいだは右へ逃がして消す。
-            float drift = Mathf.Sin(animTime * 0.5f) * HeroParallaxPx;
-            heroRect.anchoredPosition = heroBasePos + new Vector2(drift + zoom * 220f, 0f);
-            if (heroImage != null)
-            {
-                Color c = heroImage.color;
-                c.a = 1f - Mathf.Clamp01(zoom * 1.6f);
-                heroImage.color = c;
-            }
+            // 全景ではごく僅かに左右へ揺れる視差。寄っているあいだは右へ逃がして
+            // フェードアウトする(寄った先のカメラでは画面外にいる、という読み方)。
+            // 2D のときの ±10px / 220px を、立ち絵の奥行きでのワールド量へ直したもの。
+            float drift = Mathf.Sin(animTime * 0.5f) * HeroParallaxWorld;
+            float fade = 1f - Mathf.Clamp01(zoom * 1.6f);
+            room.SetHeroState(fade, drift + zoom * HeroZoomSlideWorld);
         }
         if (roomScrim != null)
         {
