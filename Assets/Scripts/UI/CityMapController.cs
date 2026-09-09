@@ -40,10 +40,28 @@ public class CityMapController : MonoBehaviour
     public int pixelWidth = 640;
     [Tooltip("ドット風の内部解像度(高さ)。既定 360。16:9 を保つこと。")]
     public int pixelHeight = 360;
-    [Tooltip("1 チャンネルあたりの階調数。0 で色数の減衰なし。")]
-    public int pixelatePalette = 0;
+    [Tooltip("1 チャンネルあたりの階調数。0 で色数の減衰なし。既定 8(タイトルの質感に合わせる)。")]
+    public int pixelatePalette = 8;
     [Tooltip("色数を減らしたときの 4x4 順序ディザの強さ。")]
-    [Range(0f, 1f)] public float pixelateDither = 1f;
+    [Range(0f, 1f)] public float pixelateDither = 0.5f;
+
+    [Header("色の調整(タイトルの質感に合わせる)")]
+    [Tooltip("ON で彩度・コントラストの調整と区画の基調色を掛ける。")]
+    public bool colorGrade = true;
+    [Tooltip("彩度。1 で素、0.75 で少し落とす。窓灯り・ランタンの橙は別扱いで残る。")]
+    [Range(0f, 1.5f)] public float saturation = 0.78f;
+    [Tooltip("コントラスト。1 で素、1 未満でハイライトが下がる。")]
+    [Range(0.5f, 1.5f)] public float contrast = 0.86f;
+    [Tooltip("コントラストの軸。0.5 より下げるとハイライトの方が大きく下がる(夜の暗さが残る)。")]
+    [Range(0f, 1f)] public float contrastPivot = 0.30f;
+    [Tooltip("黒の持ち上げ。")]
+    [Range(0f, 0.4f)] public float blackLift = 0.03f;
+    [Tooltip("橙(窓灯り・ランタン)の彩度をどれだけ残すか。1 で完全に残す。")]
+    [Range(0f, 1f)] public float warmKeep = 1f;
+    [Tooltip("区画の基調色をどれだけ被せるか(寄り切ったときの最大値)。")]
+    [Range(0f, 1f)] public float districtTintAmount = 0.35f;
+    [Tooltip("区画の基調色のクロスフェード時間(秒)。")]
+    public float districtTintFade = 0.5f;
 
     // ドット風のときだけ使う低解像度の描画先(実行時生成)。
     RenderTexture pixelRT;
@@ -66,8 +84,14 @@ public class CityMapController : MonoBehaviour
     public float lanternRange = 4.5f;
 
     [Header("区画の色")]
-    [Tooltip("選択中の区画の地面に乗せる暖色(_BaseColor の倍率。1 で素の色)。")]
-    public Color glowTint = new Color(1.22f, 1.10f, 0.94f, 1f);
+    [Tooltip("選択中の区画の地面に乗せる暖色(_BaseColor の倍率。1 で素の色)。面全体は光らせない。")]
+    public Color glowTint = new Color(1.05f, 1.02f, 0.97f, 1f);
+    [Tooltip("選択中の区画の縁だけに出す薄い光の色。")]
+    public Color rimGlowColor = new Color(1f, 0.86f, 0.62f, 1f);
+    [Tooltip("縁の光の強さ(alpha)。")]
+    [Range(0f, 1f)] public float rimGlowAlpha = 0.34f;
+    [Tooltip("縁の光の太さ。地面メッシュを何倍に広げて外側へはみ出させるか。")]
+    public float rimGlowScale = 1.035f;
     [Tooltip("ステージ未実装の区画を沈める色。")]
     public Color dimTint = new Color(0.30f, 0.32f, 0.42f, 1f);
 
@@ -121,7 +145,9 @@ public class CityMapController : MonoBehaviour
     // ▼を置く高さ。カメラの orthographicSize(= 画面の半分の高さの実寸)に対する比で
     // 持つので、全景でも区画へ寄っても▼は画面上の同じくらいの位置に浮く
     // (実寸で持つと、寄った(size 6.75)ときに 6m の▼が画面外まで飛ぶ)。
-    static readonly float[] MarkerHeightFactor = { 0f, 0.30f, 0.30f, 0.30f, 0.26f, 0.34f, 0.26f, 0.28f, 0.26f, 0.55f };
+    // 区画 05(大河・艦長)は▼が街灯の灯りに重なって読めなかったので高く逃がす
+    // (第 13 便の指摘 .tmp_select/s18/z_captain_arrow_4x.png)。
+    static readonly float[] MarkerHeightFactor = { 0f, 0.30f, 0.30f, 0.30f, 0.26f, 0.52f, 0.26f, 0.28f, 0.26f, 0.55f };
 
     static readonly string[] DistrictParents =
     {
@@ -145,6 +171,10 @@ public class CityMapController : MonoBehaviour
     Light fillLight;
     readonly System.Collections.Generic.List<Light> lanternLights = new System.Collections.Generic.List<Light>();
     readonly Renderer[] groundRenderers = new Renderer[DistrictCount + 1];
+    // 選択中の区画の「縁だけの薄い光」。地面メッシュの複製を少し大きく・少し下に置き、
+    // 本物の地面からはみ出した外周だけが加算で光る(面全体は明るくしない)。
+    readonly Renderer[] rimRenderers = new Renderer[DistrictCount + 1];
+    Material rimMaterial;
     readonly Renderer[][] districtRenderers = new Renderer[DistrictCount + 1][];
     readonly float[] glowWeight = new float[DistrictCount + 1];
     readonly bool[] available = new bool[DistrictCount + 1];
@@ -169,6 +199,11 @@ public class CityMapController : MonoBehaviour
     float zoomIn;          // 0=区画の引き / 1=決定後の寄り
     float zoomInTarget;
     float time;
+    // 区画の基調色。俯瞰(selected=0)では被せず、区画を選ぶと 0.5 秒で乗る。
+    Color tintNow = Color.white;
+    Color tintTarget = Color.white;
+    float tintWeight;
+    float tintWeightTarget;
 
     /// <summary>いま選択中の区画(0=全景)。</summary>
     public int SelectedDistrict => selected;
@@ -192,7 +227,11 @@ public class CityMapController : MonoBehaviour
 
     void OnApplicationQuit() { RestoreAmbient(); }
 
-    void OnDestroy() { ReleasePixelTexture(); }
+    void OnDestroy()
+    {
+        ReleasePixelTexture();
+        if (rimMaterial != null) { DestroyImmediate(rimMaterial); rimMaterial = null; }
+    }
 
     // ---- ドット風表示(タイトルの部屋と同じ仕組み) --------------------------
 
@@ -222,7 +261,7 @@ public class CityMapController : MonoBehaviour
 
     void EnsurePixelMaterial()
     {
-        if (pixelatePalette <= 1)
+        if (pixelatePalette <= 1 && !colorGrade)
         {
             if (pixelMat != null) { DestroyImmediate(pixelMat); pixelMat = null; }
             return;
@@ -233,8 +272,23 @@ public class CityMapController : MonoBehaviour
             if (sh == null) return;
             pixelMat = new Material(sh) { hideFlags = HideFlags.DontSave };
         }
+        ApplyViewMaterial();
+    }
+
+    // 表示板のマテリアルへ、色数・彩度・コントラスト・区画の基調色を流し込む。
+    void ApplyViewMaterial()
+    {
+        if (pixelMat == null) return;
         pixelMat.SetFloat("_PixelatePalette", pixelatePalette);
         pixelMat.SetFloat("_PixelateDither", pixelateDither);
+        pixelMat.SetFloat("_GradeEnabled", colorGrade ? 1f : 0f);
+        pixelMat.SetFloat("_Saturation", saturation);
+        pixelMat.SetFloat("_Contrast", contrast);
+        pixelMat.SetFloat("_ContrastPivot", contrastPivot);
+        pixelMat.SetFloat("_BlackLift", blackLift);
+        pixelMat.SetFloat("_WarmKeep", warmKeep);
+        pixelMat.SetColor("_TintColor", tintNow);
+        pixelMat.SetFloat("_TintAmount", colorGrade ? tintWeight * districtTintAmount : 0f);
     }
 
     void ReleasePixelTexture()
@@ -265,6 +319,19 @@ public class CityMapController : MonoBehaviour
             cityCamera.targetTexture = Texture;
             cityCamera.allowMSAA = pixelRT == null;
         }
+    }
+
+    /// <summary>色の調整(彩度・コントラスト・黒の持ち上げ・基調色の強さ)をまとめて変える。検証用。</summary>
+    public void SetColorGrade(bool on, float sat, float con, float lift, float tintAmount, float pivot = -1f)
+    {
+        colorGrade = on;
+        if (pivot >= 0f) contrastPivot = pivot;
+        if (sat >= 0f) saturation = sat;
+        if (con >= 0f) contrast = con;
+        if (lift >= 0f) blackLift = lift;
+        if (tintAmount >= 0f) districtTintAmount = tintAmount;
+        EnsurePixelMaterial();
+        ApplyViewMaterial();
     }
 
     void Awake()
@@ -317,7 +384,11 @@ public class CityMapController : MonoBehaviour
             if (parent == null) continue;
             districtRenderers[d] = parent.GetComponentsInChildren<Renderer>(true);
             Transform ground = FindDeep(parent, string.Format("district_{0:00}_ground", d));
-            if (ground != null) groundRenderers[d] = ground.GetComponent<Renderer>();
+            if (ground != null)
+            {
+                groundRenderers[d] = ground.GetComponent<Renderer>();
+                BuildDistrictRim(d, groundRenderers[d], layer);
+            }
         }
 
         // ---- カメラ ----
@@ -365,6 +436,49 @@ public class CityMapController : MonoBehaviour
 
         ApplyView(Overview);
         ApplyExposure();
+    }
+
+    // 選択中の区画の縁だけを光らせるための、地面メッシュのひとまわり大きい複製。
+    // 本物の地面より 6cm 下に置くので、はみ出した外周のリングだけが見える。
+    void BuildDistrictRim(int d, Renderer ground, int layer)
+    {
+        if (ground == null) return;
+        MeshFilter mf = ground.GetComponent<MeshFilter>();
+        if (mf == null || mf.sharedMesh == null) return;
+        if (rimMaterial == null)
+        {
+            Shader sh = Shader.Find("Universal Render Pipeline/Unlit");
+            if (sh == null) return;
+            rimMaterial = new Material(sh) { name = "CityDistrictRim", hideFlags = HideFlags.DontSave };
+            rimMaterial.SetFloat("_Surface", 1f);       // Transparent
+            rimMaterial.SetFloat("_Blend", 1f);         // Additive
+            rimMaterial.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            rimMaterial.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
+            rimMaterial.SetFloat("_ZWrite", 0f);
+            rimMaterial.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            rimMaterial.renderQueue = 3000;
+        }
+
+        GameObject pivot = new GameObject("DistrictRim" + d);
+        pivot.transform.SetParent(transform, false);
+        pivot.layer = layer;
+        Vector3 drop = new Vector3(0f, -0.06f, 0f);
+        pivot.transform.position = ground.bounds.center + drop;
+
+        GameObject shell = new GameObject("Shell", typeof(MeshFilter), typeof(MeshRenderer));
+        shell.layer = layer;
+        shell.transform.SetParent(pivot.transform, true);
+        shell.transform.SetPositionAndRotation(ground.transform.position + drop, ground.transform.rotation);
+        shell.transform.localScale = ground.transform.lossyScale;
+        shell.GetComponent<MeshFilter>().sharedMesh = mf.sharedMesh;
+        MeshRenderer mr = shell.GetComponent<MeshRenderer>();
+        mr.sharedMaterial = rimMaterial;
+        mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        mr.receiveShadows = false;
+        mr.enabled = false;
+
+        pivot.transform.localScale = Vector3.one * Mathf.Max(1.001f, rimGlowScale);
+        rimRenderers[d] = mr;
     }
 
     // 街灯・門灯の点光源。FBX には Blender の POINT ライトと同じ位置に空オブジェクト
@@ -471,6 +585,8 @@ public class CityMapController : MonoBehaviour
         }
         else
         {
+            for (int d = 1; d <= DistrictCount; d++)
+                if (rimRenderers[d] != null) rimRenderers[d].enabled = false;
             RestoreAmbient();
         }
     }
@@ -489,6 +605,14 @@ public class CityMapController : MonoBehaviour
         if (district == selected && animate) return;
         selected = district;
         zoomInTarget = 0f;
+        tintTarget = selected >= 1 ? StageCityProfile.TintOf(selected) : Color.white;
+        tintWeightTarget = selected >= 1 ? 1f : 0f;
+        if (!animate)
+        {
+            tintNow = tintTarget;
+            tintWeight = tintWeightTarget;
+            ApplyViewMaterial();
+        }
         BeginMove(TargetPose(), animate ? MoveDuration : 0f);
     }
 
@@ -512,24 +636,44 @@ public class CityMapController : MonoBehaviour
         }
     }
 
+    // 街の CG は全画面のまま、区画の中心だけを画面の左 27% へ寄せる。正投影なので
+    // カメラをそのまま右へ平行移動すれば、写っているものが左へずれる
+    // (右半分に既存の JSAB カードを置くため。俯瞰は中央のまま)。
+    public const float DistrictScreenX = 0.27f;
+
+    float HorizontalShiftFor(float size)
+    {
+        float aspect = 16f / 9f;
+        if (cityCamera != null && cityCamera.aspect > 0.01f) aspect = cityCamera.aspect;
+        return (0.5f - DistrictScreenX) * 2f * size * aspect;
+    }
+
+    CamPose OffsetToLeftHalf(CamPose p)
+    {
+        Vector3 right = Quaternion.Euler(p.euler) * Vector3.right;
+        Vector3 shift = right * HorizontalShiftFor(p.size);
+        p.pos += shift;
+        return p;
+    }
+
     CamPose TargetPose()
     {
         if (selected < 1) return Overview;
         CamPose p = Districts[selected];
-        if (zoomInTarget <= 0f) return p;
+        if (zoomInTarget <= 0f) return OffsetToLeftHalf(p);
         // 正投影なので「寄る」= size を縮める。区画の anchor が画面中心に来るよう
         // 視線方向を保ったままカメラを平行移動する。
         Quaternion rot = Quaternion.Euler(p.euler);
         Vector3 dir = rot * Vector3.forward;
         Vector3 anchor = Anchors[selected];
         float dist = Vector3.Distance(p.pos, p.target);
-        return new CamPose
+        return OffsetToLeftHalf(new CamPose
         {
             pos = anchor + new Vector3(0f, 1.2f, 0f) - dir * dist,
             euler = p.euler,
             size = p.size * CloseUpScale,
             target = anchor,
-        };
+        });
     }
 
     public void Tick(float dt)
@@ -551,6 +695,24 @@ public class CityMapController : MonoBehaviour
             ApplyView(viewNow);
         }
         zoomIn = Mathf.MoveTowards(zoomIn, zoomInTarget, dt / ZoomDuration);
+
+        // 区画の基調色は 0.5 秒でクロスフェード(俯瞰へ戻ると被せが 0 になる)。
+        float tintStep = dt / Mathf.Max(0.01f, districtTintFade);
+        bool tintChanged = false;
+        if (tintWeight != tintWeightTarget)
+        {
+            tintWeight = Mathf.MoveTowards(tintWeight, tintWeightTarget, tintStep);
+            tintChanged = true;
+        }
+        if (tintNow != tintTarget)
+        {
+            tintNow = new Color(
+                Mathf.MoveTowards(tintNow.r, tintTarget.r, tintStep),
+                Mathf.MoveTowards(tintNow.g, tintTarget.g, tintStep),
+                Mathf.MoveTowards(tintNow.b, tintTarget.b, tintStep), 1f);
+            tintChanged = true;
+        }
+        if (tintChanged) ApplyViewMaterial();
 
         // 区画の発光(選択中だけ暖色で持ち上げる)。
         float step = dt / GlowFadeDuration;
@@ -617,16 +779,28 @@ public class CityMapController : MonoBehaviour
 
     void ApplyGlow()
     {
-        float pulse = 1f + 0.06f * Mathf.Sin(time * 2.0f);
+        float pulse = 1f + 0.025f * Mathf.Sin(time * 2.0f);
         for (int d = 1; d <= DistrictCount; d++)
         {
             Renderer ground = groundRenderers[d];
-            if (ground == null) continue;
-            float w = glowWeight[d] * pulse;
-            Color c = Color.Lerp(available[d] ? Color.white : dimTint, glowTint, Mathf.Clamp01(w));
-            ground.GetPropertyBlock(mpb);
-            mpb.SetColor(BaseColorId, c);
-            ground.SetPropertyBlock(mpb);
+            if (ground != null)
+            {
+                float w = glowWeight[d] * pulse;
+                Color c = Color.Lerp(available[d] ? Color.white : dimTint, glowTint, Mathf.Clamp01(w));
+                ground.GetPropertyBlock(mpb);
+                mpb.SetColor(BaseColorId, c);
+                ground.SetPropertyBlock(mpb);
+            }
+
+            Renderer rim = rimRenderers[d];
+            if (rim == null) continue;
+            float a = glowWeight[d] * rimGlowAlpha * pulse;
+            bool on = a > 0.002f;
+            if (rim.enabled != on) rim.enabled = on;
+            if (!on) continue;
+            rim.GetPropertyBlock(mpb);
+            mpb.SetColor(BaseColorId, new Color(rimGlowColor.r, rimGlowColor.g, rimGlowColor.b, a));
+            rim.SetPropertyBlock(mpb);
         }
     }
 

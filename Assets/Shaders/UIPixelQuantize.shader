@@ -13,6 +13,15 @@ Shader "BulletHell/UI/PixelQuantize"
         _Color ("Tint", Color) = (1,1,1,1)
         _PixelatePalette ("Levels per channel (0 = off)", Float) = 0
         _PixelateDither ("Ordered dither amount", Range(0,1)) = 1
+        // 色の調整(0 = 素通し)。ステージ選択の街だけが使う。
+        _GradeEnabled ("Color grade on/off", Float) = 0
+        _Saturation ("Saturation", Range(0,2)) = 1
+        _Contrast ("Contrast", Range(0,2)) = 1
+        _ContrastPivot ("Contrast pivot", Range(0,1)) = 0.5
+        _BlackLift ("Black lift", Range(0,0.5)) = 0
+        _WarmKeep ("Keep warm hues saturated", Range(0,1)) = 1
+        _TintColor ("District tint (multiplier)", Color) = (1,1,1,1)
+        _TintAmount ("District tint amount", Range(0,1)) = 0
         _ColorMask ("Color Mask", Float) = 15
     }
 
@@ -63,6 +72,14 @@ Shader "BulletHell/UI/PixelQuantize"
             fixed4 _Color;
             float _PixelatePalette;
             float _PixelateDither;
+            float _GradeEnabled;
+            float _Saturation;
+            float _Contrast;
+            float _ContrastPivot;
+            float _BlackLift;
+            float _WarmKeep;
+            float4 _TintColor;
+            float _TintAmount;
 
             v2f vert(appdata_t v)
             {
@@ -89,19 +106,44 @@ Shader "BulletHell/UI/PixelQuantize"
                 fixed4 col = tex2D(_MainTex, i.texcoord) * i.color;
 
                 float levels = _PixelatePalette;
-                if (levels > 1.5)
+                bool quantize = levels > 1.5;
+                bool grade = _GradeEnabled > 0.5;
+                if (!quantize && !grade) return col;
+
+                // 階調も色の調整もガンマ空間で行う。RT はリニア(HDR)なので、そのまま
+                // 等間隔に丸めると暗部が全部 0 へ潰れる(夜の街が真っ黒になる)。
+                float3 g = pow(saturate(col.rgb), 1.0 / 2.2);
+
+                if (grade)
+                {
+                    // 彩度を落とす。ただし窓灯り・ランタンの橙(r が b より強い画素)は
+                    // そのまま残す(指示「窓灯りとランタンの橙だけは残す」)。
+                    float lum = dot(g, float3(0.299, 0.587, 0.114));
+                    float warm = saturate((g.r - g.b) * 2.5) * _WarmKeep;
+                    float sat = lerp(_Saturation, 1.0, warm);
+                    g = lerp(lum.xxx, g, sat);
+
+                    // コントラストを落とす。軸を中間より下(既定 0.38)に置くので、
+                    // ハイライトの下がり幅の方が大きく、夜の暗さが残る。
+                    g = (g - _ContrastPivot) * _Contrast + _ContrastPivot;
+                    g = g * (1.0 - _BlackLift) + _BlackLift;
+                    g = saturate(g);
+
+                    // 区画の基調色を薄く被せる(_TintColor は 1 を中立とする倍率)。
+                    g = saturate(lerp(g, g * _TintColor.rgb, _TintAmount));
+                }
+
+                if (quantize)
                 {
                     // texel 座標(= 低解像度 RT の 1 ドット)でディザのセルを決める。
                     float2 texel = floor(i.texcoord * _MainTex_TexelSize.zw);
                     int cell = (int)fmod(texel.x, 4.0) + 4 * (int)fmod(texel.y, 4.0);
                     float d = (Bayer[cell] / 16.0 - 0.5) * _PixelateDither;
                     float steps = levels - 1.0;
-                    // 階調はガンマ空間で刻む。RT はリニア(HDR)なので、そのまま等間隔に
-                    // 丸めると暗部が全部 0 へ潰れる(夜の室内が真っ黒になる)。
-                    float3 g = pow(saturate(col.rgb), 1.0 / 2.2);
                     g = floor(g * steps + 0.5 + d / steps) / steps;
-                    col.rgb = pow(saturate(g), 2.2);
                 }
+
+                col.rgb = pow(saturate(g), 2.2);
                 return col;
             }
         ENDCG
