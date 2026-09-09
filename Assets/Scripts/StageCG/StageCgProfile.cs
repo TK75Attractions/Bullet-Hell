@@ -130,6 +130,15 @@ public class StageCgProfile
     [Tooltip("拍頭の増分が戻るまでの時間。")]
     public float beatDecaySec = 0.15f;
 
+    [Header("色調整（表示板シェーダ・第 6 便 C）")]
+    [Tooltip("背景 CG の色相を回す角度（度）。0 で無変換。ボスの画素には掛からない。")]
+    [Range(-180f, 180f)] public float hueShiftDeg = 0f;
+    [Tooltip("背景 CG の彩度。1 でそのまま。")]
+    [Range(0f, 2f)] public float saturation = 1f;
+    [Tooltip("被せる色。輝度を保ったまま tintAmount の割合だけこの色相へ寄せる。")]
+    public Color tintColor = Color.white;
+    [Range(0f, 1f)] public float tintAmount = 0f;
+
     [Header("形態変化")]
     public StageCgPhaseKind phase = StageCgPhaseKind.None;
     [Tooltip("フェーズが切り替わるステージ秒。石工 60.028（v34 で 72.94 から移動）/ 艦長 35.2 / 浮浪者 45.714。")]
@@ -138,6 +147,32 @@ public class StageCgProfile
     public float phaseCrossfadeSec = 0.5f;
     [Tooltip("第 2 フェーズで隠す既存オブジェクトの名前（前方一致）。")]
     public string[] hideInPhase2 = new string[0];
+
+    [Header("形態変化の見せ方（第 6 便 A）")]
+    [Tooltip("切替の瞬間の控えめなフラッシュの長さ。0 で無し。")]
+    public float phaseFlashSec = 0.12f;
+    [Tooltip("フラッシュの強さ（画面の端と上部だけ +この割合）。")]
+    [Range(0f, 1f)] public float phaseFlashAmount = 0.15f;
+    [Tooltip("切替後の色調・露出へ移るのにかける時間。")]
+    public float phaseColorBlendSec = 0.5f;
+    [Range(-180f, 180f)] public float phase2HueShiftDeg = 0f;
+    [Range(0f, 2f)] public float phase2Saturation = 1f;
+    public Color phase2TintColor = Color.white;
+    [Range(0f, 1f)] public float phase2TintAmount = 0f;
+    [Tooltip("切替後の露出倍率（石工の旧 lateExposureScale をここへ一般化）。")]
+    [Range(0f, 2f)] public float phase2ExposureScale = 1f;
+    [Tooltip("切替後の発光グループ 1（ランタン・回路・人魂・紋様）の倍率。")]
+    [Range(0f, 4f)] public float phase2Group1Scale = 1f;
+    [Tooltip("切替後の発光グループ 2（街・港の灯り）の倍率。")]
+    [Range(0f, 4f)] public float phase2Group2Scale = 1f;
+    [Tooltip("p2_* を 1 つずつ順に灯すときの間隔（浮浪者の人魂）。0 なら一斉。")]
+    public float phase2SequentialSec = 0f;
+    [Tooltip("順に灯す対象の名前（前方一致）。空なら p2_* 全部。")]
+    public string phase2SequentialPrefix = "";
+    [Tooltip("p2_* が上端を軸に縦へ伸びて「降りてくる」時間（艦長の帆・信号旗）。0 なら無し。")]
+    public float phase2DropSec = 0f;
+    [Tooltip("降りてくる対象の名前（前方一致）。")]
+    public string[] phase2DropPrefixes = new string[0];
 
     [Header("石工の降臨演出（phase = StoneGolem のときだけ）")]
     [Tooltip("降下にかかる時間（降下開始 = phaseTime - この値）。")]
@@ -159,6 +194,11 @@ public class StageCgProfile
     [Range(0f, 1f)] public float corePulse = 0.25f;
     [Range(0f, 1f)] public float lateLanternScale = 0.6f;
     [Range(0f, 1f)] public float lateCityScale = 0.6667f;
+    [Tooltip("後半の割れ目の発光倍率（コアの明滅に掛ける）。")]
+    [Range(0f, 4f)] public float lateCrackScale = 1f;
+    [Tooltip("着地の粉の大きさ倍率と、発生を散らす秒数。")]
+    public float dustSizeScale = 1f;
+    public float dustSpawnSpreadSec = 0.5f;
     public Vector3 lateSkyTint = new Vector3(1.06f, 0.94f, 1.02f);
     [Range(0f, 1f)] public float lateExposureScale = 0.98f;
 
@@ -177,7 +217,10 @@ public class StageCgProfile
 
     [Header("終端の暗転（石工 v34・指示書 #22 #23）")]
     [Tooltip("true のとき、白転（PixelTransition のモザイク）ではなく黒フェードでリザルトへ移る。")]
-    public bool useBlackEnding = false;
+    public bool useBlackEnding = true;
+    [Tooltip("true なら暗転の時刻を endTime から自動で決める（背景 = endTime-1.0 / 全体 = endTime-0.4）。"
+        + "false なら下の cgBlackoutTime / screenBlackoutTime をそのまま使う（石工の指示時刻）。")]
+    public bool endingTimesFromEndTime = true;
     [Tooltip("#22 背景 CG だけを黒へ落とし始めるステージ秒。ボスはそのまま見え続ける。")]
     public float cgBlackoutTime = 141.745f;
     public float cgBlackoutSec = 0.6f;
@@ -185,20 +228,45 @@ public class StageCgProfile
     public float screenBlackoutTime = 146.72f;
     public float screenBlackoutSec = 0.4f;
 
-    /// <summary>背景 CG だけに掛ける減光 1..0（1=そのまま / 0=真っ黒）。ボスには掛からない。</summary>
-    public float CgBlackout(float stageTime)
+    /// <summary>背景の暗転が始まるステージ秒。endingTimesFromEndTime なら endTime から決める。</summary>
+    public float CgBlackoutTimeFor(float endTime)
+        => endingTimesFromEndTime && endTime > 0f ? endTime - 1f : cgBlackoutTime;
+
+    /// <summary>画面全体の暗転が始まるステージ秒。endTime で真っ黒になるよう 0.4 秒前から。</summary>
+    public float ScreenBlackoutTimeFor(float endTime)
+        => endingTimesFromEndTime && endTime > 0f ? endTime - screenBlackoutSec : screenBlackoutTime;
+
+    /// <summary>背景 CG だけに掛ける減光 1..0（1=そのまま / 0=真っ黒）。</summary>
+    public float CgBlackout(float stageTime, float endTime)
     {
         if (!useBlackEnding) return 1f;
-        float u = Mathf.Clamp01((stageTime - cgBlackoutTime) / Mathf.Max(1e-4f, cgBlackoutSec));
+        float u = Mathf.Clamp01((stageTime - CgBlackoutTimeFor(endTime)) / Mathf.Max(1e-4f, cgBlackoutSec));
         return 1f - u * u * (3f - 2f * u);
     }
 
     /// <summary>画面全体を覆う黒の濃さ 0..1。</summary>
-    public float ScreenBlackout(float stageTime)
+    public float ScreenBlackout(float stageTime, float endTime)
     {
         if (!useBlackEnding) return 0f;
-        float u = Mathf.Clamp01((stageTime - screenBlackoutTime) / Mathf.Max(1e-4f, screenBlackoutSec));
+        float u = Mathf.Clamp01((stageTime - ScreenBlackoutTimeFor(endTime)) / Mathf.Max(1e-4f, screenBlackoutSec));
         return u * u * (3f - 2f * u);
+    }
+
+    /// <summary>形態変化の切替からの色調ブレンド 0..1（0=切替前 / 1=切替後）。</summary>
+    public float PhaseColorBlend(float stageTime)
+    {
+        if (phase == StageCgPhaseKind.None) return 0f;
+        float u = Mathf.Clamp01((stageTime - phaseTime) / Mathf.Max(1e-4f, phaseColorBlendSec));
+        return u * u * (3f - 2f * u);
+    }
+
+    /// <summary>切替の瞬間のフラッシュ量 0..phaseFlashAmount（線形に減衰）。</summary>
+    public float PhaseFlash(float stageTime)
+    {
+        if (phase == StageCgPhaseKind.None || phaseFlashSec <= 0f || phaseFlashAmount <= 0f) return 0f;
+        float t = stageTime - phaseTime;
+        if (t < 0f || t >= phaseFlashSec) return 0f;
+        return phaseFlashAmount * (1f - t / phaseFlashSec);
     }
 
     /// <summary>ボス個体の奥行き。トラックが無ければ bossDepth。</summary>

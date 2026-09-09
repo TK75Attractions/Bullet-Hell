@@ -73,6 +73,12 @@ public class StageCgController : MonoBehaviour
     static readonly int EmisGrp4Id = Shader.PropertyToID("_StoneCgEmisGrp4");
     static readonly int EmisLinId = Shader.PropertyToID("_EmisLin");
     static readonly int FadeAlphaId = Shader.PropertyToID("_FadeAlpha");
+    // 第 6 便: 表示板の色調整とフラッシュ。
+    static readonly int HueShiftId = Shader.PropertyToID("_HueShift");
+    static readonly int SaturationId = Shader.PropertyToID("_Saturation");
+    static readonly int TintColorId = Shader.PropertyToID("_TintColor");
+    static readonly int TintAmountId = Shader.PropertyToID("_TintAmount");
+    static readonly int FlashId = Shader.PropertyToID("_Flash");
 
     MaterialPropertyBlock mpb;
     MaterialPropertyBlock dustMpb;
@@ -83,6 +89,14 @@ public class StageCgController : MonoBehaviour
     float cgFade = 1f;      // 終端の「背景だけ黒へ」(v34 #22)
 
     float currentExposureScale = 1f;
+    // 第 6 便: 表示板へ渡す色調整の現在値（形態変化でブレンドする）。
+    float currentHueShift;
+    float currentSaturation = 1f;
+    Color currentTintColor = Color.white;
+    float currentTintAmount;
+    float currentFlash;
+    float currentBossFade = 1f;   // 終端の暗転をボスにも掛ける量（1=そのまま）
+    float currentStageEndTime;
 
     /// <summary>いま使っているプロファイル（CG 非表示なら null）。</summary>
     public StageCgProfile Profile { get; private set; }
@@ -120,6 +134,13 @@ public class StageCgController : MonoBehaviour
         public Vector3[] drifterHome;
         public float[] drifterSpeed;
         public float[] drifterRange;
+        // 第 6 便 (A): p2_* を順に灯すときの、要素ごとの遅れ（秒）。
+        public float[] phase2Delay;
+        // 第 6 便 (A): 上端を軸に降りてくる p2_*（艦長の帆・信号旗）。
+        public Transform[] dropTargets;
+        public Vector3[] dropHomePos;
+        public Vector3[] dropHomeScale;
+        public float[] dropHalfHeight;
         public bool crackVisible = true;
         public bool hideApplied;
         public bool hideState;
@@ -142,7 +163,8 @@ public class StageCgController : MonoBehaviour
 
     void LateUpdate()
     {
-        StageCgProfile want = ShouldShow(out float stageTime);
+        StageCgProfile want = ShouldShow(out float stageTime, out float endTime);
+        currentStageEndTime = endTime;
         Profile = want;
         StageCgIntro.ActiveProfile = want;
 
@@ -168,18 +190,24 @@ public class StageCgController : MonoBehaviour
             // 演出のグローバルは他ステージへ持ち越さない（材質を共有していないので絵には
             // 出ないが、CG のあるステージを抜けた時点で必ず素の値に戻しておく）。
             ResetStageFxGlobals();
+            // 第 6 便 (B): CG の無いステージ（25 / debug / mirror など）でも同じ暗転で終わる。
+            UpdateGenericEnding();
             return;
         }
 
         ApplyGlobals(want);
         introFade = want.BlackFade(stageTime);
-        cgFade = want.CgBlackout(stageTime);
+        cgFade = want.CgBlackout(stageTime, endTime);
+        // 第 6 便 (B): 「背景（CG と敵）が暗転して主人公だけが残る」ので、CG の減光と同じ量を
+        //   ボスにも掛ける（第 5 便はボスを残していたが、今回の指示で背景側に含める）。
+        currentBossFade = cgFade;
+        genericPlaying = false;
         // v34 #23: 画面全体の黒フェード。白転（PixelTransition のモザイク）は残したまま、
-        // 石工だけ黒フェード経路へ回す（useBlackEnding）。
+        // useBlackEnding のステージだけ黒経路へ回す。
         if (want.useBlackEnding)
         {
             PixelTransition pt = FindPixelTransition();
-            if (pt != null) pt.ApplyStageBlackout(want.ScreenBlackout(stageTime));
+            if (pt != null) pt.ApplyStageBlackout(want.ScreenBlackout(stageTime, endTime));
         }
         UpdateStageFx(want, stageTime);
         ApplyCamera(want, stageTime);
@@ -188,9 +216,10 @@ public class StageCgController : MonoBehaviour
         DrawDust(want, stageTime);
     }
 
-    StageCgProfile ShouldShow(out float stageTime)
+    StageCgProfile ShouldShow(out float stageTime, out float endTime)
     {
         stageTime = 0f;
+        endTime = 0f;
         if (!Application.isPlaying) return null;
         GManager g = GManager.Control;
         if (g == null || g.state != GManager.GameState.Playing) return null;
@@ -198,15 +227,74 @@ public class StageCgController : MonoBehaviour
         if (reader == null) return null;
         StageData stage = reader.CurrentStage;
         if (stage == null) return null;
+        stageTime = reader.CurrentTime;
+        endTime = stage.endTime;
         for (int i = 0; i < profiles.Length; i++)
         {
-            if (profiles[i] != null && profiles[i].Matches(stage))
-            {
-                stageTime = reader.CurrentTime;
-                return profiles[i];
-            }
+            if (profiles[i] != null && profiles[i].Matches(stage)) return profiles[i];
         }
+        genericStageTime = stageTime;
+        genericEndTime = endTime;
+        genericPlaying = true;
         return null;
+    }
+
+    // --- 第 6 便 (B): CG の無いステージの終端暗転 -----------------------------------
+    //
+    // CG が無いステージ（25 / debug / mirror / pattern_demo）でも「敵が暗転して主人公だけ
+    // 残る → 全体が暗転 → リザルト」で終わるようにする。時刻は endTime から機械的に決める。
+    float genericStageTime;
+    float genericEndTime;
+    bool genericPlaying;
+    bool genericFadeApplied;
+    const float GenericCgBlackoutLead = 1f;    // 背景（敵）が暗転し始める endTime からの余裕
+    const float GenericCgBlackoutSec = 0.6f;
+    const float GenericScreenBlackoutSec = 0.4f;
+    readonly List<SpriteRenderer> enemyFadeScratch = new List<SpriteRenderer>();
+    MaterialPropertyBlock enemyMpb;
+
+    void UpdateGenericEnding()
+    {
+        if (!genericPlaying)
+        {
+            if (genericFadeApplied) { ApplyEnemyFade(1f); genericFadeApplied = false; }
+            return;
+        }
+        genericPlaying = false;
+        float endTime = genericEndTime;
+        if (endTime <= 0f) return;
+        float t = genericStageTime;
+
+        float u = Mathf.Clamp01((t - (endTime - GenericCgBlackoutLead)) / GenericCgBlackoutSec);
+        float fade = 1f - u * u * (3f - 2f * u);
+        ApplyEnemyFade(fade);
+        genericFadeApplied = true;
+
+        float v = Mathf.Clamp01((t - (endTime - GenericScreenBlackoutSec)) / GenericScreenBlackoutSec);
+        PixelTransition pt = FindPixelTransition();
+        if (pt != null) pt.ApplyStageBlackout(v * v * (3f - 2f * v));
+    }
+
+    /// <summary>ボス（＝このゲームの敵）のスプライトを暗くする。1 でそのまま。</summary>
+    void ApplyEnemyFade(float fade)
+    {
+        if (bossParent == null || !bossParent)
+        {
+            BossManager bm = FindFirstObjectByType<BossManager>();
+            bossParent = bm != null ? bm.transform.Find("Bosses") : null;
+            if (bossParent == null) return;
+        }
+        enemyMpb ??= new MaterialPropertyBlock();
+        enemyFadeScratch.Clear();
+        bossParent.GetComponentsInChildren(true, enemyFadeScratch);
+        for (int i = 0; i < enemyFadeScratch.Count; i++)
+        {
+            SpriteRenderer sr = enemyFadeScratch[i];
+            if (sr == null) continue;
+            sr.GetPropertyBlock(enemyMpb);
+            enemyMpb.SetColor(BossTintId, new Color(fade, fade, fade, 1f));
+            sr.SetPropertyBlock(enemyMpb);
+        }
     }
 
     void ApplyGlobals(StageCgProfile p)
@@ -226,9 +314,14 @@ public class StageCgController : MonoBehaviour
         displayQuad.GetPropertyBlock(mpb);
         mpb.SetFloat(ExposureId, p.exposure * currentExposureScale);
         mpb.SetFloat(CenterDarkenId, p.centerDarken);
-        mpb.SetFloat(BossBrightnessId, p.bossBrightness);
+        mpb.SetFloat(BossBrightnessId, p.bossBrightness * currentBossFade);
         mpb.SetFloat(FadeId, introFade);
         mpb.SetFloat(CgFadeId, cgFade);
+        mpb.SetFloat(HueShiftId, currentHueShift);
+        mpb.SetFloat(SaturationId, currentSaturation);
+        mpb.SetColor(TintColorId, currentTintColor);
+        mpb.SetFloat(TintAmountId, currentTintAmount);
+        mpb.SetFloat(FlashId, currentFlash);
         displayQuad.SetPropertyBlock(mpb);
     }
 
@@ -382,13 +475,17 @@ public class StageCgController : MonoBehaviour
     /// </summary>
     public static bool UsesBlackEnding(StageData stage)
     {
-        if (instance == null || stage == null) return false;
-        for (int i = 0; i < instance.profiles.Length; i++)
+        if (stage == null) return false;
+        if (instance != null)
         {
-            StageCgProfile p = instance.profiles[i];
-            if (p != null && p.Matches(stage)) return p.useBlackEnding;
+            for (int i = 0; i < instance.profiles.Length; i++)
+            {
+                StageCgProfile p = instance.profiles[i];
+                if (p != null && p.Matches(stage)) return p.useBlackEnding;
+            }
         }
-        return false;
+        // 第 6 便 (B): CG の無いステージも暗転方式へ統一する（白転はコードだけ残す）。
+        return true;
     }
 
     PixelTransition cachedTransition;
@@ -474,6 +571,11 @@ public class StageCgController : MonoBehaviour
         LastPhase1Alpha = 1f; LastPhase2Alpha = 0f;
         LastShakeOffset = Vector2.zero;
         currentExposureScale = 1f;
+        currentFlash = 0f;
+        currentHueShift = 0f;
+        currentSaturation = 1f;
+        currentTintColor = Color.white;
+        currentTintAmount = 0f;
         Vector4 one = new Vector4(1f, 1f, 1f, 1f);
         Shader.SetGlobalVector(EmisGrp1Id, one);
         Shader.SetGlobalVector(EmisGrp2Id, one);
@@ -525,6 +627,48 @@ public class StageCgController : MonoBehaviour
         for (int i = 0; i < c.drifters.Length; i++) c.drifterHome[i] = c.drifters[i].localPosition;
         c.drifterSpeed = driftSpeed.ToArray();
         c.drifterRange = driftRange.ToArray();
+
+        // 第 6 便 (A): 順に灯す遅れ（名前順に 0, seq, 2*seq, ...）。
+        c.phase2Delay = new float[c.phase2.Length];
+        if (p.phase2SequentialSec > 0f)
+        {
+            int k = 0;
+            for (int i = 0; i < c.phase2.Length; i++)
+            {
+                bool hit = string.IsNullOrEmpty(p.phase2SequentialPrefix)
+                           || c.phase2[i].name.StartsWith(p.phase2SequentialPrefix);
+                c.phase2Delay[i] = hit ? k++ * p.phase2SequentialSec : 0f;
+            }
+        }
+
+        // 第 6 便 (A): 上端を軸に降りてくる対象。世界 AABB から上端と半分の高さを実測する。
+        var drop = new List<Transform>();
+        var dropPos = new List<Vector3>();
+        var dropScale = new List<Vector3>();
+        var dropHalf = new List<float>();
+        if (p.phase2DropSec > 0f && p.phase2DropPrefixes != null)
+        {
+            for (int i = 0; i < c.phase2.Length; i++)
+            {
+                MeshRenderer mr = c.phase2[i];
+                bool hit = false;
+                for (int j = 0; j < p.phase2DropPrefixes.Length; j++)
+                {
+                    if (!string.IsNullOrEmpty(p.phase2DropPrefixes[j])
+                        && mr.name.StartsWith(p.phase2DropPrefixes[j])) { hit = true; break; }
+                }
+                if (!hit) continue;
+                drop.Add(mr.transform);
+                dropPos.Add(mr.transform.localPosition);
+                dropScale.Add(mr.transform.localScale);
+                dropHalf.Add(mr.bounds.extents.y);
+            }
+        }
+        c.dropTargets = drop.ToArray();
+        c.dropHomePos = dropPos.ToArray();
+        c.dropHomeScale = dropScale.ToArray();
+        c.dropHalfHeight = dropHalf.ToArray();
+
         caches[p.sceneRoot] = c;
         return c;
     }
@@ -535,6 +679,10 @@ public class StageCgController : MonoBehaviour
         if (!stageFxEnabled)
         {
             ResetStageFxGlobals();
+            currentHueShift = p.hueShiftDeg;
+            currentSaturation = p.saturation;
+            currentTintColor = p.tintColor;
+            currentTintAmount = p.tintAmount;
             if (cache != null)
             {
                 ApplyPhaseAlpha(cache.phase1, 1f);
@@ -563,10 +711,20 @@ public class StageCgController : MonoBehaviour
         LastPhase1Alpha = a1;
         LastPhase2Alpha = a2;
         bool late = p.phase != StageCgPhaseKind.None && stageTime >= p.phaseTime;
+
+        // 第 6 便 (A): 切替の主役は「その後の色調と照明の変化」。フラッシュは控えめに端と上部だけ。
+        float blend = p.PhaseColorBlend(stageTime);
+        currentFlash = p.PhaseFlash(stageTime);
+        currentHueShift = Mathf.Lerp(p.hueShiftDeg, p.phase2HueShiftDeg, blend);
+        currentSaturation = Mathf.Lerp(p.saturation, p.phase2Saturation, blend);
+        currentTintColor = Color.Lerp(p.tintColor, p.phase2TintColor, blend);
+        currentTintAmount = Mathf.Lerp(p.tintAmount, p.phase2TintAmount, blend);
+
         if (cache != null)
         {
             ApplyPhaseAlpha(cache.phase1, a1);
-            ApplyPhaseAlpha(cache.phase2, a2);
+            ApplyPhase2Alpha(p, cache, stageTime, a2);
+            ApplyPhase2Drop(p, cache, stageTime);
             SetHidden(cache, late);
         }
 
@@ -575,7 +733,10 @@ public class StageCgController : MonoBehaviour
         float city = 1f;
         float coreScale = 0f;
         Vector3 sky = Vector3.one;
-        currentExposureScale = 1f;
+        // 露出は形態変化の色調ブレンドと同じ曲線で移す（旧 lateExposureScale を一般化）。
+        currentExposureScale = Mathf.Lerp(1f, p.phase2ExposureScale, blend);
+        // 揺れは 3 ステージ共通（減衰余弦・phaseTime 起点）。
+        LastShakeOffset = ShakeOffset(p, stageTime);
 
         switch (p.phase)
         {
@@ -590,25 +751,22 @@ public class StageCgController : MonoBehaviour
                 city = late ? p.lateCityScale : 1f + p.beatPulse * env;
                 coreScale = coreRamp * (1f + p.corePulse * env);
                 sky = late ? p.lateSkyTint : Vector3.one;
-                currentExposureScale = late ? p.lateExposureScale : 1f;
-                LastShakeOffset = ShakeOffset(p, stageTime);
                 break;
             }
             case StageCgPhaseKind.CaptainAnchor:
                 // p1 は回路発光、p2 はランタンの光輪。どちらもグループ 1 なので同じ式でよい。
-                // 街の灯りは帆に隠れるぶん、後半だけ少し持ち上げる。
-                city = late ? 1.15f : 1f + p.beatPulse * env;
-                LastShakeOffset = Vector2.zero;
+                // 第 6 便 (A): 切替後は回路・光輪を phase2Group1Scale 倍、港の灯りを
+                //   phase2Group2Scale 倍にして「明るくなった」と分かるようにする。
+                lantern = Mathf.Lerp(1f, p.phase2Group1Scale, blend) * (1f + p.beatPulse * env);
+                city = Mathf.Lerp(1f, p.phase2Group2Scale, blend) * (late ? 1f : 1f + p.beatPulse * env);
                 break;
             case StageCgPhaseKind.VagrantWisp:
                 // 人魂・紋様（グループ 1）はゆっくり息づく。拍連動は使わない。
-                lantern = 1f;
-                city = 1f;
-                LastShakeOffset = Vector2.zero;
+                lantern = Mathf.Lerp(1f, p.phase2Group1Scale, blend);
+                city = Mathf.Lerp(1f, p.phase2Group2Scale, blend);
                 UpdateVagrantMotion(p, cache, stageTime);
                 break;
             default:
-                LastShakeOffset = Vector2.zero;
                 break;
         }
 
@@ -619,7 +777,9 @@ public class StageCgController : MonoBehaviour
 
         Shader.SetGlobalVector(EmisGrp1Id, new Vector4(lantern, lantern, lantern, 1f));
         Shader.SetGlobalVector(EmisGrp2Id, new Vector4(city, city, city, 1f));
-        Shader.SetGlobalVector(EmisGrp3Id, new Vector4(coreScale, coreScale, coreScale, 1f));
+        float crack = coreScale * Mathf.Lerp(1f, p.lateCrackScale, blend);
+        LastCrackScale = crack;
+        Shader.SetGlobalVector(EmisGrp3Id, new Vector4(crack, crack, crack, 1f));
         Shader.SetGlobalVector(EmisGrp4Id, new Vector4(sky.x, sky.y, sky.z, 1f));
         SetCoreLight(p, coreScale);
         if (cache != null) SetRenderers(cache.crackGlow, coreScale > 0.001f, ref cache.crackVisible);
@@ -650,6 +810,56 @@ public class StageCgController : MonoBehaviour
             float dx = Mathf.Sin(stageTime * speed + phase) * range;
             Vector3 home = cache.drifterHome[i];
             t.localPosition = new Vector3(home.x + dx, home.y, home.z);
+        }
+    }
+
+    /// <summary>p2_* のアルファ。順に灯す設定があれば要素ごとに遅らせる（浮浪者の人魂）。</summary>
+    void ApplyPhase2Alpha(StageCgProfile p, SceneCache cache, float stageTime, float a2)
+    {
+        MeshRenderer[] renderers = cache.phase2;
+        if (renderers == null || renderers.Length == 0) return;
+        if (p.phase2SequentialSec <= 0f || cache.phase2Delay == null)
+        {
+            ApplyPhaseAlpha(renderers, a2);
+            return;
+        }
+        phaseMpb ??= new MaterialPropertyBlock();
+        float cross = Mathf.Max(1e-4f, p.phaseCrossfadeSec);
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            MeshRenderer mr = renderers[i];
+            if (mr == null) continue;
+            float u = Mathf.Clamp01((stageTime - p.phaseTime - cache.phase2Delay[i]) / cross);
+            float a = u * u * (3f - 2f * u);
+            bool visible = a > 0.002f;
+            if (mr.enabled != visible) mr.enabled = visible;
+            if (!visible) continue;
+            mr.GetPropertyBlock(phaseMpb);
+            phaseMpb.SetFloat(FadeAlphaId, a);
+            mr.SetPropertyBlock(phaseMpb);
+        }
+    }
+
+    /// <summary>
+    /// 艦長の帆・信号旗が「降りてくる」動き。上端を軸に縦のスケールを 0 → 1 にし、
+    /// 上端の世界 y が動かないよう位置を合わせる。ステージ時計の閉じた式。
+    /// </summary>
+    void ApplyPhase2Drop(StageCgProfile p, SceneCache cache, float stageTime)
+    {
+        if (cache.dropTargets == null || cache.dropTargets.Length == 0 || p.phase2DropSec <= 0f) return;
+        float u = Mathf.Clamp01((stageTime - p.phaseTime) / p.phase2DropSec);
+        float e = u * u * (3f - 2f * u);
+        for (int i = 0; i < cache.dropTargets.Length; i++)
+        {
+            Transform t = cache.dropTargets[i];
+            if (t == null) continue;
+            Vector3 hs = cache.dropHomeScale[i];
+            Vector3 hp = cache.dropHomePos[i];
+            float half = cache.dropHalfHeight[i];
+            float sy = Mathf.Max(0.001f, e);
+            t.localScale = new Vector3(hs.x, hs.y * sy, hs.z);
+            // 上端 = hp.y + half を固定して中心を下げる。
+            t.localPosition = new Vector3(hp.x, hp.y + half * (1f - sy), hp.z);
         }
     }
 
@@ -735,7 +945,7 @@ public class StageCgController : MonoBehaviour
 
         for (int i = 0; i < p.dustCount; i++)
         {
-            float ts = t0 + 0.5f * Hash(i, 1);
+            float ts = t0 + Mathf.Max(0.01f, p.dustSpawnSpreadSec) * Hash(i, 1);
             float age = stageTime - ts;
             if (age < 0f || age > p.dustLifeSec) continue;
 
@@ -757,7 +967,7 @@ public class StageCgController : MonoBehaviour
                 g = 8.0f;
             }
             float fy = fy0 - 0.5f * g * age * age;
-            float size = Mathf.Lerp(0.10f, 0.22f, Hash(i, 5));
+            float size = Mathf.Lerp(0.10f, 0.22f, Hash(i, 5)) * Mathf.Max(0.01f, p.dustSizeScale);
             float fade = Mathf.Clamp01((p.dustLifeSec - age) / 0.4f) * Mathf.Clamp01(age / 0.08f);
 
             Vector3 pos = new Vector3(16f + (fx - 16f) * k, 20f + (fy - 20f) * k, depth);

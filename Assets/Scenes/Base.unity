@@ -6169,25 +6169,46 @@ MonoBehaviour:
     beatOffsetSec: 0
     beatPulse: 0.2
     beatDecaySec: 0.15
+    hueShiftDeg: 0
+    saturation: 1
+    tintColor: {r: 1, g: 1, b: 1, a: 1}
+    tintAmount: 0
     phase: 1
     phaseTime: 60.028
     phaseCrossfadeSec: 0.5
     hideInPhase2: []
+    phaseFlashSec: 0.12
+    phaseFlashAmount: 0.15
+    phaseColorBlendSec: 0.5
+    phase2HueShiftDeg: 0
+    phase2Saturation: 1
+    phase2TintColor: {r: 1, g: 0.45, b: 0.78, a: 1}
+    phase2TintAmount: 0.15
+    phase2ExposureScale: 0.9142857
+    phase2Group1Scale: 1
+    phase2Group2Scale: 1
+    phase2SequentialSec: 0
+    phase2SequentialPrefix: 
+    phase2DropSec: 0
+    phase2DropPrefixes: []
     descendSec: 0.833333
     shakeAmplitude: 0.6
     shakeDuration: 0.34
     shakeFrequency: 18
     lanternBlackoutSec: 0.3
     dustMaterial: {fileID: 2100000, guid: 31da661477ff2644097d724a5602c529, type: 2}
-    dustCount: 60
+    dustCount: 120
     dustLifeSec: 1.5
     coreLightPosition: {x: 16, y: 13.1, z: 5.7}
     coreColorLinear: {x: 1, y: 0.25, z: 0.2}
     coreRadius: 10
-    coreIntensity: 1.7
+    coreIntensity: 2.72
     corePulse: 0.25
-    lateLanternScale: 0.6
+    lateLanternScale: 0.4
     lateCityScale: 0.6667
+    lateCrackScale: 2
+    dustSizeScale: 1.5
+    dustSpawnSpreadSec: 1
     lateSkyTint: {x: 1.06, y: 0.94, z: 1.02}
     lateExposureScale: 0.98
     wispAmplitude: 0.15
@@ -6198,6 +6219,7 @@ MonoBehaviour:
     dustDriftSpeed: 0.1
     dustDriftRange: 1.2
     useBlackEnding: 1
+    endingTimesFromEndTime: 0
     cgBlackoutTime: 141.745
     cgBlackoutSec: 0.6
     screenBlackoutTime: 146.72
@@ -6233,6 +6255,10 @@ MonoBehaviour:
     beatOffsetSec: 2.76
     beatPulse: 0.2
     beatDecaySec: 0.15
+    hueShiftDeg: 0
+    saturation: 1
+    tintColor: {r: 1, g: 1, b: 1, a: 1}
+    tintAmount: 0
     phase: 2
     phaseTime: 35.2
     phaseCrossfadeSec: 0.5
@@ -6246,6 +6272,22 @@ MonoBehaviour:
     - far_cloud_01
     - far_moon
     - anchor_chain_links_
+    phaseFlashSec: 0.12
+    phaseFlashAmount: 0.15
+    phaseColorBlendSec: 0.5
+    phase2HueShiftDeg: 0
+    phase2Saturation: 1
+    phase2TintColor: {r: 0.55, g: 1, b: 0.92, a: 1}
+    phase2TintAmount: 0.1
+    phase2ExposureScale: 1
+    phase2Group1Scale: 2
+    phase2Group2Scale: 1.5
+    phase2SequentialSec: 0
+    phase2SequentialPrefix: 
+    phase2DropSec: 0.3
+    phase2DropPrefixes:
+    - p2_sail_
+    - p2_flag_signal_
     descendSec: 0.833333
     shakeAmplitude: 0.6
     shakeDuration: 0.34
@@ -6261,6 +6303,9 @@ MonoBehaviour:
     corePulse: 0.25
     lateLanternScale: 0.6
     lateCityScale: 0.6667
+    lateCrackScale: 1
+    dustSizeScale: 1
+    dustSpawnSpreadSec: 0.5
     lateSkyTint: {x: 1.06, y: 0.94, z: 1.02}
     lateExposureScale: 0.98
     wispAmplitude: 0.15
@@ -6270,7 +6315,8 @@ MonoBehaviour:
     fogDriftRange: 0.9
     dustDriftSpeed: 0.1
     dustDriftRange: 1.2
-    useBlackEnding: 0
+    useBlackEnding: 1
+    endingTimesFromEndTime: 1
     cgBlackoutTime: 141.745
     cgBlackoutSec: 0.6
     screenBlackoutTime: 146.72
@@ -6306,12 +6352,30 @@ MonoBehaviour:
     beatOffsetSec: 0
     beatPulse: 0.2
     beatDecaySec: 0.15
+    hueShiftDeg: 0
+    saturation: 1
+    tintColor: {r: 1, g: 1, b: 1, a: 1}
+    tintAmount: 0
     phase: 3
     phaseTime: 45.714
     phaseCrossfadeSec: 0.5
     hideInPhase2:
     - ember_cluster_
     - moonlight_oblique_sheet
+    phaseFlashSec: 0.12
+    phaseFlashAmount: 0.15
+    phaseColorBlendSec: 0.5
+    phase2HueShiftDeg: 0
+    phase2Saturation: 1
+    phase2TintColor: {r: 1, g: 0.45, b: 0.9, a: 1}
+    phase2TintAmount: 0.2
+    phase2ExposureScale: 1
+    phase2Group1Scale: 1.5
+    phase2Group2Scale: 1
+    phase2SequentialSec: 0.08
+    phase2SequentialPrefix: p2_wisp_
+    phase2DropSec: 0
+    phase2DropPrefixes: []
     descendSec: 0.833333
     shakeAmplitude: 0.6
     shakeDuration: 0.34
@@ -6327,6 +6391,9 @@ MonoBehaviour:
     corePulse: 0.25
     lateLanternScale: 0.6
     lateCityScale: 0.6667
+    lateCrackScale: 1
+    dustSizeScale: 1
+    dustSpawnSpreadSec: 0.5
     lateSkyTint: {x: 1.06, y: 0.94, z: 1.02}
     lateExposureScale: 0.98
     wispAmplitude: 0.15
@@ -6336,7 +6403,8 @@ MonoBehaviour:
     fogDriftRange: 0.8
     dustDriftSpeed: 0.35
     dustDriftRange: 1
-    useBlackEnding: 0
+    useBlackEnding: 1
+    endingTimesFromEndTime: 1
     cgBlackoutTime: 141.745
     cgBlackoutSec: 0.6
     screenBlackoutTime: 146.72

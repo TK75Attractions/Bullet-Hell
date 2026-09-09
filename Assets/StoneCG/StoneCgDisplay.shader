@@ -12,6 +12,13 @@ Shader "StoneCG/Display"
         _BossBrightness ("Boss Brightness", Range(0,2)) = 0.5
         _Fade ("Intro Fade", Range(0,1)) = 1
         _CgFade ("CG Blackout", Range(0,1)) = 1
+        // 第 6 便 (C): ステージごとの色調整。背景 CG の画素にだけ掛ける（ボスは素のまま）。
+        _HueShift ("Hue Shift (deg)", Range(-180,180)) = 0
+        _Saturation ("Saturation", Range(0,2)) = 1
+        _TintColor ("Tint Color", Color) = (1,1,1,1)
+        _TintAmount ("Tint Amount", Range(0,1)) = 0
+        // 第 6 便 (A): 形態変化の瞬間の控えめなフラッシュ（端と上部だけ明るくする）。
+        _Flash ("Phase Flash", Range(0,1)) = 0
     }
     SubShader
     {
@@ -34,6 +41,27 @@ Shader "StoneCG/Display"
             float _BossBrightness;
             float _Fade;
             float _CgFade;
+            float _HueShift;
+            float _Saturation;
+            float4 _TintColor;
+            float _TintAmount;
+            float _Flash;
+
+            // 色相回転（YIQ 空間の IQ 平面を回す。輝度は保存される）。
+            float3 HueRotate(float3 c, float deg)
+            {
+                float a = radians(deg);
+                float s = sin(a), co = cos(a);
+                float3 yiq = float3(
+                    dot(c, float3(0.299, 0.587, 0.114)),
+                    dot(c, float3(0.596, -0.274, -0.322)),
+                    dot(c, float3(0.211, -0.523, 0.312)));
+                float2 iq = float2(yiq.y * co - yiq.z * s, yiq.y * s + yiq.z * co);
+                return float3(
+                    yiq.x + dot(iq, float2(0.956, 0.621)),
+                    yiq.x + dot(iq, float2(-0.272, -0.647)),
+                    yiq.x + dot(iq, float2(-1.106, 1.703)));
+            }
 
             struct Attributes { float4 positionOS : POSITION; float2 uv : TEXCOORD0; };
             struct Varyings { float4 positionCS : SV_POSITION; float2 uv : TEXCOORD0; };
@@ -59,8 +87,24 @@ Shader "StoneCG/Display"
                 // src.a は「ボスとして描かれた被覆率」(CG 本体は 0)。ボスの画素には露出でも
                 // 中央減光でもなく _BossBrightness を掛ける = ボスの明度を CG と独立に決める。
                 float gain = lerp(cgGain, _BossBrightness, saturate(src.a));
+
+                // 第 6 便 (C): 色相回転 → 彩度 → 色被せ。背景 CG の画素にだけ効かせたいので、
+                //   ボスの被覆率 src.a で元の色へ戻す（ボスの見え方は今までどおり）。
+                float3 graded = src.rgb;
+                if (abs(_HueShift) > 0.001) graded = HueRotate(graded, _HueShift);
+                float lum = dot(graded, float3(0.299, 0.587, 0.114));
+                graded = lerp(float3(lum, lum, lum), graded, _Saturation);
+                graded = lerp(graded, lum * _TintColor.rgb, _TintAmount);
+                graded = max(graded, 0.0);
+                float3 rgb = lerp(graded, src.rgb, saturate(src.a));
+
                 // _Fade は導入の黒 → 空のフェード(0 で真っ黒)。
-                float3 col = src.rgb * gain * _Tint.rgb * _Fade;
+                float3 col = rgb * gain * _Tint.rgb * _Fade;
+                // 第 6 便 (A): 形態変化のフラッシュ。中央の楕円マスク m の外側（＝画面の端）と
+                //   上部だけを明るくするので、弾が飛ぶ中央の明度は上がらない。
+                float edge = saturate(1.0 - m);
+                float top = saturate((f.y - 12.0) / 6.0);
+                col *= 1.0 + _Flash * max(edge, top);
                 return half4(col, 1);
             }
             ENDHLSL
