@@ -200,6 +200,29 @@ public class TitleManager : MonoBehaviour
     public bool IsTransferOpen => transferOpen;
     public bool IsRankingOpen => rankingOpen;
 
+    // ---- 3D の部屋(旅支度の部屋・第7便) ------------------------------------
+    // 背景を Astra 制作の 3D 部屋にする。部屋の描画は TitleRoomController が
+    // 専用カメラ→RenderTexture で行い、ここではその RT を最背面へ貼り、
+    // ロゴ・メニューの配置と立ち絵・可読性用の暗幕を面倒みる。
+    // 部屋が用意できていない(Rig 未配置・素材欠落)ときは、従来の JSAB 背景
+    // (Back + Shapes)のまま動く。
+    private RawImage roomView;
+    private Image roomScrim;
+    private Image heroImage;
+    private RectTransform heroRect;
+    private Vector2 heroBasePos;
+    private GameObject backObj;
+    private GameObject shapesObj;
+    private bool roomLayout;
+    // 立ち絵は寄りのあいだフェードアウトする(寄った先のカメラでは画面外にいる、
+    // という読み方になる)。全景では数 px の視差だけ付ける。
+    private const float HeroParallaxPx = 10f;
+    // スタート決定時に「地図へ寄る」ぶんの先行時間。GManager はこの分だけ
+    // ステージ選択の重ね始めを遅らせる。
+    public const float StartZoomLead = 0.4f;
+
+    private TitleRoomController Room => TitleRoomController.Instance;
+
     public void Init()
     {
         animTime = 0f;
@@ -248,11 +271,171 @@ public class TitleManager : MonoBehaviour
         }
 
         EnsureUiBuilt();
+        ApplyRoomLayout();
 
         group.alpha = 1f;
         transform.localScale = Vector3.one;
         dismissed = false;
         gameObject.SetActive(true);
+    }
+
+    // ---- 3D の部屋 ---------------------------------------------------------
+
+    // 部屋を起こし、タイトルの並びを部屋向けへ組み替える(ロゴ左上・メニュー左寄せ・
+    // 右手前に立ち絵・左側に薄い暗幕)。部屋が無ければ何もしない=従来の見た目。
+    private void ApplyRoomLayout()
+    {
+        TitleRoomController room = Room;
+        if (room == null) return;
+        room.SetRoomActive(true);
+        if (!room.Ready) return;
+
+        if (backObj == null) backObj = transform.Find("Back")?.gameObject;
+        if (shapesObj == null) shapesObj = transform.Find("Shapes")?.gameObject;
+        // JSAB の平面図形と濃紺ベタは部屋と喧嘩する(写実的な室内の上に大きな図形が
+        // 浮くと瓦礫に見える)ので、部屋があるときは下ろす。舞う塵が代わりになる。
+        if (backObj != null) backObj.SetActive(false);
+        if (shapesObj != null) shapesObj.SetActive(false);
+
+        if (roomView == null)
+        {
+            roomView = CreateRawImage("RoomView", transform);
+            StretchToParent(roomView.rectTransform);
+            roomView.color = Color.white;
+        }
+        roomView.texture = room.Texture;
+        roomView.gameObject.SetActive(true);
+        roomView.rectTransform.SetSiblingIndex(0);
+
+        if (roomScrim == null)
+        {
+            roomScrim = CreatePanel("RoomScrim", transform, new Vector2(-480f, 0f),
+                new Vector2(960f, 1080f), Color.white);
+            roomScrim.sprite = CreateHorizontalFadeSprite();
+            roomScrim.type = Image.Type.Simple;
+        }
+        // 文字が載る左側だけを控えめに落とす(右端 alpha 0 → 左端 0.5)。
+        roomScrim.color = new Color(0f, 0.012f, 0.035f, 1f);
+        roomScrim.gameObject.SetActive(true);
+        roomScrim.rectTransform.SetSiblingIndex(1);
+
+        // ロゴは左上へ。デザインは変えず、大きさと位置だけ整える。
+        if (logoRect != null)
+        {
+            logoRect.sizeDelta = new Vector2(560f, 317f);
+            logoRect.anchoredPosition = new Vector2(-618f, 336f);
+            logoBaseY = 336f;
+        }
+
+        // メニュー列は左へ寄せ、少し縮める(行の寸法・19° の様式には触らない)。
+        if (menuRoot != null)
+        {
+            menuRoot.localScale = Vector3.one * 0.82f;
+            menuRoot.anchoredPosition = new Vector2(-560f, 30f);
+        }
+        if (playerCountRoot != null)
+        {
+            playerCountRoot.localScale = Vector3.one * 0.82f;
+            playerCountRoot.anchoredPosition = new Vector2(-560f, 30f + (menuRowY.Length > 0 ? menuRowY[0] : 0f) * 0.82f + (MenuRowGap - 24f) * 0.82f);
+        }
+
+        BuildHero();
+        roomLayout = true;
+    }
+
+    private void BuildHero()
+    {
+        if (heroImage == null)
+        {
+            Sprite sprite = Room != null ? Room.heroSprite : null;
+            if (sprite == null) return;
+            GameObject go = new GameObject("Hero", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            go.layer = gameObject.layer;
+            heroRect = (RectTransform)go.transform;
+            heroRect.SetParent(transform, false);
+            heroRect.anchorMin = heroRect.anchorMax = new Vector2(1f, 0f);
+            heroRect.pivot = new Vector2(1f, 0f);
+            heroImage = go.GetComponent<Image>();
+            heroImage.sprite = sprite;
+            heroImage.raycastTarget = false;
+            heroImage.preserveAspect = true;
+        }
+        // 画面高さの約 60%(1080 の 0.60 = 648px)。原寸 709x1024 の比を保つ。
+        const float heroH = 648f;
+        float heroW = heroH * 709f / 1024f;
+        heroRect.sizeDelta = new Vector2(heroW, heroH);
+        heroBasePos = new Vector2(-26f, -8f);
+        heroRect.anchoredPosition = heroBasePos;
+        heroRect.SetSiblingIndex(2); // 部屋と暗幕の上・ロゴ/メニューの下
+        heroImage.gameObject.SetActive(true);
+    }
+
+    // 左端 alpha0.5 → 右端 alpha0 の横グラデ。文字の可読性用の薄い暗幕。
+    private static Sprite CreateHorizontalFadeSprite()
+    {
+        const int w = 128;
+        Texture2D tex = new Texture2D(w, 4, TextureFormat.RGBA32, false)
+        {
+            hideFlags = HideFlags.DontSave,
+            wrapMode = TextureWrapMode.Clamp,
+            filterMode = FilterMode.Bilinear,
+        };
+        for (int x = 0; x < w; x++)
+        {
+            float u = x / (float)(w - 1);
+            // 左(u=0)が濃く、右へ滑らかに抜ける。
+            float a = 0.5f * Mathf.Pow(1f - u, 1.35f);
+            Color c = new Color(1f, 1f, 1f, a);
+            for (int y = 0; y < 4; y++) tex.SetPixel(x, y, c);
+        }
+        tex.Apply();
+        Sprite sprite = Sprite.Create(tex, new Rect(0f, 0f, w, 4f), new Vector2(0.5f, 0.5f), 100f);
+        sprite.hideFlags = HideFlags.DontSave;
+        return sprite;
+    }
+
+    // 部屋のカメラを寄せる/戻す(決定・戻る)。
+    private void FocusRoom(int menuIndexValue) => Room?.FocusMenu(menuIndexValue);
+    private void UnfocusRoom() => Room?.ClearFocus();
+
+    // GManager の設定画面オープン/クローズから呼ぶ(ランタンへ寄る/戻る)。
+    public void OnOptionsOpened() => FocusRoom((int)TitleMenuAction.Options);
+    public void OnOptionsClosed() => UnfocusRoom();
+
+    private void ShutdownRoom()
+    {
+        Room?.SetRoomActive(false);
+    }
+
+    // 部屋の毎フレーム更新。選択中のオブジェクトのハイライトと、立ち絵の視差・退避。
+    private void TickRoom(float dt)
+    {
+        TitleRoomController room = Room;
+        if (room == null || !room.Ready) return;
+        room.SetSelection(menuIndex);
+        room.Tick(dt);
+        if (!roomLayout) return;
+
+        float zoom = room.ZoomAmount;
+        if (heroRect != null)
+        {
+            // 全景では左右に数 px だけ揺れる視差。寄っているあいだは右へ逃がして消す。
+            float drift = Mathf.Sin(animTime * 0.5f) * HeroParallaxPx;
+            heroRect.anchoredPosition = heroBasePos + new Vector2(drift + zoom * 220f, 0f);
+            if (heroImage != null)
+            {
+                Color c = heroImage.color;
+                c.a = 1f - Mathf.Clamp01(zoom * 1.6f);
+                heroImage.color = c;
+            }
+        }
+        if (roomScrim != null)
+        {
+            // 寄っているときはパネルが主役なので暗幕を薄める。
+            Color c = roomScrim.color;
+            c.a = Mathf.Lerp(1f, 0.35f, zoom);
+            roomScrim.color = c;
+        }
     }
 
     private void EnsureUiBuilt()
@@ -436,6 +619,7 @@ public class TitleManager : MonoBehaviour
         }
 
         animTime += dt;
+        TickRoom(dt);
 
         // ビートパルス(ロゴの振動・図形フラッシュ): Discotheque が再生中なら
         // 再生位置から拍位相を取って音にロックする(clip の t=0=実ダウンビート)。
@@ -492,6 +676,7 @@ public class TitleManager : MonoBehaviour
     {
         if (dismissed) return;
         dismissed = true;
+        ShutdownRoom();
         const float duration = 0.38f;
         float d = duration;
         while (d > 0f)
@@ -517,6 +702,22 @@ public class TitleManager : MonoBehaviour
         if (dismissed) return;
         dismissed = true;
 
+        // 部屋がある場合は、退場演出の前に 0.4 秒だけ「地図へ寄る」。
+        // GManager は StartZoomLead ぶん遅らせてステージ選択を重ね始める。
+        FocusRoom((int)TitleMenuAction.Start);
+        if (Room != null && Room.Ready)
+        {
+            float lead = 0f;
+            while (lead < StartZoomLead)
+            {
+                float ldt = Time.deltaTime;
+                lead += ldt;
+                TickRoom(ldt);
+                await Task.Yield();
+                if (this == null || group == null) return;
+            }
+        }
+
         const float flashDur = 0.175f;
         const float rowDur = 0.325f;
         const float slideDistance = 1500f;
@@ -532,6 +733,7 @@ public class TitleManager : MonoBehaviour
         {
             float dt = Time.deltaTime;
             time += dt;
+            TickRoom(dt);
 
             // 背景図形は加速しながら流れ続ける(dismissed 中は UpdateTitle が
             // 止まるので、同じ式をここで加速倍率付きで駆動する)。
@@ -603,6 +805,7 @@ public class TitleManager : MonoBehaviour
 
         group.alpha = 0f;
         gameObject.SetActive(false);
+        ShutdownRoom();
         // 非表示中に退場前の配置へ戻し、次回 Init(再表示)を無傷にする。
         for (int i = 0; i < menuItemRects.Length; i++)
         {
@@ -1063,6 +1266,7 @@ public class TitleManager : MonoBehaviour
         if (transferCloseRoutine != null) { StopCoroutine(transferCloseRoutine); transferCloseRoutine = null; }
         transferRoot.transform.localScale = Vector3.one; // 閉じるアニメの縮小をリセット
         transferOpen = true;
+        FocusRoom((int)TitleMenuAction.Transfer);
         // メニュー・ロゴは退場させない。難易度オーバーレイと同様、完成フレーム
         // (メニュー・ロゴを含む)を撮ってぼかし、その上にパネルを重ねる(第31便)。
         transferRoot.SetActive(true);
@@ -1100,6 +1304,7 @@ public class TitleManager : MonoBehaviour
     public void CloseTransfer()
     {
         transferOpen = false;
+        UnfocusRoom();
         if (transferCaptureRoutine != null) { StopCoroutine(transferCaptureRoutine); transferCaptureRoutine = null; }
         // 開くとき(0.14sフェードイン)と対称に、パネル+ぼかし背景をフェードアウト
         // (+わずかに縮小)して閉じる。メニュー・ロゴは隠していないので、フェードの
@@ -1414,6 +1619,7 @@ public class TitleManager : MonoBehaviour
         if (rankingCloseRoutine != null) { StopCoroutine(rankingCloseRoutine); rankingCloseRoutine = null; }
         rankingRoot.transform.localScale = Vector3.one;
         rankingOpen = true;
+        FocusRoom((int)TitleMenuAction.Ranking);
         rankingRoot.SetActive(true);
         rankingRoot.transform.SetAsLastSibling();
         if (rankingCG != null) rankingCG.alpha = 0f;
@@ -1432,6 +1638,7 @@ public class TitleManager : MonoBehaviour
     public void CloseRanking()
     {
         rankingOpen = false;
+        UnfocusRoom();
         if (rankingCaptureRoutine != null) { StopCoroutine(rankingCaptureRoutine); rankingCaptureRoutine = null; }
         if (rankingCloseRoutine != null) StopCoroutine(rankingCloseRoutine);
         if (rankingRoot != null && rankingRoot.activeInHierarchy && gameObject.activeInHierarchy)

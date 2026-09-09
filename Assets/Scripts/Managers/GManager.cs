@@ -587,7 +587,11 @@ public class GManager : MonoBehaviour
                         case TitleManager.TitleMenuAction.Start:
                             // 即座に切り替えず、タイトル側の退場演出を先に走らせる。
                             titlePhase = TitlePhase.Starting;
-                            titleStartTimer = TManager != null ? TitleManager.StartExitCoverDelay : 0f;
+                            // 部屋(3D タイトル)がある場合は「地図へ寄る」先行 0.4 秒ぶん
+                            // ステージ選択の重ね始めを遅らせる。
+                            titleStartTimer = TManager != null
+                                ? TitleManager.StartZoomLead + TitleManager.StartExitCoverDelay
+                                : 0f;
                             TManager?.PlayStartExit();
                             return true;
                         case TitleManager.TitleMenuAction.Options:
@@ -610,6 +614,7 @@ public class GManager : MonoBehaviour
     private void OpenTitleOptions()
     {
         titlePhase = TitlePhase.Options;
+        TManager?.OnOptionsOpened();
         // メニューは隠さない。設定画面は完成フレーム(メニュー・ロゴを含む)を
         // 撮ってぼかし背景にするので、退場させず背景に残す(第31便)。
         // The title never freezes time or audio; the option screen simply
@@ -658,6 +663,7 @@ public class GManager : MonoBehaviour
     private void CloseTitleOptions()
     {
         titlePhase = TitlePhase.Menu;
+        TManager?.OnOptionsClosed();
         // Require the confirm button to be released again before the menu accepts
         // a press, so the input used to dismiss the option screen (or a button
         // still held from it) cannot leak into the menu and instantly fire an
