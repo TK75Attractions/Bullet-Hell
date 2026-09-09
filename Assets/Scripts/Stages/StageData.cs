@@ -78,6 +78,19 @@ public class StageData
     // v2 ステージイベントチャンネル(SPEC-RUNTIME-V2.md P1-c)。省略可・弾データに影響しない。
     public List<StageEventSpawn> stageEvents = new List<StageEventSpawn>();
 
+    // 第 6 便 (D): 画面の揺れ（描画だけ・弾の座標と当たり判定には一切影響しない）。
+    //   時刻表は choreo（Tools/danmaku-lab/choreo/stone3.js の SHAKE_EVENTS）から
+    //   install_stone3.py が機械的に書く。持たないステージは何も起きない。
+    [System.Serializable]
+    public class ScreenShake
+    {
+        public float time;        // ステージ秒
+        public float magnitude;   // 振幅（論理ユニット）
+        public float duration;    // 減衰し切るまでの秒数
+    }
+
+    public List<ScreenShake> screenShakes = new List<ScreenShake>();
+
     [NonSerialized] public DifficultySelection requestedDifficulty;
     [NonSerialized] public DifficultySelection activeDifficulty;
     [NonSerialized] public DifficultySelection resolvedDataDifficulty;
@@ -128,7 +141,8 @@ public class StageData
             bulletSpawners = selectedDifficulty != null
                 ? CloneBulletSpawners(selectedDifficulty.bulletSpawners)
                 : CloneBulletSpawners(bulletSpawners),
-            stageEvents = CloneStageEvents(stageEvents)
+            stageEvents = CloneStageEvents(stageEvents),
+            screenShakes = CloneScreenShakes(screenShakes)
         };
 
         return runtimeData;
@@ -431,6 +445,11 @@ public class StageData
     public static List<StageEventSpawn> CloneStageEvents(List<StageEventSpawn> source)
     {
         return source != null ? new List<StageEventSpawn>(source) : new List<StageEventSpawn>();
+    }
+
+    public static List<ScreenShake> CloneScreenShakes(List<ScreenShake> source)
+    {
+        return source != null ? new List<ScreenShake>(source) : new List<ScreenShake>();
     }
 
     private static BulletBufferEmission CloneBulletBufferEmission(BulletBufferEmission source)

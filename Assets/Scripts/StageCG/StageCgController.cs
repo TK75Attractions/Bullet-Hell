@@ -114,6 +114,8 @@ public class StageCgController : MonoBehaviour
     public float LastPhase1Alpha { get; private set; } = 1f;
     public float LastPhase2Alpha { get; private set; }
     public Vector2 LastShakeOffset { get; private set; }
+    /// <summary>第 6 便 (D): ステージの時刻表から作った画面の揺れ（論理ユニット）。</summary>
+    public Vector2 LastScreenShake { get; private set; }
 
     // ボスの代理スプライト（CG の 3D 空間側）。key = 元のボス GameObject の instanceID。
     readonly Dictionary<int, SpriteRenderer> bossProxies = new Dictionary<int, SpriteRenderer>();
@@ -161,10 +163,58 @@ public class StageCgController : MonoBehaviour
         ClearBossProxies();
     }
 
+    // --- 第 6 便 (D): 画面の揺れ -----------------------------------------------------
+    //
+    // stage.json の screenShakes（choreo の SHAKE_EVENTS を install_stone3.py が書いたもの）を
+    // ステージ時計の閉じた式で評価する。内部状態を持たないのでシーク・ポーズでも破綻しない。
+    // 揺らすのは描画だけ:
+    //   ・2D の MainCamera … CameraShake の「ステージ揺れ」チャンネルへ加算（被弾の揺れと合算）
+    //   ・CG 表示板 … カメラと同じ量だけ動かして画面に貼り付いたままにする（端に黒が出ない）
+    //   ・CG カメラ … 同じ量だけ動かして背景の絵も一緒に揺れる
+    // 額縁（PlayFrame）と HUD は UI キャンバスなので動かない。弾の論理座標も不変。
+    const float ScreenShakeHz = 18f;
+    Vector3 quadBasePos;
+    bool quadBaseCaptured;
+    StageData currentStage;
+    bool hasStage;
+
+    void UpdateScreenShake(float stageTime)
+    {
+        Vector2 off = Vector2.zero;
+        if (hasStage && currentStage != null && currentStage.screenShakes != null)
+        {
+            var list = currentStage.screenShakes;
+            for (int i = 0; i < list.Count; i++)
+            {
+                StageData.ScreenShake e = list[i];
+                if (e == null || e.duration <= 0f || e.magnitude <= 0f) continue;
+                float t = stageTime - e.time;
+                if (t < 0f || t >= e.duration) continue;
+                float rem = 1f - t / e.duration;
+                float decay = rem * rem;
+                float w = t * ScreenShakeHz * (2f * Mathf.PI);
+                off += new Vector2(Mathf.Cos(w * 0.9f + 1.7f) * 0.6f, -Mathf.Cos(w))
+                       * (e.magnitude * decay);
+            }
+        }
+        LastScreenShake = off;
+        if (Application.isPlaying) CameraShake.SetStageOffset(off);
+        if (displayQuad != null)
+        {
+            if (!quadBaseCaptured)
+            {
+                quadBasePos = displayQuad.transform.localPosition;
+                quadBaseCaptured = true;
+            }
+            displayQuad.transform.localPosition = quadBasePos + new Vector3(off.x, off.y, 0f);
+        }
+    }
+
     void LateUpdate()
     {
         StageCgProfile want = ShouldShow(out float stageTime, out float endTime);
         currentStageEndTime = endTime;
+        UpdateScreenShake(stageTime);
         Profile = want;
         StageCgIntro.ActiveProfile = want;
 
@@ -220,6 +270,8 @@ public class StageCgController : MonoBehaviour
     {
         stageTime = 0f;
         endTime = 0f;
+        currentStage = null;
+        hasStage = false;
         if (!Application.isPlaying) return null;
         GManager g = GManager.Control;
         if (g == null || g.state != GManager.GameState.Playing) return null;
@@ -229,6 +281,8 @@ public class StageCgController : MonoBehaviour
         if (stage == null) return null;
         stageTime = reader.CurrentTime;
         endTime = stage.endTime;
+        currentStage = stage;
+        hasStage = true;
         for (int i = 0; i < profiles.Length; i++)
         {
             if (profiles[i] != null && profiles[i].Matches(stage)) return profiles[i];
@@ -347,7 +401,7 @@ public class StageCgController : MonoBehaviour
         float e = p.CameraProgress(stageTime);
 
         Quaternion lookupRot = Quaternion.LookRotation((p.lookupTarget - p.lookupPosition).normalized, Vector3.up);
-        Vector2 shake = LastShakeOffset;
+        Vector2 shake = LastShakeOffset + LastScreenShake;
         cgCamera.transform.position = Vector3.Lerp(p.lookupPosition, normalPosition, e)
                                       + new Vector3(shake.x, shake.y, 0f);
         cgCamera.transform.rotation = Quaternion.Slerp(lookupRot, Quaternion.identity, e);
