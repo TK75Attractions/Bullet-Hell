@@ -252,6 +252,18 @@ public class TitleManager : MonoBehaviour
     private static readonly Color MarkerLabelInk = new Color(0.98f, 0.94f, 0.82f, 1f);
     private static readonly string[] MarkerLabels =
         { "スタート", "設定", "引き継ぎ", "ランキング", "1P", "2P" };
+    // 投影点からの微調整(px・+y は上)。実フレームで詰めた値:
+    // 引き継ぎ=手紙の真上はランタンの炎と重なって▼が読めないので封筒の右上へ、
+    // ランキング=本の上ではなく一段上の棚板の前へ出す。
+    private static readonly Vector2[] MarkerScreenOffset =
+    {
+        Vector2.zero,                  // スタート(地図)
+        new Vector2(0f, -29f),         // 設定(ランタン。ラベルをロゴの下端から離す)
+        new Vector2(30f, -60f),        // 引き継ぎ(手紙。ランタンの炎を避けて封筒の右上へ)
+        new Vector2(0f, 55f),          // ランキング(本棚)
+        new Vector2(-30f, 0f),         // 1P(2 枚のマントの帯が重ならないよう左右へ開く)
+        new Vector2(20f, 0f),          // 2P
+    };
 
     private TitleRoomController Room => TitleRoomController.Instance;
 
@@ -357,9 +369,9 @@ public class TitleManager : MonoBehaviour
             // ロゴは窓の中央上部へ(実測: 窓の中心は画面 x≈960・上端 y≈115)。幅 640。
             if (logoRect != null)
             {
-                logoRect.sizeDelta = new Vector2(640f, 362f);
-                logoRect.anchoredPosition = new Vector2(20f, 330f);
-                logoBaseY = 330f;
+                logoRect.sizeDelta = new Vector2(620f, 350f);
+                logoRect.anchoredPosition = new Vector2(20f, 352f);
+                logoBaseY = 352f;
             }
             // 旧ボタン列と 1P/2P トグルは下ろす(コードは残す)。
             if (menuRoot != null) menuRoot.gameObject.SetActive(false);
@@ -570,9 +582,10 @@ public class TitleManager : MonoBehaviour
             if (!onScreen) continue;
 
             float floatY = Mathf.Sin(animTime * 1.9f + i * 0.9f) * MarkerFloatPx;
+            Vector2 nudge = i < MarkerScreenOffset.Length ? MarkerScreenOffset[i] : Vector2.zero;
             marker.anchoredPosition = new Vector2(
-                (vp.x - 0.5f) * canvas.width,
-                (vp.y - 0.5f) * canvas.height + MarkerLift + floatY);
+                (vp.x - 0.5f) * canvas.width + nudge.x,
+                (vp.y - 0.5f) * canvas.height + MarkerLift + floatY + nudge.y);
 
             bool selected = i < TitleRoomController.MenuCount
                 ? i == menuIndex

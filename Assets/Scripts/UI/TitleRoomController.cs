@@ -12,8 +12,10 @@ using UnityEngine.Rendering.Universal;
 /// - 部屋はレイヤー <c>TitleCG</c>(11) に置き、専用カメラだけがそれを写す。既存のカメラスタック
 ///   (BackImageCamera / MainCamera / Front / UI) にも StageCG のステージ背景にも触れない。
 /// - メニュー項目は部屋のオブジェクトに対応する(スタート=地図と瓶 / 設定=ランタン /
-///   引き継ぎ=羽根ペン / ランキング=手紙 / 1P・2P=マント)。選択中のオブジェクトは
-///   暖色の弱いポイントライト(リム発光の代用)で持ち上げ、ランタン側もわずかに強まる。
+///   引き継ぎ=手紙 / ランキング=本棚の中段 / 1P・2P=壁のマント 2 枚)。選択中のものだけを
+///   暖色のポイントライト(リム発光の代用)と _BaseColor の持ち上げで光らせ、非選択は素の色に戻す
+///   (第8便。切替は 0.15 秒のクロスフェード)。メニュー名は TitleManager が対象の真上に置く▼と
+///   ラベルで示す。
 /// - 決定でカメラが 0.4 秒 ease-out cubic でそのオブジェクトへ寄り、戻るで全景へ帰る。
 ///
 /// 生成物(カメラ・ライト・塵・部屋インスタンス)はすべてランタイムに作るので、シーンには
@@ -136,6 +138,8 @@ public class TitleRoomController : MonoBehaviour
     Light fillLight;
     Transform cloak1;
     Transform cloak2;
+    Renderer[] cloak1Rend;
+    Renderer[] cloak2Rend;
     Quaternion cloak1Home;
     Quaternion cloak2Home;
     Renderer cityLights;
@@ -164,7 +168,7 @@ public class TitleRoomController : MonoBehaviour
     float time;
     float flicker = 1f;
     float flickerVel;
-    // マントの点灯/消灯。1P は左 1 枚だけ、2P は 2 枚とも灯る。
+    // マントの点灯/消灯。選択中の側(1P=左 / 2P=右)の 1 枚だけが灯る。
     const float CloakLitIntensity = 1.6f;
     const float CloakDimIntensity = 0f;
 
@@ -238,6 +242,8 @@ public class TitleRoomController : MonoBehaviour
         cloak2 = FindDeep(roomRoot, "cloak_02");
         if (cloak1 != null) cloak1Home = cloak1.localRotation;
         if (cloak2 != null) cloak2Home = cloak2.localRotation;
+        cloak1Rend = CollectRenderers("cloak_01");
+        cloak2Rend = CollectRenderers("cloak_02");
         Transform cityTf = FindDeep(roomRoot, "city_lights");
         if (cityTf != null) cityLights = cityTf.GetComponent<Renderer>();
         cityMpb = new MaterialPropertyBlock();
@@ -717,6 +723,23 @@ public class TitleRoomController : MonoBehaviour
             cloakLight2.intensity = Mathf.Lerp(CloakDimIntensity, CloakLitIntensity, cloakWeightP1) * exposure;
         if (cloakLight1 != null)
             cloakLight1.intensity = Mathf.Lerp(CloakDimIntensity, CloakLitIntensity, cloakWeightP2) * exposure;
+        // 2 枚は 1.4m しか離れていないので点光源だけでは互いに漏れる。メニューと同じく
+        // 実体の _BaseColor も持ち上げて、どちらが選ばれているか一目で分かるようにする。
+        ApplyCloakGlow(cloak2Rend, cloakWeightP1);
+        ApplyCloakGlow(cloak1Rend, cloakWeightP2);
+    }
+
+    void ApplyCloakGlow(Renderer[] group, float weight)
+    {
+        if (group == null) return;
+        Color c = Color.Lerp(Color.white, new Color(1.55f, 1.62f, 1.85f, 1f), weight);
+        foreach (Renderer r in group)
+        {
+            if (r == null) continue;
+            r.GetPropertyBlock(targetMpb);
+            targetMpb.SetColor("_BaseColor", c);
+            r.SetPropertyBlock(targetMpb);
+        }
     }
 
     /// <summary>ライトの強さを現在の設定値から作り直す(検証中に値を触ったら呼ぶ)。</summary>
