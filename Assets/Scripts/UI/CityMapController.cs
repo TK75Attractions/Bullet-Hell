@@ -37,17 +37,23 @@ public class CityMapController : MonoBehaviour
     [Tooltip("全ライトに掛かる倍率。")]
     public float exposure = 1f;
     [Tooltip("街を出しているあいだだけ差し替える環境光(夜の藍)。")]
-    public Color ambientColor = new Color(0.125f, 0.134f, 0.206f, 1f);
+    public Color ambientColor = new Color(0.150f, 0.160f, 0.240f, 1f);
     [Tooltip("月光(平行光)の強さ。")]
-    public float moonIntensity = 1.45f;
+    public float moonIntensity = 1.60f;
     [Tooltip("北の縁取り光。")]
-    public float rimIntensity = 0.55f;
+    public float rimIntensity = 0.60f;
     [Tooltip("南からの冷たい起こし光。")]
-    public float fillIntensity = 0.30f;
+    public float fillIntensity = 0.34f;
     [Tooltip("街灯・窓明かりの点光源(FBX 内の *_light_* 空オブジェクトの位置に置く)の強さ。")]
-    public float lanternIntensity = 4.2f;
+    public float lanternIntensity = 2.0f;
     [Tooltip("街灯の届く距離。長くすると隣の区画まで橙が漏れる。")]
-    public float lanternRange = 5.5f;
+    public float lanternRange = 4.5f;
+
+    [Header("区画の色")]
+    [Tooltip("選択中の区画の地面に乗せる暖色(_BaseColor の倍率。1 で素の色)。")]
+    public Color glowTint = new Color(1.22f, 1.10f, 0.94f, 1f);
+    [Tooltip("ステージ未実装の区画を沈める色。")]
+    public Color dimTint = new Color(0.30f, 0.32f, 0.42f, 1f);
 
     // ---- カメラ(v2_camera.json の実値。すべて正投影) --------------------------
     struct CamPose
@@ -96,8 +102,10 @@ public class CityMapController : MonoBehaviour
         new Vector3(-3.621622f, 0.12f, 0.054054f),
     };
 
-    // ▼を置く高さ(区画の建物の上)。大聖堂だけ突出しているので高い。
-    static readonly float[] MarkerHeight = { 0f, 7.2f, 6.4f, 6.6f, 5.0f, 8.4f, 5.2f, 6.0f, 5.4f, 16.6f };
+    // ▼を置く高さ。カメラの orthographicSize(= 画面の半分の高さの実寸)に対する比で
+    // 持つので、全景でも区画へ寄っても▼は画面上の同じくらいの位置に浮く
+    // (実寸で持つと、寄った(size 6.75)ときに 6m の▼が画面外まで飛ぶ)。
+    static readonly float[] MarkerHeightFactor = { 0f, 0.30f, 0.30f, 0.30f, 0.26f, 0.34f, 0.26f, 0.28f, 0.26f, 0.55f };
 
     static readonly string[] DistrictParents =
     {
@@ -488,7 +496,7 @@ public class CityMapController : MonoBehaviour
             Renderer[] group = districtRenderers[d];
             if (group == null) continue;
             bool dim = !available[d];
-            Color baseTint = dim ? DimTint : Color.white;
+            Color baseTint = dim ? dimTint : Color.white;
             // 窓の灯り(warm 材質のみ _EMISSION が有効)も一緒に落とす。
             Color emis = dim ? WarmEmission * 0.16f : WarmEmission;
             foreach (Renderer r in group)
@@ -504,10 +512,6 @@ public class CityMapController : MonoBehaviour
         ApplyGlow();
     }
 
-    // 未実装区画の沈め色(青寄りに落とす)と、選択中の区画の地面に乗せる暖色。
-    static readonly Color DimTint = new Color(0.30f, 0.32f, 0.42f, 1f);
-    static readonly Color GlowTint = new Color(1.38f, 1.16f, 0.92f, 1f);
-
     static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
     static readonly int EmissionId = Shader.PropertyToID("_EmissionColor");
     // FBX から入った warm 材質の発光値(HDR 強度 3)。MPB で上書きするときの基準。
@@ -521,7 +525,7 @@ public class CityMapController : MonoBehaviour
             Renderer ground = groundRenderers[d];
             if (ground == null) continue;
             float w = glowWeight[d] * pulse;
-            Color c = Color.Lerp(available[d] ? Color.white : DimTint, GlowTint, Mathf.Clamp01(w));
+            Color c = Color.Lerp(available[d] ? Color.white : dimTint, glowTint, Mathf.Clamp01(w));
             ground.GetPropertyBlock(mpb);
             mpb.SetColor(BaseColorId, c);
             ground.SetPropertyBlock(mpb);
@@ -533,7 +537,8 @@ public class CityMapController : MonoBehaviour
     {
         viewport = Vector2.zero;
         if (cityCamera == null || district < 1 || district > DistrictCount) return false;
-        Vector3 world = Anchors[district] + new Vector3(0f, MarkerHeight[district], 0f);
+        float lift = cityCamera.orthographicSize * MarkerHeightFactor[district];
+        Vector3 world = Anchors[district] + new Vector3(0f, lift, 0f);
         Vector3 vp = cityCamera.WorldToViewportPoint(world);
         viewport = new Vector2(vp.x, vp.y);
         return vp.x > -0.25f && vp.x < 1.25f && vp.y > -0.25f && vp.y < 1.25f;

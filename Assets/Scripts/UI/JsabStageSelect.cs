@@ -1604,6 +1604,7 @@ public class JsabStageSelect : MonoBehaviour
 
     public void SetVisible(bool visible)
     {
+        bool wasVisible = Visible;
         Visible = visible;
         if (rootCG != null)
         {
@@ -1611,7 +1612,12 @@ public class JsabStageSelect : MonoBehaviour
             rootCG.blocksRaycasts = false;
         }
         gameObject.SetActive(true); // keep active so Tick/video run; alpha hides it
-        if (city != null) city.SetVisible(cityMode && visible);
+        if (city != null)
+        {
+            city.SetVisible(cityMode && visible);
+            // 隠れていた状態から出すときは、俯瞰から選択中の区画へ寄る入場を流す。
+            if (cityMode && visible && !wasVisible) city.PlayEntrance();
+        }
         if (visible)
         {
             if (!cityMode && videoPlayer != null && !string.IsNullOrEmpty(videoPlayer.url) && !videoPlayer.isPlaying)

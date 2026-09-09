@@ -188,10 +188,19 @@ public class CitySelectView : MonoBehaviour
         panelCG = panelGO.GetComponent<CanvasGroup>();
         panelCG.blocksRaycasts = false;
 
-        // 平行四辺形(19°)の統一様式パネル。
+        // 平行四辺形(19°)の統一様式パネル。街(明るい面もある)の上に乗るので、
+        // 同じスプライトを暗く着色したものを 1 枚下に敷いて地を締める(文字の可読性)。
+        Sprite panelSprite = UiButtonStyle.CreateHudPanelSprite((int)PanelW, (int)PanelH, ownedTextures, ownedSprites, "CityInfoPanel");
+        // 1 枚では下の街が透ける(スプライトのフィル alpha が 0.60)ので 2 枚重ねる。
+        for (int i = 0; i < 2; i++)
+        {
+            Image shade = NewImage("PanelShade" + i, panel, new Color(0.012f, 0.024f, 0.045f, 1f));
+            Stretch(shade.rectTransform);
+            shade.sprite = panelSprite;
+        }
         Image bg = NewImage("PanelBg", panel, Color.white);
         Stretch(bg.rectTransform);
-        bg.sprite = UiButtonStyle.CreateHudPanelSprite((int)PanelW, (int)PanelH, ownedTextures, ownedSprites, "CityInfoPanel");
+        bg.sprite = panelSprite;
 
         float innerW = PanelW - PanelInsetX * 2f;
 
@@ -331,6 +340,29 @@ public class CitySelectView : MonoBehaviour
         return File.Exists(path) ? path : null;
     }
 
+    /// <summary>選択画面へ入ったときの入場。まず街の俯瞰を見せ、少し置いてから
+    /// 選択中の区画へ寄る(タイトルのスタート演出から街の全景へ交差フェードするため)。</summary>
+    public void PlayEntrance()
+    {
+        if (map == null) return;
+        map.SelectDistrict(0, false);
+        if (entranceCo != null) StopCoroutine(entranceCo);
+        if (isActiveAndEnabled) entranceCo = StartCoroutine(EntranceRoutine());
+    }
+
+    private Coroutine entranceCo;
+
+    private System.Collections.IEnumerator EntranceRoutine()
+    {
+        float t = 0f;
+        while (t < EntranceHold) { t += Time.deltaTime; yield return null; }
+        entranceCo = null;
+        if (map != null && district >= 1) map.SelectDistrict(district, true);
+    }
+
+    // 俯瞰を見せておく時間(秒)。
+    private const float EntranceHold = 0.55f;
+
     /// <summary>決定で区画へさらに寄る / 戻す。</summary>
     public void SetCloseUp(bool on)
     {
@@ -365,8 +397,11 @@ public class CitySelectView : MonoBehaviour
                 (vp.x - 0.5f) * canvas.width,
                 (vp.y - 0.5f) * canvas.height + floatY);
         }
-        if (markerRoot.gameObject.activeSelf != show) markerRoot.gameObject.SetActive(show);
         markerAlpha = Mathf.MoveTowards(markerAlpha, show ? 1f : 0f, dt * MarkerFadeSpeed);
+        // 消えるときはフェードし切ってから落とす(即切りだと画面外へ出入りする瞬間に
+        // ▼がパッと消えて見える)。
+        bool alive = show || markerAlpha > 0.001f;
+        if (markerRoot.gameObject.activeSelf != alive) markerRoot.gameObject.SetActive(alive);
         if (markerLabelCG != null) markerLabelCG.alpha = markerAlpha * zoomFade;
         if (markerArrow != null)
         {
