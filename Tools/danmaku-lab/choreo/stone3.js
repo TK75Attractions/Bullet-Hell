@@ -2996,6 +2996,79 @@ const MARKERS = {
   34: MK49_WALL1,         // 壁隕石 1 発目（109.271s）
 };
 
+// =============================================================================
+// 第 6 便 (D): 画面の揺れ（screenShakes）
+// =============================================================================
+//   「大きな攻撃のタイミングで画面全体を揺らす」。時刻は手打ちせず、この choreo に
+//   すでにある MK* / V27* / V28* の定数から機械的に組み立てる（＝音ハメの点と必ず一致する）。
+//     small … タイルの表示と爆破（振幅 0.08 ユニット・0.25 秒）
+//     large … 鎖攻撃の開始と、隕石の破裂・着弾（振幅 0.25 ユニット・0.45 秒）
+//   同じ種別が 0.3 秒以内に続く場合は後の方を捨てる（揺れが多すぎて酔わないように）。
+//   install_stone3.py が stone.json の screenShakes へ書き、
+//   StageCgController がステージ時計の閉じた式で再生する。弾データには一切影響しない。
+const SHAKE_SMALL_SEC = 0.25;
+const SHAKE_SMALL_AMP = 0.08;
+const SHAKE_LARGE_SEC = 0.45;
+const SHAKE_LARGE_AMP = 0.25;
+const SHAKE_MIN_GAP = 0.30;
+
+// タイルの表示・爆破（small）
+const SHAKE_SMALL_TIMES = []
+  .concat(REFILL_TIMES)                 // MK5〜MK8 タイル①〜④
+  .concat(TILE2_TIMES)                  // MK13 / MK14
+  .concat(V27_BLAST4_TIMES)             // MK15 タイル爆破 x4
+  .concat([V27_BLAST_A])                // 51.5483 爆破
+  .concat([V27C_TILE_SHOW, V27C_BLAST2])// 51.2348 表示 / 51.8618 爆破
+  .concat(TILE3_TIMES)                  // MK17 タイル①②
+  .concat([V27C_FIRE_HIT])              // 59.9946 シャベル列の破壊
+  .concat(SLIDE_TIMES_A)                // MK18〜21 右列タイル
+  .concat(SLIDE_TIMES_B)                // MK29 again
+  .concat(SLIDE_TIMES_C)                // MK31 again 2 回目
+  .concat(TILE5_TIMES)                  // MK30 タイル攻撃 5 回
+  .concat(V32_TILE6_TIMES)              // 83〜86 秒の 6 点
+  .concat(TILE6_TIMES)                  // MK32 タイル表示 again
+  .concat(BLAST2_TIMES)                 // MK33〜36 爆破
+  .concat(TILE43_TIMES)                 // MK43 タイル表示 x6
+  .concat(BLAST44_TIMES)                // MK44 タイル攻撃 x5
+  .concat([MK47_TILE_CLEAR]);
+
+// 鎖攻撃の開始・隕石の破裂と着弾（large）
+const SHAKE_LARGE_TIMES = [
+  MK3_CHAIN, MK11_CHAIN, MK16_CHAIN, V27_C4_CHAIN,       // 鎖 1〜4 回目
+  V27C_CHAIN_LR, V27C_CHAIN_B,                            // 63.87 / 65.01 の鎖
+  MK37_CHAIN_LR, MK38_CHAIN_TB, MK39_CHAIN_MID,           // 98.3〜99.2 の鎖 3 本
+  MK40_DROP_MID, MK41_DROP_R, MK42_DROP_L,                // 落下隕石の着弾 3 発
+  MK48_GATHER,                                            // 集合爆破
+  MK50_WALL2, MK51_WALL2_HIT,                             // 壁隕石の爆破 2 発
+  V28_A2, V28_A3, V28_A4, V28_A5,                         // 隕石ブロックの破裂・着弾
+  V28_A5 + (V28_A4 - V28_A1),                             // 2 周目の中央着弾（116.998）
+  V28_C1, V28_C2, V28_C3,                                 // シャベルで隕石を爆破 x3
+  V28_E_TOP,                                              // 上側の隕石 x3 攻撃
+  V28_END_BLAST,                                          // 最後の大爆破
+];
+
+function buildShakeEvents() {
+  const rows = []
+    .concat(SHAKE_SMALL_TIMES.map((t) => ({ t: t, kind: 'small' })))
+    .concat(SHAKE_LARGE_TIMES.map((t) => ({ t: t, kind: 'large' })));
+  rows.sort((a, b) => (a.t - b.t) || (a.kind < b.kind ? -1 : 1));
+  const last = { small: -99, large: -99 };
+  const out = [];
+  rows.forEach(function (r) {
+    if (r.t - last[r.kind] < SHAKE_MIN_GAP) return;   // 同種の 0.3 秒以内の再発火は捨てる
+    last[r.kind] = r.t;
+    out.push({
+      time: Math.round(r.t * 1e6) / 1e6,
+      magnitude: r.kind === 'large' ? SHAKE_LARGE_AMP : SHAKE_SMALL_AMP,
+      duration: r.kind === 'large' ? SHAKE_LARGE_SEC : SHAKE_SMALL_SEC,
+      kind: r.kind,
+    });
+  });
+  return out;
+}
+
+export const SHAKE_EVENTS = buildShakeEvents();
+
 export default stage(
   {
     name: 'stone3',
