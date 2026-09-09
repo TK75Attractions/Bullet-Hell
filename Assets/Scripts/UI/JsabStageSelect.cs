@@ -1221,22 +1221,22 @@ public class JsabStageSelect : MonoBehaviour
         StartCoroutine(CaptureBlurBackground());
     }
 
-    // 現在のステージに応じて選択可能な難易度を絞る。浮浪者は EASY/LUNATIC が未完成のため
-    // NORMAL のみ選択可(グレーアウト+COMING SOON)。艦長は3難易度とも実データがあるので
-    // 従来どおり。石工・姿見(mirror)は調整中のため全難易度 COMING SOON にして、一覧には
-    // 表示したままゲーム開始だけをブロックする(CanConfirm で確定不可)。
+    // 現在のステージに応じて選択可能な難易度を絞る。どのステージ・難易度を無効にするかは
+    // StageUnlockSettings が一括で決める(既定は全解放。UnlockAll を false に戻すと
+    // 従来の「石工・姿見は全難易度 COMING SOON / 浮浪者は NORMAL のみ」へ戻る)。
+    // 無効行は一覧には表示したままゲーム開始だけをブロックする(CanConfirm で確定不可)。
     private void ApplyDifficultyAvailability()
     {
         if (diffBar == null) return;
         string dir = GetStage(currentIndex)?.stageDirectoryName;
-        if (dir == "stone" || dir == "mirror") diffBar.SetEnabledMask(false, false, false);
-        else if (dir == "vagrant") diffBar.SetEnabledMask(false, true, false);
-        else diffBar.SetEnabledMask(true, true, true);
+        StageUnlockSettings.GetDifficultyMask(dir, out bool easy, out bool normal, out bool lunatic);
+        diffBar.SetEnabledMask(easy, normal, lunatic);
     }
 
-    // 現在選択中の難易度が実際に確定可能か。石工・姿見(WIP)は全行 COMING SOON なので false を
-    // 返し、決定キー/時間切れによるゲーム開始をブロックする(endTime=0 の強制起動で
-    // BulletRenderSystem が落ちるのを防ぐ)。マウスは元々無効行を確定できない。
+    // 現在選択中の難易度が実際に確定可能か。ロック中のステージ(既定では姿見のみ)は全行
+    // COMING SOON なので false を返し、決定キー/時間切れによるゲーム開始をブロックする
+    // (endTime 未設定の強制起動で BulletRenderSystem が落ちるのを防ぐ)。
+    // マウスは元々無効行を確定できない。
     public bool CanConfirm()
     {
         // 街モードで区画へ寄っている最中(モーダル未表示)は確定させない。
