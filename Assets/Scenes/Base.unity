@@ -6227,7 +6227,7 @@ MonoBehaviour:
   - stageDirectory: captain
     stageNameFallback: Captain
     sceneRoot: {fileID: 2096961545931297563}
-    exposure: 0.35
+    exposure: 0.4
     centerDarken: 0.55
     bossBrightness: 0.5
     bossDepth: 6
@@ -6256,9 +6256,9 @@ MonoBehaviour:
     beatPulse: 0.2
     beatDecaySec: 0.15
     hueShiftDeg: 0
-    saturation: 1
-    tintColor: {r: 1, g: 1, b: 1, a: 1}
-    tintAmount: 0
+    saturation: 1.35
+    tintColor: {r: 0.6, g: 1, b: 0.95, a: 1}
+    tintAmount: 0.08
     phase: 2
     phaseTime: 35.2
     phaseCrossfadeSec: 0.5
@@ -6276,7 +6276,7 @@ MonoBehaviour:
     phaseFlashAmount: 0.15
     phaseColorBlendSec: 0.5
     phase2HueShiftDeg: 0
-    phase2Saturation: 1
+    phase2Saturation: 1.35
     phase2TintColor: {r: 0.55, g: 1, b: 0.92, a: 1}
     phase2TintAmount: 0.1
     phase2ExposureScale: 1
@@ -6352,8 +6352,8 @@ MonoBehaviour:
     beatOffsetSec: 0
     beatPulse: 0.2
     beatDecaySec: 0.15
-    hueShiftDeg: 0
-    saturation: 1
+    hueShiftDeg: 25
+    saturation: 1.15
     tintColor: {r: 1, g: 1, b: 1, a: 1}
     tintAmount: 0
     phase: 3
@@ -6365,8 +6365,8 @@ MonoBehaviour:
     phaseFlashSec: 0.12
     phaseFlashAmount: 0.15
     phaseColorBlendSec: 0.5
-    phase2HueShiftDeg: 0
-    phase2Saturation: 1
+    phase2HueShiftDeg: 25
+    phase2Saturation: 1.15
     phase2TintColor: {r: 1, g: 0.45, b: 0.9, a: 1}
     phase2TintAmount: 0.2
     phase2ExposureScale: 1
