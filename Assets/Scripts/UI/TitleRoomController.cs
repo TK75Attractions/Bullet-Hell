@@ -75,12 +75,34 @@ public class TitleRoomController : MonoBehaviour
     static readonly Vector3 QuillCenter = new Vector3(0.66f, 2.03f, 0.0f);
     static readonly Vector3 LanternCenter = new Vector3(0.4f, 2.1907f, 1.12f);
     static readonly Vector3 CloakCenter = new Vector3(5.6111f, 2.5159f, 2.56f);
+    // 本棚(ランキング)。参考画に合わせて手紙から本棚へ移した。棚の中段(本が並ぶ段)。
+    static readonly Vector3 ShelfCenter = new Vector3(-5.20f, 2.30f, 3.72f);
 
     /// <summary>メニュー index(0=スタート/1=設定/2=引き継ぎ/3=ランキング)。</summary>
     public const int MenuStart = 0;
     public const int MenuOptions = 1;
     public const int MenuTransfer = 2;
     public const int MenuRanking = 3;
+    public const int MenuCount = 4;
+
+    // ---- ▼マーカーの 3D アンカー(第8便) --------------------------------------
+    // 各メニューは「部屋のオブジェクトの真上の小さな金色の▼」で示す。▼とラベルは
+    // Canvas 上のウィジェットなので、ここでは対象の上端付近のワールド座標だけを持ち、
+    // TitleManager が毎フレーム投影して置く(カメラが寄っても追従する)。
+    /// <summary>マーカー番号: 0..3=メニュー / 4=1P のマント(左) / 5=2P のマント(右)。</summary>
+    public const int MarkerP1 = 4;
+    public const int MarkerP2 = 5;
+    public const int MarkerCount = 6;
+
+    static readonly Vector3[] MarkerAnchors =
+    {
+        new Vector3(-1.65f, 1.617f, -0.04f),  // スタート: 机の地図の上端
+        new Vector3(0.40f, 2.831f, 1.12f),    // 設定: ランタンの上端
+        new Vector3(0.4775f, 2.05f, -0.45f),  // 引き継ぎ: 手紙(羽根ペンは装飾)
+        new Vector3(-5.20f, 2.62f, 3.76f),    // ランキング: 本棚の中段
+        new Vector3(5.58f, 3.85f, 3.22f),     // 1P: 画面左のマント(cloak_02)
+        new Vector3(5.58f, 3.85f, 1.82f),     // 2P: 画面右のマント(cloak_01)
+    };
 
     // 寄りカメラの姿勢。explicitPose が真なら pos/euler をそのまま使い、偽なら
     // 全景カメラから対象へまっすぐ寄る(ドリー)姿勢を距離 dollyDist で作る。
@@ -123,6 +145,12 @@ public class TitleRoomController : MonoBehaviour
     // URP/Lit の _BaseColor は 1 を超える倍率がそのまま乗るので、こちらで持ち上げる。
     Renderer[][] menuTargets;
     MaterialPropertyBlock targetMpb;
+    // メニューごとの発光の重み(選択中=1 / 非選択=0)。切替は 0.15 秒のクロスフェード。
+    float[] menuWeight;
+    const float HighlightFadeDuration = 0.15f;
+    // 1P/2P のマントの点灯の重み(選択中の側だけ光る)。
+    float cloakWeightP1 = 1f;
+    float cloakWeightP2;
     ParticleSystem dust;
     bool built;
 
@@ -145,6 +173,8 @@ public class TitleRoomController : MonoBehaviour
     /// <summary>部屋の描画先。タイトルの RawImage が貼る。</summary>
     public RenderTexture Texture => targetTexture;
     public bool Ready => built && roomCamera != null && targetTexture != null;
+    /// <summary>部屋がいま画面に出ているか(退場演出で落としたあとは false)。</summary>
+    public bool RoomVisible => Ready && activeNow;
 
     void OnEnable() { Instance = this; }
     void OnDisable()
@@ -172,9 +202,11 @@ public class TitleRoomController : MonoBehaviour
         {
             Explicit(DeskPos, DeskEuler, DeskVFov),   // スタート: 地図(camera_desk)
             Dolly(LanternCenter, 4.6f),               // 設定: ランタン
-            Dolly(QuillCenter, 3.5f),                 // 引き継ぎ: 羽根ペン
-            Dolly(LetterCenter, 3.95f),               // ランキング: 手紙
+            Dolly(LetterCenter, 3.95f),               // 引き継ぎ: 手紙(羽根ペンは装飾)
+            Dolly(ShelfCenter, 4.4f),                 // ランキング: 本棚
         };
+        menuWeight = new float[MenuCount];
+        menuWeight[MenuStart] = 1f;
     }
 
     // ---- 構築 --------------------------------------------------------------
@@ -214,8 +246,11 @@ public class TitleRoomController : MonoBehaviour
         {
             CollectRenderers("map_parchment", "map_ink", "map_blue_linen", "map_fine_engraving", "obj_bottle"),
             CollectRenderers("lantern_frame"),
-            CollectRenderers("quill_shaft", "quill_feather", "inkwell", "inkwell_mouth"),
+            // 引き継ぎ=手紙(封筒・封蝋)。羽根ペンとインク壺は装飾なので光らせない。
             CollectRenderers("letter_paper", "envelope_fold", "envelope_fold.001", "wax_seal", "seal_imprint"),
+            // ランキング=本棚の中段(本と巻物)。棚枠(bookcase)ごと持ち上げると
+            // 左壁一面が明るくなるので、中身だけにする。
+            CollectRenderers("shelf_books", "shelf_scrolls_and_chests"),
         };
 
         // ---- カメラ ----
@@ -441,6 +476,11 @@ public class TitleRoomController : MonoBehaviour
             ApplyExposure();
             zoomTarget = -1;
             zoomProgress = 0f;
+            // 発光の重みは表示のたびに現在の選択へ合わせておく(前回の残りでちらつかせない)。
+            if (menuWeight != null)
+                for (int i = 0; i < menuWeight.Length; i++) menuWeight[i] = i == selection ? 1f : 0f;
+            cloakWeightP1 = twoPlayer ? 0f : 1f;
+            cloakWeightP2 = twoPlayer ? 1f : 0f;
             ApplyPose(TitlePos, Quaternion.Euler(TitleEuler), TitleVFov);
         }
         else if (ambientSaved)
@@ -454,7 +494,7 @@ public class TitleRoomController : MonoBehaviour
     }
 
     /// <summary>メニュー選択の変化を部屋のハイライトへ反映する。</summary>
-    public void SetSelection(int menuIndex) => selection = menuIndex;
+    public void SetSelection(int menuIndex) => selection = Mathf.Clamp(menuIndex, 0, MenuCount - 1);
 
     /// <summary>1P/2P の選択。マントの光る枚数で示す。</summary>
     public void SetTwoPlayer(bool two) => twoPlayer = two;
@@ -479,7 +519,7 @@ public class TitleRoomController : MonoBehaviour
         UpdateCamera(viewIndex, zoomProgress);
         UpdateFlicker(dt);
         UpdateHighlight(dt);
-        UpdateCloaks();
+        UpdateCloaks(dt);
     }
 
     void UpdateCamera(int viewIndex, float progress)
@@ -547,23 +587,54 @@ public class TitleRoomController : MonoBehaviour
     // ランタンが選ばれているときはランタン自身の光もわずかに強まる。
     void UpdateHighlight(float dt)
     {
-        Vector3 wanted = SelectionCenter(selection);
+        // 選択中=1 / 非選択=0 へ 0.15 秒でクロスフェードする(第8便。第7便の
+        // 「非選択も弱く光る」常時ハイライトは廃止)。
+        float step = dt / HighlightFadeDuration;
+        for (int i = 0; i < menuWeight.Length; i++)
+            menuWeight[i] = Mathf.MoveTowards(menuWeight[i], i == selection ? 1f : 0f, step);
+
         if (selectionLight != null)
         {
-            Vector3 p = selectionLight.transform.localPosition;
-            selectionLight.transform.localPosition = Vector3.Lerp(p, wanted, 1f - Mathf.Exp(-12f * dt));
+            // 重み付き平均で位置・範囲・強さを作る。切替中はリム光が対象間を移動する。
+            Vector3 center = Vector3.zero;
+            float sum = 0f, range = 0f, intensity = 0f;
+            for (int i = 0; i < menuWeight.Length; i++)
+            {
+                float w = menuWeight[i];
+                if (w <= 0f) continue;
+                center += SelectionCenter(i) * w;
+                range += SelectionRange(i) * w;
+                intensity += SelectionIntensity(i) * w;
+                sum += w;
+            }
+            if (sum > 0.0001f) { center /= sum; range /= sum; }
+            else { center = SelectionCenter(selection); range = SelectionRange(selection); }
             float pulse = 1f + 0.12f * Mathf.Sin(time * 2.2f);
-            // 手紙と羽根ペンは 0.4m しか離れていないので、範囲を絞らないと同時に光って
-            // どちらが選ばれているか読めない。スタートだけは地図と瓶の両方を含める。
-            selectionLight.range = SelectionRange(selection);
-            selectionLight.intensity = SelectionIntensity(selection) * exposure * pulse;
+            selectionLight.transform.localPosition = center;
+            selectionLight.range = range;
+            selectionLight.intensity = intensity * exposure * pulse;
         }
         // 設定はランタンそのものが対象なので、リムではなくランタンの光を強める。
-        if (lanternLight != null && selection == MenuOptions)
+        if (lanternLight != null && menuWeight[MenuOptions] > 0f)
         {
-            lanternLight.intensity *= 1.7f;
+            lanternLight.intensity *= Mathf.Lerp(1f, 1.7f, menuWeight[MenuOptions]);
         }
         ApplyTargetGlow();
+    }
+
+    // ---- ▼マーカーの投影(第8便) ---------------------------------------------
+
+    /// <summary>マーカー <paramref name="index"/> の 3D アンカーを部屋カメラのビューポート
+    /// 座標へ投影する。画面外・カメラ後方なら false。</summary>
+    public bool TryGetMarkerViewport(int index, out Vector2 viewport)
+    {
+        viewport = Vector2.zero;
+        if (roomCamera == null || index < 0 || index >= MarkerAnchors.Length) return false;
+        Vector3 vp = roomCamera.WorldToViewportPoint(MarkerAnchors[index]);
+        if (vp.z <= 0f) return false;
+        viewport = new Vector2(vp.x, vp.y);
+        // 少し外側まで許容して、寄りで画面際へ出るときに突然消えないようにする。
+        return vp.x > -0.25f && vp.x < 1.25f && vp.y > -0.25f && vp.y < 1.25f;
     }
 
     // 選択中のオブジェクトの実体を暖色寄りに持ち上げ、他は素の色へ戻す。
@@ -575,10 +646,9 @@ public class TitleRoomController : MonoBehaviour
         float pulse = 1f + 0.10f * Mathf.Sin(time * 2.2f);
         for (int g = 0; g < menuTargets.Length; g++)
         {
-            bool on = g == selection;
-            Color c = on
-                ? new Color(1.85f, 1.62f, 1.30f, 1f) * pulse
-                : Color.white;
+            float w = g < menuWeight.Length ? menuWeight[g] : 0f;
+            Color lit = new Color(1.85f, 1.62f, 1.30f, 1f) * pulse;
+            Color c = Color.Lerp(Color.white, lit, w);
             Renderer[] group = menuTargets[g];
             if (group == null) continue;
             foreach (Renderer r in group)
@@ -597,8 +667,8 @@ public class TitleRoomController : MonoBehaviour
         {
             case MenuStart: return 3.4f;   // 地図と瓶をまとめて照らす
             case MenuOptions: return 1.6f;
-            case MenuTransfer: return 1.0f; // 羽根ペン(手紙へ漏らさない)
-            case MenuRanking: return 1.1f;  // 手紙
+            case MenuTransfer: return 1.1f; // 手紙(ランタンへ漏らさない)
+            case MenuRanking: return 2.4f;  // 本棚の中段
             default: return 1.4f;
         }
     }
@@ -609,8 +679,8 @@ public class TitleRoomController : MonoBehaviour
         {
             case MenuStart: return 1.9f;
             case MenuOptions: return 0.5f;  // ランタン本体を強める分ひかえめ
-            case MenuTransfer: return 2.6f;
-            case MenuRanking: return 2.4f;
+            case MenuTransfer: return 2.4f; // 手紙
+            case MenuRanking: return 3.0f;  // 本棚は元が暗いので強めに
             default: return 1.6f;
         }
     }
@@ -621,14 +691,14 @@ public class TitleRoomController : MonoBehaviour
         {
             case MenuStart: return Vector3.Lerp(MapCenter, BottleCenter, 0.40f) + new Vector3(0f, 0.75f, -0.30f);
             case MenuOptions: return LanternCenter + new Vector3(0f, 0.15f, -0.1f);
-            case MenuTransfer: return QuillCenter + new Vector3(0.12f, 0.30f, 0.10f);
-            case MenuRanking: return LetterCenter + new Vector3(-0.05f, 0.26f, -0.22f);
+            case MenuTransfer: return LetterCenter + new Vector3(-0.05f, 0.26f, -0.22f);
+            case MenuRanking: return ShelfCenter + new Vector3(0.55f, 0.20f, -0.55f);
             default: return LanternCenter;
         }
     }
 
     // マントの裾の微小な揺れ + 1P/2P の点灯(1P=左1枚 / 2P=2枚とも)。
-    void UpdateCloaks()
+    void UpdateCloaks(float dt)
     {
         if (cloak1 != null)
         {
@@ -638,10 +708,15 @@ public class TitleRoomController : MonoBehaviour
         {
             cloak2.localRotation = cloak2Home * Quaternion.Euler(0f, 0f, Mathf.Sin(time * 0.51f + 1.2f) * 0.5f);
         }
-        // 画面上では cloak_02(z=3.22)が左、cloak_01(z=1.82)が右に見える。指示は
-        // 「1P=左 1 枚が光る / 2P=2 枚とも」なので、常時点灯は左(cloakLight2)側。
-        if (cloakLight2 != null) cloakLight2.intensity = CloakLitIntensity * exposure;
-        if (cloakLight1 != null) cloakLight1.intensity = (twoPlayer ? CloakLitIntensity : CloakDimIntensity) * exposure;
+        // 画面上では cloak_02(z=3.22)が左=1P、cloak_01(z=1.82)が右=2P に見える。
+        // 第8便から「選択中の側だけが光る」(第7便の 1P で左が常時点灯・2P で両方、は廃止)。
+        float step = dt / HighlightFadeDuration;
+        cloakWeightP1 = Mathf.MoveTowards(cloakWeightP1, twoPlayer ? 0f : 1f, step);
+        cloakWeightP2 = Mathf.MoveTowards(cloakWeightP2, twoPlayer ? 1f : 0f, step);
+        if (cloakLight2 != null)
+            cloakLight2.intensity = Mathf.Lerp(CloakDimIntensity, CloakLitIntensity, cloakWeightP1) * exposure;
+        if (cloakLight1 != null)
+            cloakLight1.intensity = Mathf.Lerp(CloakDimIntensity, CloakLitIntensity, cloakWeightP2) * exposure;
     }
 
     /// <summary>ライトの強さを現在の設定値から作り直す(検証中に値を触ったら呼ぶ)。</summary>
