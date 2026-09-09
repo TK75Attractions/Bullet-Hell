@@ -91,6 +91,8 @@ public class GManager : MonoBehaviour
     // までの待ち(入力は消費し、時間経過で ChoosingStage へ切り替える)。
     private enum TitlePhase { Menu, Options, Transfer, Ranking, Starting }
     private TitlePhase titlePhase = TitlePhase.Menu;
+    // 設定画面を「カメラが寄り切ってから」出すあいだの遷移中フラグ(第7便)。
+    private bool titleOptionsOpening;
     private float titleStartTimer;
     private int optionScreenSiblingIndex = -1;
     public BulletBufferManager BClipManager;
@@ -621,8 +623,14 @@ public class GManager : MonoBehaviour
         // overlays the running title. The Title sibling is drawn above the
         // OptionScreen in the scene, so lift the option screen to the front
         // while it is open, then restore its order on close.
-        if (optionScreenObj != null)
+        if (optionScreenObj == null) return;
+        // 3D の部屋があるときは、まずカメラがランタンへ寄り切ってから設定画面を出す
+        // (即座に出すと、ぼかしスナップショットが寄りを覆い隠して見えない)。
+        titleOptionsOpening = true;
+        System.Action open = () =>
         {
+            titleOptionsOpening = false;
+            if (optionScreenObj == null || titlePhase != TitlePhase.Options) return;
             // 直前のクローズフェード中の再オープンでは、退避済みの元位置を保持する
             // (現在位置は最前面に持ち上げた後の値なので上書きしない)。
             if (optionScreenSiblingIndex < 0)
@@ -633,11 +641,14 @@ public class GManager : MonoBehaviour
             optionScreenObj.SetActive(true);
             // タイトル文脈: 終了行を隠し、再開する=設定を閉じてタイトルへ戻る。
             optionMenu?.Open(true, CloseTitleOptions);
-        }
+        };
+        if (TManager != null) TManager.AfterRoomZoom(open); else open();
     }
 
     private void UpdateTitleOptions()
     {
+        // 寄りの 0.4 秒のあいだは設定画面がまだ出ていない(閉じたと誤判定しない)。
+        if (titleOptionsOpening) return;
         if (optionScreenObj == null || !optionScreenObj.activeSelf)
         {
             CloseTitleOptions();
@@ -663,6 +674,7 @@ public class GManager : MonoBehaviour
     private void CloseTitleOptions()
     {
         titlePhase = TitlePhase.Menu;
+        titleOptionsOpening = false;
         TManager?.OnOptionsClosed();
         // Require the confirm button to be released again before the menu accepts
         // a press, so the input used to dismiss the option screen (or a button

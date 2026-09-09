@@ -118,6 +118,11 @@ public class TitleRoomController : MonoBehaviour
     Quaternion cloak2Home;
     Renderer cityLights;
     MaterialPropertyBlock cityMpb;
+    // メニューごとに光らせる実体(リム発光の代わりに _BaseColor を持ち上げる)。
+    // 材質の多くは _EMISSION キーワードが無効なので MPB の _EmissionColor は効かない。
+    // URP/Lit の _BaseColor は 1 を超える倍率がそのまま乗るので、こちらで持ち上げる。
+    Renderer[][] menuTargets;
+    MaterialPropertyBlock targetMpb;
     ParticleSystem dust;
     bool built;
 
@@ -132,8 +137,8 @@ public class TitleRoomController : MonoBehaviour
     float flicker = 1f;
     float flickerVel;
     // マントの点灯/消灯。1P は左 1 枚だけ、2P は 2 枚とも灯る。
-    const float CloakLitIntensity = 0.20f;
-    const float CloakDimIntensity = 0.02f;
+    const float CloakLitIntensity = 1.6f;
+    const float CloakDimIntensity = 0f;
 
     /// <summary>寄りの進み具合(0=全景 / 1=寄りきり)。立ち絵の視差・退避に使う。</summary>
     public float ZoomAmount => zoomProgress;
@@ -204,6 +209,14 @@ public class TitleRoomController : MonoBehaviour
         Transform cityTf = FindDeep(roomRoot, "city_lights");
         if (cityTf != null) cityLights = cityTf.GetComponent<Renderer>();
         cityMpb = new MaterialPropertyBlock();
+        targetMpb = new MaterialPropertyBlock();
+        menuTargets = new[]
+        {
+            CollectRenderers("map_parchment", "map_ink", "map_blue_linen", "map_fine_engraving", "obj_bottle"),
+            CollectRenderers("lantern_frame"),
+            CollectRenderers("quill_shaft", "quill_feather", "inkwell", "inkwell_mouth"),
+            CollectRenderers("letter_paper", "envelope_fold", "envelope_fold.001", "wax_seal", "seal_imprint"),
+        };
 
         // ---- カメラ ----
         GameObject camObj = new GameObject("TitleRoomCamera");
@@ -249,7 +262,7 @@ public class TitleRoomController : MonoBehaviour
 
         selectionLight = CreateLight("SelectionRim", LightType.Point,
             LanternCenter, new Color(1f, 0.86f, 0.68f), 0f, layer);
-        selectionLight.range = 2.6f;
+        selectionLight.range = 1.4f;
         selectionLight.shadows = LightShadows.None;
 
         cloakLight1 = CreateLight("CloakLight1", LightType.Point,
@@ -354,6 +367,18 @@ public class TitleRoomController : MonoBehaviour
         }
         tex.Apply();
         return tex;
+    }
+
+    Renderer[] CollectRenderers(params string[] names)
+    {
+        List<Renderer> found = new List<Renderer>();
+        foreach (string n in names)
+        {
+            Transform t = FindDeep(roomRoot, n);
+            if (t == null) continue;
+            foreach (Renderer r in t.GetComponentsInChildren<Renderer>(true)) found.Add(r);
+        }
+        return found.ToArray();
     }
 
     static void SetLayerRecursive(GameObject go, int layer)
@@ -524,12 +549,65 @@ public class TitleRoomController : MonoBehaviour
             Vector3 p = selectionLight.transform.localPosition;
             selectionLight.transform.localPosition = Vector3.Lerp(p, wanted, 1f - Mathf.Exp(-12f * dt));
             float pulse = 1f + 0.12f * Mathf.Sin(time * 2.2f);
-            float baseIntensity = selection == MenuOptions ? 0.55f : 1.35f;
-            selectionLight.intensity = baseIntensity * exposure * pulse;
+            // 手紙と羽根ペンは 0.4m しか離れていないので、範囲を絞らないと同時に光って
+            // どちらが選ばれているか読めない。スタートだけは地図と瓶の両方を含める。
+            selectionLight.range = SelectionRange(selection);
+            selectionLight.intensity = SelectionIntensity(selection) * exposure * pulse;
         }
+        // 設定はランタンそのものが対象なので、リムではなくランタンの光を強める。
         if (lanternLight != null && selection == MenuOptions)
         {
-            lanternLight.intensity *= 1.25f;
+            lanternLight.intensity *= 1.7f;
+        }
+        ApplyTargetGlow();
+    }
+
+    // 選択中のオブジェクトの実体を暖色寄りに持ち上げ、他は素の色へ戻す。
+    // 手紙と羽根ペンのように 0.4m しか離れていない相手でも、どちらが選ばれているか
+    // 一目で分かるようにするための処理(点光源だけでは分離できない)。
+    void ApplyTargetGlow()
+    {
+        if (menuTargets == null) return;
+        float pulse = 1f + 0.10f * Mathf.Sin(time * 2.2f);
+        for (int g = 0; g < menuTargets.Length; g++)
+        {
+            bool on = g == selection;
+            Color c = on
+                ? new Color(1.85f, 1.62f, 1.30f, 1f) * pulse
+                : Color.white;
+            Renderer[] group = menuTargets[g];
+            if (group == null) continue;
+            foreach (Renderer r in group)
+            {
+                if (r == null) continue;
+                r.GetPropertyBlock(targetMpb);
+                targetMpb.SetColor("_BaseColor", c);
+                r.SetPropertyBlock(targetMpb);
+            }
+        }
+    }
+
+    static float SelectionRange(int menuIndex)
+    {
+        switch (menuIndex)
+        {
+            case MenuStart: return 3.4f;   // 地図と瓶をまとめて照らす
+            case MenuOptions: return 1.6f;
+            case MenuTransfer: return 1.0f; // 羽根ペン(手紙へ漏らさない)
+            case MenuRanking: return 1.1f;  // 手紙
+            default: return 1.4f;
+        }
+    }
+
+    static float SelectionIntensity(int menuIndex)
+    {
+        switch (menuIndex)
+        {
+            case MenuStart: return 1.9f;
+            case MenuOptions: return 0.5f;  // ランタン本体を強める分ひかえめ
+            case MenuTransfer: return 2.6f;
+            case MenuRanking: return 2.4f;
+            default: return 1.6f;
         }
     }
 
@@ -537,10 +615,10 @@ public class TitleRoomController : MonoBehaviour
     {
         switch (menuIndex)
         {
-            case MenuStart: return Vector3.Lerp(MapCenter, BottleCenter, 0.35f) + new Vector3(0f, 0.55f, -0.35f);
+            case MenuStart: return Vector3.Lerp(MapCenter, BottleCenter, 0.40f) + new Vector3(0f, 0.75f, -0.30f);
             case MenuOptions: return LanternCenter + new Vector3(0f, 0.15f, -0.1f);
-            case MenuTransfer: return QuillCenter + new Vector3(0f, 0.25f, -0.25f);
-            case MenuRanking: return LetterCenter + new Vector3(0f, 0.35f, -0.3f);
+            case MenuTransfer: return QuillCenter + new Vector3(0.12f, 0.30f, 0.10f);
+            case MenuRanking: return LetterCenter + new Vector3(-0.05f, 0.26f, -0.22f);
             default: return LanternCenter;
         }
     }
@@ -556,8 +634,10 @@ public class TitleRoomController : MonoBehaviour
         {
             cloak2.localRotation = cloak2Home * Quaternion.Euler(0f, 0f, Mathf.Sin(time * 0.51f + 1.2f) * 0.5f);
         }
-        if (cloakLight1 != null) cloakLight1.intensity = CloakLitIntensity * exposure;
-        if (cloakLight2 != null) cloakLight2.intensity = (twoPlayer ? CloakLitIntensity : CloakDimIntensity) * exposure;
+        // 画面上では cloak_02(z=3.22)が左、cloak_01(z=1.82)が右に見える。指示は
+        // 「1P=左 1 枚が光る / 2P=2 枚とも」なので、常時点灯は左(cloakLight2)側。
+        if (cloakLight2 != null) cloakLight2.intensity = CloakLitIntensity * exposure;
+        if (cloakLight1 != null) cloakLight1.intensity = (twoPlayer ? CloakLitIntensity : CloakDimIntensity) * exposure;
     }
 
     /// <summary>ライトの強さを現在の設定値から作り直す(検証中に値を触ったら呼ぶ)。</summary>

@@ -340,6 +340,7 @@ public class TitleManager : MonoBehaviour
         }
 
         BuildHero();
+        room.SetTwoPlayer(pcTwoPlayer);
         roomLayout = true;
     }
 
@@ -1223,6 +1224,7 @@ public class TitleManager : MonoBehaviour
     // GManager から呼ぶ。人数選択を設定して見た目を更新する。戻り値=変化したか。
     public bool SetTwoPlayer(bool two)
     {
+        Room?.SetTwoPlayer(two);   // マントの点灯枚数(1P=左1枚 / 2P=2枚)
         if (pcTwoPlayer == two) return false;
         pcTwoPlayer = two;
         ApplyPlayerCountVisual();
@@ -1260,13 +1262,34 @@ public class TitleManager : MonoBehaviour
 
     // ---- Transfer panel ---------------------------------------------------
 
+    // 決定した瞬間はまずカメラが対象へ寄り(StartZoomLead 秒)、寄り切ってから
+    // パネルが出る。部屋が無いときは従来どおり即座に開く。
     public void OpenTransfer()
+    {
+        FocusRoom((int)TitleMenuAction.Transfer);
+        AfterRoomZoom(OpenTransferNow);
+    }
+
+    public void AfterRoomZoom(System.Action act)
+    {
+        if (act == null) return;
+        if (Room == null || !Room.Ready || !isActiveAndEnabled) { act(); return; }
+        StartCoroutine(AfterRoomZoomRoutine(act));
+    }
+
+    private IEnumerator AfterRoomZoomRoutine(System.Action act)
+    {
+        float t = 0f;
+        while (t < StartZoomLead) { t += Time.unscaledDeltaTime; yield return null; }
+        act();
+    }
+
+    private void OpenTransferNow()
     {
         if (transferRoot == null) return;
         if (transferCloseRoutine != null) { StopCoroutine(transferCloseRoutine); transferCloseRoutine = null; }
         transferRoot.transform.localScale = Vector3.one; // 閉じるアニメの縮小をリセット
         transferOpen = true;
-        FocusRoom((int)TitleMenuAction.Transfer);
         // メニュー・ロゴは退場させない。難易度オーバーレイと同様、完成フレーム
         // (メニュー・ロゴを含む)を撮ってぼかし、その上にパネルを重ねる(第31便)。
         transferRoot.SetActive(true);
@@ -1615,11 +1638,16 @@ public class TitleManager : MonoBehaviour
 
     public void OpenRanking()
     {
+        FocusRoom((int)TitleMenuAction.Ranking);
+        AfterRoomZoom(OpenRankingNow);
+    }
+
+    private void OpenRankingNow()
+    {
         if (rankingRoot == null) return;
         if (rankingCloseRoutine != null) { StopCoroutine(rankingCloseRoutine); rankingCloseRoutine = null; }
         rankingRoot.transform.localScale = Vector3.one;
         rankingOpen = true;
-        FocusRoom((int)TitleMenuAction.Ranking);
         rankingRoot.SetActive(true);
         rankingRoot.transform.SetAsLastSibling();
         if (rankingCG != null) rankingCG.alpha = 0f;
