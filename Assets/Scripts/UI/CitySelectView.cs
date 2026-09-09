@@ -19,10 +19,10 @@ public class CitySelectView : MonoBehaviour
 {
     // ---- ▼とラベル(タイトルの部屋と同じ様式) --------------------------------
     private const string MinchoFontResource = "Fonts/ShipporiMincho-Regular SDF";
-    // ▼はタイトルと同じ 12x8 ドットの三角を Point で 3 倍に拡大したドット絵。
+    // ▼はタイトルと同じ 12x8 ドットの三角を Point で 2 倍に拡大したドット絵。
     private const int MarkerArrowDotW = 12;
     private const int MarkerArrowDotH = 8;
-    private const float MarkerArrowPixel = 3f;
+    private const float MarkerArrowPixel = 2f;   // 第 15 便: 3→2px/ドット(タイトルと同じ)
     private const float MarkerArrowW = MarkerArrowDotW * MarkerArrowPixel;
     private const float MarkerArrowH = MarkerArrowDotH * MarkerArrowPixel;
     private const float MarkerFloatPx = 4f;
@@ -392,7 +392,7 @@ public class CitySelectView : MonoBehaviour
         float zoomFade = 1f - Mathf.Clamp01((map.ZoomAmount - 0.55f) / 0.45f);
         if (show)
         {
-            // 浮遊は 3px 単位のステップ移動(ドットが滑らかに滑らないようにする)。
+            // 浮遊は 2px 単位のステップ移動(ドットが滑らかに滑らないようにする)。
             float floatY = Mathf.Round(Mathf.Sin(animTime * 1.9f)
                 * MarkerFloatPx / MarkerArrowPixel) * MarkerArrowPixel;
             markerRoot.anchoredPosition = new Vector2(
@@ -410,7 +410,7 @@ public class CitySelectView : MonoBehaviour
             Color c = MarkerArrowInk;
             c.a = markerAlpha * zoomFade;
             markerArrow.color = c;
-            // ▼だけ画面のドット格子(3px)へ吸着させる。ラベルは滑らかなまま。
+            // ▼だけ画面のドット格子(2px)へ吸着させる。ラベルは滑らかなまま。
             Vector2 mp = markerRoot.anchoredPosition;
             markerArrow.rectTransform.anchoredPosition = new Vector2(
                 Mathf.Round(mp.x / MarkerArrowPixel) * MarkerArrowPixel - mp.x,

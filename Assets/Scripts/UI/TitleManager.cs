@@ -185,6 +185,10 @@ public class TitleManager : MonoBehaviour
     // 既存の平行四辺形ボタン様式(menuButtonSprite・19°スラッシュ言語)を流用する。
     private RectTransform playerCountRoot;
     private RectTransform titleControlGuideRoot;
+    // 右下の操作説明(「[スティック]で選択 / [ボタン]で決定」の帯)。第 15 便で既定 OFF。
+    // 組み立てるコードはそのまま残してあるので、ここを true にすれば元どおり出る
+    //(ステージ選択の下部ヒントは別物で、こちらの影響を受けない)。
+    [SerializeField] private bool showControlHint = false;
 
     private readonly Image[] pcSegBars = new Image[2];
     private readonly TMP_Text[] pcSegLabels = new TMP_Text[2];
@@ -251,12 +255,12 @@ public class TitleManager : MonoBehaviour
     private bool minchoFontTried;
     // ▼の寸法・浮遊量・ラベルまでの距離(px・1920x1080 基準)。
     // ▼は 12x8 ドットの三角を Point で整数倍に拡大したドット絵(第 14 便)。
-    // 非選択は 3px/ドット(36x24)、選択中は 4px/ドット(48x32)。中間の倍率は使わない
-    // (半端な倍率にするとドットの階段が不揃いになる)。
+    // 第 15 便で一回り小さくした: 非選択 2px/ドット(24x16)、選択中 3px/ドット(36x24)。
+    // 中間の倍率は使わない(半端な倍率にするとドットの階段が不揃いになる)。
     private const int MarkerArrowDotW = 12;
     private const int MarkerArrowDotH = 8;
-    private const float MarkerArrowPixel = 3f;      // 1 ドットあたりの画面 px
-    private const float MarkerArrowPixelSel = 4f;   // 選択中
+    private const float MarkerArrowPixel = 2f;      // 1 ドットあたりの画面 px
+    private const float MarkerArrowPixelSel = 3f;   // 選択中
     private const float MarkerArrowW = MarkerArrowDotW * MarkerArrowPixel;
     private const float MarkerArrowH = MarkerArrowDotH * MarkerArrowPixel;
     private const float MarkerLift = 30f;     // 対象の上端から▼までの距離
@@ -298,12 +302,12 @@ public class TitleManager : MonoBehaviour
     // ランキング=本の上ではなく一段上の棚板の前へ出す。
     private static readonly Vector2[] MarkerScreenOffset =
     {
-        Vector2.zero,                  // スタート(地図)
-        new Vector2(0f, -49f),         // 設定(ランタン。ロゴを下げたぶん▼とラベルも 20px 下げる)
-        new Vector2(30f, -60f),        // 引き継ぎ(手紙。ランタンの炎を避けて封筒の右上へ)
+        new Vector2(0f, 10f),          // スタート(地図の上端に触れない位置まで持ち上げる)
+        new Vector2(0f, -14f),         // 設定(ランタンの吊り輪の上。輪と重ねない)
+        new Vector2(45f, 12f),         // 引き継ぎ(手紙。ランタンと書類の束に触れない右上へ)
         new Vector2(0f, 55f),          // ランキング(本棚)
         new Vector2(-30f, 0f),         // 1P(2 枚のマントの帯が重ならないよう左右へ開く)
-        new Vector2(20f, 0f),          // 2P
+        new Vector2(20f, 12f),         // 2P(下の物干し竿に触れないよう少し上げる)
     };
 
     // ---- 部屋モードのロゴ(第9便) -------------------------------------------
@@ -691,7 +695,7 @@ public class TitleManager : MonoBehaviour
             if (marker.gameObject.activeSelf != onScreen) marker.gameObject.SetActive(onScreen);
             if (!onScreen) continue;
 
-            // 浮遊は 3px 単位のステップ移動(ドットが滑らかに滑らないようにする)。
+            // 浮遊は 2px 単位のステップ移動(ドットが滑らかに滑らないようにする)。
             float floatY = Mathf.Round(Mathf.Sin(animTime * 1.9f + i * 0.9f)
                 * MarkerFloatPx / MarkerArrowPixel) * MarkerArrowPixel;
             Vector2 nudge = i < MarkerScreenOffset.Length ? MarkerScreenOffset[i] : Vector2.zero;
@@ -710,11 +714,11 @@ public class TitleManager : MonoBehaviour
                 Color c = Color.Lerp(MarkerArrowInkDim, MarkerArrowInk, markerLabelAlpha[i]);
                 c.a *= zoomFade;
                 markerArrows[i].color = c;
-                // 拡大率はドット単位で切り替える(3px/4px)。中間の倍率は挟まない。
+                // 拡大率はドット単位で切り替える(2px/3px)。中間の倍率は挟まない。
                 float s = markerLabelAlpha[i] >= 0.5f
                     ? MarkerArrowPixelSel / MarkerArrowPixel : 1f;
                 markerArrows[i].rectTransform.localScale = new Vector3(s, s, 1f);
-                // ▼だけ画面のドット格子(3px)へ吸着させる。ラベルは滑らかなまま。
+                // ▼だけ画面のドット格子(2px)へ吸着させる。ラベルは滑らかなまま。
                 Vector2 mp = marker.anchoredPosition;
                 markerArrows[i].rectTransform.anchoredPosition = new Vector2(
                     SnapToArrowGrid(mp.x) - mp.x, SnapToArrowGrid(mp.y) - mp.y);
@@ -1224,7 +1228,8 @@ public class TitleManager : MonoBehaviour
     {
         SetLegacyMenuVisible(true);
         SetPlayerCountToggleVisible(true);
-        if (titleControlGuideRoot != null) titleControlGuideRoot.gameObject.SetActive(true);
+        if (titleControlGuideRoot != null)
+            titleControlGuideRoot.gameObject.SetActive(showControlHint);
 
     }
 
@@ -1473,6 +1478,8 @@ public class TitleManager : MonoBehaviour
 
         BuildPlayerCountToggle(rowY.Length > 0 ? rowY[0] : rowCenter + rowGap);
         BuildTitleControlGuide();
+        if (titleControlGuideRoot != null && !showControlHint)
+            titleControlGuideRoot.gameObject.SetActive(false);
 
     }
 
