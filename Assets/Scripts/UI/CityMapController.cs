@@ -84,14 +84,10 @@ public class CityMapController : MonoBehaviour
     public float lanternRange = 4.5f;
 
     [Header("区画の色")]
+    // 第 14 便: 面全体を暖色で持ち上げる発光はやめ、ほとんど分からない程度に弱めた
+    // (1.22 → 1.045)。区画の場所は▼と区画の基調色で示す。
     [Tooltip("選択中の区画の地面に乗せる暖色(_BaseColor の倍率。1 で素の色)。面全体は光らせない。")]
-    public Color glowTint = new Color(1.05f, 1.02f, 0.97f, 1f);
-    [Tooltip("選択中の区画の縁だけに出す薄い光の色。")]
-    public Color rimGlowColor = new Color(1f, 0.86f, 0.62f, 1f);
-    [Tooltip("縁の光の強さ(alpha)。")]
-    [Range(0f, 1f)] public float rimGlowAlpha = 0.34f;
-    [Tooltip("縁の光の太さ。地面メッシュを何倍に広げて外側へはみ出させるか。")]
-    public float rimGlowScale = 1.035f;
+    public Color glowTint = new Color(1.045f, 1.02f, 0.975f, 1f);
     [Tooltip("ステージ未実装の区画を沈める色。")]
     public Color dimTint = new Color(0.30f, 0.32f, 0.42f, 1f);
 
@@ -171,10 +167,6 @@ public class CityMapController : MonoBehaviour
     Light fillLight;
     readonly System.Collections.Generic.List<Light> lanternLights = new System.Collections.Generic.List<Light>();
     readonly Renderer[] groundRenderers = new Renderer[DistrictCount + 1];
-    // 選択中の区画の「縁だけの薄い光」。地面メッシュの複製を少し大きく・少し下に置き、
-    // 本物の地面からはみ出した外周だけが加算で光る(面全体は明るくしない)。
-    readonly Renderer[] rimRenderers = new Renderer[DistrictCount + 1];
-    Material rimMaterial;
     readonly Renderer[][] districtRenderers = new Renderer[DistrictCount + 1][];
     readonly float[] glowWeight = new float[DistrictCount + 1];
     readonly bool[] available = new bool[DistrictCount + 1];
@@ -227,11 +219,7 @@ public class CityMapController : MonoBehaviour
 
     void OnApplicationQuit() { RestoreAmbient(); }
 
-    void OnDestroy()
-    {
-        ReleasePixelTexture();
-        if (rimMaterial != null) { DestroyImmediate(rimMaterial); rimMaterial = null; }
-    }
+    void OnDestroy() { ReleasePixelTexture(); }
 
     // ---- ドット風表示(タイトルの部屋と同じ仕組み) --------------------------
 
@@ -384,11 +372,7 @@ public class CityMapController : MonoBehaviour
             if (parent == null) continue;
             districtRenderers[d] = parent.GetComponentsInChildren<Renderer>(true);
             Transform ground = FindDeep(parent, string.Format("district_{0:00}_ground", d));
-            if (ground != null)
-            {
-                groundRenderers[d] = ground.GetComponent<Renderer>();
-                BuildDistrictRim(d, groundRenderers[d], layer);
-            }
+            if (ground != null) groundRenderers[d] = ground.GetComponent<Renderer>();
         }
 
         // ---- カメラ ----
@@ -436,49 +420,6 @@ public class CityMapController : MonoBehaviour
 
         ApplyView(Overview);
         ApplyExposure();
-    }
-
-    // 選択中の区画の縁だけを光らせるための、地面メッシュのひとまわり大きい複製。
-    // 本物の地面より 6cm 下に置くので、はみ出した外周のリングだけが見える。
-    void BuildDistrictRim(int d, Renderer ground, int layer)
-    {
-        if (ground == null) return;
-        MeshFilter mf = ground.GetComponent<MeshFilter>();
-        if (mf == null || mf.sharedMesh == null) return;
-        if (rimMaterial == null)
-        {
-            Shader sh = Shader.Find("Universal Render Pipeline/Unlit");
-            if (sh == null) return;
-            rimMaterial = new Material(sh) { name = "CityDistrictRim", hideFlags = HideFlags.DontSave };
-            rimMaterial.SetFloat("_Surface", 1f);       // Transparent
-            rimMaterial.SetFloat("_Blend", 1f);         // Additive
-            rimMaterial.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
-            rimMaterial.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
-            rimMaterial.SetFloat("_ZWrite", 0f);
-            rimMaterial.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            rimMaterial.renderQueue = 3000;
-        }
-
-        GameObject pivot = new GameObject("DistrictRim" + d);
-        pivot.transform.SetParent(transform, false);
-        pivot.layer = layer;
-        Vector3 drop = new Vector3(0f, -0.06f, 0f);
-        pivot.transform.position = ground.bounds.center + drop;
-
-        GameObject shell = new GameObject("Shell", typeof(MeshFilter), typeof(MeshRenderer));
-        shell.layer = layer;
-        shell.transform.SetParent(pivot.transform, true);
-        shell.transform.SetPositionAndRotation(ground.transform.position + drop, ground.transform.rotation);
-        shell.transform.localScale = ground.transform.lossyScale;
-        shell.GetComponent<MeshFilter>().sharedMesh = mf.sharedMesh;
-        MeshRenderer mr = shell.GetComponent<MeshRenderer>();
-        mr.sharedMaterial = rimMaterial;
-        mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-        mr.receiveShadows = false;
-        mr.enabled = false;
-
-        pivot.transform.localScale = Vector3.one * Mathf.Max(1.001f, rimGlowScale);
-        rimRenderers[d] = mr;
     }
 
     // 街灯・門灯の点光源。FBX には Blender の POINT ライトと同じ位置に空オブジェクト
@@ -585,8 +526,6 @@ public class CityMapController : MonoBehaviour
         }
         else
         {
-            for (int d = 1; d <= DistrictCount; d++)
-                if (rimRenderers[d] != null) rimRenderers[d].enabled = false;
             RestoreAmbient();
         }
     }
@@ -783,24 +722,12 @@ public class CityMapController : MonoBehaviour
         for (int d = 1; d <= DistrictCount; d++)
         {
             Renderer ground = groundRenderers[d];
-            if (ground != null)
-            {
-                float w = glowWeight[d] * pulse;
-                Color c = Color.Lerp(available[d] ? Color.white : dimTint, glowTint, Mathf.Clamp01(w));
-                ground.GetPropertyBlock(mpb);
-                mpb.SetColor(BaseColorId, c);
-                ground.SetPropertyBlock(mpb);
-            }
-
-            Renderer rim = rimRenderers[d];
-            if (rim == null) continue;
-            float a = glowWeight[d] * rimGlowAlpha * pulse;
-            bool on = a > 0.002f;
-            if (rim.enabled != on) rim.enabled = on;
-            if (!on) continue;
-            rim.GetPropertyBlock(mpb);
-            mpb.SetColor(BaseColorId, new Color(rimGlowColor.r, rimGlowColor.g, rimGlowColor.b, a));
-            rim.SetPropertyBlock(mpb);
+            if (ground == null) continue;
+            float w = glowWeight[d] * pulse;
+            Color c = Color.Lerp(available[d] ? Color.white : dimTint, glowTint, Mathf.Clamp01(w));
+            ground.GetPropertyBlock(mpb);
+            mpb.SetColor(BaseColorId, c);
+            ground.SetPropertyBlock(mpb);
         }
     }
 
