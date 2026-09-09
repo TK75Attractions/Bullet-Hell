@@ -861,8 +861,9 @@ public class GManager : MonoBehaviour
         {
             if (blackEnding)
             {
-                // ステージ時計側（StageCgController）が 146.72 から黒くしてきた続きを詰める。
-                await transition.UniformCoverTo(0.15f);
+                // ステージ時計側（StageCgController）が endTime の手前から黒くしてきた続きを詰める。
+                // 第 6 便 (B): 被弾で途中終了したときはまだ覆いが無いので、そこだけ 0.4 秒かける。
+                await transition.UniformCoverTo(transition.UniformCoverAlpha > 0.5f ? 0.15f : 0.4f);
             }
             else
             {

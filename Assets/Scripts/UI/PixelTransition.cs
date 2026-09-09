@@ -306,6 +306,9 @@ public class PixelTransition : MonoBehaviour
         ApplyUniformCover(Color.black, alpha);
     }
 
+    /// <summary>いまの一様な覆いの濃さ（覆っていなければ 0）。第 6 便 (B) で被弾終了と使い分ける。</summary>
+    public float UniformCoverAlpha => uniformCoverActive && fadeGroup != null ? fadeGroup.alpha : 0f;
+
     /// <summary>いまの濃さから完全な黒まで詰める（ステージ終了 → リザルトの引き渡し）。</summary>
     public async Task UniformCoverTo(float seconds)
     {
