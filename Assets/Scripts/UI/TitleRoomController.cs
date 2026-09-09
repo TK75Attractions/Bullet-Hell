@@ -36,6 +36,23 @@ public class TitleRoomController : MonoBehaviour
     [Header("明るさ")]
     [Tooltip("全ライトに掛かる倍率。v3 の参考レンダーより +15% 明るくする指示のため既定 1.15。")]
     public float exposure = 1.15f;
+    [Tooltip("部屋を出しているあいだだけ差し替える環境光。既定のフラット灰(0.21)のままだと室内が真っ平らに明るくなる。")]
+    public Color ambientColor = new Color(0.0055f, 0.0062f, 0.0100f, 1f);
+    [Tooltip("窓から差す月光(平行光)の強さ。exposure が掛かる。")]
+    public float moonIntensity = 0.42f;
+    [Tooltip("室内の起こし光(平行光)。exposure が掛かる。")]
+    public float fillIntensity = 0.07f;
+    [Tooltip("ランタン(点光源)の強さ。exposure が掛かる。")]
+    public float lanternIntensity = 5.4f;
+    [Tooltip("ランタンの届く距離。窓の外の街まで届かせない(5.5 で背面壁 z=4.72 の少し先まで)。")]
+    public float lanternRange = 5.5f;
+
+    // 部屋を消したときに戻す環境光。
+    UnityEngine.Rendering.AmbientMode savedAmbientMode;
+    Color savedAmbientLight;
+    float savedAmbientIntensity;
+    float savedReflectionIntensity;
+    bool ambientSaved;
 
     // ---- 部屋の座標(v3_camera.json の実値) ----------------------------------
     // 全景。lens 40mm / sensor 36x20.25 → 垂直画角 28.409°。
@@ -114,6 +131,9 @@ public class TitleRoomController : MonoBehaviour
     float time;
     float flicker = 1f;
     float flickerVel;
+    // マントの点灯/消灯。1P は左 1 枚だけ、2P は 2 枚とも灯る。
+    const float CloakLitIntensity = 0.20f;
+    const float CloakDimIntensity = 0.02f;
 
     /// <summary>寄りの進み具合(0=全景 / 1=寄りきり)。立ち絵の視差・退避に使う。</summary>
     public float ZoomAmount => zoomProgress;
@@ -122,7 +142,23 @@ public class TitleRoomController : MonoBehaviour
     public bool Ready => built && roomCamera != null && targetTexture != null;
 
     void OnEnable() { Instance = this; }
-    void OnDisable() { if (Instance == this) Instance = null; }
+    void OnDisable()
+    {
+        RestoreAmbient();
+        if (Instance == this) Instance = null;
+    }
+
+    void OnApplicationQuit() { RestoreAmbient(); }
+
+    void RestoreAmbient()
+    {
+        if (!ambientSaved) return;
+        UnityEngine.RenderSettings.ambientMode = savedAmbientMode;
+        UnityEngine.RenderSettings.ambientLight = savedAmbientLight;
+        UnityEngine.RenderSettings.ambientIntensity = savedAmbientIntensity;
+        UnityEngine.RenderSettings.reflectionIntensity = savedReflectionIntensity;
+        ambientSaved = false;
+    }
 
     void Awake()
     {
@@ -193,32 +229,34 @@ public class TitleRoomController : MonoBehaviour
         // ---- ライト ----
         // v3_notes の光源表を Unity の実ライトへ写した(エネルギー値は Blender のワット数
         // をそのまま使えないので、参考レンダーと見比べて決めた実測値)。
+        // v3_notes の光源色は線形値。Light.color は sRGB として解釈されるので、変換した値を入れる
+        // (線形 (0.57,0.65,0.86) → sRGB 約 (0.78,0.82,0.93))。取り違えると部屋全体が青紫に沈む。
         moonLight = CreateLight("MoonKey", LightType.Directional, Vector3.zero,
-            new Color(0.57f, 0.65f, 0.86f), 0.62f, layer);
+            new Color(0.78f, 0.82f, 0.93f), moonIntensity, layer);
         moonLight.transform.rotation = Quaternion.LookRotation(new Vector3(0.34f, -0.52f, -0.78f));
         moonLight.shadows = LightShadows.Soft;
         moonLight.shadowStrength = 0.62f;
 
         fillLight = CreateLight("RoomFill", LightType.Directional, Vector3.zero,
-            new Color(0.57f, 0.65f, 0.86f), 0.16f, layer);
+            new Color(0.86f, 0.85f, 0.88f), fillIntensity, layer);
         fillLight.transform.rotation = Quaternion.LookRotation(new Vector3(-0.12f, -0.72f, 0.68f));
         fillLight.shadows = LightShadows.None;
 
         lanternLight = CreateLight("LanternLight", LightType.Point,
-            new Vector3(0.4f, 2.04f, 1.0f), new Color(1f, 0.46f, 0.16f), 6.4f, layer);
-        lanternLight.range = 9f;
+            new Vector3(0.4f, 2.04f, 1.0f), new Color(1f, 0.72f, 0.50f), lanternIntensity, layer);
+        lanternLight.range = lanternRange;
         lanternLight.shadows = LightShadows.None;
 
         selectionLight = CreateLight("SelectionRim", LightType.Point,
-            LanternCenter, new Color(1f, 0.72f, 0.42f), 0f, layer);
+            LanternCenter, new Color(1f, 0.86f, 0.68f), 0f, layer);
         selectionLight.range = 2.6f;
         selectionLight.shadows = LightShadows.None;
 
         cloakLight1 = CreateLight("CloakLight1", LightType.Point,
-            new Vector3(4.85f, 3.15f, 1.82f), new Color(0.72f, 0.84f, 1f), 0f, layer);
+            new Vector3(4.85f, 3.15f, 1.82f), new Color(0.88f, 0.93f, 1f), 0f, layer);
         cloakLight1.range = 3.2f;
         cloakLight2 = CreateLight("CloakLight2", LightType.Point,
-            new Vector3(4.85f, 3.15f, 3.22f), new Color(0.72f, 0.84f, 1f), 0f, layer);
+            new Vector3(4.85f, 3.15f, 3.22f), new Color(0.88f, 0.93f, 1f), 0f, layer);
         cloakLight2.range = 3.2f;
 
         BuildDust(layer);
@@ -354,9 +392,35 @@ public class TitleRoomController : MonoBehaviour
         }
         if (on)
         {
+            // 環境光を部屋向け(暗い藍)へ差し替える。既定のフラット灰 0.21 のままでは
+            // 室内が一様に明るくなり、参考レンダーの夜の油彩にならない。部屋を消すときに
+            // 必ず元へ戻す(タイトル以外の画面に影響を残さない)。
+            if (!ambientSaved)
+            {
+                savedAmbientMode = UnityEngine.RenderSettings.ambientMode;
+                savedAmbientLight = UnityEngine.RenderSettings.ambientLight;
+                savedAmbientIntensity = UnityEngine.RenderSettings.ambientIntensity;
+                savedReflectionIntensity = UnityEngine.RenderSettings.reflectionIntensity;
+                ambientSaved = true;
+            }
+            UnityEngine.RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+            UnityEngine.RenderSettings.ambientIntensity = 1f;
+            UnityEngine.RenderSettings.ambientLight = ambientColor * exposure;
+            // 既定の skybox 反射(グレーのデフォルトキューブ)が鏡面環境光として全面に乗り、
+            // 天井・床・棚が参考レンダーの 5〜8 倍明るくなっていた。部屋を出しているあいだは切る。
+            UnityEngine.RenderSettings.reflectionIntensity = 0f;
+            ApplyExposure();
             zoomTarget = -1;
             zoomProgress = 0f;
             ApplyPose(TitlePos, Quaternion.Euler(TitleEuler), TitleVFov);
+        }
+        else if (ambientSaved)
+        {
+            UnityEngine.RenderSettings.ambientMode = savedAmbientMode;
+            UnityEngine.RenderSettings.ambientLight = savedAmbientLight;
+            UnityEngine.RenderSettings.ambientIntensity = savedAmbientIntensity;
+            UnityEngine.RenderSettings.reflectionIntensity = savedReflectionIntensity;
+            ambientSaved = false;
         }
     }
 
@@ -438,13 +502,14 @@ public class TitleRoomController : MonoBehaviour
             0.15f * Mathf.Sin(time * 6.3f * Mathf.PI * 2f + 3.9f);
         float wanted = 1f + 0.085f * n;
         flicker = Mathf.SmoothDamp(flicker, wanted, ref flickerVel, 0.05f, Mathf.Infinity, dt);
-        if (lanternLight != null) lanternLight.intensity = 6.4f * exposure * flicker;
+        if (lanternLight != null) lanternLight.intensity = lanternIntensity * exposure * flicker;
 
         if (cityLights != null)
         {
             float cityPulse = 1f + 0.10f * Mathf.Sin(time * 0.9f) + 0.06f * Mathf.Sin(time * 2.3f + 2.1f);
             cityLights.GetPropertyBlock(cityMpb);
-            cityMpb.SetColor("_EmissionColor", new Color(1f, 0.72f, 0.42f) * cityPulse);
+            // 材質の焼き込み値(白 0.90 × アトラス)を基準に、ゆっくり明滅させる。
+            cityMpb.SetColor("_EmissionColor", new Color(0.90f, 0.90f, 0.90f) * cityPulse);
             cityLights.SetPropertyBlock(cityMpb);
         }
     }
@@ -491,15 +556,17 @@ public class TitleRoomController : MonoBehaviour
         {
             cloak2.localRotation = cloak2Home * Quaternion.Euler(0f, 0f, Mathf.Sin(time * 0.51f + 1.2f) * 0.5f);
         }
-        if (cloakLight1 != null) cloakLight1.intensity = 0.95f * exposure;
-        if (cloakLight2 != null) cloakLight2.intensity = twoPlayer ? 0.95f * exposure : 0.06f * exposure;
+        if (cloakLight1 != null) cloakLight1.intensity = CloakLitIntensity * exposure;
+        if (cloakLight2 != null) cloakLight2.intensity = (twoPlayer ? CloakLitIntensity : CloakDimIntensity) * exposure;
     }
 
-    void ApplyExposure()
+    /// <summary>ライトの強さを現在の設定値から作り直す(検証中に値を触ったら呼ぶ)。</summary>
+    public void ApplyExposure()
     {
-        if (moonLight != null) moonLight.intensity = 0.62f * exposure;
-        if (fillLight != null) fillLight.intensity = 0.16f * exposure;
-        if (lanternLight != null) lanternLight.intensity = 6.4f * exposure;
+        if (moonLight != null) moonLight.intensity = moonIntensity * exposure;
+        if (fillLight != null) fillLight.intensity = fillIntensity * exposure;
+        if (lanternLight != null) lanternLight.intensity = lanternIntensity * exposure;
+        if (ambientSaved) UnityEngine.RenderSettings.ambientLight = ambientColor * exposure;
     }
 
     /// <summary>検証用: いまのカメラ姿勢を文字列で返す。</summary>

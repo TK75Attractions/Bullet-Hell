@@ -1,0 +1,135 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
+
+/// <summary>
+/// タイトル画面(3D の旅支度の部屋)を実経路で駆動しながら実フレームを連写する検証ハーネス。
+///
+/// Play Mode 中に <see cref="Run"/> へコマンド列を渡すと、キーボードイベントを
+/// InputSystem へ流し込み(= 実際の InputManager 経路を通る)、指定のタイミングで
+/// WaitForEndOfFrame 後のバックバッファを PNG 保存する。
+/// EditorApplication.update フックからの撮影は白/黒画像になる罠があるため、
+/// 必ず Play 内のコルーチンで撮る。
+///
+/// コマンド(":" 区切り):
+///   shot:&lt;name&gt;                 1 枚撮る
+///   burst:&lt;name&gt;:&lt;count&gt;:&lt;fps&gt;  count 枚を fps 間隔で連写(name_00.png ...)
+///   key:&lt;keyName&gt;               1 回押して離す(w / s / a / d / space / escape)
+///   hold:&lt;keyName&gt;:&lt;seconds&gt;    指定秒だけ押しっぱなしにする
+///   wait:&lt;seconds&gt;              待つ
+/// </summary>
+public static class TitleRoomCapture
+{
+    public static bool Busy { get; private set; }
+    public static string Log { get; private set; } = string.Empty;
+    public static readonly List<string> Saved = new List<string>();
+
+    /// <summary>コマンド列を Play 内のコルーチンで実行する。dir は絶対パス。</summary>
+    public static bool Run(string dir, string[] commands)
+    {
+        if (!EditorApplication.isPlaying)
+        {
+            Log = "Play Mode ではありません";
+            return false;
+        }
+        if (Busy)
+        {
+            Log = "実行中です";
+            return false;
+        }
+        MonoBehaviour host = Object.FindFirstObjectByType<GManager>();
+        if (host == null)
+        {
+            Log = "GManager が見つかりません";
+            return false;
+        }
+        Directory.CreateDirectory(dir);
+        Saved.Clear();
+        Busy = true;
+        Log = "running";
+        host.StartCoroutine(Execute(dir, commands));
+        return true;
+    }
+
+    private static IEnumerator Execute(string dir, string[] commands)
+    {
+        foreach (string raw in commands)
+        {
+            string[] a = raw.Split(':');
+            switch (a[0])
+            {
+                case "shot":
+                    yield return new WaitForEndOfFrame();
+                    Save(dir, a[1]);
+                    break;
+                case "burst":
+                {
+                    int count = int.Parse(a[2]);
+                    float fps = float.Parse(a[3]);
+                    float step = 1f / Mathf.Max(1f, fps);
+                    for (int i = 0; i < count; i++)
+                    {
+                        yield return new WaitForEndOfFrame();
+                        Save(dir, $"{a[1]}_{i:00}");
+                        float t = 0f;
+                        while (t < step - 0.001f) { t += Time.unscaledDeltaTime; yield return null; }
+                    }
+                    break;
+                }
+                case "key":
+                    yield return PressKey(ToKey(a[1]), 0.05f);
+                    break;
+                case "hold":
+                    yield return PressKey(ToKey(a[1]), float.Parse(a[2]));
+                    break;
+                case "wait":
+                {
+                    float t = 0f;
+                    float d = float.Parse(a[1]);
+                    while (t < d) { t += Time.unscaledDeltaTime; yield return null; }
+                    break;
+                }
+            }
+        }
+        Busy = false;
+        Log = "done: " + Saved.Count + " frames";
+    }
+
+    private static IEnumerator PressKey(Key key, float seconds)
+    {
+        InputSystem.QueueStateEvent(Keyboard.current, new KeyboardState(key));
+        InputSystem.Update();
+        float t = 0f;
+        while (t < seconds) { t += Time.unscaledDeltaTime; yield return null; }
+        InputSystem.QueueStateEvent(Keyboard.current, new KeyboardState());
+        InputSystem.Update();
+        yield return null;
+        yield return null;
+    }
+
+    private static Key ToKey(string name)
+    {
+        switch (name.ToLowerInvariant())
+        {
+            case "w": return Key.W;
+            case "s": return Key.S;
+            case "a": return Key.A;
+            case "d": return Key.D;
+            case "space": return Key.Space;
+            case "escape": return Key.Escape;
+            default: return Key.Space;
+        }
+    }
+
+    private static void Save(string dir, string name)
+    {
+        Texture2D tex = ScreenCapture.CaptureScreenshotAsTexture();
+        File.WriteAllBytes(Path.Combine(dir, name + ".png"), tex.EncodeToPNG());
+        Saved.Add(name + " " + tex.width + "x" + tex.height);
+        Object.Destroy(tex);
+    }
+}
