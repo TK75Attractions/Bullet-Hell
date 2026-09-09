@@ -64,8 +64,15 @@ public class StageCgController : MonoBehaviour
     [Tooltip("ドット風の内部解像度（高さ）。既定 360。16:9 を保つこと。")]
     public int pixelHeight = 360;
 
+    [Tooltip("ON でボス（代理スプライト）だけを画面解像度の別 RT へ描き、ドット風の背景の上に重ねる。背景は粗いままボスのドット絵だけ潰れない。")]
+    public bool bossFullRes = true;
+
     // ドット風のときだけ使う低解像度の描画先（実行時生成）。null ならシーンの RT をそのまま使う。
     RenderTexture pixelRT;
+    // ボスだけを画面解像度で描く RT と、そのための 2 台目のカメラ（実行時生成）。
+    RenderTexture bossRT;
+    Camera bossCamera;
+    int bossLayer = -1;
     // シーンで cgCamera に割り当てられている 1920x1080 の RT（戻すときに使う）。
     RenderTexture sceneTargetTexture;
     bool sceneTargetCaptured;
@@ -97,6 +104,8 @@ public class StageCgController : MonoBehaviour
     static readonly int TintAmountId = Shader.PropertyToID("_TintAmount");
     static readonly int FlashId = Shader.PropertyToID("_Flash");
     static readonly int MainTexId = Shader.PropertyToID("_MainTex");
+    static readonly int BossTexId = Shader.PropertyToID("_BossTex");
+    static readonly int BossSplitId = Shader.PropertyToID("_BossSplit");
 
     MaterialPropertyBlock mpb;
     MaterialPropertyBlock dustMpb;
@@ -180,6 +189,7 @@ public class StageCgController : MonoBehaviour
         StageCgIntro.ActiveProfile = null;
         ClearBossProxies();
         ReleasePixelTexture();
+        ReleaseBossCamera();
     }
 
     // --- 第 6 便 (D): 画面の揺れ -----------------------------------------------------
@@ -250,6 +260,7 @@ public class StageCgController : MonoBehaviour
             active = show;
             if (cgCamera != null) cgCamera.gameObject.SetActive(show);
             if (displayQuad != null) displayQuad.gameObject.SetActive(show);
+            if (!show && bossCamera != null) bossCamera.gameObject.SetActive(false);
         }
         if (!show)
         {
@@ -265,6 +276,7 @@ public class StageCgController : MonoBehaviour
         }
 
         EnsurePixelTexture();
+        EnsureBossCamera();
         ApplyGlobals(want);
         introFade = want.BlackFade(stageTime);
         cgFade = want.CgBlackout(stageTime, endTime);
@@ -281,6 +293,7 @@ public class StageCgController : MonoBehaviour
         }
         UpdateStageFx(want, stageTime);
         ApplyCamera(want, stageTime);
+        SyncBossCamera();
         ApplyDisplay(want);
         UpdateBossProxies(want);
         DrawDust(want, stageTime);
@@ -435,6 +448,136 @@ public class StageCgController : MonoBehaviour
         if (width > 0) pixelWidth = width;
         if (height > 0) pixelHeight = height;
         EnsurePixelTexture();
+        EnsureBossCamera();
+    }
+
+    /// <summary>ボスだけ元解像度で重ねるかを切り替える（比較用）。</summary>
+    public void SetBossFullRes(bool on)
+    {
+        bossFullRes = on;
+        EnsureBossCamera();
+    }
+
+    // --- ボスだけ元解像度で重ねる ---------------------------------------------------
+    //
+    // 背景 CG は 640x360 のまま（ドット風の狙いどおり）。ボスはドット絵なので 640x360 の
+    // テクセルに落とすと原画のドットが別のドットへ潰れる（親方の目・髭・前掛けの渦巻き）。
+    // そこで代理スプライトだけをレイヤー StageCgBoss へ移し、cgCamera の cullingMask から外して、
+    // 同じ姿勢・同じ投影の 2 台目のカメラで画面解像度の RT へ描く。
+    //
+    // ボスカメラは「CG 本体 + ボス」を描く。CG 本体（StoneCG/Flat）はアルファ 0 を書くので、
+    // ボスが CG のジオメトリに隠れる画素はアルファ 0 のまま＝表示板は背景側を採る。
+    // つまり v34 の「老人が棚の奥へ回り込む」前後関係がそのまま残る。
+    //
+    // 合成は表示板 1 枚の中で行う（板を増やさない）ので、CG → ボス → 弾 の前後関係は
+    // 既存の quadSortingOrder = -20 のままで決まり、弾・HUD・当たり判定には一切触らない。
+
+    /// <summary>ボスを別レイヤー・元解像度で描いている最中か。</summary>
+    public bool BossSplitActive =>
+        Application.isPlaying && bossFullRes && pixelate && bossCamera != null && bossLayer >= 0;
+
+    void EnsureBossCamera()
+    {
+        if (cgCamera == null) return;
+        if (bossLayer < 0) bossLayer = LayerMask.NameToLayer("StageCgBoss");
+
+        if (!Application.isPlaying || !bossFullRes || !pixelate || bossLayer < 0)
+        {
+            ReleaseBossCamera();
+            return;
+        }
+
+        int w = sceneTargetTexture != null ? sceneTargetTexture.width : 1920;
+        int h = sceneTargetTexture != null ? sceneTargetTexture.height : 1080;
+        if (bossRT != null && (bossRT.width != w || bossRT.height != h))
+        {
+            if (bossCamera != null && bossCamera.targetTexture == bossRT) bossCamera.targetTexture = null;
+            bossRT.Release();
+            DestroyImmediate(bossRT);
+            bossRT = null;
+        }
+        if (bossRT == null)
+        {
+            bossRT = new RenderTexture(w, h, 24,
+                sceneTargetTexture != null ? sceneTargetTexture.format : RenderTextureFormat.DefaultHDR)
+            {
+                name = "StageCgBossRT",
+                filterMode = FilterMode.Bilinear,
+                antiAliasing = 1,
+                useMipMap = false,
+                autoGenerateMips = false,
+                wrapMode = TextureWrapMode.Clamp,
+                hideFlags = HideFlags.DontSave
+            };
+            bossRT.Create();
+        }
+
+        if (bossCamera == null)
+        {
+            // CGCamera を複製する（URP の rendererIndex・フラスタム設定をそのまま引き継ぐため）。
+            GameObject go = Instantiate(cgCamera.gameObject, cgCamera.transform.parent);
+            go.name = "CGBossCamera";
+            go.hideFlags = HideFlags.DontSave;
+            bossCamera = go.GetComponent<Camera>();
+            if (bossCamera == null) { DestroyImmediate(go); return; }
+            // 複製元に他のスクリプトが付いていても動かさない（Camera と URP の追加データだけ使う）。
+            MonoBehaviour[] mbs = go.GetComponents<MonoBehaviour>();
+            for (int i = 0; i < mbs.Length; i++)
+            {
+                MonoBehaviour mb = mbs[i];
+                if (mb == null) continue;
+                if (mb.GetType().FullName == "UnityEngine.Rendering.Universal.UniversalAdditionalCameraData") continue;
+                mb.enabled = false;
+            }
+        }
+
+        int cgLayerForMask = Profile != null && Profile.sceneRoot != null
+            ? Profile.sceneRoot.layer : LayerMask.NameToLayer("StageCG");
+        int cgMask = 1 << cgLayerForMask;
+        int bossMask = 1 << bossLayer;
+        // cgCamera（低解像度）からはボスを外す。
+        if ((cgCamera.cullingMask & bossMask) != 0) cgCamera.cullingMask &= ~bossMask;
+        bossCamera.cullingMask = cgMask | bossMask;
+        bossCamera.clearFlags = CameraClearFlags.SolidColor;
+        bossCamera.backgroundColor = new Color(0f, 0f, 0f, 0f);
+        bossCamera.allowMSAA = false;
+        bossCamera.depth = cgCamera.depth + 1f;
+        if (bossCamera.targetTexture != bossRT) bossCamera.targetTexture = bossRT;
+        if (!bossCamera.gameObject.activeSelf) bossCamera.gameObject.SetActive(true);
+        SyncBossCamera();
+    }
+
+    /// <summary>ボスカメラの姿勢・投影を cgCamera に合わせる（揺れ・見上げにも追従する）。</summary>
+    void SyncBossCamera()
+    {
+        if (bossCamera == null || cgCamera == null) return;
+        Transform bt = bossCamera.transform;
+        Transform ct = cgCamera.transform;
+        bt.SetPositionAndRotation(ct.position, ct.rotation);
+        bt.localScale = ct.localScale;
+        bossCamera.nearClipPlane = cgCamera.nearClipPlane;
+        bossCamera.farClipPlane = cgCamera.farClipPlane;
+        bossCamera.projectionMatrix = cgCamera.projectionMatrix;
+    }
+
+    void ReleaseBossCamera()
+    {
+        // cullingMask は実行中に外した分だけ戻す（編集中にシーンを書き換えないようガード）。
+        if (Application.isPlaying && cgCamera != null && bossLayer >= 0)
+            cgCamera.cullingMask |= 1 << bossLayer;
+        if (bossCamera != null)
+        {
+            bossCamera.targetTexture = null;
+            if (Application.isPlaying) Destroy(bossCamera.gameObject);
+            else DestroyImmediate(bossCamera.gameObject);
+            bossCamera = null;
+        }
+        if (bossRT != null)
+        {
+            bossRT.Release();
+            DestroyImmediate(bossRT);
+            bossRT = null;
+        }
     }
 
     void ApplyGlobals(StageCgProfile p)
@@ -454,6 +597,10 @@ public class StageCgController : MonoBehaviour
         displayQuad.GetPropertyBlock(mpb);
         // ドット風のときは低解像度 RT を貼る（Point なので最近傍で拡大される）。
         if (pixelRT != null) mpb.SetTexture(MainTexId, pixelRT);
+        // ボスを別 RT へ分離しているときだけ、表示板がそちらのアルファ・色を使う。
+        bool split = BossSplitActive && bossRT != null;
+        if (split) mpb.SetTexture(BossTexId, bossRT);
+        mpb.SetFloat(BossSplitId, split ? 1f : 0f);
         mpb.SetFloat(ExposureId, p.exposure * currentExposureScale);
         mpb.SetFloat(CenterDarkenId, p.centerDarken);
         mpb.SetFloat(BossBrightnessId, p.bossBrightness * currentBossFade);
@@ -543,6 +690,8 @@ public class StageCgController : MonoBehaviour
         proxyScratch.AddRange(bossProxies.Keys);
 
         int cgLayer = p.sceneRoot != null ? p.sceneRoot.layer : LayerMask.NameToLayer("StageCG");
+        // ボスを元解像度で描くときは、低解像度の cgCamera から外すため専用レイヤーへ置く。
+        int proxyLayer = BossSplitActive ? bossLayer : cgLayer;
         float stageTime = GManager.Control != null && GManager.Control.SReader != null
             ? GManager.Control.SReader.CurrentTime : 0f;
 
@@ -560,13 +709,13 @@ public class StageCgController : MonoBehaviour
             {
                 GameObject go = new GameObject("BossProxy");
                 go.transform.SetParent(proxyRoot, false);
-                go.layer = cgLayer;
+                go.layer = proxyLayer;
                 proxy = go.AddComponent<SpriteRenderer>();
                 if (bossSpriteMaterial != null) proxy.sharedMaterial = bossSpriteMaterial;
                 bossProxies[id] = proxy;
             }
 
-            proxy.gameObject.layer = cgLayer;
+            proxy.gameObject.layer = proxyLayer;
             proxy.sprite = srcRenderer.sprite;
             proxy.flipX = srcRenderer.flipX;
             proxy.flipY = srcRenderer.flipY;
