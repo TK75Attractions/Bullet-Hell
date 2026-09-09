@@ -209,6 +209,20 @@ public class JsabStageSelect : MonoBehaviour
 
     public bool Visible { get; private set; }
 
+    // --- 城壁の街スタイル(style 2) -------------------------------------------
+    // カルーセル(style 1)の部品は一切壊さず、街モードのあいだだけ下ろす。
+    // 上部バー(タイマー)・難易度モーダル・下部ヒントバーは両スタイルで共用する。
+    private bool cityMode;
+    private CitySelectView city;
+    private RectTransform bgShapesRoot;
+    // 街モードでは決定 → 区画へ寄る(0.4秒) → 難易度モーダル、の順に出す。
+    // 寄る前にモーダルを出すと、ぼかしスナップショットが寄りを丸ごと覆い隠す
+    // (タイトルの部屋で実証済みの罠)。
+    private bool cityZoomPending;
+
+    /// <summary>いまが街スタイル(style 2)か。</summary>
+    public bool CityMode => cityMode;
+
     public static JsabStageSelect Create(Transform parent, TMP_FontAsset font, Sprite playerSprite)
     {
         GameObject go = new GameObject("JsabStageSelectCanvas");
@@ -247,6 +261,11 @@ public class JsabStageSelect : MonoBehaviour
 
         // タイトル画面と同じ幾何学図形を薄く敷く(カード類より背面)。
         BuildBackgroundShapes(root);
+
+        // 城壁の街(style 2)。RT の表示板・▼・情報パネルをここで組む。街の 3D 本体は
+        // 実際に街スタイルを表示するときまで生成しない(CityMapController が遅延構築)。
+        city = CitySelectView.Create(root, font);
+        city.gameObject.SetActive(false);
 
         // --- Top bar: clone of the default (style 0) header so both styles share
         // the exact same design. The timer text and the red time-dim panel mirror
@@ -431,6 +450,7 @@ public class JsabStageSelect : MonoBehaviour
 
         // ShapeDrifter.Awake は追加時点の子を拾うので、図形を並べ終えてから付ける。
         layer.AddComponent<ShapeDrifter>();
+        bgShapesRoot = lr;
     }
 
     private void AddShape<T>(RectTransform parent, string shapeName, Vector2 pos, Vector2 size, float rotZ, Color color) where T : Graphic
@@ -1157,6 +1177,35 @@ public class JsabStageSelect : MonoBehaviour
         difficultyOpen = true;
         diffOpenTime = Time.unscaledTime;
         mouseConfirm = false;
+        if (cityMode)
+        {
+            // まず区画へ寄り、寄り切ってからモーダルを出す。
+            if (city != null) city.SetCloseUp(true);
+            cityZoomPending = true;
+            StartCoroutine(OpenDifficultyAfterZoom());
+            return;
+        }
+        OpenDifficultyPanel();
+    }
+
+    private IEnumerator OpenDifficultyAfterZoom()
+    {
+        float t = 0f;
+        while (t < CityMapController.ZoomDuration)
+        {
+            t += Time.deltaTime;
+            if (!difficultyOpen) { cityZoomPending = false; yield break; }
+            yield return null;
+        }
+        cityZoomPending = false;
+        if (!difficultyOpen) yield break;
+        diffOpenTime = Time.unscaledTime;
+        OpenDifficultyPanel();
+    }
+
+    private void OpenDifficultyPanel()
+    {
+        if (diffRoot == null) return;
         if (diffBar != null)
         {
             ApplyDifficultyAvailability();     // 石工/浮浪者は EASY/LUNATIC を選択不可にする
@@ -1190,12 +1239,16 @@ public class JsabStageSelect : MonoBehaviour
     // BulletRenderSystem が落ちるのを防ぐ)。マウスは元々無効行を確定できない。
     public bool CanConfirm()
     {
+        // 街モードで区画へ寄っている最中(モーダル未表示)は確定させない。
+        if (cityZoomPending) return false;
         return diffBar != null && diffBar.IsRowEnabled(diffBar.index);
     }
 
     public void CloseDifficulty()
     {
         difficultyOpen = false;
+        cityZoomPending = false;
+        if (cityMode && city != null) city.SetCloseUp(false);
         RestoreTopBar();
         if (diffRoot == null || !diffRoot.gameObject.activeSelf) return;
         RestoreDifficultyExit();
@@ -1508,6 +1561,47 @@ public class JsabStageSelect : MonoBehaviour
         rootCG.alpha = Mathf.Clamp01(alpha);
     }
 
+    /// <summary>スタイル(0=既定 / 1=カルーセル / 2=城壁の街)を反映する。</summary>
+    public void SetStyle(int style)
+    {
+        bool wantCity = style == 2;
+        if (cityMode == wantCity && city != null && city.gameObject.activeSelf == wantCity) return;
+        cityMode = wantCity;
+        ApplyCarouselVisible(!cityMode);
+        if (city != null)
+        {
+            city.gameObject.SetActive(cityMode);
+            if (cityMode)
+            {
+                StageDataBase sdb = GManager.Control != null ? GManager.Control.SDB : null;
+                city.SetAvailableDistricts(StageCityProfile.BuildAvailability(sdb));
+                StageData data = GetStage(currentIndex);
+                city.SetStage(data, StageCityProfile.DistrictOf(data), false);
+            }
+            city.SetVisible(cityMode && Visible);
+        }
+        // 街モードでは中央カードの動画は止める(RT も表示しない)。
+        if (cityMode && videoPlayer != null && videoPlayer.isPlaying) videoPlayer.Pause();
+    }
+
+    // カルーセル固有の部品(サイドカード・中央カード・ステージ名・進捗行・背景図形)の
+    // 表示/非表示。上部バー・難易度モーダル・ヒントバーは共用なので触らない。
+    private void ApplyCarouselVisible(bool on)
+    {
+        SetGoActive(leftPanel != null ? leftPanel.rect : null, on);
+        SetGoActive(rightPanel != null ? rightPanel.rect : null, on);
+        SetGoActive(sparePanel != null ? sparePanel.rect : null, on);
+        SetGoActive(cardRect, on);
+        SetGoActive(stageNameRect, on);
+        SetGoActive(progressRow, on);
+        SetGoActive(bgShapesRoot, on);
+    }
+
+    private static void SetGoActive(RectTransform rt, bool on)
+    {
+        if (rt != null && rt.gameObject.activeSelf != on) rt.gameObject.SetActive(on);
+    }
+
     public void SetVisible(bool visible)
     {
         Visible = visible;
@@ -1517,9 +1611,10 @@ public class JsabStageSelect : MonoBehaviour
             rootCG.blocksRaycasts = false;
         }
         gameObject.SetActive(true); // keep active so Tick/video run; alpha hides it
+        if (city != null) city.SetVisible(cityMode && visible);
         if (visible)
         {
-            if (videoPlayer != null && !string.IsNullOrEmpty(videoPlayer.url) && !videoPlayer.isPlaying)
+            if (!cityMode && videoPlayer != null && !string.IsNullOrEmpty(videoPlayer.url) && !videoPlayer.isPlaying)
             {
                 videoPlayer.Play();
             }
@@ -1534,6 +1629,16 @@ public class JsabStageSelect : MonoBehaviour
     {
         totalStages = Mathf.Max(1, total);
         int newIndex = Mathf.Clamp(index, 0, totalStages - 1);
+        if (cityMode)
+        {
+            currentIndex = newIndex;
+            if (city != null)
+            {
+                StageData data = GetStage(currentIndex);
+                city.SetStage(data, StageCityProfile.DistrictOf(data), animate);
+            }
+            return;
+        }
         if (transTime >= 0f)
         {
             // 飛行中の同一インデックス通知は無視。連打時は現在の遷移を即着地
@@ -2012,6 +2117,13 @@ public class JsabStageSelect : MonoBehaviour
         {
             topBarTimeDim.sizeDelta = origTimeDim.sizeDelta;
             topBarTimeDim.anchoredPosition = origTimeDim.anchoredPosition;
+        }
+
+        // 街モードはカルーセルのアニメーションを一切動かさない(部品は下ろしてある)。
+        if (cityMode)
+        {
+            if (city != null) city.Tick(dt);
+            return;
         }
 
         pulseTime += dt;

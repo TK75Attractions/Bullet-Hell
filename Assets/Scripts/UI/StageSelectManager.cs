@@ -130,7 +130,8 @@ public class StageSelectManager : MonoBehaviour
         header.UpdateTimer(remainingTime);
 
         // Build the JSAB-style overlay (runtime only) and mirror the current stage.
-        stageSelectStyle = PlayerPrefs.GetInt(StylePrefKey, 0);
+        // 既定は 2 = 城壁の街(3D 俯瞰)。0=旧既定 / 1=JSAB カルーセルはコードごと残してある。
+        stageSelectStyle = PlayerPrefs.GetInt(StylePrefKey, 2);
         Transform canvasesRoot = transform.parent != null ? transform.parent.parent : null;
         TMPro.TMP_FontAsset uiFont = guideText != null ? guideText.font : null;
         Sprite playerSprite = null;
@@ -140,6 +141,10 @@ public class StageSelectManager : MonoBehaviour
             if (sr != null) playerSprite = sr.sprite;
         }
         jsab = JsabStageSelect.Create(canvasesRoot, uiFont, playerSprite);
+        jsab.SetStyle(stageSelectStyle);
+        // 城壁の街では区画が割り当たっているステージだけを選べる(姿見のように
+        // 割当が無いステージは初期選択にもしない)。
+        EnsureSelectableStage();
         jsab.SetStage(stageBar.currentStage, GManager.Control.SDB.GetStageCount(), false);
         RefreshStyleVisibility();
     }
@@ -153,7 +158,7 @@ public class StageSelectManager : MonoBehaviour
         // ここを見ないと style=1 のとき起動直後からタイトルを覆ってしまい、
         // 「タイトル画面が飛ばされる」ように見える。
         bool onTitle = GManager.Control != null && GManager.Control.state == GManager.GameState.Title;
-        bool jsabOn = jsab != null && stageSelectStyle == 1 && state == State.Music && !onTitle;
+        bool jsabOn = jsab != null && stageSelectStyle >= 1 && state == State.Music && !onTitle;
         if (jsab != null) jsab.SetVisible(jsabOn);
         // タイトル中は新旧どちらのステージ選択 UI も非表示にする。
         // 選択画面へ入った後だけ、現在のスタイルに応じて既定 UI を復元する。
@@ -228,9 +233,16 @@ public class StageSelectManager : MonoBehaviour
             Keyboard kb = Keyboard.current;
             if (kb != null && kb.vKey.wasPressedThisFrame)
             {
-                stageSelectStyle = stageSelectStyle == 1 ? 0 : 1;
+                // 0(旧既定) → 1(JSAB カルーセル) → 2(城壁の街) の順に巡回する。
+                stageSelectStyle = (stageSelectStyle + 1) % 3;
                 PlayerPrefs.SetInt(StylePrefKey, stageSelectStyle);
                 PlayerPrefs.Save();
+                if (jsab != null)
+                {
+                    jsab.SetStyle(stageSelectStyle);
+                    EnsureSelectableStage();
+                    jsab.SetStage(stageBar.currentStage, GManager.Control.SDB.GetStageCount(), false);
+                }
                 RefreshStyleVisibility();
             }
         }
@@ -313,7 +325,7 @@ public class StageSelectManager : MonoBehaviour
                     // modal gets the same fresh countdown as the difficulty screen,
                     // otherwise a music-phase timeout would auto-confirm it instantly.
                     if (!timeUp) GManager.Control?.AManager?.PlayDecisionSE();   // ステージ確定
-                    if (jsab != null && stageSelectStyle == 1)
+                    if (jsab != null && stageSelectStyle >= 1)
                     {
                         remainingTime = difficultySelectTime;
                         phaseTotalTime = difficultySelectTime;
@@ -328,8 +340,8 @@ public class StageSelectManager : MonoBehaviour
                 else
                 {
                     bool moved = false;
-                    if (prev) { stageBar.Up(); moved = true; }
-                    else if (next) { stageBar.Down(); moved = true; }
+                    if (prev) moved = StepStage(-1);
+                    else if (next) moved = StepStage(1);
                     if (moved)
                     {
                         stageDescription.Set(stageBar.currentStage);
@@ -366,6 +378,47 @@ public class StageSelectManager : MonoBehaviour
                 break;
             default:
                 break;
+        }
+    }
+
+    // 城壁の街(style 2)では区画が割り当たっているステージだけを巡回する。
+    // 端まで来ても選べるステージが無ければ元の位置へ戻す(姿見のような未割当を飛ばす)。
+    private bool StepStage(int dir)
+    {
+        if (stageSelectStyle != 2)
+        {
+            if (dir < 0) stageBar.Up(); else stageBar.Down();
+            return true;
+        }
+        int start = stageBar.currentStage;
+        int count = GManager.Control.SDB.GetStageCount();
+        for (int i = 0; i < count; i++)
+        {
+            int before = stageBar.currentStage;
+            if (dir < 0) stageBar.Up(); else stageBar.Down();
+            if (stageBar.currentStage == before) break;   // 端に着いた
+            if (StageCityProfile.DistrictOf(GManager.Control.SDB.GetStage(stageBar.currentStage)) > 0) return true;
+        }
+        stageBar.SetCurrentStage(start);
+        return false;
+    }
+
+    // 街スタイルで、いま選ばれているステージに区画が無ければ先頭の割当済みステージへ寄せる。
+    private void EnsureSelectableStage()
+    {
+        if (stageSelectStyle != 2 || stageBar == null) return;
+        StageDataBase sdb = GManager.Control != null ? GManager.Control.SDB : null;
+        if (sdb == null) return;
+        if (StageCityProfile.DistrictOf(sdb.GetStage(stageBar.currentStage)) > 0) return;
+        int count = sdb.GetStageCount();
+        for (int i = 0; i < count; i++)
+        {
+            if (StageCityProfile.DistrictOf(sdb.GetStage(i)) > 0)
+            {
+                stageBar.SetCurrentStage(i);
+                stageDescription.Set(i);
+                return;
+            }
         }
     }
 
@@ -536,7 +589,7 @@ public class StageSelectManager : MonoBehaviour
         staticCG.alpha = 0;
         // JSAB スタイルは不透明カルーセルを短いフェードで重ねる(即時 alpha=1
         // だとタイトル退場演出の途中にハードカットで割り込んでしまう)。
-        if (jsab != null && stageSelectStyle == 1 && state == State.Music)
+        if (jsab != null && stageSelectStyle >= 1 && state == State.Music)
         {
             RefreshStyleVisibility();
             jsab.SetEntranceAlpha(0f);
