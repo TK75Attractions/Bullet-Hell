@@ -55,6 +55,8 @@ public class CitySelectView : MonoBehaviour
     private bool minchoTried;
 
     private RawImage cityView;
+    // cityView へ最後に入れたマテリアル(null=既定)。ドット風の色数減衰でだけ使う。
+    private Material appliedViewMaterial;
     private RectTransform markerRoot;
     private Image markerArrow;
     private CanvasGroup markerLabelCG;
@@ -115,7 +117,8 @@ public class CitySelectView : MonoBehaviour
         GameObject viewGO = new GameObject("CityView", typeof(RectTransform));
         viewGO.transform.SetParent(root, false);
         cityView = viewGO.AddComponent<RawImage>();
-        cityView.texture = map.targetTexture;
+        cityView.texture = map.Texture;
+        cityView.material = appliedViewMaterial = map.ViewMaterial;
         cityView.raycastTarget = false;
         Stretch(cityView.rectTransform);
 
@@ -374,6 +377,19 @@ public class CitySelectView : MonoBehaviour
         if (map == null || !map.CityVisible) return;
         animTime += dt;
         map.Tick(dt);
+
+        // ドット風表示を切り替えると街の描画先 RT ごと差し替わるので、表示板を追従させる。
+        // RawImage.material は null を入れると既定マテリアルを返すので、
+        // 最後に入れた値を覚えて変化したときだけ差し替える。
+        if (cityView != null)
+        {
+            if (cityView.texture != map.Texture) cityView.texture = map.Texture;
+            if (appliedViewMaterial != map.ViewMaterial)
+            {
+                appliedViewMaterial = map.ViewMaterial;
+                cityView.material = appliedViewMaterial;
+            }
+        }
 
         // 和文ラベルの光学中央合わせは、メッシュ生成後(表示後の初回)でないと空振る。
         if (!markerInkCentered)

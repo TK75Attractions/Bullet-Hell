@@ -49,6 +49,23 @@ public class TitleRoomController : MonoBehaviour
     [Tooltip("ランタンの届く距離。窓の外の街まで届かせない(5.5 で背面壁 z=4.72 の少し先まで)。")]
     public float lanternRange = 5.5f;
 
+    [Header("ドット風表示(部屋だけ低解像度で描く)")]
+    [Tooltip("ON で部屋を pixelWidth x pixelHeight の RenderTexture へ描き、Point(最近傍)で画面いっぱいに引き伸ばす。ロゴ・立ち絵・メニュー文字は従来の解像度のまま。")]
+    public bool pixelate = true;
+    [Tooltip("ドット風の内部解像度(幅)。既定 480(=1920 の 1/4)。比較用に 320 / 640。")]
+    public int pixelWidth = 480;
+    [Tooltip("ドット風の内部解像度(高さ)。既定 270。16:9 を保つこと。")]
+    public int pixelHeight = 270;
+    [Tooltip("1 チャンネルあたりの階調数。0 で色数の減衰なし(既定)。4〜8 でレトロなポスタリゼーション。")]
+    public int pixelatePalette = 0;
+    [Tooltip("色数を減らしたときの 4x4 順序ディザの強さ。0 でディザなし。")]
+    [Range(0f, 1f)] public float pixelateDither = 1f;
+
+    // ドット風のときだけ使う低解像度の描画先(実行時生成)。null なら targetTexture をそのまま使う。
+    RenderTexture pixelRT;
+    // 色数を落とすときだけ RawImage に貼るマテリアル(pixelatePalette=0 なら null)。
+    Material pixelMat;
+
     // 部屋を消したときに戻す環境光。
     UnityEngine.Rendering.AmbientMode savedAmbientMode;
     Color savedAmbientLight;
@@ -174,8 +191,10 @@ public class TitleRoomController : MonoBehaviour
 
     /// <summary>寄りの進み具合(0=全景 / 1=寄りきり)。立ち絵の視差・退避に使う。</summary>
     public float ZoomAmount => zoomProgress;
-    /// <summary>部屋の描画先。タイトルの RawImage が貼る。</summary>
-    public RenderTexture Texture => targetTexture;
+    /// <summary>部屋の描画先。タイトルの RawImage が貼る。ドット風のときは低解像度の RT。</summary>
+    public RenderTexture Texture => pixelRT != null ? pixelRT : targetTexture;
+    /// <summary>色数を落とすときに RawImage へ貼るマテリアル。既定(pixelatePalette=0)は null。</summary>
+    public Material ViewMaterial => pixelMat;
     public bool Ready => built && roomCamera != null && targetTexture != null;
     /// <summary>部屋がいま画面に出ているか(退場演出で落としたあとは false)。</summary>
     public bool RoomVisible => Ready && activeNow;
@@ -188,6 +207,8 @@ public class TitleRoomController : MonoBehaviour
     }
 
     void OnApplicationQuit() { RestoreAmbient(); }
+
+    void OnDestroy() { ReleasePixelTexture(); }
 
     void RestoreAmbient()
     {
@@ -269,9 +290,11 @@ public class TitleRoomController : MonoBehaviour
         roomCamera.nearClipPlane = 0.05f;
         roomCamera.farClipPlane = 150f;
         roomCamera.depth = -100f;
-        roomCamera.targetTexture = targetTexture;
+        EnsurePixelTexture();
+        roomCamera.targetTexture = Texture;
         roomCamera.useOcclusionCulling = false;
-        roomCamera.allowMSAA = true;
+        // ドット風のときは MSAA を切る(1 ドットの縁がぼけると最近傍拡大の意味が薄れる)。
+        roomCamera.allowMSAA = pixelRT == null;
         UniversalAdditionalCameraData data = camObj.AddComponent<UniversalAdditionalCameraData>();
         data.renderType = CameraRenderType.Base;
         data.renderPostProcessing = false;
@@ -441,6 +464,89 @@ public class TitleRoomController : MonoBehaviour
             if (found != null) return found;
         }
         return null;
+    }
+
+    // ---- ドット風表示 ------------------------------------------------------
+
+    // 低解像度の描画先とマテリアルを現在の設定に合わせる。pixelate=false なら
+    // 何も作らず、シーンに割り当てられた 1920x1080 の RT をそのまま使う。
+    void EnsurePixelTexture()
+    {
+        if (!pixelate)
+        {
+            ReleasePixelTexture();
+            return;
+        }
+        int w = Mathf.Clamp(pixelWidth, 32, 1920);
+        int h = Mathf.Clamp(pixelHeight, 18, 1080);
+        if (pixelRT != null && (pixelRT.width != w || pixelRT.height != h)) ReleasePixelTexture();
+        if (pixelRT == null)
+        {
+            // 元 RT と同じ書式(HDR)で解像度だけ落とす。filterMode=Point で最近傍拡大になる。
+            pixelRT = new RenderTexture(w, h, 24,
+                targetTexture != null ? targetTexture.format : RenderTextureFormat.DefaultHDR)
+            {
+                name = "TitleRoomPixelRT",
+                filterMode = FilterMode.Point,
+                antiAliasing = 1,
+                useMipMap = false,
+                autoGenerateMips = false,
+                wrapMode = TextureWrapMode.Clamp,
+                hideFlags = HideFlags.DontSave
+            };
+            pixelRT.Create();
+        }
+        EnsurePixelMaterial();
+    }
+
+    void EnsurePixelMaterial()
+    {
+        if (pixelatePalette <= 1)
+        {
+            if (pixelMat != null) { DestroyImmediate(pixelMat); pixelMat = null; }
+            return;
+        }
+        if (pixelMat == null)
+        {
+            Shader sh = Shader.Find("BulletHell/UI/PixelQuantize");
+            if (sh == null) return;
+            pixelMat = new Material(sh) { hideFlags = HideFlags.DontSave };
+        }
+        pixelMat.SetFloat("_PixelatePalette", pixelatePalette);
+        pixelMat.SetFloat("_PixelateDither", pixelateDither);
+    }
+
+    void ReleasePixelTexture()
+    {
+        if (pixelRT != null)
+        {
+            if (roomCamera != null && roomCamera.targetTexture == pixelRT)
+                roomCamera.targetTexture = targetTexture;
+            pixelRT.Release();
+            DestroyImmediate(pixelRT);
+            pixelRT = null;
+        }
+        if (pixelMat != null) { DestroyImmediate(pixelMat); pixelMat = null; }
+    }
+
+    /// <summary>
+    /// ドット風表示を切り替える(比較用。既定は 480x270)。RawImage 側は
+    /// <see cref="Texture"/> / <see cref="ViewMaterial"/> を毎フレーム見て貼り替える。
+    /// </summary>
+    public void SetPixelate(bool on, int width, int height, int palette = -1, float dither = -1f)
+    {
+        pixelate = on;
+        if (width > 0) pixelWidth = width;
+        if (height > 0) pixelHeight = height;
+        if (palette >= 0) pixelatePalette = palette;
+        if (dither >= 0f) pixelateDither = dither;
+        if (!built) return;
+        EnsurePixelTexture();
+        if (roomCamera != null)
+        {
+            roomCamera.targetTexture = Texture;
+            roomCamera.allowMSAA = pixelRT == null;
+        }
     }
 
     // ---- 制御 --------------------------------------------------------------

@@ -33,6 +33,22 @@ public class CityMapController : MonoBehaviour
     [Tooltip("UniversalRenderer3D の RendererDataList 上の index。既定 1。")]
     public int rendererIndex = 1;
 
+    [Header("ドット風表示(街だけ低解像度で描く)")]
+    [Tooltip("ON で街を pixelWidth x pixelHeight の RenderTexture へ描き、Point(最近傍)で拡大する。既定は OFF(タイトルの部屋と違い、街は情報量が多いので既定は等倍)。")]
+    public bool pixelate = false;
+    [Tooltip("ドット風の内部解像度(幅)。480 が既定値の目安。")]
+    public int pixelWidth = 480;
+    [Tooltip("ドット風の内部解像度(高さ)。")]
+    public int pixelHeight = 270;
+    [Tooltip("1 チャンネルあたりの階調数。0 で色数の減衰なし。")]
+    public int pixelatePalette = 0;
+    [Tooltip("色数を減らしたときの 4x4 順序ディザの強さ。")]
+    [Range(0f, 1f)] public float pixelateDither = 1f;
+
+    // ドット風のときだけ使う低解像度の描画先(実行時生成)。
+    RenderTexture pixelRT;
+    Material pixelMat;
+
     [Header("明るさ")]
     [Tooltip("全ライトに掛かる倍率。")]
     public float exposure = 1f;
@@ -159,7 +175,10 @@ public class CityMapController : MonoBehaviour
     /// <summary>カメラ移動が終わっているか(プレビュー動画はこれで出す)。</summary>
     public bool Arrived => moveT >= 1f;
     public float ZoomAmount => zoomIn;
-    public RenderTexture Texture => targetTexture;
+    /// <summary>街の描画先。ドット風のときは低解像度の RT。</summary>
+    public RenderTexture Texture => pixelRT != null ? pixelRT : targetTexture;
+    /// <summary>色数を落とすときに RawImage へ貼るマテリアル(既定は null)。</summary>
+    public Material ViewMaterial => pixelMat;
     public bool Ready => built && cityCamera != null && targetTexture != null;
     public bool CityVisible => Ready && activeNow;
 
@@ -172,6 +191,81 @@ public class CityMapController : MonoBehaviour
     }
 
     void OnApplicationQuit() { RestoreAmbient(); }
+
+    void OnDestroy() { ReleasePixelTexture(); }
+
+    // ---- ドット風表示(タイトルの部屋と同じ仕組み) --------------------------
+
+    void EnsurePixelTexture()
+    {
+        if (!pixelate) { ReleasePixelTexture(); return; }
+        int w = Mathf.Clamp(pixelWidth, 32, 1920);
+        int h = Mathf.Clamp(pixelHeight, 18, 1080);
+        if (pixelRT != null && (pixelRT.width != w || pixelRT.height != h)) ReleasePixelTexture();
+        if (pixelRT == null)
+        {
+            pixelRT = new RenderTexture(w, h, 24,
+                targetTexture != null ? targetTexture.format : RenderTextureFormat.DefaultHDR)
+            {
+                name = "CityMapPixelRT",
+                filterMode = FilterMode.Point,
+                antiAliasing = 1,
+                useMipMap = false,
+                autoGenerateMips = false,
+                wrapMode = TextureWrapMode.Clamp,
+                hideFlags = HideFlags.DontSave
+            };
+            pixelRT.Create();
+        }
+        EnsurePixelMaterial();
+    }
+
+    void EnsurePixelMaterial()
+    {
+        if (pixelatePalette <= 1)
+        {
+            if (pixelMat != null) { DestroyImmediate(pixelMat); pixelMat = null; }
+            return;
+        }
+        if (pixelMat == null)
+        {
+            Shader sh = Shader.Find("BulletHell/UI/PixelQuantize");
+            if (sh == null) return;
+            pixelMat = new Material(sh) { hideFlags = HideFlags.DontSave };
+        }
+        pixelMat.SetFloat("_PixelatePalette", pixelatePalette);
+        pixelMat.SetFloat("_PixelateDither", pixelateDither);
+    }
+
+    void ReleasePixelTexture()
+    {
+        if (pixelRT != null)
+        {
+            if (cityCamera != null && cityCamera.targetTexture == pixelRT)
+                cityCamera.targetTexture = targetTexture;
+            pixelRT.Release();
+            DestroyImmediate(pixelRT);
+            pixelRT = null;
+        }
+        if (pixelMat != null) { DestroyImmediate(pixelMat); pixelMat = null; }
+    }
+
+    /// <summary>ドット風表示を切り替える(比較用)。表示板は Texture / ViewMaterial を追従する。</summary>
+    public void SetPixelate(bool on, int width, int height, int palette = -1, float dither = -1f)
+    {
+        pixelate = on;
+        if (width > 0) pixelWidth = width;
+        if (height > 0) pixelHeight = height;
+        if (palette >= 0) pixelatePalette = palette;
+        if (dither >= 0f) pixelateDither = dither;
+        if (!built) return;
+        EnsurePixelTexture();
+        if (cityCamera != null)
+        {
+            cityCamera.targetTexture = Texture;
+            cityCamera.allowMSAA = pixelRT == null;
+        }
+    }
 
     void Awake()
     {
@@ -238,9 +332,11 @@ public class CityMapController : MonoBehaviour
         cityCamera.nearClipPlane = 0.05f;
         cityCamera.farClipPlane = 300f;
         cityCamera.depth = -101f;
-        cityCamera.targetTexture = targetTexture;
+        EnsurePixelTexture();
+        cityCamera.targetTexture = Texture;
         cityCamera.useOcclusionCulling = false;
-        cityCamera.allowMSAA = true;
+        // ドット風のときは MSAA を切る(1 ドットの縁がぼけると最近傍拡大の意味が薄れる)。
+        cityCamera.allowMSAA = pixelRT == null;
         UniversalAdditionalCameraData data = camObj.AddComponent<UniversalAdditionalCameraData>();
         data.renderType = CameraRenderType.Base;
         data.renderPostProcessing = false;

@@ -207,6 +207,8 @@ public class TitleManager : MonoBehaviour
     // 部屋が用意できていない(Rig 未配置・素材欠落)ときは、従来の JSAB 背景
     // (Back + Shapes)のまま動く。
     private RawImage roomView;
+    // roomView へ最後に入れたマテリアル(null=既定)。ドット風の色数減衰でだけ使う。
+    private Material appliedRoomMaterial;
     private Image roomScrim;
     private Image heroImage;
     private RectTransform heroRect;
@@ -408,6 +410,8 @@ public class TitleManager : MonoBehaviour
             roomView.color = Color.white;
         }
         roomView.texture = room.Texture;
+        appliedRoomMaterial = room.ViewMaterial;
+        roomView.material = appliedRoomMaterial;
         roomView.gameObject.SetActive(true);
         roomView.rectTransform.SetSiblingIndex(0);
 
@@ -794,6 +798,20 @@ public class TitleManager : MonoBehaviour
         room.Tick(dt);
         UpdateObjectMenu(dt);
         if (!roomLayout) return;
+
+        // ドット風表示の解像度を切り替えると部屋の描画先 RT ごと差し替わるので、
+        // 表示板の texture / material を毎フレーム追従させる(通常は変化しない)。
+        if (roomView != null)
+        {
+            if (roomView.texture != room.Texture) roomView.texture = room.Texture;
+            // RawImage.material は null を入れると既定マテリアルを返すので、
+            // 直接比較せず「最後に入れた値」を覚えて変化したときだけ差し替える。
+            if (appliedRoomMaterial != room.ViewMaterial)
+            {
+                appliedRoomMaterial = room.ViewMaterial;
+                roomView.material = appliedRoomMaterial;
+            }
+        }
 
         float zoom = room.ZoomAmount;
         if (heroRect != null)
