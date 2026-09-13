@@ -10,21 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cbd360919789aba45b7e5b8e684967f4, type: 3}
-  m_Name: bolt_head
+  m_Name: wind_line_x
   m_EditorClassIdentifier: BulletHell.Core::BulletType
-  typeName: bolt_head
-  baseSprite: {fileID: 2800000, guid: d866b244b04b49cab99b2775979a0db1, type: 3}
-  maskSprite: {fileID: 2800000, guid: 39b1def3df4d48c09c773a2553a061aa, type: 3}
+  typeName: wind_line_x
+  baseSprite: {fileID: 2800000, guid: de0634399a34417fa9820a8f30322fa2, type: 3}
+  maskSprite: {fileID: 2800000, guid: 332bbc816f7944679336e051de1d9a92, type: 3}
   baseColor: {r: 1, g: 1, b: 1, a: 1}
   baseSize: 1
-  renderPriority: 3
+  renderPriority: 0
   counterPower: 1
-  verts:
-  - x: -0.4
-    y: -0.4
-  - x: 0.4
-    y: -0.4
-  - x: 0.4
-    y: 0.4
-  - x: -0.4
-    y: 0.4
+  verts: []

@@ -10,21 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cbd360919789aba45b7e5b8e684967f4, type: 3}
-  m_Name: bolt_head
+  m_Name: line_warn
   m_EditorClassIdentifier: BulletHell.Core::BulletType
-  typeName: bolt_head
-  baseSprite: {fileID: 2800000, guid: d866b244b04b49cab99b2775979a0db1, type: 3}
-  maskSprite: {fileID: 2800000, guid: 39b1def3df4d48c09c773a2553a061aa, type: 3}
+  typeName: line_warn
+  baseSprite: {fileID: 2800000, guid: 1a4505a1a9f046fa8a0f04dc08905be1, type: 3}
+  maskSprite: {fileID: 2800000, guid: b4b464d274374de4b0dcc8b971536f61, type: 3}
   baseColor: {r: 1, g: 1, b: 1, a: 1}
   baseSize: 1
-  renderPriority: 3
+  renderPriority: 0
   counterPower: 1
-  verts:
-  - x: -0.4
-    y: -0.4
-  - x: 0.4
-    y: -0.4
-  - x: 0.4
-    y: 0.4
-  - x: -0.4
-    y: 0.4
+  verts: []
