@@ -6163,6 +6163,19 @@ MonoBehaviour:
     lookupPosition: {x: 16, y: 20, z: -28}
     lookupTarget: {x: 16, y: 58, z: 72}
     lookupLensMm: 32
+    cameraPitchKeys:
+    - time: 59.314
+      pitchDeg: 0
+    - time: 60.986
+      pitchDeg: 2.629
+    - time: 62.619
+      pitchDeg: 2.629
+    - time: 64.265
+      pitchDeg: 0
+    - time: 140.969
+      pitchDeg: 0
+    - time: 142.699
+      pitchDeg: -3
     blackFadeStart: 0.56
     blackFadeEnd: 1.3
     cameraHoldEnd: 1.06
@@ -6249,6 +6262,7 @@ MonoBehaviour:
     lookupPosition: {x: 16, y: 20, z: -28}
     lookupTarget: {x: 16, y: 58, z: 72}
     lookupLensMm: 32
+    cameraPitchKeys: []
     blackFadeStart: 2.8
     blackFadeEnd: 4
     cameraHoldEnd: 3.6
@@ -6346,6 +6360,7 @@ MonoBehaviour:
     lookupPosition: {x: 16, y: 20, z: -28}
     lookupTarget: {x: 16, y: 58, z: 72}
     lookupLensMm: 32
+    cameraPitchKeys: []
     blackFadeStart: 0
     blackFadeEnd: 0.8
     cameraHoldEnd: 0.8

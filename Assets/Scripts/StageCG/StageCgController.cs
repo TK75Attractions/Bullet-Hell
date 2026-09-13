@@ -637,9 +637,13 @@ public class StageCgController : MonoBehaviour
 
         Quaternion lookupRot = Quaternion.LookRotation((p.lookupTarget - p.lookupPosition).normalized, Vector3.up);
         Vector2 shake = LastShakeOffset + LastScreenShake;
+        // v39: 通常姿勢のピッチを時刻で振る（Euler の x は下向きが正なので符号を反転）。
+        // 弾幕は MainCamera の 2D なので動かない。CG とボス代理だけが一緒に振れる。
+        float pitchDeg = p.CameraPitchAt(stageTime);
+        Quaternion normalRot = pitchDeg != 0f ? Quaternion.Euler(-pitchDeg, 0f, 0f) : Quaternion.identity;
         cgCamera.transform.position = Vector3.Lerp(p.lookupPosition, normalPosition, e)
                                       + new Vector3(shake.x, shake.y, 0f);
-        cgCamera.transform.rotation = Quaternion.Slerp(lookupRot, Quaternion.identity, e);
+        cgCamera.transform.rotation = Quaternion.Slerp(lookupRot, normalRot, e);
 
         Matrix4x4 a = LookupProjection(p);
         Matrix4x4 b = NormalProjection();

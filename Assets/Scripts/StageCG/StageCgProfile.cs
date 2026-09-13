@@ -69,6 +69,20 @@ public class StageCgBossBrightnessKey
 }
 
 /// <summary>
+/// CG カメラの向き（ピッチ）を時刻で動かすキー。石工 v39 で「弾幕の途中でカメラを振る」ために足した。
+/// キーの間は smoothstep（区間の中点で速度が最大＝ease in-out）で補間する。
+/// キーが無いステージは従来どおり通常姿勢のまま動かない。
+/// </summary>
+[Serializable]
+public class StageCgCameraPitchKey
+{
+    [Tooltip("ステージ秒。")]
+    public float time;
+    [Tooltip("その時刻のピッチ（度）。正で上（空）を向き、負で下（手前の床）を向く。")]
+    public float pitchDeg;
+}
+
+/// <summary>
 /// ステージ 1 本ぶんの背景 CG 設定。<see cref="StageCgController"/> が
 /// ステージ id で 1 つ選び、その値だけを使って描く。
 ///
@@ -114,6 +128,10 @@ public class StageCgProfile
     public Vector3 lookupTarget = new Vector3(16f, 58f, 72f);
     [Tooltip("見上げのレンズ mm（sensor 36mm・水平フィット・対称フラスタム）。")]
     public float lookupLensMm = 32f;
+
+    [Tooltip("通常姿勢からのピッチを時刻で動かすキー（石工 v39）。空なら動かない。"
+        + "弾幕（MainCamera の 2D）・HUD・額縁は動かず、CG とボスだけが一緒に振れる。")]
+    public StageCgCameraPitchKey[] cameraPitchKeys = new StageCgCameraPitchKey[0];
 
     [Header("導入（ステージ秒）")]
     [Tooltip("黒 → 空のフェード開始 / 終了。")]
@@ -343,6 +361,22 @@ public class StageCgProfile
     {
         float u = Mathf.Clamp01((stageTime - cameraHoldEnd) / Mathf.Max(1e-4f, cameraSettleEnd - cameraHoldEnd));
         return u * u * (3f - 2f * u);
+    }
+
+    /// <summary>その時刻の CG カメラのピッチ（度）。キーの間は smoothstep、両端は端の値で留める。</summary>
+    public float CameraPitchAt(float stageTime)
+    {
+        StageCgCameraPitchKey[] k = cameraPitchKeys;
+        if (k == null || k.Length == 0) return 0f;
+        if (stageTime <= k[0].time) return k[0].pitchDeg;
+        for (int i = 1; i < k.Length; i++)
+        {
+            if (stageTime > k[i].time) continue;
+            float span = Mathf.Max(1e-4f, k[i].time - k[i - 1].time);
+            float u = Mathf.Clamp01((stageTime - k[i - 1].time) / span);
+            return Mathf.Lerp(k[i - 1].pitchDeg, k[i].pitchDeg, u * u * (3f - 2f * u));
+        }
+        return k[k.Length - 1].pitchDeg;
     }
 
     /// <summary>黒 → 空のフェード係数 0..1（0=真っ黒）。</summary>
