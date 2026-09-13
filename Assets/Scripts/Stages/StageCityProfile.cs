@@ -29,10 +29,11 @@ public class StageCityProfile : ScriptableObject
 
     private const string ResourcePath = "StageCityProfile";
 
-    // 資産が無いときに使う内蔵表(2026-09-09 時点の割当)。
+    // 資産が無いときに使う内蔵表(2026-09-13 時点の割当)。
     private static readonly (string dir, int district, string displayName)[] Defaults =
     {
         ("stone", 3, "石工"),      // 石切り場(東)
+        ("wanderer", 4, "放浪者"), // 廃屋。街外れの廃屋 = 放浪者が居つく場所(2026-09-13 ユーザー決定)
         ("captain", 5, "艦長"),    // 大河(西)。StageData 側は "Captain" のままなのでここで補う
         ("vagrant", 6, "浮浪者"),  // 地下墓地(北西)
     };
@@ -45,7 +46,7 @@ public class StageCityProfile : ScriptableObject
         new Color(1.00f, 0.95f, 1.08f, 1f),   // 01 市場(未実装・紫灰)
         new Color(1.00f, 0.95f, 1.08f, 1f),   // 02 地下(未実装)
         new Color(1.14f, 1.03f, 0.82f, 1f),   // 03 石切り場(黄土)
-        new Color(1.00f, 0.95f, 1.08f, 1f),   // 04 廃屋(未実装)
+        new Color(1.12f, 1.06f, 0.92f, 1f),   // 04 廃屋(放浪者・嵐の街道の薄い黄土)
         new Color(0.90f, 0.97f, 1.12f, 1f),   // 05 大河(青灰)
         new Color(0.86f, 1.06f, 1.02f, 1f),   // 06 地下墓地(青緑)
         new Color(1.00f, 0.95f, 1.08f, 1f),   // 07 宝物館(未実装)
