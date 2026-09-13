@@ -13,6 +13,7 @@ Shader "StoneCG/FlatBlend"
         _Alpha ("Alpha (material)", Range(0,1)) = 1
         _FadeAlpha ("Fade Alpha (per renderer)", Range(0,1)) = 1
         [NoScaleOffset] _EmisTex ("Emission Tex", 2D) = "white" {}
+        [NoScaleOffset] _BaseTex ("Base Tex (放浪者: 面のアルベド地図)", 2D) = "white" {}
     }
     SubShader
     {
@@ -36,6 +37,7 @@ Shader "StoneCG/FlatBlend"
             float _Alpha;
             float _FadeAlpha;
             TEXTURE2D(_EmisTex); SAMPLER(sampler_EmisTex);
+            TEXTURE2D(_BaseTex); SAMPLER(sampler_BaseTex);
 
             float4 _StoneCgSunDir;
             float4 _StoneCgSunColor;
@@ -65,6 +67,7 @@ Shader "StoneCG/FlatBlend"
                 float3 n = normalize(i.normalWS);
                 float ndl = saturate(dot(n, _StoneCgSunDir.xyz));
                 float3 tex = SAMPLE_TEXTURE2D(_EmisTex, sampler_EmisTex, i.uv).rgb;
+                float4 baseTex = SAMPLE_TEXTURE2D(_BaseTex, sampler_BaseTex, i.uv);
 
                 float3 toCore = _StoneCgCoreParams.xyz - i.positionWS;
                 float coreDist = length(toCore);
@@ -79,9 +82,9 @@ Shader "StoneCG/FlatBlend"
                 else if (grp == 3) gm = _StoneCgEmisGrp3.rgb;
                 else if (grp == 4) gm = _StoneCgEmisGrp4.rgb;
 
-                float3 col = _BaseLin.rgb * (_StoneCgAmbient.rgb + _StoneCgSunColor.rgb * ndl + core)
+                float3 col = _BaseLin.rgb * baseTex.rgb * (_StoneCgAmbient.rgb + _StoneCgSunColor.rgb * ndl + core)
                            + _EmisLin.rgb * tex * gm;
-                return half4(col, saturate(_Alpha * _FadeAlpha));
+                return half4(col, saturate(_Alpha * _FadeAlpha * baseTex.a));
             }
             ENDHLSL
         }
