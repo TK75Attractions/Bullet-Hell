@@ -3182,11 +3182,10 @@ export default stage(
     function reseedRng(seed) { rngState = makeRng(seed); }
     // v37: Easy だけの調整（指示書 timing-instructions_v37_easy_20260913.md）に使う旗。
     const IS_EASY = D(true, false, false);
-    // v37 (11): 指示書 #11「上からのシャベルもっとゆっくりにして」。
-    //   上から真下へ落ちるシャベル（区間⑤⑦のシャベル爆破・v28 の 9）の落下速度を
-    //   easy だけ 24 → **15.6（0.65 倍）** にする。着弾の拍（impact）は逆算なので不変で、
-    //   飛行時間が伸びたぶん出現が早くなる（経路予告の帯も同じ式で伸びる）。
-    const SHOVEL_FALL_V = D(SHOVEL_FALL_SPEED * 0.65, SHOVEL_FALL_SPEED, SHOVEL_FALL_SPEED);
+    // v37 (11): 指示書 #11「上からのシャベルもっとゆっくりにして」。easy だけ 24 → 15.6。
+    // v38: 指示の実体は **126.653〜127.348s の 6 本（v28 の 9）だけ**だったので、
+    //   区間⑤⑦のシャベル爆破の落下と V27C の落下シャベル（56〜60s）は v35 の速度へ戻した。
+    //   この定数は v28 の 9 でしか使わない。
     const IS_LUNATIC = D(false, false, true);
     // v38 (1): 指示書 #1「lunatic の破裂弾、全体的に 3 割程度大きくして」。
     //   破裂弾（burst / 集合爆破 / lightspeed 着弾 / 最後の大爆破）の弾スケールを
@@ -3730,7 +3729,7 @@ export default stage(
         const cell = targets[k];
         if (!cell) return;
         const center = cellCenter(cell[0], cell[1]);
-        const flight = (SHOVEL_SPAWN_Y - center[1]) / SHOVEL_FALL_V;   // v37 (11)
+        const flight = (SHOVEL_SPAWN_Y - center[1]) / SHOVEL_FALL_SPEED;   // v38: v35 の速度へ戻す
         // v5 (3): 発射の1拍前から、シャベルが通る列に縦帯（到達＝爆破で消える）。v7 で刃の幅ぶんに拡幅
         s.at(impact - flight - SWEEP_LEAD, dropPathWarn(center, SWEEP_LEAD + flight, 'droppathwarn'));
         // v5 (2): 爆破の1拍前から対象タイルを点滅させる
@@ -3739,7 +3738,7 @@ export default stage(
           impact - flight,
           shovel({
             pos: [center[0], SHOVEL_SPAWN_Y],
-            vel: [0, -SHOVEL_FALL_V],   // v37 (11)
+            vel: [0, -SHOVEL_FALL_SPEED],   // v38: v35 の速度へ戻す
             angle: SHOVEL_ANGLE_DOWN,
             life: flight, // 到達＝タイルの位置でちょうど消える
             kind: 'shoveldrop',
@@ -4260,9 +4259,9 @@ export default stage(
     //     周期 0.6 秒・振幅 0.45 ユニットの横揺れ。発射時刻ちょうどに揺れを止める）
     // v35 (2): 出現高さを下げて着地速度を落とす（26 → 20）。落下は最初から最後まで
     //   等加速度（重力）の 1 区間のまま。
-    // v37 (11): easy はここの落下シャベルも重力 0.65 倍（＝落下時間 1/sqrt(0.65) 倍）。
-    //   着地の時刻（V27C_DROP_TIMES）は不変で、出現（land - 落下時間）が 0.168 秒早くなる。
-    const V27C_FALL_DUR = V27C_DROP_FALL / Math.sqrt(D(0.65, 1, 1));
+    // v37 (11) → v38: 指示の実体は 126.6 秒の上からのシャベルだけだったので、
+    //   ここ（56〜60s の落下シャベル）は v35 の重力へ戻した。
+    const V27C_FALL_DUR = V27C_DROP_FALL;
     const V27C_FALL_A = (2 * (V27C_DROP_SPAWN_Y - V27C_DROP_REST_Y)) / (V27C_FALL_DUR * V27C_FALL_DUR);
     V27C_DROP_TIMES.forEach(function (land, k) {
       const x = V27C_DROP_XS[k];
@@ -5512,6 +5511,8 @@ export default stage(
 
     // --- 9: 上側から、左から順に 1/3 拍ずつずらしてシャベルを落とす -----------------
     // v37 (11): 指示書 #11 の実体（126.65〜127.35s の 6 本）。easy だけ 0.65 倍の落下速度。
+    //   v38 でもここだけは 0.65 倍のまま残す。
+    const SHOVEL_FALL_V = D(SHOVEL_FALL_SPEED * 0.65, SHOVEL_FALL_SPEED, SHOVEL_FALL_SPEED);
     const V28_TOP_LIFE = (SHOVEL_SPAWN_Y - V28_TOP_FALL_END_Y) / SHOVEL_FALL_V;
     V28_TOP_XS.forEach(function (x, k) {
       s.at(V28_D_TOP + k * V28_TOP_STAGGER, shovel({
