@@ -3151,6 +3151,14 @@ export default stage(
     let rngState = makeRng(20260902);
     const rng = function () { return rngState(); };
     function reseedRng(seed) { rngState = makeRng(seed); }
+    // v37: Easy だけの調整（指示書 timing-instructions_v37_easy_20260913.md）に使う旗。
+    const IS_EASY = D(true, false, false);
+    // v37 (11): 指示書 #11「上からのシャベルもっとゆっくりにして」。
+    //   上から真下へ落ちるシャベル（区間⑤⑦のシャベル爆破・v28 の 9）の落下速度を
+    //   easy だけ 24 → **15.6（0.65 倍）** にする。着弾の拍（impact）は逆算なので不変で、
+    //   飛行時間が伸びたぶん出現が早くなる（経路予告の帯も同じ式で伸びる）。
+    const SHOVEL_FALL_V = D(SHOVEL_FALL_SPEED * 0.65, SHOVEL_FALL_SPEED, SHOVEL_FALL_SPEED);
+    const IS_LUNATIC = D(false, false, true);
     const lead = beats(WARN_BEATS);
     // v11: 中央（12x5 = 60 セル）に毎拍出す一時タイルの密度。
     //   v10 は 10x3 = 30 セルに D(0.125, 0.165, 0.20)＝毎拍 4/5/6 枚。セル数が倍になったので
@@ -3164,20 +3172,34 @@ export default stage(
     // burst(): 爆破の放射弾。区間②④⑤⑦で共通に使う（弾数・速度の難易度比は v3 のまま）。
     // v13 (B): countMul で放射弾の数を増減できるようにした（曲の盛り上がりに合わせる）。
     //   既定 1.0＝区間①〜⑧と同じ。区間⑯（2 周目の頂点）だけ 1.3 にしている。
-    function burst(center, index, countMul = 1) {
+    // v37 (1): 指示書 #1「easy の破裂弾はスピードを lunatic より少し遅い程度にし、
+    //   弾数を減らす（1 回 6 弾程度）」。基準の弾数 D(10,12,14) の easy を **6** に、
+    //   速さ D(7,9,11) の easy を **9.5**（lunatic 11 の 0.864 倍）にした。
+    //   倍率つきの爆破（集合・最後）は同じ基準に比例するので easy でも 12 / 15 発になる。
+    // v37 (2)(3)(6)〜(12): enabled=false のとき「乱数だけ消費して弾を出さない」。
+    //   angleOffset の rng() を必ず呼ぶので、破裂弾を消しても以降のタイル配置は動かない。
+    function burst(center, index, countMul = 1, enabled = true) {
+      const off = rng() * 2 * Math.PI;   // 爆破ごとに別オフセット角（rad）。消す場合も必ず消費する
+      if (!enabled) return null;
       return spinBurst({
         pos: [center[0], center[1]],
-        count: Math.round(D(10, 12, 14) * countMul),
-        speed: D(7, 9, 11),
+        count: Math.round(D(6, 12, 14) * countMul),
+        speed: D(9.5, 9, 11),
         type: 'stone3_bullet',
         life: 0,                          // 寿命なし＝画面外へ出て cull されるまで飛ぶ
         scale: [BULLET_SCALE, BULLET_SCALE],
         color: SPRITE_AS_IS,   // v12: 弾スプライト自体が石色のドット絵なので無着色
-        angleOffset: rng() * 2 * Math.PI, // 爆破ごとに別オフセット角（rad）
+        angleOffset: off,
         spin: SPIN_RATE * (index % 2 === 0 ? 1 : -1),
         kind: 'blast',
         unCounterable: true,
       });
+    }
+
+    // burst() を s.at() する薄いラッパ。enabled=false なら乱数だけ進めて何も置かない。
+    function atBurst(t, center, index, countMul, enabled) {
+      const clip = burst(center, index, countMul, enabled);
+      if (clip) s.at(t, clip);
     }
 
     // ======================================================================
@@ -3621,7 +3643,7 @@ export default stage(
         const cell = targets[k];
         if (!cell) return;
         const center = cellCenter(cell[0], cell[1]);
-        const flight = (SHOVEL_SPAWN_Y - center[1]) / SHOVEL_FALL_SPEED;
+        const flight = (SHOVEL_SPAWN_Y - center[1]) / SHOVEL_FALL_V;   // v37 (11)
         // v5 (3): 発射の1拍前から、シャベルが通る列に縦帯（到達＝爆破で消える）。v7 で刃の幅ぶんに拡幅
         s.at(impact - flight - SWEEP_LEAD, dropPathWarn(center, SWEEP_LEAD + flight, 'droppathwarn'));
         // v5 (2): 爆破の1拍前から対象タイルを点滅させる
@@ -3630,13 +3652,14 @@ export default stage(
           impact - flight,
           shovel({
             pos: [center[0], SHOVEL_SPAWN_Y],
-            vel: [0, -SHOVEL_FALL_SPEED],
+            vel: [0, -SHOVEL_FALL_V],   // v37 (11)
             angle: SHOVEL_ANGLE_DOWN,
             life: flight, // 到達＝タイルの位置でちょうど消える
             kind: 'shoveldrop',
           })
         );
-        s.at(impact, burst(center, spinBase + k, burstMul));
+        // v37 (2): 指示書 #2「シャベル爆破時の破裂弾は消して」（easy のみ）
+        atBurst(impact, center, spinBase + k, burstMul, !IS_EASY);
       });
     }
 
@@ -3849,7 +3872,8 @@ export default stage(
       for (let i = 0, k = 0; i < brokenSorted.length; i += step, k++) {
         const t = brokenSorted[i];
         const center = cellCenter(t.col, t.row);
-        s.at(t.end, burst(center, k, 0.5));
+        // v37 (3): 指示書 #3「鎖攻撃で破壊時の破裂弾を消して」（easy のみ）
+        atBurst(t.end, center, k, 0.5, !IS_EASY);
       }
     }
 
@@ -3958,7 +3982,8 @@ export default stage(
         const step = Math.max(1, Math.ceil(sorted.length / SNAKE_BURSTS));
         for (let i = 0, k = 0; i < sorted.length; i += step, k++) {
           const t = sorted[i];
-          s.at(t.end, burst(cellCenter(t.col, t.row), k, 0.5));
+          // v37 (3): 指示書 #3「鎖攻撃で破壊時の破裂弾を消して」（easy のみ）
+          atBurst(t.end, cellCenter(t.col, t.row), k, 0.5, !IS_EASY);
         }
       }
       return broken;
@@ -4148,11 +4173,14 @@ export default stage(
     //     周期 0.6 秒・振幅 0.45 ユニットの横揺れ。発射時刻ちょうどに揺れを止める）
     // v35 (2): 出現高さを下げて着地速度を落とす（26 → 20）。落下は最初から最後まで
     //   等加速度（重力）の 1 区間のまま。
-    const V27C_FALL_A = (2 * (V27C_DROP_SPAWN_Y - V27C_DROP_REST_Y)) / (V27C_DROP_FALL * V27C_DROP_FALL);
+    // v37 (11): easy はここの落下シャベルも重力 0.65 倍（＝落下時間 1/sqrt(0.65) 倍）。
+    //   着地の時刻（V27C_DROP_TIMES）は不変で、出現（land - 落下時間）が 0.168 秒早くなる。
+    const V27C_FALL_DUR = V27C_DROP_FALL / Math.sqrt(D(0.65, 1, 1));
+    const V27C_FALL_A = (2 * (V27C_DROP_SPAWN_Y - V27C_DROP_REST_Y)) / (V27C_FALL_DUR * V27C_FALL_DUR);
     V27C_DROP_TIMES.forEach(function (land, k) {
       const x = V27C_DROP_XS[k];
-      const vLand = V27C_FALL_A * V27C_DROP_FALL;      // 着地時の落下速度
-      const segs = [{ dur: V27C_DROP_FALL, ax: 0, ay: -V27C_FALL_A }];
+      const vLand = V27C_FALL_A * V27C_FALL_DUR;      // 着地時の落下速度
+      const segs = [{ dur: V27C_FALL_DUR, ax: 0, ay: -V27C_FALL_A }];
       // v34 (2) → v35 (2): 接触区間（速度を連続に折り返す）＋放物線の跳ね。
       //   接触に掛ける時間を接地速度に比例させ（1 回目 = V27C_CONTACT_SEC = 3 コマ）、
       //   速いときほど長い時間をかけて折り返す＝コマで見ても段差にならない。
@@ -4210,7 +4238,7 @@ export default stage(
         dur: fireDur, ax: 0, ay: 0,
         vx: 0, vy: -(V27C_DROP_REST_Y + dy - METEOR_DROP_Y) / fireDur,
       });
-      s.at(land - V27C_DROP_FALL, shovelPath([x, V27C_DROP_SPAWN_Y], [0, 0], segs, SHOVEL_ANGLE_DOWN, 'dropshovel'));
+      s.at(land - V27C_FALL_DUR, shovelPath([x, V27C_DROP_SPAWN_Y], [0, 0], segs, SHOVEL_ANGLE_DOWN, 'dropshovel'));
       // v35 (3): 指示書 #3「破裂弾はなし、エフェクトだけ」→ 着弾の放射弾（burst）を削除。
     });
 
@@ -4221,9 +4249,20 @@ export default stage(
     //   属する列だけを、その列の行 0-1 をまとめて（同じ時刻に）壊す。
     //   着弾の拍（V27C_FIRE_HIT）は不変。エフェクトは #6 の「白くなって消える」。
     const bandAll = bandCDE.concat(bandH);
-    const V27C_HIT_COLS = V27C_DROP_XS.map(function (x) {
+    // v37 (C1): 指示書 v38 #2「ここのシャベル落下のとき、あいだのタイルも消して」（全難易度）。
+    //   6 本のシャベルの列（3 / 5 / 7 / 8 / 10 / 12）だけでなく、**その最小列から最大列まで
+    //   ひと続きの帯**（列 3〜12）の行 0-1 をまとめて壊す。破壊の拍（V27C_FIRE_HIT）と
+    //   エフェクト（白くなって消える）は v35 のまま。
+    const V27C_SHOVEL_COLS = V27C_DROP_XS.map(function (x) {
       return Math.max(0, Math.min(COLS - 1, Math.floor(x / CELL)));
     });
+    const V27C_HIT_COLS = (function () {
+      const lo = Math.min.apply(null, V27C_SHOVEL_COLS);
+      const hi = Math.max.apply(null, V27C_SHOVEL_COLS);
+      const out = [];
+      for (let c = lo; c <= hi; c++) out.push(c);
+      return out;
+    })();
     const shovelBroken = [];
     bandAll.forEach(function (t) {
       if (t.claimed) return;
@@ -4378,6 +4417,39 @@ export default stage(
     //   あいだに次の波が出ても同じ行で重ならない（1 波は 1 拍静止 + 約 1.41s 飛行 ＝ 1.83s
     //   画面に居る。波の間隔は 0.74〜0.83s なので常に 2〜3 波が同時に見える）。
     let slidePrevRows = [];
+    // v37 (4): 「隣り合う 2 行」を 2 組（あいだに 2 行以上の隙間）に整える。
+    //   候補は (a, a+1) と (b, b+1) で b >= a + 4（＝あいだが 2 行以上空く）。
+    //   乱数は使わず、shuffled() が返した並び（pool）から決定的に 1 つ選ぶ。
+    const SLIDE_CLUSTER_OPTS = (function () {
+      const out = [];
+      for (let a = 0; a + 1 < ROWS; a++) {
+        // b >= a + 3 ＝ 2 組のあいだに 1 行以上の空きが残る
+        for (let b = a + 3; b + 1 < ROWS; b++) out.push([a, a + 1, b, b + 1]);
+      }
+      return out;
+    })();
+    function slideTwoClusters(pool, fallback) {
+      if (SLIDE_CLUSTER_OPTS.length === 0) return fallback;
+      // 直前の波と重なる行が少ない候補を優先し、同点なら隙間の広い方を採る
+      //   （従来の「行を毎回ばらす」を保つ。9 行では完全に外せない回があるので最小化にした）。
+      let best = null;
+      let h = 0;
+      for (let i = 0; i < pool.length; i++) h = (h * 7 + pool[i] + 1) % 100003;
+      SLIDE_CLUSTER_OPTS.forEach(function (o, i) {
+        // 直前の波との重なりは 1 行までは許す（0 行だけに絞ると 9 行では 2 通りしか残らず、
+        // 同じ並びが交互に繰り返すだけになるため）。
+        const overlap = o.filter(function (r) { return slidePrevRows.indexOf(r) >= 0; }).length;
+        const tie = (i + h) % SLIDE_CLUSTER_OPTS.length;   // 同点のときの決定的な散らし
+        const score = [Math.max(0, overlap - 1), tie, 0];
+        if (best === null) { best = { o: o, score: score }; return; }
+        for (let j = 0; j < 3; j++) {
+          if (score[j] === best.score[j]) continue;
+          if (score[j] < best.score[j]) best = { o: o, score: score };
+          return;
+        }
+      });
+      return best.o.slice();
+    }
     // v27 (11): 手打ち 83.112「このブロックで表示するタイルは、残さず消して」。
     //   1 波は 1 拍静止 + 約 1.42s の飛行で 1.84s 画面に居るので、ブロック A の最後の波
     //   （82.483s）は 84.3s まで＝次のブロックの頭（82.9167s）を越えて画面に残っていた。
@@ -4388,7 +4460,11 @@ export default stage(
           .filter(function (r) { return slidePrevRows.indexOf(r) < 0; }),
         rng
       );
-      const rows = pool.slice(0, SLIDE_TILES_PER_WAVE).sort(function (a, b) { return a - b; });
+      let rows = pool.slice(0, SLIDE_TILES_PER_WAVE).sort(function (a, b) { return a - b; });
+      // v37 (4): 指示書 #4「ブロックは 2 つくらいのまとまりに分け、避けやすく」（easy のみ）。
+      //   枚数（4 枚）は変えず、「隣り合う 2 枚」× 2 組で、組と組のあいだに 2 行以上の
+      //   隙間が空く並びだけを使う。乱数は上の shuffled() だけ＝消費数は 3 難易度で同じ。
+      if (IS_EASY) rows = slideTwoClusters(pool, rows);
       slidePrevRows = rows;
       const cells = rows.map(function (r) { return [SLIDE_COL, r]; });
       // 予告 → 実体化ポップ（マーカー 4〜8 のタイル出現と同じ作り）
@@ -4472,7 +4548,7 @@ export default stage(
       });
       hits.sort(function (a, b) { return a.t - b.t; })
         .slice(0, 3)
-        .forEach(function (h, k) { s.at(h.t, burst(h.c, meteorIdx + k, 0.5)); });
+        .forEach(function (h, k) { atBurst(h.t, h.c, meteorIdx + k, 0.5, !IS_EASY); });   // v37: easy は破裂弾なし
       meteorIdx++;
     }
 
@@ -4513,7 +4589,8 @@ export default stage(
         const step = Math.max(1, Math.ceil(sorted.length / SNAKE_BURSTS));
         for (let i = 0, k = 0; i < sorted.length; i += step, k++) {
           const t = sorted[i];
-          s.at(t.end, burst(cellCenter(t.col, t.row), k, 0.5));
+          // v37 (3): 指示書 #3（easy のみ）
+          atBurst(t.end, cellCenter(t.col, t.row), k, 0.5, !IS_EASY);
         }
       }
       return broken;
@@ -4598,7 +4675,8 @@ export default stage(
     //   ずらして流す（124.99s の 8 と同じ作り。y だけ上下 2 列の内側へ詰めた）。
     //   v35 (1): v34 (1) の直進化を取り消し、画面外から流す v33 の作りに戻した。
     const V32_SIDE_LIFE = (SHOVEL_RIGHT_X - SHOVEL_LEFT_X) / SHOVEL_SIDE_SPEED;
-    V32_SIDE_YS.forEach(function (y, k) {
+    // v37 (5): 指示書 #5「ここのシャベル攻撃消して」（easy のみ。95.196〜96.029s の 5 本）。
+    if (!IS_EASY) V32_SIDE_YS.forEach(function (y, k) {
       s.at(MK34_BLAST2 + k * beats(0.5), shovel({
         pos: [SHOVEL_RIGHT_X, y],
         vel: [-SHOVEL_SIDE_SPEED, 0],
@@ -4629,14 +4707,21 @@ export default stage(
 
     // マーカー 39: 縦の鎖 2 本（99.590s）。右半分の中央（列 11）は上から下、
     //   左半分の中央（列 4）は下から上。残留タイルはもう無いので破壊は起きない。
-    chainAttackG(
-      CHAIN_V_FAST_DOWN, MK39_CHAIN_MID - 0.35, MK39_CHAIN_MID - 0.15, MK39_CHAIN_MID,
-      [{ col: 11, phase: 0 }], bandF.concat(bandG), true
-    );
-    chainAttackG(
-      CHAIN_V_FAST, MK39_CHAIN_MID - 0.35, MK39_CHAIN_MID - 0.15, MK39_CHAIN_MID,
-      [{ col: 4, phase: Math.PI }], bandF.concat(bandG), true
-    );
+    // v37 (6) / N1: 指示書 easy #6「中央の隕石の左右の鎖攻撃を消して」・
+    //   normal 指示書 #1「normal もここの隕石の左右の鎖攻撃を消して」。
+    //   マーカー 39（99.590s）の列 11（右半分の中央）／列 4（左半分の中央）の 2 本が、
+    //   100.014s の中央の落下隕石の左右に立つ鎖。**lunatic だけ残す**。
+    //   chainAttackG は noBurst=true なので乱数を 1 回も使わない＝以降の配置は不変。
+    if (IS_LUNATIC) {
+      chainAttackG(
+        CHAIN_V_FAST_DOWN, MK39_CHAIN_MID - 0.35, MK39_CHAIN_MID - 0.15, MK39_CHAIN_MID,
+        [{ col: 11, phase: 0 }], bandF.concat(bandG), true
+      );
+      chainAttackG(
+        CHAIN_V_FAST, MK39_CHAIN_MID - 0.35, MK39_CHAIN_MID - 0.15, MK39_CHAIN_MID,
+        [{ col: 4, phase: Math.PI }], bandF.concat(bandG), true
+      );
+    }
 
     // v29 (3): マーカー 30 のタイル表示を 5 回 → 6 回（指示の番号 1〜6）へ変え、さらに
     //   出すごとに消す（積み上げない）ようにしたので、ここまでに rng を呼ぶ回数が v28 と
@@ -4685,7 +4770,8 @@ export default stage(
       //   → 放射弾は中央（k=0・100.014s）の 1 発だけにする。右（101.680s）と左（103.346s）は
       //   落下・着弾の演出（リング・潰れ・尾）だけ残して弾を出さない。
       // v31 (13): 3 発とも着弾時の破裂弾を復元する。エフェクトとの見分けは v31 (17) 側で行う。
-      s.at(impact, burst([x, METEOR_DROP_Y], k, 1.6));
+      // v37 (6)(7): 指示書 #6 #7「隕石の破裂弾を消して」（easy のみ。3 発とも）
+      atBurst(impact, [x, METEOR_DROP_Y], k, 1.6, !IS_EASY);
     });
 
     // 残ったタイルの実体クリップを出す（消える時刻が全部確定したあと）。
@@ -4801,7 +4887,9 @@ export default stage(
     );
     // v32 (13): 指示 108.025「ここ難易度が高すぎる。4 個程度に減らし、予告も入れて」。
     //   集める枚数を D(8,10,12) → D(3,4,5) へ落とす（normal で 4 枚＝指示どおり）。
-    const gatherWant = D(3, 4, 5);
+    // v37 / N2: 指示書 normal #2「ここのタイル集めて破裂する攻撃、タイル数は減らさないで」。
+    //   normal は 4 枚で lunatic の 5 枚より少なかったので lunatic と同数（5 枚）にした。
+    const gatherWant = D(3, 5, 5);
     // v34 (6): 指示 107.605「ここの飛ばすタイル、等角度に配置して。左側 2 つ、右側 2 つ
     //   みたいな。あと軌跡も予告で表示して」。
     //   → セルからランダムに選ぶのをやめ、集合点 GATHER_POINT を中心にした左右対称の
@@ -4960,8 +5048,10 @@ export default stage(
     //   同じ速さの破裂弾を。速度はこの内側のやつに合わせて」。
     //   → 2 枚とも内側の速さ D(7,9,11) にそろえ、2 枚目を **1/2 拍遅らせ**、
     //     角度を **半ピッチ（π/N）** ずらす。弾数・自転・大きさは現状のまま。
-    const GATHER_RING_N = Math.round(D(10, 12, 14) * 2);
-    const GATHER_RING_SPEED = D(7, 9, 11);
+    // v37 (1)(8): 指示書 #8「タイルを集めて爆破するときの破裂弾はそのままに」＝残す。
+    //   弾数と速さは #1 の規則（基準 D(6,12,14) / 速さ D(9.5,9,11)）に従う。
+    const GATHER_RING_N = Math.round(D(6, 12, 14) * 2);
+    const GATHER_RING_SPEED = D(9.5, 9, 11);
     [0, 1].forEach(function (j) {
       const off = rng() * 2 * Math.PI + (j * Math.PI) / GATHER_RING_N;
       s.at(GATHER_IMPACT + j * beats(0.5), spinBurst({
@@ -5006,7 +5096,8 @@ export default stage(
       //   個々に飛び散る破片 2 段（速い外側 20 発・遅い内側 12 発）にした。
       //   隕石本体の軌道・時刻・当たり判定は据え置き（指示「隕石はそのままでいい」）。
       s.at(hit, meteorBurstFx([x1, y], 1.2, 'meteorhit'));   // v29b: 輪郭リング＋欠片（小さい四角の破片は廃止）
-      s.at(hit, burst([x1, y], k, 1.6));
+      // v37 (8): 指示書 #8「破裂弾を消して（集合爆破のぶんは残す）」（easy のみ）
+      atBurst(hit, [x1, y], k, 1.6, !IS_EASY);
     });
 
     // v22: マーカー 43 のタイル。爆破されなかったぶんはマーカー 47（108.066s）で消える。
@@ -5057,7 +5148,8 @@ export default stage(
     // 隕石の爆破一式（v27 (15) と同じ円形リング＋破片＋放射弾）。
     function v28MeteorBlast(t, pos, idx, fxPos) {
       s.at(t, meteorBurstFx(fxPos || pos, 1.0, 'meteorhit'));   // v29b: 輪郭リング＋欠片
-      s.at(t, burst(pos, idx, 1.2));
+      // v37 (9)(10)(12): 指示書 #9 #10 #12「この辺の破裂弾を消して」（easy のみ）
+      atBurst(t, pos, idx, 1.2, !IS_EASY);
     }
 
     // v29 (8): 指示 117.795「ここら辺全体的に隕石爆破が早すぎるので遅くして」。
@@ -5182,10 +5274,13 @@ export default stage(
         }], 'gatherbloom'));
         s.at(tA4, meteorBurstFx(floorHit(impact[0]), 1.2, 'meteorhit'));   // v34 (5): 中心＝接触点（床）
         // v35 (10): 同じ規則（内側の速さに統一・1/2 拍遅れ・半ピッチ角度ずらし）。
-        const ringN = Math.round(D(10, 12, 14) * 2);
-        const ringSpeed = D(7, 9, 11);
+        const ringN = Math.round(D(6, 12, 14) * 2);
+        const ringSpeed = D(9.5, 9, 11);
         [0, 1].forEach(function (j) {
           const off = rng() * 2 * Math.PI + (j * Math.PI) / ringN;
+          // v37 (9): lightspeed の着弾（116.998 / 117.207）も隕石の着弾なので easy では消す。
+          //   乱数は上で消費済み＝以降の配置は動かない。
+          if (IS_EASY) return;
           s.at(tA4 + j * beats(0.5), spinBurst({
             pos: impact, count: ringN, speed: ringSpeed, type: 'stone3_bullet', life: 0,
             scale: [BULLET_SCALE, BULLET_SCALE], color: SPRITE_AS_IS,
@@ -5285,11 +5380,12 @@ export default stage(
     });
 
     // --- 9: 上側から、左から順に 1/3 拍ずつずらしてシャベルを落とす -----------------
-    const V28_TOP_LIFE = (SHOVEL_SPAWN_Y - V28_TOP_FALL_END_Y) / SHOVEL_FALL_SPEED;
+    // v37 (11): 指示書 #11 の実体（126.65〜127.35s の 6 本）。easy だけ 0.65 倍の落下速度。
+    const V28_TOP_LIFE = (SHOVEL_SPAWN_Y - V28_TOP_FALL_END_Y) / SHOVEL_FALL_V;
     V28_TOP_XS.forEach(function (x, k) {
       s.at(V28_D_TOP + k * V28_TOP_STAGGER, shovel({
         pos: [x, SHOVEL_SPAWN_Y],
-        vel: [0, -SHOVEL_FALL_SPEED],
+        vel: [0, -SHOVEL_FALL_V],
         angle: SHOVEL_ANGLE_DOWN,
         life: V28_TOP_LIFE,
       }));
@@ -5387,11 +5483,18 @@ export default stage(
     // v35 (12): 指示書 #12「この大爆発も時間差・角度差 3 発に」。
     //   3 枚とも内側の速さ D(6,8,10) にそろえ、0 / 1/3 拍 / 2/3 拍 の時間差、
     //   角度を 1/3 ピッチ（2π/N の 1/3）ずつずらす。弾数・自転は現状のまま。
-    const finRingN = Math.round(D(10, 12, 14) * 2.5);
-    const finRingSpeed = D(6, 8, 10);
+    // v37 (13): 指示書 #13「ここの破裂弾は残し、3 → 2 列に」（easy のみ）。
+    //   easy は 2 枚（0 / 1/2 拍・半ピッチ角度ずらし）、normal / lunatic は従来の 3 枚。
+    //   弾数と速さは #1 の規則（基準 D(6,12,14) / 速さ D(8.6,8,10) = lunatic の 0.86 倍）。
+    const finRingN = Math.round(D(6, 12, 14) * 2.5);
+    const finRingSpeed = D(8.6, 8, 10);
+    const finRings = IS_EASY ? 2 : 3;
+    const finStep = IS_EASY ? beats(0.5) : beats(1 / 3);
     [SPIN_RATE, -SPIN_RATE, SPIN_RATE].forEach(function (spin, j) {
-      const off = rng() * 2 * Math.PI + (j * 2 * Math.PI) / (3 * finRingN);
-      s.at(V28_END_BLAST + j * beats(1 / 3), spinBurst({
+      const base = rng() * 2 * Math.PI;   // 乱数の消費は 3 難易度で同じ（3 回）
+      if (j >= finRings) return;
+      const off = base + (IS_EASY ? (j * Math.PI) / finRingN : (j * 2 * Math.PI) / (3 * finRingN));
+      s.at(V28_END_BLAST + j * finStep, spinBurst({
         pos: finPos,
         count: finRingN,
         speed: finRingSpeed,
