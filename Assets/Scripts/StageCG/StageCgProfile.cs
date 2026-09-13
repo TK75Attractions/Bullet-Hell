@@ -52,6 +52,20 @@ public class StageCgBossBrightnessOverride
     [Tooltip("stone.json の bossSpawner.bossId。")]
     public string bossId = "";
     [Range(0f, 2f)] public float brightness = 0.5f;
+    [Tooltip("時刻で明度を変えたいときのキー（空なら brightness 固定）。キーの間は線形補間する。")]
+    public StageCgBossBrightnessKey[] keys = new StageCgBossBrightnessKey[0];
+}
+
+/// <summary>
+/// 明度上書きを時刻で動かすキー。石工 v36 #1 で、老人が岩棚の裏に隠れているあいだに
+/// 明度を 0.65 → 0.5（ゴーレム側と同じ）へ落とし、飛び乗りの前後で色が変わらないようにした。
+/// </summary>
+[Serializable]
+public class StageCgBossBrightnessKey
+{
+    [Tooltip("ステージ秒。")]
+    public float time;
+    [Range(0f, 2f)] public float brightness = 0.5f;
 }
 
 /// <summary>
@@ -291,14 +305,25 @@ public class StageCgProfile
         return bossDepth;
     }
 
-    /// <summary>ボス個体の明度。上書きが無ければ bossBrightness。</summary>
-    public float BossBrightnessAt(string bossId)
+    /// <summary>ボス個体の明度。上書きが無ければ bossBrightness。keys があれば時刻で補間する。</summary>
+    public float BossBrightnessAt(string bossId, float stageTime)
     {
         if (bossBrightnessOverrides == null || string.IsNullOrEmpty(bossId)) return bossBrightness;
         for (int i = 0; i < bossBrightnessOverrides.Length; i++)
         {
             StageCgBossBrightnessOverride o = bossBrightnessOverrides[i];
-            if (o != null && o.bossId == bossId) return o.brightness;
+            if (o == null || o.bossId != bossId) continue;
+            StageCgBossBrightnessKey[] k = o.keys;
+            if (k == null || k.Length == 0) return o.brightness;
+            if (stageTime <= k[0].time) return k[0].brightness;
+            for (int j = 1; j < k.Length; j++)
+            {
+                if (stageTime > k[j].time) continue;
+                float span = Mathf.Max(1e-4f, k[j].time - k[j - 1].time);
+                float u = Mathf.Clamp01((stageTime - k[j - 1].time) / span);
+                return Mathf.Lerp(k[j - 1].brightness, k[j].brightness, u * u * (3f - 2f * u));
+            }
+            return k[k.Length - 1].brightness;
         }
         return bossBrightness;
     }

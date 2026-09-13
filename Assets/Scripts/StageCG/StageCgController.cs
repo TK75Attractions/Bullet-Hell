@@ -728,7 +728,7 @@ public class StageCgController : MonoBehaviour
             //   1 を超える倍率は MaterialPropertyBlock の _Color（float4）側で掛ける。
             Boss bossForColor = src.GetComponent<Boss>();
             string bossIdForColor = bossForColor != null ? bossForColor.bossId : null;
-            float mul = p.bossBrightness > 1e-4f ? p.BossBrightnessAt(bossIdForColor) / p.bossBrightness : 1f;
+            float mul = p.bossBrightness > 1e-4f ? p.BossBrightnessAt(bossIdForColor, stageTime) / p.bossBrightness : 1f;
             bossMpb ??= new MaterialPropertyBlock();
             proxy.GetPropertyBlock(bossMpb);
             bossMpb.SetColor(BossTintId, new Color(mul, mul, mul, 1f));

@@ -1627,6 +1627,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TitleManager
   bpm: 128
   codeFont: {fileID: 11400000, guid: 191b61a0296928548af68ca23e643298, type: 2}
+  showControlHint: 0
   useObjectMenu: 1
   roomLogoAnchoredPos: {x: 20, y: 258}
   roomLogoWidth: 740
@@ -6144,13 +6145,20 @@ MonoBehaviour:
         depth: 9
       - time: 63.345
         depth: 9
-      - time: 63.545
+      - time: 63.503334
         depth: 5.6
       - time: 64.1
         depth: 5.6
     bossBrightnessOverrides:
     - bossId: caster
       brightness: 0.65
+      keys:
+      - time: 0
+        brightness: 0.65
+      - time: 58.337
+        brightness: 0.65
+      - time: 59.2
+        brightness: 0.5
     sunFrom: {x: -30, y: 55, z: -12}
     sunTo: {x: 16, y: 2, z: 12}
     sunColorLinear: {x: 0.64, y: 0.59, z: 1}
