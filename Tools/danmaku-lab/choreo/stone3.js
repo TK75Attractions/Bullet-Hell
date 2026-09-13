@@ -842,7 +842,12 @@ const BOSS_MOUNT_APPROACH_Y = 14.1 - BOSS_STAND_DROP;     // v36: ゴーレム�
 const BOSS_MOUNT_HOP_SEC = 0.575;      // v36 (1): 0.333333 → 0.575（騎乗の瞬間は不変）
 const BOSS_MOUNT_Y = 15.964 - BOSS_STAND_DROP;   // v36 (C): ゴーレムに追従
 const BOSS_MOUNT_ARC_Y = 18.90 - BOSS_STAND_DROP; // ベジェの制御点（頂点は 1.0655 下がるだけで形は不変）
-const BOSS_CASTER_END = 64.078333;      // = BOSS_MOUNT_START + BOSS_MOUNT_APPROACH_SEC + BOSS_MOUNT_HOP_SEC（v36 で一致）
+// v36 (1b): 老人の消滅とゴーレムの騎乗版への切替を **同じ時刻** にする。
+//   v35 は 1/60 秒早く消していた（二重表示の回避）が、ボスの時計を appearTime 基準へ直したら
+//   30fps の実コマで「どちらも居ない 1 コマ」が出た（実測 64.066s）。切替と同時刻にすると
+//   同じフレームで入れ替わるので、隙間も二重も出ない。跳び上がりは 64.078333 で着き、
+//   そこから 1/60 秒だけ騎乗位置で待ってから切り替わる。
+const BOSS_CASTER_END = 64.095;         // = ゴーレムの騎乗版への切替（BOSS_GOLEM_EVENTS #11）
 
 // 詠唱ボス（stone）のアニメ。秒はステージ秒（appearTime 0 なので相対 = 絶対）。
 //   指示書 #2〜#9。cast3 は 10 コマ×0.1s、cast4 は 7 コマ×0.1s、終わると idle へ戻る。
