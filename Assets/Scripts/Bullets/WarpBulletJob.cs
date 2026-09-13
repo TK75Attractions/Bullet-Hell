@@ -6,7 +6,13 @@ using Unity.Mathematics;
 [BurstCompile]
 public struct WarpBulletJob : IJobParallelFor
 {
+    // indices 経由で飛び飛びのスロットへ書くので ParallelFor の範囲制限を外す。
+    [NativeDisableParallelForRestriction]
     public NativeArray<BulletData> bullets;
+
+    /// <summary>処理対象スロットの昇順リスト(<see cref="BulletActiveIndexJob"/> が作る)。</summary>
+    [ReadOnly]
+    public NativeArray<int> indices;
 
     [ReadOnly]
     public NativeArray<BulletData> warpZones;
@@ -17,8 +23,10 @@ public struct WarpBulletJob : IJobParallelFor
     public int reflectXTypeId;
     public int reflectYTypeId;
 
-    public void Execute(int index)
+    public void Execute(int order)
     {
+        // indices 未設定(EditMode テストが Execute を直接叩く経路)では従来どおり order = slot。
+        int index = indices.IsCreated ? indices[order] : order;
         BulletData bullet = bullets[index];
         if (!bullet.isActive || bullet.isClearing) return;
         if (!bullet.warpable) return;

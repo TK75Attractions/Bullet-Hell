@@ -9,7 +9,16 @@ public struct BulletCollisionJob : IJobParallelFor
 {
     private const float CrossEpsilon = 1e-5f;
 
+    [NativeDisableParallelForRestriction]
     public NativeArray<BulletData> bullets;
+
+    /// <summary>ダッシュ判定で実体配列を直接叩くときの対象スロット(昇順)。</summary>
+    [ReadOnly]
+    public NativeArray<int> indices;
+
+    /// <summary>true = bullets を indices 経由で引く。false = 詰め直した配列をそのまま引く。</summary>
+    public bool useIndices;
+
     [ReadOnly]
     public NativeArray<float2> bVerts;
     [ReadOnly]
@@ -26,8 +35,9 @@ public struct BulletCollisionJob : IJobParallelFor
     [NativeDisableParallelForRestriction]
     public NativeArray<float> attackPower;
 
-    public void Execute(int index)
+    public void Execute(int order)
     {
+        int index = useIndices ? indices[order] : order;
         BulletData bullet = bullets[index];
         if (isCollided[0] != 0 && !isPlayerDash) return;
         if (bullet.isClearing) return;

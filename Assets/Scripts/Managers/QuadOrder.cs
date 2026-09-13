@@ -87,6 +87,15 @@ public class QuadOrder : MonoBehaviour
     private NativeList<int> laserBatchCellIndices;
     private NativeList<byte> dashCollisionActiveFlags;
 
+    // 生存中(isActive || isClearing)の弾のスロット番号を昇順に並べた表。毎フレームの
+    // 更新 Job・当たり判定セルの再構築・描画データ生成はこの表を介して回るので、
+    // 処理コストは「累計弾数(= enemyBullets.Length)」ではなく「生きている弾数」に比例する。
+    // enemyBullets 自体は従来どおり追加専用で、スロット番号(= 外部ハンドル)は不変。
+    private NativeList<int> activeEnemyIndices;
+    private NativeList<int> warpZoneIndices;
+    private int activeEnemyScannedLength;
+    private bool activeEnemyRescanRequired;
+
     #endregion
 
     private bool collisionDataDirty = true;
@@ -108,6 +117,16 @@ public class QuadOrder : MonoBehaviour
     [SerializeField] private float defaultWarpCooldown = 0.1f;
     private bool warpZoneTypeResolutionAttempted;
     [Header("Debug")]
+#if UNITY_EDITOR
+    // 計測用: true にすると activeEnemyIndices に全スロットを入れ、従来と同じ
+    // 「累計弾数に比例」する回り方へ戻す(改修前後の fps を同一セッションで比べるため)。
+    public static bool debugFullSlotScan = false;
+    // 検証用: 全スロット走査で得られる生存 index 列が activeEnemyIndices に
+    // 過不足なく含まれているかを毎フレーム突き合わせる。
+    public static bool debugVerifyActiveIndices = false;
+    public static int debugActiveIndexMismatches = 0;
+    public static int debugActiveIndexChecks = 0;
+#endif
     [SerializeField] private bool debugSyncNativeBulletListsToInspector;
     [SerializeField] private int debugNativeBulletDisplayLimit = 128;
     [SerializeField] private int debugEnemyBulletSlotCount;
@@ -199,6 +218,7 @@ public class QuadOrder : MonoBehaviour
         {
             dashCollisionActiveFlags = new NativeList<byte>(256, Allocator.Persistent);
         }
+        EnsureActiveEnemyIndices();
         ResolveWarpZoneTypeId();
 
         if (boss != null)
@@ -228,6 +248,8 @@ public class QuadOrder : MonoBehaviour
         if (laserBatchVerts.IsCreated) laserBatchVerts.Dispose();
         if (laserBatchCellIndices.IsCreated) laserBatchCellIndices.Dispose();
         if (dashCollisionActiveFlags.IsCreated) dashCollisionActiveFlags.Dispose();
+        if (activeEnemyIndices.IsCreated) activeEnemyIndices.Dispose();
+        if (warpZoneIndices.IsCreated) warpZoneIndices.Dispose();
     }
 
     private void BuildCollisionData()
@@ -365,7 +387,13 @@ public class QuadOrder : MonoBehaviour
     #region //BulletMethods
     public void BulletUpdate(float _dt)
     {
-        bool hasEnemyBullets = enemyBullets.IsCreated && enemyBullets.Length > 0;
+        // スポナーの発射(SReader.UpdateStage)はこの呼び出しより前に済んでいるので、
+        // ここで表を作り直せば今フレームに生まれた弾も含まれる。死んだスロットはここで落ちる。
+        RefreshActiveEnemyIndices();
+#if UNITY_EDITOR
+        if (debugVerifyActiveIndices) DebugVerifyActiveIndices("after-refresh");
+#endif
+        bool hasEnemyBullets = enemyBullets.IsCreated && activeEnemyIndices.IsCreated && activeEnemyIndices.Length > 0;
         bool hasWarpZones = warpZones.IsCreated && warpZones.Length > 0;
         if (!hasEnemyBullets && !hasWarpZones)
         {
@@ -381,14 +409,16 @@ public class QuadOrder : MonoBehaviour
         if (hasEnemyBullets)
         {
             NativeArray<BulletData> bullets = enemyBullets.AsArray();
+            NativeArray<int> indices = activeEnemyIndices.AsArray();
             BulletDataUpdateJob job1 = new()
             {
                 bullets = bullets,
+                indices = indices,
                 dt = _dt,
                 grid = grid,
                 playerVelocity = playerVelocity
             };
-            JobHandle handle1 = job1.Schedule(bullets.Length, 64);
+            JobHandle handle1 = job1.Schedule(indices.Length, 64);
             handle1.Complete();
 
             // v2 レーン(segments/homing を持つ弾のみ処理。同じ配列を逐次 Schedule→Complete するため
@@ -396,12 +426,13 @@ public class QuadOrder : MonoBehaviour
             BulletV2UpdateJob job2 = new()
             {
                 bullets = bullets,
+                indices = indices,
                 dt = _dt,
                 grid = grid,
                 playerVelocity = playerVelocity,
                 playerPosition = playerPosition
             };
-            JobHandle handle2 = job2.Schedule(bullets.Length, 64);
+            JobHandle handle2 = job2.Schedule(indices.Length, 64);
             handle2.Complete();
         }
 
@@ -409,9 +440,11 @@ public class QuadOrder : MonoBehaviour
         if (hasWarpZones)
         {
             NativeArray<BulletData> bullets = warpZones.AsArray();
+            RefreshWarpZoneIndices();
             BulletDataUpdateJob job3 = new()
             {
                 bullets = bullets,
+                indices = warpZoneIndices.AsArray(),
                 dt = _dt,
                 grid = grid,
                 playerVelocity = playerVelocity
@@ -422,18 +455,22 @@ public class QuadOrder : MonoBehaviour
 
         ApplyWarpZones(_dt);
 
+#if UNITY_EDITOR
+        if (debugVerifyActiveIndices) DebugVerifyActiveIndices("before-cells");
+#endif
         RebuildCellsFromBullets();
         SyncNativeBulletDebugViews();
     }
 
     private void ApplyWarpZones(float dt)
     {
-        if (!enemyBullets.IsCreated || enemyBullets.Length == 0) return;
+        if (!enemyBullets.IsCreated || !activeEnemyIndices.IsCreated || activeEnemyIndices.Length == 0) return;
         if (!warpZones.IsCreated || warpZones.Length < 2) return;
 
         WarpBulletJob job = new WarpBulletJob
         {
             bullets = enemyBullets.AsArray(),
+            indices = activeEnemyIndices.AsArray(),
             warpZones = warpZones.AsArray(),
             dt = dt,
             warpCooldown = defaultWarpCooldown,
@@ -442,7 +479,7 @@ public class QuadOrder : MonoBehaviour
             reflectYTypeId = warpZoneReflectYTypeId
         };
 
-        JobHandle handle = job.Schedule(enemyBullets.Length, 64);
+        JobHandle handle = job.Schedule(activeEnemyIndices.Length, 64);
         handle.Complete();
     }
 
@@ -459,11 +496,13 @@ public class QuadOrder : MonoBehaviour
     {
         ClearAllCells();
 
-        if (enemyBullets.IsCreated)
+        if (enemyBullets.IsCreated && activeEnemyIndices.IsCreated)
         {
-            for (int i = 0; i < enemyBullets.Length; i++)
+            // 登録順(昇順)は従来の全スロット走査と同じ。生存していないスロットは
+            // そもそも ShouldRegisterBulletForCollision で弾かれるので結果は変わらない。
+            for (int k = 0; k < activeEnemyIndices.Length; k++)
             {
-                BulletData bullet = enemyBullets[i];
+                BulletData bullet = enemyBullets[activeEnemyIndices[k]];
                 if (!ShouldRegisterBulletForCollision(bullet)) continue;
                 RegisterBulletToCollisionCells(bullet);
             }
@@ -557,6 +596,164 @@ public class QuadOrder : MonoBehaviour
             warpZones = new NativeList<BulletData>(capacity, Allocator.Persistent);
         }
     }
+
+    #region //ActiveIndexTable
+    private void EnsureActiveEnemyIndices(int capacity = 256)
+    {
+        if (!activeEnemyIndices.IsCreated)
+        {
+            activeEnemyIndices = new NativeList<int>(capacity, Allocator.Persistent);
+            activeEnemyScannedLength = 0;
+            activeEnemyRescanRequired = true;
+        }
+        if (!warpZoneIndices.IsCreated)
+        {
+            warpZoneIndices = new NativeList<int>(16, Allocator.Persistent);
+        }
+    }
+
+    /// <summary>
+    /// 生存インデックス表を作り直す(死んだスロットを間引き、前回以降に追加されたスロットを拾う)。
+    /// 走査量は「生存数 + 新規追加数」で、累計スロット数には比例しない。
+    /// </summary>
+    private void RefreshActiveEnemyIndices()
+    {
+        EnsureActiveEnemyIndices();
+        if (!enemyBullets.IsCreated)
+        {
+            activeEnemyIndices.Clear();
+            activeEnemyScannedLength = 0;
+            return;
+        }
+
+        bool fullScan = false;
+#if UNITY_EDITOR
+        fullScan = debugFullSlotScan;
+#endif
+        if (activeEnemyRescanRequired || activeEnemyScannedLength > enemyBullets.Length)
+        {
+            // 死んだスロットが生き返った(SetEnemyBulletActive(index, true))後など、
+            // 差分更新では拾えないときだけ全スロットを舐め直す。
+            activeEnemyIndices.Clear();
+            activeEnemyScannedLength = 0;
+        }
+
+        BulletActiveIndexJob job = new BulletActiveIndexJob
+        {
+            bullets = enemyBullets.AsArray(),
+            indices = activeEnemyIndices,
+            scannedLength = activeEnemyScannedLength,
+            fullSlotScan = fullScan ? (byte)1 : (byte)0
+        };
+        job.Run();
+
+        activeEnemyScannedLength = enemyBullets.Length;
+        activeEnemyRescanRequired = false;
+    }
+
+    /// <summary>
+    /// BulletUpdate の後(非同期スポーン・描画直前など)に追加された弾を表へ足す。
+    /// 間引きはしないので、表は常に「生存している弾の上位集合」であり続ける。
+    /// </summary>
+    private void SyncActiveEnemyIndices()
+    {
+        EnsureActiveEnemyIndices();
+        if (!enemyBullets.IsCreated) return;
+        if (activeEnemyRescanRequired || activeEnemyScannedLength > enemyBullets.Length)
+        {
+            RefreshActiveEnemyIndices();
+            return;
+        }
+        if (activeEnemyScannedLength == enemyBullets.Length) return;
+
+        bool fullScan = false;
+#if UNITY_EDITOR
+        fullScan = debugFullSlotScan;
+#endif
+        for (int index = activeEnemyScannedLength; index < enemyBullets.Length; index++)
+        {
+            BulletData bullet = enemyBullets[index];
+            if (!fullScan && !bullet.isActive && !bullet.isClearing) continue;
+            activeEnemyIndices.Add(index);
+        }
+        activeEnemyScannedLength = enemyBullets.Length;
+    }
+
+    private void RefreshWarpZoneIndices()
+    {
+        EnsureActiveEnemyIndices();
+        int length = warpZones.IsCreated ? warpZones.Length : 0;
+        if (warpZoneIndices.Length == length) return;
+        warpZoneIndices.Clear();
+        for (int i = 0; i < length; i++) warpZoneIndices.Add(i);
+    }
+
+    private void ResetActiveEnemyIndices()
+    {
+        EnsureActiveEnemyIndices();
+        activeEnemyIndices.Clear();
+        warpZoneIndices.Clear();
+        activeEnemyScannedLength = 0;
+        activeEnemyRescanRequired = false;
+    }
+
+    /// <summary>isActive / isClearing を外から書き換えたときに表の作り直しが要るかを見る。</summary>
+    private void NoteEnemyBulletAliveChanged(bool wasAlive, bool isAlive)
+    {
+        if (!wasAlive && isAlive) activeEnemyRescanRequired = true;
+    }
+
+    /// <summary>描画など QuadUpdate の外から使う入口。直前に追加された弾も拾ってから返す。</summary>
+    public NativeArray<int> GetActiveEnemyBulletIndices()
+    {
+        SyncActiveEnemyIndices();
+#if UNITY_EDITOR
+        if (debugVerifyActiveIndices) DebugVerifyActiveIndices("render");
+#endif
+        return activeEnemyIndices.IsCreated ? activeEnemyIndices.AsArray() : default;
+    }
+
+#if UNITY_EDITOR
+    /// <summary>
+    /// E1 検証用。全スロットを舐めて得た生存 index 列が activeEnemyIndices に
+    /// 同じ順序で含まれているか(= 従来の全スロット走査と同じ要素・同じ順序で回っているか)を
+    /// 突き合わせる。ズレたら Error ログを 1 件出して打ち切る。
+    /// </summary>
+    public void DebugVerifyActiveIndices(string phase)
+    {
+        if (!enemyBullets.IsCreated || !activeEnemyIndices.IsCreated) return;
+        debugActiveIndexChecks++;
+
+        int cursor = 0;
+        int previous = -1;
+        for (int k = 0; k < activeEnemyIndices.Length; k++)
+        {
+            int index = activeEnemyIndices[k];
+            if (index <= previous || index < 0 || index >= enemyBullets.Length)
+            {
+                debugActiveIndexMismatches++;
+                Debug.LogError($"[E1] activeEnemyIndices order broken at k={k} (index={index}, prev={previous}, phase={phase}, frame={Time.frameCount})");
+                return;
+            }
+            previous = index;
+        }
+
+        for (int index = 0; index < enemyBullets.Length; index++)
+        {
+            BulletData bullet = enemyBullets[index];
+            if (!bullet.isActive && !bullet.isClearing) continue;
+            while (cursor < activeEnemyIndices.Length && activeEnemyIndices[cursor] < index) cursor++;
+            if (cursor >= activeEnemyIndices.Length || activeEnemyIndices[cursor] != index)
+            {
+                debugActiveIndexMismatches++;
+                Debug.LogError($"[E1] activeEnemyIndices missing live slot {index} (phase={phase}, frame={Time.frameCount}, slots={enemyBullets.Length}, table={activeEnemyIndices.Length})");
+                return;
+            }
+            cursor++;
+        }
+    }
+#endif
+    #endregion
 
     private int AddWarpZone(BulletData bullet)
     {
@@ -809,7 +1006,21 @@ public class QuadOrder : MonoBehaviour
 
     public NativeArray<BulletData> GetEnemyBullets() => enemyBullets.IsCreated ? enemyBullets.AsArray() : default;
 
-    public int GetEnemyBulletCount() => CountActiveBullets(enemyBullets);
+    public int GetEnemyBulletCount() => CountActiveEnemyBullets();
+
+    /// <summary>生存インデックス表を介して active な弾だけ数える(累計スロット数には比例しない)。</summary>
+    private int CountActiveEnemyBullets()
+    {
+        SyncActiveEnemyIndices();
+        if (!enemyBullets.IsCreated || !activeEnemyIndices.IsCreated) return 0;
+
+        int count = 0;
+        for (int k = 0; k < activeEnemyIndices.Length; k++)
+        {
+            if (enemyBullets[activeEnemyIndices[k]].isActive) count++;
+        }
+        return count;
+    }
 
     public NativeArray<BulletData> GetWarpZones() => warpZones.IsCreated ? warpZones.AsArray() : default;
 
@@ -868,8 +1079,10 @@ public class QuadOrder : MonoBehaviour
         if (!enemyBullets.IsCreated || index < 0 || index >= enemyBullets.Length) return;
 
         BulletData bullet = enemyBullets[index];
+        bool wasAlive = bullet.isActive || bullet.isClearing;
         bullet.isActive = active;
         enemyBullets[index] = bullet;
+        NoteEnemyBulletAliveChanged(wasAlive, bullet.isActive || bullet.isClearing);
     }
 
     public void SetManagedBulletActive(ManagedBulletHandle handle, bool active)
@@ -888,7 +1101,9 @@ public class QuadOrder : MonoBehaviour
         {
             case ManagedBulletKind.EnemyBullet:
                 if (!enemyBullets.IsCreated || handle.index < 0 || handle.index >= enemyBullets.Length) return;
+                bool wasAlive = enemyBullets[handle.index].isActive || enemyBullets[handle.index].isClearing;
                 enemyBullets[handle.index] = bullet;
+                NoteEnemyBulletAliveChanged(wasAlive, bullet.isActive || bullet.isClearing);
                 break;
             case ManagedBulletKind.WarpZone:
                 if (!warpZones.IsCreated || handle.index < 0 || handle.index >= warpZones.Length) return;
@@ -1129,21 +1344,25 @@ public class QuadOrder : MonoBehaviour
         bool isPlayerDash = player.IsDashing;
         NativeArray<BulletData> checkBullets;
 
+        SyncActiveEnemyIndices();
+        int dashCount = activeEnemyIndices.IsCreated ? activeEnemyIndices.Length : 0;
+
         if (isPlayerDash)
         {
-            if (!enemyBullets.IsCreated || enemyBullets.Length == 0) return;
+            if (!enemyBullets.IsCreated || dashCount == 0) return;
             if (!dashCollisionActiveFlags.IsCreated)
             {
-                dashCollisionActiveFlags = new NativeList<byte>(math.max(256, enemyBullets.Length), Allocator.Persistent);
+                dashCollisionActiveFlags = new NativeList<byte>(math.max(256, dashCount), Allocator.Persistent);
             }
-            if (dashCollisionActiveFlags.Capacity < enemyBullets.Length)
+            if (dashCollisionActiveFlags.Capacity < dashCount)
             {
-                dashCollisionActiveFlags.Capacity = enemyBullets.Length;
+                dashCollisionActiveFlags.Capacity = dashCount;
             }
-            dashCollisionActiveFlags.ResizeUninitialized(enemyBullets.Length);
-            for (int i = 0; i < enemyBullets.Length; i++)
+            // フラグは生存インデックス表と同じ並び(k 番目 = activeEnemyIndices[k] のスロット)。
+            dashCollisionActiveFlags.ResizeUninitialized(dashCount);
+            for (int k = 0; k < dashCount; k++)
             {
-                dashCollisionActiveFlags[i] = enemyBullets[i].isActive ? (byte)1 : (byte)0;
+                dashCollisionActiveFlags[k] = enemyBullets[activeEnemyIndices[k]].isActive ? (byte)1 : (byte)0;
             }
             // Dash中は実体の弾配列を直接処理して、isActive変更を反映する
             checkBullets = enemyBullets.AsArray();
@@ -1192,6 +1411,8 @@ public class QuadOrder : MonoBehaviour
         BulletCollisionJob collisionJob = new()
         {
             bullets = checkBullets,
+            indices = activeEnemyIndices.AsArray(),
+            useIndices = isPlayerDash,
             bVerts = collisionVerts,
             bVertRanges = collisionVertRanges,
             bPowers = bulletPowers,
@@ -1204,13 +1425,14 @@ public class QuadOrder : MonoBehaviour
 
         if (isPlayerDash)
         {
-            collisionJob.Run(checkBullets.Length);
+            collisionJob.Run(dashCount);
 
-            for (int i = 0; i < enemyBullets.Length && i < dashCollisionActiveFlags.Length; i++)
+            for (int k = 0; k < dashCount && k < dashCollisionActiveFlags.Length; k++)
             {
-                if (dashCollisionActiveFlags[i] == 0) continue;
-                if (enemyBullets[i].isActive) continue;
-                SpawnCounterBullet(enemyBullets[i]);
+                if (dashCollisionActiveFlags[k] == 0) continue;
+                int index = activeEnemyIndices[k];
+                if (enemyBullets[index].isActive) continue;
+                SpawnCounterBullet(enemyBullets[index]);
             }
         }
         else
@@ -1343,12 +1565,14 @@ public class QuadOrder : MonoBehaviour
 
         if (enemyBullets.IsCreated)
         {
-            for (int i = 0; i < enemyBullets.Length; i++)
+            SyncActiveEnemyIndices();
+            for (int k = 0; k < activeEnemyIndices.Length; k++)
             {
-                BulletData bullet = enemyBullets[i];
+                int index = activeEnemyIndices[k];
+                BulletData bullet = enemyBullets[index];
                 if (!bullet.isActive || bullet.isClearing) continue;
                 bullet.BeginClearFade(fadeDuration);
-                enemyBullets[i] = bullet;
+                enemyBullets[index] = bullet;
             }
         }
 
@@ -1367,6 +1591,7 @@ public class QuadOrder : MonoBehaviour
         multiBullets.Clear();
 
         if (warpZones.IsCreated) warpZones.Clear();
+        RefreshWarpZoneIndices();
         if (collisionCheckBullets.IsCreated) collisionCheckBullets.Clear();
         GManager.Control.CManager?.StopScreenNoise();
 
@@ -1382,6 +1607,7 @@ public class QuadOrder : MonoBehaviour
         if (enemyBullets.IsCreated) enemyBullets.Clear();
         if (counterBullets.IsCreated) counterBullets.Clear();
         if (warpZones.IsCreated) warpZones.Clear();
+        ResetActiveEnemyIndices();
 
         for (int i = allLASERs.Count - 1; i >= 0; i--)
         {

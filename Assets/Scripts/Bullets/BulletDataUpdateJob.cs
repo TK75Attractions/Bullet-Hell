@@ -9,13 +9,23 @@ public struct BulletDataUpdateJob : IJobParallelFor
     private const float NoiseFrequency = 1f;
     private const float AngleVelocityEpsilonSq = 1e-10f;
 
+    // indices 経由で飛び飛びのスロットへ書くので ParallelFor の範囲制限を外す。
+    // indices は重複の無い昇順なので、要素ごとの書き込み先は排他のまま。
+    [NativeDisableParallelForRestriction]
     public NativeArray<BulletData> bullets;
+
+    /// <summary>処理対象スロットの昇順リスト(<see cref="BulletActiveIndexJob"/> が作る)。</summary>
+    [ReadOnly]
+    public NativeArray<int> indices;
+
     public float dt;
     public QuadGrid grid;
     public float2 playerVelocity;
 
-    public void Execute(int index)
+    public void Execute(int order)
     {
+        // indices 未設定(EditMode テストが Execute を直接叩く経路)では従来どおり order = slot。
+        int index = indices.IsCreated ? indices[order] : order;
         BulletData bullet = bullets[index];
         if (bullet.HasV2Motion) return; // v2 レーンの弾は BulletV2UpdateJob が専任で処理する
         if (!bullet.isActive && !bullet.isClearing) return;

@@ -759,6 +759,7 @@ public class GManager : MonoBehaviour
         {
             BRS.BuildRenderData(
                 QOrder.GetEnemyBullets(),
+                QOrder.GetActiveEnemyBulletIndices(),
                 enemyCount,
                 QOrder.GetWarpZones(),
                 warpZoneCount,

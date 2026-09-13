@@ -204,8 +204,13 @@ public class BulletRenderSystem : MonoBehaviour
         UpdateInstanceCount(writeIndex);
     }
 
+    /// <param name="enemyIndices">
+    /// 生存している敵弾のスロット番号(昇順)。<see cref="QuadOrder.GetActiveEnemyBulletIndices"/>。
+    /// 未作成なら従来どおり全スロットを走査する。
+    /// </param>
     public void BuildRenderData(
         NativeArray<BulletData> enemyBullets,
+        NativeArray<int> enemyIndices,
         int enemyCount,
         NativeArray<BulletData> warpZones,
         int warpZoneCount,
@@ -232,7 +237,7 @@ public class BulletRenderSystem : MonoBehaviour
         int writeIndex = 0;
         if (safeEnemyCount > 0 && enemyBullets.IsCreated)
         {
-            writeIndex = AppendRenderData(enemyBullets, safeEnemyCount, writeIndex, totalCount);
+            writeIndex = AppendRenderData(enemyBullets, enemyIndices, safeEnemyCount, writeIndex, totalCount);
         }
 
         if (safeWarpZoneCount > 0 && warpZones.IsCreated && writeIndex < totalCount)
@@ -251,14 +256,22 @@ public class BulletRenderSystem : MonoBehaviour
     }
 
     private int AppendRenderData(NativeArray<BulletData> bullets, int count, int startIndex, int maxCount)
+        => AppendRenderData(bullets, default, count, startIndex, maxCount);
+
+    private int AppendRenderData(NativeArray<BulletData> bullets, NativeArray<int> indices, int count, int startIndex, int maxCount)
     {
         int writeIndex = startIndex;
         int activeCount = 0;
         float beatValueSin = GetBeatValueSin();
 
-        for (int i = 0; i < bullets.Length && writeIndex < maxCount; i++)
+        // indices があるときは生存中のスロットだけを昇順で辿る。走査順・採用条件は
+        // 全スロット走査と同じなので、描画順(= 書き込み順)は変わらない。
+        bool useIndices = indices.IsCreated;
+        int scanCount = useIndices ? indices.Length : bullets.Length;
+
+        for (int k = 0; k < scanCount && writeIndex < maxCount; k++)
         {
-            var b = bullets[i];
+            var b = bullets[useIndices ? indices[k] : k];
             if (!b.isActive && !b.isClearing) continue;
 
             BulletType type = GetBulletType(b.typeId);
