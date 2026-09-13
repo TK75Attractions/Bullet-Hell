@@ -706,6 +706,8 @@ const V28_TOP_FALL_END_Y = -4;      // 落下シャベルが消える高さ（�
 const V28_WALL_YS = [1, 3, 5, 7, 9, 11, 13, 15, 17];
 const V28_WALL_GAP1 = [1, 4, 7];    // 11 の隙間（y=3 / 9 / 15）
 const V28_WALL_GAP2 = [2, 5, 8];    // 12 の隙間（y=5 / 11 / 17）。1 レーンぶん上へずらす
+// v38 (10): lunatic はレーンを 9 本すべて埋め、1 本ごとに速さを ±12% 振る。
+const V28_WALL_SPEED_JITTER = 0.12;
 // 13〜14: 静かな区間の隕石（爆破なし・弾なし）。
 const V28_QUIET_XS = [8, 24];
 const V28_QUIET_SPAWN_Y = 21;
@@ -1232,8 +1234,11 @@ const STONE_PATH = [0.0395, 0.0273, 0.0648, 0.25];  // ( 56, 46, 72) 最暗: 落
 //   帯（color.w=0）の側は warn_box.png の焼き込みを sRGB(70,95,155)/α0.235 →
 //   sRGB(255,226,170)/α0.102 に差し替えた（Tools/gen_warn_box_color.py）。
 //   合成 sRGB(94,80,69)＝輝度 79 で、上の WARN_HI とほぼ同じ見え方に揃う。
-const WARN_HI = [0.2622, 0.1946, 0.1170, 0.40];     // (140,122, 96) 濃い予告（旧 STONE_WARN の位置）
-const WARN_DIM = [0.1413, 0.1046, 0.0630, 0.25];    // (105, 91, 71) 薄い予告（旧 STONE_PATH の位置）
+// v38 (W2): 指示「予告の色、暖色はアリだが雰囲気に合わない」。v36 の暖色（H=35 度）を
+//   ステージの紫〜青灰に合う寒色（H=218 度）へ振り替えた。彩度・明度（HSV の S/V）は
+//   v36 と同じにし、見た目輝度 Y' も合わせてある（HI 123.9→124.4 / DIM 92.5→92.5）。
+const WARN_HI = [0.1500, 0.2086, 0.3372, 0.40];     // (108,126,157) 濃い予告（旧 STONE_WARN の位置）
+const WARN_DIM = [0.0782, 0.1119, 0.1779, 0.25];    // ( 79, 94,117) 薄い予告（旧 STONE_PATH の位置）
 // ポップの収束先。v18 でタイルの面色 sRGB(77,67,93) に相当する linear 値へ更新（旧 104,104,140）。
 // 補間の終端で w が 0 になった瞬間に「実体タイルのテクスチャそのまま」へ入れ替わる（tilePop 参照）。
 const STONE_TILE_END = [0.0742, 0.0561, 0.1095, 0];
@@ -1306,11 +1311,18 @@ function tileField(cells, opts) {
 // （useVelocityAngle:false + polarForm + thetaVlc）を各弾に付ける。
 // startPos/polynomial/speed が既定値の弾では polarForm は位置に影響しないため、
 // 移動は originVlc による等速直線（無重力）のまま、描画角だけが spin(rad/s) で回り続ける。
+// v38 (12): opts.orbit = true で「着弾位置を中心に公転する」放射弾になる。
+//   直進版は originVlc で等速直線・polarForm.y は描画角だけ（startX=0 なので位置に効かない）。
+//   公転版は originVlc を 0 にして speed を polynomial レーンへ渡す。ランタイムは
+//     disVector = (startX + speed*t, 0)、position = originPos + polarForm.x * Rotate(disVector, polarForm.y)
+//   （BulletDataUpdateJob.cs:95-124）なので、R(t)=speed*t・Theta(t)=angle+spin*t の
+//   アルキメデス螺旋になる。半径方向の速さ（= speed）は直進版と同じで、
+//   spin(rad/s) が公転の角速度になる（useVelocityAngle:false なので描画角も一緒に回る）。
 function spinBurst(opts) {
   const {
     pos, count, speed, spin,
     type = 'box', life = 0, scale = [1, 1], color = [1, 1, 1, 1],
-    angleOffset = 0, unCounterable = true, kind = 'spinburst',
+    angleOffset = 0, unCounterable = true, kind = 'spinburst', orbit = false,
   } = opts;
   const bullets = [];
   for (let i = 0; i < count; i++) {
@@ -1320,7 +1332,8 @@ function spinBurst(opts) {
     bullets.push(
       bulletDefaults({
         originPos: { x: pos[0], y: pos[1] },
-        originVlc: { x: dx * speed, y: dy * speed },
+        originVlc: orbit ? { x: 0, y: 0 } : { x: dx * speed, y: dy * speed },
+        speed: orbit ? speed : 0,
         typeName: type,
         scale: { x: scale[0], y: scale[1] },
         color: { x: color[0], y: color[1], z: color[2], w: color[3] },
@@ -1973,6 +1986,9 @@ const SLIDE_ACCEL = 34;                     // 左向き加速度（ユニット
 const SLIDE_END_X = -3.2;                   // カリング境界(-2)の外まで飛ばす
 const SLIDE_WARN_LEAD = beats(0.75);        // 出現予告のリード
 const SLIDE_TILES_PER_WAVE = 4;             // 1 回に出す枚数
+// v38 (3): lunatic は 1 列 9 枚すべてを出し、1 枚ごとに加速度を ±15% 振る。
+//   等加速なので任意の時刻の速さも同じ割合で変わり、先頭と最後で最大 1.17 倍の差が付く。
+const SLIDE_ACCEL_JITTER = 0.15;
 
 // ── v21: 隕石（マーカー 22〜28 / 40〜42）──────────────────────────────────────
 //
@@ -3172,6 +3188,11 @@ export default stage(
     //   飛行時間が伸びたぶん出現が早くなる（経路予告の帯も同じ式で伸びる）。
     const SHOVEL_FALL_V = D(SHOVEL_FALL_SPEED * 0.65, SHOVEL_FALL_SPEED, SHOVEL_FALL_SPEED);
     const IS_LUNATIC = D(false, false, true);
+    // v38 (1): 指示書 #1「lunatic の破裂弾、全体的に 3 割程度大きくして」。
+    //   破裂弾（burst / 集合爆破 / lightspeed 着弾 / 最後の大爆破）の弾スケールを
+    //   lunatic だけ 0.3 → 0.39 にする。当たり判定は BulletCollisionJob が verts に
+    //   scale を掛けて取るので、見た目と同じだけ広がる。速度・弾数は不変。
+    const BLAST_SCALE = D(BULLET_SCALE, BULLET_SCALE, BULLET_SCALE * 1.3);
     const lead = beats(WARN_BEATS);
     // v11: 中央（12x5 = 60 セル）に毎拍出す一時タイルの密度。
     //   v10 は 10x3 = 30 セルに D(0.125, 0.165, 0.20)＝毎拍 4/5/6 枚。セル数が倍になったので
@@ -3200,7 +3221,7 @@ export default stage(
         speed: D(9.5, 9, 11),
         type: 'stone3_bullet',
         life: 0,                          // 寿命なし＝画面外へ出て cull されるまで飛ぶ
-        scale: [BULLET_SCALE, BULLET_SCALE],
+        scale: [BLAST_SCALE, BLAST_SCALE],
         color: SPRITE_AS_IS,   // v12: 弾スプライト自体が石色のドット絵なので無着色
         angleOffset: off,
         spin: SPIN_RATE * (index % 2 === 0 ? 1 : -1),
@@ -3213,6 +3234,59 @@ export default stage(
     function atBurst(t, center, index, countMul, enabled) {
       const clip = burst(center, index, countMul, enabled);
       if (clip) s.at(t, clip);
+    }
+
+    // v38: lunatic だけに足す弾（#3 の速度ゆらぎ・#4/#9/#11 の破裂弾）で使う専用の乱数。
+    //   本編の rng とは別ストリームなので、既存の配置・タイル抽選は 1 つも動かない。
+    //   難易度ごとにビルド関数が呼び直されるため、ここで作れば毎回同じ並びになる。
+    const v38Rng = makeRng(20260913);
+
+    // v38 (5)(6)(7)(8)(12): 「同じ破裂弾を時間差・角度差で n 重に出す」共通ヘルパ。
+    //   v35 (10)(12) の規則そのまま: n 枚を stepSec 間隔で置き、角度は 1/n ピッチずつ
+    //   ずらす（n=2 なら半ピッチ）。速さ・弾数・大きさは全枚で同じ。
+    //   自転は 1 枚目 +SPIN_RATE から交互。orbitOmega を渡すと公転（#12）になる。
+    function atBurstLayers(t, center, index, countMul, enabled, layers, stepSec, orbitOmega) {
+      const off = rng() * 2 * Math.PI;   // 消す場合も必ず 1 回だけ消費する（v37 の規約）
+      if (!enabled) return;
+      const count = Math.round(D(6, 12, 14) * (countMul === undefined ? 1 : countMul));
+      for (let j = 0; j < layers; j++) {
+        s.at(t + j * stepSec, spinBurst({
+          pos: [center[0], center[1]],
+          count: count,
+          speed: D(9.5, 9, 11),
+          type: 'stone3_bullet',
+          life: 0,
+          scale: [BLAST_SCALE, BLAST_SCALE],
+          color: SPRITE_AS_IS,
+          angleOffset: off + (j * 2 * Math.PI) / (layers * count),
+          spin: orbitOmega !== undefined
+            ? orbitOmega * (j % 2 === 0 ? 1 : -1)
+            : SPIN_RATE * ((index + j) % 2 === 0 ? 1 : -1),
+          orbit: orbitOmega !== undefined,
+          kind: 'blast',
+          unCounterable: true,
+        }));
+      }
+    }
+
+    // v38 (4)(9)(11): 隕石の出現位置・着弾位置に足す破裂弾（lunatic だけ）。
+    //   角度の乱数は v38Rng から採るので、本編の乱数位置は動かない。
+    function atBurstV38(t, center, index, countMul, enabled) {
+      const off = v38Rng() * 2 * Math.PI;
+      if (!enabled) return;
+      s.at(t, spinBurst({
+        pos: [center[0], center[1]],
+        count: Math.round(D(6, 12, 14) * countMul),
+        speed: D(9.5, 9, 11),
+        type: 'stone3_bullet',
+        life: 0,
+        scale: [BLAST_SCALE, BLAST_SCALE],
+        color: SPRITE_AS_IS,
+        angleOffset: off,
+        spin: SPIN_RATE * (index % 2 === 0 ? 1 : -1),
+        kind: 'blast',
+        unCounterable: true,
+      }));
     }
 
     // ======================================================================
@@ -4479,7 +4553,14 @@ export default stage(
       //   隙間が空く並びだけを使う。乱数は上の shuffled() だけ＝消費数は 3 難易度で同じ。
       if (IS_EASY) rows = slideTwoClusters(pool, rows);
       slidePrevRows = rows;
-      const cells = rows.map(function (r) { return [SLIDE_COL, r]; });
+      // v38 (3): 指示書 #3「右からタイルを落とす攻撃について、隙間なく一列全部使うようにし、
+      //   かつ速度をタイルごとにちょっとずつランダムに変えて」（lunatic）。
+      //   行の抽選（shuffled）と slidePrevRows は**そのまま**にして乱数の消費数を保ち、
+      //   出す行だけ「9 行ぜんぶ」に差し替える。速度は下の forEach で 1 枚ずつ振る。
+      const emitRows = IS_LUNATIC
+        ? Array.from({ length: ROWS }, function (_, r) { return r; })
+        : rows;
+      const cells = emitRows.map(function (r) { return [SLIDE_COL, r]; });
       // 予告 → 実体化ポップ（マーカー 4〜8 のタイル出現と同じ作り）
       s.at(t - SLIDE_WARN_LEAD, tileField(cells, {
         type: 'warn_box',
@@ -4494,15 +4575,20 @@ export default stage(
       // v23 (B)4: gravitySeq(v2) は既定 useVelocityAngle:true で、加速中は速度角（180°）へ
       // 描画が回ってしまう。位置計算（gravitySeq の結果）はそのまま使い、返ってきた v2 弾の
       // useVelocityAngle だけ false に上書きして常に正立（initialAngle 既定 0）させる。
-      rows.forEach(function (r) {
+      emitRows.forEach(function (r) {
         const c = cellCenter(SLIDE_COL, r);
-        let fly = Math.sqrt((2 * (c[0] - SLIDE_END_X)) / SLIDE_ACCEL);
+        // v38 (3): lunatic だけ 1 枚ごとに加速度を ±15% 振る（速さも同じ割合で変わる）。
+        //   発射の拍（t）は不変で、画面を横切る時間が 0.93〜1.09 倍にばらける。
+        const accel = IS_LUNATIC
+          ? SLIDE_ACCEL * (1 + (v38Rng() * 2 - 1) * SLIDE_ACCEL_JITTER)
+          : SLIDE_ACCEL;
+        let fly = Math.sqrt((2 * (c[0] - SLIDE_END_X)) / accel);
         if (endBy !== undefined) fly = Math.min(fly, Math.max(1 / 60, endBy - t - SLIDE_HOLD));
         const clip = gravitySeq(
           { pos: c, vel: [0, 0], type: 'stone3_tile', scale: [TILE, TILE], color: SPRITE_AS_IS, unCounterable: true },
           [
             { until: SLIDE_HOLD, moveTo: c },
-            { until: SLIDE_HOLD + fly, accel: [SLIDE_ACCEL, Math.PI] },
+            { until: SLIDE_HOLD + fly, accel: [accel, Math.PI] },
           ],
           'slide',
           { v2: true }
@@ -4535,10 +4621,14 @@ export default stage(
       // v24 (B)1: 画面右端で白く弾けてから本体が飛び出す。本体が右端(x=32)を通るのは
       //   発射の (34.5-32)/36.7 = 0.068 秒後なので、その時刻にフラッシュを合わせる。
       const enterRel = (METEOR_START_X - COLS * CELL) / speed;
+      const enterPos = [COLS * CELL, mo.y0 + mo.vy * enterRel];
       s.at(t, flashPop(
-        [COLS * CELL, mo.y0 + mo.vy * enterRel], enterRel,
+        enterPos, enterRel,
         METEOR_FLASH_S0, METEOR_FLASH_S1, METEOR_FLASH_DUR, 'meteorspawn'
       ));
+      // v38 (4): 指示書 #4「隕石を出す位置それぞれから破裂弾を出して」（lunatic）。
+      //   画面右端で白く弾ける出現フラッシュと同じ時刻・同じ位置に 1 発ずつ。
+      atBurstV38(t + enterRel, enterPos, meteorIdx, 1.0, IS_LUNATIC);
       s.at(t, meteor(y, jit));
       s.at(t, meteorTrail(y, jit));
       const hits = [];
@@ -4784,7 +4874,10 @@ export default stage(
       //   落下・着弾の演出（リング・潰れ・尾）だけ残して弾を出さない。
       // v31 (13): 3 発とも着弾時の破裂弾を復元する。エフェクトとの見分けは v31 (17) 側で行う。
       // v37 (6)(7): 指示書 #6 #7「隕石の破裂弾を消して」（easy のみ。3 発とも）
-      atBurst(impact, [x, METEOR_DROP_Y], k, 1.6, !IS_EASY);
+      // v38 (5)(6)(7): 指示書 #5〜#7「ここの破裂弾、2 重にして」（lunatic）。
+      //   100.000 / 101.667 / 103.333 の落下隕石の着弾 3 発すべてに同時適用。
+      atBurstLayers(impact, [x, METEOR_DROP_Y], k, 1.6, !IS_EASY,
+        IS_LUNATIC ? 2 : 1, beats(0.5));
     });
 
     // 残ったタイルの実体クリップを出す（消える時刻が全部確定したあと）。
@@ -4995,25 +5088,39 @@ export default stage(
     //   → 幅 0.5 → **TILE（1.84）＝飛んでくるタイルの一辺**、内側の切り欠き
     //     GATHER_PATH_R0 1.2 → **0**（集合点＝着弾位置まで引く）。
     //   焼き込みの半透明は v36 (A) で薄い暖色 α0.102 へ差し替えた（warn_box.png）。
+    // v38 (W1): 指示「主人公の下（着弾点付近）で帯が重なって濃くなるのが気になる。
+    //   重なりで濃くならないように。途中で線が途切れているのも汚い」。
+    //   原因は 5 本の帯が 1 点へ収束するため、集合点の手前で最大 5 枚が重なり、
+    //   （α 0.11 の重ね合わせで）単独の Y' 82 に対し 155 まで持ち上がっていたこと。
+    //   帯の端（レーンに直交する切り口）が隣の帯を横切るぶん、線の途中に段差も出ていた。
+    //   → レーンを **先端の楔（0〜GATHER_PATH_TIP）＋ 従来の矩形（TIP〜entryR）** に分け、
+    //     楔の幅を 2 r sin15 度（＝ 30 度隣のレーンとちょうど接する幅）にする。
+    //     これで 5 本は 1 ピクセルも重ならず、着弾点まで切れ目なく引ける。
+    //     楔は新しい弾種 stone3_warnwedge（warn_box と同じ焼き込み色・当たり判定なし）。
     const GATHER_PATH_LEAD = beats(1);
     const GATHER_PATH_DUR = GATHER_PATH_LEAD + GATHER_FLIGHT;
     const GATHER_PATH_WIDTH = TILE;      // 帯の幅＝タイル 1 枚ぶん
     const GATHER_PATH_R0 = 0;            // 集合点（着弾位置）まで引く
+    const GATHER_PATH_TIP = (GATHER_PATH_WIDTH / 2) / Math.sin(Math.PI / 12);   // 3.5546
     const gatherPathItems = [];
     gatherLanes.forEach(function (ln) {
       const r0 = GATHER_PATH_R0;
       const r1 = ln.entryR;
-      const rm = (r0 + r1) / 2;
-      gatherPathItems.push({
-        pos: [normalizeNegativeZero(GATHER_POINT[0] + ln.u[0] * rm),
-              normalizeNegativeZero(GATHER_POINT[1] + ln.u[1] * rm)],
-        scale: [GATHER_PATH_WIDTH, r1 - r0],
-        angle: normalizeNegativeZero(-ln.angle),   // 帯の長辺（ローカル +y）をレーン方向へ
-        color: SPRITE_AS_IS,
-        appearTime: 0,
-        appearDuration: 0,
-        life: GATHER_PATH_DUR,
-      });
+      [[r0, GATHER_PATH_TIP, 'stone3_warnwedge'], [GATHER_PATH_TIP, r1, 'warn_box']]
+        .forEach(function (seg) {
+          const rm = (seg[0] + seg[1]) / 2;
+          gatherPathItems.push({
+            type: seg[2],
+            pos: [normalizeNegativeZero(GATHER_POINT[0] + ln.u[0] * rm),
+                  normalizeNegativeZero(GATHER_POINT[1] + ln.u[1] * rm)],
+            scale: [GATHER_PATH_WIDTH, seg[1] - seg[0]],
+            angle: normalizeNegativeZero(-ln.angle),   // 帯の長辺（ローカル +y）をレーン方向へ
+            color: SPRITE_AS_IS,
+            appearTime: 0,
+            appearDuration: 0,
+            life: GATHER_PATH_DUR,
+          });
+        });
     });
     s.at(GATHER_ENTER - GATHER_PATH_LEAD, warnClip(gatherPathItems, 'gatherpathwarn'));
     gatherLanes.forEach(function (ln, i) {
@@ -5065,22 +5172,33 @@ export default stage(
     //   弾数と速さは #1 の規則（基準 D(6,12,14) / 速さ D(9.5,9,11)）に従う。
     const GATHER_RING_N = Math.round(D(6, 12, 14) * 2);
     const GATHER_RING_SPEED = D(9.5, 9, 11);
-    [0, 1].forEach(function (j) {
-      const off = rng() * 2 * Math.PI + (j * Math.PI) / GATHER_RING_N;
-      s.at(GATHER_IMPACT + j * beats(0.5), spinBurst({
+    // v38 (8): 指示書 #8「ここの破裂弾は 3 重に」（lunatic）。2 枚 → 3 枚にし、
+    //   時間差 0 / 1/3 / 2/3 拍・角度 1/3 ピッチずつ（v35 (12) の規則）。
+    //   **乱数は従来どおり 2 回だけ引く**（3 枚目は 1 枚目の角度から決める）ので、
+    //   このあとの壁隕石の配置は 1 つも動かない。
+    const gatherOffs = [0, 1].map(function (j) {
+      return rng() * 2 * Math.PI + (j * Math.PI) / GATHER_RING_N;
+    });
+    const gatherRings = IS_LUNATIC ? 3 : 2;
+    const gatherStep = IS_LUNATIC ? beats(1 / 3) : beats(0.5);
+    for (let j = 0; j < gatherRings; j++) {
+      const off = IS_LUNATIC
+        ? gatherOffs[0] + (j * 2 * Math.PI) / (3 * GATHER_RING_N)
+        : gatherOffs[j];
+      s.at(GATHER_IMPACT + j * gatherStep, spinBurst({
         pos: GATHER_POINT,
         count: GATHER_RING_N,
         speed: GATHER_RING_SPEED,
         type: 'stone3_bullet',
         life: 0,
-        scale: [BULLET_SCALE, BULLET_SCALE],
+        scale: [BLAST_SCALE, BLAST_SCALE],
         color: SPRITE_AS_IS,
         angleOffset: off,
-        spin: j === 0 ? SPIN_RATE : -SPIN_RATE,
+        spin: j % 2 === 0 ? SPIN_RATE : -SPIN_RATE,
         kind: 'blast',
         unCounterable: true,
       }));
-    });
+    }
 
     // --- マーカー 49〜51: 壁に隕石を当てて爆破 -----------------------------------
     //   1 発目は画面上側（行 6・y=13）を左→右、2 発目は下側（行 1・y=3）を右→左。
@@ -5296,7 +5414,7 @@ export default stage(
           if (IS_EASY) return;
           s.at(tA4 + j * beats(0.5), spinBurst({
             pos: impact, count: ringN, speed: ringSpeed, type: 'stone3_bullet', life: 0,
-            scale: [BULLET_SCALE, BULLET_SCALE], color: SPRITE_AS_IS,
+            scale: [BLAST_SCALE, BLAST_SCALE], color: SPRITE_AS_IS,
             angleOffset: off, spin: j === 0 ? SPIN_RATE : -SPIN_RATE,
             kind: 'blast', unCounterable: true,
           }));
@@ -5405,15 +5523,22 @@ export default stage(
     });
 
     // --- 11〜12: 一列に揃えたシャベルの壁を右から左へ。1 レーンだけ空けて抜け穴にする -
+    // v38 (10): 指示書 #10「シャベルの隙間をなくし、シャベルごとに速度をちょっとだけ
+    //   ランダムに変えて」（lunatic）。lunatic は 9 レーン全部を埋め、速さを ±12% 振る。
+    //   逃げ場は「速いシャベルが先に通り過ぎたレーンへ移る」時間差で作る。
+    //   寿命は速さから逆算する（一定にすると遅いシャベルが画面内で消える）。
     [[V28_F1, V28_WALL_GAP1], [V28_F2, V28_WALL_GAP2]].forEach(function (w) {
       V28_WALL_YS.forEach(function (y, k) {
-        if (w[1].indexOf(k) >= 0) return;   // ここが抜け穴
+        if (!IS_LUNATIC && w[1].indexOf(k) >= 0) return;   // ここが抜け穴（easy / normal）
+        const v = IS_LUNATIC
+          ? SHOVEL_SIDE_SPEED * (1 + (v38Rng() * 2 - 1) * V28_WALL_SPEED_JITTER)
+          : SHOVEL_SIDE_SPEED;
         // v35 (1): v34 (1) の直進化を取り消し、画面外から流す v33 の作りに戻した。
         s.at(w[0], shovel({
           pos: [SHOVEL_RIGHT_X, y],
-          vel: [-SHOVEL_SIDE_SPEED, 0],
+          vel: [-v, 0],
           angle: SHOVEL_ANGLE_LEFT,
-          life: V28_SIDE_LIFE,
+          life: (SHOVEL_RIGHT_X - SHOVEL_LEFT_X) / v,
         }));
       });
     });
@@ -5428,6 +5553,10 @@ export default stage(
       s.at(q[0], meteorPath(from, [0, v], segs, 'meteorquiet'));
       s.at(q[0], meteorPathTrail(from, [0, v], segs, V28_QUIET_FLIGHT, 'meteorquiettrail'));
       v28EntryFlash(q[0], meteorPathPos(from, [0, v], segs), V28_QUIET_FLIGHT, 'meteorspawn');
+      // v38 (11): 指示書 #11「この辺の隕石は出すところから破裂弾を出して」（lunatic）。
+      //   画面上端（y=18）を割った瞬間＝出現フラッシュと同じ時刻・位置に 1 発。
+      atBurstV38(q[0] + (V28_QUIET_SPAWN_Y - ROWS * CELL) / -v, [x, ROWS * CELL],
+        0, 1.0, IS_LUNATIC);
     });
 
     // --- 15: 上側を右→左、下側を左→右へすれ違う 2 発。爆破なし・「ゆっくりめ」 ------
@@ -5438,10 +5567,13 @@ export default stage(
       const x0 = c[0], x1 = c[1], y = c[2];
       s.at(V28_H - beats(1), meteorRowWarn(y, beats(1)));
       const edgeX = x0 < x1 ? 0 : COLS * CELL;
+      const edgeRel = ((edgeX - x0) / (x1 - x0)) * V28_CROSS_FLIGHT;
       s.at(V28_H, flashPop(
-        [edgeX, y], ((edgeX - x0) / (x1 - x0)) * V28_CROSS_FLIGHT,
+        [edgeX, y], edgeRel,
         METEOR_FLASH_S0, METEOR_FLASH_S1, METEOR_FLASH_DUR, 'meteorspawn'
       ));
+      // v38 (11): すれ違う 2 発も「出すところ」＝画面端に入る瞬間から破裂弾を 1 発。
+      atBurstV38(V28_H + edgeRel, [edgeX, y], 1, 1.0, IS_LUNATIC);
       s.at(V28_H, meteorLine(x0, x1, y, V28_CROSS_FLIGHT));
       s.at(V28_H, meteorLineTrail(x0, x1, y, V28_CROSS_FLIGHT));
     });
@@ -5503,7 +5635,15 @@ export default stage(
     const finRingSpeed = D(8.6, 8, 10);
     const finRings = IS_EASY ? 2 : 3;
     const finStep = IS_EASY ? beats(0.5) : beats(1 / 3);
-    [SPIN_RATE, -SPIN_RATE, SPIN_RATE].forEach(function (spin, j) {
+    // v38 (12): 指示書 #12「最後のこれ、着弾位置を中心に弾が回転するように。3 重の層は
+    //   層ごとに回転方向を変えて」（lunatic）。公転の角速度は 1 拍で 1/4 回転
+    //   （FIN_ORBIT = (pi/2) / BEAT = 3.7699 rad/s）。層 1 = 時計回り（負）、
+    //   層 2 = 反時計、層 3 = 時計。半径方向の速さ（finRingSpeed）は据え置き。
+    const FIN_ORBIT = (Math.PI / 2) / BEAT;
+    const finSpins = IS_LUNATIC
+      ? [-FIN_ORBIT, FIN_ORBIT, -FIN_ORBIT]
+      : [SPIN_RATE, -SPIN_RATE, SPIN_RATE];
+    finSpins.forEach(function (spin, j) {
       const base = rng() * 2 * Math.PI;   // 乱数の消費は 3 難易度で同じ（3 回）
       if (j >= finRings) return;
       const off = base + (IS_EASY ? (j * Math.PI) / finRingN : (j * 2 * Math.PI) / (3 * finRingN));
@@ -5513,10 +5653,11 @@ export default stage(
         speed: finRingSpeed,
         type: 'stone3_bullet',
         life: 0,
-        scale: [BULLET_SCALE, BULLET_SCALE],
+        scale: [BLAST_SCALE, BLAST_SCALE],
         color: SPRITE_AS_IS,
         angleOffset: off,
         spin: spin,
+        orbit: IS_LUNATIC,
         kind: 'blast',
         unCounterable: true,
       }));
@@ -5572,6 +5713,10 @@ export default stage(
       s.at(impact - V30_DROP_FLIGHT, meteorDropTrail(x, V30_DROP_FLIGHT));
       s.at(impact, meteorBurstFx(floorHit(x), 1.0, 'meteorhit'));   // v34 (5): 中心＝接触点（床）
       s.at(impact, meteorSquash([x, METEOR_DROP_Y]));
+      // v38 (9): 指示書 #9「ここらへんの落下攻撃にも破裂弾を着弾位置から出して」（lunatic）。
+      //   118.346 / 119.176 / 120.012 / 120.842 の 4 発すべてに、
+      //   マーカー 40〜42 の落下隕石と同じ 1.6 倍の破裂弾を着弾の拍で足す。
+      atBurstV38(impact, [x, METEOR_DROP_Y], k, 1.6, IS_LUNATIC);
     });
   }
 );
