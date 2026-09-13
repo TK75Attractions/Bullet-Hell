@@ -43,7 +43,7 @@
                     "name": "idle",
                     "path": "wanderer_idle.gif",
                     "loop": true,
-                    "frameDuration": 0.2,
+                    "frameDuration": 0.34,
                     "maxFrames": 0
                 },
                 {
@@ -101,7 +101,7 @@
                     "maxHp": 1000,
                     "startPos": {
                         "x": 16.0,
-                        "y": 15.2
+                        "y": 12.16
                     },
                     "scale": {
                         "x": 4.6,
@@ -163,6 +163,28 @@
                     "count": 1,
                     "interval": 0.0,
                     "time": 17.6683,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_wind_a1_e_3",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 21.835,
                     "pos": {
                         "x": 0.0,
                         "y": 0.0
@@ -291,10 +313,76 @@
                     }
                 },
                 {
+                    "clipName": "wanderer_wind_a2_e_3",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 51.51,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
                     "clipName": "wanderer_bolts_6_e",
                     "count": 1,
                     "interval": 0.0,
                     "time": 52.106,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_windb_e",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 68.222,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_lines_e",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 82.88,
                     "pos": {
                         "x": 0.0,
                         "y": 0.0
@@ -327,7 +415,7 @@
                     "maxHp": 1000,
                     "startPos": {
                         "x": 16.0,
-                        "y": 15.2
+                        "y": 12.16
                     },
                     "scale": {
                         "x": 4.6,
@@ -389,6 +477,28 @@
                     "count": 1,
                     "interval": 0.0,
                     "time": 17.5703,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_wind_a1_n_3",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 21.6879,
                     "pos": {
                         "x": 0.0,
                         "y": 0.0
@@ -517,10 +627,76 @@
                     }
                 },
                 {
+                    "clipName": "wanderer_wind_a2_n_3",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 51.3629,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
                     "clipName": "wanderer_bolts_6_n",
                     "count": 1,
                     "interval": 0.0,
                     "time": 52.106,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_windb_n",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 68.222,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_lines_n",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 82.88,
                     "pos": {
                         "x": 0.0,
                         "y": 0.0
@@ -553,7 +729,7 @@
                     "maxHp": 1000,
                     "startPos": {
                         "x": 16.0,
-                        "y": 15.2
+                        "y": 12.16
                     },
                     "scale": {
                         "x": 4.6,
@@ -592,7 +768,7 @@
                     "clipName": "wanderer_wind_a1_l_1",
                     "count": 1,
                     "interval": 0.0,
-                    "time": 13.6828,
+                    "time": 13.393,
                     "pos": {
                         "x": 0.0,
                         "y": 0.0
@@ -614,7 +790,29 @@
                     "clipName": "wanderer_wind_a1_l_2",
                     "count": 1,
                     "interval": 0.0,
-                    "time": 18.0307,
+                    "time": 17.4509,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_wind_a1_l_3",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 21.5089,
                     "pos": {
                         "x": 0.0,
                         "y": 0.0
@@ -702,7 +900,7 @@
                     "clipName": "wanderer_wind_a2_l_1",
                     "count": 1,
                     "interval": 0.0,
-                    "time": 43.3578,
+                    "time": 43.068,
                     "pos": {
                         "x": 0.0,
                         "y": 0.0
@@ -724,7 +922,29 @@
                     "clipName": "wanderer_wind_a2_l_2",
                     "count": 1,
                     "interval": 0.0,
-                    "time": 47.7057,
+                    "time": 47.1259,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_wind_a2_l_3",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 51.1839,
                     "pos": {
                         "x": 0.0,
                         "y": 0.0
@@ -747,6 +967,50 @@
                     "count": 1,
                     "interval": 0.0,
                     "time": 52.106,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_windb_l",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 68.222,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_lines_l",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 82.88,
                     "pos": {
                         "x": 0.0,
                         "y": 0.0
