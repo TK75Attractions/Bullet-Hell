@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class BossManager : MonoBehaviour
@@ -161,7 +161,13 @@ public class BossManager : MonoBehaviour
             gameObject = bossObject,
             boss = boss,
             mover = mover,
-            spawnTime = stageTime,
+            // ボスの時計の起点は「spawn したフレームの stageTime」ではなく **appearTime**。
+            // 前者だと appearTime=0 のボス（石工の老人）が、ステージ 1 フレーム目の
+            // stageTime（BGM の dsp 同期で 0 より進んでいる。実測 0.15〜0.96 秒・負荷で変わる）を
+            // 起点にしてしまい、moves と lifeTime がまるごとその分だけ後ろへずれる。
+            // 石工 v36 の通し録画では 0.96 秒ずれて「飛び乗り」が画面に出ないまま
+            // 老人が消えていた（2026-09-13・指示外の修正）。
+            spawnTime = spawner.appearTime,
             lifeTime = spawner.lifeTime,
             spriteRenderer = spriteRenderer,
             fadeInSec = spawner.fadeInSec,
