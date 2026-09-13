@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbd360919789aba45b7e5b8e684967f4, type: 3}
+  m_Name: ray_line_x
+  m_EditorClassIdentifier: BulletHell.Core::BulletType
+  typeName: ray_line_x
+  baseSprite: {fileID: 2800000, guid: ab7c0a16fe09490c81e3cbc92dda52cf, type: 3}
+  maskSprite: {fileID: 2800000, guid: 04da74b85fe74ee6b236ace0354cc53c, type: 3}
+  baseColor: {r: 1, g: 1, b: 1, a: 1}
+  baseSize: 1
+  renderPriority: 0
+  counterPower: 1
+  verts: []
