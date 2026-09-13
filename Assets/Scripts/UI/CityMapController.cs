@@ -125,6 +125,28 @@ public class CityMapController : MonoBehaviour
     [Tooltip("ステージ未実装の区画を沈める色。")]
     public Color dimTint = new Color(0.30f, 0.32f, 0.42f, 1f);
 
+    [System.Serializable]
+    public struct DarkenEntry
+    {
+        [Tooltip("街の中のオブジェクト名(完全一致)。")] public string rendererName;
+        [Tooltip("_BaseColor に掛ける倍率(リニア)。0.35 で見た目の明るさが約 6 割になる。")] public float factor;
+    }
+    [Tooltip("月光で白く飛んで目立つオブジェクトを個別に暗くする(2026-09-13 指摘: 石切り場の岩と轍)。")]
+    public DarkenEntry[] darkenRenderers =
+    {
+        new DarkenEntry { rendererName = "quarry_terraced_rock_cut", factor = 0.30f },
+        new DarkenEntry { rendererName = "quarry_timber_crane_chain_stone_stock", factor = 0.45f },
+        new DarkenEntry { rendererName = "v5_district_03_surface_relief", factor = 0.12f },
+    };
+
+    float DarkenFactor(string rendererName)
+    {
+        if (darkenRenderers == null) return 1f;
+        for (int i = 0; i < darkenRenderers.Length; i++)
+            if (darkenRenderers[i].rendererName == rendererName) return Mathf.Max(0f, darkenRenderers[i].factor);
+        return 1f;
+    }
+
     // 参考レンダーの背景(藍紫)。実測 (21,24,40)〜(26,30,46)。exposureAffectsSky で露出が掛かる。
     static readonly Color SkyColor = new Color(0.0865f, 0.0965f, 0.1620f, 1f);
 
@@ -886,7 +908,8 @@ public class CityMapController : MonoBehaviour
             {
                 if (r == null) continue;
                 r.GetPropertyBlock(mpb);
-                mpb.SetColor(BaseColorId, baseTint);
+                float k = DarkenFactor(r.name);
+                mpb.SetColor(BaseColorId, k < 1f ? new Color(baseTint.r * k, baseTint.g * k, baseTint.b * k, baseTint.a) : baseTint);
                 mpb.SetColor(EmissionId, emis);
                 r.SetPropertyBlock(mpb);
             }
