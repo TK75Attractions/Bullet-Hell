@@ -75,7 +75,8 @@ public class BossManager : MonoBehaviour
             }
 
             activeBoss.mover?.UpdateMover(dt, elapsed);
-            activeBoss.boss?.UpdateBoss(dt);
+            // 石工 v41: アニメのイベント時刻も lifeTime / moves と同じ elapsed（ステージ時計）で判定する。
+            activeBoss.boss?.UpdateBoss(dt, elapsed);
             ApplyBossFade(activeBoss, elapsed);
         }
     }

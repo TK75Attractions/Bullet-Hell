@@ -53,7 +53,16 @@ public class Boss : MonoBehaviour
         UpdateBossImage(fallbackSprite);
     }
 
-    public void UpdateBoss(float dt)
+    /// <summary>
+    /// 石工 v41: アニメのイベント時刻は <see cref="Time.deltaTime"/> の積算ではなく
+    /// ステージ時計（BGM の dsp に同期・BossManager が渡す appearTime からの経過秒）で進める。
+    /// BossManager の lifeTime 判定と同じ時計になるので、
+    /// 「老人の消滅」と「ゴーレムの騎乗版への切替」が必ず同じフレームで起きる
+    /// （dt 積算だとフレームレート次第で 1 コマ二重に写ったり 1 コマ欠けたりしていた）。
+    /// クリップ内のコマ送り（frameTimer）は従来どおり dt なので、
+    /// dsp が 21.33ms 単位で進むことによるカクつきは出ない。
+    /// </summary>
+    public void UpdateBoss(float dt, float stageElapsed)
     {
         UpdatePosition();
         if (!initialized)
@@ -61,7 +70,7 @@ public class Boss : MonoBehaviour
             return;
         }
 
-        visualTime += dt;
+        visualTime = stageElapsed;
         visualPlayer?.Update(dt, visualTime);
         UpdateBossImage();
     }
