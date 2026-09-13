@@ -7,32 +7,35 @@ using System.Text;
 // そのままコードの1桁として使えるよう、値は 0..3 の int で表す(↑=0,↓=1,←=2,→=3)。
 //
 // ペイロード設計(18bit。SPEC §1.4 の例を実データに合わせて確定):
-//   ステージクリアフラグ: StageOrder(4) x Difficulty(Easy/Normal/Lunatic=3) = 12bit
-//   ノーミスクリアフラグ: StageOrder(4) x 1 = 4bit (難易度不問・そのステージを一度でも
+//   ステージクリアフラグ: StageOrder(5) x Difficulty(Easy/Normal/Lunatic=3) = 15bit
+//   ノーミスクリアフラグ: StageOrder(5) x 1 = 5bit (難易度不問・そのステージを一度でも
 //     被弾なしでクリアしたか)
-//   予備: 2bit (将来拡張用。エンコードは常に0、デコードは無視する)
-//   合計 18bit
-// チェックサム: 6bit(18bitペイロードを6bitずつ3分割し加算・mod64。SPEC「単純和 mod64」)。
-// 合計 24bit = 12桁(1桁=2bit)。SPEC上限の16桁(26bitペイロード)には現状収まるため未使用。
+//   予備: 6bit (将来拡張用。エンコードは常に0、デコードは無視する)
+//   合計 26bit
+// チェックサム: 6bit(26bitペイロードを6bitずつ区切って加算・mod64。SPEC「単純和 mod64」。
+//   末尾の端数チャンクは 0 詰めで扱う)。
+// 合計 32bit = 16桁(1桁=2bit) = SPEC上限。
+// 2026-09-13(H2): 放浪者の追加で 4 → 5 ステージへ。**既発行コードとの互換は無い**
+//   (ユーザー了承済み)。予備 bit を 2 → 6 にしてあるのは、桁数を 4 の倍数に保つため。
 //
 // 2P プレイの実績は引き継ぎ対象外(SPEC §1.4)。TransferAchievements が 1P 実績のみを
 // 集積してこの Payload を組み立てる。
 public static class DirectionTransferCode
 {
-    public const int StageCount = 4;
+    public const int StageCount = 5;
     public const int DifficultyCount = 3;
-    public const int ClearBits = StageCount * DifficultyCount; // 12
-    public const int NoMissBits = StageCount;                  // 4
-    public const int ReservedBits = 2;
-    public const int PayloadBits = ClearBits + NoMissBits + ReservedBits; // 18
+    public const int ClearBits = StageCount * DifficultyCount; // 15
+    public const int NoMissBits = StageCount;                  // 5
+    public const int ReservedBits = 6;
+    public const int PayloadBits = ClearBits + NoMissBits + ReservedBits; // 26
     public const int ChecksumBits = 6;
-    public const int TotalBits = PayloadBits + ChecksumBits; // 24
-    public const int DigitCount = TotalBits / 2;             // 12 (2bit/桁)
+    public const int TotalBits = PayloadBits + ChecksumBits; // 32
+    public const int DigitCount = TotalBits / 2;             // 16 (2bit/桁)
     public const int DigitGroupSize = 4;                     // 表示は4桁区切り
 
     // コード上のステージ順(stageDirectoryName)。StageDataBase.VisibleOrder と現状一致するが、
     // 将来の並び替えで既発行コードが壊れないよう、ここで独立して固定する。
-    public static readonly string[] StageOrder = { "captain", "stone", "vagrant", "mirror" };
+    public static readonly string[] StageOrder = { "captain", "stone", "wanderer", "vagrant", "mirror" };
 
     // ↑=0, ↓=1, ←=2, →=3 (SPEC §1.1)。
     public static readonly char[] Symbols = { '↑', '↓', '←', '→' };
@@ -109,7 +112,7 @@ public static class DirectionTransferCode
         Payload result = Payload.CreateEmpty();
         for (int i = 0; i < ClearBits; i++) result.Clear[i] = payloadBits[i] != 0;
         for (int i = 0; i < NoMissBits; i++) result.NoMiss[i] = payloadBits[ClearBits + i] != 0;
-        // 残り2bit(予備)は現状無視する。
+        // 残り 6bit(予備)は現状無視する。
 
         payload = result;
         return true;
@@ -131,13 +134,19 @@ public static class DirectionTransferCode
 
     private static int ComputeChecksum(List<int> payloadBits)
     {
-        // 18bit ペイロードを 6bit x 3 に分割して加算, mod 64(SPEC「単純和 mod64」)。
+        // ペイロードを 6bit ずつに分割して加算, mod 64(SPEC「単純和 mod64」)。
+        // PayloadBits が 6 の倍数でないときは末尾チャンクを 0 詰めで扱う
+        // (全ペイロード bit を必ず checksum に含めるため)。
         int sum = 0;
-        int chunks = PayloadBits / ChecksumBits;
+        int chunks = (PayloadBits + ChecksumBits - 1) / ChecksumBits;
         for (int c = 0; c < chunks; c++)
         {
             int v = 0;
-            for (int b = 0; b < ChecksumBits; b++) v = (v << 1) | payloadBits[c * ChecksumBits + b];
+            for (int b = 0; b < ChecksumBits; b++)
+            {
+                int idx = c * ChecksumBits + b;
+                v = (v << 1) | (idx < PayloadBits ? payloadBits[idx] : 0);
+            }
             sum += v;
         }
         return sum & 0x3F;

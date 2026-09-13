@@ -113,6 +113,7 @@ public static class TransferAchievements
     {
         { "captain", "艦長" },
         { "stone", "石工" },
+        { "wanderer", "放浪者" },
         { "vagrant", "浮浪者" },
         { "mirror", "領主様の姿見" }
     };
