@@ -855,7 +855,19 @@ const BOSS_MOUNT_APPROACH_Y = 14.1 - BOSS_STAND_DROP;     // v36: ゴーレム�
 // v35 (5): 騎乗の 1/60 秒前に老人を消す（従来は 64.095 で老人の消滅とゴーレムの騎乗版切替が
 //   同時＝1 コマだけ 2 体が重なっていた。切替コマで老人を先に消す）。
 const BOSS_MOUNT_HOP_SEC = 0.575;      // v36 (1): 0.333333 → 0.575（騎乗の瞬間は不変）
-const BOSS_MOUNT_Y = 15.964 - BOSS_STAND_DROP;   // v36 (C): ゴーレムに追従
+// v40 (2): 指示「老人がゴーレムに乗る瞬間に瞬間移動が見える」。
+//   原因は **騎乗位置が騎乗版スプライトの老人より上・左にずれていた**こと。
+//   v36 までは「足元どうしを合わせる」計算（騎乗版 GIF の老人の足元 y=85）で置いていたが、
+//   騎乗版の老人は座り姿で脚が描き直されており、足元を合わせると胴から上が 13px 高くなる。
+//   → 老人のスプライト（stone_idle.gif・128px）と、騎乗版 golem_idle.gif から
+//     golem_idle_norider.gif との差分で取り出した騎乗者の線画（どちらも同じ ppu 100・
+//     scale 2.8・線色 sRGB(89,89,117)）を **画素で重ね合わせて**位置を実測した
+//     （`.tmp_fx40/cmp/mount_align.png`。上半身の一致率は現行 0.43 → 0.58）。
+//     一致するのは「老人の中心 = ゴーレムの中心 + (6px, 75px)」＝ (+0.168, +2.1) ユニット。
+//   不透明画素の重心で測っても (+0.102, +2.227) で同じ向き・同程度。切替の瞬間の飛びは
+//   1080p で 10.1px 右・13.4px 下だった。
+const BOSS_MOUNT_X = 16 + 0.168;                 // v40 (2): 6px 右（ゴーレム中心は x=16）
+const BOSS_MOUNT_Y = BOSS_GOLEM_LAND_Y + 2.1;    // v40 (2): 75px 上（= 14.6745）
 const BOSS_MOUNT_ARC_Y = 18.90 - BOSS_STAND_DROP; // ベジェの制御点（頂点は 1.0655 下がるだけで形は不変）
 // v36 (1b): 老人の消滅とゴーレムの騎乗版への切替を **同じ時刻** にする。
 //   v35 は 1/60 秒早く消していた（二重表示の回避）が、ボスの時計を appearTime 基準へ直したら
@@ -1323,6 +1335,7 @@ function spinBurst(opts) {
     pos, count, speed, spin,
     type = 'box', life = 0, scale = [1, 1], color = [1, 1, 1, 1],
     angleOffset = 0, unCounterable = true, kind = 'spinburst', orbit = false,
+    ignoreCull = false,
   } = opts;
   const bullets = [];
   for (let i = 0; i < count; i++) {
@@ -1338,6 +1351,7 @@ function spinBurst(opts) {
         scale: { x: scale[0], y: scale[1] },
         color: { x: color[0], y: color[1], z: color[2], w: color[3] },
         life,
+        ignoreOutOfBoundsCulling: ignoreCull,
         unCounterable,
         useVelocityAngle: false,
         polarForm: { x: 1, y: normalizeNegativeZero(angle) },
@@ -5101,6 +5115,19 @@ export default stage(
     const GATHER_PATH_WIDTH = TILE;      // 帯の幅＝タイル 1 枚ぶん
     const GATHER_PATH_R0 = 0;            // 集合点（着弾位置）まで引く
     const GATHER_PATH_TIP = (GATHER_PATH_WIDTH / 2) / Math.sin(Math.PI / 12);   // 3.5546
+    // v40 (4): 指示「集合予告の楔どうしの境目に細い暗い筋が見える」。
+    //   v38 の楔は隣とちょうど接する幅なので 1 テクセルも重ならない。弾のテクスチャは
+    //   Texture2DArray に **FilterMode.Point** で積まれる（BulletRenderSystem.cs:59）ため、
+    //   境界の 1 テクセルぶんがどちらの楔からも描かれず、背景が透ける筋になっていた
+    //   （実測 1080p: 帯 Y'=86 に対し筋は 33〜66）。
+    //   → 楔のクワッドだけ左右へ GATHER_PATH_FRINGE ずつ広げて隣と重ね、
+    //     重なっても濃くならないよう端の alpha を指数プロファイル
+    //     a(s)=1-(1-A)^(1-s) で落とす（Tools/gen_stone3_warnwedge_v40.py）。
+    //     合成 alpha は 1-(1-a)(1-a') = A で**どこでも単独の帯と同じ**。
+    //   幾何的な半幅 r sin15 度はスプライト側で保たれるので、レーンの境界・
+    //   矩形側（warn_box）・音ハメは v38 から一切動かない。
+    const GATHER_PATH_FRINGE = 0.09;   // 片側の重ね幅（1080p で 5.4 px）
+    const GATHER_PATH_DRAW_WIDTH = GATHER_PATH_WIDTH + 2 * GATHER_PATH_FRINGE;   // 2.02
     const gatherPathItems = [];
     gatherLanes.forEach(function (ln) {
       const r0 = GATHER_PATH_R0;
@@ -5112,7 +5139,8 @@ export default stage(
             type: seg[2],
             pos: [normalizeNegativeZero(GATHER_POINT[0] + ln.u[0] * rm),
                   normalizeNegativeZero(GATHER_POINT[1] + ln.u[1] * rm)],
-            scale: [GATHER_PATH_WIDTH, seg[1] - seg[0]],
+            scale: [seg[2] === 'stone3_warnwedge' ? GATHER_PATH_DRAW_WIDTH : GATHER_PATH_WIDTH,
+                    seg[1] - seg[0]],
             angle: normalizeNegativeZero(-ln.angle),   // 帯の長辺（ローカル +y）をレーン方向へ
             color: SPRITE_AS_IS,
             appearTime: 0,
@@ -5641,6 +5669,20 @@ export default stage(
     //   （FIN_ORBIT = (pi/2) / BEAT = 3.7699 rad/s）。層 1 = 時計回り（負）、
     //   層 2 = 反時計、層 3 = 時計。半径方向の速さ（finRingSpeed）は据え置き。
     const FIN_ORBIT = (Math.PI / 2) / BEAT;
+    // v40 (3): 指示「最後の回転弾が途中で消える」。公転版は R(t)=speed*t・Θ(t)=角+spin*t の
+    //   螺旋なので、弾の向きが一周するあいだに **必ず真下を向く瞬間** がある。着弾点は
+    //   (16,1) で生存域の下端 y=-2 まで 3 ユニットしかないため、下を向いた弾はそこで
+    //   カリングされて消える。直進弾なら「画面外へ出て終わり」だが、公転弾は回り続けて
+    //   もう一度画面へ戻ってくるはずなので、戻る前に消えてしまう。
+    //   実測（`.tmp_fx40/sim_blast.py`・BulletDataUpdateJob と同じ式で 1/60 刻み）:
+    //   **105 発中 91 発**が「消えたあと画面内へ戻る軌道」だった。画面内の弾数は
+    //   141.95 の 82 発から単調に減り 143.45 で 0。
+    //   → 公転弾だけ生存域のカリングを外し（ignoreOutOfBoundsCulling）、代わりに
+    //     **画面から確実に出切る半径**まで生きる寿命を持たせる。着弾点 (16,1) から
+    //     画面 (0..32, 0..18) の最遠の角までは 23.34 ユニット、R=speed*t なので
+    //     t=2.334 秒。余裕を見て 2.5 秒（R=25）。実測でも画面内で寿命が尽きる弾は 0。
+    //   直進版（easy/normal）は従来どおり（カリングで消えて戻らないのが正しい挙動）。
+    const FIN_ORBIT_LIFE = 2.5;
     const finSpins = IS_LUNATIC
       ? [-FIN_ORBIT, FIN_ORBIT, -FIN_ORBIT]
       : [SPIN_RATE, -SPIN_RATE, SPIN_RATE];
@@ -5653,12 +5695,13 @@ export default stage(
         count: finRingN,
         speed: finRingSpeed,
         type: 'stone3_bullet',
-        life: 0,
+        life: IS_LUNATIC ? FIN_ORBIT_LIFE : 0,   // v40 (3)
         scale: [BLAST_SCALE, BLAST_SCALE],
         color: SPRITE_AS_IS,
         angleOffset: off,
         spin: spin,
         orbit: IS_LUNATIC,
+        ignoreCull: IS_LUNATIC,                  // v40 (3)
         kind: 'blast',
         unCounterable: true,
       }));
