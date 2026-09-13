@@ -1,8 +1,9 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 /// <summary>
-/// ステージ選択の背景を Astra 制作の 3D「城壁の街」(Instructions/ステージ選択/cg/v4.fbx) にする。
+/// ステージ選択の背景を Astra 制作の 3D「城壁の街」(Instructions/ステージ選択/cg/v5.fbx) にする。
 ///
 /// 仕組みはタイトルの部屋 (<see cref="TitleRoomController"/>) と同じ「専用カメラ → RenderTexture →
 /// 選択画面 Canvas 最背面の RawImage」方式。街はレイヤー <c>CityCG</c>(12) に置き、専用カメラだけが
@@ -66,10 +67,18 @@ public class CityMapController : MonoBehaviour
     // ドット風のときだけ使う低解像度の描画先(実行時生成)。
     RenderTexture pixelRT;
     Material pixelMat;
+    // 輪郭線用: 街の複製を CityDepth レイヤーに置き、街カメラと同じ姿勢の深度専用カメラで
+    // 距離(ワールド単位)を RFloat の RT へ描く(CityDepthWrite.shader)。線は UIPixelQuantize が引く。
+    // (URP の _CameraDepthTexture はこの構成の透明パスで読めなかったので自前で描く。)
+    Camera depthCamera;
+    RenderTexture depthRT;
+    Transform depthRoot;
+    Material depthMat;
+    const string DepthLayerName = "CityDepth";
 
     [Header("明るさ")]
-    [Tooltip("全ライトに掛かる倍率。")]
-    public float exposure = 1f;
+    [Tooltip("全ライトに掛かる倍率。1.0 だとタイトル部屋より明るく、モデルの単純さが目立つ(2026-09-13 指摘)。0.55 でタイトルと同じ平均輝度(実測 38/255)になる。")]
+    public float exposure = 0.55f;
     [Tooltip("街を出しているあいだだけ差し替える環境光(夜の藍)。")]
     public Color ambientColor = new Color(0.150f, 0.160f, 0.240f, 1f);
     [Tooltip("月光(平行光)の強さ。")]
@@ -82,6 +91,31 @@ public class CityMapController : MonoBehaviour
     public float lanternIntensity = 2.0f;
     [Tooltip("街灯の届く距離。長くすると隣の区画まで橙が漏れる。")]
     public float lanternRange = 4.5f;
+    [Tooltip("街灯だけに掛かる倍率(exposure とは独立)。全体を夜へ落としても街灯の橙の溜まりを残すため。")]
+    public float lanternExposure = 1f;
+    [Tooltip("ON で空(カメラの背景色)にも exposure を掛ける。")]
+    public bool exposureAffectsSky = true;
+
+    [Header("輪郭線(低解像度 RT の明暗の段差に 1 ドット幅の線を重ねる)")]
+    [Tooltip("ON で輪郭線を重ねる。既定は深度方式(outlineDepth)のみ。")]
+    public bool outline = true;
+    [Tooltip("ON で明暗の段差にも線を置く(UIPixelQuantize 側。暗い側の 1 ドット)。夜の街では段差が小さく効果が薄いので既定 OFF。")]
+    public bool outlineLuminance = false;
+    [Tooltip("線の濃さ。1 で outlineColor そのまま(2026-09-13 の試作は 1.0・黒・外側 1 ドット)。")]
+    [Range(0f, 1f)] public float outlineStrength = 1f;
+    [Tooltip("線を出す明暗差のしきい値(ガンマ空間の輝度差)。小さいほど細部にも線が入る。")]
+    [Range(0f, 1f)] public float outlineThreshold = 0.10f;
+    [Tooltip("しきい値からこの幅で線が濃くなる。")]
+    [Range(0f, 1f)] public float outlineSoftness = 0.08f;
+    public Color outlineColor = new Color(0.03f, 0.03f, 0.06f, 1f);
+    [Tooltip("ON で明るい側にも線を置く(2 ドット幅)。OFF は暗い側だけ(1 ドット幅)。")]
+    public bool outlineBothSides = false;
+    [Tooltip("ON で街の複製を深度専用カメラ(CityDepth レイヤー)で描き、視点からの距離の段差=物体のシルエットに線を置く。明暗の段差だけでは出ない建物の縁が出る。")]
+    public bool outlineDepth = true;
+    [Tooltip("距離差のしきい値(ワールド単位)。家 1 軒が 2〜3 なので 0.6 前後で建物の縁だけが出る。")]
+    public float outlineDepthThreshold = 0.6f;
+    [Tooltip("線を置く側。0=物体側(手前の 1 ドット)、1=背景側(物体の外周 1 ドット。地面の上に線が乗るので最も読める)、2=両側(2 ドット幅)。")]
+    [Range(0, 2)] public int outlineDepthSide = 1;
 
     [Header("区画の色")]
     // 第 14 便: 面全体を暖色で持ち上げる発光はやめ、ほとんど分からない程度に弱めた
@@ -90,6 +124,9 @@ public class CityMapController : MonoBehaviour
     public Color glowTint = new Color(1.045f, 1.02f, 0.975f, 1f);
     [Tooltip("ステージ未実装の区画を沈める色。")]
     public Color dimTint = new Color(0.30f, 0.32f, 0.42f, 1f);
+
+    // 参考レンダーの背景(藍紫)。実測 (21,24,40)〜(26,30,46)。exposureAffectsSky で露出が掛かる。
+    static readonly Color SkyColor = new Color(0.0865f, 0.0965f, 0.1620f, 1f);
 
     // ---- カメラ(v2_camera.json の実値。すべて正投影) --------------------------
     struct CamPose
@@ -249,9 +286,12 @@ public class CityMapController : MonoBehaviour
 
     void EnsurePixelMaterial()
     {
-        if (pixelatePalette <= 1 && !colorGrade)
+        EnsureDepthCamera(outline && outlineDepth);
+        // 一度作ったマテリアルは壊さない。RawImage.material の setter は「破棄済み == null」で
+        // 早期 return するため、破棄すると CanvasRenderer が死んだマテリアルを掴んだまま真っ黒になる。
+        if (pixelatePalette <= 1 && !colorGrade && !outline)
         {
-            if (pixelMat != null) { DestroyImmediate(pixelMat); pixelMat = null; }
+            if (pixelMat != null) ApplyViewMaterial();
             return;
         }
         if (pixelMat == null)
@@ -277,6 +317,143 @@ public class CityMapController : MonoBehaviour
         pixelMat.SetFloat("_WarmKeep", warmKeep);
         pixelMat.SetColor("_TintColor", tintNow);
         pixelMat.SetFloat("_TintAmount", colorGrade ? tintWeight * districtTintAmount : 0f);
+        pixelMat.SetFloat("_OutlineEnabled", outline && (outlineLuminance || (outlineDepth && depthRT != null)) ? 1f : 0f);
+        pixelMat.SetFloat("_OutlineLuminance", outline && outlineLuminance ? 1f : 0f);
+        pixelMat.SetFloat("_OutlineStrength", outlineStrength);
+        pixelMat.SetFloat("_OutlineThreshold", outlineThreshold);
+        pixelMat.SetFloat("_OutlineSoftness", outlineSoftness);
+        pixelMat.SetColor("_OutlineColor", outlineColor);
+        pixelMat.SetFloat("_OutlineBothSides", outlineBothSides ? 1f : 0f);
+        pixelMat.SetFloat("_DepthOutline", outline && outlineDepth && depthRT != null ? 1f : 0f);
+        pixelMat.SetFloat("_DepthThreshold", outlineDepthThreshold);
+        pixelMat.SetFloat("_DepthSide", outlineDepthSide);
+        pixelMat.SetTexture("_DepthTex", depthRT);
+    }
+
+    /// <summary>輪郭線の設定をまとめて変える。検証用。</summary>
+    public void SetOutline(bool on, float strength = -1f, float threshold = -1f, float softness = -1f, int bothSides = -1, Color? color = null, int depth = -1, float depthThreshold = -1f, int luminance = -1, int depthSide = -1)
+    {
+        outline = on;
+        if (depthSide >= 0) outlineDepthSide = Mathf.Clamp(depthSide, 0, 2);
+        if (luminance >= 0) outlineLuminance = luminance > 0;
+        if (depth >= 0) outlineDepth = depth > 0;
+        if (depthThreshold >= 0f) outlineDepthThreshold = depthThreshold;
+        if (bothSides >= 0) outlineBothSides = bothSides > 0;
+        if (color.HasValue) outlineColor = color.Value;
+        if (strength >= 0f) outlineStrength = strength;
+        if (threshold >= 0f) outlineThreshold = threshold;
+        if (softness >= 0f) outlineSoftness = softness;
+        EnsurePixelMaterial();
+        ApplyViewMaterial();
+    }
+
+    /// <summary>明るさ(全体の露出と街灯だけの倍率)をまとめて変える。検証用。</summary>
+    public void SetNight(float exposureValue, float lanternValue = -1f, float moon = -1f)
+    {
+        exposure = exposureValue;
+        if (lanternValue >= 0f) lanternExposure = lanternValue;
+        if (moon >= 0f) moonIntensity = moon;
+        ApplyExposure();
+    }
+
+    // 街の複製を深度専用カメラで描く仕組みを用意/片付けする。
+    void EnsureDepthCamera(bool on)
+    {
+        if (!on)
+        {
+            if (depthCamera != null) depthCamera.enabled = false;
+            if (depthRoot != null) depthRoot.gameObject.SetActive(false);
+            return;
+        }
+        if (cityCamera == null || cityRoot == null) return;
+        int depthLayer = LayerMask.NameToLayer(DepthLayerName);
+        if (depthLayer < 0)
+        {
+            Debug.LogWarning("CityMapController: レイヤー " + DepthLayerName + " が無いので輪郭線を出せません。");
+            return;
+        }
+        int w = pixelRT != null ? pixelRT.width : Mathf.Clamp(pixelWidth, 32, 1920);
+        int h = pixelRT != null ? pixelRT.height : Mathf.Clamp(pixelHeight, 18, 1080);
+        if (depthRT != null && (depthRT.width != w || depthRT.height != h))
+        {
+            if (depthCamera != null) depthCamera.targetTexture = null;
+            depthRT.Release(); DestroyImmediate(depthRT); depthRT = null;
+        }
+        if (depthRT == null)
+        {
+            depthRT = new RenderTexture(w, h, 24, RenderTextureFormat.RFloat)
+            {
+                name = "CityMapDepthRT",
+                filterMode = FilterMode.Point,
+                wrapMode = TextureWrapMode.Clamp,
+                antiAliasing = 1,
+                useMipMap = false,
+                hideFlags = HideFlags.DontSave
+            };
+            depthRT.Create();
+        }
+        if (depthMat == null)
+        {
+            Shader sh = Shader.Find("BulletHell/City/DepthWrite");
+            if (sh == null) return;
+            depthMat = new Material(sh) { hideFlags = HideFlags.DontSave };
+        }
+        if (depthRoot == null)
+        {
+            // 街をそのまま複製し、ライトを外して全メッシュを距離書き込みの材質にする。
+            GameObject copy = Instantiate(cityRoot.gameObject, cityRoot.parent);
+            copy.name = "CityDepthCopy";
+            foreach (Light l in copy.GetComponentsInChildren<Light>(true)) DestroyImmediate(l);
+            foreach (Renderer r in copy.GetComponentsInChildren<Renderer>(true))
+            {
+                Material[] mats = r.sharedMaterials;
+                for (int i = 0; i < mats.Length; i++) mats[i] = depthMat;
+                r.sharedMaterials = mats;
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                r.receiveShadows = false;
+                r.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
+            }
+            SetLayerRecursive(copy, depthLayer);
+            depthRoot = copy.transform;
+            depthRoot.localPosition = cityRoot.localPosition;
+            depthRoot.localRotation = cityRoot.localRotation;
+            depthRoot.localScale = cityRoot.localScale;
+        }
+        depthRoot.gameObject.SetActive(true);
+        if (depthCamera == null)
+        {
+            GameObject camObj = new GameObject("CityDepthCamera");
+            camObj.transform.SetParent(cityCamera.transform, false);
+            depthCamera = camObj.AddComponent<Camera>();
+            depthCamera.clearFlags = CameraClearFlags.SolidColor;
+            depthCamera.backgroundColor = new Color(1e5f, 0f, 0f, 1f);   // 何も無い所は「とても遠い」
+            depthCamera.cullingMask = 1 << depthLayer;
+            depthCamera.orthographic = true;
+            depthCamera.allowMSAA = false;
+            depthCamera.allowHDR = true;
+            depthCamera.useOcclusionCulling = false;
+            depthCamera.depth = cityCamera.depth - 1f;   // 街より先に描く
+            depthCamera.targetTexture = depthRT;
+            UniversalAdditionalCameraData data = camObj.AddComponent<UniversalAdditionalCameraData>();
+            data.renderType = CameraRenderType.Base;
+            data.renderPostProcessing = false;
+            data.requiresColorOption = CameraOverrideOption.Off;
+            data.requiresDepthOption = CameraOverrideOption.Off;
+            data.SetRenderer(rendererIndex);
+        }
+        depthCamera.targetTexture = depthRT;
+        depthCamera.enabled = true;
+        SyncDepthCamera();
+    }
+
+    // 深度カメラを街カメラと同じ姿勢・画角にする(ズームで orthographicSize が変わるたびに呼ぶ)。
+    void SyncDepthCamera()
+    {
+        if (depthCamera == null || cityCamera == null) return;
+        depthCamera.orthographicSize = cityCamera.orthographicSize;
+        depthCamera.nearClipPlane = cityCamera.nearClipPlane;
+        depthCamera.farClipPlane = cityCamera.farClipPlane;
+        depthCamera.aspect = cityCamera.aspect;
     }
 
     void ReleasePixelTexture()
@@ -290,6 +467,10 @@ public class CityMapController : MonoBehaviour
             pixelRT = null;
         }
         if (pixelMat != null) { DestroyImmediate(pixelMat); pixelMat = null; }
+        if (depthCamera != null) { depthCamera.targetTexture = null; DestroyImmediate(depthCamera.gameObject); depthCamera = null; }
+        if (depthRoot != null) { DestroyImmediate(depthRoot.gameObject); depthRoot = null; }
+        if (depthMat != null) { DestroyImmediate(depthMat); depthMat = null; }
+        if (depthRT != null) { depthRT.Release(); DestroyImmediate(depthRT); depthRT = null; }
     }
 
     /// <summary>ドット風表示を切り替える(比較用)。表示板は Texture / ViewMaterial を追従する。</summary>
@@ -381,7 +562,7 @@ public class CityMapController : MonoBehaviour
         cityCamera = camObj.AddComponent<Camera>();
         cityCamera.clearFlags = CameraClearFlags.SolidColor;
         // 参考レンダーの背景(藍紫)。実測 (21,24,40)〜(26,30,46)。
-        cityCamera.backgroundColor = new Color(0.0865f, 0.0965f, 0.1620f, 1f);
+        cityCamera.backgroundColor = SkyColor;
         cityCamera.cullingMask = 1 << layer;
         cityCamera.orthographic = true;
         cityCamera.nearClipPlane = 0.05f;
@@ -398,6 +579,7 @@ public class CityMapController : MonoBehaviour
         data.requiresColorOption = CameraOverrideOption.Off;
         data.requiresDepthOption = CameraOverrideOption.Off;
         data.SetRenderer(rendererIndex);
+        EnsurePixelMaterial();
 
         // ---- ライト ----
         // v2_camera.json の光源色は線形値。Light.color は sRGB として解釈されるので変換して入れる
@@ -438,7 +620,7 @@ public class CityMapController : MonoBehaviour
             Light light = t.gameObject.AddComponent<Light>();
             light.type = LightType.Point;
             light.color = warm;
-            light.intensity = lanternIntensity * exposure;
+            light.intensity = lanternIntensity * lanternExposure;
             light.range = lanternRange;
             light.shadows = LightShadows.None;
             light.renderingLayerMask = 1;
@@ -501,7 +683,8 @@ public class CityMapController : MonoBehaviour
         if (!built) return;
         activeNow = on;
         if (cityRoot != null) cityRoot.gameObject.SetActive(on);
-        if (cityCamera != null) cityCamera.gameObject.SetActive(on);
+        if (depthRoot != null) depthRoot.gameObject.SetActive(on && outline && outlineDepth);
+        if (cityCamera != null) cityCamera.gameObject.SetActive(on);   // 深度カメラは街カメラの子なので一緒に消える
         foreach (Light light in new[] { moonLight, rimLight, fillLight })
             if (light != null) light.gameObject.SetActive(on);
 
@@ -685,6 +868,7 @@ public class CityMapController : MonoBehaviour
         if (cityCamera == null) return;
         cityCamera.transform.SetPositionAndRotation(p.pos, Quaternion.Euler(p.euler));
         cityCamera.orthographicSize = p.size;
+        SyncDepthCamera();
     }
 
     // 未実装の区画を沈め、実装済みの区画を素の明るさにする。
@@ -751,10 +935,11 @@ public class CityMapController : MonoBehaviour
         for (int i = 0; i < lanternLights.Count; i++)
         {
             if (lanternLights[i] == null) continue;
-            lanternLights[i].intensity = lanternIntensity * exposure;
+            lanternLights[i].intensity = lanternIntensity * lanternExposure;
             lanternLights[i].range = lanternRange;
         }
         if (ambientSaved) RenderSettings.ambientLight = ambientColor * exposure;
+        if (cityCamera != null) cityCamera.backgroundColor = exposureAffectsSky ? SkyColor * exposure : SkyColor;
     }
 
     /// <summary>検証用: いまのカメラ姿勢を文字列で返す。</summary>

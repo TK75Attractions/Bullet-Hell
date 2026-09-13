@@ -22,6 +22,19 @@ Shader "BulletHell/UI/PixelQuantize"
         _WarmKeep ("Keep warm hues saturated", Range(0,1)) = 1
         _TintColor ("District tint (multiplier)", Color) = (1,1,1,1)
         _TintAmount ("District tint amount", Range(0,1)) = 0
+        // 輪郭線(0 = 無し)。低解像度 RT の texel 単位で、隣より暗い側に 1 ドットの線を置く。
+        _OutlineEnabled ("Outline on/off", Float) = 0
+        _OutlineStrength ("Outline strength", Range(0,1)) = 0.55
+        _OutlineThreshold ("Outline threshold", Range(0,1)) = 0.10
+        _OutlineSoftness ("Outline softness", Range(0,1)) = 0.08
+        _OutlineColor ("Outline color", Color) = (0.03,0.03,0.06,1)
+        _OutlineBothSides ("Outline on both sides (2 texel)", Float) = 0
+        _OutlineLuminance ("Luminance outline on/off", Float) = 0
+        // 距離(ワールド単位)の段差による輪郭。街の深度カメラの RT を読む。
+        _DepthTex ("Depth (city depth camera, R = distance)", 2D) = "black" {}
+        _DepthOutline ("Depth outline on/off", Float) = 0
+        _DepthThreshold ("Depth outline threshold (world units)", Float) = 0.6
+        _DepthSide ("Depth line side (0=near,1=far,2=both)", Float) = 1
         _ColorMask ("Color Mask", Float) = 15
     }
 
@@ -80,6 +93,23 @@ Shader "BulletHell/UI/PixelQuantize"
             float _WarmKeep;
             float4 _TintColor;
             float _TintAmount;
+            float _OutlineEnabled;
+            float _OutlineStrength;
+            float _OutlineThreshold;
+            float _OutlineSoftness;
+            float4 _OutlineColor;
+            float _OutlineBothSides;
+            float _OutlineLuminance;
+            sampler2D _DepthTex;
+            float _DepthOutline;
+            float _DepthThreshold;
+            float _DepthSide;
+
+            float GammaLum(float2 uv)
+            {
+                float3 c = pow(saturate(tex2D(_MainTex, uv).rgb), 1.0 / 2.2);
+                return dot(c, float3(0.299, 0.587, 0.114));
+            }
 
             v2f vert(appdata_t v)
             {
@@ -108,11 +138,14 @@ Shader "BulletHell/UI/PixelQuantize"
                 float levels = _PixelatePalette;
                 bool quantize = levels > 1.5;
                 bool grade = _GradeEnabled > 0.5;
-                if (!quantize && !grade) return col;
+                bool outline = _OutlineEnabled > 0.5;
+                if (!quantize && !grade && !outline) return col;
 
                 // 階調も色の調整もガンマ空間で行う。RT はリニア(HDR)なので、そのまま
                 // 等間隔に丸めると暗部が全部 0 へ潰れる(夜の街が真っ黒になる)。
                 float3 g = pow(saturate(col.rgb), 1.0 / 2.2);
+                // 輪郭線の判定は色の調整前の輝度で行う(隣の texel は調整前の値しか読めないため)。
+                float lumRaw = dot(g, float3(0.299, 0.587, 0.114));
 
                 if (grade)
                 {
@@ -131,6 +164,48 @@ Shader "BulletHell/UI/PixelQuantize"
 
                     // 区画の基調色を薄く被せる(_TintColor は 1 を中立とする倍率)。
                     g = saturate(lerp(g, g * _TintColor.rgb, _TintAmount));
+                }
+
+                if (outline)
+                {
+                    float2 px = _MainTex_TexelSize.xy;
+                    float edge = 0.0;
+                    if (_OutlineLuminance > 0.5)
+                    {
+                        // 4 近傍のうち最も明るい texel との輝度差が しきい値を超えたら、この
+                        // (暗い側の)texel に線を置く。両側に置くと 2 ドット幅になるので片側だけ。
+                        float l0 = lumRaw;
+                        float ln = max(max(GammaLum(i.texcoord + float2(px.x, 0)), GammaLum(i.texcoord - float2(px.x, 0))),
+                                       max(GammaLum(i.texcoord + float2(0, px.y)), GammaLum(i.texcoord - float2(0, px.y))));
+                        float diff = ln - l0;
+                        if (_OutlineBothSides > 0.5)
+                        {
+                            // 両側に置く(2 texel 幅)。暗い側との差も見る。
+                            float lmin = min(min(GammaLum(i.texcoord + float2(px.x, 0)), GammaLum(i.texcoord - float2(px.x, 0))),
+                                             min(GammaLum(i.texcoord + float2(0, px.y)), GammaLum(i.texcoord - float2(0, px.y))));
+                            diff = max(diff, l0 - lmin);
+                        }
+                        edge = smoothstep(_OutlineThreshold, _OutlineThreshold + max(_OutlineSoftness, 0.001), diff);
+                    }
+                    if (_DepthOutline > 0.5)
+                    {
+                        // 視点からの距離(ワールド単位)。near 側=この texel が最も遠い隣より手前(物体の縁)、
+                        // far 側=この texel が最も近い隣より奥(物体のすぐ外側=地面)。
+                        float d0 = tex2D(_DepthTex, i.texcoord).r;
+                        float dL = tex2D(_DepthTex, i.texcoord - float2(px.x, 0)).r;
+                        float dR = tex2D(_DepthTex, i.texcoord + float2(px.x, 0)).r;
+                        float dU = tex2D(_DepthTex, i.texcoord + float2(0, px.y)).r;
+                        float dD = tex2D(_DepthTex, i.texcoord - float2(0, px.y)).r;
+                        float farN = max(max(dL, dR), max(dU, dD));
+                        float nearN = min(min(dL, dR), min(dU, dD));
+                        float ddNear = farN - d0;
+                        float ddFar = d0 - nearN;
+                        float dd = _DepthSide < 0.5 ? ddNear : (_DepthSide < 1.5 ? ddFar : max(ddNear, ddFar));
+                        float edgeD = smoothstep(_DepthThreshold, _DepthThreshold * 2.0, dd);
+                        edge = max(edge, edgeD);
+                    }
+                    float3 oc = pow(saturate(_OutlineColor.rgb), 1.0 / 2.2);
+                    g = lerp(g, oc, edge * _OutlineStrength);
                 }
 
                 if (quantize)
