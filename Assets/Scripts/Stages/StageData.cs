@@ -54,6 +54,14 @@ public class StageData
     [Min(0f)]
     public float endTime;
 
+    // v30 (5): このステージだけ、終了時の白転（PixelTransition.WhiteoutCover）に
+    //   かける秒数を上書きする。0 以下なら PixelTransition の既定（0.42 秒）のまま。
+    //   石工は最後の大爆破の余韻をゆっくり畳みたいので stone.json で 0.80 を入れている
+    //   （実測: 指定 1.10 で最初の白 → 全面白が 1.45 秒だったので、指定 + 0.35 秒ぶんの
+    //   セルのポップ時間を見込んで 0.80 ＝ 実測およそ 1.15 秒にした）。
+    [Min(0f)]
+    public float whiteoutCoverTime;
+
     [TextArea]
     public string stageDescription;
 
@@ -69,6 +77,19 @@ public class StageData
 
     // v2 ステージイベントチャンネル(SPEC-RUNTIME-V2.md P1-c)。省略可・弾データに影響しない。
     public List<StageEventSpawn> stageEvents = new List<StageEventSpawn>();
+
+    // 第 6 便 (D): 画面の揺れ（描画だけ・弾の座標と当たり判定には一切影響しない）。
+    //   時刻表は choreo（Tools/danmaku-lab/choreo/stone3.js の SHAKE_EVENTS）から
+    //   install_stone3.py が機械的に書く。持たないステージは何も起きない。
+    [System.Serializable]
+    public class ScreenShake
+    {
+        public float time;        // ステージ秒
+        public float magnitude;   // 振幅（論理ユニット）
+        public float duration;    // 減衰し切るまでの秒数
+    }
+
+    public List<ScreenShake> screenShakes = new List<ScreenShake>();
 
     [NonSerialized] public DifficultySelection requestedDifficulty;
     [NonSerialized] public DifficultySelection activeDifficulty;
@@ -104,6 +125,7 @@ public class StageData
             MusicEvents = CloneMusicEvents(MusicEvents),
             delayTime = delayTime,
             endTime = endTime,
+            whiteoutCoverTime = whiteoutCoverTime,
             stageDescription = stageDescription,
             enemyVisuals = CloneEnemyVisuals(enemyVisuals),
             difficulties = CloneDifficultyDataList(difficulties),
@@ -119,7 +141,8 @@ public class StageData
             bulletSpawners = selectedDifficulty != null
                 ? CloneBulletSpawners(selectedDifficulty.bulletSpawners)
                 : CloneBulletSpawners(bulletSpawners),
-            stageEvents = CloneStageEvents(stageEvents)
+            stageEvents = CloneStageEvents(stageEvents),
+            screenShakes = CloneScreenShakes(screenShakes)
         };
 
         return runtimeData;
@@ -422,6 +445,11 @@ public class StageData
     public static List<StageEventSpawn> CloneStageEvents(List<StageEventSpawn> source)
     {
         return source != null ? new List<StageEventSpawn>(source) : new List<StageEventSpawn>();
+    }
+
+    public static List<ScreenShake> CloneScreenShakes(List<ScreenShake> source)
+    {
+        return source != null ? new List<ScreenShake>(source) : new List<ScreenShake>();
     }
 
     private static BulletBufferEmission CloneBulletBufferEmission(BulletBufferEmission source)

@@ -174,6 +174,15 @@ public struct BulletV2UpdateJob : IJobParallelFor
 
     private static float2 SegmentDisplacement(in BulletV2Segment segment, float t)
     {
+        if (UsesEasing(segment))
+        {
+            // 等速度成分だけを時間の付け替え t -> T*E(t/T) で評価する。
+            // thetaVlc=0 なら D(t) = vlc * T * E(t/T)（仕様どおり）、
+            // thetaVlc!=0 なら弧の形を保ったまま弧長方向にイージングが掛かる。
+            float warped = segment.duration * Ease(segment.easing, math.saturate(t / segment.duration));
+            return RotatedVelocityDisplacement(segment.vlc, segment.thetaVlc, warped);
+        }
+
         float2 disp = RotatedVelocityDisplacement(segment.vlc, segment.thetaVlc, t);
         if (segment.gravity.x != 0f)
         {
@@ -185,6 +194,14 @@ public struct BulletV2UpdateJob : IJobParallelFor
 
     private static float2 SegmentVelocity(in BulletV2Segment segment, float t)
     {
+        if (UsesEasing(segment))
+        {
+            float u = math.saturate(t / segment.duration);
+            float warped = segment.duration * Ease(segment.easing, u);
+            // dD/dt = Φ'(τ) * dτ/dt、dτ/dt = E'(u)（T が約分される）。
+            return RotatedVelocity(segment.vlc, segment.thetaVlc, warped) * EaseDerivative(segment.easing, u);
+        }
+
         float2 vel = RotatedVelocity(segment.vlc, segment.thetaVlc, t);
         if (segment.gravity.x != 0f)
         {
@@ -192,6 +209,64 @@ public struct BulletV2UpdateJob : IJobParallelFor
             vel += gravityDir * (segment.gravity.x * t);
         }
         return vel;
+    }
+
+    // easing を適用する区間かどうか。既定(0)・無期限区間(duration<=0)・gravity 併用の区間は
+    // 従来どおり linear + 等加速度で評価する（BulletV2Segment.easing のコメント参照）。
+    private static bool UsesEasing(in BulletV2Segment segment)
+    {
+        return segment.easing != 0 && segment.duration > 0f && segment.gravity.x == 0f;
+    }
+
+    private const float BounceN1 = 7.5625f;
+    private const float BounceD1 = 2.75f;
+
+    // E(0)=0, E(1)=1 の単調(bounce のみ区分的)な進行関数。
+    private static float Ease(int kind, float u)
+    {
+        switch (kind)
+        {
+            case 1: return u * u * u;                                   // easeIn(3次)
+            case 2: { float w = 1f - u; return 1f - w * w * w; }         // easeOut(3次)
+            case 3:                                                     // easeInOut(3次)
+                if (u < 0.5f) return 4f * u * u * u;
+                { float w = 1f - u; return 1f - 4f * w * w * w; }
+            case 4: return u * u * (3f - 2f * u);                        // smoothstep
+            case 5: return EaseBounce(u);                               // 減衰3回の跳ね
+            default: return u;                                          // 0=linear
+        }
+    }
+
+    private static float EaseDerivative(int kind, float u)
+    {
+        switch (kind)
+        {
+            case 1: return 3f * u * u;
+            case 2: { float w = 1f - u; return 3f * w * w; }
+            case 3:
+                if (u < 0.5f) return 12f * u * u;
+                { float w = 1f - u; return 12f * w * w; }
+            case 4: return 6f * u * (1f - u);
+            case 5: return EaseBounceDerivative(u);
+            default: return 1f;
+        }
+    }
+
+    // 主落下のあと 3 回跳ねて 1 に収束する定番の easeOutBounce。
+    private static float EaseBounce(float u)
+    {
+        if (u < 1f / BounceD1) return BounceN1 * u * u;
+        if (u < 2f / BounceD1) { float w = u - 1.5f / BounceD1; return BounceN1 * w * w + 0.75f; }
+        if (u < 2.5f / BounceD1) { float w = u - 2.25f / BounceD1; return BounceN1 * w * w + 0.9375f; }
+        { float w = u - 2.625f / BounceD1; return BounceN1 * w * w + 0.984375f; }
+    }
+
+    private static float EaseBounceDerivative(float u)
+    {
+        if (u < 1f / BounceD1) return 2f * BounceN1 * u;
+        if (u < 2f / BounceD1) return 2f * BounceN1 * (u - 1.5f / BounceD1);
+        if (u < 2.5f / BounceD1) return 2f * BounceN1 * (u - 2.25f / BounceD1);
+        return 2f * BounceN1 * (u - 2.625f / BounceD1);
     }
 
     // v0 を角速度 omega で連続回転させた速度ベクトルの、時刻 t までの変位の閉形式解。

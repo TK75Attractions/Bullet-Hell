@@ -229,6 +229,7 @@ public class Stone3BundleTests
             if (!sa.vlc.Equals(sb.vlc)) return $"v2Segments[{i}].vlc";
             if (!sa.gravity.Equals(sb.gravity)) return $"v2Segments[{i}].gravity";
             if (sa.thetaVlc != sb.thetaVlc) return $"v2Segments[{i}].thetaVlc";
+            if (sa.easing != sb.easing) return $"v2Segments[{i}].easing";
         }
         return null;
     }
@@ -304,7 +305,11 @@ public class Stone3BundleTests
         for (int i = 0; i < b.v2Segments.Length; i++)
         {
             BulletV2Segment seg = b.v2Segments[i];
-            sb.Append('(').Append(R(seg.duration)).Append(',').Append(F(seg.vlc)).Append(',').Append(F(seg.gravity)).Append(',').Append(R(seg.thetaVlc)).Append(')');
+            sb.Append('(').Append(R(seg.duration)).Append(',').Append(F(seg.vlc)).Append(',').Append(F(seg.gravity)).Append(',').Append(R(seg.thetaVlc));
+            // v32: easing は既定(0)のとき書式に出さない＝easing を使わないステージの
+            // ダイジェストは追加前とバイト一致し、golden の sha を再生成せずに済む。
+            if (seg.easing != 0) sb.Append(",e").Append(seg.easing);
+            sb.Append(')');
         }
         sb.Append('\n');
     }

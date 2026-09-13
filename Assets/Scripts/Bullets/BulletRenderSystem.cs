@@ -261,7 +261,8 @@ public class BulletRenderSystem : MonoBehaviour
             var b = bullets[i];
             if (!b.isActive && !b.isClearing) continue;
 
-            var type = GManager.Control.BTDB.types[b.typeId];
+            BulletType type = GetBulletType(b.typeId);
+            if (type == null) continue;
 
             float appear = 1f;
             float fadeIn = 1f;

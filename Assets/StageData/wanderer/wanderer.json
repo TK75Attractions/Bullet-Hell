@@ -1,0 +1,770 @@
+{
+    "stageName": "放浪者",
+    "MusicEvents": [
+        {
+            "barCount": 1,
+            "BPM": 69.4444,
+            "beatTimings": [
+                0
+            ],
+            "measure": 1,
+            "barStartOffsetBeats": 0
+        },
+        {
+            "barCount": 37,
+            "BPM": 86.0,
+            "beatTimings": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "measure": 6,
+            "barStartOffsetBeats": 0
+        }
+    ],
+    "delayTime": 0.0,
+    "endTime": 156.8,
+    "stageDescription": "元極北帝国兵・風と雷と斧",
+    "enemyVisuals": [
+        {
+            "id": "wanderer",
+            "source": "externalGif",
+            "basePath": "Visuals",
+            "pixelsPerUnit": 100,
+            "pivot": {
+                "x": 0.5,
+                "y": 0.5
+            },
+            "clips": [
+                {
+                    "name": "idle",
+                    "path": "wanderer_idle.gif",
+                    "loop": true,
+                    "frameDuration": 0.2,
+                    "maxFrames": 0
+                },
+                {
+                    "name": "rise1",
+                    "path": "wanderer_rise1.gif",
+                    "loop": false,
+                    "frameDuration": 0.1,
+                    "maxFrames": 0
+                },
+                {
+                    "name": "rise2",
+                    "path": "wanderer_rise2.gif",
+                    "loop": false,
+                    "frameDuration": 0.1,
+                    "maxFrames": 0
+                },
+                {
+                    "name": "down1",
+                    "path": "wanderer_down1.gif",
+                    "loop": false,
+                    "frameDuration": 0.1,
+                    "maxFrames": 0
+                },
+                {
+                    "name": "down2",
+                    "path": "wanderer_down2.gif",
+                    "loop": false,
+                    "frameDuration": 0.1,
+                    "maxFrames": 0
+                },
+                {
+                    "name": "down3",
+                    "path": "wanderer_down3.gif",
+                    "loop": false,
+                    "frameDuration": 0.1,
+                    "maxFrames": 0
+                }
+            ]
+        }
+    ],
+    "multiBulletSpawners": [],
+    "bossSpawners": [],
+    "bulletSpawners": [],
+    "difficulties": [
+        {
+            "difficulty": "Easy",
+            "multiBulletSpawners": [],
+            "bossSpawners": [
+                {
+                    "bossId": "wanderer",
+                    "bossName": "放浪者",
+                    "visualId": "wanderer",
+                    "appearTime": 1.0,
+                    "lifeTime": 154.0,
+                    "maxHp": 1000,
+                    "startPos": {
+                        "x": 16.0,
+                        "y": 15.2
+                    },
+                    "scale": {
+                        "x": 4.6,
+                        "y": 4.6
+                    },
+                    "angle": 0,
+                    "sortingOrder": 5,
+                    "fadeInSec": 1.2,
+                    "fadeOutSec": 1.0
+                }
+            ],
+            "bulletSpawners": [
+                {
+                    "clipName": "wanderer_wind_a1_e_0",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 9.335,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_wind_a1_e_1",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 13.5017,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_wind_a1_e_2",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 17.6683,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_bolts_2_e",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 22.312,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_bolts_3_e",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 29.719,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_wind_a2_e_0",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 39.01,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_wind_a2_e_1",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 43.1767,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_wind_a2_e_2",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 47.3433,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_bolts_6_e",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 52.106,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                }
+            ]
+        },
+        {
+            "difficulty": "Normal",
+            "multiBulletSpawners": [],
+            "bossSpawners": [
+                {
+                    "bossId": "wanderer",
+                    "bossName": "放浪者",
+                    "visualId": "wanderer",
+                    "appearTime": 1.0,
+                    "lifeTime": 154.0,
+                    "maxHp": 1000,
+                    "startPos": {
+                        "x": 16.0,
+                        "y": 15.2
+                    },
+                    "scale": {
+                        "x": 4.6,
+                        "y": 4.6
+                    },
+                    "angle": 0,
+                    "sortingOrder": 5,
+                    "fadeInSec": 1.2,
+                    "fadeOutSec": 1.0
+                }
+            ],
+            "bulletSpawners": [
+                {
+                    "clipName": "wanderer_wind_a1_n_0",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 9.335,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_wind_a1_n_1",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 13.4526,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_wind_a1_n_2",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 17.5703,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_bolts_2_n",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 22.312,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_bolts_3_n",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 29.719,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_wind_a2_n_0",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 39.01,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_wind_a2_n_1",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 43.1276,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_wind_a2_n_2",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 47.2453,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_bolts_6_n",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 52.106,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                }
+            ]
+        },
+        {
+            "difficulty": "Lunatic",
+            "multiBulletSpawners": [],
+            "bossSpawners": [
+                {
+                    "bossId": "wanderer",
+                    "bossName": "放浪者",
+                    "visualId": "wanderer",
+                    "appearTime": 1.0,
+                    "lifeTime": 154.0,
+                    "maxHp": 1000,
+                    "startPos": {
+                        "x": 16.0,
+                        "y": 15.2
+                    },
+                    "scale": {
+                        "x": 4.6,
+                        "y": 4.6
+                    },
+                    "angle": 0,
+                    "sortingOrder": 5,
+                    "fadeInSec": 1.2,
+                    "fadeOutSec": 1.0
+                }
+            ],
+            "bulletSpawners": [
+                {
+                    "clipName": "wanderer_wind_a1_l_0",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 9.335,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_wind_a1_l_1",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 13.6828,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_wind_a1_l_2",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 18.0307,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_bolts_2_l",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 22.312,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_bolts_3_l",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 29.719,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_wind_a2_l_0",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 39.01,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_wind_a2_l_1",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 43.3578,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_wind_a2_l_2",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 47.7057,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "wanderer_bolts_6_l",
+                    "count": 1,
+                    "interval": 0.0,
+                    "time": 52.106,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0.0,
+                    "angleInterval": 0.0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                }
+            ]
+        }
+    ]
+}

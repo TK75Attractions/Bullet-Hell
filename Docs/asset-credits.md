@@ -35,6 +35,16 @@
 - 出典: Google Fonts https://fonts.google.com/specimen/Playfair+Display
 - ライセンス: SIL Open Font License 1.1
 
+### Shippori Mincho Regular（しっぽり明朝・タイトル画面のメニューラベル）
+
+- 用途: タイトル画面の部屋メニュー（スタート/設定/引き継ぎ/ランキング/1P/2P）の
+  枠なしラベル。`Assets/Fonts/ShipporiMincho-Regular.ttf` /
+  `Assets/Resources/Fonts/ShipporiMincho-Regular SDF`（TMP・Dynamic・SDFAA・Atlas 1024）
+- 作者: The Shippori Mincho Project Authors（https://github.com/fontdasu/ShipporiMincho ）
+- 出典: Google Fonts https://fonts.google.com/specimen/Shippori+Mincho
+  （取得元 https://github.com/google/fonts/raw/main/ofl/shipporimincho/ShipporiMincho-Regular.ttf ・2026-09-09）
+- ライセンス: SIL Open Font License 1.1（`Assets/Fonts/OFL-ShipporiMincho.txt` に同梱）
+
 ## BGM（背景音楽）
 
 DOVA-SYNDROME（https://dova-s.jp/ ）のフリー BGM。

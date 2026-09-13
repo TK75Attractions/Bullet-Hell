@@ -209,6 +209,29 @@ public class JsabStageSelect : MonoBehaviour
 
     public bool Visible { get; private set; }
 
+    // --- 城壁の街スタイル(style 2) -------------------------------------------
+    // カルーセル(style 1)の部品は一切壊さず、街モードのあいだだけ下ろす。
+    // 上部バー(タイマー)・難易度モーダル・下部ヒントバーは両スタイルで共用する。
+    private bool cityMode;
+    private CitySelectView city;
+    private RectTransform bgShapesRoot;
+    // 街モードでは決定 → 区画へ寄る(0.4秒) → 難易度モーダル、の順に出す。
+    // 寄る前にモーダルを出すと、ぼかしスナップショットが寄りを丸ごと覆い隠す
+    // (タイトルの部屋で実証済みの罠)。
+    private bool cityZoomPending;
+    // 街モードで隠す既存 UI(コードも style 0/1 の表示もそのまま残す)。
+    private RectTransform hintBarRect;
+    private RectTransform hintBarLineRect;
+    // 街モードの左右レイアウト: 街の CG は全画面のまま、既存カードとステージ名を
+    // 右半分(x 50〜100%)へ移す。区画はカメラ側で画面左 27% に来るようずらす。
+    private static readonly Vector2 CityCardPos = new Vector2(480f, 40f);
+    private static readonly Vector2 CityCardSize = new Vector2(792f, 448f);
+    private const float CityStageNameY = 310f;
+    private bool cityLayoutApplied;
+
+    /// <summary>いまが街スタイル(style 2)か。</summary>
+    public bool CityMode => cityMode;
+
     public static JsabStageSelect Create(Transform parent, TMP_FontAsset font, Sprite playerSprite)
     {
         GameObject go = new GameObject("JsabStageSelectCanvas");
@@ -247,6 +270,11 @@ public class JsabStageSelect : MonoBehaviour
 
         // タイトル画面と同じ幾何学図形を薄く敷く(カード類より背面)。
         BuildBackgroundShapes(root);
+
+        // 城壁の街(style 2)。RT の表示板・▼・情報パネルをここで組む。街の 3D 本体は
+        // 実際に街スタイルを表示するときまで生成しない(CityMapController が遅延構築)。
+        city = CitySelectView.Create(root, font);
+        city.gameObject.SetActive(false);
 
         // --- Top bar: clone of the default (style 0) header so both styles share
         // the exact same design. The timer text and the red time-dim panel mirror
@@ -431,6 +459,7 @@ public class JsabStageSelect : MonoBehaviour
 
         // ShapeDrifter.Awake は追加時点の子を拾うので、図形を並べ終えてから付ける。
         layer.AddComponent<ShapeDrifter>();
+        bgShapesRoot = lr;
     }
 
     private void AddShape<T>(RectTransform parent, string shapeName, Vector2 pos, Vector2 size, float rotZ, Color color) where T : Graphic
@@ -934,6 +963,7 @@ public class JsabStageSelect : MonoBehaviour
     {
         Image bar = NewImage("HintBar", root, new Color(0.02f, 0.05f, 0.08f, 0.95f));
         RectTransform br = bar.rectTransform;
+        hintBarRect = br;
         br.anchorMin = new Vector2(0f, 0f);
         br.anchorMax = new Vector2(1f, 0f);
         br.pivot = new Vector2(0.5f, 0f);
@@ -942,6 +972,7 @@ public class JsabStageSelect : MonoBehaviour
 
         Image topLine = NewImage("HintBarLine", root, Cyan);
         RectTransform tlr = topLine.rectTransform;
+        hintBarLineRect = tlr;
         tlr.anchorMin = new Vector2(0f, 0f);
         tlr.anchorMax = new Vector2(1f, 0f);
         tlr.pivot = new Vector2(0.5f, 0f);
@@ -1157,6 +1188,35 @@ public class JsabStageSelect : MonoBehaviour
         difficultyOpen = true;
         diffOpenTime = Time.unscaledTime;
         mouseConfirm = false;
+        if (cityMode)
+        {
+            // まず区画へ寄り、寄り切ってからモーダルを出す。
+            if (city != null) city.SetCloseUp(true);
+            cityZoomPending = true;
+            StartCoroutine(OpenDifficultyAfterZoom());
+            return;
+        }
+        OpenDifficultyPanel();
+    }
+
+    private IEnumerator OpenDifficultyAfterZoom()
+    {
+        float t = 0f;
+        while (t < CityMapController.ZoomDuration)
+        {
+            t += Time.deltaTime;
+            if (!difficultyOpen) { cityZoomPending = false; yield break; }
+            yield return null;
+        }
+        cityZoomPending = false;
+        if (!difficultyOpen) yield break;
+        diffOpenTime = Time.unscaledTime;
+        OpenDifficultyPanel();
+    }
+
+    private void OpenDifficultyPanel()
+    {
+        if (diffRoot == null) return;
         if (diffBar != null)
         {
             ApplyDifficultyAvailability();     // 石工/浮浪者は EASY/LUNATIC を選択不可にする
@@ -1172,30 +1232,44 @@ public class JsabStageSelect : MonoBehaviour
         StartCoroutine(CaptureBlurBackground());
     }
 
-    // 現在のステージに応じて選択可能な難易度を絞る。浮浪者は EASY/LUNATIC が未完成のため
-    // NORMAL のみ選択可(グレーアウト+COMING SOON)。艦長は3難易度とも実データがあるので
-    // 従来どおり。石工・姿見(mirror)は調整中のため全難易度 COMING SOON にして、一覧には
-    // 表示したままゲーム開始だけをブロックする(CanConfirm で確定不可)。
+    // 現在のステージに応じて選択可能な難易度を絞る。どのステージ・難易度を無効にするかは
+    // StageUnlockSettings が一括で決める(既定は全解放。UnlockAll を false に戻すと
+    // 従来の「石工・姿見は全難易度 COMING SOON / 浮浪者は NORMAL のみ」へ戻る)。
+    // 無効行は一覧には表示したままゲーム開始だけをブロックする(CanConfirm で確定不可)。
     private void ApplyDifficultyAvailability()
     {
         if (diffBar == null) return;
         string dir = GetStage(currentIndex)?.stageDirectoryName;
-        if (dir == "stone" || dir == "mirror") diffBar.SetEnabledMask(false, false, false);
-        else if (dir == "vagrant") diffBar.SetEnabledMask(false, true, false);
-        else diffBar.SetEnabledMask(true, true, true);
+        StageUnlockSettings.GetDifficultyMask(dir, out bool easy, out bool normal, out bool lunatic);
+        diffBar.SetEnabledMask(easy, normal, lunatic);
     }
 
-    // 現在選択中の難易度が実際に確定可能か。石工・姿見(WIP)は全行 COMING SOON なので false を
-    // 返し、決定キー/時間切れによるゲーム開始をブロックする(endTime=0 の強制起動で
-    // BulletRenderSystem が落ちるのを防ぐ)。マウスは元々無効行を確定できない。
+    // 現在選択中の難易度が実際に確定可能か。ロック中のステージ(既定では姿見のみ)は全行
+    // COMING SOON なので false を返し、決定キー/時間切れによるゲーム開始をブロックする
+    // (endTime 未設定の強制起動で BulletRenderSystem が落ちるのを防ぐ)。
+    // マウスは元々無効行を確定できない。
     public bool CanConfirm()
     {
+        // 街モードで区画へ寄っている最中(モーダル未表示)は確定させない。
+        if (cityZoomPending) return false;
         return diffBar != null && diffBar.IsRowEnabled(diffBar.index);
+    }
+
+    // 街モードの右半分(既存カード・ステージ名・説明)の表示。難易度モーダルのあいだ下ろす。
+    private void SetCityRightColumnVisible(bool on)
+    {
+        if (!cityMode) return;
+        SetGoActive(cardRect, on);
+        SetGoActive(stageNameRect, on);
+        if (city != null) city.SetRightInfoVisible(on);
     }
 
     public void CloseDifficulty()
     {
         difficultyOpen = false;
+        cityZoomPending = false;
+        SetCityRightColumnVisible(true);
+        if (cityMode && city != null) city.SetCloseUp(false);
         RestoreTopBar();
         if (diffRoot == null || !diffRoot.gameObject.activeSelf) return;
         RestoreDifficultyExit();
@@ -1489,6 +1563,9 @@ public class JsabStageSelect : MonoBehaviour
         }
         if (diffScrim != null) diffScrim.enabled = true;
         if (diffPanel != null) diffPanel.gameObject.SetActive(true);
+        // 街モードの右半分(既存カード・ステージ名・説明)は、ぼかしスナップショットを
+        // 撮り終えてから下ろす。生きたまま残すと動画がぼかしの上に鮮明に出てしまう。
+        SetCityRightColumnVisible(false);
 
         // スナップショットが揃ったのでフェードイン開始(閉じられていなければ)。
         if (difficultyOpen)
@@ -1508,8 +1585,82 @@ public class JsabStageSelect : MonoBehaviour
         rootCG.alpha = Mathf.Clamp01(alpha);
     }
 
+    /// <summary>スタイル(0=既定 / 1=カルーセル / 2=城壁の街)を反映する。</summary>
+    public void SetStyle(int style)
+    {
+        bool wantCity = style == 2;
+        if (cityMode == wantCity && city != null && city.gameObject.activeSelf == wantCity) return;
+        cityMode = wantCity;
+        ApplyCarouselVisible(!cityMode);
+        if (city != null)
+        {
+            city.gameObject.SetActive(cityMode);
+            if (cityMode)
+            {
+                StageDataBase sdb = GManager.Control != null ? GManager.Control.SDB : null;
+                city.SetAvailableDistricts(StageCityProfile.BuildAvailability(sdb));
+                StageData data = GetStage(currentIndex);
+                city.SetStage(data, StageCityProfile.DistrictOf(data), false);
+            }
+            city.SetVisible(cityMode && Visible);
+        }
+        ApplyCityChrome();
+        // 街モードでも中央カード(プレビュー動画)はそのまま右半分で使う。
+        if (videoPlayer != null && !videoPlayer.isPlaying && !string.IsNullOrEmpty(videoPlayer.url) && Visible)
+            videoPlayer.Play();
+    }
+
+    // 街モード(style 2)で隠す既存 UI と、左右レイアウトの適用。
+    // 上部バー(曲選択/MUSIC SELECT・残り時間)と下部の操作ヒントは GameObject を
+    // 落とすだけで、クローン処理もタイマー本体も生きたまま(style 0/1 は不変)。
+    private void ApplyCityChrome()
+    {
+        bool hide = cityMode;
+        if (topBarBaseRoot != null && topBarBaseRoot.gameObject.activeSelf == hide)
+            topBarBaseRoot.gameObject.SetActive(!hide);
+        if (topBarTextRoot != null && topBarTextRoot.gameObject.activeSelf == hide)
+            topBarTextRoot.gameObject.SetActive(!hide);
+        SetGoActive(hintBarRect, !hide);
+        SetGoActive(hintBarLineRect, !hide);
+
+        if (cityMode == cityLayoutApplied) return;
+        cityLayoutApplied = cityMode;
+        if (cardRect != null)
+        {
+            cardRect.anchoredPosition = cityMode ? CityCardPos : CenterSlotPos;
+            cardRect.sizeDelta = cityMode ? CityCardSize : CenterSlotSize;
+        }
+        if (stageNameRect != null)
+        {
+            stageNameRect.anchoredPosition = new Vector2(
+                cityMode ? CityCardPos.x : 0f,
+                cityMode ? CityStageNameY : CenterSlotPos.y + CenterSlotSize.y * 0.5f + 46f);
+        }
+        if (city != null) city.SetRightColumn(cityMode ? CityCardPos.x : 0f,
+            cityMode ? CityCardPos.y - CityCardSize.y * 0.5f - 30f : 0f, CityCardSize.x);
+    }
+
+    // カルーセル固有の部品(サイドカード・中央カード・ステージ名・進捗行・背景図形)の
+    // 表示/非表示。上部バー・難易度モーダル・ヒントバーは共用なので触らない。
+    private void ApplyCarouselVisible(bool on)
+    {
+        SetGoActive(leftPanel != null ? leftPanel.rect : null, on);
+        SetGoActive(rightPanel != null ? rightPanel.rect : null, on);
+        SetGoActive(sparePanel != null ? sparePanel.rect : null, on);
+        SetGoActive(cardRect, true);        // 街モードでは右半分へ移して使う
+        SetGoActive(stageNameRect, true);
+        SetGoActive(progressRow, on);
+        SetGoActive(bgShapesRoot, on);
+    }
+
+    private static void SetGoActive(RectTransform rt, bool on)
+    {
+        if (rt != null && rt.gameObject.activeSelf != on) rt.gameObject.SetActive(on);
+    }
+
     public void SetVisible(bool visible)
     {
+        bool wasVisible = Visible;
         Visible = visible;
         if (rootCG != null)
         {
@@ -1517,6 +1668,12 @@ public class JsabStageSelect : MonoBehaviour
             rootCG.blocksRaycasts = false;
         }
         gameObject.SetActive(true); // keep active so Tick/video run; alpha hides it
+        if (city != null)
+        {
+            city.SetVisible(cityMode && visible);
+            // 隠れていた状態から出すときは、俯瞰から選択中の区画へ寄る入場を流す。
+            if (cityMode && visible && !wasVisible) city.PlayEntrance();
+        }
         if (visible)
         {
             if (videoPlayer != null && !string.IsNullOrEmpty(videoPlayer.url) && !videoPlayer.isPlaying)
@@ -1530,10 +1687,30 @@ public class JsabStageSelect : MonoBehaviour
         }
     }
 
+    /// <summary>残り時間(秒)。街モードでは上部バーを隠しているので、10 秒を切ったときだけ
+    /// 画面下端に小さく出すために使う。タイマー本体・自動スタートは従来どおり動く。</summary>
+    public void SetRemainingTime(float seconds)
+    {
+        if (city != null) city.SetRemainingTime(seconds, cityMode);
+    }
+
     public void SetStage(int index, int total, bool animate)
     {
         totalStages = Mathf.Max(1, total);
         int newIndex = Mathf.Clamp(index, 0, totalStages - 1);
+        if (cityMode)
+        {
+            currentIndex = newIndex;
+            if (city != null)
+            {
+                StageData data = GetStage(currentIndex);
+                city.SetStage(data, StageCityProfile.DistrictOf(data), animate);
+            }
+            // 右半分の既存カード(名前・プレビュー動画)も更新する。カルーセルの
+            // 飛行アニメーションは通さない(街モードでは部品を下ろしてあるため)。
+            ApplyCenterContent(false);
+            return;
+        }
         if (transTime >= 0f)
         {
             // 飛行中の同一インデックス通知は無視。連打時は現在の遷移を即着地
@@ -1924,6 +2101,12 @@ public class JsabStageSelect : MonoBehaviour
     {
         StageData cur = GetStage(currentIndex);
         string curName = cur != null && !string.IsNullOrWhiteSpace(cur.stageName) ? cur.stageName : ("Stage " + currentIndex);
+        // 街モードだけ日本語の表示名を使う(艦長は StageData 側が "Captain" のまま)。
+        if (cityMode && cur != null)
+        {
+            string jp = StageCityProfile.DisplayNameOf(cur);
+            if (!string.IsNullOrWhiteSpace(jp)) curName = jp;
+        }
         // Japanese stage names ride high under Middle alignment (Latin UI font +
         // CJK fallback metrics); optically center each by its ink bounds.
         if (stageNameText != null) { stageNameText.text = curName; TmpAlign.CenterInkVertically(stageNameText); }
@@ -2012,6 +2195,13 @@ public class JsabStageSelect : MonoBehaviour
         {
             topBarTimeDim.sizeDelta = origTimeDim.sizeDelta;
             topBarTimeDim.anchoredPosition = origTimeDim.anchoredPosition;
+        }
+
+        // 街モードはカルーセルのアニメーションを一切動かさない(部品は下ろしてある)。
+        if (cityMode)
+        {
+            if (city != null) city.Tick(dt);
+            return;
         }
 
         pulseTime += dt;

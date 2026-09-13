@@ -1,0 +1,1288 @@
+﻿using System.Collections.Generic;
+using UnityEngine;
+
+/// <summary>
+/// ステージの 3D 背景 CG（Astra 制作）の制御。石工・艦長・浮浪者で共通の仕組みを使い、
+/// 数値の違いは <see cref="StageCgProfile"/> 1 個にまとめてある（<see cref="profiles"/>）。
+///
+/// 構図は「奥に CG の舞台 → その手前にボス → 最前面に弾幕（不透明）」。
+/// 実現方法:
+///   1. CG 本体はレイヤー StageCG に置き、専用の <see cref="cgCamera"/>（Universal 3D Renderer）が
+///      RenderTexture へ描く。既存のカメラスタック（BackImageCamera→MainCamera/Front/UI）には触らない。
+///   2. その RenderTexture を、MainCamera から見てフィールド 32x18 をちょうど覆う位置に置いた
+///      不透明 Quad（<see cref="displayQuad"/>・キュー Geometry）に貼る。不透明なので
+///      Transparent の弾・ボススプライトより必ず奥に描かれる。
+///   3. 額装（FreezeAspectRate.SetPlayFrame）は MainCamera 側のズームなので板は自動で追従する。
+///
+/// 有効化はステージ id と GameState.Playing でゲートする。プロファイルの無いステージ
+/// （mirror / 25 / debug）・選択画面・リザルトでは CGCamera と板を非アクティブにするので、
+/// 従来どおり黒背景のまま。
+///
+/// カメラの投影は Blender 側と同じ非対称フラスタムを直接与える（3 ステージとも同一）。
+/// 導入とボスの 3D 配置・形態変化の演出はすべてステージ時計の閉じた式なので、シーク・
+/// ポーズ・録画のどれでも同じ絵になる。
+/// </summary>
+[ExecuteAlways]
+public class StageCgController : MonoBehaviour
+{
+    [Header("ステージ別プロファイル")]
+    [Tooltip("先頭から順にステージ id を照合し、最初に一致したものを使う。")]
+    public StageCgProfile[] profiles = new StageCgProfile[0];
+
+    [Header("参照（3 ステージ共通）")]
+    public Camera cgCamera;
+    public Renderer displayQuad;
+
+    [Header("表示板の前後関係")]
+    // URP 2D Renderer は MeshRenderer も 2D のソート(sortingLayer/sortingOrder)に載せるため、
+    // 「不透明キューだから必ず奥」にはならない。実測(.tmp_cg)では
+    //   板 0(既定) → 弾より奥だが sortingOrder -10 のボスより手前でボスを隠す
+    //   板 -11 / -20 → CG・ボス・弾がすべて意図どおり(奥→手前)
+    //   板 -100 以下 → CG が描かれなくなる(BackCamera 側の描画順との兼ね合い)
+    public int quadSortingOrder = -20;
+
+    [Header("ボスの代理スプライト")]
+    [Tooltip("ボスの代理スプライトに使うマテリアル（シェーダ StoneCG/BossSprite）。")]
+    public Material bossSpriteMaterial;
+
+    [Header("カメラ（通常姿勢・3 ステージ共通）")]
+    public Vector3 normalPosition = new Vector3(16f, 20f, -36f);
+    public float nearClip = 0.05f;
+    public float farClip = 450f;
+
+    [Tooltip("false にすると形態変化の演出（拍連動・揺れ・粉・光の切替）を全て切る。")]
+    public bool stageFxEnabled = true;
+
+    [Header("ドット風表示（背景 CG を低解像度で描く）")]
+    // タイトルの部屋・ステージ選択の街と同じ「専用カメラ→低解像度 RT→Point 拡大」。
+    // ボスも CG 空間にいるので一緒に粗くなる（ドット絵なので意図どおり）。
+    // 弾・HUD は表示板より手前の別レイヤーなので従来の解像度のまま。
+    [Tooltip("ON で CG を pixelWidth x pixelHeight の RenderTexture へ描き、Point(最近傍)で表示板へ引き伸ばす。弾・HUD は従来の解像度のまま。")]
+    public bool pixelate = true;
+    [Tooltip("ドット風の内部解像度（幅）。既定 640（タイトル・街と統一）。")]
+    public int pixelWidth = 640;
+    [Tooltip("ドット風の内部解像度（高さ）。既定 360。16:9 を保つこと。")]
+    public int pixelHeight = 360;
+
+    [Tooltip("ON でボス（代理スプライト）だけを画面解像度の別 RT へ描き、ドット風の背景の上に重ねる。背景は粗いままボスのドット絵だけ潰れない。")]
+    public bool bossFullRes = true;
+
+    // ドット風のときだけ使う低解像度の描画先（実行時生成）。null ならシーンの RT をそのまま使う。
+    RenderTexture pixelRT;
+    // ボスだけを画面解像度で描く RT と、そのための 2 台目のカメラ（実行時生成）。
+    RenderTexture bossRT;
+    Camera bossCamera;
+    int bossLayer = -1;
+    // シーンで cgCamera に割り当てられている 1920x1080 の RT（戻すときに使う）。
+    RenderTexture sceneTargetTexture;
+    bool sceneTargetCaptured;
+
+    // シェーダのグローバル uniform 名
+    static readonly int SunDirId = Shader.PropertyToID("_StoneCgSunDir");
+    static readonly int SunColorId = Shader.PropertyToID("_StoneCgSunColor");
+    static readonly int AmbientId = Shader.PropertyToID("_StoneCgAmbient");
+    static readonly int ExposureId = Shader.PropertyToID("_Exposure");
+    static readonly int CenterDarkenId = Shader.PropertyToID("_CenterDarken");
+    static readonly int BossBrightnessId = Shader.PropertyToID("_BossBrightness");
+    // v35 (#4): ボス代理スプライトの個体ごとの色（1 を超える倍率を通すため MPB で渡す）。
+    static readonly int BossTintId = Shader.PropertyToID("_Color");
+    MaterialPropertyBlock bossMpb;
+    static readonly int FadeId = Shader.PropertyToID("_Fade");
+    static readonly int CgFadeId = Shader.PropertyToID("_CgFade");
+    static readonly int CoreParamsId = Shader.PropertyToID("_StoneCgCoreParams");
+    static readonly int CoreColorId = Shader.PropertyToID("_StoneCgCoreColor");
+    static readonly int EmisGrp1Id = Shader.PropertyToID("_StoneCgEmisGrp1");
+    static readonly int EmisGrp2Id = Shader.PropertyToID("_StoneCgEmisGrp2");
+    static readonly int EmisGrp3Id = Shader.PropertyToID("_StoneCgEmisGrp3");
+    static readonly int EmisGrp4Id = Shader.PropertyToID("_StoneCgEmisGrp4");
+    static readonly int EmisLinId = Shader.PropertyToID("_EmisLin");
+    static readonly int FadeAlphaId = Shader.PropertyToID("_FadeAlpha");
+    // 第 6 便: 表示板の色調整とフラッシュ。
+    static readonly int HueShiftId = Shader.PropertyToID("_HueShift");
+    static readonly int SaturationId = Shader.PropertyToID("_Saturation");
+    static readonly int TintColorId = Shader.PropertyToID("_TintColor");
+    static readonly int TintAmountId = Shader.PropertyToID("_TintAmount");
+    static readonly int FlashId = Shader.PropertyToID("_Flash");
+    static readonly int MainTexId = Shader.PropertyToID("_MainTex");
+    static readonly int BossTexId = Shader.PropertyToID("_BossTex");
+    static readonly int BossSplitId = Shader.PropertyToID("_BossSplit");
+
+    MaterialPropertyBlock mpb;
+    MaterialPropertyBlock dustMpb;
+    MaterialPropertyBlock phaseMpb;
+    Mesh dustMesh;
+    bool active;
+    float introFade = 1f;
+    float cgFade = 1f;      // 終端の「背景だけ黒へ」(v34 #22)
+
+    float currentExposureScale = 1f;
+    // 第 6 便: 表示板へ渡す色調整の現在値（形態変化でブレンドする）。
+    float currentHueShift;
+    float currentSaturation = 1f;
+    Color currentTintColor = Color.white;
+    float currentTintAmount;
+    float currentFlash;
+    float currentBossFade = 1f;   // 終端の暗転をボスにも掛ける量（1=そのまま）
+    float currentStageEndTime;
+
+    /// <summary>いま使っているプロファイル（CG 非表示なら null）。</summary>
+    public StageCgProfile Profile { get; private set; }
+    StageCgProfile lastProfile;
+
+    // 拍の通し番号（OnBeat を 1 拍 1 回だけ呼ぶための記録。絵づくりは拍頭からの位相で作るので
+    // シークしてもこの値には依存しない）。
+    int lastBeatIndex = -1;
+
+    // 直近フレームで計算した演出量（検証で読む）。
+    public float LastLanternScale { get; private set; } = 1f;
+    public float LastCityScale { get; private set; } = 1f;
+    public float LastCrackScale { get; private set; }
+    public float LastCoreScale { get; private set; }
+    public float LastPhase1Alpha { get; private set; } = 1f;
+    public float LastPhase2Alpha { get; private set; }
+    public Vector2 LastShakeOffset { get; private set; }
+    /// <summary>第 6 便 (D): ステージの時刻表から作った画面の揺れ（論理ユニット）。</summary>
+    public Vector2 LastScreenShake { get; private set; }
+
+    // ボスの代理スプライト（CG の 3D 空間側）。key = 元のボス GameObject の instanceID。
+    readonly Dictionary<int, SpriteRenderer> bossProxies = new Dictionary<int, SpriteRenderer>();
+    readonly List<int> proxyScratch = new List<int>();
+    Transform bossParent;
+    Transform proxyRoot;
+
+    /// <summary>シーン内の名前で拾った演出用のオブジェクト群（プロファイルごとに 1 度だけ集める）。</summary>
+    class SceneCache
+    {
+        public MeshRenderer[] crackGlow;      // 石工: ledge_crack_glow_*
+        public MeshRenderer[] phase1;         // p1_*
+        public MeshRenderer[] phase2;         // p2_*
+        public MeshRenderer[] hidePhase2;     // 第 2 フェーズで隠す既存オブジェクト
+        public Transform[] wisps;             // 浮浪者: p2_wisp_*
+        public Vector3[] wispHome;
+        public Transform[] drifters;          // 浮浪者: p2_fog_* / p1_dust_*
+        public Vector3[] drifterHome;
+        public float[] drifterSpeed;
+        public float[] drifterRange;
+        // 第 6 便 (A): p2_* を順に灯すときの、要素ごとの遅れ（秒）。
+        public float[] phase2Delay;
+        // 第 6 便 (A): 上端を軸に降りてくる p2_*（艦長の帆・信号旗）。
+        public Transform[] dropTargets;
+        public Vector3[] dropHomePos;
+        public Vector3[] dropHomeScale;
+        public float[] dropHalfHeight;
+        public bool crackVisible = true;
+        public bool hideApplied;
+        public bool hideState;
+    }
+    readonly Dictionary<GameObject, SceneCache> caches = new Dictionary<GameObject, SceneCache>();
+
+    void OnEnable()
+    {
+        instance = this;
+        if (Application.isPlaying) StageCgIntro.Available = true;
+    }
+
+    void OnDisable()
+    {
+        if (instance == this) instance = null;
+        StageCgIntro.Available = false;
+        StageCgIntro.ActiveProfile = null;
+        ClearBossProxies();
+        ReleasePixelTexture();
+        ReleaseBossCamera();
+    }
+
+    // --- 第 6 便 (D): 画面の揺れ -----------------------------------------------------
+    //
+    // stage.json の screenShakes（choreo の SHAKE_EVENTS を install_stone3.py が書いたもの）を
+    // ステージ時計の閉じた式で評価する。内部状態を持たないのでシーク・ポーズでも破綻しない。
+    // 揺らすのは描画だけ:
+    //   ・2D の MainCamera … CameraShake の「ステージ揺れ」チャンネルへ加算（被弾の揺れと合算）
+    //   ・CG 表示板 … カメラと同じ量だけ動かして画面に貼り付いたままにする（端に黒が出ない）
+    //   ・CG カメラ … 同じ量だけ動かして背景の絵も一緒に揺れる
+    // 額縁（PlayFrame）と HUD は UI キャンバスなので動かない。弾の論理座標も不変。
+    const float ScreenShakeHz = 18f;
+    Vector3 quadBasePos;
+    bool quadBaseCaptured;
+    StageData currentStage;
+    bool hasStage;
+
+    void UpdateScreenShake(float stageTime)
+    {
+        Vector2 off = Vector2.zero;
+        if (hasStage && currentStage != null && currentStage.screenShakes != null)
+        {
+            var list = currentStage.screenShakes;
+            for (int i = 0; i < list.Count; i++)
+            {
+                StageData.ScreenShake e = list[i];
+                if (e == null || e.duration <= 0f || e.magnitude <= 0f) continue;
+                float t = stageTime - e.time;
+                if (t < 0f || t >= e.duration) continue;
+                float rem = 1f - t / e.duration;
+                float decay = rem * rem;
+                float w = t * ScreenShakeHz * (2f * Mathf.PI);
+                off += new Vector2(Mathf.Cos(w * 0.9f + 1.7f) * 0.6f, -Mathf.Cos(w))
+                       * (e.magnitude * decay);
+            }
+        }
+        LastScreenShake = off;
+        if (Application.isPlaying) CameraShake.SetStageOffset(off);
+        if (displayQuad != null)
+        {
+            if (!quadBaseCaptured)
+            {
+                quadBasePos = displayQuad.transform.localPosition;
+                quadBaseCaptured = true;
+            }
+            displayQuad.transform.localPosition = quadBasePos + new Vector3(off.x, off.y, 0f);
+        }
+    }
+
+    void LateUpdate()
+    {
+        StageCgProfile want = ShouldShow(out float stageTime, out float endTime);
+        currentStageEndTime = endTime;
+        UpdateScreenShake(stageTime);
+        Profile = want;
+        StageCgIntro.ActiveProfile = want;
+
+        if (want != lastProfile)
+        {
+            // 前のプロファイルの CG 本体を切り、新しい方を出す。
+            if (lastProfile != null && lastProfile.sceneRoot != null) lastProfile.sceneRoot.SetActive(false);
+            if (want != null && want.sceneRoot != null) want.sceneRoot.SetActive(true);
+            lastProfile = want;
+        }
+        bool show = want != null;
+        if (show != active)
+        {
+            active = show;
+            if (cgCamera != null) cgCamera.gameObject.SetActive(show);
+            if (displayQuad != null) displayQuad.gameObject.SetActive(show);
+            if (!show && bossCamera != null) bossCamera.gameObject.SetActive(false);
+        }
+        if (!show)
+        {
+            // 編集中はシーンビューの見た目のために先頭プロファイルのライティングを流しておく。
+            if (!Application.isPlaying && profiles.Length > 0 && profiles[0] != null) ApplyGlobals(profiles[0]);
+            ClearBossProxies();
+            // 演出のグローバルは他ステージへ持ち越さない（材質を共有していないので絵には
+            // 出ないが、CG のあるステージを抜けた時点で必ず素の値に戻しておく）。
+            ResetStageFxGlobals();
+            // 第 6 便 (B): CG の無いステージ（25 / debug / mirror など）でも同じ暗転で終わる。
+            UpdateGenericEnding();
+            return;
+        }
+
+        EnsurePixelTexture();
+        EnsureBossCamera();
+        ApplyGlobals(want);
+        introFade = want.BlackFade(stageTime);
+        cgFade = want.CgBlackout(stageTime, endTime);
+        // 第 6 便 (B): 「背景（CG と敵）が暗転して主人公だけが残る」ので、CG の減光と同じ量を
+        //   ボスにも掛ける（第 5 便はボスを残していたが、今回の指示で背景側に含める）。
+        currentBossFade = cgFade;
+        genericPlaying = false;
+        // v34 #23: 画面全体の黒フェード。白転（PixelTransition のモザイク）は残したまま、
+        // useBlackEnding のステージだけ黒経路へ回す。
+        if (want.useBlackEnding)
+        {
+            PixelTransition pt = FindPixelTransition();
+            if (pt != null) pt.ApplyStageBlackout(want.ScreenBlackout(stageTime, endTime));
+        }
+        UpdateStageFx(want, stageTime);
+        ApplyCamera(want, stageTime);
+        SyncBossCamera();
+        ApplyDisplay(want);
+        UpdateBossProxies(want);
+        DrawDust(want, stageTime);
+    }
+
+    StageCgProfile ShouldShow(out float stageTime, out float endTime)
+    {
+        stageTime = 0f;
+        endTime = 0f;
+        currentStage = null;
+        hasStage = false;
+        if (!Application.isPlaying) return null;
+        GManager g = GManager.Control;
+        if (g == null || g.state != GManager.GameState.Playing) return null;
+        StageReader reader = g.SReader;
+        if (reader == null) return null;
+        StageData stage = reader.CurrentStage;
+        if (stage == null) return null;
+        stageTime = reader.CurrentTime;
+        endTime = stage.endTime;
+        currentStage = stage;
+        hasStage = true;
+        for (int i = 0; i < profiles.Length; i++)
+        {
+            if (profiles[i] != null && profiles[i].Matches(stage)) return profiles[i];
+        }
+        genericStageTime = stageTime;
+        genericEndTime = endTime;
+        genericPlaying = true;
+        return null;
+    }
+
+    // --- 第 6 便 (B): CG の無いステージの終端暗転 -----------------------------------
+    //
+    // CG が無いステージ（25 / debug / mirror / pattern_demo）でも「敵が暗転して主人公だけ
+    // 残る → 全体が暗転 → リザルト」で終わるようにする。時刻は endTime から機械的に決める。
+    float genericStageTime;
+    float genericEndTime;
+    bool genericPlaying;
+    bool genericFadeApplied;
+    const float GenericCgBlackoutLead = 1f;    // 背景（敵）が暗転し始める endTime からの余裕
+    const float GenericCgBlackoutSec = 0.6f;
+    const float GenericScreenBlackoutSec = 0.4f;
+    readonly List<SpriteRenderer> enemyFadeScratch = new List<SpriteRenderer>();
+    MaterialPropertyBlock enemyMpb;
+
+    void UpdateGenericEnding()
+    {
+        if (!genericPlaying)
+        {
+            if (genericFadeApplied) { ApplyEnemyFade(1f); genericFadeApplied = false; }
+            return;
+        }
+        genericPlaying = false;
+        float endTime = genericEndTime;
+        if (endTime <= 0f) return;
+        float t = genericStageTime;
+
+        float u = Mathf.Clamp01((t - (endTime - GenericCgBlackoutLead)) / GenericCgBlackoutSec);
+        float fade = 1f - u * u * (3f - 2f * u);
+        ApplyEnemyFade(fade);
+        genericFadeApplied = true;
+
+        float v = Mathf.Clamp01((t - (endTime - GenericScreenBlackoutSec)) / GenericScreenBlackoutSec);
+        PixelTransition pt = FindPixelTransition();
+        if (pt != null) pt.ApplyStageBlackout(v * v * (3f - 2f * v));
+    }
+
+    /// <summary>ボス（＝このゲームの敵）のスプライトを暗くする。1 でそのまま。</summary>
+    void ApplyEnemyFade(float fade)
+    {
+        if (bossParent == null || !bossParent)
+        {
+            BossManager bm = FindFirstObjectByType<BossManager>();
+            bossParent = bm != null ? bm.transform.Find("Bosses") : null;
+            if (bossParent == null) return;
+        }
+        enemyMpb ??= new MaterialPropertyBlock();
+        enemyFadeScratch.Clear();
+        bossParent.GetComponentsInChildren(true, enemyFadeScratch);
+        for (int i = 0; i < enemyFadeScratch.Count; i++)
+        {
+            SpriteRenderer sr = enemyFadeScratch[i];
+            if (sr == null) continue;
+            sr.GetPropertyBlock(enemyMpb);
+            enemyMpb.SetColor(BossTintId, new Color(fade, fade, fade, 1f));
+            sr.SetPropertyBlock(enemyMpb);
+        }
+    }
+
+    // --- ドット風表示 ---------------------------------------------------------
+    //
+    // 低解像度の描画先を用意して cgCamera を向ける。filterMode=Point なので表示板へ
+    // 貼ったときに最近傍で拡大され、1 ドットが四角いまま残る。MSAA は切る
+    //（1 ドットの縁がぼけると最近傍拡大の意味が薄れる）。
+    void EnsurePixelTexture()
+    {
+        if (cgCamera == null) return;
+        if (!sceneTargetCaptured)
+        {
+            sceneTargetTexture = cgCamera.targetTexture;
+            sceneTargetCaptured = true;
+        }
+        if (!pixelate || !Application.isPlaying)
+        {
+            ReleasePixelTexture();
+            return;
+        }
+        int w = Mathf.Clamp(pixelWidth, 32, 1920);
+        int h = Mathf.Clamp(pixelHeight, 18, 1080);
+        if (pixelRT != null && (pixelRT.width != w || pixelRT.height != h)) ReleasePixelTexture();
+        if (pixelRT == null)
+        {
+            pixelRT = new RenderTexture(w, h, 24,
+                sceneTargetTexture != null ? sceneTargetTexture.format : RenderTextureFormat.DefaultHDR)
+            {
+                name = "StageCgPixelRT",
+                filterMode = FilterMode.Point,
+                antiAliasing = 1,
+                useMipMap = false,
+                autoGenerateMips = false,
+                wrapMode = TextureWrapMode.Clamp,
+                hideFlags = HideFlags.DontSave
+            };
+            pixelRT.Create();
+        }
+        if (cgCamera.targetTexture != pixelRT) cgCamera.targetTexture = pixelRT;
+        cgCamera.allowMSAA = false;
+    }
+
+    void ReleasePixelTexture()
+    {
+        if (pixelRT == null) return;
+        if (cgCamera != null && cgCamera.targetTexture == pixelRT)
+            cgCamera.targetTexture = sceneTargetTexture;
+        if (displayQuad != null && sceneTargetTexture != null)
+        {
+            mpb ??= new MaterialPropertyBlock();
+            displayQuad.GetPropertyBlock(mpb);
+            mpb.SetTexture(MainTexId, sceneTargetTexture);
+            displayQuad.SetPropertyBlock(mpb);
+        }
+        pixelRT.Release();
+        DestroyImmediate(pixelRT);
+        pixelRT = null;
+    }
+
+    /// <summary>ドット風表示を切り替える（比較用）。既定は 640x360 の ON。</summary>
+    public void SetPixelate(bool on, int width = 0, int height = 0)
+    {
+        pixelate = on;
+        if (width > 0) pixelWidth = width;
+        if (height > 0) pixelHeight = height;
+        EnsurePixelTexture();
+        EnsureBossCamera();
+    }
+
+    /// <summary>ボスだけ元解像度で重ねるかを切り替える（比較用）。</summary>
+    public void SetBossFullRes(bool on)
+    {
+        bossFullRes = on;
+        EnsureBossCamera();
+    }
+
+    // --- ボスだけ元解像度で重ねる ---------------------------------------------------
+    //
+    // 背景 CG は 640x360 のまま（ドット風の狙いどおり）。ボスはドット絵なので 640x360 の
+    // テクセルに落とすと原画のドットが別のドットへ潰れる（親方の目・髭・前掛けの渦巻き）。
+    // そこで代理スプライトだけをレイヤー StageCgBoss へ移し、cgCamera の cullingMask から外して、
+    // 同じ姿勢・同じ投影の 2 台目のカメラで画面解像度の RT へ描く。
+    //
+    // ボスカメラは「CG 本体 + ボス」を描く。CG 本体（StoneCG/Flat）はアルファ 0 を書くので、
+    // ボスが CG のジオメトリに隠れる画素はアルファ 0 のまま＝表示板は背景側を採る。
+    // つまり v34 の「老人が棚の奥へ回り込む」前後関係がそのまま残る。
+    //
+    // 合成は表示板 1 枚の中で行う（板を増やさない）ので、CG → ボス → 弾 の前後関係は
+    // 既存の quadSortingOrder = -20 のままで決まり、弾・HUD・当たり判定には一切触らない。
+
+    /// <summary>ボスを別レイヤー・元解像度で描いている最中か。</summary>
+    public bool BossSplitActive =>
+        Application.isPlaying && bossFullRes && pixelate && bossCamera != null && bossLayer >= 0;
+
+    void EnsureBossCamera()
+    {
+        if (cgCamera == null) return;
+        if (bossLayer < 0) bossLayer = LayerMask.NameToLayer("StageCgBoss");
+
+        if (!Application.isPlaying || !bossFullRes || !pixelate || bossLayer < 0)
+        {
+            ReleaseBossCamera();
+            return;
+        }
+
+        int w = sceneTargetTexture != null ? sceneTargetTexture.width : 1920;
+        int h = sceneTargetTexture != null ? sceneTargetTexture.height : 1080;
+        if (bossRT != null && (bossRT.width != w || bossRT.height != h))
+        {
+            if (bossCamera != null && bossCamera.targetTexture == bossRT) bossCamera.targetTexture = null;
+            bossRT.Release();
+            DestroyImmediate(bossRT);
+            bossRT = null;
+        }
+        if (bossRT == null)
+        {
+            bossRT = new RenderTexture(w, h, 24,
+                sceneTargetTexture != null ? sceneTargetTexture.format : RenderTextureFormat.DefaultHDR)
+            {
+                name = "StageCgBossRT",
+                filterMode = FilterMode.Bilinear,
+                antiAliasing = 1,
+                useMipMap = false,
+                autoGenerateMips = false,
+                wrapMode = TextureWrapMode.Clamp,
+                hideFlags = HideFlags.DontSave
+            };
+            bossRT.Create();
+        }
+
+        if (bossCamera == null)
+        {
+            // CGCamera を複製する（URP の rendererIndex・フラスタム設定をそのまま引き継ぐため）。
+            GameObject go = Instantiate(cgCamera.gameObject, cgCamera.transform.parent);
+            go.name = "CGBossCamera";
+            go.hideFlags = HideFlags.DontSave;
+            bossCamera = go.GetComponent<Camera>();
+            if (bossCamera == null) { DestroyImmediate(go); return; }
+            // 複製元に他のスクリプトが付いていても動かさない（Camera と URP の追加データだけ使う）。
+            MonoBehaviour[] mbs = go.GetComponents<MonoBehaviour>();
+            for (int i = 0; i < mbs.Length; i++)
+            {
+                MonoBehaviour mb = mbs[i];
+                if (mb == null) continue;
+                if (mb.GetType().FullName == "UnityEngine.Rendering.Universal.UniversalAdditionalCameraData") continue;
+                mb.enabled = false;
+            }
+        }
+
+        int cgLayerForMask = Profile != null && Profile.sceneRoot != null
+            ? Profile.sceneRoot.layer : LayerMask.NameToLayer("StageCG");
+        int cgMask = 1 << cgLayerForMask;
+        int bossMask = 1 << bossLayer;
+        // cgCamera（低解像度）からはボスを外す。
+        if ((cgCamera.cullingMask & bossMask) != 0) cgCamera.cullingMask &= ~bossMask;
+        bossCamera.cullingMask = cgMask | bossMask;
+        bossCamera.clearFlags = CameraClearFlags.SolidColor;
+        bossCamera.backgroundColor = new Color(0f, 0f, 0f, 0f);
+        bossCamera.allowMSAA = false;
+        bossCamera.depth = cgCamera.depth + 1f;
+        if (bossCamera.targetTexture != bossRT) bossCamera.targetTexture = bossRT;
+        if (!bossCamera.gameObject.activeSelf) bossCamera.gameObject.SetActive(true);
+        SyncBossCamera();
+    }
+
+    /// <summary>ボスカメラの姿勢・投影を cgCamera に合わせる（揺れ・見上げにも追従する）。</summary>
+    void SyncBossCamera()
+    {
+        if (bossCamera == null || cgCamera == null) return;
+        Transform bt = bossCamera.transform;
+        Transform ct = cgCamera.transform;
+        bt.SetPositionAndRotation(ct.position, ct.rotation);
+        bt.localScale = ct.localScale;
+        bossCamera.nearClipPlane = cgCamera.nearClipPlane;
+        bossCamera.farClipPlane = cgCamera.farClipPlane;
+        bossCamera.projectionMatrix = cgCamera.projectionMatrix;
+    }
+
+    void ReleaseBossCamera()
+    {
+        // cullingMask は実行中に外した分だけ戻す（編集中にシーンを書き換えないようガード）。
+        if (Application.isPlaying && cgCamera != null && bossLayer >= 0)
+            cgCamera.cullingMask |= 1 << bossLayer;
+        if (bossCamera != null)
+        {
+            bossCamera.targetTexture = null;
+            if (Application.isPlaying) Destroy(bossCamera.gameObject);
+            else DestroyImmediate(bossCamera.gameObject);
+            bossCamera = null;
+        }
+        if (bossRT != null)
+        {
+            bossRT.Release();
+            DestroyImmediate(bossRT);
+            bossRT = null;
+        }
+    }
+
+    void ApplyGlobals(StageCgProfile p)
+    {
+        Vector3 toLight = (p.sunFrom - p.sunTo).normalized;
+        Shader.SetGlobalVector(SunDirId, new Vector4(toLight.x, toLight.y, toLight.z, 0f));
+        Shader.SetGlobalVector(SunColorId, new Vector4(
+            p.sunColorLinear.x * p.sunIntensity, p.sunColorLinear.y * p.sunIntensity, p.sunColorLinear.z * p.sunIntensity, 0f));
+        Shader.SetGlobalVector(AmbientId, new Vector4(p.ambientLinear.x, p.ambientLinear.y, p.ambientLinear.z, 0f));
+    }
+
+    void ApplyDisplay(StageCgProfile p)
+    {
+        if (displayQuad == null) return;
+        if (displayQuad.sortingOrder != quadSortingOrder) displayQuad.sortingOrder = quadSortingOrder;
+        mpb ??= new MaterialPropertyBlock();
+        displayQuad.GetPropertyBlock(mpb);
+        // ドット風のときは低解像度 RT を貼る（Point なので最近傍で拡大される）。
+        if (pixelRT != null) mpb.SetTexture(MainTexId, pixelRT);
+        // ボスを別 RT へ分離しているときだけ、表示板がそちらのアルファ・色を使う。
+        bool split = BossSplitActive && bossRT != null;
+        if (split) mpb.SetTexture(BossTexId, bossRT);
+        mpb.SetFloat(BossSplitId, split ? 1f : 0f);
+        mpb.SetFloat(ExposureId, p.exposure * currentExposureScale);
+        mpb.SetFloat(CenterDarkenId, p.centerDarken);
+        mpb.SetFloat(BossBrightnessId, p.bossBrightness * currentBossFade);
+        mpb.SetFloat(FadeId, introFade);
+        mpb.SetFloat(CgFadeId, cgFade);
+        mpb.SetFloat(HueShiftId, currentHueShift);
+        mpb.SetFloat(SaturationId, currentSaturation);
+        mpb.SetColor(TintColorId, currentTintColor);
+        mpb.SetFloat(TintAmountId, currentTintAmount);
+        mpb.SetFloat(FlashId, currentFlash);
+        displayQuad.SetPropertyBlock(mpb);
+    }
+
+    /// <summary>通常姿勢の非対称フラスタム。フィールド (0,0,0)..(32,18,0) の四隅が画面四隅に一致する。</summary>
+    public Matrix4x4 NormalProjection()
+    {
+        float n = nearClip;
+        return Matrix4x4.Frustum(-16f * n / 36f, 16f * n / 36f, -20f * n / 36f, -2f * n / 36f, n, farClip);
+    }
+
+    /// <summary>見上げ姿勢の対称フラスタム（sensor 36mm 水平フィット・16:9）。</summary>
+    public Matrix4x4 LookupProjection(StageCgProfile p)
+    {
+        float n = nearClip;
+        float halfW = n * 18f / Mathf.Max(1e-4f, p.lookupLensMm);
+        float halfH = halfW * 9f / 16f;
+        return Matrix4x4.Frustum(-halfW, halfW, -halfH, halfH, n, farClip);
+    }
+
+    void ApplyCamera(StageCgProfile p, float stageTime)
+    {
+        if (cgCamera == null) return;
+        float e = p.CameraProgress(stageTime);
+
+        Quaternion lookupRot = Quaternion.LookRotation((p.lookupTarget - p.lookupPosition).normalized, Vector3.up);
+        Vector2 shake = LastShakeOffset + LastScreenShake;
+        // v39: 通常姿勢のピッチを時刻で振る（Euler の x は下向きが正なので符号を反転）。
+        // 弾幕は MainCamera の 2D なので動かない。CG とボス代理だけが一緒に振れる。
+        float pitchDeg = p.CameraPitchAt(stageTime);
+        Quaternion normalRot = pitchDeg != 0f ? Quaternion.Euler(-pitchDeg, 0f, 0f) : Quaternion.identity;
+        cgCamera.transform.position = Vector3.Lerp(p.lookupPosition, normalPosition, e)
+                                      + new Vector3(shake.x, shake.y, 0f);
+        cgCamera.transform.rotation = Quaternion.Slerp(lookupRot, normalRot, e);
+
+        Matrix4x4 a = LookupProjection(p);
+        Matrix4x4 b = NormalProjection();
+        Matrix4x4 proj = new Matrix4x4();
+        for (int i = 0; i < 16; i++) proj[i] = Mathf.Lerp(a[i], b[i], e);
+        // RT のアルファは「ボスの被覆率」として表示板が読むので、背景は透明の黒で消す。
+        if (cgCamera.backgroundColor.a != 0f) cgCamera.backgroundColor = new Color(0f, 0f, 0f, 0f);
+        cgCamera.nearClipPlane = nearClip;
+        cgCamera.farClipPlane = farClip;
+        cgCamera.projectionMatrix = proj;
+    }
+
+    // --- ボスを CG の 3D 空間へ置く -------------------------------------------------
+    //
+    // 2D の論理座標 (x,y) と同じ画面位置に見えるよう、CGCamera の非対称フラスタムで
+    // 平面 z = bossDepth へ逆投影する。カメラは (16,20,-36) にいるので、深さ z の平面では
+    // 画面が (36+z)/36 倍に広がる。だから
+    //   x_world = 16 + (x_field - 16) * (36+z)/36
+    //   y_world = 20 + (y_field - 20) * (36+z)/36
+    // と置き、大きさも同じ倍率を掛けると、投影後の位置・大きさが 2D のときと一致する。
+
+    /// <summary>論理座標を CG 空間（z = bossDepth の平面）へ逆投影する倍率。</summary>
+    public float BossScaleFactor(StageCgProfile p) => (36f + p.bossDepth) / 36f;
+
+    public Vector3 FieldToCgSpace(StageCgProfile p, Vector2 fieldPos)
+    {
+        float k = BossScaleFactor(p);
+        return new Vector3(16f + (fieldPos.x - 16f) * k, 20f + (fieldPos.y - 20f) * k, p.bossDepth);
+    }
+
+    void UpdateBossProxies(StageCgProfile p)
+    {
+        if (bossParent == null || !bossParent)
+        {
+            BossManager bm = FindFirstObjectByType<BossManager>();
+            bossParent = bm != null ? bm.transform.Find("Bosses") : null;
+        }
+        if (bossParent == null) { ClearBossProxies(); return; }
+        if (proxyRoot == null || !proxyRoot)
+        {
+            GameObject go = new GameObject("BossProxies");
+            go.transform.SetParent(transform, false);
+            go.layer = gameObject.layer;
+            proxyRoot = go.transform;
+        }
+
+        proxyScratch.Clear();
+        proxyScratch.AddRange(bossProxies.Keys);
+
+        int cgLayer = p.sceneRoot != null ? p.sceneRoot.layer : LayerMask.NameToLayer("StageCG");
+        // ボスを元解像度で描くときは、低解像度の cgCamera から外すため専用レイヤーへ置く。
+        int proxyLayer = BossSplitActive ? bossLayer : cgLayer;
+        float stageTime = GManager.Control != null && GManager.Control.SReader != null
+            ? GManager.Control.SReader.CurrentTime : 0f;
+
+        for (int i = 0; i < bossParent.childCount; i++)
+        {
+            Transform src = bossParent.GetChild(i);
+            SpriteRenderer srcRenderer = src.GetComponent<SpriteRenderer>();
+            if (srcRenderer == null) continue;
+            // 2D 側の描画は止める（見えるのは CG 空間の代理だけ）。
+            if (srcRenderer.enabled) srcRenderer.enabled = false;
+
+            int id = src.gameObject.GetInstanceID();
+            proxyScratch.Remove(id);
+            if (!bossProxies.TryGetValue(id, out SpriteRenderer proxy) || proxy == null)
+            {
+                GameObject go = new GameObject("BossProxy");
+                go.transform.SetParent(proxyRoot, false);
+                go.layer = proxyLayer;
+                proxy = go.AddComponent<SpriteRenderer>();
+                if (bossSpriteMaterial != null) proxy.sharedMaterial = bossSpriteMaterial;
+                bossProxies[id] = proxy;
+            }
+
+            proxy.gameObject.layer = proxyLayer;
+            proxy.sprite = srcRenderer.sprite;
+            proxy.flipX = srcRenderer.flipX;
+            proxy.flipY = srcRenderer.flipY;
+            proxy.enabled = srcRenderer.sprite != null;
+            // 明度は表示板の _BossBrightness 側で掛けるので、ここでは元の色（フェード α）をそのまま。
+            proxy.color = srcRenderer.color;
+            // v35 (#4): ボス個体だけ明るくしたいときは、表示板の一律 gain（bossBrightness）に対する
+            //   比をボスの RT へ書く時点で掛ける（α は触らないので「ボスとして扱う量」は不変）。
+            //   SpriteRenderer.color は Color32（8bit）に丸められて 1.0 で頭打ちになるので、
+            //   1 を超える倍率は MaterialPropertyBlock の _Color（float4）側で掛ける。
+            Boss bossForColor = src.GetComponent<Boss>();
+            string bossIdForColor = bossForColor != null ? bossForColor.bossId : null;
+            float mul = p.bossBrightness > 1e-4f ? p.BossBrightnessAt(bossIdForColor, stageTime) / p.bossBrightness : 1f;
+            bossMpb ??= new MaterialPropertyBlock();
+            proxy.GetPropertyBlock(bossMpb);
+            bossMpb.SetColor(BossTintId, new Color(mul, mul, mul, 1f));
+            proxy.SetPropertyBlock(bossMpb);
+
+            // v34: ボス個体ごとに奥行きを変えられる（老人が棚の奥へ回り込む）。
+            //   逆投影は画面上の位置・大きさを保つ写像なので、z を変えても見た目は動かず、
+            //   変わるのは CG のジオメトリとの前後関係（棚に隠れるかどうか）だけ。
+            float depth = p.BossDepthAt(bossIdForColor, stageTime);
+            float k = (36f + depth) / 36f;
+
+            Vector3 pos = src.position;
+            proxy.transform.position = new Vector3(
+                16f + (pos.x - 16f) * k, 20f + (pos.y - 20f) * k, depth);
+            proxy.transform.rotation = src.rotation;
+            Vector3 sc = src.lossyScale;
+            proxy.transform.localScale = new Vector3(sc.x * k, sc.y * k, 1f);
+        }
+
+        for (int i = 0; i < proxyScratch.Count; i++)
+        {
+            if (bossProxies.TryGetValue(proxyScratch[i], out SpriteRenderer dead) && dead != null)
+            {
+                DestroyProxy(dead.gameObject);
+            }
+            bossProxies.Remove(proxyScratch[i]);
+        }
+    }
+
+    static StageCgController instance;
+
+    /// <summary>
+    /// このステージが終端で黒フェードを使うか（石工 v34 #23）。GManager がリザルトへ移るときに
+    /// 白のピクセルモザイクと分岐するために使う。プロファイルが無いステージは false ＝従来どおり。
+    /// </summary>
+    public static bool UsesBlackEnding(StageData stage)
+    {
+        if (stage == null) return false;
+        if (instance != null)
+        {
+            for (int i = 0; i < instance.profiles.Length; i++)
+            {
+                StageCgProfile p = instance.profiles[i];
+                if (p != null && p.Matches(stage)) return p.useBlackEnding;
+            }
+        }
+        // 第 6 便 (B): CG の無いステージも暗転方式へ統一する（白転はコードだけ残す）。
+        return true;
+    }
+
+    PixelTransition cachedTransition;
+
+    /// <summary>終端の黒フェードで使う全画面の覆い（白転と同じ Canvas を色だけ変えて使う）。</summary>
+    PixelTransition FindPixelTransition()
+    {
+        if (cachedTransition != null) return cachedTransition;
+        PixelTransition[] found = FindObjectsByType<PixelTransition>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None);
+        cachedTransition = found.Length > 0 ? found[0] : null;
+        return cachedTransition;
+    }
+
+    void ClearBossProxies()
+    {
+        if (bossProxies.Count == 0) return;
+        foreach (SpriteRenderer proxy in bossProxies.Values)
+        {
+            if (proxy != null) DestroyProxy(proxy.gameObject);
+        }
+        bossProxies.Clear();
+        // CG を止めるときは 2D 側の描画を戻す（他ステージ・リザルトで従来どおりに見える）。
+        if (bossParent != null)
+        {
+            for (int i = 0; i < bossParent.childCount; i++)
+            {
+                SpriteRenderer sr = bossParent.GetChild(i).GetComponent<SpriteRenderer>();
+                if (sr != null) sr.enabled = true;
+            }
+        }
+    }
+
+    static void DestroyProxy(GameObject go)
+    {
+        if (Application.isPlaying) Destroy(go); else DestroyImmediate(go);
+    }
+
+    // --- 形態変化の演出 -----------------------------------------------------------
+    //
+    // すべてステージ時計 stageTime だけから決まる（内部状態を持たない）ので、シーク・
+    // ポーズ・録画のどれでも同じ絵になる。共通部分は「p1_* を消して p2_* を出す」
+    // クロスフェードで、それに加えてステージごとの味付けを phase で選ぶ。
+
+    /// <summary>拍頭からの減衰エンベロープ 0..1（拍頭で 1、beatDecaySec で 0）。</summary>
+    float BeatEnvelope(StageCgProfile p, float stageTime, out int beatIndex)
+    {
+        float b = Mathf.Max(1e-4f, p.beatSec);
+        float t = stageTime - p.beatOffsetSec;
+        beatIndex = Mathf.FloorToInt(t / b);
+        if (t < 0f) return 0f;
+        float phase = t - beatIndex * b;
+        float u = Mathf.Clamp01(1f - phase / Mathf.Max(1e-4f, p.beatDecaySec));
+        return u * u;   // 拍頭で立ち上がり、戻りはゆっくり
+    }
+
+    /// <summary>拍頭からの位相（秒）。検証で拍頭・拍裏のコマを選ぶのに使う。</summary>
+    public float BeatPhase(float stageTime)
+    {
+        float b = Profile != null ? Mathf.Max(1e-4f, Profile.beatSec) : 0.4166667f;
+        float t = stageTime - (Profile != null ? Profile.beatOffsetSec : 0f);
+        return t - Mathf.Floor(t / b) * b;
+    }
+
+    /// <summary>着地の揺れ（既存 CameraShake と同じ減衰余弦）。範囲外では 0。</summary>
+    Vector2 ShakeOffset(StageCgProfile p, float stageTime)
+    {
+        float t = stageTime - p.phaseTime;
+        if (t < 0f || t >= p.shakeDuration || p.shakeAmplitude <= 0f) return Vector2.zero;
+        float remaining = 1f - t / Mathf.Max(1e-4f, p.shakeDuration);
+        float decay = remaining * remaining;
+        float w = t * p.shakeFrequency * (2f * Mathf.PI);
+        float oy = -Mathf.Cos(w);
+        float ox = Mathf.Cos(w * 0.9f + 1.7f) * 0.6f;   // 横は 0.6 倍（CameraShake と同じ）
+        return new Vector2(ox, oy) * (p.shakeAmplitude * decay);
+    }
+
+    /// <summary>発光スケールとコア光を素の値へ戻す（演出オフ・CG の無いステージ）。</summary>
+    void ResetStageFxGlobals()
+    {
+        LastLanternScale = LastCityScale = 1f;
+        LastCrackScale = LastCoreScale = 0f;
+        LastPhase1Alpha = 1f; LastPhase2Alpha = 0f;
+        LastShakeOffset = Vector2.zero;
+        currentExposureScale = 1f;
+        currentFlash = 0f;
+        currentHueShift = 0f;
+        currentSaturation = 1f;
+        currentTintColor = Color.white;
+        currentTintAmount = 0f;
+        Vector4 one = new Vector4(1f, 1f, 1f, 1f);
+        Shader.SetGlobalVector(EmisGrp1Id, one);
+        Shader.SetGlobalVector(EmisGrp2Id, one);
+        Shader.SetGlobalVector(EmisGrp3Id, Vector4.zero);
+        Shader.SetGlobalVector(EmisGrp4Id, one);
+        Shader.SetGlobalVector(CoreParamsId, new Vector4(0f, 0f, 0f, 1f));
+        Shader.SetGlobalVector(CoreColorId, Vector4.zero);
+    }
+
+    SceneCache GetCache(StageCgProfile p)
+    {
+        if (p.sceneRoot == null) return null;
+        if (caches.TryGetValue(p.sceneRoot, out SceneCache c) && c != null) return c;
+        c = new SceneCache();
+        var crack = new List<MeshRenderer>();
+        var ph1 = new List<MeshRenderer>();
+        var ph2 = new List<MeshRenderer>();
+        var hide = new List<MeshRenderer>();
+        var wisp = new List<Transform>();
+        var drift = new List<Transform>();
+        var driftSpeed = new List<float>();
+        var driftRange = new List<float>();
+        foreach (MeshRenderer mr in p.sceneRoot.GetComponentsInChildren<MeshRenderer>(true))
+        {
+            string n = mr.name;
+            if (n.StartsWith("ledge_crack_glow_")) crack.Add(mr);
+            if (n.StartsWith("p1_")) ph1.Add(mr);
+            else if (n.StartsWith("p2_")) ph2.Add(mr);
+            else
+            {
+                for (int i = 0; i < p.hideInPhase2.Length; i++)
+                {
+                    if (!string.IsNullOrEmpty(p.hideInPhase2[i]) && n.StartsWith(p.hideInPhase2[i])) { hide.Add(mr); break; }
+                }
+            }
+            if (n.StartsWith("p2_wisp_")) wisp.Add(mr.transform);
+            if (n.StartsWith("p2_fog_")) { drift.Add(mr.transform); driftSpeed.Add(p.fogDriftSpeed); driftRange.Add(p.fogDriftRange); }
+            else if (n.StartsWith("p1_dust_")) { drift.Add(mr.transform); driftSpeed.Add(p.dustDriftSpeed); driftRange.Add(p.dustDriftRange); }
+        }
+        c.crackGlow = crack.ToArray();
+        c.phase1 = ph1.ToArray();
+        c.phase2 = ph2.ToArray();
+        c.hidePhase2 = hide.ToArray();
+        c.wisps = wisp.ToArray();
+        c.wispHome = new Vector3[c.wisps.Length];
+        for (int i = 0; i < c.wisps.Length; i++) c.wispHome[i] = c.wisps[i].localPosition;
+        c.drifters = drift.ToArray();
+        c.drifterHome = new Vector3[c.drifters.Length];
+        for (int i = 0; i < c.drifters.Length; i++) c.drifterHome[i] = c.drifters[i].localPosition;
+        c.drifterSpeed = driftSpeed.ToArray();
+        c.drifterRange = driftRange.ToArray();
+
+        // 第 6 便 (A): 順に灯す遅れ（名前順に 0, seq, 2*seq, ...）。
+        c.phase2Delay = new float[c.phase2.Length];
+        if (p.phase2SequentialSec > 0f)
+        {
+            int k = 0;
+            for (int i = 0; i < c.phase2.Length; i++)
+            {
+                bool hit = string.IsNullOrEmpty(p.phase2SequentialPrefix)
+                           || c.phase2[i].name.StartsWith(p.phase2SequentialPrefix);
+                c.phase2Delay[i] = hit ? k++ * p.phase2SequentialSec : 0f;
+            }
+        }
+
+        // 第 6 便 (A): 上端を軸に降りてくる対象。世界 AABB から上端と半分の高さを実測する。
+        var drop = new List<Transform>();
+        var dropPos = new List<Vector3>();
+        var dropScale = new List<Vector3>();
+        var dropHalf = new List<float>();
+        if (p.phase2DropSec > 0f && p.phase2DropPrefixes != null)
+        {
+            for (int i = 0; i < c.phase2.Length; i++)
+            {
+                MeshRenderer mr = c.phase2[i];
+                bool hit = false;
+                for (int j = 0; j < p.phase2DropPrefixes.Length; j++)
+                {
+                    if (!string.IsNullOrEmpty(p.phase2DropPrefixes[j])
+                        && mr.name.StartsWith(p.phase2DropPrefixes[j])) { hit = true; break; }
+                }
+                if (!hit) continue;
+                drop.Add(mr.transform);
+                dropPos.Add(mr.transform.localPosition);
+                dropScale.Add(mr.transform.localScale);
+                dropHalf.Add(mr.bounds.extents.y);
+            }
+        }
+        c.dropTargets = drop.ToArray();
+        c.dropHomePos = dropPos.ToArray();
+        c.dropHomeScale = dropScale.ToArray();
+        c.dropHalfHeight = dropHalf.ToArray();
+
+        caches[p.sceneRoot] = c;
+        return c;
+    }
+
+    void UpdateStageFx(StageCgProfile p, float stageTime)
+    {
+        SceneCache cache = GetCache(p);
+        if (!stageFxEnabled)
+        {
+            ResetStageFxGlobals();
+            currentHueShift = p.hueShiftDeg;
+            currentSaturation = p.saturation;
+            currentTintColor = p.tintColor;
+            currentTintAmount = p.tintAmount;
+            if (cache != null)
+            {
+                ApplyPhaseAlpha(cache.phase1, 1f);
+                ApplyPhaseAlpha(cache.phase2, 0f);
+                SetRenderers(cache.crackGlow, false, ref cache.crackVisible);
+                SetHidden(cache, false);
+            }
+            return;
+        }
+
+        float env = BeatEnvelope(p, stageTime, out int beatIndex);
+        if (beatIndex != lastBeatIndex)
+        {
+            lastBeatIndex = beatIndex;
+            OnBeat();
+        }
+
+        // --- p1 / p2 のクロスフェード（共通） ---
+        float a2 = 0f;
+        if (p.phase != StageCgPhaseKind.None)
+        {
+            a2 = Mathf.Clamp01((stageTime - p.phaseTime) / Mathf.Max(1e-4f, p.phaseCrossfadeSec));
+            a2 = a2 * a2 * (3f - 2f * a2);
+        }
+        float a1 = 1f - a2;
+        LastPhase1Alpha = a1;
+        LastPhase2Alpha = a2;
+        bool late = p.phase != StageCgPhaseKind.None && stageTime >= p.phaseTime;
+
+        // 第 6 便 (A): 切替の主役は「その後の色調と照明の変化」。フラッシュは控えめに端と上部だけ。
+        float blend = p.PhaseColorBlend(stageTime);
+        currentFlash = p.PhaseFlash(stageTime);
+        currentHueShift = Mathf.Lerp(p.hueShiftDeg, p.phase2HueShiftDeg, blend);
+        currentSaturation = Mathf.Lerp(p.saturation, p.phase2Saturation, blend);
+        currentTintColor = Color.Lerp(p.tintColor, p.phase2TintColor, blend);
+        currentTintAmount = Mathf.Lerp(p.tintAmount, p.phase2TintAmount, blend);
+
+        if (cache != null)
+        {
+            ApplyPhaseAlpha(cache.phase1, a1);
+            ApplyPhase2Alpha(p, cache, stageTime, a2);
+            ApplyPhase2Drop(p, cache, stageTime);
+            SetHidden(cache, late);
+        }
+
+        // --- 発光グループのスケール ---
+        float lantern = 1f + p.beatPulse * env;
+        float city = 1f;
+        float coreScale = 0f;
+        Vector3 sky = Vector3.one;
+        // 露出は形態変化の色調ブレンドと同じ曲線で移す（旧 lateExposureScale を一般化）。
+        currentExposureScale = Mathf.Lerp(1f, p.phase2ExposureScale, blend);
+        // 揺れは 3 ステージ共通（減衰余弦・phaseTime 起点）。
+        LastShakeOffset = ShakeOffset(p, stageTime);
+
+        switch (p.phase)
+        {
+            case StageCgPhaseKind.StoneGolem:
+            {
+                // コアは着地から lanternBlackoutSec かけて立ち上がる（ランタンが消えている間に入れ替わる）。
+                float coreRamp = Mathf.Clamp01((stageTime - p.phaseTime) / Mathf.Max(1e-4f, p.lanternBlackoutSec));
+                coreRamp = coreRamp * coreRamp * (3f - 2f * coreRamp);
+                if (!late) lantern = 1f + p.beatPulse * env;
+                else if (stageTime < p.phaseTime + p.lanternBlackoutSec) lantern = 0f;
+                else lantern = p.lateLanternScale;
+                city = late ? p.lateCityScale : 1f + p.beatPulse * env;
+                coreScale = coreRamp * (1f + p.corePulse * env);
+                sky = late ? p.lateSkyTint : Vector3.one;
+                break;
+            }
+            case StageCgPhaseKind.CaptainAnchor:
+                // p1 は回路発光、p2 はランタンの光輪。どちらもグループ 1 なので同じ式でよい。
+                // 第 6 便 (A): 切替後は回路・光輪を phase2Group1Scale 倍、港の灯りを
+                //   phase2Group2Scale 倍にして「明るくなった」と分かるようにする。
+                lantern = Mathf.Lerp(1f, p.phase2Group1Scale, blend) * (1f + p.beatPulse * env);
+                city = Mathf.Lerp(1f, p.phase2Group2Scale, blend) * (late ? 1f : 1f + p.beatPulse * env);
+                break;
+            case StageCgPhaseKind.VagrantWisp:
+                // 人魂・紋様（グループ 1）はゆっくり息づく。拍連動は使わない。
+                lantern = Mathf.Lerp(1f, p.phase2Group1Scale, blend);
+                city = Mathf.Lerp(1f, p.phase2Group2Scale, blend);
+                UpdateVagrantMotion(p, cache, stageTime);
+                break;
+            default:
+                break;
+        }
+
+        LastLanternScale = lantern;
+        LastCityScale = city;
+        LastCrackScale = coreScale;
+        LastCoreScale = coreScale;
+
+        Shader.SetGlobalVector(EmisGrp1Id, new Vector4(lantern, lantern, lantern, 1f));
+        Shader.SetGlobalVector(EmisGrp2Id, new Vector4(city, city, city, 1f));
+        float crack = coreScale * Mathf.Lerp(1f, p.lateCrackScale, blend);
+        LastCrackScale = crack;
+        Shader.SetGlobalVector(EmisGrp3Id, new Vector4(crack, crack, crack, 1f));
+        Shader.SetGlobalVector(EmisGrp4Id, new Vector4(sky.x, sky.y, sky.z, 1f));
+        SetCoreLight(p, coreScale);
+        if (cache != null) SetRenderers(cache.crackGlow, coreScale > 0.001f, ref cache.crackVisible);
+    }
+
+    /// <summary>浮浪者の人魂の上下・霧と土埃の横流れ。位置はステージ時計の閉じた式。</summary>
+    void UpdateVagrantMotion(StageCgProfile p, SceneCache cache, float stageTime)
+    {
+        if (cache == null) return;
+        for (int i = 0; i < cache.wisps.Length; i++)
+        {
+            Transform t = cache.wisps[i];
+            if (t == null) continue;
+            float u = cache.wisps.Length > 1 ? i / (float)(cache.wisps.Length - 1) : 0f;
+            float period = Mathf.Lerp(p.wispPeriodMin, p.wispPeriodMax, Hash(i, 11));
+            float phase = Hash(i, 12) * Mathf.PI * 2f + u;
+            float dy = Mathf.Sin(stageTime * (Mathf.PI * 2f / Mathf.Max(0.1f, period)) + phase) * p.wispAmplitude;
+            Vector3 home = cache.wispHome[i];
+            t.localPosition = new Vector3(home.x, home.y + dy, home.z);
+        }
+        for (int i = 0; i < cache.drifters.Length; i++)
+        {
+            Transform t = cache.drifters[i];
+            if (t == null) continue;
+            float range = cache.drifterRange[i];
+            float speed = cache.drifterSpeed[i];
+            float phase = Hash(i, 21) * Mathf.PI * 2f;
+            float dx = Mathf.Sin(stageTime * speed + phase) * range;
+            Vector3 home = cache.drifterHome[i];
+            t.localPosition = new Vector3(home.x + dx, home.y, home.z);
+        }
+    }
+
+    /// <summary>p2_* のアルファ。順に灯す設定があれば要素ごとに遅らせる（浮浪者の人魂）。</summary>
+    void ApplyPhase2Alpha(StageCgProfile p, SceneCache cache, float stageTime, float a2)
+    {
+        MeshRenderer[] renderers = cache.phase2;
+        if (renderers == null || renderers.Length == 0) return;
+        if (p.phase2SequentialSec <= 0f || cache.phase2Delay == null)
+        {
+            ApplyPhaseAlpha(renderers, a2);
+            return;
+        }
+        phaseMpb ??= new MaterialPropertyBlock();
+        float cross = Mathf.Max(1e-4f, p.phaseCrossfadeSec);
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            MeshRenderer mr = renderers[i];
+            if (mr == null) continue;
+            float u = Mathf.Clamp01((stageTime - p.phaseTime - cache.phase2Delay[i]) / cross);
+            float a = u * u * (3f - 2f * u);
+            bool visible = a > 0.002f;
+            if (mr.enabled != visible) mr.enabled = visible;
+            if (!visible) continue;
+            mr.GetPropertyBlock(phaseMpb);
+            phaseMpb.SetFloat(FadeAlphaId, a);
+            mr.SetPropertyBlock(phaseMpb);
+        }
+    }
+
+    /// <summary>
+    /// 艦長の帆・信号旗が「降りてくる」動き。上端を軸に縦のスケールを 0 → 1 にし、
+    /// 上端の世界 y が動かないよう位置を合わせる。ステージ時計の閉じた式。
+    /// </summary>
+    void ApplyPhase2Drop(StageCgProfile p, SceneCache cache, float stageTime)
+    {
+        if (cache.dropTargets == null || cache.dropTargets.Length == 0 || p.phase2DropSec <= 0f) return;
+        float u = Mathf.Clamp01((stageTime - p.phaseTime) / p.phase2DropSec);
+        float e = u * u * (3f - 2f * u);
+        for (int i = 0; i < cache.dropTargets.Length; i++)
+        {
+            Transform t = cache.dropTargets[i];
+            if (t == null) continue;
+            Vector3 hs = cache.dropHomeScale[i];
+            Vector3 hp = cache.dropHomePos[i];
+            float half = cache.dropHalfHeight[i];
+            float sy = Mathf.Max(0.001f, e);
+            t.localScale = new Vector3(hs.x, hs.y * sy, hs.z);
+            // 上端 = hp.y + half を固定して中心を下げる。
+            t.localPosition = new Vector3(hp.x, hp.y + half * (1f - sy), hp.z);
+        }
+    }
+
+    void ApplyPhaseAlpha(MeshRenderer[] renderers, float alpha)
+    {
+        if (renderers == null || renderers.Length == 0) return;
+        phaseMpb ??= new MaterialPropertyBlock();
+        bool visible = alpha > 0.002f;
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            MeshRenderer mr = renderers[i];
+            if (mr == null) continue;
+            if (mr.enabled != visible) mr.enabled = visible;
+            if (!visible) continue;
+            mr.GetPropertyBlock(phaseMpb);
+            phaseMpb.SetFloat(FadeAlphaId, alpha);
+            mr.SetPropertyBlock(phaseMpb);
+        }
+    }
+
+    void SetHidden(SceneCache cache, bool hidden)
+    {
+        if (cache.hidePhase2 == null || cache.hidePhase2.Length == 0) return;
+        if (cache.hideApplied && cache.hideState == hidden) return;
+        cache.hideApplied = true;
+        cache.hideState = hidden;
+        for (int i = 0; i < cache.hidePhase2.Length; i++)
+            if (cache.hidePhase2[i] != null) cache.hidePhase2[i].enabled = !hidden;
+    }
+
+    /// <summary>
+    /// 割れ目の発光メッシュの表示。emission を 0 にしても板そのものは黒く描かれて岩棚に
+    /// 黒い線が残るので、消灯中は MeshRenderer ごと切る。
+    /// </summary>
+    static void SetRenderers(MeshRenderer[] renderers, bool visible, ref bool state)
+    {
+        if (renderers == null || renderers.Length == 0) return;
+        if (visible == state) return;
+        state = visible;
+        for (int i = 0; i < renderers.Length; i++)
+            if (renderers[i] != null) renderers[i].enabled = visible;
+    }
+
+    /// <summary>拍頭で 1 回だけ呼ばれるフック（明滅そのものは stageTime から作る）。</summary>
+    public void OnBeat() { }
+
+    /// <summary>コア赤ライトの強さ（0 で消灯）。シェーダのグローバル 1 灯ぶんを書く。</summary>
+    public void SetCoreLight(StageCgProfile p, float scale)
+    {
+        Shader.SetGlobalVector(CoreParamsId, new Vector4(
+            p.coreLightPosition.x, p.coreLightPosition.y, p.coreLightPosition.z, p.coreRadius));
+        float k = p.coreIntensity * Mathf.Max(0f, scale);
+        Shader.SetGlobalVector(CoreColorId, new Vector4(
+            p.coreColorLinear.x * k, p.coreColorLinear.y * k, p.coreColorLinear.z * k, 0f));
+    }
+
+    // --- 着地の粉（石工） ---------------------------------------------------------
+    //
+    // ParticleSystem は再生位置に依存して破綻するので、粉は stageTime の閉じた式で置く。
+    // 粒 i の発生時刻・位置・大きさは Hash(i) で決まる決定的な値。中央（論理 x4..28・y2..16）
+    // には落とさず、左右の端と画面上部だけに出す。
+
+    static float Hash(int i, int salt)
+    {
+        uint h = (uint)(i * 73856093) ^ (uint)(salt * 19349663);
+        h ^= h >> 13; h *= 0x5bd1e995u; h ^= h >> 15;
+        return (h & 0xFFFFFFu) / 16777215f;
+    }
+
+    void DrawDust(StageCgProfile p, float stageTime)
+    {
+        if (!stageFxEnabled || p.phase != StageCgPhaseKind.StoneGolem) return;
+        if (p.dustMaterial == null || p.dustCount <= 0 || cgCamera == null) return;
+        float t0 = p.phaseTime;
+        if (stageTime < t0 || stageTime > t0 + p.dustLifeSec + 0.6f) return;
+
+        if (dustMesh == null) dustMesh = BuildQuad();
+        dustMpb ??= new MaterialPropertyBlock();
+        Vector4 emis = p.dustMaterial.GetVector(EmisLinId);
+        const float depth = 10f;
+        float k = (36f + depth) / 36f;
+        int layer = p.sceneRoot != null ? p.sceneRoot.layer : gameObject.layer;
+
+        for (int i = 0; i < p.dustCount; i++)
+        {
+            float ts = t0 + Mathf.Max(0.01f, p.dustSpawnSpreadSec) * Hash(i, 1);
+            float age = stageTime - ts;
+            if (age < 0f || age > p.dustLifeSec) continue;
+
+            bool top = (i % 3) == 2;
+            float fx, fy0, g;
+            if (top)
+            {
+                // 上部（天井）から。中央の帯（y 2..16）へは落ちきらない速さにする。
+                fx = Mathf.Lerp(1f, 31f, Hash(i, 2));
+                fy0 = Mathf.Lerp(18.2f, 19.6f, Hash(i, 3));
+                g = 2.0f;
+            }
+            else
+            {
+                // 左右の端（論理 x 4..28 の外）だけ。
+                bool left = Hash(i, 4) < 0.5f;
+                fx = left ? Mathf.Lerp(0.3f, 3.9f, Hash(i, 2)) : Mathf.Lerp(28.1f, 31.7f, Hash(i, 2));
+                fy0 = Mathf.Lerp(13.5f, 17.5f, Hash(i, 3));
+                g = 8.0f;
+            }
+            float fy = fy0 - 0.5f * g * age * age;
+            float size = Mathf.Lerp(0.10f, 0.22f, Hash(i, 5)) * Mathf.Max(0.01f, p.dustSizeScale);
+            float fade = Mathf.Clamp01((p.dustLifeSec - age) / 0.4f) * Mathf.Clamp01(age / 0.08f);
+
+            Vector3 pos = new Vector3(16f + (fx - 16f) * k, 20f + (fy - 20f) * k, depth);
+            Matrix4x4 m = Matrix4x4.TRS(pos, Quaternion.identity, new Vector3(size * k, size * k, 1f));
+            dustMpb.SetVector(EmisLinId, emis * fade);
+            Graphics.DrawMesh(dustMesh, m, p.dustMaterial, layer, cgCamera, 0, dustMpb, false, false, false);
+        }
+    }
+
+    static Mesh BuildQuad()
+    {
+        Mesh mesh = new Mesh { name = "StageCgDustQuad", hideFlags = HideFlags.HideAndDontSave };
+        mesh.vertices = new[]
+        {
+            new Vector3(-0.5f, -0.5f, 0f), new Vector3(0.5f, -0.5f, 0f),
+            new Vector3(-0.5f, 0.5f, 0f), new Vector3(0.5f, 0.5f, 0f),
+        };
+        mesh.normals = new[] { -Vector3.forward, -Vector3.forward, -Vector3.forward, -Vector3.forward };
+        mesh.uv = new[] { new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, 1f), new Vector2(1f, 1f) };
+        mesh.triangles = new[] { 0, 2, 1, 2, 3, 1 };
+        return mesh;
+    }
+}

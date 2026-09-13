@@ -221,7 +221,9 @@ public class PixelTransition : MonoBehaviour
     // ユーザーの3回目の再指摘「白が中央から広がるようにして」に合わせ、カバー
     // 工程そのものを中央発のセルポップインにする(このゲームに元からあった旧
     // Cover の中央発挙動を踏襲)。覆い切ったら白ベタのまま MosaicReveal へ渡す。
-    public async Task WhiteoutCover()
+    // v30 (5): coverTime に正の値を渡すと、この 1 回だけ覆いにかける秒数を差し替える
+    //   （石工の終了時だけ 1.10 秒にするため。省略時は従来どおり mosaicCoverTime=0.42）。
+    public async Task WhiteoutCover(float coverTime = -1f)
     {
         Build();
         EnsureTopmost();
@@ -231,7 +233,7 @@ public class PixelTransition : MonoBehaviour
         // 全セルを白ベタに戻す(色替え演出後などでも確実に白でカバーする)。
         for (int i = 0; i < cellImages.Length; i++)
             if (cellImages[i] != null) cellImages[i].color = Color.white;
-        SetCenterOutDelays(mosaicCoverTime);
+        SetCenterOutDelays(coverTime > 0f ? coverTime : mosaicCoverTime);
         // coverIn: セルが scale0→1 でポップイン。中央発の順序で外周へ広がる。
         await Animate(coverIn: true);
         await Hold(whiteoutHoldTime);
@@ -261,6 +263,90 @@ public class PixelTransition : MonoBehaviour
         if (whiteSheet != null) whiteSheet.gameObject.SetActive(false);
         SetCenterOutDelays(mosaicRevealTime);
         await Animate(coverIn: false);
+        gameObject.SetActive(false);
+    }
+
+    // 石工 v34 (#23): 白のピクセルモザイクを使わず、同じ全画面 Canvas を一様な黒で
+    // 覆う経路。モザイクのコード（Cover / WhiteoutCover / MosaicReveal）はそのまま残し、
+    // useBlackEnding のステージだけこちらを通す。alpha は毎フレーム外から与える。
+    private bool uniformCoverActive;
+    // リザルトへの引き渡し中は、ステージ時計側からの上書き（ApplyStageBlackout）を止める。
+    private bool uniformCoverLocked;
+
+    public void ApplyUniformCover(Color color, float alpha)
+    {
+        Build();
+        alpha = Mathf.Clamp01(alpha);
+        if (alpha <= 0f)
+        {
+            if (uniformCoverActive)
+            {
+                uniformCoverActive = false;
+                gameObject.SetActive(false);
+            }
+            return;
+        }
+
+        if (!uniformCoverActive)
+        {
+            uniformCoverActive = true;
+            SetColor(color);
+            if (whiteSheet != null) whiteSheet.gameObject.SetActive(false);
+            for (int i = 0; i < cells.Length; i++) cells[i].localScale = Vector3.one;
+            EnsureTopmost();
+            gameObject.SetActive(true);
+        }
+        if (fadeGroup != null) fadeGroup.alpha = alpha;
+    }
+
+    /// <summary>プレイ中のステージ時計から呼ぶ終端の暗転（黒・alpha は 0..1）。</summary>
+    public void ApplyStageBlackout(float alpha)
+    {
+        if (uniformCoverLocked) return;
+        ApplyUniformCover(Color.black, alpha);
+    }
+
+    /// <summary>いまの一様な覆いの濃さ（覆っていなければ 0）。第 6 便 (B) で被弾終了と使い分ける。</summary>
+    public float UniformCoverAlpha => uniformCoverActive && fadeGroup != null ? fadeGroup.alpha : 0f;
+
+    /// <summary>いまの濃さから完全な黒まで詰める（ステージ終了 → リザルトの引き渡し）。</summary>
+    public async Task UniformCoverTo(float seconds)
+    {
+        uniformCoverLocked = true;
+        Build();
+        float from = uniformCoverActive && fadeGroup != null ? fadeGroup.alpha : 0f;
+        ApplyUniformCover(Color.black, Mathf.Max(from, 0.001f));
+        float t = 0f;
+        while (t < seconds)
+        {
+            t += AnimationDelta();
+            if (fadeGroup != null) fadeGroup.alpha = Mathf.Lerp(from, 1f, Mathf.Clamp01(t / Mathf.Max(1e-4f, seconds)));
+            await Task.Yield();
+            if (this == null) return;
+        }
+        if (fadeGroup != null) fadeGroup.alpha = 1f;
+    }
+
+    /// <summary>覆いを一様なまま外す（黒 → プレイ/リザルト画面）。</summary>
+    public async Task UniformReveal(float seconds)
+    {
+        if (!uniformCoverActive || fadeGroup == null)
+        {
+            uniformCoverActive = false;
+            gameObject.SetActive(false);
+            return;
+        }
+        float t = 0f;
+        while (t < seconds)
+        {
+            t += AnimationDelta();
+            fadeGroup.alpha = Mathf.Clamp01(1f - t / Mathf.Max(1e-4f, seconds));
+            await Task.Yield();
+            if (this == null) return;
+        }
+        fadeGroup.alpha = 1f;
+        uniformCoverActive = false;
+        uniformCoverLocked = false;
         gameObject.SetActive(false);
     }
 

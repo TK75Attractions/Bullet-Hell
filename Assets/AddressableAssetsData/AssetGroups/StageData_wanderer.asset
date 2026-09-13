@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: StageData_wanderer
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: StageData_wanderer
+  m_GUID: efc87f985248c8a409ab3e859f90d057
+  m_SerializeEntries:
+  - m_GUID: 264e7e76b7a1a6e499678464b326986d
+    m_Address: Assets/StageData/wanderer/wanderer.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-media
+    - stage-wanderer
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7069cbe5964ff3843a325a6900740cef
+    m_Address: Assets/StageData/wanderer/wanderer.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-json
+    - stage-wanderer
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 74e727200a544ea48b7e5cf70ac7590c, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 8869888ba222f5446a442b977deb1e8a, type: 2}
+    - {fileID: 11400000, guid: 6255fb7aabc32524c9abd0ce46e0b697, type: 2}

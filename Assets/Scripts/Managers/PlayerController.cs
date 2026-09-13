@@ -55,9 +55,15 @@ public class PlayerController
     // ダッシュエフェクト(Spell 子)の縮小率。親スケール(1.85)とは独立の子スケール乗数。
     private const float DashEffectScale = 0.6f;
 
+    // 背景 CG の導入で自機を画面下から登場させている間。true の間は
+    // 入力を読まず、被弾もしない(StageCgIntro が背景 CG のあるステージ・1P・Playing のときだけ true を返す)。
+    private bool introEntryActive;
+    public bool IntroEntryActive => introEntryActive;
+
     public bool invincible
     {
         get => dash > 0 || hitInvincibleTimer > 0f
+            || introEntryActive
             || (GManager.Control != null && GManager.Control.IsRaymeeDebugPlayerInvincible);
         private set { }
     }
@@ -213,6 +219,29 @@ public class PlayerController
     // Update is called once per frame
     public void UpdatePos(float dt)
     {
+        // 石工 CG の導入。指示書の 4.07 秒に画面下から現れ、4.73 秒で初期位置に着いて
+        // 操作可能になる。それまでは入力・ダッシュ・被弾を止め、位置は時刻から決める。
+        if (playerIndex == 0 && StageCgIntro.TryGetPlayerEntry(out float2 introPos, out bool introVisible))
+        {
+            if (!introEntryActive)
+            {
+                introEntryActive = true;
+                dash = -dashCooldown * 1.4f;
+                SetSpellColor(Color.clear);
+            }
+            pos = introPos;
+            velocity = float2.zero;
+            if (main != null) main.enabled = introVisible;
+            UpdateIntroAnimation(dt);
+            if (playerTransform != null) playerTransform.position = new Vector3(pos.x, pos.y, 0f);
+            return;
+        }
+        if (introEntryActive)
+        {
+            introEntryActive = false;
+            if (main != null) main.enabled = true;
+        }
+
         Move(dt);
         Dash(dt);
         UpdateHitState(dt);
@@ -222,6 +251,17 @@ public class PlayerController
         UpdateAnimation(dt);
         playerTransform.position = new Vector3(pos.x, pos.y, 0);
 
+    }
+
+    // 導入(下から登場)中のアニメ。入力を一切読まず、正面シートだけを循環させる。
+    private void UpdateIntroAnimation(float dt)
+    {
+        if (main == null) return;
+        if (framesFront == null || framesFront.Length == 0) return;
+        lastSet = framesFront;
+        animTimer += dt * AnimFps;
+        animFrame = ((int)animTimer) % framesFront.Length;
+        main.sprite = framesFront[math.clamp(animFrame, 0, framesFront.Length - 1)];
     }
 
     // 入力方向で左/前後/右シートを選び、移動中は 8 フレームを AnimFps で循環。

@@ -22,6 +22,16 @@ public class CameraShake : MonoBehaviour
     private static CameraShake instance;
 
     private bool shaking;
+    // 第 6 便 (D): ステージ時計から与える「画面の揺れ」チャンネル。被弾などのイベント揺れと
+    // 足し合わせて 1 か所でカメラへ書くので、同時に起きても取り合いにならない。
+    private static Vector2 stageOffset;
+    private bool stageApplied;
+
+    /// <summary>ステージ時計側から毎フレーム与える揺れ（論理ユニット）。0 で無効。</summary>
+    public static void SetStageOffset(Vector2 offset) => stageOffset = offset;
+
+    /// <summary>いま与えられているステージ揺れ（検証で読む）。</summary>
+    public static Vector2 StageOffset => stageOffset;
     private float duration;
     private float elapsed;
     private float amplitude;
@@ -35,6 +45,7 @@ public class CameraShake : MonoBehaviour
     private void Awake()
     {
         instance = this;
+        stageOffset = Vector2.zero;
     }
 
     private void OnDestroy()
@@ -70,7 +81,9 @@ public class CameraShake : MonoBehaviour
 
         // Capture the rest pose only when starting from idle, so a re-trigger
         // mid-shake still restores to the true original (never a shaken frame).
-        if (!shaking)
+        // ステージ揺れが当たっている最中は baseLocalPos が既に素の姿勢なので取り直さない
+        // （取り直すと揺れぶんが基準へ混ざって残留オフセットになる）。
+        if (!shaking && !stageApplied)
         {
             baseLocalPos = transform.localPosition;
         }
@@ -84,37 +97,64 @@ public class CameraShake : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (!shaking)
-        {
-            return;
-        }
+        bool hasStage = stageOffset.sqrMagnitude > 1e-10f;
 
-        if (elapsed >= duration)
+        if (shaking && elapsed >= duration)
         {
-            transform.localPosition = baseLocalPos; // exact restore, no residual offset
             shaking = false;
+        }
+
+        if (!shaking && !hasStage)
+        {
+            if (stageApplied)
+            {
+                transform.localPosition = baseLocalPos; // exact restore, no residual offset
+                stageApplied = false;
+            }
+            else if (restoreOnce)
+            {
+                transform.localPosition = baseLocalPos;
+                restoreOnce = false;
+            }
             return;
         }
 
-        // Quadratic ease-out envelope: full kick on the first frame, quick settle.
-        float remaining = 1f - (elapsed / duration);
-        float decay = remaining * remaining;
+        // 揺れが無い状態から始まるときだけ素の姿勢を取り直す。
+        if (!shaking && !stageApplied)
+        {
+            baseLocalPos = transform.localPosition;
+        }
+        stageApplied = hasStage;
 
-        // Compute the offset at the CURRENT elapsed before advancing it, so the
-        // trigger frame renders at elapsed 0 where the damped cosine is at full
-        // amplitude — that single full-strength frame is the landing punch.
-        // Vertical starts as a downward dip (the slam compresses the view),
-        // then oscillates down as the envelope decays.
-        float w = elapsed * frequency * (2f * Mathf.PI);
-        float oy = -Mathf.Cos(w);
-        float ox = Mathf.Cos(w * 0.9f + 1.7f) * HorizontalScale;
+        Vector3 offset = new Vector3(stageOffset.x, stageOffset.y, 0f);
 
-        transform.localPosition = baseLocalPos + new Vector3(ox, oy, 0f) * (amplitude * decay);
+        if (shaking)
+        {
+            // Quadratic ease-out envelope: full kick on the first frame, quick settle.
+            float remaining = 1f - (elapsed / duration);
+            float decay = remaining * remaining;
 
-        // Advance after rendering. Clamp the per-frame step so a single frame
-        // hitch at the trigger moment (e.g. the landing frame spawning many
-        // bullets) cannot skip the whole shake in one step. Normal frames
-        // (~0.016s play, 0.033s capture) are well under the cap.
-        elapsed += Mathf.Min(Time.deltaTime, 0.05f);
+            // Compute the offset at the CURRENT elapsed before advancing it, so the
+            // trigger frame renders at elapsed 0 where the damped cosine is at full
+            // amplitude — that single full-strength frame is the landing punch.
+            // Vertical starts as a downward dip (the slam compresses the view),
+            // then oscillates down as the envelope decays.
+            float w = elapsed * frequency * (2f * Mathf.PI);
+            float oy = -Mathf.Cos(w);
+            float ox = Mathf.Cos(w * 0.9f + 1.7f) * HorizontalScale;
+            offset += new Vector3(ox, oy, 0f) * (amplitude * decay);
+
+            // Advance after rendering. Clamp the per-frame step so a single frame
+            // hitch at the trigger moment (e.g. the landing frame spawning many
+            // bullets) cannot skip the whole shake in one step. Normal frames
+            // (~0.016s play, 0.033s capture) are well under the cap.
+            elapsed += Mathf.Min(Time.deltaTime, 0.05f);
+        }
+
+        transform.localPosition = baseLocalPos + offset;
+        restoreOnce = true;
     }
+
+    // 直前フレームで何らかのオフセットを書いたか（次に両方 0 になった 1 回だけ素へ戻す）。
+    private bool restoreOnce;
 }

@@ -169,6 +169,12 @@ public class StageDataManager
 
         public float endTime;
 
+        // v30 (5): 省略可。0 以下なら PixelTransition の既定値を使う。
+        public float whiteoutCoverTime;
+
+        // 第 6 便 (D): 省略可。画面の揺れ（描画だけ・弾には影響しない）。
+        public List<StageData.ScreenShake> screenShakes = new();
+
         public string stageDescription = "";
 
         public List<EnemyVisualDefinition> enemyVisuals = new();
@@ -1400,6 +1406,11 @@ public class StageDataManager
 
                 data.endTime = jsonData.endTime;
 
+                data.whiteoutCoverTime = jsonData.whiteoutCoverTime;
+                data.screenShakes = jsonData.screenShakes != null
+                    ? new List<StageData.ScreenShake>(jsonData.screenShakes)
+                    : new List<StageData.ScreenShake>();
+
                 data.stageDescription = jsonData.stageDescription;
 
                 data.enemyVisuals = NormalizeEnemyVisualDefinitions(jsonData.enemyVisuals);
@@ -1640,6 +1651,11 @@ public class StageDataManager
 
         data.endTime = jsonData.endTime;
 
+                data.whiteoutCoverTime = jsonData.whiteoutCoverTime;
+                data.screenShakes = jsonData.screenShakes != null
+                    ? new List<StageData.ScreenShake>(jsonData.screenShakes)
+                    : new List<StageData.ScreenShake>();
+
         data.stageDescription = jsonData.stageDescription;
 
         data.enemyVisuals = NormalizeEnemyVisualDefinitions(jsonData.enemyVisuals);
@@ -1718,6 +1734,11 @@ public class StageDataManager
         data.stageName = string.IsNullOrWhiteSpace(jsonData.stageName) ? fallbackStageName : jsonData.stageName;
         data.delayTime = jsonData.delayTime;
         data.endTime = jsonData.endTime;
+
+                data.whiteoutCoverTime = jsonData.whiteoutCoverTime;
+                data.screenShakes = jsonData.screenShakes != null
+                    ? new List<StageData.ScreenShake>(jsonData.screenShakes)
+                    : new List<StageData.ScreenShake>();
         data.stageDescription = jsonData.stageDescription;
         data.enemyVisuals = NormalizeEnemyVisualDefinitions(jsonData.enemyVisuals);
         data.MusicEvents = ConvertMusicEvents(jsonData.MusicEvents);

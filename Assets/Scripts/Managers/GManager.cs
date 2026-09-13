@@ -91,6 +91,8 @@ public class GManager : MonoBehaviour
     // までの待ち(入力は消費し、時間経過で ChoosingStage へ切り替える)。
     private enum TitlePhase { Menu, Options, Transfer, Ranking, Starting }
     private TitlePhase titlePhase = TitlePhase.Menu;
+    // 設定画面を「カメラが寄り切ってから」出すあいだの遷移中フラグ(第7便)。
+    private bool titleOptionsOpening;
     private float titleStartTimer;
     private int optionScreenSiblingIndex = -1;
     public BulletBufferManager BClipManager;
@@ -587,7 +589,11 @@ public class GManager : MonoBehaviour
                         case TitleManager.TitleMenuAction.Start:
                             // 即座に切り替えず、タイトル側の退場演出を先に走らせる。
                             titlePhase = TitlePhase.Starting;
-                            titleStartTimer = TManager != null ? TitleManager.StartExitCoverDelay : 0f;
+                            // 部屋(3D タイトル)がある場合は「地図へ寄る」先行 0.4 秒ぶん
+                            // ステージ選択の重ね始めを遅らせる。
+                            titleStartTimer = TManager != null
+                                ? TitleManager.StartZoomLead + TitleManager.StartExitCoverDelay
+                                : 0f;
                             TManager?.PlayStartExit();
                             return true;
                         case TitleManager.TitleMenuAction.Options:
@@ -610,14 +616,21 @@ public class GManager : MonoBehaviour
     private void OpenTitleOptions()
     {
         titlePhase = TitlePhase.Options;
+        TManager?.OnOptionsOpened();
         // メニューは隠さない。設定画面は完成フレーム(メニュー・ロゴを含む)を
         // 撮ってぼかし背景にするので、退場させず背景に残す(第31便)。
         // The title never freezes time or audio; the option screen simply
         // overlays the running title. The Title sibling is drawn above the
         // OptionScreen in the scene, so lift the option screen to the front
         // while it is open, then restore its order on close.
-        if (optionScreenObj != null)
+        if (optionScreenObj == null) return;
+        // 3D の部屋があるときは、まずカメラがランタンへ寄り切ってから設定画面を出す
+        // (即座に出すと、ぼかしスナップショットが寄りを覆い隠して見えない)。
+        titleOptionsOpening = true;
+        System.Action open = () =>
         {
+            titleOptionsOpening = false;
+            if (optionScreenObj == null || titlePhase != TitlePhase.Options) return;
             // 直前のクローズフェード中の再オープンでは、退避済みの元位置を保持する
             // (現在位置は最前面に持ち上げた後の値なので上書きしない)。
             if (optionScreenSiblingIndex < 0)
@@ -628,11 +641,14 @@ public class GManager : MonoBehaviour
             optionScreenObj.SetActive(true);
             // タイトル文脈: 終了行を隠し、再開する=設定を閉じてタイトルへ戻る。
             optionMenu?.Open(true, CloseTitleOptions);
-        }
+        };
+        if (TManager != null) TManager.AfterRoomZoom(open); else open();
     }
 
     private void UpdateTitleOptions()
     {
+        // 寄りの 0.4 秒のあいだは設定画面がまだ出ていない(閉じたと誤判定しない)。
+        if (titleOptionsOpening) return;
         if (optionScreenObj == null || !optionScreenObj.activeSelf)
         {
             CloseTitleOptions();
@@ -658,6 +674,8 @@ public class GManager : MonoBehaviour
     private void CloseTitleOptions()
     {
         titlePhase = TitlePhase.Menu;
+        titleOptionsOpening = false;
+        TManager?.OnOptionsClosed();
         // Require the confirm button to be released again before the menu accepts
         // a press, so the input used to dismiss the option screen (or a button
         // still held from it) cannot leak into the menu and instantly fire an
@@ -852,11 +870,26 @@ public class GManager : MonoBehaviour
             ? SReader.CurrentTime
             : (cleared ? endTime : endTime * 0.63f);
 
+        // 石工 v34 (#23): ピクセルの白転はコードを残したまま使わず、背景 → 全体の黒フェードで
+        //   リザルトへ渡す。対象は StageCgProfile.useBlackEnding のステージだけで、
+        //   他ステージは従来どおり白転する。
+        bool blackEnding = StageCgController.UsesBlackEnding(stage);
         PixelTransition transition = FindPixelTransition();
         if (transition != null)
         {
-            transition.SetColor(Color.white);
-            await transition.WhiteoutCover();
+            if (blackEnding)
+            {
+                // ステージ時計側（StageCgController）が endTime の手前から黒くしてきた続きを詰める。
+                // 第 6 便 (B): 被弾で途中終了したときはまだ覆いが無いので、そこだけ 0.4 秒かける。
+                await transition.UniformCoverTo(transition.UniformCoverAlpha > 0.5f ? 0.15f : 0.4f);
+            }
+            else
+            {
+                transition.SetColor(Color.white);
+                // v30 (5): ステージが whiteoutCoverTime を持っていればその秒数で覆う
+                //   （石工だけ 1.10 秒。他ステージは 0 のままなので既定の 0.42 秒）。
+                await transition.WhiteoutCover(stage != null ? stage.whiteoutCoverTime : -1f);
+            }
         }
 
         state = GameState.Result;
@@ -889,7 +922,11 @@ public class GManager : MonoBehaviour
             counterHitBossCount, elapsed, endTime, twoPlayer, playerHitCount2);
         SReader?.StopStage();
 
-        if (transition != null) await transition.MosaicReveal();
+        if (transition != null)
+        {
+            if (blackEnding) await transition.UniformReveal(0.45f);
+            else await transition.MosaicReveal();
+        }
         RManager.PlayEntrance();
         resultTransitioning = false;
     }

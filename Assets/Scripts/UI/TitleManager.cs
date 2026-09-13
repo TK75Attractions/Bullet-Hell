@@ -185,6 +185,10 @@ public class TitleManager : MonoBehaviour
     // 既存の平行四辺形ボタン様式(menuButtonSprite・19°スラッシュ言語)を流用する。
     private RectTransform playerCountRoot;
     private RectTransform titleControlGuideRoot;
+    // 右下の操作説明(「[スティック]で選択 / [ボタン]で決定」の帯)。第 15 便で既定 OFF。
+    // 組み立てるコードはそのまま残してあるので、ここを true にすれば元どおり出る
+    //(ステージ選択の下部ヒントは別物で、こちらの影響を受けない)。
+    [SerializeField] private bool showControlHint = false;
 
     private readonly Image[] pcSegBars = new Image[2];
     private readonly TMP_Text[] pcSegLabels = new TMP_Text[2];
@@ -199,6 +203,134 @@ public class TitleManager : MonoBehaviour
     public TitleMenuAction CurrentAction => (TitleMenuAction)menuIndex;
     public bool IsTransferOpen => transferOpen;
     public bool IsRankingOpen => rankingOpen;
+
+    // ---- 3D の部屋(旅支度の部屋・第7便) ------------------------------------
+    // 背景を Astra 制作の 3D 部屋にする。部屋の描画は TitleRoomController が
+    // 専用カメラ→RenderTexture で行い、ここではその RT を最背面へ貼り、
+    // ロゴ・メニューの配置と立ち絵・可読性用の暗幕を面倒みる。
+    // 部屋が用意できていない(Rig 未配置・素材欠落)ときは、従来の JSAB 背景
+    // (Back + Shapes)のまま動く。
+    private RawImage roomView;
+    // 立ち絵だけを元解像度で描いた RT を、粗い部屋の上へ重ねる板(第 14 便)。
+    // 部屋の RawImage の 1 つ上に置くので、ロゴ・▼・ラベル・暗幕より奥に来る。
+    private RawImage heroView;
+    private Material heroViewMaterial;
+    // roomView へ最後に入れたマテリアル(null=既定)。ドット風の色数減衰でだけ使う。
+    private Material appliedRoomMaterial;
+    private Image roomScrim;
+    private Image heroImage;
+    private GameObject backObj;
+    private GameObject shapesObj;
+    private bool roomLayout;
+    // 立ち絵は寄りのあいだフェードアウトする(寄った先のカメラでは画面外にいる、
+    // という読み方になる)。全景では数 px の視差だけ付ける。
+    // 立ち絵の視差と、寄りで右へ逃がす量(部屋のワールド単位)。全景カメラでの
+    // 実寸は、立ち絵の奥行きで 1 ワールド = 約 220px。
+    private const float HeroParallaxWorld = 0.045f;
+    private const float HeroZoomSlideWorld = 1.0f;
+    // スタート決定時に「地図へ寄る」ぶんの先行時間。GManager はこの分だけ
+    // ステージ選択の重ね始めを遅らせる。
+    public const float StartZoomLead = 0.4f;
+
+    // ---- オブジェクト上の▼メニュー(第8便) ---------------------------------
+    // 平行四辺形のボタン列をやめ、部屋のオブジェクトの真上に小さな白い▼を出す。
+    // ▼は常時表示(弱い上下の浮遊)で、選択中のものだけ▼の上にラベル(枠も帯も無い
+    // 明朝体の文字だけ)が出る。▼・ラベルは 3D の位置を毎フレーム投影して置くので、
+    // カメラが寄っても対象の上に留まる。旧ボタン列はコードを残したまま隠す。
+    [SerializeField] private bool useObjectMenu = true;
+    private RectTransform objectMenuRoot;
+    private RectTransform[] markerRoots = new RectTransform[0];
+    private Image[] markerArrows = new Image[0];
+    private CanvasGroup[] markerLabelCG = new CanvasGroup[0];
+    private TMP_Text[] markerLabelTexts = new TMP_Text[0];
+    private TMP_Text[] markerLabelShadows = new TMP_Text[0];
+    private float[] markerLabelAlpha = new float[0];
+    private bool markerInkCentered;
+    private bool objectMenuOn;
+    private static Sprite markerArrowSprite;
+    // ラベルの明朝体(しっぽり明朝)。差し替えるときはこの 1 行だけを変える。
+    // 読めなかったときは従来どおり uiFont(M PLUS 1 Code)で描く。
+    private const string MinchoFontResource = "Fonts/ShipporiMincho-Regular SDF";
+    private TMP_FontAsset minchoFont;
+    private bool minchoFontTried;
+    // ▼の寸法・浮遊量・ラベルまでの距離(px・1920x1080 基準)。
+    // ▼は 12x8 ドットの三角を Point で整数倍に拡大したドット絵(第 14 便)。
+    // 第 15 便で一回り小さくした: 非選択 2px/ドット(24x16)、選択中 3px/ドット(36x24)。
+    // 中間の倍率は使わない(半端な倍率にするとドットの階段が不揃いになる)。
+    private const int MarkerArrowDotW = 12;
+    private const int MarkerArrowDotH = 8;
+    private const float MarkerArrowPixel = 2f;      // 1 ドットあたりの画面 px
+    private const float MarkerArrowPixelSel = 3f;   // 選択中
+    private const float MarkerArrowW = MarkerArrowDotW * MarkerArrowPixel;
+    private const float MarkerArrowH = MarkerArrowDotH * MarkerArrowPixel;
+    private const float MarkerLift = 30f;     // 対象の上端から▼までの距離
+    private const float MarkerFloatPx = 4f;   // 上下の浮遊
+    private const float MarkerLabelGap = 40f; // ▼の中心からラベル中心まで
+    private const float MarkerLabelH = 40f;
+    private const float MarkerLabelFont = 26f;
+    private const float MarkerFadeSpeed = 1f / 0.15f;
+    // ▼は枠なしの真っ白(#FFFFFF)。縁取り(背後の暗い三角)は置かない。
+    // 非選択も同じ白のまま alpha だけ落とす。
+    private static readonly Color MarkerArrowInk = new Color(1f, 1f, 1f, 1f);
+    private static readonly Color MarkerArrowInkDim = new Color(1f, 1f, 1f, 0.58f);
+    // ラベルは枠・帯・背景板なしの明朝体。白〜生成りの文字 1 枚と、その後ろに
+    // 1px ずらした暗い影 1 枚だけ(読みやすさのため)。
+    private static readonly Color MarkerLabelInk = new Color(0.976f, 0.961f, 0.918f, 1f);
+    // 縁取り(8 方向の暗縁)はやめ、右下 2px の落ち影 1 枚だけにする。
+    // 読みにくいときも縁は付けず、影を濃く/少し離す範囲で調整する。
+    private static readonly Color MarkerLabelShadow = new Color(0f, 0f, 0f, 0.60f);
+    private static readonly Vector2 MarkerLabelShadowOffset = new Vector2(2f, -2f);
+    // 字間 +4%。TMP の characterSpacing は 1/100em 単位なので 4 = +4%。
+    private const float MarkerLabelSpacing = 4f;
+    private const float MarkerLabelBoxW = 360f;  // 折り返さないための十分な幅
+    // ▼から見たラベルの追加ずらし(px)。帯が無くなったぶん文字が直接背景に乗るので、
+    // 明るい実体の真上に来るものだけ横へ逃がす。引き継ぎはランタンの炎に
+    // 「引」が完全に埋まっていたので右へ、設定は窓の桟から少し右へ寄せる。
+    private static readonly Vector2[] MarkerLabelOffset =
+    {
+        Vector2.zero,             // スタート
+        new Vector2(0f, 6f),      // 設定
+        new Vector2(62f, 4f),     // 引き継ぎ(ランタンの炎を外す)
+        Vector2.zero,             // ランキング
+        Vector2.zero,             // 1P
+        Vector2.zero,             // 2P
+    };
+    private static readonly string[] MarkerLabels =
+        { "スタート", "設定", "引き継ぎ", "ランキング", "1P", "2P" };
+    // 投影点からの微調整(px・+y は上)。実フレームで詰めた値:
+    // 引き継ぎ=手紙の真上はランタンの炎と重なって▼が読めないので封筒の右上へ、
+    // ランキング=本の上ではなく一段上の棚板の前へ出す。
+    private static readonly Vector2[] MarkerScreenOffset =
+    {
+        new Vector2(0f, 10f),          // スタート(地図の上端に触れない位置まで持ち上げる)
+        new Vector2(0f, -14f),         // 設定(ランタンの吊り輪の上。輪と重ねない)
+        new Vector2(45f, 12f),         // 引き継ぎ(手紙。ランタンと書類の束に触れない右上へ)
+        new Vector2(0f, 55f),          // ランキング(本棚)
+        new Vector2(-30f, 0f),         // 1P(2 枚のマントの帯が重ならないよう左右へ開く)
+        new Vector2(20f, 12f),         // 2P(下の物干し竿に触れないよう少し上げる)
+    };
+
+    // ---- 部屋モードのロゴ(第9便) -------------------------------------------
+    // 旧ロゴ(シーンの Logo・RawImage)はそのまま残し、部屋モードのときだけ隠して
+    // 新ロゴ(Resources/UI/jbi-logo-v2)を代わりに置く。浮遊・ビートパルス・
+    // スタート時の上抜けは logoRect を差し替えるだけで従来どおり効く
+    // (演出コードには一切触っていない)。
+    private Image roomLogoImage;
+    private RectTransform roomLogoRect;
+    private RectTransform sceneLogoRect;
+    // 新ロゴの表示位置と幅。**Inspector で編集できる**(シーンの TitleManager を選び、
+    // 「部屋モードのロゴ」の 2 項目を変えると次の Play から反映される)。
+    // 原画は 2146x733 なので高さは幅 / RoomLogoAspect で自動的に決まる。
+    // 既定は第 12 便より下げてあり、ロゴの絵の下端が「設定」のラベルの 20px 以内に来る
+    //(ラベル側も MarkerScreenOffset[1] で 20px 下げた)。
+    [Header("部屋モードのロゴ")]
+    [Tooltip("部屋モードのロゴの位置(Canvas 中心からの px。+x=右 / +y=上)。")]
+    [SerializeField] private Vector2 roomLogoAnchoredPos = new Vector2(20f, 258f);
+    [Tooltip("部屋モードのロゴの表示幅(px)。高さは原画 2146x733 の比で決まる。")]
+    [SerializeField] private float roomLogoWidth = 740f;
+    private const float RoomLogoAspect = 2146f / 733f;
+
+    private TitleRoomController Room => TitleRoomController.Instance;
 
     public void Init()
     {
@@ -216,6 +348,7 @@ public class TitleManager : MonoBehaviour
         if (logo != null)
         {
             logoRect = logo.GetComponent<RectTransform>();
+            sceneLogoRect = logoRect;
             // Lift the logo above its scene-authored spot (float / beat pulse are
             // applied on top of this raised base position).
             logoBaseY = logoRect.anchoredPosition.y + LogoRaiseOffset;
@@ -248,11 +381,459 @@ public class TitleManager : MonoBehaviour
         }
 
         EnsureUiBuilt();
+        ApplyRoomLayout();
 
         group.alpha = 1f;
         transform.localScale = Vector3.one;
         dismissed = false;
         gameObject.SetActive(true);
+    }
+
+    // ---- 3D の部屋 ---------------------------------------------------------
+
+    // 部屋を起こし、タイトルの並びを部屋向けへ組み替える(ロゴ左上・メニュー左寄せ・
+    // 右手前に立ち絵・左側に薄い暗幕)。部屋が無ければ何もしない=従来の見た目。
+    private void ApplyRoomLayout()
+    {
+        TitleRoomController room = Room;
+        if (room == null) return;
+        room.SetRoomActive(true);
+        if (!room.Ready) return;
+
+        if (backObj == null) backObj = transform.Find("Back")?.gameObject;
+        if (shapesObj == null) shapesObj = transform.Find("Shapes")?.gameObject;
+        // JSAB の平面図形と濃紺ベタは部屋と喧嘩する(写実的な室内の上に大きな図形が
+        // 浮くと瓦礫に見える)ので、部屋があるときは下ろす。舞う塵が代わりになる。
+        if (backObj != null) backObj.SetActive(false);
+        if (shapesObj != null) shapesObj.SetActive(false);
+
+        if (roomView == null)
+        {
+            roomView = CreateRawImage("RoomView", transform);
+            StretchToParent(roomView.rectTransform);
+            roomView.color = Color.white;
+        }
+        roomView.texture = room.Texture;
+        appliedRoomMaterial = room.ViewMaterial;
+        roomView.material = appliedRoomMaterial;
+        roomView.gameObject.SetActive(true);
+        roomView.rectTransform.SetSiblingIndex(0);
+        ApplyHeroView(room);
+
+        if (roomScrim == null)
+        {
+            roomScrim = CreatePanel("RoomScrim", transform, new Vector2(-480f, 0f),
+                new Vector2(960f, 1080f), Color.white);
+            roomScrim.sprite = CreateHorizontalFadeSprite();
+            roomScrim.type = Image.Type.Simple;
+        }
+        // 文字が載る左側だけを控えめに落とす(右端 alpha 0 → 左端 0.5)。
+        roomScrim.color = new Color(0f, 0.012f, 0.035f, 1f);
+        roomScrim.gameObject.SetActive(true);
+        roomScrim.rectTransform.SetSiblingIndex(1);
+
+        objectMenuOn = useObjectMenu;
+        if (objectMenuOn)
+        {
+            // ロゴは窓の中央上部へ(実測: 窓の中心は画面 x≈960・上端 y≈115)。
+            // 部屋モードでは新ロゴ(v2)を出し、旧ロゴは隠す(コードは残す)。
+            EnsureRoomLogo();
+            if (roomLogoRect != null)
+            {
+                if (sceneLogoRect != null) sceneLogoRect.gameObject.SetActive(false);
+                logoRect = roomLogoRect;
+                logoRect.gameObject.SetActive(true);
+                float logoW = Mathf.Max(1f, roomLogoWidth);
+                logoRect.sizeDelta = new Vector2(logoW, logoW / RoomLogoAspect);
+                logoRect.anchoredPosition = roomLogoAnchoredPos;
+                logoBaseY = roomLogoAnchoredPos.y;
+            }
+            else if (logoRect != null)
+            {
+                // 新ロゴが読めなかったときは旧ロゴのまま(第8便の値)。
+                logoRect.sizeDelta = new Vector2(620f, 350f);
+                logoRect.anchoredPosition = new Vector2(20f, 352f);
+                logoBaseY = 352f;
+            }
+            // 旧ボタン列と 1P/2P トグルは下ろす(コードは残す)。
+            if (menuRoot != null) menuRoot.gameObject.SetActive(false);
+            if (playerCountRoot != null) playerCountRoot.gameObject.SetActive(false);
+            BuildObjectMenu();
+        }
+        else
+        {
+            // ロゴは左上へ。デザインは変えず、大きさと位置だけ整える。
+            if (roomLogoRect != null) roomLogoRect.gameObject.SetActive(false);
+            if (sceneLogoRect != null)
+            {
+                sceneLogoRect.gameObject.SetActive(true);
+                logoRect = sceneLogoRect;
+            }
+            if (logoRect != null)
+            {
+                logoRect.sizeDelta = new Vector2(560f, 317f);
+                logoRect.anchoredPosition = new Vector2(-618f, 336f);
+                logoBaseY = 336f;
+            }
+
+            // メニュー列は左へ寄せ、少し縮める(行の寸法・19° の様式には触らない)。
+            if (menuRoot != null)
+            {
+                menuRoot.localScale = Vector3.one * 0.82f;
+                menuRoot.anchoredPosition = new Vector2(-560f, 30f);
+            }
+            if (playerCountRoot != null)
+            {
+                playerCountRoot.localScale = Vector3.one * 0.82f;
+                playerCountRoot.anchoredPosition = new Vector2(-560f, 30f + (menuRowY.Length > 0 ? menuRowY[0] : 0f) * 0.82f + (MenuRowGap - 24f) * 0.82f);
+            }
+        }
+
+        BuildHero();
+        room.SetTwoPlayer(pcTwoPlayer);
+        roomLayout = true;
+    }
+
+    // 部屋モード用の新ロゴを 1 度だけ作る。旧ロゴの直後に置いて描画順を揃える。
+    private void EnsureRoomLogo()
+    {
+        if (roomLogoRect != null) return;
+        Sprite sprite = Resources.Load<Sprite>("UI/jbi-logo-v2");
+        if (sprite == null) return;
+        GameObject go = new GameObject("LogoRoom", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        go.layer = gameObject.layer;
+        roomLogoRect = (RectTransform)go.transform;
+        roomLogoRect.SetParent(transform, false);
+        roomLogoRect.anchorMin = roomLogoRect.anchorMax = new Vector2(0.5f, 0.5f);
+        roomLogoRect.pivot = new Vector2(0.5f, 0.5f);
+        roomLogoImage = go.GetComponent<Image>();
+        roomLogoImage.sprite = sprite;
+        roomLogoImage.raycastTarget = false;
+        roomLogoImage.preserveAspect = true;
+        if (sceneLogoRect != null) roomLogoRect.SetSiblingIndex(sceneLogoRect.GetSiblingIndex() + 1);
+    }
+
+    // 立ち絵は Canvas の 2D 画像をやめ、部屋の 3D 空間に立てた板
+    //(TitleRoomController.BuildHeroBoard)へ移した。部屋のライトを受け、
+    // ドット風の低解像度描画も部屋と同じだけ掛かる。ここでは 2D 側が
+    // 残っていたら下ろすだけにする(部屋の板が作れないときは何も出ない)。
+    private void BuildHero()
+    {
+        if (heroImage != null) heroImage.gameObject.SetActive(false);
+    }
+
+    // ---- オブジェクト上の▼メニュー ----------------------------------------
+
+    // ▼とラベルを 6 個(メニュー4 + 1P/2P)組む。位置は毎フレーム UpdateObjectMenu が
+    // 部屋カメラの投影から決めるので、ここでは形だけ作る。
+    private void BuildObjectMenu()
+    {
+        if (objectMenuRoot != null) return;
+
+        GameObject rootObj = new GameObject("ObjectMenu", typeof(RectTransform));
+        rootObj.layer = gameObject.layer;
+        objectMenuRoot = (RectTransform)rootObj.transform;
+        objectMenuRoot.SetParent(transform, false);
+        objectMenuRoot.anchorMin = objectMenuRoot.anchorMax = new Vector2(0.5f, 0.5f);
+        objectMenuRoot.anchoredPosition = Vector2.zero;
+        objectMenuRoot.sizeDelta = Vector2.zero;
+
+        int n = TitleRoomController.MarkerCount;
+        markerRoots = new RectTransform[n];
+        markerArrows = new Image[n];
+        markerLabelCG = new CanvasGroup[n];
+        markerLabelTexts = new TMP_Text[n];
+        markerLabelShadows = new TMP_Text[n];
+        markerLabelAlpha = new float[n];
+
+        if (markerArrowSprite == null)
+            markerArrowSprite = CreatePixelDownTriangleSprite(MarkerArrowDotW, MarkerArrowDotH);
+
+        for (int i = 0; i < n; i++)
+        {
+            GameObject markerObj = new GameObject("Marker" + i, typeof(RectTransform));
+            markerObj.layer = gameObject.layer;
+            RectTransform marker = (RectTransform)markerObj.transform;
+            marker.SetParent(objectMenuRoot, false);
+            marker.anchorMin = marker.anchorMax = new Vector2(0.5f, 0.5f);
+            marker.pivot = new Vector2(0.5f, 0.5f);
+            marker.sizeDelta = Vector2.zero;
+            markerRoots[i] = marker;
+
+            // 縁取りは置かない(白い三角 1 枚だけ)。
+            Image arrow = CreatePanel("Arrow", marker, Vector2.zero,
+                new Vector2(MarkerArrowW, MarkerArrowH), MarkerArrowInk);
+            arrow.sprite = markerArrowSprite;
+            arrow.type = Image.Type.Simple;
+            markerArrows[i] = arrow;
+
+            // ラベル: 帯も縁も背景板も置かず、明朝体の文字と 1px の影だけ。
+            string text = i < MarkerLabels.Length ? MarkerLabels[i] : string.Empty;
+            float bandW = MarkerLabelBoxW;
+            GameObject labelObj = new GameObject("Label", typeof(RectTransform), typeof(CanvasGroup));
+            labelObj.layer = gameObject.layer;
+            RectTransform label = (RectTransform)labelObj.transform;
+            label.SetParent(marker, false);
+            label.anchorMin = label.anchorMax = new Vector2(0.5f, 0.5f);
+            label.pivot = new Vector2(0.5f, 0.5f);
+            Vector2 labelNudge = i < MarkerLabelOffset.Length ? MarkerLabelOffset[i] : Vector2.zero;
+            label.anchoredPosition = new Vector2(labelNudge.x, MarkerLabelGap + labelNudge.y);
+            label.sizeDelta = new Vector2(bandW, MarkerLabelH);
+            CanvasGroup cg = labelObj.GetComponent<CanvasGroup>();
+            cg.alpha = 0f;
+            cg.blocksRaycasts = false;
+            cg.interactable = false;
+            markerLabelCG[i] = cg;
+
+            // 落ち影 1 枚(右下)。先に作った子ほど奥に描かれるので本体より前に作る。
+            TMP_Text shadow = CreateText("Shadow", label, MarkerLabelShadowOffset,
+                new Vector2(bandW, MarkerLabelH), MarkerLabelFont, MarkerLabelShadow,
+                TextAlignmentOptions.Center);
+            StyleMarkerLabel(shadow, text);
+            markerLabelShadows[i] = shadow;
+
+            TMP_Text ink = CreateText("Text", label, new Vector2(0f, 0f),
+                new Vector2(bandW, MarkerLabelH), MarkerLabelFont, MarkerLabelInk,
+                TextAlignmentOptions.Center);
+            StyleMarkerLabel(ink, text);
+            markerLabelTexts[i] = ink;
+        }
+        objectMenuRoot.SetAsLastSibling();
+    }
+
+    // ラベル 1 枚(本体・影とも)に明朝体・字間・折り返し無しを適用する。
+    private void StyleMarkerLabel(TMP_Text label, string text)
+    {
+        if (label == null) return;
+        TMP_FontAsset mincho = MinchoFont;
+        if (mincho != null) label.font = mincho;
+        label.characterSpacing = MarkerLabelSpacing;
+        label.textWrappingMode = TextWrappingModes.NoWrap;
+        label.overflowMode = TextOverflowModes.Overflow;
+        label.text = text;
+    }
+
+    // 明朝体は Resources から 1 度だけ読む(見つからなければ uiFont のまま)。
+    private TMP_FontAsset MinchoFont
+    {
+        get
+        {
+            if (!minchoFontTried)
+            {
+                minchoFontTried = true;
+                minchoFont = Resources.Load<TMP_FontAsset>(MinchoFontResource);
+                if (minchoFont == null)
+                    Debug.LogWarning("TitleManager: 明朝フォントが見つかりません: " + MinchoFontResource);
+            }
+            return minchoFont;
+        }
+    }
+
+    // ▼の画面位置をドット格子へ吸着させる。
+    private static float SnapToArrowGrid(float v)
+        => Mathf.Round(v / MarkerArrowPixel) * MarkerArrowPixel;
+
+    // ドット絵の▼。アンチエイリアスを掛けず、Point フィルタで整数倍に拡大して使う。
+    internal static Sprite CreatePixelDownTriangleSprite(int w, int h)
+    {
+        Texture2D tex = new Texture2D(w, h, TextureFormat.RGBA32, false)
+        {
+            hideFlags = HideFlags.DontSave,
+            wrapMode = TextureWrapMode.Clamp,
+            filterMode = FilterMode.Point,
+        };
+        for (int y = 0; y < h; y++)
+        {
+            for (int x = 0; x < w; x++)
+            {
+                // 上辺が幅いっぱい、下端が頂点の二等辺三角形。画素の中心で 1/0 を決める。
+                // 行の上端で幅を決める(画素の中心で測ると最下段が空になる)。
+                float px = (x + 0.5f) / w;
+                float py = (y + 1f) / h;     // 0..1 下→上
+                bool on = Mathf.Abs(px - 0.5f) <= 0.5f * py;
+                tex.SetPixel(x, y, new Color(1f, 1f, 1f, on ? 1f : 0f));
+            }
+        }
+        tex.Apply();
+        Sprite sprite = Sprite.Create(tex, new Rect(0f, 0f, w, h), new Vector2(0.5f, 0.5f), 100f);
+        sprite.hideFlags = HideFlags.DontSave;
+        return sprite;
+    }
+
+    // ▼とラベルを部屋のオブジェクトの上へ置き直す(毎フレーム)。
+    private void UpdateObjectMenu(float dt)
+    {
+        if (objectMenuRoot == null) return;
+        TitleRoomController room = Room;
+        if (room == null || !room.RoomVisible)
+        {
+            if (objectMenuRoot.gameObject.activeSelf) objectMenuRoot.gameObject.SetActive(false);
+            return;
+        }
+        if (!objectMenuRoot.gameObject.activeSelf) objectMenuRoot.gameObject.SetActive(true);
+
+        // 和文ラベルの光学中央合わせは、表示後にメッシュが生成されてからでないと空振る。
+        if (!markerInkCentered)
+        {
+            bool all = true;
+            foreach (TMP_Text t in markerLabelTexts)
+                if (t != null) all &= TmpAlign.CenterInkVertically(t);
+            foreach (TMP_Text t in markerLabelShadows)
+                if (t != null) all &= TmpAlign.CenterInkVertically(t);
+            markerInkCentered = all;
+        }
+
+        Rect canvas = ((RectTransform)transform).rect;
+        // 寄り切ってパネルが出る直前に消す(寄っている途中は対象に追従したまま見せる)。
+        float zoomFade = 1f - Mathf.Clamp01((room.ZoomAmount - 0.82f) / 0.18f);
+
+        for (int i = 0; i < markerRoots.Length; i++)
+        {
+            RectTransform marker = markerRoots[i];
+            if (marker == null) continue;
+            bool onScreen = room.TryGetMarkerViewport(i, out Vector2 vp);
+            if (marker.gameObject.activeSelf != onScreen) marker.gameObject.SetActive(onScreen);
+            if (!onScreen) continue;
+
+            // 浮遊は 2px 単位のステップ移動(ドットが滑らかに滑らないようにする)。
+            float floatY = Mathf.Round(Mathf.Sin(animTime * 1.9f + i * 0.9f)
+                * MarkerFloatPx / MarkerArrowPixel) * MarkerArrowPixel;
+            Vector2 nudge = i < MarkerScreenOffset.Length ? MarkerScreenOffset[i] : Vector2.zero;
+            marker.anchoredPosition = new Vector2(
+                (vp.x - 0.5f) * canvas.width + nudge.x,
+                (vp.y - 0.5f) * canvas.height + MarkerLift + floatY + nudge.y);
+
+            bool selected = i < TitleRoomController.MenuCount
+                ? i == menuIndex
+                : (i == TitleRoomController.MarkerP1) != pcTwoPlayer;
+            markerLabelAlpha[i] = Mathf.MoveTowards(markerLabelAlpha[i], selected ? 1f : 0f,
+                dt * MarkerFadeSpeed);
+            if (markerLabelCG[i] != null) markerLabelCG[i].alpha = markerLabelAlpha[i] * zoomFade;
+            if (markerArrows[i] != null)
+            {
+                Color c = Color.Lerp(MarkerArrowInkDim, MarkerArrowInk, markerLabelAlpha[i]);
+                c.a *= zoomFade;
+                markerArrows[i].color = c;
+                // 拡大率はドット単位で切り替える(2px/3px)。中間の倍率は挟まない。
+                float s = markerLabelAlpha[i] >= 0.5f
+                    ? MarkerArrowPixelSel / MarkerArrowPixel : 1f;
+                markerArrows[i].rectTransform.localScale = new Vector3(s, s, 1f);
+                // ▼だけ画面のドット格子(2px)へ吸着させる。ラベルは滑らかなまま。
+                Vector2 mp = marker.anchoredPosition;
+                markerArrows[i].rectTransform.anchoredPosition = new Vector2(
+                    SnapToArrowGrid(mp.x) - mp.x, SnapToArrowGrid(mp.y) - mp.y);
+            }
+        }
+    }
+
+    // 左端 alpha0.5 → 右端 alpha0 の横グラデ。文字の可読性用の薄い暗幕。
+    private static Sprite CreateHorizontalFadeSprite()
+    {
+        const int w = 128;
+        Texture2D tex = new Texture2D(w, 4, TextureFormat.RGBA32, false)
+        {
+            hideFlags = HideFlags.DontSave,
+            wrapMode = TextureWrapMode.Clamp,
+            filterMode = FilterMode.Bilinear,
+        };
+        for (int x = 0; x < w; x++)
+        {
+            float u = x / (float)(w - 1);
+            // 左(u=0)が濃く、右へ滑らかに抜ける。
+            float a = 0.5f * Mathf.Pow(1f - u, 1.35f);
+            Color c = new Color(1f, 1f, 1f, a);
+            for (int y = 0; y < 4; y++) tex.SetPixel(x, y, c);
+        }
+        tex.Apply();
+        Sprite sprite = Sprite.Create(tex, new Rect(0f, 0f, w, 4f), new Vector2(0.5f, 0.5f), 100f);
+        sprite.hideFlags = HideFlags.DontSave;
+        return sprite;
+    }
+
+    // 部屋のカメラを寄せる/戻す(決定・戻る)。
+    private void FocusRoom(int menuIndexValue) => Room?.FocusMenu(menuIndexValue);
+    private void UnfocusRoom() => Room?.ClearFocus();
+
+    // GManager の設定画面オープン/クローズから呼ぶ(ランタンへ寄る/戻る)。
+    public void OnOptionsOpened() => FocusRoom((int)TitleMenuAction.Options);
+    public void OnOptionsClosed() => UnfocusRoom();
+
+    private void ShutdownRoom()
+    {
+        Room?.SetRoomActive(false);
+    }
+
+    // 部屋の毎フレーム更新。選択中のオブジェクトのハイライトと、立ち絵の視差・退避。
+    // 立ち絵の重ね板を用意する(部屋が立ち絵を分離して描いているときだけ)。
+    private void ApplyHeroView(TitleRoomController room)
+    {
+        RenderTexture heroTex = room != null ? room.HeroTexture : null;
+        if (heroTex == null)
+        {
+            if (heroView != null) heroView.gameObject.SetActive(false);
+            return;
+        }
+        if (heroView == null)
+        {
+            heroView = CreateRawImage("HeroView", transform);
+            StretchToParent(heroView.rectTransform);
+            heroView.color = Color.white;
+            heroView.raycastTarget = false;
+            if (heroViewMaterial == null)
+            {
+                Shader sh = Shader.Find("BulletHell/UI/Premultiplied");
+                if (sh != null)
+                    heroViewMaterial = new Material(sh) { hideFlags = HideFlags.DontSave };
+            }
+            if (heroViewMaterial != null) heroView.material = heroViewMaterial;
+        }
+        if (heroView.texture != heroTex) heroView.texture = heroTex;
+        heroView.gameObject.SetActive(true);
+        // 部屋の真上(暗幕・ロゴ・▼より奥)。
+        heroView.rectTransform.SetSiblingIndex(1);
+    }
+
+    private void TickRoom(float dt)
+    {
+        TitleRoomController room = Room;
+        if (room == null || !room.Ready) return;
+        room.SetSelection(menuIndex);
+        room.Tick(dt);
+        UpdateObjectMenu(dt);
+        if (!roomLayout) return;
+
+        // ドット風表示の解像度を切り替えると部屋の描画先 RT ごと差し替わるので、
+        // 表示板の texture / material を毎フレーム追従させる(通常は変化しない)。
+        if (roomView != null)
+        {
+            if (roomView.texture != room.Texture) roomView.texture = room.Texture;
+            // RawImage.material は null を入れると既定マテリアルを返すので、
+            // 直接比較せず「最後に入れた値」を覚えて変化したときだけ差し替える。
+            if (appliedRoomMaterial != room.ViewMaterial)
+            {
+                appliedRoomMaterial = room.ViewMaterial;
+                roomView.material = appliedRoomMaterial;
+            }
+        }
+        if (heroView != null && room.HeroTexture != null && heroView.texture != room.HeroTexture)
+            heroView.texture = room.HeroTexture;
+
+        float zoom = room.ZoomAmount;
+        {
+            // 全景ではごく僅かに左右へ揺れる視差。寄っているあいだは右へ逃がして
+            // フェードアウトする(寄った先のカメラでは画面外にいる、という読み方)。
+            // 2D のときの ±10px / 220px を、立ち絵の奥行きでのワールド量へ直したもの。
+            float drift = Mathf.Sin(animTime * 0.5f) * HeroParallaxWorld;
+            float fade = 1f - Mathf.Clamp01(zoom * 1.6f);
+            room.SetHeroState(fade, drift + zoom * HeroZoomSlideWorld);
+        }
+        if (roomScrim != null)
+        {
+            // 寄っているときはパネルが主役なので暗幕を薄める。
+            Color c = roomScrim.color;
+            c.a = Mathf.Lerp(1f, 0.35f, zoom);
+            roomScrim.color = c;
+        }
     }
 
     private void EnsureUiBuilt()
@@ -280,7 +861,7 @@ public class TitleManager : MonoBehaviour
         }
         if (transferRoot != null) transferRoot.SetActive(false);
         if (rankingRoot != null) rankingRoot.SetActive(false);
-        if (menuRoot != null) menuRoot.gameObject.SetActive(true);
+        SetLegacyMenuVisible(true);
 
         // The scene-authored "PRESS ANY BUTTON" prompt is replaced by the menu.
         if (promptText != null)
@@ -436,6 +1017,7 @@ public class TitleManager : MonoBehaviour
         }
 
         animTime += dt;
+        TickRoom(dt);
 
         // ビートパルス(ロゴの振動・図形フラッシュ): Discotheque が再生中なら
         // 再生位置から拍位相を取って音にロックする(clip の t=0=実ダウンビート)。
@@ -492,6 +1074,7 @@ public class TitleManager : MonoBehaviour
     {
         if (dismissed) return;
         dismissed = true;
+        ShutdownRoom();
         const float duration = 0.38f;
         float d = duration;
         while (d > 0f)
@@ -517,6 +1100,22 @@ public class TitleManager : MonoBehaviour
         if (dismissed) return;
         dismissed = true;
 
+        // 部屋がある場合は、退場演出の前に 0.4 秒だけ「地図へ寄る」。
+        // GManager は StartZoomLead ぶん遅らせてステージ選択を重ね始める。
+        FocusRoom((int)TitleMenuAction.Start);
+        if (Room != null && Room.Ready)
+        {
+            float lead = 0f;
+            while (lead < StartZoomLead)
+            {
+                float ldt = Time.deltaTime;
+                lead += ldt;
+                TickRoom(ldt);
+                await Task.Yield();
+                if (this == null || group == null) return;
+            }
+        }
+
         const float flashDur = 0.175f;
         const float rowDur = 0.325f;
         const float slideDistance = 1500f;
@@ -532,6 +1131,7 @@ public class TitleManager : MonoBehaviour
         {
             float dt = Time.deltaTime;
             time += dt;
+            TickRoom(dt);
 
             // 背景図形は加速しながら流れ続ける(dismissed 中は UpdateTitle が
             // 止まるので、同じ式をここで加速倍率付きで駆動する)。
@@ -603,6 +1203,7 @@ public class TitleManager : MonoBehaviour
 
         group.alpha = 0f;
         gameObject.SetActive(false);
+        ShutdownRoom();
         // 非表示中に退場前の配置へ戻し、次回 Init(再表示)を無傷にする。
         for (int i = 0; i < menuItemRects.Length; i++)
         {
@@ -625,16 +1226,18 @@ public class TitleManager : MonoBehaviour
 
     public void ShowMenu()
     {
-        if (menuRoot != null) menuRoot.gameObject.SetActive(true);
+        SetLegacyMenuVisible(true);
         SetPlayerCountToggleVisible(true);
-        if (titleControlGuideRoot != null) titleControlGuideRoot.gameObject.SetActive(true);
+        if (titleControlGuideRoot != null)
+            titleControlGuideRoot.gameObject.SetActive(showControlHint);
 
     }
 
     public void HideMenu()
     {
-        if (menuRoot != null) menuRoot.gameObject.SetActive(false);
+        SetLegacyMenuVisible(false);
         SetPlayerCountToggleVisible(false);
+        if (objectMenuRoot != null) objectMenuRoot.gameObject.SetActive(false);
         if (titleControlGuideRoot != null) titleControlGuideRoot.gameObject.SetActive(false);
 
     }
@@ -875,6 +1478,8 @@ public class TitleManager : MonoBehaviour
 
         BuildPlayerCountToggle(rowY.Length > 0 ? rowY[0] : rowCenter + rowGap);
         BuildTitleControlGuide();
+        if (titleControlGuideRoot != null && !showControlHint)
+            titleControlGuideRoot.gameObject.SetActive(false);
 
     }
 
@@ -1020,6 +1625,7 @@ public class TitleManager : MonoBehaviour
     // GManager から呼ぶ。人数選択を設定して見た目を更新する。戻り値=変化したか。
     public bool SetTwoPlayer(bool two)
     {
+        Room?.SetTwoPlayer(two);   // マントの点灯枚数(1P=左1枚 / 2P=2枚)
         if (pcTwoPlayer == two) return false;
         pcTwoPlayer = two;
         ApplyPlayerCountVisual();
@@ -1029,7 +1635,15 @@ public class TitleManager : MonoBehaviour
     // メニュー表示/非表示に人数トグルも追従させる。
     public void SetPlayerCountToggleVisible(bool visible)
     {
-        if (playerCountRoot != null) playerCountRoot.gameObject.SetActive(visible);
+        // ▼メニュー方式では 1P/2P は壁のマントで示すので、トグルは出さない。
+        if (playerCountRoot != null) playerCountRoot.gameObject.SetActive(visible && !objectMenuOn);
+    }
+
+    // 旧ボタン列の表示。▼メニュー方式が有効なあいだは常に隠す(コードは残す)。
+    private void SetLegacyMenuVisible(bool visible)
+    {
+        if (menuRoot != null) menuRoot.gameObject.SetActive(visible && !objectMenuOn);
+        if (objectMenuRoot != null && visible) objectMenuRoot.gameObject.SetActive(true);
     }
 
     // 決定閃光用の白オーバーレイ。焼き込みバナーの枠(内側 44/22 マージン)と同じ
@@ -1057,7 +1671,29 @@ public class TitleManager : MonoBehaviour
 
     // ---- Transfer panel ---------------------------------------------------
 
+    // 決定した瞬間はまずカメラが対象へ寄り(StartZoomLead 秒)、寄り切ってから
+    // パネルが出る。部屋が無いときは従来どおり即座に開く。
     public void OpenTransfer()
+    {
+        FocusRoom((int)TitleMenuAction.Transfer);
+        AfterRoomZoom(OpenTransferNow);
+    }
+
+    public void AfterRoomZoom(System.Action act)
+    {
+        if (act == null) return;
+        if (Room == null || !Room.Ready || !isActiveAndEnabled) { act(); return; }
+        StartCoroutine(AfterRoomZoomRoutine(act));
+    }
+
+    private IEnumerator AfterRoomZoomRoutine(System.Action act)
+    {
+        float t = 0f;
+        while (t < StartZoomLead) { t += Time.unscaledDeltaTime; yield return null; }
+        act();
+    }
+
+    private void OpenTransferNow()
     {
         if (transferRoot == null) return;
         if (transferCloseRoutine != null) { StopCoroutine(transferCloseRoutine); transferCloseRoutine = null; }
@@ -1100,6 +1736,7 @@ public class TitleManager : MonoBehaviour
     public void CloseTransfer()
     {
         transferOpen = false;
+        UnfocusRoom();
         if (transferCaptureRoutine != null) { StopCoroutine(transferCaptureRoutine); transferCaptureRoutine = null; }
         // 開くとき(0.14sフェードイン)と対称に、パネル+ぼかし背景をフェードアウト
         // (+わずかに縮小)して閉じる。メニュー・ロゴは隠していないので、フェードの
@@ -1145,7 +1782,7 @@ public class TitleManager : MonoBehaviour
         if (transferBackdrop != null) transferBackdrop.texture = null;
         ReleaseBackdropTexture();
         // メニュー・ロゴはそもそも隠していないので再表示は不要(念のため確認)。
-        if (menuRoot != null) menuRoot.gameObject.SetActive(true);
+        SetLegacyMenuVisible(true);
         if (logoRect != null) logoRect.gameObject.SetActive(true);
     }
 
@@ -1410,6 +2047,12 @@ public class TitleManager : MonoBehaviour
 
     public void OpenRanking()
     {
+        FocusRoom((int)TitleMenuAction.Ranking);
+        AfterRoomZoom(OpenRankingNow);
+    }
+
+    private void OpenRankingNow()
+    {
         if (rankingRoot == null) return;
         if (rankingCloseRoutine != null) { StopCoroutine(rankingCloseRoutine); rankingCloseRoutine = null; }
         rankingRoot.transform.localScale = Vector3.one;
@@ -1432,6 +2075,7 @@ public class TitleManager : MonoBehaviour
     public void CloseRanking()
     {
         rankingOpen = false;
+        UnfocusRoom();
         if (rankingCaptureRoutine != null) { StopCoroutine(rankingCaptureRoutine); rankingCaptureRoutine = null; }
         if (rankingCloseRoutine != null) StopCoroutine(rankingCloseRoutine);
         if (rankingRoot != null && rankingRoot.activeInHierarchy && gameObject.activeInHierarchy)

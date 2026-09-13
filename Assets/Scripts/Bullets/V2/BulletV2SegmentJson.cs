@@ -11,6 +11,8 @@ public class BulletV2SegmentJson
     public Vector2 vlc;
     public Vector2 gravity;
     public float thetaVlc;
+    /// <summary>v32: イージング種別（省略時 0=linear。<see cref="BulletV2Segment.easing"/> 参照）。</summary>
+    public int easing;
 
     public BulletV2Segment ToSegment()
     {
@@ -19,7 +21,8 @@ public class BulletV2SegmentJson
             duration = duration,
             vlc = new Unity.Mathematics.float2(vlc.x, vlc.y),
             gravity = new Unity.Mathematics.float2(gravity.x, gravity.y),
-            thetaVlc = thetaVlc
+            thetaVlc = thetaVlc,
+            easing = easing
         };
     }
 }
