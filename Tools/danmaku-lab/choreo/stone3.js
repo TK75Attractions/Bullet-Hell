@@ -758,6 +758,14 @@ const V28_FIN_BACK = beats(0.75);   // 戻す（ため）
 //   v31 までの着地は 72.94 で、CG の形態変化もそこに紐づいていた（→ 60.028 へ移す）。
 const BOSS_LAND_TIME = 60.028;
 const BOSS_DESCEND_SEC = 0.833333;      // 降下時間（moveto duration。v25 から据え置き）
+const BOSS_STAND_DROP = 1.0655;         // v36 (B)(C): 老人もゴーレムもこの量だけ下げる
+// v36 (C): 指示「ゴーレムの落下（60.03 の降臨・着地）も同じ場所へ」。
+//   ゴーレムのスプライトは 256px・scale 2.8 で、不透明画素の下端は中心から 1.792 下
+//   （golem_idle.gif の opaque 行 24〜191・中心 127.5 → 64 px = 1.792 ユニット）。
+//   v35 までの中心 13.64 は足元 11.848 ＝ 老人と同じ高さだったので、同じ量だけ下げれば
+//   足元が赤線（論理 y 10.7825）に乗る。降下開始（画面外上端 19.64）は指示どおり据え置き。
+const BOSS_GOLEM_LAND_Y = 13.64 - BOSS_STAND_DROP;    // 12.5745（足元 10.7825）
+const BOSS_GOLEM_DESCEND_FROM_Y = 19.64;              // 画面外上端（据え置き）
 
 // #23 02:26.719 で画面全体が黒 → リザルト。endTime は 144.25 → 147.0（音源は 150.02 秒）。
 //   ボス本体は「最後まで表示し続ける」（#22）ので消滅時刻を endTime と同じにする。
@@ -772,14 +780,22 @@ const BOSS_CASTER_FADE_IN = 0.0;
 // v33c: 詠唱ボス（stone）の中心 y。スプライト 128px・pixelsPerUnit 100・scale 2.8 で
 //   世界サイズ 3.584 ユニット角、不透明画素の下端は下から 24px ＝ 中心から下へ 1.12。
 //   ゴーレムの足元 11.848 に合わせると中心 = 12.968。
-const BOSS_CASTER_Y = 12.968;
+// v36 (B): 指示「敵（老人）の立ち位置を直す」。ユーザーが赤線で示した立ち位置は
+//   中央の岩棚の天面の手前寄り＝ **1080p の画面 y = 433**。録画は論理フィールド
+//   32x18 が画面いっぱい（1080p で 60 px / ユニット・y_screen = 1080 - 60*y）に
+//   写るので、足元の論理 y = (1080 - 433) / 60 = 10.7825。
+//   v35 までの足元は 11.848（= 1080 - 60*11.848 = 369 px）で 64 px 高かった。
+//   → 全体を **1.0655 ユニット下げる**（足元 11.848 → 10.7825）。
+//   ※ bossDepthTracks の z は「画面上の位置と大きさを保つ」逆投影なので足元 y には
+//     影響しない（StageCgController.UpdateBossProxies のコメントどおり）。動かすのは論理 y だけ。
+const BOSS_CASTER_Y = 12.968 - BOSS_STAND_DROP;   // 11.9025（足元 10.7825）
 
 // #9 00:58.337「老人が後ろ（石版）の奥に移動。詠唱5で動かすといいかも」。
 //   58.337〜59.200 で棚の奥（CG 空間 z 5.5 → 9）へ引き、論理 y も +1.0 して
 //   棚の稜線の裏に入る高さにする。z の時間変化は StageCgProfile の bossDepthTracks 側。
 const BOSS_CASTER_BACK_START = 58.337;
 const BOSS_CASTER_BACK_SEC = 0.863;
-const BOSS_CASTER_BACK_Y = 13.968;
+const BOSS_CASTER_BACK_Y = 13.968 - BOSS_STAND_DROP;   // v36 (B): 相対の +1.0 は据え置き
 
 // #11 01:03.344「老人がゴーレムのすぐ後ろまで移動し、飛び乗る」。
 //   63.345〜63.745 でゴーレムの頭の箱の高さ（中心 14.55・CG 空間 z 6.5）へ寄り、
@@ -811,14 +827,22 @@ const BOSS_MOUNT_START = 63.345;
 //   （焼き込み時計はボスの動きより 0.15 秒ほど先を表示している）。寄る時間を 0.4 → 0.2 秒に
 //   詰めて跳び上がりを 0.2 秒前倒しし、着地（15.964）から騎乗版への切替（64.078）までは
 //   その位置で待つ。実コマでの「見えている時間」は 0.145 → 0.35 秒になる。
-const BOSS_MOUNT_APPROACH_SEC = 0.2;
-const BOSS_MOUNT_APPROACH_Y = 14.1;     // ゴーレムの頭の箱にまだ隠れる高さ（実測）
+// v36 (1): 指示書 #1「飛び乗るのもう少しゆっくり目に」。
+//   跳び上がり（bezierto）を 0.333333 → **0.575 秒**へ。ベジェは t/duration で
+//   パラメータ化されるので、時間だけ伸ばせば軌道も頂点の高さも変わらない。
+//   騎乗の瞬間（BOSS_CASTER_END = 64.078333・ゴーレムの騎乗版切替 64.095）は不変にしたいので、
+//   跳び上がりの開始を 63.545 → 64.078333 - 0.575 = 63.503333 へ前倒しし、
+//   寄り（moveto）を 0.2 → 0.158333 秒に詰めた。頭の箱より上に出るのは跳び上がりの
+//   u = 0.043（= 0.025 秒）以降なので、見えている時間は 0.35 → 0.55 秒に伸びる。
+//   跳び上がりの後にあった 0.2 秒の「待ち」は無くなる（着いた瞬間に切り替わる）。
+const BOSS_MOUNT_APPROACH_SEC = 0.158333;
+const BOSS_MOUNT_APPROACH_Y = 14.1 - BOSS_STAND_DROP;     // v36: ゴーレムと同じだけ下げる
 // v35 (5): 騎乗の 1/60 秒前に老人を消す（従来は 64.095 で老人の消滅とゴーレムの騎乗版切替が
 //   同時＝1 コマだけ 2 体が重なっていた。切替コマで老人を先に消す）。
-const BOSS_MOUNT_HOP_SEC = 0.333333;   // = 0.35 - 1/60
-const BOSS_MOUNT_Y = 15.964;
-const BOSS_MOUNT_ARC_Y = 18.90;         // ベジェの制御点（頂点 ≒ 17.1）
-const BOSS_CASTER_END = 64.078333;      // = BOSS_MOUNT_START + 0.4 + BOSS_MOUNT_HOP_SEC
+const BOSS_MOUNT_HOP_SEC = 0.575;      // v36 (1): 0.333333 → 0.575（騎乗の瞬間は不変）
+const BOSS_MOUNT_Y = 15.964 - BOSS_STAND_DROP;   // v36 (C): ゴーレムに追従
+const BOSS_MOUNT_ARC_Y = 18.90 - BOSS_STAND_DROP; // ベジェの制御点（頂点は 1.0655 下がるだけで形は不変）
+const BOSS_CASTER_END = 64.078333;      // = BOSS_MOUNT_START + BOSS_MOUNT_APPROACH_SEC + BOSS_MOUNT_HOP_SEC（v36 で一致）
 
 // 詠唱ボス（stone）のアニメ。秒はステージ秒（appearTime 0 なので相対 = 絶対）。
 //   指示書 #2〜#9。cast3 は 10 コマ×0.1s、cast4 は 7 コマ×0.1s、終わると idle へ戻る。
@@ -1178,6 +1202,20 @@ const STONE_BRIGHT = [0.8070, 0.7305, 0.9387, 0.92];// (232,222,248) 強ハイ�
 const STONE_MID = [0.3813, 0.3050, 0.5149, 0.40];   // (166,150,190) ハイライト: 爆破予告・リング予告
 const STONE_WARN = [0.0908, 0.0648, 0.1384, 0.40];  // ( 85, 72,104) 影: タイル出現の予告
 const STONE_PATH = [0.0395, 0.0273, 0.0648, 0.25];  // ( 56, 46, 72) 最暗: 落下シャベルの縦帯
+// --- v36 (A): 予告の統一色（薄い暖色）------------------------------------------
+//   指示「全体的に予告の色が分かりづらい」。石工の予告はどれも紫（STONE_WARN /
+//   STONE_PATH）で、致死弾（石のドット絵＝同じ紫）と色が被っていた。
+//   予告だけを **薄い暖色**へ寄せ、合成後の見た目輝度を約 1.6 倍にする。
+//   算出根拠（v35 の通し録画 111.9s の実測。背景 sRGB(28,19,38)・線形合成）:
+//     STONE_WARN 予告（α0.35）  合成 sRGB( 55, 47, 68) 輝度 50.1
+//     WARN_HI    予告（α0.35）  合成 sRGB( 88, 77, 67) 輝度 78.5 … 1.57 倍
+//     STONE_PATH 予告（α0.35）  合成 sRGB( 41, 33, 52) 輝度 36.1
+//     WARN_DIM   予告（α0.35）  合成 sRGB( 64, 56, 52) 輝度 57.2 … 1.58 倍
+//   帯（color.w=0）の側は warn_box.png の焼き込みを sRGB(70,95,155)/α0.235 →
+//   sRGB(255,226,170)/α0.102 に差し替えた（Tools/gen_warn_box_color.py）。
+//   合成 sRGB(94,80,69)＝輝度 79 で、上の WARN_HI とほぼ同じ見え方に揃う。
+const WARN_HI = [0.2622, 0.1946, 0.1170, 0.40];     // (140,122, 96) 濃い予告（旧 STONE_WARN の位置）
+const WARN_DIM = [0.1413, 0.1046, 0.0630, 0.25];    // (105, 91, 71) 薄い予告（旧 STONE_PATH の位置）
 // ポップの収束先。v18 でタイルの面色 sRGB(77,67,93) に相当する linear 値へ更新（旧 104,104,140）。
 // 補間の終端で w が 0 になった瞬間に「実体タイルのテクスチャそのまま」へ入れ替わる（tilePop 参照）。
 const STONE_TILE_END = [0.0742, 0.0561, 0.1095, 0];
@@ -1712,7 +1750,7 @@ function dropPathWarn(center, dur, kind) {
     [{
       pos: [center[0], bottom + h / 2],
       scale: [PATH_WIDTH, h],
-      color: STONE_PATH,
+      color: WARN_DIM,          // v36 (A)
       appearTime: dur,
       appearDuration: dur,
       life: dur,
@@ -2239,22 +2277,32 @@ function meteorBurstFx(pos, mag, kind) {
     appearDuration: 0,
     life: METEOR_BURST_FLASH_DUR + FADE_OUT_SEC,
   }], kind);
-  // v30 (6): 全周が画面へ入るよう中心と半径を詰める（フィールド内の着弾では何も変わらない）。
-  const ringFit = fitBurstRing(pos, (METEOR_BURST_RING_S1 * mag) / 2);
-  const ringS1 = ringFit.r * 2;
-  const ringS0 = Math.min(METEOR_BURST_RING_S0, ringS1 * 0.8);
-  const ring = warnClip([{
-    type: METEOR_RING_TYPE,
-    pos: [pos[0], normalizeNegativeZero(ringFit.y)],
-    scale: [ringS0, ringS0],
-    color: POP_COLOR_START,
-    scaleEnd: [ringS1, ringS1],
-    colorEnd: STONE_PATH,
-    animDuration: METEOR_BURST_RING_DUR,
-    appearTime: 0,
-    appearDuration: 0,
-    life: METEOR_BURST_RING_DUR + FADE_OUT_SEC,
-  }], kind);
+  // v36 (4): 指示書 #4「この辺の隕石の着弾エフェクト、円弧はいらないな（外側に広がっていくやつ）」。
+  //   外へ広がる円環（stone3_ring）を廃止する。閃光（中心の丸）と欠片は残す。
+  //   meteorBurstFx は **全ての隕石着弾で共通**（落下・打ち上げ・壁・集合・最終）なので、
+  //   ここを消すと 100s 台の落下隕石を含む全部の着弾から円弧が消える。指示は 120.252 の
+  //   「この辺」だが、同じ部品を場所によって出し分けると着弾の見た目が不揃いになるため
+  //   全着弾で外した（v34 (7) の「丸へ」を全着弾に効かせたのと同じ判断）。
+  //   戻すときは下の false を true にするだけでよい。
+  const METEOR_BURST_RING_ENABLED = false;
+  const ring = METEOR_BURST_RING_ENABLED ? (function () {
+    // v30 (6): 全周が画面へ入るよう中心と半径を詰める（フィールド内の着弾では何も変わらない）。
+    const ringFit = fitBurstRing(pos, (METEOR_BURST_RING_S1 * mag) / 2);
+    const ringS1 = ringFit.r * 2;
+    const ringS0 = Math.min(METEOR_BURST_RING_S0, ringS1 * 0.8);
+    return warnClip([{
+      type: METEOR_RING_TYPE,
+      pos: [pos[0], normalizeNegativeZero(ringFit.y)],
+      scale: [ringS0, ringS0],
+      color: POP_COLOR_START,
+      scaleEnd: [ringS1, ringS1],
+      colorEnd: STONE_PATH,
+      animDuration: METEOR_BURST_RING_DUR,
+      appearTime: 0,
+      appearDuration: 0,
+      life: METEOR_BURST_RING_DUR + FADE_OUT_SEC,
+    }], kind);
+  })() : null;
   // v31 (17): 欠片を実弾と同じ放射移動にしない。着弾点の周囲へ固定した大きい欠片を
   //   時間差で出して縮める。移動する小弾と、位置固定で消えるエフェクトを動きで分ける。
   const chunks = [];
@@ -2277,13 +2325,10 @@ function meteorBurstFx(pos, mag, kind) {
     });
   }
   const chunkFx = warnClip(chunks, kind);
-  return {
-    parts: [
-      flash.parts[0],
-      ring.parts[0],
-      chunkFx.parts[0],
-    ],
-  };
+  const parts = [flash.parts[0]];
+  if (ring !== null) parts.push(ring.parts[0]);
+  parts.push(chunkFx.parts[0]);
+  return { parts: parts };
 }
 
 // v31 (17): 最後の大爆破で白転まで残す余韻。破裂弾と同じ放射移動はさせず、
@@ -2492,21 +2537,24 @@ function sweepWarnBand(pos, scale, dur, angle, kind) {
 }
 
 // 隕石が通る行の予告（横一杯の薄い帯・当たり判定なし）。
+// v36 (A)(3): 掃く領域の予告（sweepWarnBand）と同じ見え方に統一する。
+//   旧: STONE_PATH の点滅（α 0.2〜0.5 の拍同期）＝紫で暗い
+//   新: SPRITE_AS_IS（warn_box の焼き込み＝薄い暖色 α0.102）の**点滅しない帯**
 function meteorRowWarn(y, dur, extraH) {
   return warnClip(
     [{
       pos: [(COLS * CELL) / 2, y],
       scale: [COLS * CELL, METEOR_SCALE + (extraH || 0)],
-      color: STONE_PATH,
-      appearTime: dur,
-      appearDuration: dur,
+      color: SPRITE_AS_IS,
+      appearTime: 0,
+      appearDuration: 0,
       life: dur,
     }],
     'meteorwarn'
   );
 }
 
-// 落下隕石の経路予告（通る列の縦帯・隕石の幅）。
+// 落下隕石の経路予告（通る列の縦帯・隕石の幅）。v36 (A)(3): 上と同じく統一の帯へ。
 function meteorDropWarn(x, dur) {
   const top = ROWS * CELL;
   const bottom = METEOR_DROP_Y - METEOR_SCALE / 2;
@@ -2515,9 +2563,9 @@ function meteorDropWarn(x, dur) {
     [{
       pos: [x, bottom + h / 2],
       scale: [METEOR_SCALE, h],
-      color: STONE_PATH,
-      appearTime: dur,
-      appearDuration: dur,
+      color: SPRITE_AS_IS,
+      appearTime: 0,
+      appearDuration: 0,
       life: dur,
     }],
     'meteordropwarn'
@@ -3270,7 +3318,7 @@ export default stage(
           strike - myLead,
           tileField(appearing, {
             type: 'warn_box',
-            color: STONE_WARN,
+            color: WARN_HI,          // v36 (A)
             appearTime: myLead,
             appearDuration: myLead,
             life: myLead + SEAM_MARGIN,
@@ -3872,8 +3920,8 @@ export default stage(
       const groupB = lanes.filter(function (_, i) { return i === 1; });
       [[groupA, tA], [groupB, tB]].forEach(function (g) {
         if (g[0].length === 0) return;
-        s.at(g[1], snakeWarn(g[0], STONE_PATH, half, 'snakewarn1'));
-        s.at(g[1] + half, snakeWarn(g[0], STONE_WARN, tAttack - (g[1] + half), 'snakewarn2'));
+        s.at(g[1], snakeWarn(g[0], WARN_DIM, half, 'snakewarn1'));
+        s.at(g[1] + half, snakeWarn(g[0], WARN_HI, tAttack - (g[1] + half), 'snakewarn2'));
       });
     }
 
@@ -4341,7 +4389,7 @@ export default stage(
       // 予告 → 実体化ポップ（マーカー 4〜8 のタイル出現と同じ作り）
       s.at(t - SLIDE_WARN_LEAD, tileField(cells, {
         type: 'warn_box',
-        color: STONE_WARN,
+        color: WARN_HI,          // v36 (A)
         appearTime: SLIDE_WARN_LEAD,
         appearDuration: SLIDE_WARN_LEAD,
         life: SLIDE_WARN_LEAD + SEAM_MARGIN,
@@ -4427,8 +4475,8 @@ export default stage(
     //   構造は v19 の chainAttack と同じ（予告①→予告②→鎖→掃かれたタイルの破壊→放射弾）で、
     //   進む向き・揺れる向き・速さを cfg で差し替えられるようにしただけ。
     function chainAttackG(cfg, warn1, warn2, t0, lanes, tiles, noBurst) {
-      s.at(warn1, chainWarn(cfg, lanes, STONE_PATH, warn2 - warn1, 'snakewarn1'));
-      s.at(warn2, chainWarn(cfg, lanes, STONE_WARN, t0 - warn2, 'snakewarn2'));
+      s.at(warn1, chainWarn(cfg, lanes, WARN_DIM, warn2 - warn1, 'snakewarn1'));
+      s.at(warn2, chainWarn(cfg, lanes, WARN_HI, t0 - warn2, 'snakewarn2'));
       lanes.forEach(function (lane) {
         for (let k = 0; k < cfg.steps; k++) {
           const at = chainWindow(cfg, t0, k)[0];
@@ -4614,7 +4662,7 @@ export default stage(
       s.at(impact - DROP_FLIGHT - beats(1), warnClip([{
         pos: [x, ROWS * CELL - METEOR_SCALE / 2],
         scale: [METEOR_SCALE, METEOR_SCALE],
-        color: STONE_WARN,
+        color: WARN_HI,          // v36 (A)
         appearTime: beats(1),
         appearDuration: beats(1),
         life: beats(1),
@@ -4806,27 +4854,13 @@ export default stage(
     reseedRng((20260902 + D(2698 + 1224 + 1152, 2596 + 1131 + 1138, 2563 + 1089 + 1125)
       * 0x6d2b79f5) % 4294967296);
 
-    s.at(GATHER_ENTER, warnClip([{
-      pos: GATHER_POINT,
-      scale: [CELL * 1.6, CELL * 1.6],
-      color: STONE_PATH,
-      appearTime: GATHER_IMPACT - GATHER_ENTER,
-      appearDuration: GATHER_IMPACT - GATHER_ENTER,
-      life: GATHER_IMPACT - GATHER_ENTER,
-    }], 'gatherwarn'));
-    // v32 (13): 「予告も入れて」。上の gatherwarn はタイル 1 枚半ぶんしかなく、爆発の
-    //   広がり（放射弾の出どころ）が読めなかった。爆発の 1 拍前から、集合点を中心に
-    //   タイル 3 枚ぶんの半透明の予告（warn_box・当たり判定なし）を重ねて出す。
-    const GATHER_WARN2_LEAD = beats(1);
-    const GATHER_WARN2_SIZE = CELL * 3.2;
-    s.at(GATHER_IMPACT - GATHER_WARN2_LEAD, warnClip([{
-      pos: GATHER_POINT,
-      scale: [GATHER_WARN2_SIZE, GATHER_WARN2_SIZE],
-      color: STONE_WARN,
-      appearTime: 0,
-      appearDuration: GATHER_WARN2_LEAD,
-      life: GATHER_WARN2_LEAD,
-    }], 'gatherwarn2'));
+    // v36 (2): 指示書 #2「着弾位置で、着弾前に拡大してる四角のエフェクトは消してほしい」。
+    //   集合点にあった 2 枚の四角い予告を廃止した。
+    //     ・gatherwarn （CELL*1.6 = 3.2 ユニット角・STONE_PATH の点滅。v5 から）
+    //     ・gatherwarn2（CELL*3.2 = 6.4 ユニット角・STONE_WARN が 1 拍かけて濃くなる。v32 (13)）
+    //   実フレーム 107.95s で「着弾点に大きな四角が浮き出て、その中で白い円が育つ」ように
+    //   見えていたのはこの 2 枚（特に gatherwarn2）。代わりに下のレーン予告を
+    //   **集合点まで**引いて（GATHER_PATH_R0 = 0）着弾位置を示す。
 
     // --- マーカー 47: 43〜44 の残タイルを消す ------------------------------------
     //   band43 の bandEnd = MK47_TILE_CLEAR なので、爆破されなかったタイルは
@@ -4850,10 +4884,15 @@ export default stage(
     //   ※ Goal の α 0.35 はデータ側から指定できない（color.w は「着色するか」の
     //     フラグで、w>0 にすると不透明になる。BulletIndirectURP.shader:283-291）。
     //     半透明はスプライトの焼き込み値だけなので 0.235 を採った。
+    // v36 (2): 指示書 #2「予告の線はもっと太くして、タイルの大きさに合うようにして」
+    //   「予告の線が中央下で途切れてるのが気になる。着弾位置までちゃんと描いて」。
+    //   → 幅 0.5 → **TILE（1.84）＝飛んでくるタイルの一辺**、内側の切り欠き
+    //     GATHER_PATH_R0 1.2 → **0**（集合点＝着弾位置まで引く）。
+    //   焼き込みの半透明は v36 (A) で薄い暖色 α0.102 へ差し替えた（warn_box.png）。
     const GATHER_PATH_LEAD = beats(1);
     const GATHER_PATH_DUR = GATHER_PATH_LEAD + GATHER_FLIGHT;
-    const GATHER_PATH_WIDTH = 0.5;       // 帯の幅
-    const GATHER_PATH_R0 = 1.2;          // 集合点からこの距離までは引かない
+    const GATHER_PATH_WIDTH = TILE;      // 帯の幅＝タイル 1 枚ぶん
+    const GATHER_PATH_R0 = 0;            // 集合点（着弾位置）まで引く
     const gatherPathItems = [];
     gatherLanes.forEach(function (ln) {
       const r0 = GATHER_PATH_R0;
@@ -5031,19 +5070,29 @@ export default stage(
     //   発射の 1 拍前から衝突まで半透明で出す。当たり判定なし。
     const V28_SWEEP_LEAD = beats(1);
     const V28_SWEEP_SHOVEL_H = 1.2;   // シャベルの刃の幅（横向きのときの縦の厚み）
+    // v36 (3): 指示書 #3「シャベルと隕石の予告の図形は重ねず、1 つの L 字の図形のように」。
+    //   旧: 縦帯（隕石）と横帯（シャベル）が衝突点で **重なって**いた。warn_box は
+    //       焼き込みの半透明なので、重なった矩形だけ 2 枚ぶん濃くなる（実フレーム 111.9s で
+    //       交点が明らかに濃い）。
+    //   新: 縦帯を「シャベルの厚みぶん」だけ伸ばして衝突点の角をまるごと受け持たせ、
+    //       横帯はその**外側から**始める。2 枚は接するだけで重ならないので、
+    //       見た目は継ぎ目のない 1 つの L 字になる。
     function v28SweepWarn(tFire, tHit, mx, my, shovelFromX, shovelToX, meteorFromY) {
       const t0 = tFire - V28_SWEEP_LEAD;
       const dur = tHit - t0;
       const W = COLS * CELL, H = ROWS * CELL;
-      // 隕石の縦帯（画面内に入る範囲だけ）
-      const yLo = Math.max(0, Math.min(meteorFromY, my));
-      const yHi = Math.min(H, Math.max(meteorFromY, my));
+      const mHalf = METEOR_SCALE / 2;
+      const sHalf = V28_SWEEP_SHOVEL_H / 2;
+      // 隕石の縦帯（画面内に入る範囲だけ）。角（L の折れ点）はこちらが持つ。
+      const yLo = Math.max(0, Math.min(meteorFromY, my) - sHalf);
+      const yHi = Math.min(H, Math.max(meteorFromY, my) + sHalf);
       if (yHi > yLo) {
         s.at(t0, sweepWarnBand([mx, (yLo + yHi) / 2], [METEOR_SCALE, yHi - yLo], dur, undefined, 'sweepwarn'));
       }
-      // シャベルの横帯（画面内に入る範囲だけ）
-      const xLo = Math.max(0, Math.min(shovelFromX, shovelToX));
-      const xHi = Math.min(W, Math.max(shovelFromX, shovelToX));
+      // シャベルの横帯。縦帯の縁で切って重なりを作らない（shovelToX == mx）。
+      const stopX = shovelFromX > shovelToX ? mx + mHalf : mx - mHalf;
+      const xLo = Math.max(0, Math.min(shovelFromX, stopX));
+      const xHi = Math.min(W, Math.max(shovelFromX, stopX));
       if (xHi > xLo) {
         s.at(t0, sweepWarnBand([(xLo + xHi) / 2, my], [xHi - xLo, V28_SWEEP_SHOVEL_H], dur, undefined, 'sweepwarn'));
       }
@@ -5175,6 +5224,17 @@ export default stage(
         //   しか外に居なかったが、重力を弱めた（初速 18.8）ぶん 3 コマ強かかるようになるので、
         //   カリングを明示的に免除する。life = fall で必ず消えるので取り残しは出ない。
         if (fromY < -2 || fromY >= 36) clip.parts[0].buffer.bullets[0].ignoreOutOfBoundsCulling = true;
+        // v36 (5)(6): 指示書 #5 122.073 / #6 129.172「この隕石攻撃も予告をつけて」。
+        //   隕石が落ちて（上がって）止まる列と、そこへ割りに来るシャベルの列は同じなので、
+        //   **画面端から静止位置まで**の縦帯 1 本で両方を予告する。
+        //   出し始めは隕石の出現の 1 拍前（＝シャベルの発射より前）、消えるのは着弾の瞬間。
+        //   見た目は 111.9s の掃く領域の予告（sweepWarnBand）と同一。
+        const H = ROWS * CELL;
+        const wLo = fromY > restY ? Math.max(0, restY - METEOR_SCALE / 2) : 0;
+        const wHi = fromY > restY ? H : Math.min(H, restY + METEOR_SCALE / 2);
+        const wT0 = tAppear[k] - beats(1);
+        s.at(wT0, sweepWarnBand([x, (wLo + wHi) / 2], [METEOR_SCALE, wHi - wLo],
+          tHit[k] - wT0, undefined, 'restwarn'));
         s.at(tAppear[k], clip);
         s.at(tAppear[k], meteorPathTrail(from, [0, dv], segs, fall, 'meteorresttrail'));
         v28EntryFlash(tAppear[k], meteorPathPos(from, [0, dv], segs), V28_REST_FALL, 'meteorspawn');
@@ -5379,7 +5439,7 @@ export default stage(
       s.at(impact - V30_DROP_FLIGHT - beats(1), warnClip([{
         pos: [x, ROWS * CELL - METEOR_SCALE / 2],
         scale: [METEOR_SCALE, METEOR_SCALE],
-        color: STONE_WARN,
+        color: WARN_HI,          // v36 (A)
         appearTime: beats(1),
         appearDuration: beats(1),
         life: beats(1),
