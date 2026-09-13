@@ -22,6 +22,10 @@ Shader "StoneCG/Flat"
         _FadeAlpha ("Fade Alpha (per renderer)", Range(0,1)) = 1
         [NoScaleOffset] _EmisTex ("Emission Tex", 2D) = "white" {}
         [NoScaleOffset] _BaseTex ("Base Tex (放浪者: 面のアルベド地図)", 2D) = "white" {}
+        // 放浪者 G2: アルベド地図のコントラストだけを材質単位で下げる。
+        // 既定 (1, 0) は素通しなので、設定していない材質・ステージの絵は不変。
+        _TexContrast ("Base/Emis Tex Contrast", Range(0,2)) = 1
+        _TexPivot ("Base/Emis Tex Pivot (linear)", Range(0,1)) = 0
     }
     SubShader
     {
@@ -45,6 +49,8 @@ Shader "StoneCG/Flat"
             float _FadeAlpha;
             TEXTURE2D(_EmisTex); SAMPLER(sampler_EmisTex);
             TEXTURE2D(_BaseTex); SAMPLER(sampler_BaseTex);
+            float _TexContrast;
+            float _TexPivot;
 
             float4 _StoneCgSunDir;    // xyz = ライトへ向かう単位ベクトル
             float4 _StoneCgSunColor;  // リニア(強度込み)
@@ -92,6 +98,9 @@ Shader "StoneCG/Flat"
                 float ndl = saturate(dot(n, _StoneCgSunDir.xyz));
                 float3 tex = SAMPLE_TEXTURE2D(_EmisTex, sampler_EmisTex, i.uv).rgb;
                 float4 baseTex = SAMPLE_TEXTURE2D(_BaseTex, sampler_BaseTex, i.uv);
+                // 放浪者 G2: 地図の明暗差を pivot 支点で詰める(明るい道だけが暗くなる)。
+                tex = max(0.0, _TexPivot + (tex - _TexPivot) * _TexContrast);
+                baseTex.rgb = max(0.0, _TexPivot + (baseTex.rgb - _TexPivot) * _TexContrast);
 
                 // コアの赤い点光源(降臨後)。距離減衰は saturate(1 - d/r)^2。
                 float3 toCore = _StoneCgCoreParams.xyz - i.positionWS;
