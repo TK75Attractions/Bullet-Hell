@@ -63,9 +63,9 @@
                 "w": 0
             },
             "animDuration": 0.0,
-            "appearTime": 0.6,
+            "appearTime": 1.1,
             "appearDuration": 0.0,
-            "life": 1.15,
+            "life": 1.65,
             "random": 0,
             "unCounterable": true
         },
@@ -131,9 +131,9 @@
                 "w": 0
             },
             "animDuration": 0.0,
-            "appearTime": 1.1,
+            "appearTime": 1.6,
             "appearDuration": 0.0,
-            "life": 14.911,
+            "life": 15.411,
             "random": 0,
             "unCounterable": true,
             "segments": [
@@ -227,9 +227,9 @@
                 "w": 0
             },
             "animDuration": 0.0,
-            "appearTime": 0.6,
+            "appearTime": 1.1,
             "appearDuration": 0.0,
-            "life": 1.15,
+            "life": 1.65,
             "random": 0,
             "unCounterable": true
         },
@@ -295,9 +295,9 @@
                 "w": 0
             },
             "animDuration": 0.0,
-            "appearTime": 1.1,
+            "appearTime": 1.6,
             "appearDuration": 0.0,
-            "life": 14.911,
+            "life": 15.411,
             "random": 0,
             "unCounterable": true,
             "segments": [
@@ -391,9 +391,9 @@
                 "w": 0
             },
             "animDuration": 0.0,
-            "appearTime": 0.6,
+            "appearTime": 1.1,
             "appearDuration": 0.0,
-            "life": 1.15,
+            "life": 1.65,
             "random": 0,
             "unCounterable": true
         },
@@ -459,9 +459,9 @@
                 "w": 0
             },
             "animDuration": 0.0,
-            "appearTime": 1.1,
+            "appearTime": 1.6,
             "appearDuration": 0.0,
-            "life": 14.911,
+            "life": 15.411,
             "random": 0,
             "unCounterable": true,
             "segments": [
@@ -555,9 +555,9 @@
                 "w": 0
             },
             "animDuration": 0.0,
-            "appearTime": 0.6,
+            "appearTime": 1.1,
             "appearDuration": 0.0,
-            "life": 1.15,
+            "life": 1.65,
             "random": 0,
             "unCounterable": true
         },
@@ -623,9 +623,9 @@
                 "w": 0
             },
             "animDuration": 0.0,
-            "appearTime": 1.1,
+            "appearTime": 1.6,
             "appearDuration": 0.0,
-            "life": 14.911,
+            "life": 15.411,
             "random": 0,
             "unCounterable": true,
             "segments": [
@@ -719,9 +719,9 @@
                 "w": 0
             },
             "animDuration": 0.0,
-            "appearTime": 0.6,
+            "appearTime": 1.1,
             "appearDuration": 0.0,
-            "life": 1.15,
+            "life": 1.65,
             "random": 0,
             "unCounterable": true
         },
@@ -787,9 +787,9 @@
                 "w": 0
             },
             "animDuration": 0.0,
-            "appearTime": 1.1,
+            "appearTime": 1.6,
             "appearDuration": 0.0,
-            "life": 14.911,
+            "life": 15.411,
             "random": 0,
             "unCounterable": true,
             "segments": [
@@ -883,9 +883,9 @@
                 "w": 0
             },
             "animDuration": 0.0,
-            "appearTime": 0.6,
+            "appearTime": 1.1,
             "appearDuration": 0.0,
-            "life": 1.15,
+            "life": 1.65,
             "random": 0,
             "unCounterable": true
         },
@@ -951,9 +951,9 @@
                 "w": 0
             },
             "animDuration": 0.0,
-            "appearTime": 1.1,
+            "appearTime": 1.6,
             "appearDuration": 0.0,
-            "life": 14.911,
+            "life": 15.411,
             "random": 0,
             "unCounterable": true,
             "segments": [
@@ -984,6 +984,142 @@
                     "easing": 0
                 }
             ]
+        },
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 9.0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0.0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 0.0,
+                "y": 0.3143
+            },
+            "radiusVlc": 0.0,
+            "radiusAccel": 0.0,
+            "thetaVlc": 0.3,
+            "thetaAccel": 0.0,
+            "startPos": {
+                "x": -1.0,
+                "y": 0.0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "line_warn",
+            "scale": {
+                "x": 40.0,
+                "y": 0.2
+            },
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 0.0
+            },
+            "scaleEnd": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "colorEnd": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "animDuration": 0.0,
+            "appearTime": 0.4023,
+            "appearDuration": 0.0,
+            "life": 0.5767,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 9.0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0.0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 0.0,
+                "y": 0.4189
+            },
+            "radiusVlc": 0.0,
+            "radiusAccel": 0.0,
+            "thetaVlc": 0.3,
+            "thetaAccel": 0.0,
+            "startPos": {
+                "x": -1.0,
+                "y": 0.0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "line_warn",
+            "scale": {
+                "x": 40.0,
+                "y": 0.2
+            },
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 0.0
+            },
+            "scaleEnd": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "colorEnd": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "animDuration": 0.0,
+            "appearTime": 0.7512,
+            "appearDuration": 0.0,
+            "life": 0.9256,
+            "random": 0,
+            "unCounterable": true
         },
         {
             "originPos": {
@@ -1047,9 +1183,9 @@
                 "w": 1.0
             },
             "animDuration": 0.15,
-            "appearTime": 0.6,
+            "appearTime": 1.1,
             "appearDuration": 0.0,
-            "life": 0.85,
+            "life": 1.35,
             "random": 0,
             "unCounterable": true
         },
@@ -1115,9 +1251,145 @@
                 "w": 0
             },
             "animDuration": 0.0,
-            "appearTime": 0.75,
+            "appearTime": 1.25,
             "appearDuration": 0.0,
-            "life": 14.911,
+            "life": 15.411,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 9.0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0.0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 0.0,
+                "y": 1.3615
+            },
+            "radiusVlc": 0.0,
+            "radiusAccel": 0.0,
+            "thetaVlc": 0.3,
+            "thetaAccel": 0.0,
+            "startPos": {
+                "x": -1.0,
+                "y": 0.0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "line_warn",
+            "scale": {
+                "x": 40.0,
+                "y": 0.2
+            },
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 0.0
+            },
+            "scaleEnd": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "colorEnd": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "animDuration": 0.0,
+            "appearTime": 0.4023,
+            "appearDuration": 0.0,
+            "life": 0.5767,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 9.0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0.0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 0.0,
+                "y": 1.4661
+            },
+            "radiusVlc": 0.0,
+            "radiusAccel": 0.0,
+            "thetaVlc": 0.3,
+            "thetaAccel": 0.0,
+            "startPos": {
+                "x": -1.0,
+                "y": 0.0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "line_warn",
+            "scale": {
+                "x": 40.0,
+                "y": 0.2
+            },
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 0.0
+            },
+            "scaleEnd": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "colorEnd": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "animDuration": 0.0,
+            "appearTime": 0.7512,
+            "appearDuration": 0.0,
+            "life": 0.9256,
             "random": 0,
             "unCounterable": true
         },
@@ -1183,9 +1455,9 @@
                 "w": 1.0
             },
             "animDuration": 0.15,
-            "appearTime": 0.6,
+            "appearTime": 1.1,
             "appearDuration": 0.0,
-            "life": 0.85,
+            "life": 1.35,
             "random": 0,
             "unCounterable": true
         },
@@ -1251,9 +1523,145 @@
                 "w": 0
             },
             "animDuration": 0.0,
-            "appearTime": 0.75,
+            "appearTime": 1.25,
             "appearDuration": 0.0,
-            "life": 14.911,
+            "life": 15.411,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 9.0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0.0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 0.0,
+                "y": 2.4087
+            },
+            "radiusVlc": 0.0,
+            "radiusAccel": 0.0,
+            "thetaVlc": 0.3,
+            "thetaAccel": 0.0,
+            "startPos": {
+                "x": -1.0,
+                "y": 0.0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "line_warn",
+            "scale": {
+                "x": 40.0,
+                "y": 0.2
+            },
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 0.0
+            },
+            "scaleEnd": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "colorEnd": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "animDuration": 0.0,
+            "appearTime": 0.4023,
+            "appearDuration": 0.0,
+            "life": 0.5767,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 9.0
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0.0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 0.0,
+                "y": 2.5133
+            },
+            "radiusVlc": 0.0,
+            "radiusAccel": 0.0,
+            "thetaVlc": 0.3,
+            "thetaAccel": 0.0,
+            "startPos": {
+                "x": -1.0,
+                "y": 0.0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "line_warn",
+            "scale": {
+                "x": 40.0,
+                "y": 0.2
+            },
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 0.0
+            },
+            "scaleEnd": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "colorEnd": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "animDuration": 0.0,
+            "appearTime": 0.7512,
+            "appearDuration": 0.0,
+            "life": 0.9256,
             "random": 0,
             "unCounterable": true
         },
@@ -1319,9 +1727,9 @@
                 "w": 1.0
             },
             "animDuration": 0.15,
-            "appearTime": 0.6,
+            "appearTime": 1.1,
             "appearDuration": 0.0,
-            "life": 0.85,
+            "life": 1.35,
             "random": 0,
             "unCounterable": true
         },
@@ -1387,9 +1795,9 @@
                 "w": 0
             },
             "animDuration": 0.0,
-            "appearTime": 0.75,
+            "appearTime": 1.25,
             "appearDuration": 0.0,
-            "life": 14.911,
+            "life": 15.411,
             "random": 0,
             "unCounterable": true
         }
