@@ -1046,8 +1046,11 @@ public class TitleManager : MonoBehaviour
         }
         if (logoRect != null)
         {
-            logoRect.anchoredPosition = new Vector2(logoRect.anchoredPosition.x, logoBaseY + Mathf.Sin(animTime * 1.2f) * 10f);
-            logoRect.localScale = Vector3.one * (1f + 0.035f * beatPulse);
+            // 拍ごとの拡大(1 + 0.035*beatPulse)は「ロゴが振動している」ように
+            // 見えるため廃止し、軽い上下の浮遊だけにする(2026-09-15 指示)。
+            // 周期 2pi/1.2 = 約 5.24 秒・振幅 8px。scale は常に 1。
+            logoRect.anchoredPosition = new Vector2(logoRect.anchoredPosition.x, logoBaseY + Mathf.Sin(animTime * 1.2f) * 8f);
+            logoRect.localScale = Vector3.one;
         }
         for (int i = 0; i < shapeGraphics.Length; i++)
         {
