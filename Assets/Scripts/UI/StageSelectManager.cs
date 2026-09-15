@@ -36,7 +36,10 @@ public class StageSelectManager : MonoBehaviour
     private float timeDimBaseX;
 
     // JSAB-style variation overlay (built at runtime; scene stays unchanged).
-    private const string StylePrefKey = "stageSelectStyle";
+    // 起動時のステージ選択スタイルは常に 2(城壁の街)。以前は PlayerPrefs に
+    // 保存した値を読んでいたが、古い保存値(1=カルーセル)が残った端末で
+    // カルーセルが出てしまうため、保存値は読まず定数から始める(2026-09-15)。
+    private const int DefaultStyle = 2;
     private JsabStageSelect jsab;
     private int stageSelectStyle;
 
@@ -130,8 +133,9 @@ public class StageSelectManager : MonoBehaviour
         header.UpdateTimer(remainingTime);
 
         // Build the JSAB-style overlay (runtime only) and mirror the current stage.
-        // 既定は 2 = 城壁の街(3D 俯瞰)。0=旧既定 / 1=JSAB カルーセルはコードごと残してある。
-        stageSelectStyle = PlayerPrefs.GetInt(StylePrefKey, 2);
+        // 常に 2 = 城壁の街(3D 俯瞰)から始める。0=旧既定 / 1=JSAB カルーセルは
+        // V キーのデバッグ巡回でだけ見られるようコードごと残してある。
+        stageSelectStyle = DefaultStyle;
         Transform canvasesRoot = transform.parent != null ? transform.parent.parent : null;
         TMPro.TMP_FontAsset uiFont = guideText != null ? guideText.font : null;
         Sprite playerSprite = null;
@@ -234,9 +238,8 @@ public class StageSelectManager : MonoBehaviour
             if (kb != null && kb.vKey.wasPressedThisFrame)
             {
                 // 0(旧既定) → 1(JSAB カルーセル) → 2(城壁の街) の順に巡回する。
+                // デバッグ用途なので永続化しない(次回起動は必ず城壁の街)。
                 stageSelectStyle = (stageSelectStyle + 1) % 3;
-                PlayerPrefs.SetInt(StylePrefKey, stageSelectStyle);
-                PlayerPrefs.Save();
                 if (jsab != null)
                 {
                     jsab.SetStyle(stageSelectStyle);
