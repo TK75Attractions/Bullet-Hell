@@ -424,28 +424,18 @@ public class CitySelectView : MonoBehaviour
         return File.Exists(path) ? path : null;
     }
 
-    /// <summary>選択画面へ入ったときの入場。まず街の俯瞰を見せ、少し置いてから
-    /// 選択中の区画へ寄る(タイトルのスタート演出から街の全景へ交差フェードするため)。</summary>
+    /// <summary>選択画面へ入ったときの入場。タイトルの「地図へ寄る」の続きとして、
+    /// 全景より引いた位置から選択中の区画まで止まらずに寄る(2026-09-15 指示。
+    /// 旧: 全景で 0.55 秒静止してから 0.5 秒で区画へ動き出す)。</summary>
     public void PlayEntrance()
     {
         if (map == null) return;
-        map.SelectDistrict(0, false);
-        if (entranceCo != null) StopCoroutine(entranceCo);
-        if (isActiveAndEnabled) entranceCo = StartCoroutine(EntranceRoutine());
+        map.PlayEntranceSweep(district, EntranceSweepDuration);
     }
 
-    private Coroutine entranceCo;
-
-    private System.Collections.IEnumerator EntranceRoutine()
-    {
-        float t = 0f;
-        while (t < EntranceHold) { t += Time.deltaTime; yield return null; }
-        entranceCo = null;
-        if (map != null && district >= 1) map.SelectDistrict(district, true);
-    }
-
-    // 俯瞰を見せておく時間(秒)。
-    private const float EntranceHold = 0.55f;
+    // 入場スイープの尺(秒)。クロスフェード開始(決定から 0.05 秒)に始まり、
+    // 決定から約 1.15 秒で区画に着く。
+    private const float EntranceSweepDuration = 1.1f;
 
     /// <summary>決定で区画へさらに寄る / 戻す。</summary>
     public void SetCloseUp(bool on)

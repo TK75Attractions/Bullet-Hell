@@ -761,6 +761,35 @@ public class CityMapController : MonoBehaviour
         BeginMove(TargetPose(), animate ? MoveDuration : 0f);
     }
 
+    // 入場スイープの始点を全景より何倍引くか(タイトルの「地図へ寄る」の続きに
+    // 見せるため、フェードで見え始めた時点ですでに寄りの途中にある状態を作る)。
+    const float EntrancePullBack = 1.25f;
+
+    /// <summary>タイトルからの入場。全景より引いた位置から選択中の区画まで、
+    /// 途中で止まらない 1 本の ease-in-out で寄せる(2026-09-15 指示)。
+    /// 旧: 全景で 0.55 秒静止してから 0.5 秒で区画へ。</summary>
+    public void PlayEntranceSweep(int district, float duration)
+    {
+        if (!built) return;
+        district = district < 1 || district > DistrictCount ? 0 : district;
+        selected = district;
+        zoomInTarget = 0f;
+        tintTarget = selected >= 1 ? StageCityProfile.TintOf(selected) : Color.white;
+        tintWeightTarget = selected >= 1 ? 1f : 0f;
+        // 基調色は全景(素の色)から始めてスイープ中にかぶせる。
+        tintNow = Color.white;
+        tintWeight = 0f;
+        ApplyViewMaterial();
+        // 始点: 全景と同じ視線のまま後退し、orthographicSize を広げた姿勢。
+        CamPose from = Overview;
+        Vector3 back = Quaternion.Euler(from.euler) * Vector3.back;
+        from.pos += back * Vector3.Distance(Overview.pos, Overview.target) * (EntrancePullBack - 1f);
+        from.size *= EntrancePullBack;
+        viewNow = from;
+        ApplyView(viewNow);
+        BeginMove(TargetPose(), duration);
+    }
+
     /// <summary>決定でさらに寄る / 戻す。</summary>
     public void SetCloseUp(bool on)
     {
