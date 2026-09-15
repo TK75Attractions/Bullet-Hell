@@ -44,7 +44,7 @@ public class TitleRoomController : MonoBehaviour
     [Tooltip("板の高さ(ワールド単位)。全景カメラで画面高さの約 60% になる値。")]
     public float heroHeight = 4.08f;
     [Tooltip("立ち絵の明るさ(材質のベース色。1 で原画そのまま)。部屋の中景と同じ明度まで落とす。")]
-    [Range(0f, 1.5f)] public float heroBrightness = 0.9f;
+    [Range(0f, 1.5f)] public float heroBrightness = 1.15f;
     [Tooltip("足元の接地影の直径(ワールド単位)。0 で影なし。")]
     public float heroShadowSize = 1.76f;
     [Tooltip("足元の接地影の濃さ。")]
