@@ -859,6 +859,7 @@ public class TitleRoomController : MonoBehaviour
             // 既定の skybox 反射(グレーのデフォルトキューブ)が鏡面環境光として全面に乗り、
             // 天井・床・棚が参考レンダーの 5〜8 倍明るくなっていた。部屋を出しているあいだは切る。
             UnityEngine.RenderSettings.reflectionIntensity = 0f;
+            exitDim = 1f;   // 前回の退場フェードの残りを持ち越さない
             ApplyExposure();
             zoomTarget = -1;
             zoomProgress = 0f;
@@ -877,6 +878,22 @@ public class TitleRoomController : MonoBehaviour
             UnityEngine.RenderSettings.reflectionIntensity = savedReflectionIntensity;
             ambientSaved = false;
         }
+    }
+
+    // 退場クロスフェード用の減光係数(1=通常 / 0=部屋を消した後と同じ見え方)。
+    // URP はライトのカリングマスクを使わないため、部屋の平行光(月・フィル)は
+    // ステージ選択の「城壁の街」まで照らしてしまう。部屋を一気に消すと街の明るさが
+    // 1 コマで跳ぶので、クロスフェードと同じカーブでここを 1→0 に落としてから
+    // 部屋を消す(2026-09-15。実測で跳び -17.3/255 の原因はこの 2 灯だけだった)。
+    float exitDim = 1f;
+
+    /// <summary>退場クロスフェード中の減光。1=通常、0=部屋を消した後と同じ明るさ。</summary>
+    public void SetExitDim(float k)
+    {
+        k = Mathf.Clamp01(k);
+        if (Mathf.Approximately(k, exitDim)) return;
+        exitDim = k;
+        if (built) ApplyExposure();
     }
 
     /// <summary>メニュー選択の変化を部屋のハイライトへ反映する。</summary>
@@ -1131,8 +1148,8 @@ public class TitleRoomController : MonoBehaviour
     /// <summary>ライトの強さを現在の設定値から作り直す(検証中に値を触ったら呼ぶ)。</summary>
     public void ApplyExposure()
     {
-        if (moonLight != null) moonLight.intensity = moonIntensity * exposure;
-        if (fillLight != null) fillLight.intensity = fillIntensity * exposure;
+        if (moonLight != null) moonLight.intensity = moonIntensity * exposure * exitDim;
+        if (fillLight != null) fillLight.intensity = fillIntensity * exposure * exitDim;
         if (lanternLight != null) lanternLight.intensity = lanternIntensity * exposure;
         if (ambientSaved) UnityEngine.RenderSettings.ambientLight = ambientColor * exposure;
     }

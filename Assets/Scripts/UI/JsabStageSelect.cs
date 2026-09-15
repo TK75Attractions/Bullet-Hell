@@ -1585,6 +1585,14 @@ public class JsabStageSelect : MonoBehaviour
         rootCG.alpha = Mathf.Clamp01(alpha);
     }
 
+    /// <summary>街(style 2)のライト・環境光の点灯量。タイトルからのクロスフェード
+    /// と同じカーブで 0→1 に上げる(街の光はタイトルの部屋まで届くため)。</summary>
+    public void SetCityEntranceDim(float k)
+    {
+        if (!cityMode || city == null || city.Map == null) return;
+        city.Map.SetEntranceDim(k);
+    }
+
     /// <summary>スタイル(0=既定 / 1=カルーセル / 2=城壁の街)を反映する。</summary>
     public void SetStyle(int style)
     {

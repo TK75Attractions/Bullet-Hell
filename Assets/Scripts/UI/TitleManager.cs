@@ -88,7 +88,12 @@ public class TitleManager : MonoBehaviour
     // 第31便: スタート演出が「フラッシュみたい」に速く感じるため約1.25倍に伸ばす
     // (0.30→0.375 / 0.60→0.75)。CoverDelay はステージ選択が重なり始める時刻。
     public const float StartExitCoverDelay = 0.375f;
-    private const float StartExitTotal = 0.75f;
+    // 2026-09-15: 選択画面が重なり始めてから「タイトルがフェードアウトしながら
+    // ステージ選択が現れる」よう、CoverDelay からこの秒数をかけて交差させる。
+    // ステージ選択側(StageSelectManager.PlayEntrance)も同じ時刻・同じ長さで
+    // 0→1 に上げる。旧: 0.475 秒から 0.275 秒の二乗落ち(ほぼハードカット)。
+    public const float StartExitFade = 0.8f;
+    private const float StartExitTotal = StartExitCoverDelay + StartExitFade;
 
     private TMP_FontAsset uiFont;
     private RectTransform menuRoot;
@@ -1124,7 +1129,6 @@ public class TitleManager : MonoBehaviour
         const float slideDistance = 1500f;
         const float logoDelay = 0.125f;
         const float logoDur = 0.475f;
-        const float fadeStart = 0.475f;
 
         int selected = Mathf.Clamp(menuIndex, 0, menuItemRects.Length > 0 ? menuItemRects.Length - 1 : 0);
         beatPulse = 1f; // 決定と同時に図形をひと光りさせる
@@ -1196,9 +1200,15 @@ public class TitleManager : MonoBehaviour
                     logoRect.anchoredPosition.x, logoBaseY + lp * lp * lp * 520f);
             }
 
-            // 覆われ始めてから全体をフェード(選択画面側のフェードインと交差)。
-            float fade = Mathf.Clamp01((time - fadeStart) / (StartExitTotal - fadeStart));
-            group.alpha = 1f - fade * fade;
+            // 覆われ始めた瞬間からクロスフェード。選択画面側は SmoothStep で 0→1、
+            // こちらはその補数へ 6% の余裕を足して落とす(f_out + f_in >= 1 を保ち、
+            // 交差中に背景が覗く黒フレームを作らない)。
+            float xf = Mathf.Clamp01((time - StartExitCoverDelay) / StartExitFade);
+            float fIn = xf * xf * (3f - 2f * xf);
+            group.alpha = Mathf.Clamp01(1.06f * (1f - fIn));
+            // 部屋の平行光はステージ選択の街まで届くので、同じカーブで落としてから
+            // 部屋を消す(消した瞬間に街の明るさが 1 コマで跳ぶのを防ぐ)。
+            Room?.SetExitDim(1f - fIn);
 
             await Task.Yield();
             if (this == null || group == null) return;

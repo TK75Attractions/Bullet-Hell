@@ -726,6 +726,7 @@ public class CityMapController : MonoBehaviour
             // 既定の skybox 反射(グレーのキューブ)が鏡面環境光として全面に乗ると
             // 夜の街が一様に明るくなる(タイトル部屋で実証)。出しているあいだは切る。
             RenderSettings.reflectionIntensity = 0f;
+            entranceDim = 1f;   // 前回の入場フェードの残りを持ち越さない
             ApplyExposure();
             ApplyAllTint(true);
         }
@@ -950,18 +951,35 @@ public class CityMapController : MonoBehaviour
         return vp.x > -0.25f && vp.x < 1.25f && vp.y > -0.25f && vp.y < 1.25f;
     }
 
+    // タイトルからのクロスフェード入場用の点灯係数(0=入場前と同じ明るさ / 1=通常)。
+    // 街のライトと環境光は URP のカリングマスクを通らずタイトルの部屋まで届くため、
+    // 街を一気に点けると部屋側の明るさが 1 コマで跳ぶ(実測 +14.6/255)。
+    // クロスフェードと同じカーブでここを 0→1 に上げる(2026-09-15)。
+    float entranceDim = 1f;
+
+    /// <summary>入場クロスフェード中の点灯量。0=入場前と同じ明るさ、1=通常。</summary>
+    public void SetEntranceDim(float k)
+    {
+        k = Mathf.Clamp01(k);
+        if (Mathf.Approximately(k, entranceDim)) return;
+        entranceDim = k;
+        if (built && activeNow) ApplyExposure();
+    }
+
     public void ApplyExposure()
     {
-        if (moonLight != null) moonLight.intensity = moonIntensity * exposure;
-        if (rimLight != null) rimLight.intensity = rimIntensity * exposure;
-        if (fillLight != null) fillLight.intensity = fillIntensity * exposure;
+        if (moonLight != null) moonLight.intensity = moonIntensity * exposure * entranceDim;
+        if (rimLight != null) rimLight.intensity = rimIntensity * exposure * entranceDim;
+        if (fillLight != null) fillLight.intensity = fillIntensity * exposure * entranceDim;
         for (int i = 0; i < lanternLights.Count; i++)
         {
             if (lanternLights[i] == null) continue;
-            lanternLights[i].intensity = lanternIntensity * lanternExposure;
+            lanternLights[i].intensity = lanternIntensity * lanternExposure * entranceDim;
             lanternLights[i].range = lanternRange;
         }
-        if (ambientSaved) RenderSettings.ambientLight = ambientColor * exposure;
+        if (ambientSaved)
+            RenderSettings.ambientLight =
+                Color.Lerp(savedAmbientLight, ambientColor * exposure, entranceDim);
         if (cityCamera != null) cityCamera.backgroundColor = exposureAffectsSky ? SkyColor * exposure : SkyColor;
     }
 

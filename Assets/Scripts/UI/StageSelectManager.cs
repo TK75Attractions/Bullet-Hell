@@ -62,6 +62,9 @@ public class StageSelectManager : MonoBehaviour
 
 
     private bool isTransitioning = false;
+    // タイトルからのクロスフェード入場中。この間は V の切替を受け付けない
+    // (RefreshStyleVisibility が rootCG.alpha を 1 に戻してフェードを壊すため)。
+    private bool entranceFading = false;
 
     private float remainingTime = musicSelectTime;
     private float phaseTotalTime = musicSelectTime;
@@ -232,7 +235,7 @@ public class StageSelectManager : MonoBehaviour
         // Toggle between the default and JSAB stage-select styles with V.
         // Suppressed while the in-screen difficulty modal is open.
         bool jsabDifficultyOpen = jsab != null && jsab.DifficultyOpen;
-        if (state == State.Music && !isTransitioning && !jsabDifficultyOpen)
+        if (state == State.Music && !isTransitioning && !jsabDifficultyOpen && !entranceFading)
         {
             Keyboard kb = Keyboard.current;
             if (kb != null && kb.vKey.wasPressedThisFrame)
@@ -598,15 +601,31 @@ public class StageSelectManager : MonoBehaviour
         {
             RefreshStyleVisibility();
             jsab.SetEntranceAlpha(0f);
-            const float fadeDur = 0.25f;
+            jsab.SetCityEntranceDim(0f);
+            // タイトルのフェードアウトと同じ時刻・同じ長さで 0→1(ease-in-out)。
+            // 街(style 2)のカメラ入場は上の RefreshStyleVisibility →
+            // JsabStageSelect.SetVisible で同時に走り始める。
+            const float fadeDur = TitleManager.StartExitFade;
+            entranceFading = true;
             float ft = 0f;
             while (ft < fadeDur)
             {
-                if (state == State.InGame) return;
+                if (state == State.InGame)
+                {
+                    entranceFading = false;
+                    jsab.SetCityEntranceDim(1f);
+                    return;
+                }
                 ft += Time.deltaTime;
-                jsab.SetEntranceAlpha(Mathf.Clamp01(ft / fadeDur));
+                float p = Mathf.Clamp01(ft / fadeDur);
+                float fIn = p * p * (3f - 2f * p);
+                jsab.SetEntranceAlpha(fIn);
+                jsab.SetCityEntranceDim(fIn);
                 await Task.Yield();
             }
+            entranceFading = false;
+            jsab.SetEntranceAlpha(1f);
+            jsab.SetCityEntranceDim(1f);
             // V トグル等で途中から状態が変わっていても最終状態はここで正す。
             RefreshStyleVisibility();
             return;
