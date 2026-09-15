@@ -87,13 +87,22 @@ public class TitleManager : MonoBehaviour
     // StartExitTotal まで続き、選択画面のフェードインと交差する)。
     // 第31便: スタート演出が「フラッシュみたい」に速く感じるため約1.25倍に伸ばす
     // (0.30→0.375 / 0.60→0.75)。CoverDelay はステージ選択が重なり始める時刻。
-    public const float StartExitCoverDelay = 0.375f;
-    // 2026-09-15: 選択画面が重なり始めてから「タイトルがフェードアウトしながら
-    // ステージ選択が現れる」よう、CoverDelay からこの秒数をかけて交差させる。
-    // ステージ選択側(StageSelectManager.PlayEntrance)も同じ時刻・同じ長さで
-    // 0→1 に上げる。旧: 0.475 秒から 0.275 秒の二乗落ち(ほぼハードカット)。
-    public const float StartExitFade = 0.8f;
-    private const float StartExitTotal = StartExitCoverDelay + StartExitFade;
+    // 2026-09-15(第2案): 遷移の主役は「地図へ寄る」カメラ移動。ease-in-out なので
+    // 寄りの速度は中点 ZoomDuration/2 = 0.3 秒で最大になる。そこでタイトルと
+    // ステージ選択がちょうど半々になるよう、クロスフェードを 0.3 秒を中心とした
+    // 0.05〜0.55 秒に置く(決定の瞬間からの時刻)。
+    // CoverDelay = フェード開始 = ステージ選択が重なり始める時刻。
+    public const float StartExitCoverDelay = 0.05f;
+    public const float StartExitFade = 0.5f;
+
+    /// <summary>スタート退場のクロスフェード進捗(0=タイトルのまま / 1=選択画面)。
+    /// タイトル側と選択画面側が同じ 1 つの値を見ることで、フレームのずれで
+    /// 半々の位置が寄りの速度の山から外れないようにする。</summary>
+    public static float StartExitCrossfade { get; private set; }
+    /// <summary>スタート退場の演出中か(選択画面が上の値を使ってよいか)。</summary>
+    public static bool StartExitRunning { get; private set; }
+    // 寄りが終わるまで部屋を回し続けてから消す(途中で消すと寄りが止まって見える)。
+    private const float StartExitTotal = TitleRoomController.ZoomDuration;
 
     private TMP_FontAsset uiFont;
     private RectTransform menuRoot;
@@ -235,7 +244,7 @@ public class TitleManager : MonoBehaviour
     private const float HeroZoomSlideWorld = 1.0f;
     // スタート決定時に「地図へ寄る」ぶんの先行時間。GManager はこの分だけ
     // ステージ選択の重ね始めを遅らせる。
-    public const float StartZoomLead = 0.4f;
+    public const float StartZoomLead = TitleRoomController.ZoomDuration;
 
     // ---- オブジェクト上の▼メニュー(第8便) ---------------------------------
     // 平行四辺形のボタン列をやめ、部屋のオブジェクトの真上に小さな白い▼を出す。
@@ -1101,34 +1110,25 @@ public class TitleManager : MonoBehaviour
 
     // スタート決定の遷移演出: 選択バナーが白フラッシュ+小ポップ→行が右へ
     // 加速して飛び去り(選択行が先頭)、ロゴは上へ抜け、背景図形は加速する。
-    // タイトルの背景は StartExitCoverDelay 経過後にステージ選択が重なって
-    // くるまで残し、終盤で全体をフェードして交差させる(ハードカット防止)。
+    // タイトルの背景は「地図へ寄る」あいだ残り、寄りの速度が最大になる瞬間で
+    // ステージ選択とちょうど半々になるようクロスフェードして入れ替わる。
     public async void PlayStartExit()
     {
         if (dismissed) return;
         dismissed = true;
+        StartExitCrossfade = 0f;
+        StartExitRunning = true;
 
-        // 部屋がある場合は、退場演出の前に 0.4 秒だけ「地図へ寄る」。
-        // GManager は StartZoomLead ぶん遅らせてステージ選択を重ね始める。
+        // 決定と同時に「地図へ寄る」を始め、行の飛び出し・ロゴ上抜けも同時に走らせる
+        // (寄りの速度の山にクロスフェードを合わせるので、先行の待ちは置かない)。
         FocusRoom((int)TitleMenuAction.Start);
-        if (Room != null && Room.Ready)
-        {
-            float lead = 0f;
-            while (lead < StartZoomLead)
-            {
-                float ldt = Time.deltaTime;
-                lead += ldt;
-                TickRoom(ldt);
-                await Task.Yield();
-                if (this == null || group == null) return;
-            }
-        }
 
         const float flashDur = 0.175f;
-        const float rowDur = 0.325f;
+        // 行とロゴはクロスフェードが終わる 0.55 秒までに片付ける。
+        const float rowDur = 0.26f;
         const float slideDistance = 1500f;
-        const float logoDelay = 0.125f;
-        const float logoDur = 0.475f;
+        const float logoDelay = 0.05f;
+        const float logoDur = 0.4f;
 
         int selected = Mathf.Clamp(menuIndex, 0, menuItemRects.Length > 0 ? menuItemRects.Length - 1 : 0);
         beatPulse = 1f; // 決定と同時に図形をひと光りさせる
@@ -1179,7 +1179,7 @@ public class TitleManager : MonoBehaviour
             for (int i = 0; i < menuItemRects.Length; i++)
             {
                 if (menuItemRects[i] == null) continue;
-                float delay = i == selected ? 0.125f : 0.2125f + 0.0625f * i;
+                float delay = i == selected ? 0.06f : 0.12f + 0.04f * i;
                 float p = Mathf.Clamp01((time - delay) / rowDur);
                 float x = p * p * p * slideDistance;
                 menuItemRects[i].anchoredPosition = new Vector2(x, menuRowY[i]);
@@ -1200,20 +1200,29 @@ public class TitleManager : MonoBehaviour
                     logoRect.anchoredPosition.x, logoBaseY + lp * lp * lp * 520f);
             }
 
-            // 覆われ始めた瞬間からクロスフェード。選択画面側は SmoothStep で 0→1、
-            // こちらはその補数へ 6% の余裕を足して落とす(f_out + f_in >= 1 を保ち、
-            // 交差中に背景が覗く黒フレームを作らない)。
-            float xf = Mathf.Clamp01((time - StartExitCoverDelay) / StartExitFade);
+            // クロスフェードは「地図へ寄る」進み(ease-in-out)を時計にする。
+            // zoomProgress=0.5 が寄りの速度の山なので、そこで必ず fIn=0.5 になる。
+            // 部屋が無いときだけ経過時間で代用する。
+            const float z0 = StartExitCoverDelay / TitleRoomController.ZoomDuration;
+            const float z1 = (StartExitCoverDelay + StartExitFade) / TitleRoomController.ZoomDuration;
+            float xf = Room != null && Room.Ready
+                ? Mathf.Clamp01((Room.ZoomAmount - z0) / (z1 - z0))
+                : Mathf.Clamp01((time - StartExitCoverDelay) / StartExitFade);
             float fIn = xf * xf * (3f - 2f * xf);
+            StartExitCrossfade = fIn;
+            // 選択画面側は同じ fIn を 0→1 に使う。こちらはその補数へ 6% の余裕を
+            // 足して落とす(f_out + f_in >= 1 を保ち、交差中に黒フレームを作らない)。
             group.alpha = Mathf.Clamp01(1.06f * (1f - fIn));
             // 部屋の平行光はステージ選択の街まで届くので、同じカーブで落としてから
             // 部屋を消す(消した瞬間に街の明るさが 1 コマで跳ぶのを防ぐ)。
             Room?.SetExitDim(1f - fIn);
 
             await Task.Yield();
-            if (this == null || group == null) return;
+            if (this == null || group == null) { StartExitRunning = false; StartExitCrossfade = 1f; return; }
         }
 
+        StartExitCrossfade = 1f;
+        StartExitRunning = false;
         group.alpha = 0f;
         gameObject.SetActive(false);
         ShutdownRoom();

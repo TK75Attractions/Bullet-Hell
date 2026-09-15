@@ -618,7 +618,11 @@ public class StageSelectManager : MonoBehaviour
                 }
                 ft += Time.deltaTime;
                 float p = Mathf.Clamp01(ft / fadeDur);
-                float fIn = p * p * (3f - 2f * p);
+                // タイトル退場中はタイトル側が出す 1 つの値をそのまま使う
+                // (フレームのずれで半々の位置が寄りの速度の山から外れないように)。
+                float fIn = TitleManager.StartExitRunning
+                    ? TitleManager.StartExitCrossfade
+                    : p * p * (3f - 2f * p);
                 jsab.SetEntranceAlpha(fIn);
                 jsab.SetCityEntranceDim(fIn);
                 await Task.Yield();

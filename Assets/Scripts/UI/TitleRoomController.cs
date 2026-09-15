@@ -113,6 +113,12 @@ public class TitleRoomController : MonoBehaviour
     static readonly Vector3 DeskPos = new Vector3(-0.95f, 5.7f, -4.65f);
     static readonly Vector3 DeskEuler = new Vector3(39.731927f, -1.1503626f, 0f);
     const float DeskVFov = 28.409272f;
+
+    // スタート決定時だけ、地図への寄りを全景→camera_desk の 1.3 倍まで延長する
+    // (「ぐっと寄る」感を出すため。2026-09-15 指示)。全景からの外挿値。
+    const float StartZoomExtra = 1.3f;
+    static readonly Vector3 StartDeskPos = TitlePos + (DeskPos - TitlePos) * StartZoomExtra;
+    static readonly Vector3 StartDeskEuler = TitleEuler + (DeskEuler - TitleEuler) * StartZoomExtra;
     // 壁(マント)。lens 34mm → 33.166°。
     static readonly Vector3 WallPos = new Vector3(1.5f, 3.3f, -0.8f);
     static readonly Vector3 WallEuler = new Vector3(7.6904855f, 50.937416f, 0f);
@@ -211,7 +217,10 @@ public class TitleRoomController : MonoBehaviour
     int selection = MenuStart;
     int zoomTarget = -1;      // -1 = 全景
     float zoomProgress;       // 0=全景 1=寄り
-    const float ZoomDuration = 0.4f;
+    // 寄り/戻りの尺。タイトル→ステージ選択のクロスフェードはこの寄りの
+    // 「速度が最大になる瞬間」(ease-in-out の中点 = ZoomDuration/2)を中心に
+    // 置くので、TitleManager 側の定数もここを参照する(2026-09-15 指示)。
+    public const float ZoomDuration = 0.6f;
     bool twoPlayer;
     float time;
     float flicker = 1f;
@@ -258,7 +267,7 @@ public class TitleRoomController : MonoBehaviour
         Instance = this;
         focusViews = new[]
         {
-            Explicit(DeskPos, DeskEuler, DeskVFov),   // スタート: 地図(camera_desk)
+            Explicit(StartDeskPos, StartDeskEuler, DeskVFov),   // スタート: 地図(camera_desk の 1.3 倍寄り)
             Dolly(LanternCenter, 4.6f),               // 設定: ランタン
             Dolly(LetterCenter, 3.95f),               // 引き継ぎ: 手紙(羽根ペンは装飾)
             Dolly(ShelfCenter, 4.4f),                 // ランキング: 本棚
@@ -933,8 +942,9 @@ public class TitleRoomController : MonoBehaviour
         if (progress > 0f && focusViews != null && viewIndex >= 0 && viewIndex < focusViews.Length)
         {
             ResolveFocus(focusViews[viewIndex], out Vector3 fpos, out Quaternion frot, out float ffov);
-            float q = progress - 1f;
-            float ease = 1f + q * q * q; // ease-out cubic
+            // ease-in-out(SmoothStep)。速度が中点で最大になるので、そこへ
+            // クロスフェードの中心を合わせられる(旧: ease-out cubic = 出だしが最速)。
+            float ease = progress * progress * (3f - 2f * progress);
             pos = Vector3.Lerp(TitlePos, fpos, ease);
             rot = Quaternion.Slerp(Quaternion.Euler(TitleEuler), frot, ease);
             fov = Mathf.Lerp(TitleVFov, ffov, ease);

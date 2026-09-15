@@ -589,11 +589,10 @@ public class GManager : MonoBehaviour
                         case TitleManager.TitleMenuAction.Start:
                             // 即座に切り替えず、タイトル側の退場演出を先に走らせる。
                             titlePhase = TitlePhase.Starting;
-                            // 部屋(3D タイトル)がある場合は「地図へ寄る」先行 0.4 秒ぶん
-                            // ステージ選択の重ね始めを遅らせる。
-                            titleStartTimer = TManager != null
-                                ? TitleManager.StartZoomLead + TitleManager.StartExitCoverDelay
-                                : 0f;
+                            // クロスフェードの開始時刻(決定から StartExitCoverDelay 秒)に
+                            // 合わせてステージ選択を重ね始める。寄りの速度の山(0.3 秒)で
+                            // ちょうど半々になる配置。
+                            titleStartTimer = TManager != null ? TitleManager.StartExitCoverDelay : 0f;
                             TManager?.PlayStartExit();
                             return true;
                         case TitleManager.TitleMenuAction.Options:
