@@ -708,8 +708,10 @@ public sealed class ResultScreen : MonoBehaviour
         verdictText.text = cleared ? "STAGE CLEAR" : "STAGE FAILED";
         verdictText.color = cleared ? GoldAccent : FailRed;
 
-        // 舞台名(StageCityProfile の舞台名フィールド。無ければステージ名)。
-        stageTitleText.text = StageCityProfile.StageTitleOf(stage);
+        // 見出しは既存のステージ名(石工 / 放浪者 / 艦長 / 浮浪者)。舞台名の仮置き
+        // (StageCityProfile.stageTitle)は使わない ＝ ステージ選択・ランキング見出しと同じ名前で
+        // 一貫させる(2026-09-16 ユーザー決定「名前は変えないで、元のまま」)。
+        stageTitleText.text = StageCityProfile.DisplayNameOf(stage);
 
         int provisionalScore = CalculateProvisionalScore(
             cleared, hitCount, counterCount, elapsedSeconds, endSeconds);
