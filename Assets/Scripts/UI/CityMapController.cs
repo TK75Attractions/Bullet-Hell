@@ -132,7 +132,7 @@ public class CityMapController : MonoBehaviour
     [Tooltip("ON で選択中の区画の外側を落とす。")]
     public bool focusEnabled = true;
     [Tooltip("外側の落とし幅(0=無し / 1=真っ黒)。")]
-    [Range(0f, 1f)] public float focusAmount = 0.75f;
+    [Range(0f, 1f)] public float focusAmount = 0.9f;
     [Tooltip("フォーカス半径。カメラの orthographicSize に対する倍率で持つので、"
         + "区画ごとに寄りの強さが違っても画面上の見え方が揃う(区画寄りでおよそ 7〜12 ユニット)。")]
     public float focusRadiusScale = 0.95f;
@@ -141,7 +141,7 @@ public class CityMapController : MonoBehaviour
     [Tooltip("選択区画の中の街灯を何倍にするか。")]
     public float lanternFocusBoost = 1.65f;
     [Tooltip("フォーカスの外側の街灯の倍率。")]
-    public float lanternFocusDim = 0.32f;
+    public float lanternFocusDim = 0.2f;
 
     [System.Serializable]
     public struct DarkenEntry

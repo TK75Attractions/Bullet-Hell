@@ -24,6 +24,13 @@ public static class StageCgThumbnailMenu
     private const int ThumbWidth = 1280;
     private const int ThumbHeight = 720;
 
+    /// <summary>
+    /// サムネの露出をプレイ時より上げる係数(2026-09-16 U5 指示)。
+    /// プレイ中は画面いっぱいの背景なので暗くてよいが、右パネルの 600x338 の小窓では
+    /// 同じ露出だと絵が読めない。白飛びさせない範囲で 1.6 倍にする。
+    /// </summary>
+    private const float ThumbExposureGain = 1.6f;
+
     private static readonly int SunDirId = Shader.PropertyToID("_StoneCgSunDir");
     private static readonly int SunColorId = Shader.PropertyToID("_StoneCgSunColor");
     private static readonly int AmbientId = Shader.PropertyToID("_StoneCgAmbient");
@@ -114,7 +121,7 @@ public static class StageCgThumbnailMenu
                 blit.SetTexture("_MainTex", rawRT);
                 blit.SetTexture("_BossTex", Texture2D.blackTexture);
                 blit.SetFloat("_BossSplit", 0f);
-                blit.SetFloat("_Exposure", p.exposure);
+                blit.SetFloat("_Exposure", p.exposure * ThumbExposureGain);
                 blit.SetFloat("_CenterDarken", p.centerDarken);
                 blit.SetColor("_Tint", Color.white);
                 blit.SetFloat("_BossBrightness", p.bossBrightness);
