@@ -231,16 +231,15 @@ public class PlayerController
             }
             pos = introPos;
             velocity = float2.zero;
-            if (main != null) main.enabled = introVisible;
+            if (main != null) main.enabled = introVisible && !spriteSuppressed;
             UpdateIntroAnimation(dt);
             if (playerTransform != null) playerTransform.position = new Vector3(pos.x, pos.y, 0f);
             return;
         }
-        if (introEntryActive)
-        {
-            introEntryActive = false;
-            if (main != null) main.enabled = true;
-        }
+        if (introEntryActive) introEntryActive = false;
+        // 遷移の覆いが明けるまでは spriteSuppressed が立っている。ステージ側の
+        // 登場演出を持たないステージは、ここで通常どおり描き始める。
+        if (main != null) main.enabled = !spriteSuppressed;
 
         Move(dt);
         Dash(dt);
@@ -343,8 +342,16 @@ public class PlayerController
     /// 石工の登場アニメ(StageCgIntro)と取り合いにならない。</summary>
     public void SetSpriteVisible(bool visible)
     {
-        if (main != null) main.enabled = visible;
+        spriteSuppressed = !visible;
+        // 隠すのは即時。戻すのは旗を下ろすだけにして、実際に描き始める判断は
+        // UpdatePos(= ステージ側のロジック)に任せる。ここで直接 true にすると、
+        // 石工のようにステージ側が隠したいステージで、次の UpdatePos が隠し直す
+        // までの 1 コマだけ真っ黒な画面に主人公が出る(2026-09-16 実測)。
+        if (main != null && spriteSuppressed) main.enabled = false;
     }
+
+    // 選択画面 → プレイ画面の遷移中だけ立てる、主人公を描かない旗。
+    private bool spriteSuppressed;
 
     // 2P の左右配置を切り替えるときに、プレイヤーごとの開始位置へリセットする。
     // 1P の ResetForStage は従来どおり Init 時の initialPos を使う。
