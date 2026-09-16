@@ -197,6 +197,10 @@ public sealed class ResultScreen : MonoBehaviour
     private enum RankingFlowState { None, Initials, Board }
     private RankingFlowState rankingFlowState = RankingFlowState.None;
     private bool rankingQualifies;
+    // 1 プレイの結果につき登録は 1 回だけ(2026-09-16 指摘「何回も入力できる」)。
+    // Top10 表示を B で閉じると rankingFlowState が None に戻るので、この旗が無いと
+    // 次の Tick で StartRankingEntryFlow が再点火して何度でも登録できてしまう。
+    private bool rankingSubmitted;
     private string pendingRankStage;
     private int pendingRankDifficulty;
     private string pendingRankMode;
@@ -1248,6 +1252,7 @@ public sealed class ResultScreen : MonoBehaviour
         rankingQualifies = !string.IsNullOrEmpty(rankStageDir)
             && RankingStore.QualifiesForTop(rankStageDir, pendingRankDifficulty, pendingRankMode, pendingRankScore);
         rankingFlowState = RankingFlowState.None;
+        rankingSubmitted = false;      // 新しいプレイ結果なので登録権を 1 回ぶん戻す
         if (rankingOverlayRoot != null) rankingOverlayRoot.SetActive(false);
 
         // 引き継ぎコード発行(SPEC §1.3)。1P専用(§1.4: 2Pは引き継ぎ対象外)。
@@ -1693,7 +1698,7 @@ public sealed class ResultScreen : MonoBehaviour
         }
 
         // ランキング登録フロー(SPEC §2.2)。入場演出が終わった最初の Tick で一度だけ起動。
-        if (rankingQualifies && rankingFlowState == RankingFlowState.None)
+        if (rankingQualifies && !rankingSubmitted && rankingFlowState == RankingFlowState.None)
         {
             StartRankingEntryFlow();
         }
@@ -1824,6 +1829,7 @@ public sealed class ResultScreen : MonoBehaviour
         RankingStore.Entry entry = RankingStore.AddEntry(
             name, pendingRankScore, pendingRankStage, pendingRankDifficulty, pendingRankMode, System.DateTime.Now);
         pendingEntryId = entry.entryId;
+        rankingSubmitted = true;       // 以後この結果では入力 UI を出さない
         rankingFlowState = RankingFlowState.Board;
         if (initialsGroup != null) initialsGroup.SetActive(false);
         if (boardGroup != null) boardGroup.SetActive(true);
