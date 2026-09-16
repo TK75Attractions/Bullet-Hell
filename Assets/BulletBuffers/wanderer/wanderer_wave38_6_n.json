@@ -43,8 +43,8 @@
             },
             "typeName": "axe_nc",
             "scale": {
-                "x": 2.4,
-                "y": 2.4
+                "x": 2.6,
+                "y": 2.6
             },
             "color": {
                 "x": 1.0,
@@ -126,8 +126,8 @@
             },
             "typeName": "axe_nc",
             "scale": {
-                "x": 2.4,
-                "y": 2.4
+                "x": 2.6,
+                "y": 2.6
             },
             "color": {
                 "x": 1.0,
@@ -209,8 +209,8 @@
             },
             "typeName": "axe_nc",
             "scale": {
-                "x": 2.4,
-                "y": 2.4
+                "x": 2.6,
+                "y": 2.6
             },
             "color": {
                 "x": 1.0,
@@ -292,8 +292,8 @@
             },
             "typeName": "axe_nc",
             "scale": {
-                "x": 2.4,
-                "y": 2.4
+                "x": 2.6,
+                "y": 2.6
             },
             "color": {
                 "x": 1.0,
@@ -375,8 +375,8 @@
             },
             "typeName": "axe_nc",
             "scale": {
-                "x": 2.4,
-                "y": 2.4
+                "x": 2.6,
+                "y": 2.6
             },
             "color": {
                 "x": 1.0,
@@ -1138,8 +1138,8 @@
             },
             "typeName": "axe_nc",
             "scale": {
-                "x": 2.4,
-                "y": 2.4
+                "x": 2.6,
+                "y": 2.6
             },
             "color": {
                 "x": 1.0,
@@ -1221,8 +1221,8 @@
             },
             "typeName": "axe_nc",
             "scale": {
-                "x": 2.4,
-                "y": 2.4
+                "x": 2.6,
+                "y": 2.6
             },
             "color": {
                 "x": 1.0,
@@ -1304,8 +1304,8 @@
             },
             "typeName": "axe_nc",
             "scale": {
-                "x": 2.4,
-                "y": 2.4
+                "x": 2.6,
+                "y": 2.6
             },
             "color": {
                 "x": 1.0,
@@ -2163,6 +2163,142 @@
         },
         {
             "originPos": {
+                "x": 32.4503,
+                "y": 12.2148
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 9.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0.0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1.0,
+                "y": 0.6633
+            },
+            "radiusVlc": 0.0,
+            "radiusAccel": 0.0,
+            "thetaVlc": 0.0,
+            "thetaAccel": 0.0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "wave_bit",
+            "scale": {
+                "x": 0.55,
+                "y": 0.55
+            },
+            "color": {
+                "x": 0.624,
+                "y": 0.5271,
+                "z": 0.0,
+                "w": 1.0
+            },
+            "scaleEnd": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "colorEnd": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "animDuration": 0.0,
+            "appearTime": 1.44,
+            "appearDuration": 0.0,
+            "life": 1.747,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 33.044,
+                "y": 11.9607
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 9.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0.0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1.0,
+                "y": 0.5254
+            },
+            "radiusVlc": 0.0,
+            "radiusAccel": 0.0,
+            "thetaVlc": 0.0,
+            "thetaAccel": 0.0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "wave_bit",
+            "scale": {
+                "x": 0.55,
+                "y": 0.55
+            },
+            "color": {
+                "x": 0.624,
+                "y": 0.5271,
+                "z": 0.0,
+                "w": 1.0
+            },
+            "scaleEnd": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "colorEnd": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "animDuration": 0.0,
+            "appearTime": 1.51,
+            "appearDuration": 0.0,
+            "life": 1.747,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
                 "x": 15.6232,
                 "y": 18.0961
             },
@@ -2203,8 +2339,8 @@
             },
             "typeName": "axe_nc",
             "scale": {
-                "x": 2.4,
-                "y": 2.4
+                "x": 2.6,
+                "y": 2.6
             },
             "color": {
                 "x": 1.0,
@@ -2286,8 +2422,8 @@
             },
             "typeName": "axe_nc",
             "scale": {
-                "x": 2.4,
-                "y": 2.4
+                "x": 2.6,
+                "y": 2.6
             },
             "color": {
                 "x": 1.0,
@@ -2369,8 +2505,8 @@
             },
             "typeName": "axe_nc",
             "scale": {
-                "x": 2.4,
-                "y": 2.4
+                "x": 2.6,
+                "y": 2.6
             },
             "color": {
                 "x": 1.0,
@@ -3228,6 +3364,142 @@
         },
         {
             "originPos": {
+                "x": 21.441,
+                "y": 24.8538
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 9.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0.0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1.0,
+                "y": 1.7105
+            },
+            "radiusVlc": 0.0,
+            "radiusAccel": 0.0,
+            "thetaVlc": 0.0,
+            "thetaAccel": 0.0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "wave_bit",
+            "scale": {
+                "x": 0.55,
+                "y": 0.55
+            },
+            "color": {
+                "x": 0.624,
+                "y": 0.5271,
+                "z": 0.0,
+                "w": 1.0
+            },
+            "scaleEnd": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "colorEnd": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "animDuration": 0.0,
+            "appearTime": 1.44,
+            "appearDuration": 0.0,
+            "life": 1.747,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 21.9579,
+                "y": 25.2409
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 9.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0.0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1.0,
+                "y": 1.5726
+            },
+            "radiusVlc": 0.0,
+            "radiusAccel": 0.0,
+            "thetaVlc": 0.0,
+            "thetaAccel": 0.0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "wave_bit",
+            "scale": {
+                "x": 0.55,
+                "y": 0.55
+            },
+            "color": {
+                "x": 0.624,
+                "y": 0.5271,
+                "z": 0.0,
+                "w": 1.0
+            },
+            "scaleEnd": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "colorEnd": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "animDuration": 0.0,
+            "appearTime": 1.51,
+            "appearDuration": 0.0,
+            "life": 1.747,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
                 "x": 7.9342,
                 "y": 13.2217
             },
@@ -3268,8 +3540,8 @@
             },
             "typeName": "axe_nc",
             "scale": {
-                "x": 2.4,
-                "y": 2.4
+                "x": 2.6,
+                "y": 2.6
             },
             "color": {
                 "x": 1.0,
@@ -3351,8 +3623,8 @@
             },
             "typeName": "axe_nc",
             "scale": {
-                "x": 2.4,
-                "y": 2.4
+                "x": 2.6,
+                "y": 2.6
             },
             "color": {
                 "x": 1.0,
@@ -3434,8 +3706,8 @@
             },
             "typeName": "axe_nc",
             "scale": {
-                "x": 2.4,
-                "y": 2.4
+                "x": 2.6,
+                "y": 2.6
             },
             "color": {
                 "x": 1.0,
@@ -4293,6 +4565,142 @@
         },
         {
             "originPos": {
+                "x": 4.9907,
+                "y": 21.6389
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 9.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0.0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1.0,
+                "y": 2.7577
+            },
+            "radiusVlc": 0.0,
+            "radiusAccel": 0.0,
+            "thetaVlc": 0.0,
+            "thetaAccel": 0.0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "wave_bit",
+            "scale": {
+                "x": 0.55,
+                "y": 0.55
+            },
+            "color": {
+                "x": 0.624,
+                "y": 0.5271,
+                "z": 0.0,
+                "w": 1.0
+            },
+            "scaleEnd": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "colorEnd": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "animDuration": 0.0,
+            "appearTime": 1.44,
+            "appearDuration": 0.0,
+            "life": 1.747,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": 4.9139,
+                "y": 22.2801
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 9.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0.0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1.0,
+                "y": 2.6198
+            },
+            "radiusVlc": 0.0,
+            "radiusAccel": 0.0,
+            "thetaVlc": 0.0,
+            "thetaAccel": 0.0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "wave_bit",
+            "scale": {
+                "x": 0.55,
+                "y": 0.55
+            },
+            "color": {
+                "x": 0.624,
+                "y": 0.5271,
+                "z": 0.0,
+                "w": 1.0
+            },
+            "scaleEnd": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "colorEnd": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "animDuration": 0.0,
+            "appearTime": 1.51,
+            "appearDuration": 0.0,
+            "life": 1.747,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
                 "x": 8.311,
                 "y": 4.1257
             },
@@ -4333,8 +4741,8 @@
             },
             "typeName": "axe_nc",
             "scale": {
-                "x": 2.4,
-                "y": 2.4
+                "x": 2.6,
+                "y": 2.6
             },
             "color": {
                 "x": 1.0,
@@ -4416,8 +4824,8 @@
             },
             "typeName": "axe_nc",
             "scale": {
-                "x": 2.4,
-                "y": 2.4
+                "x": 2.6,
+                "y": 2.6
             },
             "color": {
                 "x": 1.0,
@@ -4499,8 +4907,8 @@
             },
             "typeName": "axe_nc",
             "scale": {
-                "x": 2.4,
-                "y": 2.4
+                "x": 2.6,
+                "y": 2.6
             },
             "color": {
                 "x": 1.0,
@@ -5351,6 +5759,142 @@
             },
             "animDuration": 0.0,
             "appearTime": 1.37,
+            "appearDuration": 0.0,
+            "life": 1.747,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": -0.4503,
+                "y": 5.7852
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 9.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0.0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1.0,
+                "y": 3.8049
+            },
+            "radiusVlc": 0.0,
+            "radiusAccel": 0.0,
+            "thetaVlc": 0.0,
+            "thetaAccel": 0.0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "wave_bit",
+            "scale": {
+                "x": 0.55,
+                "y": 0.55
+            },
+            "color": {
+                "x": 0.624,
+                "y": 0.5271,
+                "z": 0.0,
+                "w": 1.0
+            },
+            "scaleEnd": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "colorEnd": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "animDuration": 0.0,
+            "appearTime": 1.44,
+            "appearDuration": 0.0,
+            "life": 1.747,
+            "random": 0,
+            "unCounterable": true
+        },
+        {
+            "originPos": {
+                "x": -1.044,
+                "y": 6.0393
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 9.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0.0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1.0,
+                "y": 3.667
+            },
+            "radiusVlc": 0.0,
+            "radiusAccel": 0.0,
+            "thetaVlc": 0.0,
+            "thetaAccel": 0.0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "wave_bit",
+            "scale": {
+                "x": 0.55,
+                "y": 0.55
+            },
+            "color": {
+                "x": 0.624,
+                "y": 0.5271,
+                "z": 0.0,
+                "w": 1.0
+            },
+            "scaleEnd": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "colorEnd": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "animDuration": 0.0,
+            "appearTime": 1.51,
             "appearDuration": 0.0,
             "life": 1.747,
             "random": 0,
