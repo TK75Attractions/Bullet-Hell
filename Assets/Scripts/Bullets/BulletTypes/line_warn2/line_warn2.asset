@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbd360919789aba45b7e5b8e684967f4, type: 3}
+  m_Name: line_warn2
+  m_EditorClassIdentifier: BulletHell.Core::BulletType
+  typeName: line_warn2
+  baseSprite: {fileID: 2800000, guid: f79fef61d4e84cdb927d02b11b4dbe9d, type: 3}
+  maskSprite: {fileID: 2800000, guid: f2658b765b5749899deab231c3f0b88d, type: 3}
+  baseColor: {r: 1, g: 1, b: 1, a: 1}
+  baseSize: 1
+  renderPriority: 0
+  counterPower: 1
+  verts: []
