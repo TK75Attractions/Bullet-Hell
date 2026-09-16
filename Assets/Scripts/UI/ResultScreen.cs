@@ -58,7 +58,7 @@ public sealed class ResultScreen : MonoBehaviour
     private const float PanelW = 640f;
     private const float PanelH = 900f;
     private const float PanelTop = PanelH * 0.5f;
-    private const float ScrimAlpha = 0.26f;
+    private const float ScrimAlpha = 0.34f;
 
     private const float YResult = 390f;
     private const float YTopDiamond = 356f;
@@ -707,7 +707,10 @@ public sealed class ResultScreen : MonoBehaviour
         string rank1 = EvaluateRank(cleared, hit1, difficulty);
         string rank2 = EvaluateRank(cleared, hit2, difficulty);
         const float rankScale = 0.62f;
-        const float rankOffset = 126f;
+        const float rankOffset = 132f;
+        // 月桂樹はランク 1 文字を囲む飾りなので、2 つ並ぶ 2P では出さない。
+        if (laurelLeft != null) laurelLeft.gameObject.SetActive(false);
+        if (laurelRight != null) laurelRight.gameObject.SetActive(false);
         string leftRank = p1OnLeft ? rank1 : rank2;
         string rightRank = p1OnLeft ? rank2 : rank1;
 
@@ -764,6 +767,8 @@ public sealed class ResultScreen : MonoBehaviour
     private void RestoreOnePlayerLayout()
     {
         twoPlayerResult = false;
+        if (laurelLeft != null) laurelLeft.gameObject.SetActive(true);
+        if (laurelRight != null) laurelRight.gameObject.SetActive(true);
         rankText.rectTransform.anchoredPosition = new Vector2(0f, YRank);
         rankText.rectTransform.localScale = Vector3.one;
         rankText2.gameObject.SetActive(false);
@@ -1010,6 +1015,10 @@ public sealed class ResultScreen : MonoBehaviour
             }
             return;
         }
+
+        // 入場が終わるまでは何も受け付けない(Prepare から PlayEntrance までの
+        // 終了シーケンス中に、ランキング入力が先に開いてしまうのを防ぐ)。
+        if (!entranceFinished) return;
 
         if (rankingQualifies && !rankingSubmitted && rankingFlowState == RankingFlowState.None)
         {
