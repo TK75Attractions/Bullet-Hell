@@ -5684,10 +5684,10 @@ export default stage(
       //   （尾 meteorLineTrail は経路上に置いた静止点なので画面内のぶんだけ残り、
       //   軌跡だけが流れて見えていた）。v28RestBlock の上側版と同じ扱いで、
       //   生存域の外から入るときだけカリングを免除する（life=flight で必ず消える）。
-      //   lunatic は bundle を据え置く指示なので easy / normal だけに適用する
-      //   （lunatic には同じ不具合が残る。親の判断待ち）。
+      //   v45: 不具合は 3 難易度共通なので lunatic にも同じ修正を入れる
+      //   （v44 は Goal の「lunatic は byte 一致」に従って外していた）。
       const crossClip = meteorLine(x0, x1, y, V28_CROSS_FLIGHT);
-      if (!IS_LUNATIC && (x0 < -2 || x0 >= 36)) {
+      if (x0 < -2 || x0 >= 36) {
         crossClip.parts[0].buffer.bullets[0].ignoreOutOfBoundsCulling = true;
       }
       s.at(V28_H, crossClip);
