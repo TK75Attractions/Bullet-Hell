@@ -207,6 +207,18 @@ public class StageCgController : MonoBehaviour
     StageData currentStage;
     bool hasStage;
 
+    // H15: 揺れ 1 件が今の難易度で鳴るか。difficultyMask の bit0=Easy / bit1=Normal /
+    // bit2=Lunatic。0 以下（JSON にキーが無い既存ステージ）は全難易度で鳴る従来どおり。
+    // 公式 3 難易度以外（mod のカスタム難易度）も絞り込まずに全件鳴らす。
+    static bool ShakeAppliesTo(StageData.ScreenShake e, StageData stage)
+    {
+        if (e.difficultyMask <= 0 || (e.difficultyMask & 7) == 7) return true;
+        DifficultySelection sel = stage.activeDifficulty;
+        if (!sel.IsValid()) sel = stage.resolvedDataDifficulty;
+        if (!sel.IsValid() || !sel.isOfficial) return true;
+        return (e.difficultyMask & (1 << (int)sel.officialDifficulty)) != 0;
+    }
+
     void UpdateScreenShake(float stageTime)
     {
         Vector2 off = Vector2.zero;
@@ -217,6 +229,7 @@ public class StageCgController : MonoBehaviour
             {
                 StageData.ScreenShake e = list[i];
                 if (e == null || e.duration <= 0f || e.magnitude <= 0f) continue;
+                if (!ShakeAppliesTo(e, currentStage)) continue;
                 float t = stageTime - e.time;
                 if (t < 0f || t >= e.duration) continue;
                 float rem = 1f - t / e.duration;

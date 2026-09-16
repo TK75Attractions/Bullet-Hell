@@ -87,6 +87,11 @@ public class StageData
         public float time;        // ステージ秒
         public float magnitude;   // 振幅（論理ユニット）
         public float duration;    // 減衰し切るまでの秒数
+
+        // H15: 鳴らす難易度のビット（bit0=Easy / bit1=Normal / bit2=Lunatic）。
+        // 省略時は 7（= 全難易度）。JsonUtility は JSON に無いフィールドを 0 にするので、
+        // 0 以下も「全難易度」として扱う（既存ステージの JSON は書き換えない）。
+        public int difficultyMask = 7;
     }
 
     public List<ScreenShake> screenShakes = new List<ScreenShake>();
