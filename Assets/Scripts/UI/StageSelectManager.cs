@@ -442,9 +442,9 @@ public class StageSelectManager : MonoBehaviour
         return data != null && StageUnlockSettings.IsStageLocked(data.stageDirectoryName);
     }
 
-    // プレイ開始遷移: 難易度ボタン群がスライドアウトしてからホワイトアウトで
-    // 画面を白く飛ばし、覆われている間にプレイ画面へ切り替え、白カバーが
-    // 中央からピクセル(モザイク)状に欠けながらプレイ画面が解像していく。
+    // プレイ開始遷移: 難易度ボタン群がスライドアウトしてから画面を黒フェードで覆い、
+    // 覆われている間にプレイ画面へ切り替え、黒フェードで明ける(2026-09-16 指示で
+    // 旧「白いピクセルタイルが広がる」演出を廃止)。
     private async void StartGameTransition(int stageIndex)
     {
         // ステージ開始の遷移に入った瞬間から選択/タイトルBGM(Discotheque)をフェードアウト
@@ -459,7 +459,7 @@ public class StageSelectManager : MonoBehaviour
             {
                 await jsab.PlayDifficultyExit();
             }
-            await pixelTransition.WhiteoutCover();
+            await pixelTransition.FadeToBlack();
             // 画面が完全に覆われてから JSAB オーバーレイと難易度モーダルを隠す。
             if (jsab != null)
             {
@@ -473,7 +473,7 @@ public class StageSelectManager : MonoBehaviour
             SetTutorialEnemiesVisible(false);
             // The player can already move while the tutorial runs on the bare field.
             GManager.Control.state = GManager.GameState.Tutorial;
-            await pixelTransition.MosaicReveal();
+            await pixelTransition.FadeFromBlack();
             bool skipPreStage = ShouldSkipPreStageTutorial(stageIndex);
             if (!skipPreStage && tutorialManager != null)
             {

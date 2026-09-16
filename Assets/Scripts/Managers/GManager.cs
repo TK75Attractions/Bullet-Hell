@@ -870,26 +870,16 @@ public class GManager : MonoBehaviour
             ? SReader.CurrentTime
             : (cleared ? endTime : endTime * 0.63f);
 
-        // 石工 v34 (#23): ピクセルの白転はコードを残したまま使わず、背景 → 全体の黒フェードで
-        //   リザルトへ渡す。対象は StageCgProfile.useBlackEnding のステージだけで、
-        //   他ステージは従来どおり白転する。
-        bool blackEnding = StageCgController.UsesBlackEnding(stage);
+        // 2026-09-16 指示: 画面切り替えは全部ただの黒フェードに統一した。白転(モザイク)
+        //   経路と StageData.whiteoutCoverTime の分岐は廃止。ステージ時計側
+        //   (StageCgController)が endTime の手前から黒くしてきた続きをここで詰める。
+        //   被弾で途中終了したときはまだ覆いが無いので、そこだけ 0.35 秒かける。
         PixelTransition transition = FindPixelTransition();
         if (transition != null)
         {
-            if (blackEnding)
-            {
-                // ステージ時計側（StageCgController）が endTime の手前から黒くしてきた続きを詰める。
-                // 第 6 便 (B): 被弾で途中終了したときはまだ覆いが無いので、そこだけ 0.4 秒かける。
-                await transition.UniformCoverTo(transition.UniformCoverAlpha > 0.5f ? 0.15f : 0.4f);
-            }
-            else
-            {
-                transition.SetColor(Color.white);
-                // v30 (5): ステージが whiteoutCoverTime を持っていればその秒数で覆う
-                //   （石工だけ 1.10 秒。他ステージは 0 のままなので既定の 0.42 秒）。
-                await transition.WhiteoutCover(stage != null ? stage.whiteoutCoverTime : -1f);
-            }
+            await transition.UniformCoverTo(transition.UniformCoverAlpha > 0.5f
+                ? 0.15f
+                : PixelTransition.BlackFadeDuration);
         }
 
         state = GameState.Result;
@@ -922,11 +912,7 @@ public class GManager : MonoBehaviour
             counterHitBossCount, elapsed, endTime, twoPlayer, playerHitCount2);
         SReader?.StopStage();
 
-        if (transition != null)
-        {
-            if (blackEnding) await transition.UniformReveal(0.45f);
-            else await transition.MosaicReveal();
-        }
+        if (transition != null) await transition.UniformReveal(0.45f);
         RManager.PlayEntrance();
         resultTransitioning = false;
     }
@@ -959,11 +945,7 @@ public class GManager : MonoBehaviour
         await RManager.FadeOutBgmAsync(0.4f);
 
         PixelTransition transition = FindPixelTransition();
-        if (transition != null)
-        {
-            transition.SetColor(Color.white);
-            await transition.WhiteoutCover();
-        }
+        if (transition != null) await transition.FadeToBlack();
 
         RManager.HideImmediate();
         AudioListener.pause = false;
@@ -973,7 +955,7 @@ public class GManager : MonoBehaviour
         {
             // タイトルへ: シーンを再読込してタイトルをクリーンに復元する(QuitPlay と
             // 同流儀)。タイトル BGM(Init→StartTitleBgm)・背景・入力状態がすべて
-            // 初期化され、半端な復元の取りこぼしが無い。画面は WhiteoutCover で覆われた
+            // 初期化され、半端な復元の取りこぼしが無い。画面は黒フェードで覆われた
             // ままなので、新シーンは覆いの下から現れる。
             QOrder?.ClearAllGameplayBulletsImmediate();
             PixelTransition.RevealAfterNextSceneLoad(true);
@@ -1000,7 +982,7 @@ public class GManager : MonoBehaviour
             TManager?.EnsureTitleBgm();
         }
 
-        if (transition != null) await transition.MosaicReveal();
+        if (transition != null) await transition.FadeFromBlack();
         resultTransitioning = false;
     }
 
@@ -1033,11 +1015,10 @@ public class GManager : MonoBehaviour
             FindObjectsInactive.Include, FindObjectsSortMode.None);
         if (transitions.Length > 0)
         {
-            transitions[0].SetColor(Color.white);
-            await transitions[0].Cover();
+            await transitions[0].FadeToBlack();
             // Set this only after the previously inactive transition has run
             // Start(). Otherwise the outgoing scene consumes the flag before
-            // the title scene is loaded and remains hidden behind the pixels.
+            // the title scene is loaded and remains hidden behind the cover.
             PixelTransition.RevealAfterNextSceneLoad(true);
         }
         AudioListener.pause = false;

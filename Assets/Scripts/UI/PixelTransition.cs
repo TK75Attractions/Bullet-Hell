@@ -2,10 +2,11 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
-// Full-screen pixel-mosaic transition: white cells pop in from the center
-// outward until they cover the screen, and later vanish center-first to
-// reveal what is behind. Cells are generated at runtime so the scene only
-// needs an empty holder object with this component.
+// 全画面の遷移カバー。
+// 2026-09-16 指示で、画面切り替えは FadeToBlack / FadeFromBlack の単純な黒フェード
+// に統一した(白いピクセルタイルが広がる演出は今の雰囲気に合わないため廃止)。
+// 白モザイクの Cover / WhiteoutCover / MosaicReveal / Reveal はコードとしては残して
+// あるが、ランタイムの経路からは呼ばれない(Editor の TransitionCaptureMenu のみ)。
 public class PixelTransition : MonoBehaviour
 {
     private const int cols = 24;
@@ -44,10 +45,17 @@ public class PixelTransition : MonoBehaviour
     private void Awake()
     {
         Build();
-        if (titleReturnAfterSceneLoad) SetColor(Color.white);
         if (revealAfterSceneLoad)
         {
+            // 再読込直後は黒で覆った状態から始め、Start で黒フェードイン(下)する。
+            // ここで ApplyUniformCover を呼ぶと EnsureTopmost が Awake 中に走り、
+            // StageSelectManager.Init の Find("PixelTransition") を壊すので、
+            // 覆いの状態だけを直接組み立てる(移設は Start の EnsureTopmost が行う)。
+            SetColor(Color.black);
+            if (whiteSheet != null) whiteSheet.gameObject.SetActive(false);
             for (int i = 0; i < cells.Length; i++) cells[i].localScale = Vector3.one;
+            uniformCoverActive = true;
+            if (fadeGroup != null) fadeGroup.alpha = 1f;
             gameObject.SetActive(true);
         }
         else
@@ -86,13 +94,11 @@ public class PixelTransition : MonoBehaviour
         TitleManager returnTitle = isTitleReturn ? GManager.Control.TManager : null;
         returnTitle?.PrepareReturnEntrance();
 
-        Task revealTask = Reveal();
+        Task revealTask = FadeFromBlack();
         if (returnTitle != null)
         {
-            // Let the centre pixels clear first so the title punch-in is
-            // actually visible instead of finishing behind the white cover.
-            // Start the punch-in as soon as the first centre cells clear. A
-            // longer pause exposes the prepared title as a frozen frame.
+            // 黒が薄まり始めたところでタイトルの復帰演出を出す(覆いの下で
+            // 終わってしまわないよう、フェードの頭で走らせる)。
             float delay = 0.035f;
             while (delay > 0f)
             {
@@ -345,6 +351,61 @@ public class PixelTransition : MonoBehaviour
             if (this == null) return;
         }
         fadeGroup.alpha = 1f;
+        uniformCoverActive = false;
+        uniformCoverLocked = false;
+        gameObject.SetActive(false);
+    }
+
+    // ---- 黒フェード(2026-09-16 指示: 画面切り替えはこれに統一) -----------------
+    //
+    // 旧: 白いピクセルタイルが中央から広がって覆い、中央から欠けて解像する。
+    // 新: 全画面を一様な黒で 0.35 秒かけて覆い、0.35 秒かけて明ける(ease-in-out)。
+    // 演出は既存の一様カバー(ApplyUniformCover)を流用するので、額装・HUD・弾には
+    // 一切触れない。
+
+    /// <summary>画面切り替えの黒フェードの既定の尺(秒)。</summary>
+    public const float BlackFadeDuration = 0.35f;
+
+    private static float SmoothStep01(float t)
+    {
+        t = Mathf.Clamp01(t);
+        return t * t * (3f - 2f * t);
+    }
+
+    /// <summary>いまの画面を黒で覆う(ease-in-out)。覆い切った状態で返る。</summary>
+    public async Task FadeToBlack(float seconds = BlackFadeDuration)
+    {
+        Build();
+        uniformCoverLocked = true;
+        float from = uniformCoverActive && fadeGroup != null ? fadeGroup.alpha : 0f;
+        ApplyUniformCover(Color.black, Mathf.Max(from, 0.0001f));
+        float t = 0f;
+        while (t < seconds)
+        {
+            t += AnimationDelta();
+            if (fadeGroup != null)
+                fadeGroup.alpha = Mathf.Lerp(from, 1f, SmoothStep01(t / Mathf.Max(1e-4f, seconds)));
+            await Task.Yield();
+            if (this == null) return;
+        }
+        if (fadeGroup != null) fadeGroup.alpha = 1f;
+    }
+
+    /// <summary>黒の覆いを明ける(ease-in-out)。明け切ったら覆い自体を下ろす。</summary>
+    public async Task FadeFromBlack(float seconds = BlackFadeDuration)
+    {
+        Build();
+        if (!uniformCoverActive) ApplyUniformCover(Color.black, 1f);
+        float t = 0f;
+        while (t < seconds)
+        {
+            t += AnimationDelta();
+            if (fadeGroup != null)
+                fadeGroup.alpha = 1f - SmoothStep01(t / Mathf.Max(1e-4f, seconds));
+            await Task.Yield();
+            if (this == null) return;
+        }
+        if (fadeGroup != null) fadeGroup.alpha = 1f;
         uniformCoverActive = false;
         uniformCoverLocked = false;
         gameObject.SetActive(false);
