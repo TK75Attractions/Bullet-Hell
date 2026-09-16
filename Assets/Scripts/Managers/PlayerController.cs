@@ -38,6 +38,9 @@ public class PlayerController
     // Raymee 専用デバッグの透過表示(main 統合)。基準色は保持したまま描画αだけ落とす。
     private bool debugTransparent;
     private float debugTransparencyAlpha = 1f;
+    // リザルトへ移るときの自機フェードアウト(2026-09-16)。UpdatePos が止まっている
+    // あいだだけ効く(state=Result)。1 で通常表示・0 で完全に消える。
+    private float endingFade = 1f;
     // 被弾パーティクル/ダッシュ光のトーン色。P1=従来 playerColor 準拠(=1P 不変)、
     // P2=寒色系。Init で playerIndex に応じて確定する。
     private Color toneColor = new Color(1f, 1f, 0.6f, 1f);
@@ -357,6 +360,7 @@ public class PlayerController
     // 1P の ResetForStage は従来どおり Init 時の initialPos を使う。
     public void ResetForStageAt(float2 startPosition)
     {
+        endingFade = 1f;   // 前のプレイのリザルトで消していたら戻す
         pos = startPosition;
         velocity = float2.zero;
         hitInvincibleTimer = 0f;
@@ -472,7 +476,18 @@ public class PlayerController
     private Color ApplyDebugTransparency(Color color)
     {
         color.a *= debugTransparent ? debugTransparencyAlpha : 1f;
+        color.a *= endingFade;
         return color;
+    }
+
+    /// <summary>
+    /// リザルトへ移るときの自機フェードアウト(2026-09-16 指示: 暗転せず自機と敵だけ消す)。
+    /// 1 で通常表示、0 で完全に透明。UpdatePos が止まっているあいだだけ使う。
+    /// </summary>
+    public void SetEndingFade(float alpha)
+    {
+        endingFade = Mathf.Clamp01(alpha);
+        ApplyDisplayColors();
     }
 
     private float GetAlpha(float t)

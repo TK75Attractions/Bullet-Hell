@@ -239,6 +239,65 @@ public class StageCgController : MonoBehaviour
         }
     }
 
+    // --- リザルトへの引き渡し(2026-09-16 指示: 終了時に暗転しない) -----------------
+    //
+    // 従来は endTime で画面全体を黒で覆い、リザルトは黒地の上に出していた。新方式は
+    // 「自機と敵だけを消して、CG はそのまま残し、カメラを少し上へ向ける」。そのため
+    // GManager が state を Result へ変える直前に BeginResultHold() を呼び、以後も
+    // 最後のプロファイルで CG を描き続ける。
+    //   ・ステージ側の終端減光(CgBlackout)は ResultExposureRestoreSec で通常露出へ戻す
+    //   ・CG カメラを resultPitchDeg だけ ResultPitchSec で上へ向ける(結果表示の姿勢)
+    //   ・敵(ボス代理)は resultEnemyAlpha で透明にする(GManager が自機と同じ尺で動かす)
+    [Header("リザルトの姿勢(2026-09-16)")]
+    [Tooltip("リザルトへ移るときに CG カメラを上へ向ける角度(度)。CG の外が出ない範囲で。")]
+    public float resultPitchDeg = 7f;
+    public const float ResultExposureRestoreSec = 0.5f;
+    public const float ResultPitchSec = 0.85f;
+
+    bool resultHold;
+    float resultHoldStart;
+    float resultHoldStageTime;
+    float resultHoldEndTime;
+    StageCgProfile resultHoldProfile;
+    float resultHoldCgFade = 1f;
+    float resultEnemyAlpha = 1f;
+
+    /// <summary>リザルト表示のあいだ CG を出したまま保つ(GManager が state 変更の直前に呼ぶ)。</summary>
+    public void BeginResultHold()
+    {
+        if (resultHold) return;
+        resultHold = true;
+        resultHoldStart = Time.unscaledTime;
+        resultHoldProfile = lastProfile;
+        resultHoldEndTime = currentStageEndTime;
+        GManager g = GManager.Control;
+        resultHoldStageTime = g != null && g.SReader != null ? g.SReader.CurrentTime : resultHoldEndTime;
+        resultHoldCgFade = cgFade;
+        resultEnemyAlpha = 1f;
+    }
+
+    public void EndResultHold()
+    {
+        resultHold = false;
+        resultHoldProfile = null;
+        resultEnemyAlpha = 1f;
+    }
+
+    /// <summary>敵(ボス)の表示アルファ。0 で完全に消える。</summary>
+    public void SetResultEnemyAlpha(float alpha) => resultEnemyAlpha = Mathf.Clamp01(alpha);
+
+    public static void BeginResultHoldStatic() { if (instance != null) instance.BeginResultHold(); }
+    public static void EndResultHoldStatic() { if (instance != null) instance.EndResultHold(); }
+    public static void SetResultEnemyAlphaStatic(float a) { if (instance != null) instance.SetResultEnemyAlpha(a); }
+
+    /// <summary>リザルト姿勢のピッチ加算(度)。保持していなければ 0。</summary>
+    float ResultPitchOffset()
+    {
+        if (!resultHold) return 0f;
+        float k = Mathf.Clamp01((Time.unscaledTime - resultHoldStart) / ResultPitchSec);
+        return resultPitchDeg * (k * k * (3f - 2f * k));
+    }
+
     void LateUpdate()
     {
         StageCgProfile want = ShouldShow(out float stageTime, out float endTime);
@@ -280,17 +339,20 @@ public class StageCgController : MonoBehaviour
         ApplyGlobals(want);
         introFade = want.BlackFade(stageTime);
         cgFade = want.CgBlackout(stageTime, endTime);
+        if (resultHold)
+        {
+            // ステージが endTime 前に落としていた CG の露出を、リザルトに入った時点から
+            // 0.5 秒で通常へ戻す(ステージの演出そのものは変えない)。
+            float k = Mathf.Clamp01((Time.unscaledTime - resultHoldStart) / ResultExposureRestoreSec);
+            cgFade = Mathf.Lerp(resultHoldCgFade, 1f, k * k * (3f - 2f * k));
+        }
         // 第 6 便 (B): 「背景（CG と敵）が暗転して主人公だけが残る」ので、CG の減光と同じ量を
         //   ボスにも掛ける（第 5 便はボスを残していたが、今回の指示で背景側に含める）。
         currentBossFade = cgFade;
         genericPlaying = false;
-        // v34 #23: 画面全体の黒フェード。白転（PixelTransition のモザイク）は残したまま、
-        // useBlackEnding のステージだけ黒経路へ回す。
-        if (want.useBlackEnding)
-        {
-            PixelTransition pt = FindPixelTransition();
-            if (pt != null) pt.ApplyStageBlackout(want.ScreenBlackout(stageTime, endTime));
-        }
+        // 2026-09-16 指示: 終了時に画面全体を黒で覆うのはやめた(リザルトはプレイ中の CG の
+        //   上に出す)。プロファイルの screenBlackout* は履歴として残すが参照しない。
+        //   背景 CG だけの減光(CgBlackout)はステージの演出なのでそのまま効かせる。
         UpdateStageFx(want, stageTime);
         ApplyCamera(want, stageTime);
         SyncBossCamera();
@@ -307,7 +369,16 @@ public class StageCgController : MonoBehaviour
         hasStage = false;
         if (!Application.isPlaying) return null;
         GManager g = GManager.Control;
-        if (g == null || g.state != GManager.GameState.Playing) return null;
+        if (g == null) return null;
+        if (resultHold && g.state != GManager.GameState.Result) EndResultHold();
+        // リザルト表示中は最後のプロファイルをそのまま描き続ける(暗転しない)。
+        if (resultHold && resultHoldProfile != null && g.state == GManager.GameState.Result)
+        {
+            stageTime = resultHoldStageTime;
+            endTime = resultHoldEndTime;
+            return resultHoldProfile;
+        }
+        if (g.state != GManager.GameState.Playing) return null;
         StageReader reader = g.SReader;
         if (reader == null) return null;
         StageData stage = reader.CurrentStage;
@@ -342,6 +413,14 @@ public class StageCgController : MonoBehaviour
 
     void UpdateGenericEnding()
     {
+        // CG の無いステージ(mirror など)のリザルト中は、敵だけを resultEnemyAlpha で消す。
+        if (resultHold)
+        {
+            ApplyEnemyFade(1f, resultEnemyAlpha);
+            genericPlaying = false;
+            genericFadeApplied = true;
+            return;
+        }
         if (!genericPlaying)
         {
             if (genericFadeApplied) { ApplyEnemyFade(1f); genericFadeApplied = false; }
@@ -357,13 +436,13 @@ public class StageCgController : MonoBehaviour
         ApplyEnemyFade(fade);
         genericFadeApplied = true;
 
-        float v = Mathf.Clamp01((t - (endTime - GenericScreenBlackoutSec)) / GenericScreenBlackoutSec);
-        PixelTransition pt = FindPixelTransition();
-        if (pt != null) pt.ApplyStageBlackout(v * v * (3f - 2f * v));
+        // 2026-09-16 指示: 画面全体の暗転は廃止(GenericScreenBlackoutSec は履歴として残す)。
     }
 
     /// <summary>ボス（＝このゲームの敵）のスプライトを暗くする。1 でそのまま。</summary>
-    void ApplyEnemyFade(float fade)
+    void ApplyEnemyFade(float fade) => ApplyEnemyFade(fade, 1f);
+
+    void ApplyEnemyFade(float fade, float alpha)
     {
         if (bossParent == null || !bossParent)
         {
@@ -379,7 +458,7 @@ public class StageCgController : MonoBehaviour
             SpriteRenderer sr = enemyFadeScratch[i];
             if (sr == null) continue;
             sr.GetPropertyBlock(enemyMpb);
-            enemyMpb.SetColor(BossTintId, new Color(fade, fade, fade, 1f));
+            enemyMpb.SetColor(BossTintId, new Color(fade, fade, fade, alpha));
             sr.SetPropertyBlock(enemyMpb);
         }
     }
@@ -639,7 +718,7 @@ public class StageCgController : MonoBehaviour
         Vector2 shake = LastShakeOffset + LastScreenShake;
         // v39: 通常姿勢のピッチを時刻で振る（Euler の x は下向きが正なので符号を反転）。
         // 弾幕は MainCamera の 2D なので動かない。CG とボス代理だけが一緒に振れる。
-        float pitchDeg = p.CameraPitchAt(stageTime);
+        float pitchDeg = p.CameraPitchAt(stageTime) + ResultPitchOffset();
         Quaternion normalRot = pitchDeg != 0f ? Quaternion.Euler(-pitchDeg, 0f, 0f) : Quaternion.identity;
         cgCamera.transform.position = Vector3.Lerp(p.lookupPosition, normalPosition, e)
                                       + new Vector3(shake.x, shake.y, 0f);
@@ -725,7 +804,10 @@ public class StageCgController : MonoBehaviour
             proxy.flipY = srcRenderer.flipY;
             proxy.enabled = srcRenderer.sprite != null;
             // 明度は表示板の _BossBrightness 側で掛けるので、ここでは元の色（フェード α）をそのまま。
-            proxy.color = srcRenderer.color;
+            // リザルトへ移るあいだだけ、敵を resultEnemyAlpha で透明にする(2026-09-16)。
+            Color proxyColor = srcRenderer.color;
+            if (resultHold) proxyColor.a *= resultEnemyAlpha;
+            proxy.color = proxyColor;
             // v35 (#4): ボス個体だけ明るくしたいときは、表示板の一律 gain（bossBrightness）に対する
             //   比をボスの RT へ書く時点で掛ける（α は触らないので「ボスとして扱う量」は不変）。
             //   SpriteRenderer.color は Color32（8bit）に丸められて 1.0 で頭打ちになるので、

@@ -870,17 +870,16 @@ public class GManager : MonoBehaviour
             ? SReader.CurrentTime
             : (cleared ? endTime : endTime * 0.63f);
 
-        // 2026-09-16 指示: 画面切り替えは全部ただの黒フェードに統一した。白転(モザイク)
-        //   経路と StageData.whiteoutCoverTime の分岐は廃止。ステージ時計側
-        //   (StageCgController)が endTime の手前から黒くしてきた続きをここで詰める。
-        //   被弾で途中終了したときはまだ覆いが無いので、そこだけ 0.35 秒かける。
+        // 2026-09-16 指示: リザルトで画面を黒で覆うのをやめた。endTime では
+        //   (a) 自機(2P も)と敵だけを 0.6 秒でフェードアウトし、
+        //   (b) CG カメラを少し上へ向け(結果表示の姿勢)、
+        //   (c) その CG の上へリザルトのパネルを出す。
+        //   ステージが終端で落とした CG の露出は BeginResultHold が 0.5 秒で戻す。
+        StageCgController.BeginResultHoldStatic();
+        // 覆いが残っていると CG が見えないので、掛かっていれば下ろしておく
+        // (被弾終了など、ステージ側の暗転が中途で残っている経路の保険)。
         PixelTransition transition = FindPixelTransition();
-        if (transition != null)
-        {
-            await transition.UniformCoverTo(transition.UniformCoverAlpha > 0.5f
-                ? 0.15f
-                : PixelTransition.BlackFadeDuration);
-        }
+        if (transition != null && transition.UniformCoverAlpha > 0f) await transition.UniformReveal(0.35f);
 
         state = GameState.Result;
         musicOn = false;
@@ -889,8 +888,7 @@ public class GManager : MonoBehaviour
         // ステージ BGM のフェードアウトと自然にクロスする。
         AManager?.FadeOutAndStopBGM(0.5f);
         QOrder?.ClearAllGameplayBulletsImmediate();
-        // 2P: リザルトへ移る際は P2 をフィールドから隠す(リザルトの左右分割は別便)。
-        if (player2Obj != null) player2Obj.SetActive(false);
+        // 2P の P2 は、自機と同じ尺でフェードアウトしてから隠す(終了シーケンスの中で)。
 
         if (recordHistory && cleared && stage != null)
         {
@@ -908,13 +906,72 @@ public class GManager : MonoBehaviour
             }
         }
 
+        // パネルは alpha 0 の状態で用意だけしておく(PlayEntrance まで何も見えない)。
         RManager.Prepare(stage, selectedDifficulty, cleared, playerHitCount,
             counterHitBossCount, elapsed, endTime, twoPlayer, playerHitCount2);
         SReader?.StopStage();
 
-        if (transition != null) await transition.UniformReveal(0.45f);
+        endingSequenceDone = false;
+        StartCoroutine(ResultEndingRoutine(twoPlayer));
+        while (!endingSequenceDone) await Task.Yield();
+
         RManager.PlayEntrance();
         resultTransitioning = false;
+    }
+
+    // --- 終了シーケンス(2026-09-16) ------------------------------------------
+    //
+    // 自機(2P も)と敵を EndingFadeSec で消し、CG カメラが上を向き切る
+    // (StageCgController.ResultPitchSec)まで待ってから、パネルの背後に敷く
+    // 背景ぼかしを 1 枚控える。ぼかしはカメラが止まった後に撮る
+    // (動いている途中で撮ると、静止したぼけ画像と実写が二重像になる)。
+    private const float EndingFadeSec = 0.6f;
+    private bool endingSequenceDone;
+
+    private System.Collections.IEnumerator ResultEndingRoutine(bool twoPlayerNow)
+    {
+        float hold = Mathf.Max(EndingFadeSec, StageCgController.ResultPitchSec) + 0.03f;
+        float t = 0f;
+        while (t < hold)
+        {
+            t += Time.unscaledDeltaTime;
+            float k = Mathf.Clamp01(t / EndingFadeSec);
+            float a = 1f - k * k * (3f - 2f * k);
+            PController?.SetEndingFade(a);
+            if (twoPlayerNow) PController2?.SetEndingFade(a);
+            StageCgController.SetResultEnemyAlphaStatic(a);
+            yield return null;
+        }
+        PController?.SetEndingFade(0f);
+        if (twoPlayerNow) PController2?.SetEndingFade(0f);
+        StageCgController.SetResultEnemyAlphaStatic(0f);
+        if (player2Obj != null) player2Obj.SetActive(false);
+
+        // 背景ぼかし(BackdropBlurUtil のピラミッド方式)。描画完了後に撮る。
+        if (ResultScreen.BackdropBlurEnabled && RManager != null)
+        {
+            yield return new WaitForEndOfFrame();
+            RManager.SetBackdropBlur(CaptureBackdropBlur());
+        }
+        endingSequenceDone = true;
+    }
+
+    /// <summary>
+    /// パネルの背後に敷くぼかし画像を撮る。<c>ScreenCapture.CaptureScreenshotAsTexture()</c> が
+    /// 返すテクスチャは sRGB 指定が付かない(isDataSRGB=false)ため、そのまま Blit すると
+    /// Linear 空間で二重にエンコードされ、一段明るく眠い絵になる
+    /// (実測 2026-09-16: 平均輝度 23.5 → 83.4)。sRGB 指定のコピーを経由させて本来の色で出す。
+    /// </summary>
+    private static RenderTexture CaptureBackdropBlur()
+    {
+        Texture2D shot = ScreenCapture.CaptureScreenshotAsTexture();
+        Texture2D srgb = new Texture2D(shot.width, shot.height, TextureFormat.RGBA32, false, false);
+        srgb.SetPixels32(shot.GetPixels32());
+        srgb.Apply();
+        RenderTexture rt = BackdropBlurUtil.BuildPyramidBlur(srgb);
+        UnityEngine.Object.Destroy(shot);
+        UnityEngine.Object.Destroy(srgb);
+        return rt;
     }
 
     private StageData ResolveSelectedStage()
@@ -948,6 +1005,9 @@ public class GManager : MonoBehaviour
         if (transition != null) await transition.FadeToBlack();
 
         RManager.HideImmediate();
+        StageCgController.EndResultHoldStatic();
+        PController?.SetEndingFade(1f);
+        PController2?.SetEndingFade(1f);
         AudioListener.pause = false;
         Time.timeScale = 1f;
 
