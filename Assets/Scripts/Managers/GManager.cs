@@ -975,7 +975,8 @@ public class GManager : MonoBehaviour
         Texture2D srgb = new Texture2D(shot.width, shot.height, TextureFormat.RGBA32, false, false);
         srgb.SetPixels32(shot.GetPixels32());
         srgb.Apply();
-        RenderTexture rt = BackdropBlurUtil.BuildPyramidBlur(srgb);
+        // リザルトは背景を一段強くぼかす(2026-09-16 指示。1/32 まで畳む)。
+        RenderTexture rt = BackdropBlurUtil.BuildPyramidBlur(srgb, true);
         UnityEngine.Object.Destroy(shot);
         UnityEngine.Object.Destroy(srgb);
         return rt;

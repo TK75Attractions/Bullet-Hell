@@ -18,6 +18,24 @@ public static class BackdropBlurUtil
     }
 
     // 与えられたスクリーンショットからピラミッドぼかし RT を生成する。
+    // strong = true で 1/32 まで 1 段深く畳む(リザルトの背景専用。ぼけが一段強くなる)。
+    public static RenderTexture BuildPyramidBlur(Texture2D shot, bool strong)
+    {
+        RenderTexture rt = BuildPyramidBlur(shot);
+        if (!strong) return rt;
+        int w = rt.width, h = rt.height;
+        RenderTexture a = RenderTexture.GetTemporary(Mathf.Max(2, w / 2), Mathf.Max(2, h / 2), 0);
+        RenderTexture b = RenderTexture.GetTemporary(Mathf.Max(2, w / 4), Mathf.Max(2, h / 4), 0);
+        a.filterMode = b.filterMode = FilterMode.Bilinear;
+        Graphics.Blit(rt, a);
+        Graphics.Blit(a, b);
+        Graphics.Blit(b, a);
+        Graphics.Blit(a, rt);
+        RenderTexture.ReleaseTemporary(a);
+        RenderTexture.ReleaseTemporary(b);
+        return rt;
+    }
+
     public static RenderTexture BuildPyramidBlur(Texture2D shot)
     {
         int w4 = Mathf.Max(24, shot.width / 4);
