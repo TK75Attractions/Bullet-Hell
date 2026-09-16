@@ -11,8 +11,10 @@ using TMPro;
 /// 一切触っていない(動いている画面を作り直さないため)。値の正は同じ §10 で、こちらは
 /// 「紺の半透明板・金の外枠と内側の罫線・四隅の金ブラケット・罫線・菱形」だけを持つ。
 ///
-/// 焼き込みテクスチャは視覚(sRGB)値をそのまま書き、頂点色(Image.color / TMP.color)は
-/// <see cref="Vis"/> で pre-linear へ落とす(memory: texture_vs_vertex_colorspace)。
+/// 焼き込みテクスチャは視覚(sRGB)値をそのまま書く。頂点色(Image.color / TMP.color)は
+/// この Overlay Canvas ではそのまま画面へ出るので、<see cref="Vis"/> も視覚値をそのまま返す
+/// (2026-09-16 U5: 旧実装は <c>.linear</c> を掛けていたため一段暗く濁っていた。
+/// <see cref="ResultScreen"/> 側は U4b で同じ訂正済み)。
 /// </summary>
 public static class GoldPanelStyle
 {
@@ -23,15 +25,13 @@ public static class GoldPanelStyle
     public static readonly Color32 TexGoldBright = new Color32(0xE9, 0xB9, 0x6E, 0xFF);
     public static readonly Color32 TexGoldDim = new Color32(0x6E, 0x57, 0x2C, 0xFF);
 
-    /// <summary>視覚 sRGB(0..255) → 頂点色用の pre-linear。</summary>
+    /// <summary>視覚 sRGB(0..255) → 頂点色。Overlay Canvas ではそのまま画面に出る値。</summary>
     public static Color Vis(int r, int g, int b, float a = 1f)
     {
-        Color c = new Color(r / 255f, g / 255f, b / 255f, 1f).linear;
-        c.a = a;
-        return c;
+        return new Color(r / 255f, g / 255f, b / 255f, a);
     }
 
-    // ---- 頂点色(pre-linear) --------------------------------------------------
+    // ---- 頂点色(見た目の sRGB 値) --------------------------------------------
     public static readonly Color GoldAccent = Vis(0xE8, 0xB0, 0x64);   // 菱形・値のアクセント
     public static readonly Color GoldBright = Vis(0xF7, 0xD2, 0x95);   // ブラケット・ハイライト
     public static readonly Color GoldDim = Vis(0xB0, 0x8B, 0x4A);      // 罫線

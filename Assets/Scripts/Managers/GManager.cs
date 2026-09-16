@@ -838,6 +838,8 @@ public class GManager : MonoBehaviour
         // 現在の人数モードを反映し、scene 再読込後の静的状態の取り違えを防ぐ。
         PlayHistory.TwoPlayerMode = twoPlayer;
         PlayHistory.RecordPlay(historyDir);
+        // ステージ選択の STATUS 行(難易度ごとの菱形)用。1P/2P は合算で記録する。
+        StageDifficultyProgress.RecordPlay(historyDir, selectedDifficulty);
         Debug.Log($"Started Stage: {runtimeStage.stageName} (requested={selected}, data={runtimeStage.resolvedDataDifficulty.displayName})");
     }
     // ステージ終了条件の共通入口。現状は StageReader.endTime 到達をクリアとして
@@ -899,6 +901,8 @@ public class GManager : MonoBehaviour
             // クリア記録も人数モード別枠へ(RecordPlay と同様)。
             PlayHistory.TwoPlayerMode = twoPlayer;
             PlayHistory.RecordClear(historyDir);
+            // ステージ選択の STATUS 行用(難易度別・1P/2P 合算)。
+            StageDifficultyProgress.RecordClear(historyDir, selectedDifficulty);
             // 引き継ぎコードの実績は1P専用(SPEC §1.4: 2Pは引き継ぎ対象外)。
             if (!twoPlayer)
             {

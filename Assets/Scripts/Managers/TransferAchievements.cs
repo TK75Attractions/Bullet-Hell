@@ -66,6 +66,20 @@ public static class TransferAchievements
         Save();
     }
 
+    /// <summary>
+    /// そのステージ・難易度をクリア済みか(1P の実績)。ステージ選択の STATUS 行が、
+    /// <see cref="StageDifficultyProgress"/> に記録が無い過去のクリアを拾うために使う。
+    /// </summary>
+    public static bool IsCleared(string stageDirectoryName, int difficulty)
+    {
+        int stageIndex = Array.IndexOf(DirectionTransferCode.StageOrder, stageDirectoryName);
+        if (stageIndex < 0) return false;
+        if (difficulty < 0 || difficulty >= DirectionTransferCode.DifficultyCount) return false;
+        Load();
+        int clearIndex = stageIndex * DirectionTransferCode.DifficultyCount + difficulty;
+        return clearIndex < cache.clear.Length && cache.clear[clearIndex];
+    }
+
     public static bool HasAnyAchievement
     {
         get

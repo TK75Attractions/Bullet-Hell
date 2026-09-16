@@ -87,6 +87,11 @@ public class CitySelectView : MonoBehaviour
     private const float ThumbW = 600f;
     private const float ThumbH = 338f;      // 16:9
     private const float ThumbCenterY = 6f;
+    // STATUS 行の難易度マーク(EASY/NORMAL/LUNATIC)の並び。縦罫(x=44)より右、
+    // LENGTH の値の右端(x≒248)とおおむね揃う位置に 3 つ置く。
+    private const float DiffMarkX0 = 92f;
+    private const float DiffMarkPitch = 76f;
+    private const float DiffMarkFont = 13f;
 
     private CanvasGroup stagePanelCG;
     private RectTransform stagePanelRect;
@@ -95,8 +100,12 @@ public class CitySelectView : MonoBehaviour
     private RawImage thumbImage;
     private Image thumbFallback;
     private TMP_Text lengthValue;
-    private TMP_Text statusValue;
     private Image statusIcon;
+    // STATUS 行: 難易度ごとの菱形と英字(2026-09-16 U5)。index 0=EASY / 1=NORMAL / 2=LUNATIC。
+    private Image[] diffMarks;
+    private TMP_Text[] diffMarkLabels;
+    private Sprite diffMarkFilled;
+    private Sprite diffMarkHollow;
     private Texture2D thumbTexture;
     private string thumbDir;
 
@@ -158,7 +167,7 @@ public class CitySelectView : MonoBehaviour
     /// <summary>
     /// 右パネル。リザルト新様式「夜の紺と金」(§10)と同じ紺の半透明板・金の罫線と菱形・
     /// 四隅の金ブラケット・白い明朝で、上から
-    /// 1) STAGE 番号 2) 舞台名 3) ステージ CG のサムネ 4) 情報行(LENGTH / STATUS)。
+    /// 1) STAGE 番号 2) ステージ名 3) ステージ CG のサムネ 4) 情報行(LENGTH / 難易度別 STATUS)。
     /// </summary>
     private void BuildStagePanel()
     {
@@ -227,11 +236,66 @@ public class CitySelectView : MonoBehaviour
         thumbFrame.type = Image.Type.Sliced;
 
         // 6) 情報行。AREA は不要(2026-09-16 ユーザー決定)、DIFFICULTY は曲の長さへ。
+        //    STATUS は難易度ごとの踏破状況(2026-09-16 U5 指示)なので 2 段ぶんの高さを取る。
         AddRule(stagePanelRect, new Vector2(0f, -220f), 520f, false);
-        lengthValue = AddInfoRow(stagePanelRect, -278f, "LENGTH",
+        lengthValue = AddInfoRow(stagePanelRect, -272f, "LENGTH",
             Resources.Load<Sprite>("UI/result_icon_time"), out _);
-        statusValue = AddInfoRow(stagePanelRect, -346f, "STATUS",
-            CreateFlagIconSprite(), out statusIcon);
+        BuildStatusRow(stagePanelRect, -344f);
+    }
+
+    // STATUS 行。ラベルの右に EASY / NORMAL / LUNATIC を小さく並べ、その上に菱形を置く。
+    // 菱形: クリア済み=金の塗り / 挑戦済み未クリア=金の枠だけ / 未プレイ=暗い枠だけ。
+    private void BuildStatusRow(RectTransform parent, float y)
+    {
+        AddInfoRow(parent, y, "STATUS", CreateFlagIconSprite(), out statusIcon).gameObject.SetActive(false);
+
+        diffMarkFilled = CreateDiffMarkSprite(true);
+        diffMarkHollow = CreateDiffMarkSprite(false);
+        diffMarks = new Image[StageDifficultyProgress.DifficultyCount];
+        diffMarkLabels = new TMP_Text[StageDifficultyProgress.DifficultyCount];
+
+        string[] names = { "EASY", "NORMAL", "LUNATIC" };
+        for (int i = 0; i < diffMarks.Length; i++)
+        {
+            float cx = DiffMarkX0 + DiffMarkPitch * i;
+
+            Image mark = NewImage("DiffMark" + i, parent, GoldPanelStyle.GoldAccent);
+            mark.sprite = diffMarkFilled;
+            mark.type = Image.Type.Simple;
+            mark.preserveAspect = true;
+            SetRect(mark.rectTransform, new Vector2(cx, y + 14f), new Vector2(16f, 16f));
+            diffMarks[i] = mark;
+
+            TMP_Text lab = NewText("DiffName" + i, parent, names[i], DiffMarkFont,
+                GoldPanelStyle.SilverLabel, TextAlignmentOptions.Center);
+            SetRect((RectTransform)lab.transform, new Vector2(cx, y - 15f), new Vector2(DiffMarkPitch, 22f));
+            StyleMincho(lab, 1f);
+            diffMarkLabels[i] = lab;
+        }
+    }
+
+    // 菱形のマーク。塗り(クリア済み)と枠だけ(未クリア)の 2 種を焼く。
+    // 表示 16px に対し 48px で焼くので、枠線は縮小しても 1.5px ぶん残る。
+    private Sprite CreateDiffMarkSprite(bool filled)
+    {
+        const int S = 48;
+        Color32[] px = new Color32[S * S];
+        Color32 white = new Color32(0xFF, 0xFF, 0xFF, 0xFF);
+        float c = (S - 1) * 0.5f;
+        float ring = c * 0.92f;
+        for (int y = 0; y < S; y++)
+        {
+            for (int x = 0; x < S; x++)
+            {
+                float m = (Mathf.Abs(x - c) + Mathf.Abs(y - c)) * 0.7071f;
+                float cov = filled
+                    ? Mathf.Clamp01(ring * 0.7071f - m + 0.5f)
+                    : Mathf.Clamp01(1.6f - Mathf.Abs(m - ring * 0.7071f));
+                GoldPanelStyle.Blend(px, S, S, x, y, white, cov);
+            }
+        }
+        return GoldPanelStyle.MakeSprite(px, S, S,
+            filled ? "CityDiffMarkFilled" : "CityDiffMarkHollow", ownedTextures, ownedSprites);
     }
 
     // 残り時間の最小表示(上部バーは街モードでは隠すため)。
@@ -475,21 +539,49 @@ public class CitySelectView : MonoBehaviour
         // 曲の長さ。BGM クリップ長が取れないときは endTime で代用する。
         if (lengthValue != null) lengthValue.text = FormatLength(data);
 
-        // 踏破 / 未踏(クリア記録)。
-        if (statusValue != null)
-        {
-            bool cleared = data != null && PlayHistory.ClearsOf(data.stageDirectoryName) > 0;
-            statusValue.text = cleared ? "踏破" : "未踏";
-            statusValue.color = cleared ? GoldPanelStyle.GoldAccent
-                : new Color(GoldPanelStyle.SilverLabel.r, GoldPanelStyle.SilverLabel.g,
-                    GoldPanelStyle.SilverLabel.b, 0.70f);
-            if (statusIcon != null)
-                statusIcon.color = cleared
-                    ? new Color(GoldPanelStyle.GoldAccent.r, GoldPanelStyle.GoldAccent.g, GoldPanelStyle.GoldAccent.b, 0.90f)
-                    : new Color(GoldPanelStyle.SilverLabel.r, GoldPanelStyle.SilverLabel.g, GoldPanelStyle.SilverLabel.b, 0.55f);
-        }
+        // STATUS = 難易度ごとの踏破状況(2026-09-16 U5 指示)。
+        ApplyStatusRow(data);
 
         UpdateThumbnail(data);
+    }
+
+    // 難易度ごとの菱形を現在のステージの記録に合わせる。
+    //   クリア済み  : 金の塗り菱形 + 明るい英字
+    //   挑戦済み未クリア: 金の枠だけの菱形 + 中間の英字
+    //   未プレイ    : 暗い枠だけの菱形 + 沈んだ英字
+    private void ApplyStatusRow(StageData data)
+    {
+        if (diffMarks == null) return;
+        string dir = data != null ? data.stageDirectoryName : null;
+        bool any = false;
+        for (int i = 0; i < diffMarks.Length; i++)
+        {
+            bool cleared = StageDifficultyProgress.HasCleared(dir, i);
+            bool played = cleared || StageDifficultyProgress.HasPlayed(dir, i);
+            any |= cleared;
+
+            Image mark = diffMarks[i];
+            if (mark != null)
+            {
+                mark.sprite = cleared ? diffMarkFilled : diffMarkHollow;
+                Color c = cleared ? GoldPanelStyle.GoldAccent
+                    : played ? GoldPanelStyle.GoldDim : GoldPanelStyle.SilverLabel;
+                mark.color = new Color(c.r, c.g, c.b, cleared ? 1f : played ? 0.95f : 0.30f);
+            }
+
+            TMP_Text lab = diffMarkLabels[i];
+            if (lab != null)
+            {
+                Color c = cleared ? GoldPanelStyle.GoldAccent : GoldPanelStyle.SilverLabel;
+                lab.color = new Color(c.r, c.g, c.b, cleared ? 0.95f : played ? 0.72f : 0.34f);
+            }
+        }
+
+        if (statusIcon != null)
+        {
+            Color c = any ? GoldPanelStyle.GoldAccent : GoldPanelStyle.SilverLabel;
+            statusIcon.color = new Color(c.r, c.g, c.b, any ? 0.90f : 0.55f);
+        }
     }
 
     /// <summary>
