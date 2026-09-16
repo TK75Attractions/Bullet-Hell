@@ -359,6 +359,7 @@ public class StageCgController : MonoBehaviour
         ApplyDisplay(want);
         UpdateBossProxies(want);
         DrawDust(want, stageTime);
+        DrawIntroDust(want, stageTime);
     }
 
     StageCgProfile ShouldShow(out float stageTime, out float endTime)
@@ -1351,6 +1352,55 @@ public class StageCgController : MonoBehaviour
             Matrix4x4 m = Matrix4x4.TRS(pos, Quaternion.identity, new Vector3(size * k, size * k, 1f));
             dustMpb.SetVector(EmisLinId, emis * fade);
             Graphics.DrawMesh(dustMesh, m, p.dustMaterial, layer, cgCamera, 0, dustMpb, false, false, false);
+        }
+    }
+
+    // --- 登場の砂埃（放浪者 H14） --------------------------------------------------
+    //
+    // 石工の着地の粉と同じ流儀で、ParticleSystem を使わず stageTime の閉じた式で置く
+    // （シーク・ポーズ・やり直しで破綻しない）。粒 i の発生秒・位置・速さ・大きさ・
+    // アルファは Hash(i) で決まる決定値。CG カメラにだけ描くので、弾（2D の MainCamera）
+    // とボス（別レイヤーで表示板に合成）より必ず奥に出る。
+    void DrawIntroDust(StageCgProfile p, float stageTime)
+    {
+        if (!stageFxEnabled || p.introDustMaterial == null || p.introDustCount <= 0) return;
+        if (cgCamera == null) return;
+
+        float life = Mathf.Max(0.1f, p.introDustLifeSec);
+        float emit = Mathf.Max(0.01f, p.introDustEmitSec);
+        float t = stageTime - p.introDustStart;
+        if (t < 0f || t > emit + life * 1.25f) return;
+
+        if (dustMesh == null) dustMesh = BuildQuad();
+        dustMpb ??= new MaterialPropertyBlock();
+        float k = (36f + p.introDustDepth) / 36f;
+        int layer = p.sceneRoot != null ? p.sceneRoot.layer : gameObject.layer;
+
+        for (int i = 0; i < p.introDustCount; i++)
+        {
+            float ts = emit * Hash(i, 11);
+            float li = life * (0.75f + 0.5f * Hash(i, 12));
+            float age = t - ts;
+            if (age < 0f || age > li) continue;
+
+            float fx = p.introDustOrigin.x + p.introDustSpread.x * (Hash(i, 13) - 0.5f);
+            float fy = p.introDustOrigin.y + p.introDustSpread.y * (Hash(i, 14) - 0.5f);
+            float vx = p.introDustDrift.x * (0.6f + 0.8f * Hash(i, 15));
+            float vy = p.introDustDrift.y * (0.6f + 0.8f * Hash(i, 16));
+            fx += vx * age + 0.12f * p.introDustDrift.x * age * age;   // 風に押されて加速
+            fy += vy * age - 0.05f * age * age;                        // 上がりきって失速
+
+            float u = age / li;
+            float size = Mathf.Lerp(p.introDustSize.x, p.introDustSize.y, Hash(i, 17)) * (1f + 0.5f * u);
+            float fade = Mathf.Clamp01(age / 0.35f) * Mathf.Clamp01((li - age) / (li * 0.45f));
+            float a = p.introDustAlpha * fade * (0.65f + 0.35f * Hash(i, 18));
+            if (a <= 0.002f) continue;
+
+            Vector3 pos = new Vector3(16f + (fx - 16f) * k, 20f + (fy - 20f) * k, p.introDustDepth);
+            Quaternion rot = Quaternion.Euler(0f, 0f, 360f * Hash(i, 19) + 20f * age * (Hash(i, 20) - 0.5f));
+            Matrix4x4 m = Matrix4x4.TRS(pos, rot, new Vector3(size * k, size * k, 1f));
+            dustMpb.SetFloat(FadeAlphaId, a);
+            Graphics.DrawMesh(dustMesh, m, p.introDustMaterial, layer, cgCamera, 0, dustMpb, false, false, false);
         }
     }
 

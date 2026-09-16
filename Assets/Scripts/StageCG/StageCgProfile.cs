@@ -234,6 +234,28 @@ public class StageCgProfile
     public Vector3 lateSkyTint = new Vector3(1.06f, 0.94f, 1.02f);
     [Range(0f, 1f)] public float lateExposureScale = 0.98f;
 
+    [Header("登場の砂埃（放浪者 H14。introDustCount = 0 のステージは何も起きない）")]
+    [Tooltip("砂埃に使うマテリアル（StoneCG/FlatBlend + 砂のスプライト）。未設定なら出さない。")]
+    public Material introDustMaterial;
+    [Tooltip("粒の数。0 で出さない。")]
+    public int introDustCount = 0;
+    [Tooltip("最初の粒が出るステージ秒と、粒が湧き続ける秒数。")]
+    public float introDustStart = 0f;
+    public float introDustEmitSec = 3.4f;
+    [Tooltip("粒 1 個の寿命（個体ごとに 0.75〜1.25 倍に散る）。")]
+    public float introDustLifeSec = 2.2f;
+    [Tooltip("湧き出す帯の中心と、その幅・高さ（どちらも論理座標）。")]
+    public Vector2 introDustOrigin = new Vector2(16f, 10.1f);
+    public Vector2 introDustSpread = new Vector2(8f, 1.4f);
+    [Tooltip("風下へ流れる速さ（負で左）と舞い上がる速さ（論理ユニット/秒）。")]
+    public Vector2 introDustDrift = new Vector2(-2f, 1.25f);
+    [Tooltip("粒の大きさ（最小・最大。論理ユニット）。")]
+    public Vector2 introDustSize = new Vector2(1f, 2.6f);
+    [Tooltip("粒の最大アルファ。")]
+    [Range(0f, 1f)] public float introDustAlpha = 0.3f;
+    [Tooltip("砂埃を置く奥行き（表示板から見た z）。岩棚の手前・ボスより奥。")]
+    public float introDustDepth = 14f;
+
     [Header("浮浪者の人魂・霧（phase = VagrantWisp のときだけ）")]
     [Tooltip("p2_wisp_* が上下に揺れる振幅（ユニット）。")]
     public float wispAmplitude = 0.15f;
