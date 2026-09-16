@@ -723,9 +723,6 @@ public class CityMapController : MonoBehaviour
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
             RenderSettings.ambientIntensity = 1f;
             RenderSettings.ambientLight = ambientColor * exposure;
-            // 既定の skybox 反射(グレーのキューブ)が鏡面環境光として全面に乗ると
-            // 夜の街が一様に明るくなる(タイトル部屋で実証)。出しているあいだは切る。
-            RenderSettings.reflectionIntensity = 0f;
             entranceDim = 1f;   // 前回の入場フェードの残りを持ち越さない
             ApplyExposure();
             ApplyAllTint(true);
@@ -788,6 +785,23 @@ public class CityMapController : MonoBehaviour
         viewNow = from;
         ApplyView(viewNow);
         BeginMove(TargetPose(), duration);
+    }
+
+    /// <summary>タイトルへ戻る(入場スイープの逆再生)。いまの姿勢から、全景と同じ
+    /// 視線のまま 1.25 倍引いた姿勢まで 1 本の ease-in-out で戻す(2026-09-16 指示)。
+    /// 区画の基調色も同じ尺で素の色へ戻す。</summary>
+    public void PlayExitSweep(float duration)
+    {
+        if (!built) return;
+        zoomInTarget = 0f;
+        zoomIn = 0f;
+        tintTarget = Color.white;
+        tintWeightTarget = 0f;   // 基調色は既定の districtTintFade で素の色へ戻る
+        CamPose to = Overview;
+        Vector3 back = Quaternion.Euler(to.euler) * Vector3.back;
+        to.pos += back * Vector3.Distance(Overview.pos, Overview.target) * (EntrancePullBack - 1f);
+        to.size *= EntrancePullBack;
+        BeginMove(to, duration);
     }
 
     /// <summary>決定でさらに寄る / 戻す。</summary>
@@ -1007,8 +1021,15 @@ public class CityMapController : MonoBehaviour
             lanternLights[i].range = lanternRange;
         }
         if (ambientSaved)
+        {
             RenderSettings.ambientLight =
                 Color.Lerp(savedAmbientLight, ambientColor * exposure, entranceDim);
+            // 既定の skybox 反射(グレーのキューブ)が鏡面環境光として全面に乗ると
+            // 夜の街が一様に明るくなる(タイトル部屋で実証)。出しているあいだは切る。
+            // 環境光と同じカーブで扱う(一気に切り替えるとタイトルの部屋の明るさが
+            // 1 コマで +9.5/255 跳ぶ。2026-09-16 実測)。
+            RenderSettings.reflectionIntensity = Mathf.Lerp(savedReflectionIntensity, 0f, entranceDim);
+        }
         if (cityCamera != null) cityCamera.backgroundColor = exposureAffectsSky ? SkyColor * exposure : SkyColor;
     }
 

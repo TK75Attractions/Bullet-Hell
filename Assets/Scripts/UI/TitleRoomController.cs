@@ -854,7 +854,12 @@ public class TitleRoomController : MonoBehaviour
             // 環境光を部屋向け(暗い藍)へ差し替える。既定のフラット灰 0.21 のままでは
             // 室内が一様に明るくなり、参考レンダーの夜の油彩にならない。部屋を消すときに
             // 必ず元へ戻す(タイトル以外の画面に影響を残さない)。
-            if (!ambientSaved)
+            if (!globalsOwned)
+            {
+                // ステージ選択から戻っている最中。環境光・反射は街側が 1 本のカーブで
+                // 送り返すので、部屋は触らない(2026-09-16)。
+            }
+            else if (!ambientSaved)
             {
                 savedAmbientMode = UnityEngine.RenderSettings.ambientMode;
                 savedAmbientLight = UnityEngine.RenderSettings.ambientLight;
@@ -862,12 +867,15 @@ public class TitleRoomController : MonoBehaviour
                 savedReflectionIntensity = UnityEngine.RenderSettings.reflectionIntensity;
                 ambientSaved = true;
             }
-            UnityEngine.RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-            UnityEngine.RenderSettings.ambientIntensity = 1f;
-            UnityEngine.RenderSettings.ambientLight = ambientColor * exposure;
-            // 既定の skybox 反射(グレーのデフォルトキューブ)が鏡面環境光として全面に乗り、
-            // 天井・床・棚が参考レンダーの 5〜8 倍明るくなっていた。部屋を出しているあいだは切る。
-            UnityEngine.RenderSettings.reflectionIntensity = 0f;
+            if (globalsOwned)
+            {
+                UnityEngine.RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+                UnityEngine.RenderSettings.ambientIntensity = 1f;
+                UnityEngine.RenderSettings.ambientLight = ambientColor * exposure;
+                // 既定の skybox 反射(グレーのデフォルトキューブ)が鏡面環境光として全面に乗り、
+                // 天井・床・棚が参考レンダーの 5〜8 倍明るくなっていた。部屋を出しているあいだは切る。
+                UnityEngine.RenderSettings.reflectionIntensity = 0f;
+            }
             exitDim = 1f;   // 前回の退場フェードの残りを持ち越さない
             ApplyExposure();
             zoomTarget = -1;
@@ -896,6 +904,20 @@ public class TitleRoomController : MonoBehaviour
     // 部屋を消す(2026-09-15。実測で跳び -17.3/255 の原因はこの 2 灯だけだった)。
     float exitDim = 1f;
 
+    // ステージ選択から戻る演出の間は、グローバルの環境光・反射(RenderSettings)を
+    // 街側に任せる。街の SetEntranceDim は「選択画面が持っていた値 → 街の値」を
+    // 補間して持っているので、退場ではその逆再生がそのまま正しい受け渡しになる。
+    // 部屋がここで自分の値(暗い藍・反射 0)を書くと、まだ映っている街が 1 コマで
+    // 暗くなり、街を片付けた瞬間に既定値へ戻って明るさが跳ぶ(実測 -12 → +10 / 255)。
+    bool globalsOwned = true;
+
+    /// <summary>この部屋が RenderSettings の環境光・反射を書いてよいか。</summary>
+    public void SetGlobalsOwned(bool on)
+    {
+        globalsOwned = on;
+        if (!on) ambientSaved = false;   // 以後この部屋は環境光・反射を触らない
+    }
+
     /// <summary>退場クロスフェード中の減光。1=通常、0=部屋を消した後と同じ明るさ。</summary>
     public void SetExitDim(float k)
     {
@@ -916,6 +938,18 @@ public class TitleRoomController : MonoBehaviour
 
     /// <summary>全景へ戻す。</summary>
     public void ClearFocus() => zoomTarget = -1;
+
+    /// <summary>ステージ選択からの復帰(入場の逆再生)。地図へ寄り切った姿勢から
+    /// 始めて、Tick が ZoomDuration かけて全景まで引き戻す。SetRoomActive(true) が
+    /// 寄りを 0 に戻した直後に呼ぶこと(2026-09-16)。</summary>
+    public void BeginReturnFromFocus(int menuIndex)
+    {
+        if (!built) return;
+        selection = Mathf.Clamp(menuIndex, 0, MenuCount - 1);
+        zoomTarget = -1;        // 目標は全景
+        zoomProgress = 1f;      // いまは寄り切った状態
+        UpdateCamera(selection, zoomProgress);   // 1 コマ目から寄り切った絵を出す
+    }
 
     public void Tick(float dt)
     {

@@ -101,6 +101,14 @@ public class TitleManager : MonoBehaviour
     public static float StartExitCrossfade { get; private set; }
     /// <summary>スタート退場の演出中か(選択画面が上の値を使ってよいか)。</summary>
     public static bool StartExitRunning { get; private set; }
+
+    /// <summary>ステージ選択 → タイトルの戻り(入場の逆再生)の進捗。
+    /// 0=選択画面のまま / 1=タイトル。タイトルの alpha に直接使う。</summary>
+    public static float ReturnCrossfade { get; private set; }
+    /// <summary>同じ時計から出した「選択画面の残り alpha」。1→0。</summary>
+    public static float ReturnSelectAlpha { get; private set; }
+    /// <summary>戻りの演出中か。</summary>
+    public static bool ReturnRunning { get; private set; }
     // 寄りが終わるまで部屋を回し続けてから消す(途中で消すと寄りが止まって見える)。
     private const float StartExitTotal = TitleRoomController.ZoomDuration;
 
@@ -1242,6 +1250,98 @@ public class TitleManager : MonoBehaviour
         {
             logoRect.anchoredPosition = new Vector2(logoRect.anchoredPosition.x, logoBaseY);
         }
+    }
+
+    // ---- ステージ選択 → タイトル(入場の逆再生。2026-09-16 指示) -------------
+    //
+    // 旧: 白カバー → シーン再読込 → タイトルをクリーン復元(PixelTransition の
+    //     title-return 演出)。切り替えが一拍止まり、BGM も切れていた。
+    // 新: シーンを読み直さず、PlayStartExit の逆を回す。部屋のカメラは「地図へ
+    //     寄り切った姿勢」から全景へ引き戻し(ZoomDuration=0.6 秒)、その 1 つの
+    //     進みを時計にしてタイトルと選択画面をクロスフェードする。BGM は
+    //     タイトルと選択画面で共通なので触らない(切らずにそのままつなぐ)。
+
+    /// <summary>ステージ選択から戻る演出。呼び出し側は await して終わりを待つ。</summary>
+    public async Task PlayReturnFromSelect()
+    {
+        ReturnCrossfade = 0f;
+        ReturnSelectAlpha = 1f;
+        ReturnRunning = true;
+        PrepareReturnFromSelect();
+
+        // 選択画面のフェードアウトは退場と同じ 0.05〜0.55 秒の窓(0.5 秒)、
+        // タイトルのフェードインは寄り戻し全体(0.6 秒)。どちらも下の u ひとつを
+        // 時計にするので、別タイマーによるコマずれが起きない。
+        const float s0 = StartExitCoverDelay / TitleRoomController.ZoomDuration;
+        const float s1 = (StartExitCoverDelay + StartExitFade) / TitleRoomController.ZoomDuration;
+
+        float time = 0f;
+        while (time < TitleRoomController.ZoomDuration)
+        {
+            float dt = Time.deltaTime;
+            time += dt;
+            TickRoom(dt);
+            animTime += dt;
+
+            // u = 寄り戻しの進み(0=寄り切り / 1=全景)。
+            float u = Room != null && Room.Ready
+                ? 1f - Room.ZoomAmount
+                : Mathf.Clamp01(time / TitleRoomController.ZoomDuration);
+            float fIn = u * u * (3f - 2f * u);
+            float sx = Mathf.Clamp01((u - s0) / (s1 - s0));
+            float fOut = 1f - sx * sx * (3f - 2f * sx);
+
+            ReturnCrossfade = fIn;
+            // 退場と対称に 6% の余裕を足して落とす(交差中に黒フレームを作らない)。
+            ReturnSelectAlpha = Mathf.Clamp01(1.06f * fOut);
+            group.alpha = fIn;
+            // 部屋の平行光は街まで届くので、クロスフェードと同じカーブで戻す。
+            Room?.SetExitDim(fIn);
+
+            await Task.Yield();
+            if (this == null || group == null)
+            {
+                ReturnRunning = false;
+                ReturnCrossfade = 1f;
+                ReturnSelectAlpha = 0f;
+                returnAnimating = false;
+                return;
+            }
+        }
+
+        ReturnCrossfade = 1f;
+        ReturnSelectAlpha = 0f;
+        ReturnRunning = false;
+        group.alpha = 1f;
+        Room?.SetExitDim(1f);
+        transform.localScale = Vector3.one;
+        animTime = 0f;
+        // ここで通常のタイトル更新(UpdateTitle)へ引き渡す。
+        returnAnimating = false;
+    }
+
+    // 戻りの 1 コマ目の状態を作る。行・ロゴ・図形は PlayStartExit の最後で
+    // 退場前の配置へ戻してあるので、ここでは表示状態と部屋の姿勢だけ整える。
+    private void PrepareReturnFromSelect()
+    {
+        if (group == null) group = GetComponent<CanvasGroup>();
+        // 演出中は UpdateTitle を止める(部屋を二重に Tick すると寄り戻しが倍速になる)。
+        // dismissed は次の PlayStartExit を通すためここで下ろしておく。
+        returnAnimating = true;
+        if (returnBackdrop != null) returnBackdrop.gameObject.SetActive(false);
+        dismissed = false;
+        beatTimer = 0f;
+        beatPulse = 0f;
+        transform.localScale = Vector3.one;
+        group.alpha = 0f;
+        gameObject.SetActive(true);
+        // 環境光・反射は街側が「選択画面の値 → 既定」へ送り返すので、部屋は触らない。
+        Room?.SetGlobalsOwned(false);
+        ApplyRoomLayout();              // 部屋を起こす(寄りは 0 に戻る)
+        ShowMenu();
+        // 起こした直後に「地図へ寄り切った姿勢」へ置き直し、そこから引き戻す。
+        Room?.BeginReturnFromFocus((int)TitleMenuAction.Start);
+        Room?.SetExitDim(0f);
     }
 
     // ---- Menu -------------------------------------------------------------

@@ -1593,6 +1593,13 @@ public class JsabStageSelect : MonoBehaviour
         city.Map.SetEntranceDim(k);
     }
 
+    /// <summary>タイトルへ戻るときに街カメラを引きへ戻す(入場スイープの逆再生)。</summary>
+    public void PlayCityExit()
+    {
+        if (!cityMode || city == null) return;
+        city.PlayExit();
+    }
+
     /// <summary>スタイル(0=既定 / 1=カルーセル / 2=城壁の街)を反映する。</summary>
     public void SetStyle(int style)
     {

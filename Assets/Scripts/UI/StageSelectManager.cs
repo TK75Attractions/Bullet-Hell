@@ -678,6 +678,48 @@ public class StageSelectManager : MonoBehaviour
         RefreshStyleVisibility();
     }
 
+    /// <summary>タイトルへ戻る退場(入場の逆再生。2026-09-16 指示)。街カメラを引きへ
+    /// 戻しながら、タイトル側が出す 1 つの時計(TitleManager.ReturnSelectAlpha)で
+    /// 選択画面を落とす。呼び出し側は await して終わりを待つ。</summary>
+    public async Task PlayExitToTitle()
+    {
+        state = State.Music;
+        if (jsab != null)
+        {
+            jsab.CloseDifficulty();
+            jsab.PlayCityExit();
+
+            float total = TitleRoomController.ZoomDuration;
+            float t = 0f;
+            while (t < total)
+            {
+                float dt = Time.deltaTime;
+                t += dt;
+                // 戻りのあいだ GManager.Update は選択画面へ来ないので(returningToTitle で
+                // 入力ごと止めている)、街カメラの補間はここから回す。これが無いと
+                // PlayExitSweep が 1 コマも進まず、引きへ戻る動きが出ない。
+                jsab.Tick(dt);
+                float a = TitleManager.ReturnRunning
+                    ? TitleManager.ReturnSelectAlpha
+                    : Mathf.Clamp01(1f - t / total);
+                jsab.SetEntranceAlpha(a);
+                // 街のライト・環境光もタイトルの部屋と同じカーブで落とす
+                // (一気に消すと部屋側の明るさが 1 コマで跳ぶ)。
+                jsab.SetCityEntranceDim(a);
+                await Task.Yield();
+                if (this == null) return;
+            }
+            jsab.SetEntranceAlpha(0f);
+            jsab.SetCityEntranceDim(0f);
+            jsab.SetVisible(false);
+        }
+        variableCG.alpha = 0f;
+        staticCG.alpha = 0f;
+        ((RectTransform)variableCG.transform).localScale = Vector3.one;
+        ((RectTransform)staticCG.transform).localScale = Vector3.one;
+        ResetTimer();
+    }
+
     // Resets the countdown for the current phase (e.g. when leaving the title screen).
     public void ResetTimer()
     {

@@ -1027,9 +1027,12 @@ public class GManager : MonoBehaviour
     }
 
     // ステージ選択(カルーセル)で Esc / P1 の B を押したときにタイトルへ戻る。
-    // Result→Title / QuitPlay と同流儀で白カバー→シーン再読込し、タイトル BGM・
-    // 背景・入力状態をクリーンに復元する(半端な手動復元の取りこぼしを避ける)。
-    // 再読込後は PixelTransition の title-return 演出でタイトルが復帰する。
+    // 2026-09-16 指示で「入場の逆再生」にした。旧実装は白カバー → シーン再読込 →
+    // PixelTransition の title-return 演出で、切り替えが一拍止まり BGM も切れていた。
+    // いまはシーンを読み直さず、TitleManager.PlayReturnFromSelect(部屋のカメラを
+    // 地図から全景へ引き戻す)と StageSelectManager.PlayExitToTitle(街カメラを引きへ
+    // 戻しながら選択画面を落とす)を同じ時計でクロスさせる。BGM はタイトルと選択画面で
+    // 共通なので止めない。
     public async void ReturnToTitleFromSelect()
     {
         if (returningToTitle || state != GameState.ChoosingStage) return;
@@ -1037,24 +1040,24 @@ public class GManager : MonoBehaviour
         // 即座に Title 状態へ移し、選択画面のカウントダウン自動スタート等の
         // 副作用を止める(UpdateTitleMenu の returningToTitle ガードと二重の保険)。
         state = GameState.Title;
-        SSManager?.NotifyGameStateChanged();
-        // 選択/タイトル BGM は再読込で作り直されるが、覆いの間に手前でフェード
-        // アウトしておくとぶつ切りにならない。
-        AManager?.FadeOutAndStopBGM(0.4f);
-
-        PixelTransition[] transitions = UnityEngine.Object.FindObjectsByType<PixelTransition>(
-            FindObjectsInactive.Include, FindObjectsSortMode.None);
-        if (transitions.Length > 0)
-        {
-            transitions[0].SetColor(Color.white);
-            await transitions[0].Cover();
-            // 覆い切ってからフラグを立てる。先に立てると再読込前の旧シーンが
-            // フラグを消費してタイトルが覆いの下に隠れたままになる(QuitPlay 準拠)。
-            PixelTransition.RevealAfterNextSceneLoad(true);
-        }
+        titlePhase = TitlePhase.Menu;
+        // 戻るのに使ったボタンがタイトルのメニューへ漏れて即決定しないよう、
+        // 一度離すまで受け付けない(CloseTitleOptions と同じ流儀)。
+        titleArmed = false;
         QOrder?.ClearAllGameplayBulletsImmediate();
-        UnityEngine.SceneManagement.SceneManager.LoadScene(
-            UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+        // ここで NotifyGameStateChanged は呼ばない。RefreshStyleVisibility は
+        // state==Title を見て JSAB を即 SetVisible(false) にするので、クロスフェード
+        // する前に選択画面が 1 コマで消える(2026-09-16 実測のハードカットの原因)。
+        // 表示状態の整理は演出が終わってから下で行う。
+
+        // タイトル側を先に起こしてから選択画面を落とす(選択画面が読む時計は
+        // タイトル側が出すので、順序を逆にすると 1 コマぶん代替値を使ってしまう)。
+        Task titleReturn = TManager != null ? TManager.PlayReturnFromSelect() : Task.CompletedTask;
+        Task selectExit = SSManager != null ? SSManager.PlayExitToTitle() : Task.CompletedTask;
+        await Task.WhenAll(titleReturn, selectExit);
+
+        SSManager?.NotifyGameStateChanged();
+        returningToTitle = false;
     }
 
     public void AddPlayerHitCount(int value = 1)

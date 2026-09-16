@@ -437,6 +437,14 @@ public class CitySelectView : MonoBehaviour
     // 決定から約 1.15 秒で区画に着く。
     private const float EntranceSweepDuration = 1.1f;
 
+    /// <summary>タイトルへ戻るときの退場。入場スイープの逆で、区画から全景より
+    /// 引いた位置まで戻す(2026-09-16 指示)。</summary>
+    public void PlayExit()
+    {
+        if (map == null) return;
+        map.PlayExitSweep(EntranceSweepDuration);
+    }
+
     /// <summary>決定で区画へさらに寄る / 戻す。</summary>
     public void SetCloseUp(bool on)
     {
