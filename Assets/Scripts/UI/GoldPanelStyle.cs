@@ -221,6 +221,146 @@ public static class GoldPanelStyle
         return sprite;
     }
 
+    /// <summary>面取り角の距離場(0 = 輪郭上、負 = 内側)。</summary>
+    public static float ChamferRect(float ax, float ay, float hw, float hh, float chamfer)
+    {
+        float d = Mathf.Max(ax - hw, ay - hh);
+        return Mathf.Max(d, (ax + ay - (hw + hh - chamfer)) * 0.7071f);
+    }
+
+    /// <summary>円弧をポリラインで引く(角度は度・時計回りでも反時計回りでもよい)。</summary>
+    public static void DrawArc(Color32[] buf, int w, int h, float cx, float cy, float radius,
+        float deg0, float deg1, float thick, Color32 col, int segments = 48)
+    {
+        float px = 0f, py = 0f;
+        for (int i = 0; i <= segments; i++)
+        {
+            float a = Mathf.Lerp(deg0, deg1, i / (float)segments) * Mathf.Deg2Rad;
+            float x = cx + Mathf.Cos(a) * radius;
+            float y = cy + Mathf.Sin(a) * radius;
+            if (i > 0) DrawLine(buf, w, h, px, py, x, y, thick, col);
+            px = x; py = y;
+        }
+    }
+
+    /// <summary>
+    /// 参考画像(Instructions/リザルト/ref/result_mockup_gpt_20260916.png)の額縁を写した板。
+    /// 面取り角の <b>二重の金枠</b>(外の太線 + 10px 内側の細線 + さらに内側の髪の毛線)、
+    /// 四隅の <b>弧と点の飾り</b>、上下中央の <b>中空の菱形と翼形の曲線</b>、
+    /// 深い紺のグラデーション(既定 #0B1022 前後・不透明度 0.86)と中央のわずかな放射状の明るみ。
+    ///
+    /// <paramref name="ss"/> は焼き込みの倍率(既定は最長辺が 1400px を超えるまで上げる)。
+    /// 線の太さ・余白はすべて ss 倍するので、見た目の寸法は ss を変えても同じ。
+    /// </summary>
+    public static Sprite CreateOrnatePanelSprite(int w, int h, List<Texture2D> ownedTextures,
+        List<Sprite> ownedSprites, string name = "OrnatePanel", int ss = 0)
+    {
+        if (ss <= 0) ss = Mathf.Max(2, Mathf.CeilToInt(1400f / Mathf.Max(w, h)));
+        int W = w * ss, H = h * ss;
+        Color32[] px = new Color32[W * H];
+        float cx = (W - 1) * 0.5f, cy = (H - 1) * 0.5f;
+        float hw = W * 0.5f, hh = H * 0.5f;
+
+        float chamfer = 26f * ss;      // 面取りの深さ
+        float inset2 = 10f * ss;       // 二重目の枠
+        float inset3 = 17f * ss;       // 三重目(髪の毛線)
+        float outerThick = 2.2f * ss;
+
+        Color32 plateTop = new Color32(0x14, 0x1A, 0x33, 0xDC);
+        Color32 plateBottom = new Color32(0x09, 0x0D, 0x1E, 0xE8);
+
+        for (int y = 0; y < H; y++)
+        {
+            float ty = y / (float)(H - 1);
+            Color fill = (Color)Color32.Lerp(plateBottom, plateTop, Mathf.Sqrt(ty));
+            float ay = Mathf.Abs(y - cy);
+            for (int x = 0; x < W; x++)
+            {
+                float ax = Mathf.Abs(x - cx);
+                float dOuter = ChamferRect(ax, ay, hw - 1f, hh - 1f, chamfer);
+                float inside = Mathf.Clamp01(0.5f - dOuter);
+                if (inside <= 0f) continue;
+
+                // 板。中央のわずかな放射状の明るみ(参考画像の「内側の明るみ」)。
+                float rx = (x - cx) / hw, ry = (y - cy) / hh;
+                float rad = Mathf.Sqrt(rx * rx * 0.85f + ry * ry);
+                float lift = Mathf.Clamp01(1f - rad * 1.25f);
+                Color fillL = Color.Lerp(fill, new Color(0.115f, 0.135f, 0.235f), lift * lift * 0.5f);
+                Blend(px, W, H, x, y, fillL, inside * fill.a);
+
+                // 外周の金枠。
+                Blend(px, W, H, x, y, TexGoldLine,
+                    Mathf.Clamp01(outerThick - Mathf.Abs(dOuter + outerThick * 0.5f)) * inside);
+
+                // 二重目の枠(こちらが主線)。
+                float d2 = ChamferRect(ax, ay, hw - inset2, hh - inset2, chamfer);
+                Blend(px, W, H, x, y, TexGoldLine,
+                    Mathf.Clamp01(1.5f * ss - Mathf.Abs(d2)) * 0.95f);
+
+                // 三重目の髪の毛線。
+                float d3 = ChamferRect(ax, ay, hw - inset3, hh - inset3, chamfer);
+                Blend(px, W, H, x, y, TexGoldDim, Mathf.Clamp01(0.9f * ss - Mathf.Abs(d3)) * 0.40f);
+            }
+        }
+
+        // ---- 四隅の飾り(弧 + 点 + 段差) ----
+        for (int sx = -1; sx <= 1; sx += 2)
+        {
+            for (int sy = -1; sy <= 1; sy += 2)
+            {
+                // 面取り辺の両端(二重目の枠の上)。
+                float ex = cx + sx * (hw - inset2);
+                float ey = cy + sy * (hh - inset2 - chamfer);
+                float fx = cx + sx * (hw - inset2 - chamfer);
+                float fy = cy + sy * (hh - inset2);
+
+                // 面取り辺から内側へ 1 段下げた小さな段差(参考画像の階段状の返し)。
+                float mx = (ex + fx) * 0.5f, my = (ey + fy) * 0.5f;
+                float stepX = mx - sx * 7f * ss, stepY = my - sy * 7f * ss;
+                DrawLine(px, W, H, mx - sx * 9f * ss - (-sx) * 0f, my + sy * 9f * ss,
+                    stepX - sx * 9f * ss, stepY + sy * 9f * ss, 1.7f * ss, TexGoldBright);
+                DrawLine(px, W, H, ex, ey, ex - sx * 8f * ss, ey + sy * 8f * ss, 1.7f * ss, TexGoldBright);
+                DrawLine(px, W, H, ex - sx * 8f * ss, ey + sy * 8f * ss,
+                    ex - sx * 8f * ss, ey + sy * 22f * ss, 1.7f * ss, TexGoldBright);
+                DrawLine(px, W, H, fx, fy, fx + sx * 8f * ss, fy - sy * 8f * ss, 1.7f * ss, TexGoldBright);
+                DrawLine(px, W, H, fx + sx * 8f * ss, fy - sy * 8f * ss,
+                    fx + sx * 22f * ss, fy - sy * 8f * ss, 1.7f * ss, TexGoldBright);
+
+                // 内側の小さな弧(渦の返し)と点 2 つ。
+                float ax0 = mx - sx * 26f * ss, ay0 = my - sy * 26f * ss;
+                float baseDeg = sx > 0 ? (sy > 0 ? 225f : 135f) : (sy > 0 ? 315f : 45f);
+                DrawArc(px, W, H, ax0, ay0, 11f * ss, baseDeg - 100f, baseDeg + 60f, 1.5f * ss, TexGoldLine, 28);
+                DrawDiamond(px, W, H, mx - sx * 14f * ss, my - sy * 14f * ss, 3.2f * ss, TexGoldBright);
+                DrawDiamond(px, W, H, ax0 + sx * 2f * ss, ay0 + sy * 2f * ss, 2.2f * ss, TexGoldBright);
+            }
+        }
+
+        // ---- 上下中央の中空菱形 + 翼形の曲線 ----
+        foreach (float sign in new[] { 1f, -1f })
+        {
+            float dy = cy + sign * (hh - inset2);
+            DrawDiamond(px, W, H, cx, dy, 13f * ss, TexGoldBright);
+            DrawDiamond(px, W, H, cx, dy, 7.5f * ss, new Color32(0x0B, 0x10, 0x22, 0xFF));
+            for (int s = -1; s <= 1; s += 2)
+            {
+                // 菱形の脇から外へ、浅く反り返る翼。
+                float x0 = cx + s * 16f * ss;
+                float prevX = x0, prevY = dy;
+                for (int i = 1; i <= 24; i++)
+                {
+                    float u = i / 24f;
+                    float x = x0 + s * u * 42f * ss;
+                    float y = dy - sign * Mathf.Sin(u * Mathf.PI) * 7f * ss * (1f - u * 0.45f);
+                    DrawLine(px, W, H, prevX, prevY, x, y, 1.4f * ss * (1f - u * 0.5f), TexGoldLine);
+                    prevX = x; prevY = y;
+                }
+                DrawLine(px, W, H, cx + s * 60f * ss, dy, cx + s * 96f * ss, dy, 1.3f * ss, TexGoldLine);
+            }
+        }
+
+        return MakeSprite(px, W, H, name, ownedTextures, ownedSprites);
+    }
+
     // =======================================================================
     //  UI 生成ヘルパー
     // =======================================================================

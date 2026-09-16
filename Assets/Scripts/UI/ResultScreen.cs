@@ -36,48 +36,67 @@ public sealed class ResultScreen : MonoBehaviour
     private static readonly Color32 TexGoldLine = new Color32(0xA8, 0x83, 0x45, 0xFF);
     private static readonly Color32 TexGoldBright = new Color32(0xE9, 0xB9, 0x6E, 0xFF);
     private static readonly Color32 TexGoldDim = new Color32(0x6E, 0x57, 0x2C, 0xFF);
-    private static readonly Color32 TexButtonTop = new Color32(0x14, 0x1B, 0x2E, 0xF2);
-    private static readonly Color32 TexButtonBottom = new Color32(0x0A, 0x10, 0x20, 0xF2);
+    // ボタンの石目板。参考画像の実測は (33,32,48) 前後。
+    private static readonly Color32 TexButtonTop = new Color32(0x2A, 0x28, 0x3A, 0xF4);
+    private static readonly Color32 TexButtonBottom = new Color32(0x1B, 0x1A, 0x28, 0xF4);
 
-    /// <summary>視覚 sRGB(0..255) → 頂点色用の pre-linear。</summary>
+    /// <summary>
+    /// 視覚 sRGB(0..255) をそのまま頂点色にする。
+    ///
+    /// 2026-09-16 実測: このリザルトの Overlay Canvas では、頂点色(TMP.color / Image.color)を
+    /// <c>.linear</c> に落として渡すと <b>画面に出るのが linear 値そのもの</b>になり、
+    /// 一段暗く濁る(ラベルの狙い #B4BCC9 が実測 117,128,149 = linear 値)。
+    /// 焼き込みテクスチャ側は sRGB テクスチャとして正しく変換される(枠線の #A88345 が実測 168,131,69)。
+    /// よって頂点色は pre-linear にせず、視覚値をそのまま渡す。
+    /// </summary>
     private static Color Vis(int r, int g, int b, float a = 1f)
     {
-        Color c = new Color(r / 255f, g / 255f, b / 255f, 1f).linear;
-        c.a = a;
-        return c;
+        return new Color(r / 255f, g / 255f, b / 255f, a);
     }
 
-    private static readonly Color GoldAccent = Vis(0xE8, 0xB0, 0x64);   // 金(琥珀)のアクセント
-    private static readonly Color GoldBright = Vis(0xF7, 0xD2, 0x95);   // 金のハイライト
-    private static readonly Color GoldDim = Vis(0xB0, 0x8B, 0x4A);      // 罫線・アイコンの金
-    private static readonly Color SilverLabel = Vis(0xB4, 0xBC, 0xC9);  // RESULT などの小見出し
-    private static readonly Color InkWhite = Vis(0xF2, 0xF4, 0xF8);     // 舞台名の白
+    // 参考画像の実測値に合わせた(値 = 254,234,113 / ラベル = 220,222,239 / 舞台名 = 白)。
+    private static readonly Color GoldAccent = Vis(0xF8, 0xDC, 0x8C);   // 値・菱形・STAGE CLEAR
+    private static readonly Color GoldBright = Vis(0xF8, 0xDD, 0x9E);   // ランク字のハイライト
+    private static readonly Color GoldDim = Vis(0xC6, 0x9E, 0x5C);      // 罫線・アイコンの金
+    private static readonly Color SilverLabel = Vis(0xDC, 0xDE, 0xEC);  // RESULT・情報行のラベル
+    private static readonly Color InkWhite = Vis(0xFF, 0xFF, 0xFF);     // 舞台名の白
     private static readonly Color FailRed = Vis(0xE0, 0x6A, 0x74);      // STAGE FAILED
 
     // ---- 寸法(1080 基準) --------------------------------------------------
-    private const float PanelW = 640f;
-    private const float PanelH = 900f;
+    // 値の正は参考画像 Instructions/リザルト/ref/result_mockup_gpt_20260916.png(1672x941)。
+    // 参考画像の画素 → ここの値は ×1.1477(= 1080/941)。パネルは画面中央。
+    private const float PanelW = 698f;     // 参考 608px = 画面幅の 36.4%
+    private const float PanelH = 938f;     // 参考 817px = 画面高さの 86.8%
     private const float PanelTop = PanelH * 0.5f;
-    private const float ScrimAlpha = 0.34f;
+    private const float ScrimAlpha = 0.20f;
 
-    private const float YResult = 390f;
-    private const float YTopDiamond = 356f;
-    private const float YVerdict = 300f;
-    private const float YRule1 = 242f;
-    private const float YStageTitle = 186f;
-    private const float YRule2 = 130f;
-    private const float YRankLabel = 112f;
-    private const float YRank = -14f;
-    private const float YRule3 = -120f;
-    private const float YRow0 = -160f;
-    private const float RowPitch = 48f;
-    private const float YButton = -384f;
-    private const float YLinks = -472f;
-    private const float YTransfer = -502f;
+    private const float YResult = 434f;       // 参考 y=94.5
+    private const float YTopRule = 400f;      // 参考 y=122(銀の細い罫 + 小菱形)
+    private const float YVerdict = 355f;      // 参考 y=164
+    private const float YRule1 = 303f;        // 参考 y=206(金の罫 + 菱形)
+    private const float YStageTitle = 264f;   // 参考 y=243.5
+    private const float YRule2 = 212f;        // 参考 y=286(矢羽根つきの飾り罫)
+    private const float YCrest = 180f;        // 参考 y=314(小さな金の菱形)
+    private const float YRankLabel = 137f;    // 参考 y=351
+    private const float YRank = 48f;          // 参考 y=431(ランク字の中心)
+    private const float YLaurel = 27f;        // 参考 y=442.5(月桂樹の中心)
+    private const float YKnot = -64f;         // 参考 y=527(月桂樹の結びの菱形)
+    private const float YRowSep0 = -82f;      // 情報行の 1 本目の区切り線
+    private const float RowPitch = 56.5f;     // 参考 50.25px
+    private const float YRow0 = YRowSep0 - RowPitch * 0.5f;
+    private const float YButton = -364f;
+    private const float ButtonW = 460f;       // 参考 400px = パネル幅の 65.8%
+    private const float ButtonH = 88f;        // 参考 80px
+    private const float YLinks = -421f;
+    private const float YTransfer = -440f;
 
-    private const float RowHalfW = 236f;   // 情報行の左右端
-    private const float RowValueRight = 236f;
-    private const float RowSepX = 44f;     // 1P の縦罫の x
+    private const float RowHalfW = 249f;   // 情報行の左右端
+    private const float RowIconX = -216.5f; // 参考 x=646.5(アイコンの中心)
+    private const float RowLabelX = -158f;  // 参考 x=697(ラベルの左端)
+    private const float RowSepX = 81.5f;    // 参考 x=906(1P の縦罫)
+    private const float RowValueX = 137f;   // 参考 x=954(値の左端)
+    private const float RowSepW = 435f;     // 参考 379px(行間の区切り線)
+    private const float RowValueRight = 249f;
 
     // ---- 入場シーケンス(リザルト BGM のドロップ 1.44s にランクを着地させる) --
     private const float EnterPlateDur = 0.45f;
@@ -115,6 +134,7 @@ public sealed class ResultScreen : MonoBehaviour
     private float blurTargetAlpha;
 
     private Image scrimImage;
+    private Image vignetteImage;
     private CanvasGroup contentGroup;
     private RectTransform contentRect;
 
@@ -140,6 +160,9 @@ public sealed class ResultScreen : MonoBehaviour
     private Material rankGlowMat2;
     private Image laurelLeft;
     private Image laurelRight;
+    private Image laurelKnot;
+    private Image rankRings;
+    private const float LaurelBox = 340f;   // 月桂樹スプライトの表示寸法(正方)
     private SoftCircleGraphic rankHalo;
     private float rankHaloBaseAlpha = 0.038f;
 
@@ -165,6 +188,7 @@ public sealed class ResultScreen : MonoBehaviour
     private readonly Image[] actionUnderlines = new Image[3];
     private readonly Action[] actionValues = new Action[3];
     private Image nextButtonBody;
+    private Image nextButtonGlow;
     private int selectedActionIndex;
     private bool navLeftPrev;
     private bool navRightPrev;
@@ -203,6 +227,7 @@ public sealed class ResultScreen : MonoBehaviour
     private float rankingOverlayTarget;
     private TMP_Text rankingOverlayHeading;
     private GameObject initialsGroup;
+    private TMP_Text initialsScoreLine;
     private readonly TMP_Text[] initialsSlotTexts = new TMP_Text[RankingStore.NameLength];
     private readonly int[] initialsCharIndex = new int[RankingStore.NameLength];
     private int initialsColumn;
@@ -258,7 +283,15 @@ public sealed class ResultScreen : MonoBehaviour
         blurImage.color = new Color(1f, 1f, 1f, 0f);
         Stretch(blurImage.rectTransform);
 
-        scrimImage = NewImage("Scrim", root, new Color(0f, 0.004f, 0.012f, 0f));
+        // 周辺減光(参考画像の背景は中央が明るく端が沈む)。ぼかし板の上に敷く。
+        vignetteImage = NewImage("Vignette", root, Color.white);
+        vignetteImage.sprite = CreateVignetteSprite();
+        vignetteImage.type = Image.Type.Simple;
+        Stretch(vignetteImage.rectTransform);
+        vignetteImage.color = new Color(1f, 1f, 1f, 0f);
+
+        // わずかな青寄せと減光をかける薄幕(彩度を落として夜へ寄せる)。
+        scrimImage = NewImage("Scrim", root, new Color(0.016f, 0.022f, 0.055f, 0f));
         Stretch(scrimImage.rectTransform);
 
         GameObject content = NewRect("Content", root);
@@ -272,8 +305,10 @@ public sealed class ResultScreen : MonoBehaviour
         SetRect(panelRect, Vector2.zero, new Vector2(PanelW, PanelH));
         panelGroup = panelGo.AddComponent<CanvasGroup>();
 
+        // 板は GoldPanelStyle と共用(U3 のステージ選択と同じ焼き込みの流儀)。
         Image plate = NewImage("Plate", panelRect, Color.white);
-        plate.sprite = CreatePanelSprite();
+        plate.sprite = GoldPanelStyle.CreateOrnatePanelSprite((int)PanelW, (int)PanelH,
+            generatedTextures, generatedSprites, "ResultPanel");
         plate.type = Image.Type.Simple;
         Stretch(plate.rectTransform);
 
@@ -293,29 +328,46 @@ public sealed class ResultScreen : MonoBehaviour
         SetRect(head, Vector2.zero, new Vector2(PanelW, PanelH));
         headerGroup = headGo.AddComponent<CanvasGroup>();
 
-        TMP_Text resultLabel = NewText("ResultLabel", head, "RESULT", 26f, SilverLabel, TextAlignmentOptions.Center);
-        resultLabel.characterSpacing = 22f;
-        SetRect((RectTransform)resultLabel.transform, new Vector2(0f, YResult), new Vector2(420f, 36f));
+        // RESULT: 銀灰・字間を参考画像に合わせて広く(幅 192 / 字高 21)。
+        TMP_Text resultLabel = NewText("ResultLabel", head, "RESULT", 30f, SilverLabel, TextAlignmentOptions.Center);
+        resultLabel.characterSpacing = 34f;
+        SetRect((RectTransform)resultLabel.transform, new Vector2(0f, YResult), new Vector2(460f, 40f));
 
-        AddDiamond(head, new Vector2(0f, YTopDiamond), 13f, GoldAccent);
+        // RESULT の下の細い銀の罫 + 小さな白菱形。
+        AddRule(head, new Vector2(0f, YTopRule), 429f, false, SilverLabel, 0.5f);
+        AddDiamond(head, new Vector2(0f, YTopRule), 13f, new Color(InkWhite.r, InkWhite.g, InkWhite.b, 0.9f));
 
-        verdictText = NewText("Verdict", head, "STAGE CLEAR", 64f, GoldAccent, TextAlignmentOptions.Center);
-        verdictText.characterSpacing = 4f;
-        SetRect((RectTransform)verdictText.transform, new Vector2(0f, YVerdict), new Vector2(600f, 110f));
-        ApplyTextGlow(verdictText, new Color(0.85f, 0.55f, 0.18f, 0.5f), 0.055f, 0.5f);
+        // STAGE CLEAR: 参考画像の字高 49 / 幅 504。暖色の柔らかい発光を外側へ。
+        verdictText = NewText("Verdict", head, "STAGE CLEAR", 61f, GoldAccent, TextAlignmentOptions.Center);
+        verdictText.characterSpacing = 8f;
+        SetRect((RectTransform)verdictText.transform, new Vector2(0f, YVerdict), new Vector2(640f, 120f));
+        ApplyTextGlow(verdictText, new Color(0.78f, 0.50f, 0.18f, 0.70f), 0.085f, 0.58f);
 
-        AddRule(head, new Vector2(0f, YRule1), 470f, false);
+        // STAGE CLEAR の下: 両端が細く消える金の罫 + 中央の菱形。
+        AddRule(head, new Vector2(0f, YRule1), 520f, false);
+        AddDiamond(head, new Vector2(0f, YRule1), 15f, GoldAccent);
 
         GameObject titleGo = NewRect("TitleGroup", panel);
         RectTransform titleRect = (RectTransform)titleGo.transform;
         SetRect(titleRect, Vector2.zero, new Vector2(PanelW, PanelH));
         titleGroup = titleGo.AddComponent<CanvasGroup>();
 
-        stageTitleText = NewText("StageTitle", titleRect, "", 58f, InkWhite, TextAlignmentOptions.Center);
-        stageTitleText.characterSpacing = 6f;
-        SetRect((RectTransform)stageTitleText.transform, new Vector2(0f, YStageTitle), new Vector2(560f, 86f));
+        stageTitleText = NewText("StageTitle", titleRect, "", 53f, InkWhite, TextAlignmentOptions.Center);
+        stageTitleText.characterSpacing = 15f;
+        SetRect((RectTransform)stageTitleText.transform, new Vector2(0f, YStageTitle), new Vector2(600f, 90f));
+        ApplyTextGlow(stageTitleText, new Color(0.62f, 0.68f, 0.85f, 0.32f), 0.055f, 0.55f);
 
-        AddRule(titleRect, new Vector2(0f, YRule2), 470f, true);
+        // 舞台名の下: 中央に菱形・左右に矢羽根の飾り罫(参考画像 幅 312)。
+        Image orn = NewImage("TitleOrnament", titleRect, Color.white);
+        orn.sprite = CreateOrnamentRuleSprite();
+        orn.type = Image.Type.Simple;
+        SetRect(orn.rectTransform, new Vector2(0f, YRule2), new Vector2(312f, 26f));
+
+        // その下の小さな金の菱形(ランク章の頭飾り)。
+        Image crest = NewImage("Crest", titleRect, Color.white);
+        crest.sprite = CreateCrestSprite();
+        crest.type = Image.Type.Simple;
+        SetRect(crest.rectTransform, new Vector2(0f, YCrest), new Vector2(102f, 28f));
     }
 
     // 中段: 月桂樹に囲まれた大きな金のランク字
@@ -326,47 +378,63 @@ public sealed class ResultScreen : MonoBehaviour
         SetRect(rankGroupRect, Vector2.zero, new Vector2(PanelW, PanelH));
         rankGroup = go.AddComponent<CanvasGroup>();
 
-        rankHalo = NewGraphic<SoftCircleGraphic>("RankHalo", rankGroupRect);
-        rankHalo.color = new Color(GoldAccent.r, GoldAccent.g, GoldAccent.b, 0.038f);
-        SetRect(rankHalo.rectTransform, new Vector2(0f, YRank), new Vector2(360f, 360f));
+        // 背景の同心リング(参考画像の薄い金の円 3 本)。焼き込み 1 枚で持つ。
+        rankRings = NewImage("RankRings", rankGroupRect, Color.white);
+        rankRings.sprite = CreateRankRingsSprite();
+        rankRings.type = Image.Type.Simple;
+        SetRect(rankRings.rectTransform, new Vector2(0f, YRank), new Vector2(400f, 400f));
 
+        rankHalo = NewGraphic<SoftCircleGraphic>("RankHalo", rankGroupRect);
+        rankHalo.color = new Color(GoldAccent.r, GoldAccent.g, GoldAccent.b, 0.005f);
+        SetRect(rankHalo.rectTransform, new Vector2(0f, YRank), new Vector2(330f, 330f));
+
+        // 月桂樹: 左半分を焼き、右は localScale.x=-1 で反転(左右対称)。
         Sprite laurel = CreateLaurelSprite();
-        laurelLeft = NewImage("LaurelL", rankGroupRect, new Color(GoldAccent.r, GoldAccent.g, GoldAccent.b, 0.95f));
+        laurelLeft = NewImage("LaurelL", rankGroupRect, Color.white);
         laurelLeft.sprite = laurel;
-        SetRect(laurelLeft.rectTransform, new Vector2(0f, YRank), new Vector2(306f, 306f));
-        laurelRight = NewImage("LaurelR", rankGroupRect, new Color(GoldAccent.r, GoldAccent.g, GoldAccent.b, 0.95f));
+        SetRect(laurelLeft.rectTransform, new Vector2(0f, YLaurel), new Vector2(LaurelBox, LaurelBox));
+        laurelRight = NewImage("LaurelR", rankGroupRect, Color.white);
         laurelRight.sprite = laurel;
-        SetRect(laurelRight.rectTransform, new Vector2(0f, YRank), new Vector2(306f, 306f));
+        SetRect(laurelRight.rectTransform, new Vector2(0f, YLaurel), new Vector2(LaurelBox, LaurelBox));
         laurelRight.rectTransform.localScale = new Vector3(-1f, 1f, 1f);
 
-        TMP_Text rankLabel = NewText("RankLabel", rankGroupRect, "RANK", 24f, new Color(GoldAccent.r, GoldAccent.g, GoldAccent.b, 0.92f), TextAlignmentOptions.Center);
-        rankLabel.characterSpacing = 20f;
-        SetRect((RectTransform)rankLabel.transform, new Vector2(0f, YRankLabel), new Vector2(300f, 34f));
+        // 月桂樹の結び(下端中央の縦長の菱形)。
+        laurelKnot = NewImage("LaurelKnot", rankGroupRect, GoldAccent);
+        laurelKnot.sprite = CreateDiamondRingSprite();
+        laurelKnot.type = Image.Type.Simple;
+        SetRect(laurelKnot.rectTransform, new Vector2(0f, YKnot), new Vector2(23f, 31f));
 
-        rankText = NewText("Rank", rankGroupRect, "A", 176f, GoldBright, TextAlignmentOptions.Center);
+        TMP_Text rankLabel = NewText("RankLabel", rankGroupRect, "RANK", 30f,
+            new Color(GoldAccent.r, GoldAccent.g, GoldAccent.b, 0.95f), TextAlignmentOptions.Center);
+        rankLabel.characterSpacing = 14f;
+        SetRect((RectTransform)rankLabel.transform, new Vector2(0f, YRankLabel), new Vector2(300f, 40f));
+        ApplyTextGlow(rankLabel, new Color(0.72f, 0.45f, 0.16f, 0.55f), 0.06f, 0.5f);
+
+        rankText = NewText("Rank", rankGroupRect, "A", 186f, GoldBright, TextAlignmentOptions.Center);
         SetRect((RectTransform)rankText.transform, new Vector2(0f, YRank), new Vector2(460f, 260f));
-        rankGlowMat = ApplyTextGlow(rankText, new Color(0.92f, 0.62f, 0.22f, 0.55f), 0.075f, 0.45f);
+        rankGlowMat = ApplyTextGlow(rankText, new Color(0.94f, 0.62f, 0.22f, 0.50f), 0.060f, 0.40f);
 
-        rankText2 = NewText("Rank2", rankGroupRect, "A", 176f, GoldBright, TextAlignmentOptions.Center);
+        rankText2 = NewText("Rank2", rankGroupRect, "A", 186f, GoldBright, TextAlignmentOptions.Center);
         SetRect((RectTransform)rankText2.transform, new Vector2(0f, YRank), new Vector2(460f, 260f));
-        rankGlowMat2 = ApplyTextGlow(rankText2, new Color(0.92f, 0.62f, 0.22f, 0.55f), 0.075f, 0.45f);
+        rankGlowMat2 = ApplyTextGlow(rankText2, new Color(0.94f, 0.62f, 0.22f, 0.50f), 0.060f, 0.40f);
         rankText2.gameObject.SetActive(false);
 
         p1RankTag = NewText("P1Tag", rankGroupRect, "1P", 26f, GoldDim, TextAlignmentOptions.Center);
         p1RankTag.characterSpacing = 8f;
-        SetRect((RectTransform)p1RankTag.transform, new Vector2(-126f, YRankLabel), new Vector2(120f, 34f));
+        SetRect((RectTransform)p1RankTag.transform, new Vector2(-144f, YRankLabel), new Vector2(120f, 34f));
         p1RankTag.gameObject.SetActive(false);
 
         p2RankTag = NewText("P2Tag", rankGroupRect, "2P", 26f, GoldDim, TextAlignmentOptions.Center);
         p2RankTag.characterSpacing = 8f;
-        SetRect((RectTransform)p2RankTag.transform, new Vector2(126f, YRankLabel), new Vector2(120f, 34f));
+        SetRect((RectTransform)p2RankTag.transform, new Vector2(144f, YRankLabel), new Vector2(120f, 34f));
         p2RankTag.gameObject.SetActive(false);
 
-        AddRule(rankGroupRect, new Vector2(0f, YRule3), 470f, false);
+        // 左右の小さな菱形(参考画像 x=±192 / y=60)。
+        AddDiamond(rankGroupRect, new Vector2(-192f, 60f), 13f, new Color(GoldDim.r, GoldDim.g, GoldDim.b, 0.85f));
+        AddDiamond(rankGroupRect, new Vector2(192f, 60f), 13f, new Color(GoldDim.r, GoldDim.g, GoldDim.b, 0.85f));
     }
 
     private static readonly string[] RowLabelText = { "SCORE", "HITS", "DIFFICULTY", "RANKING" };
-    private static readonly string[] RowIconName = { "result_icon_score", "result_icon_hit", "result_icon_counter", null };
 
     private void BuildRows(RectTransform panelParent)
     {
@@ -377,7 +445,16 @@ public sealed class ResultScreen : MonoBehaviour
         SetRect(panel, Vector2.zero, new Vector2(PanelW, PanelH));
         rowsGroup = host.AddComponent<CanvasGroup>();
 
-        Sprite podium = CreatePodiumIconSprite();
+        // 行の間の薄い区切り線(参考画像は 4 行の上下に 5 本)。
+        for (int i = 0; i <= RowCount; i++)
+        {
+            Image line = NewImage("RowSep" + i, panel, new Color(GoldDim.r, GoldDim.g, GoldDim.b, 0.42f));
+            line.sprite = CreateRuleSprite();
+            line.type = Image.Type.Simple;
+            SetRect(line.rectTransform, new Vector2(0f, YRowSep0 - i * RowPitch), new Vector2(RowSepW, 3f));
+        }
+
+        Sprite[] icons = CreateRowIconSprites();
         for (int i = 0; i < RowCount; i++)
         {
             GameObject rowGo = NewRect("Row" + i, panel);
@@ -387,48 +464,42 @@ public sealed class ResultScreen : MonoBehaviour
             rowRects[i] = rect;
             rowGroups[i] = rowGo.AddComponent<CanvasGroup>();
 
-            Sprite iconSprite = RowIconName[i] != null
-                ? Resources.Load<Sprite>("UI/" + RowIconName[i])
-                : podium;
-            if (iconSprite != null)
-            {
-                Image icon = NewImage("Icon", rect, new Color(SilverLabel.r, SilverLabel.g, SilverLabel.b, 0.85f));
-                icon.sprite = iconSprite;
-                icon.type = Image.Type.Simple;
-                SetRect(icon.rectTransform, new Vector2(-RowHalfW + 16f, 0f), new Vector2(28f, 28f));
-                rowIcons[i] = icon;
-            }
+            Image icon = NewImage("Icon", rect, new Color(GoldDim.r, GoldDim.g, GoldDim.b, 0.95f));
+            icon.sprite = icons[i];
+            icon.type = Image.Type.Simple;
+            SetRect(icon.rectTransform, new Vector2(RowIconX, 0f), new Vector2(34f, 34f));
+            rowIcons[i] = icon;
 
-            TMP_Text label = NewText("Label", rect, RowLabelText[i], 24f, SilverLabel, TextAlignmentOptions.Left);
-            label.characterSpacing = 12f;
-            SetRect((RectTransform)label.transform, new Vector2(-RowHalfW + 44f + 130f, 0f), new Vector2(260f, 34f));
+            TMP_Text label = NewText("Label", rect, RowLabelText[i], 23f, SilverLabel, TextAlignmentOptions.Left);
+            label.characterSpacing = 11f;
+            SetRect((RectTransform)label.transform, new Vector2(RowLabelX + 130f, 0f), new Vector2(260f, 34f));
             rowLabels[i] = label;
 
-            TMP_Text sep = NewText("Sep", rect, "|", 26f, new Color(GoldDim.r, GoldDim.g, GoldDim.b, 0.8f),
+            TMP_Text sep = NewText("Sep", rect, "|", 30f, new Color(GoldDim.r, GoldDim.g, GoldDim.b, 0.75f),
                 TextAlignmentOptions.Center);
-            SetRect((RectTransform)sep.transform, new Vector2(RowSepX, 0f), new Vector2(30f, 34f));
+            SetRect((RectTransform)sep.transform, new Vector2(RowSepX, 0f), new Vector2(30f, 40f));
             rowSeparators[i] = sep;
 
-            TMP_Text value = NewText("Value", rect, "", 28f, GoldAccent, TextAlignmentOptions.Right);
-            value.characterSpacing = 4f;
-            SetRect((RectTransform)value.transform, new Vector2(RowValueRight - 150f, 0f), new Vector2(300f, 38f));
+            TMP_Text value = NewText("Value", rect, "", 31f, GoldAccent, TextAlignmentOptions.Left);
+            value.characterSpacing = 3f;
+            SetRect((RectTransform)value.transform, new Vector2(RowValueX + 150f, 0f), new Vector2(300f, 42f));
             rowValues[i] = value;
 
-            TMP_Text value2 = NewText("Value2", rect, "", 28f, GoldAccent, TextAlignmentOptions.Right);
-            value2.characterSpacing = 4f;
-            SetRect((RectTransform)value2.transform, new Vector2(RowValueRight - 150f, 0f), new Vector2(300f, 38f));
+            TMP_Text value2 = NewText("Value2", rect, "", 31f, GoldAccent, TextAlignmentOptions.Right);
+            value2.characterSpacing = 3f;
+            SetRect((RectTransform)value2.transform, new Vector2(RowValueRight - 150f, 0f), new Vector2(300f, 42f));
             value2.gameObject.SetActive(false);
             rowValues2[i] = value2;
         }
 
         columnTagP1 = NewText("ColTagP1", panel, "1P", 18f, GoldDim, TextAlignmentOptions.Right);
         columnTagP1.characterSpacing = 8f;
-        SetRect((RectTransform)columnTagP1.transform, new Vector2(96f - 90f, YRow0 + 34f), new Vector2(180f, 26f));
+        SetRect((RectTransform)columnTagP1.transform, new Vector2(103f - 90f, YRowSep0 + 18f), new Vector2(180f, 26f));
         columnTagP1.gameObject.SetActive(false);
 
         columnTagP2 = NewText("ColTagP2", panel, "2P", 18f, GoldDim, TextAlignmentOptions.Right);
         columnTagP2.characterSpacing = 8f;
-        SetRect((RectTransform)columnTagP2.transform, new Vector2(RowValueRight - 90f, YRow0 + 34f), new Vector2(180f, 26f));
+        SetRect((RectTransform)columnTagP2.transform, new Vector2(RowValueRight - 90f, YRowSep0 + 18f), new Vector2(180f, 26f));
         columnTagP2.gameObject.SetActive(false);
     }
 
@@ -444,9 +515,15 @@ public sealed class ResultScreen : MonoBehaviour
         // --- 主ボタン(次へ = ステージ選択) ---
         GameObject btnGo = NewRect("NextButton", buttonRect);
         RectTransform btnRect = (RectTransform)btnGo.transform;
-        SetRect(btnRect, new Vector2(0f, YButton), new Vector2(470f, 74f));
+        SetRect(btnRect, new Vector2(0f, YButton), new Vector2(ButtonW, ButtonH));
         actionRects[0] = btnRect;
         actionValues[0] = Action.StageSelect;
+
+        // 外側のにじむ金の光。板より一回り大きい別 Image で持つ。
+        nextButtonGlow = NewImage("Glow", btnRect, new Color(GoldAccent.r, GoldAccent.g, GoldAccent.b, 0.13f));
+        nextButtonGlow.sprite = CreateButtonGlowSprite();
+        nextButtonGlow.type = Image.Type.Simple;
+        SetRect(nextButtonGlow.rectTransform, Vector2.zero, new Vector2(ButtonW + 22f, ButtonH + 22f));
 
         nextButtonBody = NewImage("Body", btnRect, Color.white);
         nextButtonBody.sprite = CreateButtonSprite();
@@ -454,10 +531,11 @@ public sealed class ResultScreen : MonoBehaviour
         Stretch(nextButtonBody.rectTransform);
         nextButtonBody.raycastTarget = true;
 
-        nextLabel = NewText("Label", btnRect, "次へ", 32f, InkWhite, TextAlignmentOptions.Center);
-        nextLabel.characterSpacing = 8f;
+        nextLabel = NewText("Label", btnRect, "次へ", 34f, GoldBright, TextAlignmentOptions.Center);
+        nextLabel.characterSpacing = 10f;
         Stretch((RectTransform)nextLabel.transform);
         TmpAlign.CenterInkVertically(nextLabel);
+        ApplyTextGlow(nextLabel, new Color(0.70f, 0.44f, 0.15f, 0.55f), 0.06f, 0.5f);
         actionLabels[0] = nextLabel;
 
         Button button = btnGo.AddComponent<Button>();
@@ -470,13 +548,14 @@ public sealed class ResultScreen : MonoBehaviour
         EventTrigger trig = btnGo.AddComponent<EventTrigger>();
         AddTrigger(trig, EventTriggerType.PointerEnter, _ => SetActionSelection(0));
 
-        // --- 文字リンク ---
-        BuildLink(1, new Vector2(-92f, YLinks), "もう一度", Action.Retry);
-        BuildLink(2, new Vector2(92f, YLinks), "タイトルへ", Action.Title);
+        // --- 文字リンク(パネルの内側の最下段に収める) ---
+        BuildLink(1, new Vector2(-100f, YLinks), "もう一度", Action.Retry);
+        BuildLink(2, new Vector2(100f, YLinks), "タイトルへ", Action.Title);
 
-        transferCodeLine = NewText("TransferCodeLine", buttonRect, "", 18f,
-            new Color(GoldDim.r, GoldDim.g, GoldDim.b, 0.95f), TextAlignmentOptions.Center);
-        SetRect((RectTransform)transferCodeLine.transform, new Vector2(0f, YTransfer), new Vector2(900f, 26f));
+        transferCodeLine = NewText("TransferCodeLine", buttonRect, "", 13f,
+            new Color(GoldDim.r, GoldDim.g, GoldDim.b, 0.9f), TextAlignmentOptions.Center);
+        transferCodeLine.characterSpacing = 4f;
+        SetRect((RectTransform)transferCodeLine.transform, new Vector2(0f, YTransfer), new Vector2(600f, 20f));
         transferCodeLine.gameObject.SetActive(false);
 
         selectedActionIndex = 0;
@@ -487,19 +566,19 @@ public sealed class ResultScreen : MonoBehaviour
     {
         GameObject go = NewRect("Link" + slot, buttonRect);
         RectTransform rect = (RectTransform)go.transform;
-        SetRect(rect, pos, new Vector2(170f, 38f));
+        SetRect(rect, pos, new Vector2(150f, 26f));
         actionRects[slot] = rect;
         actionValues[slot] = action;
 
-        TMP_Text label = NewText("Label", rect, labelText, 22f,
-            new Color(SilverLabel.r, SilverLabel.g, SilverLabel.b, 0.8f), TextAlignmentOptions.Center);
-        label.characterSpacing = 6f;
+        TMP_Text label = NewText("Label", rect, labelText, 18f,
+            new Color(SilverLabel.r, SilverLabel.g, SilverLabel.b, 0.78f), TextAlignmentOptions.Center);
+        label.characterSpacing = 9f;
         Stretch((RectTransform)label.transform);
         TmpAlign.CenterInkVertically(label);
         actionLabels[slot] = label;
 
         Image underline = NewImage("Underline", rect, new Color(GoldAccent.r, GoldAccent.g, GoldAccent.b, 0f));
-        SetRect(underline.rectTransform, new Vector2(0f, -18f), new Vector2(110f, 1.4f));
+        SetRect(underline.rectTransform, new Vector2(0f, -13f), new Vector2(96f, 1.2f));
         actionUnderlines[slot] = underline;
 
         Image hit = NewImage("Hit", rect, new Color(0f, 0f, 0f, 0f));
@@ -521,7 +600,7 @@ public sealed class ResultScreen : MonoBehaviour
     // 覆い、ボタン領域を置き換える(項目 3)。開閉は 0.2 秒のフェード。
     private void BuildRankingOverlay(RectTransform panel)
     {
-        const float overlayH = 600f;
+        const float overlayH = 628f;
         const float overlayY = -(PanelH * 0.5f) + overlayH * 0.5f + 10f;
 
         GameObject go = NewRect("RankingOverlay", panel);
@@ -532,13 +611,17 @@ public sealed class ResultScreen : MonoBehaviour
 
         Image fill = NewImage("Fill", rect, Color.white);
         fill.sprite = CreateOverlaySprite();
-        fill.type = Image.Type.Simple;
+        fill.type = Image.Type.Sliced;      // Simple だと 2px の金線が太い額縁に伸びる
         Stretch(fill.rectTransform);
 
-        rankingOverlayHeading = NewText("Heading", rect, "", 28f, GoldAccent, TextAlignmentOptions.Center);
-        rankingOverlayHeading.characterSpacing = 6f;
-        SetRect((RectTransform)rankingOverlayHeading.transform, new Vector2(0f, overlayH * 0.5f - 48f), new Vector2(520f, 40f));
-        AddRule(rect, new Vector2(0f, overlayH * 0.5f - 78f), 420f, true);
+        rankingOverlayHeading = NewText("Heading", rect, "", 32f, GoldAccent, TextAlignmentOptions.Center);
+        rankingOverlayHeading.characterSpacing = 10f;
+        SetRect((RectTransform)rankingOverlayHeading.transform, new Vector2(0f, overlayH * 0.5f - 50f), new Vector2(560f, 44f));
+        ApplyTextGlow(rankingOverlayHeading, new Color(0.78f, 0.50f, 0.18f, 0.55f), 0.06f, 0.5f);
+        Image ovOrn = NewImage("HeadOrnament", rect, Color.white);
+        ovOrn.sprite = CreateOrnamentRuleSprite();
+        ovOrn.type = Image.Type.Simple;
+        SetRect(ovOrn.rectTransform, new Vector2(0f, overlayH * 0.5f - 84f), new Vector2(312f, 26f));
 
         // --- イニシャル入力(3 文字) ---
         initialsGroup = NewRect("Initials", rect);
@@ -549,15 +632,22 @@ public sealed class ResultScreen : MonoBehaviour
         for (int i = 0; i < RankingStore.NameLength; i++)
         {
             TMP_Text slot = NewText("Slot" + i, initialsGroup.transform, "A", 62f, GoldBright, TextAlignmentOptions.Center);
-            SetRect((RectTransform)slot.transform, new Vector2(startX + i * (slotW + slotGap), 40f), new Vector2(slotW, 88f));
+            SetRect((RectTransform)slot.transform, new Vector2(startX + i * (slotW + slotGap), 108f), new Vector2(slotW, 88f));
             initialsSlotTexts[i] = slot;
-            Image bar = NewImage("Bar" + i, initialsGroup.transform, new Color(GoldDim.r, GoldDim.g, GoldDim.b, 0.6f));
-            SetRect(bar.rectTransform, new Vector2(startX + i * (slotW + slotGap), -12f), new Vector2(slotW - 10f, 1.4f));
+            Image bar = NewImage("Bar" + i, initialsGroup.transform, new Color(GoldDim.r, GoldDim.g, GoldDim.b, 0.85f));
+            bar.sprite = CreateRuleSprite();
+            bar.type = Image.Type.Simple;
+            SetRect(bar.rectTransform, new Vector2(startX + i * (slotW + slotGap), 56f), new Vector2(slotW - 6f, 3f));
         }
+        initialsScoreLine = NewText("ScoreLine", initialsGroup.transform, "", 26f, GoldAccent,
+            TextAlignmentOptions.Center);
+        initialsScoreLine.characterSpacing = 6f;
+        SetRect((RectTransform)initialsScoreLine.transform, new Vector2(0f, 14f), new Vector2(520f, 36f));
+
         TMP_Text hint = NewText("Hint", initialsGroup.transform,
             "↑↓ 文字送り / ←→ 桁移動 / A 決定(3 桁目で登録) / B 戻る", 17f,
             new Color(SilverLabel.r, SilverLabel.g, SilverLabel.b, 0.72f), TextAlignmentOptions.Center);
-        SetRect((RectTransform)hint.transform, new Vector2(0f, -110f), new Vector2(560f, 28f));
+        SetRect((RectTransform)hint.transform, new Vector2(0f, -34f), new Vector2(600f, 28f));
 
         // --- 登録後の Top10 盤面 ---
         boardGroup = NewRect("Board", rect);
@@ -634,16 +724,19 @@ public sealed class ResultScreen : MonoBehaviour
                 cleared ? new Color(0.92f, 0.62f, 0.22f, 0.55f) : new Color(0.75f, 0.12f, 0.20f, 0.5f));
         if (rankHalo != null)
         {
-            rankHaloBaseAlpha = cleared ? 0.030f : 0.045f;
+            rankHaloBaseAlpha = cleared ? 0.005f : 0.010f;
             rankHalo.color = cleared
                 ? new Color(GoldAccent.r, GoldAccent.g, GoldAccent.b, rankHaloBaseAlpha)
                 : new Color(0.55f, 0.08f, 0.12f, rankHaloBaseAlpha);
         }
-        Color laurelCol = cleared
-            ? new Color(GoldAccent.r, GoldAccent.g, GoldAccent.b, 0.95f)
-            : new Color(0.55f, 0.20f, 0.22f, 0.9f);
+        // 月桂樹は金のグラデーションを焼き込んであるので、クリアは白(素のまま)。
+        Color laurelCol = cleared ? Color.white : new Color(0.62f, 0.26f, 0.26f, 0.95f);
         if (laurelLeft != null) laurelLeft.color = laurelCol;
         if (laurelRight != null) laurelRight.color = laurelCol;
+        if (laurelKnot != null)
+            laurelKnot.color = cleared ? GoldAccent : new Color(0.62f, 0.26f, 0.26f, 0.95f);
+        if (rankRings != null)
+            rankRings.color = cleared ? Color.white : new Color(1f, 0.55f, 0.55f, 1f);
 
         // 情報行の固定値(SCORE/HITS は入場のカウントアップで動く)。
         rowValues[RowDifficulty].text = DifficultyName(difficulty);
@@ -707,10 +800,12 @@ public sealed class ResultScreen : MonoBehaviour
         string rank1 = EvaluateRank(cleared, hit1, difficulty);
         string rank2 = EvaluateRank(cleared, hit2, difficulty);
         const float rankScale = 0.62f;
-        const float rankOffset = 132f;
-        // 月桂樹はランク 1 文字を囲む飾りなので、2 つ並ぶ 2P では出さない。
+        const float rankOffset = 144f;
+        // 月桂樹はランク 1 文字を囲む飾りなので、2 つ並ぶ 2P では出さない(結びも同じ)。
         if (laurelLeft != null) laurelLeft.gameObject.SetActive(false);
         if (laurelRight != null) laurelRight.gameObject.SetActive(false);
+        if (laurelKnot != null) laurelKnot.gameObject.SetActive(false);
+        if (rankRings != null) rankRings.gameObject.SetActive(false);
         string leftRank = p1OnLeft ? rank1 : rank2;
         string rightRank = p1OnLeft ? rank2 : rank1;
 
@@ -741,10 +836,12 @@ public sealed class ResultScreen : MonoBehaviour
             rowSeparators[i].gameObject.SetActive(!split);
             if (split)
             {
-                SetRowValueRect(rowValues[i], 96f);
+                // 2 列になる行だけ右揃え(数字の桁をそろえる)。
+                rowValues[i].alignment = TextAlignmentOptions.Right;
+                SetRowValueRect(rowValues[i], 103f);
                 SetRowValueRect(rowValues2[i], RowValueRight);
-                rowValues[i].fontSize = 26f;
-                rowValues2[i].fontSize = 26f;
+                rowValues[i].fontSize = 28f;
+                rowValues2[i].fontSize = 28f;
             }
         }
         columnTagP1.gameObject.SetActive(true);
@@ -769,6 +866,8 @@ public sealed class ResultScreen : MonoBehaviour
         twoPlayerResult = false;
         if (laurelLeft != null) laurelLeft.gameObject.SetActive(true);
         if (laurelRight != null) laurelRight.gameObject.SetActive(true);
+        if (laurelKnot != null) laurelKnot.gameObject.SetActive(true);
+        if (rankRings != null) rankRings.gameObject.SetActive(true);
         rankText.rectTransform.anchoredPosition = new Vector2(0f, YRank);
         rankText.rectTransform.localScale = Vector3.one;
         rankText2.gameObject.SetActive(false);
@@ -780,9 +879,11 @@ public sealed class ResultScreen : MonoBehaviour
         {
             rowValues2[i].gameObject.SetActive(false);
             rowSeparators[i].gameObject.SetActive(true);
-            rowValues[i].fontSize = 28f;
-            rowValues2[i].fontSize = 28f;
-            SetRowValueRect(rowValues[i], RowValueRight);
+            rowValues[i].fontSize = 31f;
+            rowValues2[i].fontSize = 31f;
+            // 1P の値は参考画像どおり左揃え(縦罫から一定の距離で始まる)。
+            rowValues[i].alignment = TextAlignmentOptions.Left;
+            SetRowValueRect(rowValues[i], RowValueX + rowValues[i].rectTransform.sizeDelta.x);
             SetRowValueRect(rowValues2[i], RowValueRight);
         }
     }
@@ -880,7 +981,8 @@ public sealed class ResultScreen : MonoBehaviour
     private void ApplyEntranceFrame(float t)
     {
         float plate = EaseOutCubic(t / EnterPlateDur);
-        if (scrimImage != null) scrimImage.color = new Color(0f, 0.004f, 0.012f, ScrimAlpha * plate);
+        if (scrimImage != null) scrimImage.color = new Color(0.016f, 0.022f, 0.055f, ScrimAlpha * plate);
+        if (vignetteImage != null) vignetteImage.color = new Color(1f, 1f, 1f, plate);
         panelGroup.alpha = plate;
         panelRect.localScale = Vector3.one * Mathf.Lerp(1.03f, 1f, plate);
         panelRect.anchoredPosition = new Vector2(0f, 16f * (1f - plate));
@@ -1115,9 +1217,11 @@ public sealed class ResultScreen : MonoBehaviour
         initialsDownRepeat = default;
         if (rankingOverlayRoot != null) rankingOverlayRoot.SetActive(true);
         rankingOverlayTarget = 1f;
-        if (rankingOverlayHeading != null) rankingOverlayHeading.text = "TOP 10 圏内";
+        if (rankingOverlayHeading != null) rankingOverlayHeading.text = "ランキング登録";
         if (initialsGroup != null) initialsGroup.SetActive(true);
         if (boardGroup != null) boardGroup.SetActive(false);
+        if (initialsScoreLine != null)
+            initialsScoreLine.text = "SCORE  " + pendingRankScore.ToString("N0");
         RefreshInitialsSlots();
     }
 
@@ -1194,7 +1298,7 @@ public sealed class ResultScreen : MonoBehaviour
         rankingFlowState = RankingFlowState.Board;
         if (initialsGroup != null) initialsGroup.SetActive(false);
         if (boardGroup != null) boardGroup.SetActive(true);
-        if (rankingOverlayHeading != null) rankingOverlayHeading.text = "ランキング登録";
+        if (rankingOverlayHeading != null) rankingOverlayHeading.text = "TOP 10 圏内";
         RefreshRankingBoardView();
     }
 
@@ -1303,64 +1407,8 @@ public sealed class ResultScreen : MonoBehaviour
     // =======================================================================
     //  スプライトの焼き込み
     // =======================================================================
-
-    // パネル本体。縦グラデの紺 + 外周の金の細枠 + 10px 内側の金線(角は面取り) +
-    // 四隅の明るい金のブラケット + 上下中央の菱形。
-    private Sprite CreatePanelSprite()
-    {
-        const int W = (int)PanelW;
-        const int H = (int)PanelH;
-        Color32[] px = new Color32[W * H];
-        float cx = (W - 1) * 0.5f, cy = (H - 1) * 0.5f;
-        float hw = W * 0.5f, hh = H * 0.5f;
-        const float innerInset = 11f;
-        const float chamfer = 20f;
-
-        for (int y = 0; y < H; y++)
-        {
-            float ty = y / (float)(H - 1);
-            Color fill = (Color)Color32.Lerp(TexPanelBottom, TexPanelTop, ty * ty);
-            for (int x = 0; x < W; x++)
-            {
-                float ax = Mathf.Abs(x - cx), ay = Mathf.Abs(y - cy);
-                float dOuter = Mathf.Max(ax - (hw - 1f), ay - (hh - 1f));
-                float inside = Mathf.Clamp01(0.5f - dOuter);
-                Blend(px, W, H, x, y, fill, inside * fill.a);
-
-                // 上端の淡い光(紙のような立ち上がり)。
-                float glow = Mathf.Clamp01(1f - Mathf.Abs(ty - 0.86f) * 5.5f);
-                Blend(px, W, H, x, y, new Color(0.10f, 0.16f, 0.32f), inside * glow * 0.20f);
-
-                // 外周の金枠(1.6px)。
-                Blend(px, W, H, x, y, TexGoldLine, Mathf.Clamp01(1.6f - Mathf.Abs(dOuter + 0.8f)) * inside);
-
-                // 内側の金線(面取り角)。
-                float ix = ax - (hw - innerInset);
-                float iy = ay - (hh - innerInset);
-                float dInner = Mathf.Max(ix, iy);
-                dInner = Mathf.Max(dInner, (ix + iy + chamfer) * 0.7071f);
-                Blend(px, W, H, x, y, TexGoldDim, Mathf.Clamp01(1.0f - Mathf.Abs(dInner)) * 0.9f);
-            }
-        }
-
-        // 四隅の明るいブラケット(内側の線に沿って 54px)。
-        for (int sx = -1; sx <= 1; sx += 2)
-        {
-            for (int sy = -1; sy <= 1; sy += 2)
-            {
-                float bx = cx + sx * (hw - innerInset);
-                float by = cy + sy * (hh - innerInset);
-                DrawLine(px, W, H, bx - sx * chamfer, by, bx - sx * chamfer - sx * 54f, by, 2.0f, TexGoldBright);
-                DrawLine(px, W, H, bx, by - sy * chamfer, bx, by - sy * chamfer - sy * 54f, 2.0f, TexGoldBright);
-                DrawLine(px, W, H, bx - sx * chamfer, by, bx, by - sy * chamfer, 2.0f, TexGoldBright);
-            }
-        }
-        // 上下中央の菱形(枠に噛ませる)。
-        DrawDiamond(px, W, H, cx, cy + hh - innerInset, 9f, TexGoldBright);
-        DrawDiamond(px, W, H, cx, cy - hh + innerInset, 9f, TexGoldBright);
-
-        return MakeSprite(px, W, H, "ResultPanel");
-    }
+    // 焼き込みは表示寸法より大きな解像度で描いて縮小表示する(細線と菱形の縁が潰れない)。
+    // 形と寸法の正は参考画像 Instructions/リザルト/ref/result_mockup_gpt_20260916.png。
 
     // ランキングオーバーレイの地(パネルより一段濃い紺 + 金の細枠)。
     private Sprite CreateOverlaySprite()
@@ -1375,8 +1423,9 @@ public sealed class ResultScreen : MonoBehaviour
                 float ax = Mathf.Abs(x - cx), ay = Mathf.Abs(y - cy);
                 float d = Mathf.Max(ax - (W * 0.5f - 1f), ay - (H * 0.5f - 1f));
                 float inside = Mathf.Clamp01(0.5f - d);
-                Blend(px, W, H, x, y, new Color32(0x07, 0x0C, 0x1C, 0xFA), inside);
-                Blend(px, W, H, x, y, TexGoldDim, Mathf.Clamp01(1.3f - Mathf.Abs(d + 0.8f)) * inside);
+                Blend(px, W, H, x, y, new Color32(0x08, 0x0D, 0x1E, 0xFA), inside);
+                Blend(px, W, H, x, y, TexGoldLine, Mathf.Clamp01(1.6f - Mathf.Abs(d + 0.9f)) * inside);
+                Blend(px, W, H, x, y, TexGoldDim, Mathf.Clamp01(1.0f - Mathf.Abs(d + 6f)) * 0.6f * inside);
             }
         }
         Texture2D tex = MakeTexture(px, W, H, "ResultOverlayFill");
@@ -1387,14 +1436,15 @@ public sealed class ResultScreen : MonoBehaviour
         return sprite;
     }
 
-    // 金縁の暗いボタン(470x74)。
+    // 主ボタン。角を斜めに切った八角形・暗い石目の板・二重の金の縁。
     private Sprite CreateButtonSprite()
     {
-        const int W = 470, H = 74;
+        const int SS = 3;
+        int W = (int)ButtonW * SS, H = (int)ButtonH * SS;
         Color32[] px = new Color32[W * H];
         float cx = (W - 1) * 0.5f, cy = (H - 1) * 0.5f;
         float hw = W * 0.5f, hh = H * 0.5f;
-        const float chamfer = 13f;
+        float chamfer = 17f * SS;
         for (int y = 0; y < H; y++)
         {
             float ty = y / (float)(H - 1);
@@ -1402,190 +1452,399 @@ public sealed class ResultScreen : MonoBehaviour
             for (int x = 0; x < W; x++)
             {
                 float ax = Mathf.Abs(x - cx), ay = Mathf.Abs(y - cy);
-                float d = Mathf.Max(ax - (hw - 1f), ay - (hh - 1f));
-                d = Mathf.Max(d, (ax + ay - (hw + hh - 2f - chamfer)) * 0.7071f);
+                float d = GoldPanelStyle.ChamferRect(ax, ay, hw - 1f, hh - 1f, chamfer);
                 float inside = Mathf.Clamp01(0.5f - d);
-                Blend(px, W, H, x, y, fill, inside * fill.a);
-                Blend(px, W, H, x, y, TexGoldLine, Mathf.Clamp01(1.5f - Mathf.Abs(d + 0.8f)) * inside);
-                // 内側の細い金線。
-                Blend(px, W, H, x, y, TexGoldDim, Mathf.Clamp01(1.0f - Mathf.Abs(d + 6f)) * 0.75f * inside);
+                if (inside <= 0f) continue;
+
+                // 石目: 低周波の粗いむら(±7/255)。
+                float n = Mathf.Sin(x * 0.021f + Mathf.Cos(y * 0.017f) * 2.3f)
+                        + Mathf.Sin(y * 0.013f + Mathf.Cos(x * 0.009f) * 1.7f) * 0.8f;
+                float k = 1f + n * 0.055f;
+                Color stone = new Color(fill.r * k, fill.g * k, fill.b * k * 1.02f, fill.a);
+                Blend(px, W, H, x, y, stone, inside * fill.a);
+
+                // 外の金線と 6px 内側の細い金線。
+                Blend(px, W, H, x, y, TexGoldBright,
+                    Mathf.Clamp01(2.3f * SS - Mathf.Abs(d + 1.2f * SS)) * inside);
+                Blend(px, W, H, x, y, TexGoldDim,
+                    Mathf.Clamp01(1.1f * SS - Mathf.Abs(d + 6.5f * SS)) * 0.8f * inside);
             }
         }
-        DrawDiamond(px, W, H, cx - hw + 20f, cy, 5f, TexGoldBright);
-        DrawDiamond(px, W, H, cx + hw - 20f, cy, 5f, TexGoldBright);
+        // 左右の内端に小さな菱形。
+        DrawDiamond(px, W, H, cx - hw + 22f * SS, cy, 4.5f * SS, TexGoldBright);
+        DrawDiamond(px, W, H, cx + hw - 22f * SS, cy, 4.5f * SS, TexGoldBright);
         return MakeSprite(px, W, H, "ResultNextButton");
     }
 
-    // 罫線(両端がフェードする細い金の横線)。幅方向へ引き伸ばして使う。
+    // ボタンの外側へにじむ光(白で焼いて Image.color で金に染める)。
+    private Sprite CreateButtonGlowSprite()
+    {
+        const int SS = 2;
+        int W = (int)(ButtonW + 22f) * SS, H = (int)(ButtonH + 22f) * SS;
+        Color32[] px = new Color32[W * H];
+        float cx = (W - 1) * 0.5f, cy = (H - 1) * 0.5f;
+        float hw = ButtonW * 0.5f * SS, hh = ButtonH * 0.5f * SS;
+        float chamfer = 17f * SS;
+        float falloff = 4.6f * SS;
+        for (int y = 0; y < H; y++)
+        {
+            float ay = Mathf.Abs(y - cy);
+            for (int x = 0; x < W; x++)
+            {
+                float ax = Mathf.Abs(x - cx);
+                float d = GoldPanelStyle.ChamferRect(ax, ay, hw, hh, chamfer);
+                if (d <= 0f) continue;                       // 板の内側は板が描く
+                float a = Mathf.Exp(-d / falloff);
+                Blend(px, W, H, x, y, new Color32(0xFF, 0xFF, 0xFF, 0xFF), a * 0.85f);
+            }
+        }
+        return MakeSprite(px, W, H, "ResultButtonGlow");
+    }
+
+    // 罫線(両端が細く消える横線)。白で焼いて Image.color で染める。幅方向へ伸ばす。
     private Sprite ruleSprite;
 
     private Sprite CreateRuleSprite()
     {
         if (ruleSprite != null) return ruleSprite;
-        const int W = 256, H = 4;
+        // 高さ 6px。表示は 3px なので、どのテクセル中心を拾っても線が出る比率にする
+        // (H=12 で中央 2 行だけ塗ると、4px 表示のサンプル点が全部空行に当たって線が消える)。
+        const int W = 1024, H = 6;
+        float[] prof = { 0.10f, 0.55f, 1f, 1f, 0.55f, 0.10f };
         Color32[] px = new Color32[W * H];
+        Color32 white = new Color32(0xFF, 0xFF, 0xFF, 0xFF);
         for (int x = 0; x < W; x++)
         {
             float u = Mathf.Abs(x / (float)(W - 1) * 2f - 1f);        // 0=中央 1=端
-            float a = Mathf.Clamp01(1f - u * u * u * u) * 0.95f;      // 端で静かに消える
-            for (int y = 0; y < H; y++)
-            {
-                float cov = y == 1 || y == 2 ? 1f : 0.35f;
-                Blend(px, W, H, x, y, TexGoldLine, a * cov);
-            }
+            float a = Mathf.Clamp01(1f - u * u * u * u * u) * 0.98f;  // 端で静かに消える
+            for (int y = 0; y < H; y++) Blend(px, W, H, x, y, white, a * prof[y]);
         }
         ruleSprite = MakeSprite(px, W, H, "ResultRule");
         return ruleSprite;
     }
 
+    // 中身の詰まった菱形(白焼き)。
     private Sprite diamondSprite;
 
     private Sprite CreateDiamondSprite()
     {
         if (diamondSprite != null) return diamondSprite;
-        const int S = 64;
+        const int S = 256;
         Color32[] px = new Color32[S * S];
         float c = (S - 1) * 0.5f;
-        for (int y = 0; y < S; y++)
-        {
-            for (int x = 0; x < S; x++)
-            {
-                float d = (Mathf.Abs(x - c) + Mathf.Abs(y - c)) * 0.7071f - c * 0.7071f;
-                Blend(px, S, S, x, y, TexGoldBright, Mathf.Clamp01(0.5f - d));
-            }
-        }
+        DrawDiamond(px, S, S, c, c, c * 0.96f, new Color32(0xFF, 0xFF, 0xFF, 0xFF));
         diamondSprite = MakeSprite(px, S, S, "ResultDiamond");
         return diamondSprite;
     }
 
+    // 中空の菱形(参考画像の結び・頭飾りはどれも輪郭だけ)。
+    private Sprite diamondRingSprite;
+
+    private Sprite CreateDiamondRingSprite()
+    {
+        if (diamondRingSprite != null) return diamondRingSprite;
+        const int S = 256;
+        Color32[] px = new Color32[S * S];
+        float c = (S - 1) * 0.5f;
+        Color32 white = new Color32(0xFF, 0xFF, 0xFF, 0xFF);
+        float outer = c * 0.96f * 0.7071f;
+        for (int y = 0; y < S; y++)
+        {
+            for (int x = 0; x < S; x++)
+            {
+                float m = (Mathf.Abs(x - c) + Mathf.Abs(y - c)) * 0.7071f;
+                Blend(px, S, S, x, y, white, Mathf.Clamp01(13f - Mathf.Abs(m - outer)));
+            }
+        }
+        diamondRingSprite = MakeSprite(px, S, S, "ResultDiamondRing");
+        return diamondRingSprite;
+    }
+
+    // 舞台名の下の飾り罫。中央に中空の菱形、左右に矢羽根と細い線。
+    private Sprite CreateOrnamentRuleSprite()
+    {
+        const int W = 1024, H = 85;
+        Color32[] px = new Color32[W * H];
+        float cx = (W - 1) * 0.5f, cy = (H - 1) * 0.5f;
+        float half = 33f;
+        for (int y = 0; y < H; y++)
+        {
+            for (int x = 0; x < W; x++)
+            {
+                float m = (Mathf.Abs(x - cx) + Mathf.Abs(y - cy)) * 0.7071f;
+                Blend(px, W, H, x, y, TexGoldBright, Mathf.Clamp01(4.5f - Mathf.Abs(m - half * 0.7071f)));
+            }
+        }
+        for (int s = -1; s <= 1; s += 2)
+        {
+            // 細い線(外へ向かって消える)。
+            for (int i = 0; i < 380; i++)
+            {
+                int x = (int)(cx + s * (60f + i));
+                float a = Mathf.Clamp01(1f - Mathf.Pow(i / 380f, 3f)) * 0.95f;
+                for (int y = 0; y < H; y++)
+                {
+                    float dy = Mathf.Abs(y - cy);
+                    Blend(px, W, H, x, y, TexGoldBright, a * Mathf.Clamp01(3.0f - dy));
+                }
+            }
+            // 矢羽根(外を向いた小さな山形)。
+            float ax = cx + s * 92f;
+            DrawLine(px, W, H, ax, cy, ax - s * 22f, cy - 15f, 3.6f, TexGoldBright);
+            DrawLine(px, W, H, ax, cy, ax - s * 22f, cy + 15f, 3.6f, TexGoldBright);
+        }
+        return MakeSprite(px, W, H, "ResultOrnamentRule");
+    }
+
+    // ランク章の頭飾り(中空の小菱形 + 左右の短い線)。
+    private Sprite CreateCrestSprite()
+    {
+        const int W = 512, H = 140;
+        Color32[] px = new Color32[W * H];
+        float cx = (W - 1) * 0.5f, cy = (H - 1) * 0.5f;
+        float half = 52f;
+        for (int y = 0; y < H; y++)
+        {
+            for (int x = 0; x < W; x++)
+            {
+                float m = (Mathf.Abs(x - cx) + Mathf.Abs(y - cy)) * 0.7071f;
+                Blend(px, W, H, x, y, TexGoldBright, Mathf.Clamp01(5.5f - Mathf.Abs(m - half * 0.7071f)));
+            }
+        }
+        for (int s = -1; s <= 1; s += 2)
+        {
+            for (int i = 0; i < 130; i++)
+            {
+                int x = (int)(cx + s * (76f + i));
+                float a = Mathf.Clamp01(1f - Mathf.Pow(i / 130f, 2.2f)) * 0.9f;
+                for (int y = 0; y < H; y++)
+                    Blend(px, W, H, x, y, TexGoldBright, a * Mathf.Clamp01(3.4f - Mathf.Abs(y - cy)));
+            }
+        }
+        return MakeSprite(px, W, H, "ResultCrest");
+    }
+
+    // ランク字の背後の同心リング(薄い金の円 3 本)。
+    private Sprite CreateRankRingsSprite()
+    {
+        const int S = 1024;
+        Color32[] px = new Color32[S * S];
+        float c = (S - 1) * 0.5f;
+        // 半径は UI 換算 118 / 146 / 173(表示 400 → 1px = 2.5575 テクセル)。
+        float[] radii = { 302f, 373f, 442f };
+        float[] alphas = { 0.16f, 0.11f, 0.07f };
+        for (int i = 0; i < radii.Length; i++)
+        {
+            float r = radii[i], a = alphas[i];
+            int y0 = Mathf.Max(0, (int)(c - r - 6f)), y1 = Mathf.Min(S - 1, (int)(c + r + 6f));
+            for (int y = y0; y <= y1; y++)
+            {
+                // 下端(情報行へ抜ける側)は静かに消す。
+                float fade = Mathf.Clamp01((y - c * 0.30f) / (c * 0.45f));
+                if (fade <= 0f) continue;
+                for (int x = 0; x < S; x++)
+                {
+                    float dx = x - c, dy = y - c;
+                    float d = Mathf.Abs(Mathf.Sqrt(dx * dx + dy * dy) - r);
+                    if (d > 3f) continue;
+                    Blend(px, S, S, x, y, TexGoldBright, Mathf.Clamp01(2.2f - d) * a * fade);
+                }
+            }
+        }
+        return MakeSprite(px, S, S, "ResultRankRings");
+    }
+
     // 月桂樹の枝(左半分)。右側は localScale.x = -1 で反転して使う。
+    // 参考画像の実測: 弧は φ=16°(下・半径 105) → 125°(先・半径 140)、葉は細長(長さ:幅 = 3:1)、
+    // 色は根元の琥珀 #C48A3A から先の淡い金 #F6D68A へ。
     private Sprite laurelSprite;
 
     private Sprite CreateLaurelSprite()
     {
         if (laurelSprite != null) return laurelSprite;
-        const int S = 320;
+        const int S = 1024;
+        float k = S / LaurelBox;                 // UI → 焼き込み画素
         Color32[] px = new Color32[S * S];
         float c = (S - 1) * 0.5f;
-        const float R = 118f;
 
-        // 枝(細い弧)。
-        int segs = 120;
+        Color32 leafTip = new Color32(0xF0, 0xC6, 0x83, 0xFF);
+        Color32 leafBase = new Color32(0xBE, 0x79, 0x33, 0xFF);
+        Color32 stemCol = new Color32(0xCC, 0x93, 0x4B, 0xFF);
+
+        // 枝(根元が太く先が細い)。
         float prevX = 0f, prevY = 0f;
+        const int segs = 160;
         for (int i = 0; i <= segs; i++)
         {
-            float phi = Mathf.Lerp(40f, 150f, i / (float)segs) * Mathf.Deg2Rad;
+            float u = i / (float)segs;
+            float phi = Mathf.Lerp(16f, 125f, u) * Mathf.Deg2Rad;
+            float R = Mathf.Lerp(105f, 140f, u) * k;
             float x = c - R * Mathf.Sin(phi);
             float y = c - R * Mathf.Cos(phi);
-            if (i > 0) DrawLine(px, S, S, prevX, prevY, x, y, 2.6f, TexGoldLine);
-            prevX = x;
-            prevY = y;
+            if (i > 0)
+                DrawLine(px, S, S, prevX, prevY, x, y, Mathf.Lerp(3.4f, 1.5f, u) * k, stemCol);
+            prevX = x; prevY = y;
         }
 
-        // 葉(外側・内側を交互に)。先端へ向かって少しずつ小さくする。
-        const int leaves = 11;
+        // 葉(外・内の対生。先へ向かって小さくする)。
+        const int leaves = 9;
         for (int i = 0; i < leaves; i++)
         {
-            float u = i / (float)(leaves - 1);
-            float phi = Mathf.Lerp(46f, 146f, u) * Mathf.Deg2Rad;
+            float u = Mathf.Lerp(0.07f, 0.97f, i / (float)(leaves - 1));
+            float phi = Mathf.Lerp(16f, 125f, u) * Mathf.Deg2Rad;
+            float R = Mathf.Lerp(105f, 140f, u) * k;
             float bx = c - R * Mathf.Sin(phi);
             float by = c - R * Mathf.Cos(phi);
-            // 法線(外向き)。
-            float nx = -Mathf.Sin(phi), ny = -Mathf.Cos(phi);
-            // 接線(先端方向)。
-            float tx = -Mathf.Cos(phi), ty = Mathf.Sin(phi);
-            float taper = Mathf.Lerp(1f, 0.62f, Mathf.Abs(u - 0.5f) * 2f);
+            float nx = -Mathf.Sin(phi), ny = -Mathf.Cos(phi);   // 外向き法線
+            float tx = -Mathf.Cos(phi), ty = Mathf.Sin(phi);    // 先端方向の接線
+            float len = Mathf.Lerp(34f, 19f, u) * k;
+            Color32 col = Color32.Lerp(leafBase, leafTip, u);
             for (int side = 0; side < 2; side++)
             {
-                float sgn = side == 0 ? 1f : -1f;                       // 外/内
-                float ox = bx + nx * 8f * sgn, oy = by + ny * 8f * sgn;
-                // 葉の向き = 接線から外側へ 38° 開く。
-                float ang = Mathf.Atan2(ty, tx) + sgn * 38f * Mathf.Deg2Rad;
-                DrawLeaf(px, S, S, ox, oy, ang, 30f * taper, 9.5f * taper,
-                    side == 0 ? TexGoldBright : TexGoldLine);
+                float sgn = side == 0 ? 1f : -1f;               // 外 / 内
+                float ox = bx + nx * 3.5f * k * sgn, oy = by + ny * 3.5f * k * sgn;
+                float ang = Mathf.Atan2(ty, tx) + sgn * 40f * Mathf.Deg2Rad;
+                Color32 lc = side == 0 ? col
+                    : new Color32((byte)(col.r * 0.86f), (byte)(col.g * 0.86f), (byte)(col.b * 0.86f), 0xFF);
+                DrawLeaf(px, S, S, ox, oy, ang, len, len / 5.8f, lc);
+                // 中肋(葉の芯を 1 本)。
+                Color32 vein = new Color32((byte)(lc.r * 0.72f), (byte)(lc.g * 0.68f), (byte)(lc.b * 0.60f), 0xFF);
+                DrawLine(px, S, S, ox, oy,
+                    ox + Mathf.Cos(ang) * len * 0.86f, oy + Mathf.Sin(ang) * len * 0.86f, 1.1f * k, vein);
             }
         }
+        // 先端の 1 枚(枝の延長上)。
+        {
+            float phi = 125f * Mathf.Deg2Rad;
+            float R = 140f * k;
+            float bx = c - R * Mathf.Sin(phi), by = c - R * Mathf.Cos(phi);
+            float ang = Mathf.Atan2(Mathf.Sin(phi), -Mathf.Cos(phi)) + 8f * Mathf.Deg2Rad;
+            DrawLeaf(px, S, S, bx, by, ang, 22f * k, 22f * k / 5.4f, leafTip);
+        }
+
         laurelSprite = MakeSprite(px, S, S, "ResultLaurel");
         return laurelSprite;
     }
 
-    // 順位アイコン(細線の表彰台)。Material Symbols に相当する図柄が無いので焼く。
-    private Sprite CreatePodiumIconSprite()
+    // 情報行の細線アイコン(照準 / 盾 / 剣 / 王冠)。線幅をそろえて白で焼く。
+    private Sprite[] CreateRowIconSprites()
     {
-        const int S = 64;
+        const int S = 128;
+        const float T = 7.5f;                     // 統一線幅
+        Color32 w = new Color32(0xFF, 0xFF, 0xFF, 0xFF);
+        Sprite[] result = new Sprite[4];
+
+        // 0: 照準(SCORE)
+        {
+            Color32[] px = new Color32[S * S];
+            float c = (S - 1) * 0.5f;
+            GoldPanelStyle.DrawArc(px, S, S, c, c, 36f, 0f, 360f, T, w, 96);
+            for (int i = 0; i < 4; i++)
+            {
+                float a = i * 90f * Mathf.Deg2Rad;
+                DrawLine(px, S, S, c + Mathf.Cos(a) * 30f, c + Mathf.Sin(a) * 30f,
+                    c + Mathf.Cos(a) * 58f, c + Mathf.Sin(a) * 58f, T, w);
+            }
+            GoldPanelStyle.DrawArc(px, S, S, c, c, 6f, 0f, 360f, 12f, w, 32);
+            result[0] = MakeSprite(px, S, S, "ResultIconScore");
+        }
+        // 1: 盾(HITS)
+        {
+            Color32[] px = new Color32[S * S];
+            float c = (S - 1) * 0.5f;
+            float top = c + 42f, side = 40f;
+            DrawLine(px, S, S, c - side, top, c + side, top, T, w);
+            DrawLine(px, S, S, c - side, top, c - side, c - 2f, T, w);
+            DrawLine(px, S, S, c + side, top, c + side, c - 2f, T, w);
+            float px0 = c - side, py0 = c - 2f;
+            for (int i = 1; i <= 18; i++)
+            {
+                float u = i / 18f;
+                float x = Mathf.Lerp(c - side, c, u);
+                float y = Mathf.Lerp(c - 2f, c - 48f, u * u * 0.65f + u * 0.35f);
+                DrawLine(px, S, S, px0, py0, x, y, T, w);
+                DrawLine(px, S, S, 2f * c - px0, py0, 2f * c - x, y, T, w);
+                px0 = x; py0 = y;
+            }
+            result[1] = MakeSprite(px, S, S, "ResultIconHits");
+        }
+        // 2: 剣(DIFFICULTY)
+        {
+            Color32[] px = new Color32[S * S];
+            float c = (S - 1) * 0.5f;
+            // 刀身(左右の稜線 + 切先)。細線だけで剣に見えるよう輪郭で描く。
+            DrawLine(px, S, S, c - 11f, c - 2f, c - 11f, c + 32f, T, w);
+            DrawLine(px, S, S, c + 11f, c - 2f, c + 11f, c + 32f, T, w);
+            DrawLine(px, S, S, c - 11f, c + 32f, c, c + 54f, T, w);
+            DrawLine(px, S, S, c + 11f, c + 32f, c, c + 54f, T, w);
+            DrawLine(px, S, S, c - 30f, c - 8f, c + 30f, c - 8f, T, w);         // 鍔
+            DrawLine(px, S, S, c, c - 8f, c, c - 38f, T, w);                    // 柄
+            DrawDiamond(px, S, S, c, c - 46f, 10f, w);                          // 柄頭
+            result[2] = MakeSprite(px, S, S, "ResultIconDifficulty");
+        }
+        // 3: 王冠(RANKING)
+        {
+            Color32[] px = new Color32[S * S];
+            float c = (S - 1) * 0.5f;
+            float b = c - 34f;
+            DrawLine(px, S, S, c - 44f, b, c + 44f, b, T, w);
+            float[] xs = { -44f, -22f, 0f, 22f, 44f };
+            float[] ys = { 20f, -8f, 34f, -8f, 20f };
+            for (int i = 0; i < xs.Length - 1; i++)
+                DrawLine(px, S, S, c + xs[i], c + ys[i], c + xs[i + 1], c + ys[i + 1], T, w);
+            DrawLine(px, S, S, c - 44f, b, c - 44f, c + 20f, T, w);
+            DrawLine(px, S, S, c + 44f, b, c + 44f, c + 20f, T, w);
+            DrawDiamond(px, S, S, c, c + 44f, 8f, w);
+            DrawDiamond(px, S, S, c - 44f, c + 28f, 7f, w);
+            DrawDiamond(px, S, S, c + 44f, c + 28f, 7f, w);
+            result[3] = MakeSprite(px, S, S, "ResultIconRanking");
+        }
+        return result;
+    }
+
+    // 画面全体の周辺減光(中央 0 → 端 0.6)。深い紺で沈ませる。
+    private Sprite CreateVignetteSprite()
+    {
+        const int S = 256;
         Color32[] px = new Color32[S * S];
-        Color32 col = new Color32(0xFF, 0xFF, 0xFF, 0xFF);
-        // 3 本のバー(中央が高い)。
-        DrawRectOutline(px, S, S, 6f, 14f, 20f, 34f, 3.2f, col);
-        DrawRectOutline(px, S, S, 22f, 14f, 42f, 48f, 3.2f, col);
-        DrawRectOutline(px, S, S, 44f, 14f, 58f, 40f, 3.2f, col);
-        DrawLine(px, S, S, 4f, 13f, 60f, 13f, 3.2f, col);
-        return MakeSprite(px, S, S, "ResultRankingIcon");
+        for (int y = 0; y < S; y++)
+        {
+            float vy = (y / (float)(S - 1) - 0.5f) * 2f;
+            for (int x = 0; x < S; x++)
+            {
+                float vx = (x / (float)(S - 1) - 0.5f) * 2f;
+                float r = Mathf.Sqrt(vx * vx + vy * vy);
+                float t = Mathf.Clamp01((r - 0.28f) / 1.02f);
+                float a = t * t * 0.52f;
+                Blend(px, S, S, x, y, new Color32(0x04, 0x06, 0x12, 0xFF), a);
+            }
+        }
+        return MakeSprite(px, S, S, "ResultVignette");
     }
 
     // =======================================================================
-    //  描画プリミティブ
+    //  描画プリミティブ(実体は GoldPanelStyle と共用。ここは薄い転送)
     // =======================================================================
 
     private static void Blend(Color32[] buf, int w, int h, int x, int y, Color c, float cov)
-    {
-        if (cov <= 0f || x < 0 || y < 0 || x >= w || y >= h) return;
-        cov = Mathf.Clamp01(cov);
-        int i = y * w + x;
-        Color32 d = buf[i];
-        float da = d.a / 255f;
-        float outA = cov + da * (1f - cov);
-        if (outA <= 0f) { buf[i] = new Color32(0, 0, 0, 0); return; }
-        float r = (c.r * cov + d.r / 255f * da * (1f - cov)) / outA;
-        float g = (c.g * cov + d.g / 255f * da * (1f - cov)) / outA;
-        float b = (c.b * cov + d.b / 255f * da * (1f - cov)) / outA;
-        buf[i] = new Color32((byte)(Mathf.Clamp01(r) * 255f), (byte)(Mathf.Clamp01(g) * 255f),
-            (byte)(Mathf.Clamp01(b) * 255f), (byte)(Mathf.Clamp01(outA) * 255f));
-    }
+        => GoldPanelStyle.Blend(buf, w, h, x, y, c, cov);
 
     private static void Blend(Color32[] buf, int w, int h, int x, int y, Color32 c, float cov)
-    {
-        Blend(buf, w, h, x, y, new Color(c.r / 255f, c.g / 255f, c.b / 255f, 1f), cov * (c.a / 255f));
-    }
+        => GoldPanelStyle.Blend(buf, w, h, x, y, c, cov);
 
     private static void DrawLine(Color32[] buf, int w, int h,
         float x0, float y0, float x1, float y1, float thick, Color32 col)
-    {
-        float minX = Mathf.Min(x0, x1) - thick, maxX = Mathf.Max(x0, x1) + thick;
-        float minY = Mathf.Min(y0, y1) - thick, maxY = Mathf.Max(y0, y1) + thick;
-        float dx = x1 - x0, dy = y1 - y0;
-        float len2 = Mathf.Max(1e-5f, dx * dx + dy * dy);
-        for (int y = Mathf.Max(0, (int)minY); y <= Mathf.Min(h - 1, (int)maxY + 1); y++)
-        {
-            for (int x = Mathf.Max(0, (int)minX); x <= Mathf.Min(w - 1, (int)maxX + 1); x++)
-            {
-                float t = Mathf.Clamp01(((x - x0) * dx + (y - y0) * dy) / len2);
-                float px = x0 + dx * t, py = y0 + dy * t;
-                float d = Mathf.Sqrt((x - px) * (x - px) + (y - py) * (y - py)) - thick * 0.5f;
-                Blend(buf, w, h, x, y, col, Mathf.Clamp01(0.5f - d));
-            }
-        }
-    }
+        => GoldPanelStyle.DrawLine(buf, w, h, x0, y0, x1, y1, thick, col);
 
     private static void DrawDiamond(Color32[] buf, int w, int h, float cx, float cy, float half, Color32 col)
-    {
-        int r = Mathf.CeilToInt(half) + 2;
-        for (int y = (int)cy - r; y <= (int)cy + r; y++)
-        {
-            for (int x = (int)cx - r; x <= (int)cx + r; x++)
-            {
-                float d = (Mathf.Abs(x - cx) + Mathf.Abs(y - cy)) * 0.7071f - half * 0.7071f;
-                Blend(buf, w, h, x, y, col, Mathf.Clamp01(0.5f - d));
-            }
-        }
-    }
+        => GoldPanelStyle.DrawDiamond(buf, w, h, cx, cy, half, col);
 
-    // 先の尖った葉(長軸 len・半幅 wid・角度 ang)。
+    // 先の尖った葉(長軸 len・半幅 wid・角度 ang)。根元 (cx,cy) から ang 方向へ伸びる。
     private static void DrawLeaf(Color32[] buf, int w, int h, float cx, float cy,
         float ang, float len, float wid, Color32 col)
     {
         float ca = Mathf.Cos(ang), sa = Mathf.Sin(ang);
-        float ex = cx + ca * len * 0.5f, ey = cy + sa * len * 0.5f;   // 中心は根元と先の中点
+        float ex = cx + ca * len, ey = cy + sa * len;
         float mx = (cx + ex) * 0.5f, my = (cy + ey) * 0.5f;
         int r = Mathf.CeilToInt(len * 0.5f + wid) + 2;
         for (int y = (int)my - r; y <= (int)my + r; y++)
@@ -1603,47 +1862,26 @@ public sealed class ResultScreen : MonoBehaviour
         }
     }
 
-    private static void DrawRectOutline(Color32[] buf, int w, int h,
-        float x0, float y0, float x1, float y1, float thick, Color32 col)
-    {
-        DrawLine(buf, w, h, x0, y0, x1, y0, thick, col);
-        DrawLine(buf, w, h, x0, y1, x1, y1, thick, col);
-        DrawLine(buf, w, h, x0, y0, x0, y1, thick, col);
-        DrawLine(buf, w, h, x1, y0, x1, y1, thick, col);
-    }
-
     private Texture2D MakeTexture(Color32[] px, int w, int h, string name)
-    {
-        Texture2D tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
-        tex.name = name;
-        tex.filterMode = FilterMode.Bilinear;
-        tex.wrapMode = TextureWrapMode.Clamp;
-        tex.SetPixels32(px);
-        tex.Apply();
-        generatedTextures.Add(tex);
-        return tex;
-    }
+        => GoldPanelStyle.MakeTexture(px, w, h, name, generatedTextures);
 
     private Sprite MakeSprite(Color32[] px, int w, int h, string name)
-    {
-        Texture2D tex = MakeTexture(px, w, h, name);
-        Sprite sprite = Sprite.Create(tex, new Rect(0f, 0f, w, h), new Vector2(0.5f, 0.5f), 100f);
-        sprite.name = name;
-        generatedSprites.Add(sprite);
-        return sprite;
-    }
+        => GoldPanelStyle.MakeSprite(px, w, h, name, generatedTextures, generatedSprites);
+
 
     // =======================================================================
     //  UI 生成ヘルパー
     // =======================================================================
 
-    // 罫線 1 本(中央に菱形を置くかどうか)。
-    private void AddRule(RectTransform parent, Vector2 pos, float width, bool withDiamond)
+    // 罫線 1 本(中央に菱形を置くかどうか)。罫は白で焼いてあるので色は Image.color で決める。
+    private void AddRule(RectTransform parent, Vector2 pos, float width, bool withDiamond,
+        Color? tint = null, float alpha = 0.85f)
     {
-        Image rule = NewImage("Rule", parent, new Color(1f, 1f, 1f, 0.85f));
+        Color c = tint ?? GoldDim;
+        Image rule = NewImage("Rule", parent, new Color(c.r, c.g, c.b, alpha));
         rule.sprite = CreateRuleSprite();
         rule.type = Image.Type.Simple;
-        SetRect(rule.rectTransform, pos, new Vector2(width, 4f));
+        SetRect(rule.rectTransform, pos, new Vector2(width, 3f));
         if (withDiamond) AddDiamond(parent, pos, 11f, GoldAccent);
     }
 
