@@ -6450,7 +6450,11 @@ MonoBehaviour:
     lookupPosition: {x: 16, y: 20, z: -28}
     lookupTarget: {x: 16, y: 25, z: 72}
     lookupLensMm: 32
-    cameraPitchKeys: []
+    cameraPitchKeys:
+    - time: 0
+      pitchDeg: 14
+    - time: 8
+      pitchDeg: 0
     blackFadeStart: 0
     blackFadeEnd: 0.6
     cameraHoldEnd: 0
@@ -6532,6 +6536,7 @@ MonoBehaviour:
   pixelWidth: 640
   pixelHeight: 360
   bossFullRes: 1
+  resultPitchDeg: 7
 --- !u!1 &881801474
 GameObject:
   m_ObjectHideFlags: 0
