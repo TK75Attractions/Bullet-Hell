@@ -378,6 +378,10 @@ public class CityMapController : MonoBehaviour
     float focusWeight;
     float lastFocusApplied = -1f;
     int lastFocusDistrict = -1;
+    // フォーカスの中心(ワールド)。区画の切替中はカメラの注視点と一緒に動かす。
+    // 選択と同時に新しい anchor へ飛ばすと、カメラがまだ前の区画にいるあいだ
+    // 画面全体が半径の外側になり、0.3 秒ほど真っ黒になる(2026-09-16 実測)。
+    Vector3 focusCenterWorld;
 
     /// <summary>いまのフォーカス量(0..1)。検証用。</summary>
     public float FocusWeight => focusWeight;
@@ -389,6 +393,17 @@ public class CityMapController : MonoBehaviour
         return Mathf.Clamp01((18f - cityCamera.orthographicSize) / 9f);
     }
 
+    // フォーカスの中心を更新する。移動中はカメラの注視点(viewNow.target)に乗せ、
+    // 着いたら区画 anchor そのものにする。
+    void UpdateFocusCenter()
+    {
+        if (selected < 1) { focusCenterWorld = Vector3.zero; return; }
+        Vector3 anchor = Anchors[selected];
+        focusCenterWorld = moveT < 1f
+            ? new Vector3(viewNow.target.x, anchor.y, viewNow.target.z)
+            : anchor;
+    }
+
     // 表示板のフォーカス(中心 uv・半径 uv・落とし幅)を毎フレーム入れ直す。
     void ApplyFocusMaterial()
     {
@@ -398,7 +413,7 @@ public class CityMapController : MonoBehaviour
             pixelMat.SetFloat("_FocusAmount", 0f);
             return;
         }
-        Vector3 vp = cityCamera.WorldToViewportPoint(Anchors[selected]);
+        Vector3 vp = cityCamera.WorldToViewportPoint(focusCenterWorld);
         float size = Mathf.Max(0.01f, cityCamera.orthographicSize);
         float radiusWorld = FocusRadiusWorld();
         // 正投影なので、ワールド距離 → 画面比は線形。地面上の円は俯角ぶん縦へ潰れる。
@@ -424,7 +439,7 @@ public class CityMapController : MonoBehaviour
     float LanternFocusFactor(Light light)
     {
         if (!focusEnabled || selected < 1 || light == null || focusWeight <= 0.002f) return 1f;
-        Vector3 a = Anchors[selected];
+        Vector3 a = focusCenterWorld;
         Vector3 p = light.transform.position;
         float d = new Vector2(p.x - a.x, p.z - a.z).magnitude;
         float r = FocusRadiusWorld();
@@ -967,9 +982,11 @@ public class CityMapController : MonoBehaviour
 
         // 選択区画のフォーカス。カメラの引き具合から決めるので、入場スイープ・区画の
         // 切替(0.5 秒)・戻りの逆再生に自動で追従する(全景では 0 = 減光なし)。
+        UpdateFocusCenter();
         focusWeight = ComputeFocusWeight();
         ApplyFocusMaterial();
-        if (selected != lastFocusDistrict || Mathf.Abs(focusWeight - lastFocusApplied) > 0.004f)
+        // 移動中は中心が動くので毎フレーム、着いたら変化したときだけ街灯を入れ直す。
+        if (moveT < 1f || selected != lastFocusDistrict || Mathf.Abs(focusWeight - lastFocusApplied) > 0.004f)
         {
             lastFocusDistrict = selected;
             lastFocusApplied = focusWeight;
