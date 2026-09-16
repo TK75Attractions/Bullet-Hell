@@ -77,12 +77,30 @@ public class CitySelectView : MonoBehaviour
     private readonly System.Collections.Generic.List<Texture2D> ownedTextures = new System.Collections.Generic.List<Texture2D>();
     private readonly System.Collections.Generic.List<Sprite> ownedSprites = new System.Collections.Generic.List<Sprite>();
 
-    // 右半分(既存カードの下)に置く説明・プレイ時間と、残り 10 秒を切ったときだけ
-    // 画面下端へ出す明朝の残り秒数。
-    private CanvasGroup rightInfoCG;
-    private RectTransform rightInfoRect;
-    private TMP_Text rightDesc;
-    private TMP_Text rightMeta;
+    // ---- 右パネル(2026-09-16 U3 便で作り直し) --------------------------------
+    // リザルト新様式「夜の紺と金」(Docs/result-design-language.md §10)に揃えた
+    // 紺の半透明板。上から STAGE 番号 / 舞台名 / ステージ CG のサムネ / 情報行。
+    // 旧: 既存 JSAB カード(プレビュー動画)+ ステージ名 + 説明文。
+    private const float StagePanelW = 680f;
+    private const float StagePanelH = 860f;
+    private static readonly Vector2 StagePanelPos = new Vector2(496f, 10f);
+    private const float ThumbW = 600f;
+    private const float ThumbH = 338f;      // 16:9
+    private const float ThumbCenterY = 6f;
+
+    private CanvasGroup stagePanelCG;
+    private RectTransform stagePanelRect;
+    private TMP_Text stageNumberText;
+    private TMP_Text stageTitleText;
+    private RawImage thumbImage;
+    private Image thumbFallback;
+    private TMP_Text lengthValue;
+    private TMP_Text statusValue;
+    private Image statusIcon;
+    private Texture2D thumbTexture;
+    private string thumbDir;
+
+    // 残り 10 秒を切ったときだけ画面下端へ出す明朝の残り秒数。
     private TMP_Text timeLeftText;
     private TMP_Text timeLeftShadow;
     private float timeLeftAlpha;
@@ -133,37 +151,92 @@ public class CitySelectView : MonoBehaviour
 
         BuildMarker();
         BuildPanel();
-        BuildRightInfo();
+        BuildStagePanel();
+        BuildTimeLeft();
     }
 
-    // 右半分の既存カードの下に置く説明とプレイ時間、および残り時間の最小表示。
-    private void BuildRightInfo()
+    /// <summary>
+    /// 右パネル。リザルト新様式「夜の紺と金」(§10)と同じ紺の半透明板・金の罫線と菱形・
+    /// 四隅の金ブラケット・白い明朝で、上から
+    /// 1) STAGE 番号 2) 舞台名 3) ステージ CG のサムネ 4) 情報行(LENGTH / STATUS)。
+    /// </summary>
+    private void BuildStagePanel()
     {
-        GameObject go = new GameObject("RightInfo", typeof(RectTransform), typeof(CanvasGroup));
+        GameObject go = new GameObject("StagePanel", typeof(RectTransform), typeof(CanvasGroup));
         go.transform.SetParent(root, false);
-        rightInfoRect = (RectTransform)go.transform;
-        rightInfoRect.anchorMin = rightInfoRect.anchorMax = new Vector2(0.5f, 0.5f);
-        rightInfoRect.pivot = new Vector2(0.5f, 1f);
-        rightInfoRect.sizeDelta = new Vector2(792f, 120f);
-        rightInfoCG = go.GetComponent<CanvasGroup>();
-        rightInfoCG.blocksRaycasts = false;
-        rightInfoCG.alpha = 0f;
+        stagePanelRect = (RectTransform)go.transform;
+        stagePanelRect.anchorMin = stagePanelRect.anchorMax = new Vector2(0.5f, 0.5f);
+        stagePanelRect.pivot = new Vector2(0.5f, 0.5f);
+        stagePanelRect.anchoredPosition = StagePanelPos;
+        stagePanelRect.sizeDelta = new Vector2(StagePanelW, StagePanelH);
+        stagePanelCG = go.GetComponent<CanvasGroup>();
+        stagePanelCG.blocksRaycasts = false;
+        stagePanelCG.alpha = 0f;
 
-        rightDesc = NewText("Desc", rightInfoRect, "", 24f, new Color(0.78f, 0.86f, 0.92f, 1f), TextAlignmentOptions.Top);
-        RectTransform dr = (RectTransform)rightDesc.transform;
-        dr.anchorMin = dr.anchorMax = new Vector2(0.5f, 1f);
-        dr.pivot = new Vector2(0.5f, 1f);
-        dr.sizeDelta = new Vector2(792f, 62f);
-        dr.anchoredPosition = Vector2.zero;
-        rightDesc.textWrappingMode = TextWrappingModes.Normal;
+        Image plate = NewImage("Plate", stagePanelRect, Color.white);
+        Stretch(plate.rectTransform);
+        plate.sprite = GoldPanelStyle.CreatePanelSprite((int)StagePanelW, (int)StagePanelH,
+            ownedTextures, ownedSprites, "CityStagePanel");
 
-        rightMeta = NewText("Meta", rightInfoRect, "", 22f, Cyan, TextAlignmentOptions.Top);
-        RectTransform mr = (RectTransform)rightMeta.transform;
-        mr.anchorMin = mr.anchorMax = new Vector2(0.5f, 1f);
-        mr.pivot = new Vector2(0.5f, 1f);
-        mr.sizeDelta = new Vector2(792f, 30f);
-        mr.anchoredPosition = new Vector2(0f, -66f);
+        ruleSprite = GoldPanelStyle.CreateRuleSprite(ownedTextures, ownedSprites);
+        diamondSprite = GoldPanelStyle.CreateDiamondSprite(ownedTextures, ownedSprites);
 
+        // 1) STAGE 番号(小さい英字・字間広め・銀灰)。
+        stageNumberText = NewText("StageNumber", stagePanelRect, "", 24f,
+            GoldPanelStyle.SilverLabel, TextAlignmentOptions.Center);
+        SetRect((RectTransform)stageNumberText.transform, new Vector2(0f, 352f), new Vector2(560f, 34f));
+        StyleMincho(stageNumberText, 22f);
+
+        // STAGE 番号の下の小さな菱形(リザルトの RESULT → 菱形 → 見出しと同じ運び)。
+        AddDiamond(stagePanelRect, new Vector2(0f, 318f), 13f, GoldPanelStyle.GoldAccent);
+
+        // 2) ステージ名(大きい明朝・白)。2026-09-16 ユーザー判定により既存の
+        //    ステージ名(石工 / 放浪者 / 艦長 / 浮浪者)をそのまま出す(舞台名の仮置きは使わない)。
+        stageTitleText = NewText("StageTitle", stagePanelRect, "", 58f,
+            GoldPanelStyle.InkWhite, TextAlignmentOptions.Center);
+        SetRect((RectTransform)stageTitleText.transform, new Vector2(0f, 262f), new Vector2(600f, 78f));
+        StyleMincho(stageTitleText, 6f);
+        GoldPanelStyle.ApplyTextGlow(stageTitleText,
+            new Color(GoldPanelStyle.GoldAccent.r, GoldPanelStyle.GoldAccent.g, GoldPanelStyle.GoldAccent.b, 0.55f),
+            0.055f, 0.5f);
+
+        // 名前の下に飾り罫と琥珀の菱形。
+        AddRule(stagePanelRect, new Vector2(0f, 206f), 520f, true);
+
+        // 4) サムネ(角丸なし・細い枠。ステージ CG のレンダリング)。
+        GameObject thumbGO = new GameObject("Thumb", typeof(RectTransform));
+        thumbGO.transform.SetParent(stagePanelRect, false);
+        RectTransform tr = (RectTransform)thumbGO.transform;
+        tr.anchorMin = tr.anchorMax = new Vector2(0.5f, 0.5f);
+        tr.pivot = new Vector2(0.5f, 0.5f);
+        tr.anchoredPosition = new Vector2(0f, ThumbCenterY);
+        tr.sizeDelta = new Vector2(ThumbW, ThumbH);
+
+        thumbFallback = NewImage("ThumbFallback", tr, new Color(0.020f, 0.035f, 0.070f, 1f));
+        Stretch(thumbFallback.rectTransform);
+
+        thumbImage = new GameObject("ThumbImage", typeof(RectTransform)).AddComponent<RawImage>();
+        thumbImage.transform.SetParent(tr, false);
+        thumbImage.raycastTarget = false;
+        thumbImage.enabled = false;
+        Stretch(thumbImage.rectTransform);
+
+        Image thumbFrame = NewImage("ThumbFrame", tr, Color.white);
+        Stretch(thumbFrame.rectTransform);
+        thumbFrame.sprite = GoldPanelStyle.CreateThinFrameSprite(ownedTextures, ownedSprites);
+        thumbFrame.type = Image.Type.Sliced;
+
+        // 6) 情報行。AREA は不要(2026-09-16 ユーザー決定)、DIFFICULTY は曲の長さへ。
+        AddRule(stagePanelRect, new Vector2(0f, -220f), 520f, false);
+        lengthValue = AddInfoRow(stagePanelRect, -278f, "LENGTH",
+            Resources.Load<Sprite>("UI/result_icon_time"), out _);
+        statusValue = AddInfoRow(stagePanelRect, -346f, "STATUS",
+            CreateFlagIconSprite(), out statusIcon);
+    }
+
+    // 残り時間の最小表示(上部バーは街モードでは隠すため)。
+    private void BuildTimeLeft()
+    {
         // 残り 10 秒を切ったときだけ画面下端に小さく出す(上部バーは街モードでは隠す)。
         // 明るい石壁の上でも読めるよう、▼のラベルと同じ右下 2px の落ち影を 1 枚敷く。
         timeLeftShadow = NewText("TimeLeftShadow", root, "", 26f, MarkerLabelShadow, TextAlignmentOptions.Center);
@@ -182,21 +255,11 @@ public class CitySelectView : MonoBehaviour
         }
     }
 
-    /// <summary>右半分の説明ブロックの位置(既存カードの真下)。x=0 で街モード以外。</summary>
-    public void SetRightColumn(float x, float y, float width)
-    {
-        if (rightInfoRect == null) return;
-        rightInfoRect.anchoredPosition = new Vector2(x, y);
-        rightInfoRect.sizeDelta = new Vector2(width, rightInfoRect.sizeDelta.y);
-        if (rightDesc != null) ((RectTransform)rightDesc.transform).sizeDelta = new Vector2(width, 62f);
-        if (rightMeta != null) ((RectTransform)rightMeta.transform).sizeDelta = new Vector2(width, 30f);
-    }
-
-    /// <summary>右半分の説明ブロックの表示(難易度モーダルのあいだは下ろす)。</summary>
+    /// <summary>右パネルの表示(難易度モーダルのあいだは下ろす)。</summary>
     public void SetRightInfoVisible(bool on)
     {
-        if (rightInfoRect != null && rightInfoRect.gameObject.activeSelf != on)
-            rightInfoRect.gameObject.SetActive(on);
+        if (stagePanelRect != null && stagePanelRect.gameObject.activeSelf != on)
+            stagePanelRect.gameObject.SetActive(on);
     }
 
     /// <summary>残り時間の最小表示。10 秒を切ったときだけ出す。</summary>
@@ -366,8 +429,9 @@ public class CitySelectView : MonoBehaviour
         if (map != null) map.SetAvailableDistricts(flags);
     }
 
-    /// <summary>選択中のステージ。district が 0 なら区画未割当。</summary>
-    public void SetStage(StageData data, int districtNumber, bool animate)
+    /// <summary>選択中のステージ。district が 0 なら区画未割当。
+    /// <paramref name="stageNumber"/> は StageDataBase の並び順(1 始まり)＝ STAGE 01〜。</summary>
+    public void SetStage(StageData data, int districtNumber, bool animate, int stageNumber = 0)
     {
         district = districtNumber;
         if (map != null) map.SelectDistrict(districtNumber, animate);
@@ -390,10 +454,96 @@ public class CitySelectView : MonoBehaviour
         if (panelName != null) panelName.text = stageName;
         if (panelDesc != null) panelDesc.text = desc;
         if (panelMeta != null) panelMeta.text = meta;
-        if (rightDesc != null) rightDesc.text = desc;
-        if (rightMeta != null) rightMeta.text = meta;
-        // 廃止した右下パネルの動画は回さない(右半分の既存カードが動画を持つ)。
+        // 廃止した右下パネルの動画は回さない。
         if (ShowLegacyInfoPanel) UpdatePreviewClip(data);
+
+        ApplyStagePanel(data, stageNumber);
+    }
+
+    // ---- 右パネルの中身 ------------------------------------------------------
+
+    private void ApplyStagePanel(StageData data, int stageNumber)
+    {
+        if (stagePanelRect == null) return;
+
+        if (stageNumberText != null)
+            stageNumberText.text = stageNumber >= 1 ? string.Format("STAGE {0:00}", stageNumber) : "STAGE";
+        // 見出しは既存のステージ名(石工 / 放浪者 / 艦長 / 浮浪者)。
+        // StageCityProfile.stageTitle(舞台名の仮置き)は使わない(2026-09-16 ユーザー判定)。
+        if (stageTitleText != null) stageTitleText.text = StageCityProfile.DisplayNameOf(data);
+
+        // 曲の長さ。BGM クリップ長が取れないときは endTime で代用する。
+        if (lengthValue != null) lengthValue.text = FormatLength(data);
+
+        // 踏破 / 未踏(クリア記録)。
+        if (statusValue != null)
+        {
+            bool cleared = data != null && PlayHistory.ClearsOf(data.stageDirectoryName) > 0;
+            statusValue.text = cleared ? "踏破" : "未踏";
+            statusValue.color = cleared ? GoldPanelStyle.GoldAccent
+                : new Color(GoldPanelStyle.SilverLabel.r, GoldPanelStyle.SilverLabel.g,
+                    GoldPanelStyle.SilverLabel.b, 0.70f);
+            if (statusIcon != null)
+                statusIcon.color = cleared
+                    ? new Color(GoldPanelStyle.GoldAccent.r, GoldPanelStyle.GoldAccent.g, GoldPanelStyle.GoldAccent.b, 0.90f)
+                    : new Color(GoldPanelStyle.SilverLabel.r, GoldPanelStyle.SilverLabel.g, GoldPanelStyle.SilverLabel.b, 0.55f);
+        }
+
+        UpdateThumbnail(data);
+    }
+
+    /// <summary>
+    /// 曲の長さ(m:ss)。実際に遊ぶ長さ = <c>endTime</c> を秒で切り捨てる
+    /// (石工 147.0 → 2:27 / 放浪者 156.8 → 2:36。ユーザー提示の実値と一致する)。
+    /// endTime を持たないステージ(mirror)だけ BGM クリップ長で代用する。
+    /// </summary>
+    private static string FormatLength(StageData data)
+    {
+        if (data == null) return "--:--";
+        float sec = Mathf.Max(0f, data.endTime);
+        if (sec <= 0.01f && data.audioClip != null) sec = data.audioClip.length;
+        if (sec <= 0.01f) return "--:--";
+        int total = Mathf.FloorToInt(sec);
+        return string.Format("{0}:{1:00}", total / 60, total % 60);
+    }
+
+    /// <summary>ステージ CG のサムネ(Tools/Bullet Hell/Stage Select/Render CG Thumbnails の生成物)。</summary>
+    private void UpdateThumbnail(StageData data)
+    {
+        string dir = data != null ? data.stageDirectoryName : null;
+        if (dir == thumbDir) return;
+        thumbDir = dir;
+
+        if (thumbTexture != null) { Destroy(thumbTexture); thumbTexture = null; }
+        string path = ThumbnailPath(dir);
+        if (path != null)
+        {
+            byte[] bytes = File.ReadAllBytes(path);
+            // mipmap 無し・Bilinear。パネルでは 1280x720 → 596x335 の縮小表示なので
+            // Point 拡大(街やステージ CG のドット風)とは別扱いにする。
+            Texture2D tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            if (tex.LoadImage(bytes))
+            {
+                tex.filterMode = FilterMode.Bilinear;
+                tex.wrapMode = TextureWrapMode.Clamp;
+                thumbTexture = tex;
+            }
+            else Destroy(tex);
+        }
+        if (thumbImage != null)
+        {
+            thumbImage.texture = thumbTexture;
+            thumbImage.enabled = thumbTexture != null;
+        }
+        if (thumbFallback != null) thumbFallback.enabled = true;   // 枠の中の地は常に敷く
+    }
+
+    /// <summary>CG サムネの場所。無ければ null。</summary>
+    public static string ThumbnailPath(string stageDirectoryName)
+    {
+        if (string.IsNullOrEmpty(stageDirectoryName)) return null;
+        string path = Path.Combine(Application.dataPath, "StageData", stageDirectoryName, "cg_thumb.png");
+        return File.Exists(path) ? path : null;
     }
 
     private void UpdatePreviewClip(StageData data)
@@ -512,12 +662,13 @@ public class CitySelectView : MonoBehaviour
                 Mathf.Round(mp.y / MarkerArrowPixel) * MarkerArrowPixel - mp.y);
         }
 
-        // 右半分の説明ブロック: 区画へ寄り切ってから出し、決定の寄り込みで消す。
-        if (rightInfoCG != null)
+        // 右パネル: 区画が選ばれているあいだ出し、決定の寄り込み(難易度モーダル)で消す。
+        // 入場スイープ中も出したままにする(パネルの中身は左右キーで即差し替わる)。
+        if (stagePanelCG != null)
         {
-            float want = map.Arrived && district >= 1
+            float want = district >= 1
                 ? 1f - Mathf.Clamp01((map.ZoomAmount - 0.2f) / 0.5f) : 0f;
-            rightInfoCG.alpha = Mathf.MoveTowards(rightInfoCG.alpha, want, dt / 0.25f);
+            stagePanelCG.alpha = Mathf.MoveTowards(stagePanelCG.alpha, want, dt / 0.25f);
         }
 
         // 情報パネル: 区画へ寄り切ってからプレビューを出す。
@@ -540,6 +691,97 @@ public class CitySelectView : MonoBehaviour
         return string.Format("district={0} markerA={1:F2} preview={2:F2} | {3}",
             district, markerAlpha, previewCG != null ? previewCG.alpha : -1f,
             map != null ? map.DebugState() : "map=null");
+    }
+
+    // ---- 右パネルの小物 ------------------------------------------------------
+
+    private Sprite ruleSprite;
+    private Sprite diamondSprite;
+
+    // 明朝(ShipporiMincho)＋字間。リザルト新様式に合わせ、英字も明朝で字間を広げる。
+    private void StyleMincho(TMP_Text text, float spacing)
+    {
+        if (text == null) return;
+        TMP_FontAsset m = MinchoFont;
+        if (m != null) text.font = m;
+        text.characterSpacing = spacing;
+        text.textWrappingMode = TextWrappingModes.NoWrap;
+        text.overflowMode = TextOverflowModes.Overflow;
+    }
+
+    private static void SetRect(RectTransform rt, Vector2 pos, Vector2 size)
+    {
+        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = pos;
+        rt.sizeDelta = size;
+    }
+
+    // 金の細い罫線 1 本(中央に琥珀の菱形を置くかどうか)。
+    private void AddRule(RectTransform parent, Vector2 pos, float width, bool withDiamond)
+    {
+        Image rule = NewImage("Rule", parent, new Color(1f, 1f, 1f, 0.85f));
+        rule.sprite = ruleSprite;
+        rule.type = Image.Type.Simple;
+        SetRect(rule.rectTransform, pos, new Vector2(width, 16f));
+        if (withDiamond) AddDiamond(parent, pos, 16f, GoldPanelStyle.GoldAccent);
+    }
+
+    private void AddDiamond(RectTransform parent, Vector2 pos, float size, Color color)
+    {
+        Image d = NewImage("Diamond", parent, color);
+        d.sprite = diamondSprite;
+        d.type = Image.Type.Simple;
+        SetRect(d.rectTransform, pos, new Vector2(size, size));
+    }
+
+    // 情報行(アイコン + ラベル英字 + 縦罫 + 値)。戻り値は値の TMP。
+    private TMP_Text AddInfoRow(RectTransform parent, float y, string label, Sprite icon, out Image iconImage)
+    {
+        iconImage = null;
+        if (icon != null)
+        {
+            iconImage = NewImage("Icon", parent, new Color(GoldPanelStyle.SilverLabel.r,
+                GoldPanelStyle.SilverLabel.g, GoldPanelStyle.SilverLabel.b, 0.85f));
+            iconImage.sprite = icon;
+            iconImage.type = Image.Type.Simple;
+            iconImage.preserveAspect = true;
+            SetRect(iconImage.rectTransform, new Vector2(-228f, y), new Vector2(28f, 28f));
+        }
+
+        TMP_Text lab = NewText("Label", parent, label, 24f, GoldPanelStyle.SilverLabel, TextAlignmentOptions.Left);
+        SetRect((RectTransform)lab.transform, new Vector2(-88f, y), new Vector2(216f, 32f));
+        StyleMincho(lab, 12f);
+
+        TMP_Text bar = NewText("Bar", parent, "|", 24f,
+            new Color(GoldPanelStyle.GoldDim.r, GoldPanelStyle.GoldDim.g, GoldPanelStyle.GoldDim.b, 0.75f),
+            TextAlignmentOptions.Center);
+        SetRect((RectTransform)bar.transform, new Vector2(44f, y), new Vector2(20f, 32f));
+        StyleMincho(bar, 0f);
+
+        TMP_Text value = NewText("Value", parent, "", 28f, GoldPanelStyle.GoldAccent, TextAlignmentOptions.Right);
+        SetRect((RectTransform)value.transform, new Vector2(128f, y), new Vector2(240f, 34f));
+        StyleMincho(value, 4f);
+        return value;
+    }
+
+    // STATUS 行の旗アイコン(踏破の目印)。既存の Resources/UI には無いのでここで焼く。
+    private Sprite CreateFlagIconSprite()
+    {
+        const int S = 64;
+        Color32[] px = new Color32[S * S];
+        Color32 white = new Color32(0xFF, 0xFF, 0xFF, 0xFF);
+        // 旗竿。
+        GoldPanelStyle.DrawLine(px, S, S, 18f, 6f, 18f, 58f, 4f, white);
+        // 三角の旗(竿の上半分から右へ)。
+        for (int y = 32; y <= 56; y++)
+        {
+            float t = (56 - y) / 24f;                 // 上で長く、下で短い
+            float x1 = 20f + 26f * t;
+            for (int x = 20; x <= (int)x1; x++)
+                GoldPanelStyle.Blend(px, S, S, x, y, white, Mathf.Clamp01(x1 - x + 0.5f));
+        }
+        return GoldPanelStyle.MakeSprite(px, S, S, "CityStatusFlag", ownedTextures, ownedSprites);
     }
 
     // ---- 小物 ----------------------------------------------------------------
@@ -634,6 +876,7 @@ public class CitySelectView : MonoBehaviour
     {
         if (previewVideo != null) previewVideo.Stop();
         if (previewRT != null) { previewRT.Release(); Destroy(previewRT); }
+        if (thumbTexture != null) { Destroy(thumbTexture); thumbTexture = null; }
         foreach (Texture2D t in ownedTextures) if (t != null) Destroy(t);
         foreach (Sprite s in ownedSprites) if (s != null) Destroy(s);
         if (map != null) Destroy(map.gameObject);

@@ -1255,12 +1255,12 @@ public class JsabStageSelect : MonoBehaviour
         return diffBar != null && diffBar.IsRowEnabled(diffBar.index);
     }
 
-    // 街モードの右半分(既存カード・ステージ名・説明)の表示。難易度モーダルのあいだ下ろす。
+    // 街モードの右パネルの表示。難易度モーダルのあいだ下ろす。
+    // (2026-09-16 U3: 既存カード・ステージ名は街モードでは最初から下ろしてあるので、
+    //  ここで触るのは CitySelectView の右パネルだけ。)
     private void SetCityRightColumnVisible(bool on)
     {
         if (!cityMode) return;
-        SetGoActive(cardRect, on);
-        SetGoActive(stageNameRect, on);
         if (city != null) city.SetRightInfoVisible(on);
     }
 
@@ -1615,7 +1615,7 @@ public class JsabStageSelect : MonoBehaviour
                 StageDataBase sdb = GManager.Control != null ? GManager.Control.SDB : null;
                 city.SetAvailableDistricts(StageCityProfile.BuildAvailability(sdb));
                 StageData data = GetStage(currentIndex);
-                city.SetStage(data, StageCityProfile.DistrictOf(data), false);
+                city.SetStage(data, StageCityProfile.DistrictOf(data), false, currentIndex + 1);
             }
             city.SetVisible(cityMode && Visible);
         }
@@ -1640,19 +1640,19 @@ public class JsabStageSelect : MonoBehaviour
 
         if (cityMode == cityLayoutApplied) return;
         cityLayoutApplied = cityMode;
-        if (cardRect != null)
+        // 2026-09-16 U3: 街モードの右半分は CitySelectView の新しい右パネルが持つ。
+        // 既存カード(プレビュー動画)とステージ名はカルーセル(style 1)の位置のまま下ろす
+        // (ApplyCarouselVisible が表示を切る)。style 0/1 の見た目は不変。
+        if (cardRect != null && !cityMode)
         {
-            cardRect.anchoredPosition = cityMode ? CityCardPos : CenterSlotPos;
-            cardRect.sizeDelta = cityMode ? CityCardSize : CenterSlotSize;
+            cardRect.anchoredPosition = CenterSlotPos;
+            cardRect.sizeDelta = CenterSlotSize;
         }
-        if (stageNameRect != null)
+        if (stageNameRect != null && !cityMode)
         {
             stageNameRect.anchoredPosition = new Vector2(
-                cityMode ? CityCardPos.x : 0f,
-                cityMode ? CityStageNameY : CenterSlotPos.y + CenterSlotSize.y * 0.5f + 46f);
+                0f, CenterSlotPos.y + CenterSlotSize.y * 0.5f + 46f);
         }
-        if (city != null) city.SetRightColumn(cityMode ? CityCardPos.x : 0f,
-            cityMode ? CityCardPos.y - CityCardSize.y * 0.5f - 30f : 0f, CityCardSize.x);
     }
 
     // カルーセル固有の部品(サイドカード・中央カード・ステージ名・進捗行・背景図形)の
@@ -1662,8 +1662,8 @@ public class JsabStageSelect : MonoBehaviour
         SetGoActive(leftPanel != null ? leftPanel.rect : null, on);
         SetGoActive(rightPanel != null ? rightPanel.rect : null, on);
         SetGoActive(sparePanel != null ? sparePanel.rect : null, on);
-        SetGoActive(cardRect, true);        // 街モードでは右半分へ移して使う
-        SetGoActive(stageNameRect, true);
+        SetGoActive(cardRect, on);          // 街モードでは右パネルが置き換えるので下ろす
+        SetGoActive(stageNameRect, on);
         SetGoActive(progressRow, on);
         SetGoActive(bgShapesRoot, on);
     }
@@ -1719,7 +1719,7 @@ public class JsabStageSelect : MonoBehaviour
             if (city != null)
             {
                 StageData data = GetStage(currentIndex);
-                city.SetStage(data, StageCityProfile.DistrictOf(data), animate);
+                city.SetStage(data, StageCityProfile.DistrictOf(data), animate, currentIndex + 1);
             }
             // 右半分の既存カード(名前・プレビュー動画)も更新する。カルーセルの
             // 飛行アニメーションは通さない(街モードでは部品を下ろしてあるため)。

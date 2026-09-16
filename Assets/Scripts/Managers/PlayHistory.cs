@@ -138,6 +138,22 @@ public static class PlayHistory
         }
     }
 
+    /// <summary>そのステージのクリア回数(0 なら未踏)。ステージ選択の STATUS 行で使う。</summary>
+    public static int ClearsOf(string stageDirectoryName)
+    {
+        if (string.IsNullOrWhiteSpace(stageDirectoryName)) return 0;
+        Load();
+        return cache.TryGetValue(stageDirectoryName, out int[] v) ? v[1] : 0;
+    }
+
+    /// <summary>そのステージのプレイ回数(クリアしていなくても挑戦していれば 1 以上)。</summary>
+    public static int PlaysOf(string stageDirectoryName)
+    {
+        if (string.IsNullOrWhiteSpace(stageDirectoryName)) return 0;
+        Load();
+        return cache.TryGetValue(stageDirectoryName, out int[] v) ? v[0] : 0;
+    }
+
     // ---- Recording ----------------------------------------------------------
 
     public static void RecordPlay(string stageDirectoryName)
