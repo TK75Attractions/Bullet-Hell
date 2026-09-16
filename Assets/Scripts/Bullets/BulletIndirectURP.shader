@@ -57,6 +57,11 @@ Shader "Custom/BulletIndirectURP"
             // 石工ベルト帯のスリット模様スクロール量(UV)。StoneBeltScrollDriver が flow 窓の
             // 間だけ進める(marron 由来。統合で shader から欠落していたのを復活)。
             float _StoneBeltScroll;
+            // リザルトへ移るときに残弾をまとめて消すためのアルファ倍率(2026-09-16)。
+            // Properties には出さず Shader.SetGlobalFloat だけで駆動する(共有マテリアル
+            // 資産を汚さないため)。未設定だと 0 になるので BulletRenderSystem が
+            // 起動時に必ず 1 を敷く。色の意味(color.a=0 の無着色規約)には触らない。
+            float _BulletEndingFade;
 
             struct BulletData
             {
@@ -235,26 +240,33 @@ Shader "Custom/BulletIndirectURP"
                 return half4(input.color.rgb, alpha * appear);
             }
 
+            // 出力アルファにだけ終了フェードを掛ける(RGB と color.a の意味は不変)。
+            half4 ApplyEndingFade(half4 c)
+            {
+                c.a *= _BulletEndingFade;
+                return c;
+            }
+
             half4 frag(Varyings input) : SV_Target
             {
                 if (input.renderMode > 4.5)
                 {
-                    return fragCounterSpawnFlash(input);
+                    return ApplyEndingFade(fragCounterSpawnFlash(input));
                 }
 
                 if (input.renderMode > 3.5)
                 {
-                    return fragCounterTrail(input);
+                    return ApplyEndingFade(fragCounterTrail(input));
                 }
 
                 if (input.renderMode > 2.5)
                 {
-                    return fragCounter(input);
+                    return ApplyEndingFade(fragCounter(input));
                 }
 
                 if (input.renderMode > 1.5)
                 {
-                    return fragAttention(input);
+                    return ApplyEndingFade(fragAttention(input));
                 }
 
                 // 石工ベルト帯(scale.x>20, scale.y<3.5)のスリット模様を UV スクロール(marron 由来)。
@@ -277,7 +289,7 @@ Shader "Custom/BulletIndirectURP"
                 {
                     baseCol.rgb = lerp(baseCol.rgb, input.color.rgb, saturate(mask));
                     baseCol.a *= saturate(input.color.a) * appear;
-                    return baseCol;
+                    return ApplyEndingFade(baseCol);
                 }
 
                 // 通常弾では color.a を透明度ではなく「色指定の有無」として扱う。
@@ -289,7 +301,7 @@ Shader "Custom/BulletIndirectURP"
                 baseCol.rgb = lerp(baseCol.rgb, input.color.rgb, tintStrength);
                 baseCol.a = max(baseCol.a, tintStrength) * appear;
 
-                return baseCol;
+                return ApplyEndingFade(baseCol);
             }
             ENDHLSL
         }

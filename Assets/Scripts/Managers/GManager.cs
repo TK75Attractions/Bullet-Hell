@@ -887,7 +887,8 @@ public class GManager : MonoBehaviour
         // は別ソース(ResultScreenBgm)で dspTime スケジュール再生されるので、覆いの下で
         // ステージ BGM のフェードアウトと自然にクロスする。
         AManager?.FadeOutAndStopBGM(0.5f);
-        QOrder?.ClearAllGameplayBulletsImmediate();
+        // 残っている弾は寿命どおり消える(QuadUpdate は Result でも回る)。刈り取りは
+        // 終了シーケンスの最後にまとめて行う ＝ endTime で一斉に消えるポップを避ける。
         // 2P の P2 は、自機と同じ尺でフェードアウトしてから隠す(終了シーケンスの中で)。
 
         if (recordHistory && cleared && stage != null)
@@ -940,12 +941,18 @@ public class GManager : MonoBehaviour
             PController?.SetEndingFade(a);
             if (twoPlayerNow) PController2?.SetEndingFade(a);
             StageCgController.SetResultEnemyAlphaStatic(a);
+            // 寿命で消えない弾(石工の床タイル・放浪者の雷など)も同じ尺で薄くする。
+            BulletRenderSystem.SetEndingFade(a);
             yield return null;
         }
         PController?.SetEndingFade(0f);
         if (twoPlayerNow) PController2?.SetEndingFade(0f);
         StageCgController.SetResultEnemyAlphaStatic(0f);
+        BulletRenderSystem.SetEndingFade(0f);
         if (player2Obj != null) player2Obj.SetActive(false);
+        // 見えなくなってからバッファを片付ける(絵は動かない)。倍率は次のプレイのため戻す。
+        QOrder?.ClearAllGameplayBulletsImmediate();
+        BulletRenderSystem.SetEndingFade(1f);
 
         // 背景ぼかし(BackdropBlurUtil のピラミッド方式)。描画完了後に撮る。
         if (ResultScreen.BackdropBlurEnabled && RManager != null)
@@ -953,7 +960,7 @@ public class GManager : MonoBehaviour
             yield return new WaitForEndOfFrame();
             RManager.SetBackdropBlur(CaptureBackdropBlur());
         }
-        endingSequenceDone = true;
+        endingSequenceDone = true;   // ここからパネルの入場が始まる
     }
 
     /// <summary>

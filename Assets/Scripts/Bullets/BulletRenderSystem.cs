@@ -14,6 +14,22 @@ public class BulletRenderSystem : MonoBehaviour
     private const float appearBeatBaseAlpha = 0.2f; // a
     private const float appearBeatSinCoeff = 0.3f; // k
     private static readonly int CounterMaskTexelSizeId = Shader.PropertyToID("_CounterMaskTexelSize");
+    // リザルトへ移るときに残弾をまとめて消すためのアルファ倍率(2026-09-16)。
+    // 共有マテリアル資産を汚さないようグローバルだけで駆動する。未設定は 0 扱いに
+    // なるので、Play に入った時点で必ず 1 を敷いておく。
+    private static readonly int BulletEndingFadeId = Shader.PropertyToID("_BulletEndingFade");
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void ResetEndingFadeOnPlay()
+    {
+        Shader.SetGlobalFloat(BulletEndingFadeId, 1f);
+    }
+
+    /// <summary>弾の表示アルファ倍率。1 で通常、0 で完全に消える(弾データは不変)。</summary>
+    public static void SetEndingFade(float alpha)
+    {
+        Shader.SetGlobalFloat(BulletEndingFadeId, Mathf.Clamp01(alpha));
+    }
 
     private ComputeBuffer bulletBuffer;
     private ComputeBuffer argsBuffer;
