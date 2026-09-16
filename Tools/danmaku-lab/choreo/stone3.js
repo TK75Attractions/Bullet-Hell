@@ -2453,6 +2453,50 @@ function tileBreakFx(pos, index, kind) {
   ], kind);
 }
 
+// v44 (1): 指示「Easy: タイルの破裂エフェクトがなくて寂しい。特にシャベルをぶつける
+//   ところ。何かエフェクトが欲しい」。easy は v37 (2)(3) で放射弾を消したぶん、
+//   シャベル・鎖でタイルが砕けても画面に何も起きない状態になっていた。
+//   そこで **当たり判定のない破裂エフェクト**を置く。中身は既存の部品だけ:
+//     ・tileBreakFx と同じ「タイルが白くなって縮む」2 発
+//     ・外へ広がる円環 1 枚（stone3_ring・verts 空・renderPriority 4）
+//     ・散って止まる破片 8 枚（debrisRingSettle・POP_TYPE＝stone3_pop・verts 空）
+//   破片は放射弾と見間違えないよう **減速して 0.9 ユニットで止まり縮んで消える**
+//   （v29b で隕石の破裂に入れたのと同じ作り）。乱数は引かない（角度は index から決める）
+//   ので easy のタイル配置・抽選は 1 つも動かない。
+const TILE_BURST_RING_S0 = TILE * 0.90;     // 円環の初期径（タイルとほぼ同じ）
+const TILE_BURST_RING_S1 = TILE * 3.20;     // 同・終端径（3.3 セルぶんの直径）
+const TILE_BURST_RING_DUR = 0.20;
+const TILE_BURST_DEBRIS_N = 8;
+const TILE_BURST_DEBRIS_SPEED = 5.4;        // 止まる距離 = speed * life / 2 = 0.92 ユニット
+const TILE_BURST_DEBRIS_LIFE = 0.34;
+const TILE_BURST_DEBRIS_S0 = TILE * 0.26;
+const TILE_BURST_DEBRIS_S1 = TILE * 0.06;
+const TILE_BURST_GOLDEN_ANGLE = 2.39996322972865332;   // index ごとに向きを散らす（乱数不要）
+function tileBurstFx(pos, index, kind) {
+  const p = [normalizeNegativeZero(pos[0]), normalizeNegativeZero(pos[1])];
+  const white = tileBreakFx(p, index, kind);
+  const ring = warnClip([{
+    type: METEOR_RING_TYPE,
+    pos: p,
+    scale: [TILE_BURST_RING_S0, TILE_BURST_RING_S0],
+    color: POP_COLOR_START,
+    scaleEnd: [TILE_BURST_RING_S1, TILE_BURST_RING_S1],
+    colorEnd: STONE_PATH,
+    animDuration: TILE_BURST_RING_DUR,
+    appearTime: 0,
+    appearDuration: 0,
+    life: TILE_BURST_RING_DUR + FADE_OUT_SEC,
+  }], kind);
+  const debris = debrisRingSettle(
+    p, TILE_BURST_DEBRIS_N, TILE_BURST_DEBRIS_SPEED, TILE_BURST_DEBRIS_LIFE,
+    TILE_BURST_DEBRIS_S0, TILE_BURST_DEBRIS_S1,
+    SPIN_RATE * (index % 2 === 0 ? 1 : -1),
+    normalizeNegativeZero((index * TILE_BURST_GOLDEN_ANGLE) % (2 * Math.PI))
+  );
+  debris.parts[0].kind = kind;
+  return { parts: [white.parts[0], ring.parts[0], debris.parts[0]] };
+}
+
 // v23 (B)3: 隕石が飛行中に自転する。v2（区間モーション）は BulletV2UpdateJob が
 // polarForm.y を更新しないため回転が付かない。よって v1 レーン（gravitySeq の非 v2 分岐と
 // 同じ originVlc/gravity による直線・放物運動）へ戻し、spinBurst/gatherTile と同じ
@@ -3764,6 +3808,8 @@ export default stage(
         );
         // v37 (2): 指示書 #2「シャベル爆破時の破裂弾は消して」（easy のみ）
         atBurst(impact, center, spinBase + k, burstMul, !IS_EASY);
+        // v44 (1): easy はここが完全に無音になっていたので破裂エフェクトを置く
+        if (IS_EASY) s.at(impact, tileBurstFx(center, spinBase + k, 'tileburstfx'));
       });
     }
 
@@ -3978,6 +4024,8 @@ export default stage(
         const center = cellCenter(t.col, t.row);
         // v37 (3): 指示書 #3「鎖攻撃で破壊時の破裂弾を消して」（easy のみ）
         atBurst(t.end, center, k, 0.5, !IS_EASY);
+        // v44 (1): easy は破裂エフェクトで代替する（当たり判定なし）
+        if (IS_EASY) s.at(t.end, tileBurstFx(center, k, 'tileburstfx'));
       }
     }
 
@@ -4088,6 +4136,8 @@ export default stage(
           const t = sorted[i];
           // v37 (3): 指示書 #3「鎖攻撃で破壊時の破裂弾を消して」（easy のみ）
           atBurst(t.end, cellCenter(t.col, t.row), k, 0.5, !IS_EASY);
+          // v44 (1): easy は破裂エフェクトで代替する（当たり判定なし）
+          if (IS_EASY) s.at(t.end, tileBurstFx(cellCenter(t.col, t.row), k, 'tileburstfx'));
         }
       }
       return broken;
@@ -4711,6 +4761,8 @@ export default stage(
           const t = sorted[i];
           // v37 (3): 指示書 #3（easy のみ）
           atBurst(t.end, cellCenter(t.col, t.row), k, 0.5, !IS_EASY);
+          // v44 (1): easy は破裂エフェクトで代替する（当たり判定なし）
+          if (IS_EASY) s.at(t.end, tileBurstFx(cellCenter(t.col, t.row), k, 'tileburstfx'));
         }
       }
       return broken;
