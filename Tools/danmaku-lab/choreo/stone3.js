@@ -5374,10 +5374,15 @@ export default stage(
     }
 
     // 隕石の爆破一式（v27 (15) と同じ円形リング＋破片＋放射弾）。
-    function v28MeteorBlast(t, pos, idx, fxPos) {
+    // v44 (3): 指示「Easy: 隕石にシャベルを当てて爆破するやつ、少なめの破裂弾を追加」。
+    //   shovelKill=true（＝シャベルをぶつけて割る隕石）のときだけ easy でも放射弾を出す。
+    //   弾数は v37 (1) の基準そのままなので **easy 7 発 / normal 14 発 ＝ 0.5 倍**、
+    //   速さは easy 9.5 / normal 9 で従来どおり。床へ落ちて割れるだけの隕石
+    //   （113.882s・v28BlockA の (c)）は指示の対象外なので easy では出さない。
+    function v28MeteorBlast(t, pos, idx, fxPos, shovelKill) {
       s.at(t, meteorBurstFx(fxPos || pos, 1.0, 'meteorhit'));   // v29b: 輪郭リング＋欠片
       // v37 (9)(10)(12): 指示書 #9 #10 #12「この辺の破裂弾を消して」（easy のみ）
-      atBurst(t, pos, idx, 1.2, !IS_EASY);
+      atBurst(t, pos, idx, 1.2, !IS_EASY || !!shovelKill);
     }
 
     // v29 (8): 指示 117.795「ここら辺全体的に隕石爆破が早すぎるので遅くして」。
@@ -5445,7 +5450,7 @@ export default stage(
         angle: SHOVEL_ANGLE_LEFT,
         life: dL,
       }));
-      v28MeteorBlast(tA2, V28_UP_APEX, idx);
+      v28MeteorBlast(tA2, V28_UP_APEX, idx, undefined, true);   // v44 (3): シャベル衝突
 
       // (b) 中心 (16,9) について点対称の右側。右上から下向きに出て上向き重力で減速し、
       //     左から来るシャベルと tA3 でぶつかる。
@@ -5467,7 +5472,7 @@ export default stage(
         angle: SHOVEL_ANGLE_RIGHT,
         life: dR,
       }));
-      v28MeteorBlast(tA3, symApex, idx + 1);
+      v28MeteorBlast(tA3, symApex, idx + 1, undefined, true);   // v44 (3): シャベル衝突
 
       // (c) tA3 から中央に旧来の（等加速で落ちる）隕石。tA4 に床へ着く。
       //     落下加速度は v27 (14) で決めた METEOR_DROP_ACCEL のまま。指定時刻に着くよう
@@ -5566,7 +5571,7 @@ export default stage(
         s.at(tAppear[k], clip);
         s.at(tAppear[k], meteorPathTrail(from, [0, dv], segs, fall, 'meteorresttrail'));
         v28EntryFlash(tAppear[k], meteorPathPos(from, [0, dv], segs), V28_REST_FALL, 'meteorspawn');
-        v28MeteorBlast(tHit[k], [x, restY], idx + k);
+        v28MeteorBlast(tHit[k], [x, restY], idx + k, undefined, true);   // v44 (3): シャベル衝突
       });
       // v31 (16): 横から 1 本でまとめて割らず、各隕石へ 1 本ずつ差し向ける。
       const shovelFlight = beats(2);
