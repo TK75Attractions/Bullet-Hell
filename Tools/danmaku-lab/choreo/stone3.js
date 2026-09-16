@@ -1692,21 +1692,27 @@ const BLINK_PULSE_DUR = BLINK_HOLDS.reduce(function (acc, hold, i) {
   return hold > 0 ? Math.max(acc, i * BLINK_SUB + hold) : acc;
 }, 0);
 // 山の開始時刻。間隔は BLINK_ACCEL 倍ずつ詰まり、最後の山が爆破の瞬間ちょうどに消え終わる。
-const BLINK_PULSE_STARTS = (function () {
-  const span = BLINK_LEAD - BLINK_PULSE_DUR;
+// v44 (2): 指示「タイル表示攻撃の予告が遅く回避が難しい」。点滅のリードを難易度で
+//   変えられるよう、リードを引数に取る関数へ切り出した（山の数・形は不変で、
+//   同じ lead を渡せば従来と 1 ビットも変わらない＝ lunatic は完全に据え置き）。
+function blinkPulseStarts(lead) {
+  const span = lead - BLINK_PULSE_DUR;
   const weights = [];
   for (let i = 0; i < BLINK_PULSES - 1; i++) weights.push(Math.pow(BLINK_ACCEL, i));
   const total = weights.reduce(function (a, b) { return a + b; }, 0);
   const out = [0];
   weights.forEach(function (w) { out.push(out[out.length - 1] + (span * w) / total); });
   return out;
-})();
+}
+const BLINK_PULSE_STARTS = blinkPulseStarts(BLINK_LEAD);
 
-function blinkWarn(cells, kind) {
+function blinkWarn(cells, kind, lead) {
+  const starts = (lead === undefined || lead === BLINK_LEAD)
+    ? BLINK_PULSE_STARTS : blinkPulseStarts(lead);
   const items = [];
   cells.forEach(function (cell) {
     const c = cellCenter(cell[0], cell[1]);
-    BLINK_PULSE_STARTS.forEach(function (pulse) {
+    starts.forEach(function (pulse) {
       BLINK_HOLDS.forEach(function (hold, i) {
         if (hold <= 0) return;
         const t0 = pulse + i * BLINK_SUB;
@@ -3254,7 +3260,15 @@ export default stage(
     //   lunatic だけ 0.3 → 0.39 にする。当たり判定は BulletCollisionJob が verts に
     //   scale を掛けて取るので、見た目と同じだけ広がる。速度・弾数は不変。
     const BLAST_SCALE = D(BULLET_SCALE, BULLET_SCALE, BULLET_SCALE * 1.3);
-    const lead = beats(WARN_BEATS);
+    // v44 (2): 指示「タイル表示攻撃の予告が遅く回避が難しい。Easy はもっと早く、
+    //   Normal は少し早く表示」。タイル出現の予告リードを難易度で伸ばす倍率。
+    //   lunatic は 1.0＝据え置き（bundle は byte 完全一致）。曲のマーカーに直接ひも付いた
+    //   リード（REFILL_LEADS / TILE2_LEADS / TILE3_LEADS＝前のイベントから出しっぱなし）は
+    //   音ハメそのものなので触らず、「何拍前」で書かれたリードだけに掛ける。
+    const WARN_LEAD_MUL = D(2.0, 1.5, 1.0);
+    // 爆破される（＝これから割れる）タイルの点滅のリード。easy 1.5 拍 / normal 1.25 / lunatic 1 拍。
+    const BLINK_LEAD_D = beats(D(1.5, 1.25, 1.0));
+    const lead = beats(WARN_BEATS * WARN_LEAD_MUL);
     // v11: 中央（12x5 = 60 セル）に毎拍出す一時タイルの密度。
     //   v10 は 10x3 = 30 セルに D(0.125, 0.165, 0.20)＝毎拍 4/5/6 枚。セル数が倍になったので
     //   まず 1/2 にして枚数を据え置き、さらに帯の縮小と同じ比 84/114 = 0.7368 を掛けている。
@@ -3628,7 +3642,7 @@ export default stage(
             kind: 'blastwarn',
           })
         );
-        s.at(blastTime - BLINK_LEAD, blinkWarn(cells, 'blastblink'));
+        s.at(blastTime - BLINK_LEAD_D, blinkWarn(cells, 'blastblink', BLINK_LEAD_D));
 
         const centers = cells.map((c) => cellCenter(c[0], c[1]));
         centers.forEach(function (center) {
@@ -3795,7 +3809,7 @@ export default stage(
         // v5 (3): 発射の1拍前から、シャベルが通る列に縦帯（到達＝爆破で消える）。v7 で刃の幅ぶんに拡幅
         s.at(impact - flight - SWEEP_LEAD, dropPathWarn(center, SWEEP_LEAD + flight, 'droppathwarn'));
         // v5 (2): 爆破の1拍前から対象タイルを点滅させる
-        s.at(impact - BLINK_LEAD, blinkWarn([cell], 'blastblink'));
+        s.at(impact - BLINK_LEAD_D, blinkWarn([cell], 'blastblink', BLINK_LEAD_D));
         s.at(
           impact - flight,
           shovel({
@@ -4261,7 +4275,7 @@ export default stage(
     //   埋まり方も外周ぐるりの本来の目標値（BAND_TARGET）に戻す。
     const bandH = tilePhase({
       times: [V27C_TILE_SHOW],
-      leads: [beats(1)],
+      leads: [beats(1 * WARN_LEAD_MUL)],
       centerRate: CENTER_RATE,
       bandTarget: BAND_TARGET,
       bandCells: BAND_CELLS,
@@ -4807,7 +4821,7 @@ export default stage(
     //   外周ぐるりの帯へ積む。ここで積んだ帯がマーカー 33〜36 の爆破対象になる。
     const bandF = tilePhase({
       times: V29_TILE6_TIMES,
-      leads: V29_TILE6_TIMES.map(function () { return beats(1); }),
+      leads: V29_TILE6_TIMES.map(function () { return beats(1 * WARN_LEAD_MUL); }),
       centerRate: CENTER_RATE,
       bandTarget: BAND_TARGET,
       bandCells: BAND_CELLS,
@@ -4828,7 +4842,7 @@ export default stage(
     //   残ったタイルはマーカー 33〜36 の爆破と 37〜39 の鎖（指示 12）が片付ける。
     const bandG = tilePhase({
       times: V32_TILE6_TIMES,
-      leads: V32_TILE6_TIMES.map(function () { return beats(1); }),
+      leads: V32_TILE6_TIMES.map(function () { return beats(1 * WARN_LEAD_MUL); }),
       centerRate: CENTER_RATE,
       bandTarget: BAND_TARGET,
       bandCells: BAND_CELLS,
@@ -4984,7 +4998,7 @@ export default stage(
     //   6 拍ぶん積んでも自機の通り道は必ず残る。消える時刻はマーカー 47。
     const band43 = tilePhase({
       times: TILE43_TIMES,
-      leads: TILE43_TIMES.map(function () { return beats(0.75); }),
+      leads: TILE43_TIMES.map(function () { return beats(0.75 * WARN_LEAD_MUL); }),
       centerRate: 0,
       bandTarget: D(0.26, 0.32, 0.38),
       bandCells: ALL_CELLS,
