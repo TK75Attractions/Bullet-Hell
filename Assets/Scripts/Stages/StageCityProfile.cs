@@ -23,6 +23,8 @@ public class StageCityProfile : ScriptableObject
         [Range(0, 9)] public int district;
         [Tooltip("街モードで▼のラベルに出す日本語名。空なら StageData.stageName を使う。")]
         public string displayName;
+        [Tooltip("舞台名(リザルト/選択画面に出す土地の名前)。空なら displayName → stageName の順で拾う。")]
+        public string stageTitle;
     }
 
     public List<Entry> entries = new List<Entry>();
@@ -30,12 +32,13 @@ public class StageCityProfile : ScriptableObject
     private const string ResourcePath = "StageCityProfile";
 
     // 資産が無いときに使う内蔵表(2026-09-13 時点の割当)。
-    private static readonly (string dir, int district, string displayName)[] Defaults =
+    private static readonly (string dir, int district, string displayName, string stageTitle)[] Defaults =
     {
-        ("stone", 3, "石工"),      // 石切り場(東)
-        ("wanderer", 4, "放浪者"), // 廃屋。街外れの廃屋 = 放浪者が居つく場所(2026-09-13 ユーザー決定)
-        ("captain", 5, "艦長"),    // 大河(西)。StageData 側は "Captain" のままなのでここで補う
-        ("vagrant", 6, "浮浪者"),  // 地下墓地(北西)
+        ("stone", 3, "石工", "高原都市"),        // 石切り場(東)
+        ("wanderer", 4, "放浪者", "高原の街道"), // 廃屋。街外れの廃屋 = 放浪者が居つく場所(2026-09-13 ユーザー決定)
+        ("captain", 5, "艦長", "河畔の都市"),    // 大河(西)。StageData 側は "Captain" のままなのでここで補う
+        ("vagrant", 6, "浮浪者", "洞窟墓"),      // 地下墓地(北西)
+        ("mirror", 0, "領主様の姿見", "鏡の無い村"), // 区画は未割当(0)。舞台名だけ持たせる
     };
 
     // 区画ごとの「色の基調」。1 を中立とする倍率で、寄っているあいだだけ画面全体へ薄く被せる
@@ -76,12 +79,39 @@ public class StageCityProfile : ScriptableObject
         }
         if (!string.IsNullOrEmpty(dir))
         {
-            foreach ((string d, int _, string name) in Defaults)
+            foreach ((string d, int _, string name, string _t) in Defaults)
             {
                 if (d == dir && !string.IsNullOrWhiteSpace(name)) return name;
             }
         }
         return data.stageName != null ? data.stageName : "";
+    }
+
+    /// <summary>
+    /// 舞台名(リザルト画面・選択画面に出す土地の名前)。
+    /// 資産 → 内蔵表 → DisplayNameOf の順で拾う(2026-09-16 リザルト改修で追加)。
+    /// </summary>
+    public static string StageTitleOf(StageData data)
+    {
+        if (data == null) return "";
+        string dir = data.stageDirectoryName;
+        StageCityProfile profile = Load();
+        if (profile != null && profile.entries != null && !string.IsNullOrEmpty(dir))
+        {
+            foreach (Entry e in profile.entries)
+            {
+                if (e != null && e.stageDirectoryName == dir && !string.IsNullOrWhiteSpace(e.stageTitle))
+                    return e.stageTitle;
+            }
+        }
+        if (!string.IsNullOrEmpty(dir))
+        {
+            foreach ((string d, int _, string _n, string title) in Defaults)
+            {
+                if (d == dir && !string.IsNullOrWhiteSpace(title)) return title;
+            }
+        }
+        return DisplayNameOf(data);
     }
 
     // 仮のままのステージ説明(英語のプレースホルダ)は街モードでは空欄にする。
@@ -133,7 +163,7 @@ public class StageCityProfile : ScriptableObject
                     return Mathf.Clamp(e.district, 0, CityMapController.DistrictCount);
             }
         }
-        foreach ((string dir, int district, string _) in Defaults)
+        foreach ((string dir, int district, string _n, string _t) in Defaults)
         {
             if (dir == stageDirectoryName) return district;
         }
