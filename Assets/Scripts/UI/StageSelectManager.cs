@@ -471,12 +471,18 @@ public class StageSelectManager : MonoBehaviour
             if (playHUD != null) playHUD.alpha = 0f;
             GManager.Control.PreparePlayersForTutorial();
             SetTutorialEnemiesVisible(false);
+            // 2026-09-16 指示: 覆いが明けた素のフィールドに主人公だけが立っている区間を
+            // 無くす。チュートリアルを出すステージではチュートリアル開始時に、出さない
+            // ステージ(石工)ではステージが実際に始まるまで主人公を描かない。
+            GManager.Control.SetPlayersSpriteVisible(false);
             // The player can already move while the tutorial runs on the bare field.
             GManager.Control.state = GManager.GameState.Tutorial;
             await pixelTransition.FadeFromBlack();
             bool skipPreStage = ShouldSkipPreStageTutorial(stageIndex);
             if (!skipPreStage && tutorialManager != null)
             {
+                // チュートリアルは主人公を動かして覚えるので、ここで描き始める。
+                GManager.Control.SetPlayersSpriteVisible(true);
                 await tutorialManager.RunTutorial(GManager.Control.IManager, GManager.Control.twoPlayer);
                 await tutorialManager.ShowStartText();
             }
@@ -494,6 +500,9 @@ public class StageSelectManager : MonoBehaviour
             await ShowPlayHUD(stageIndex);
             // Keep the player's tutorial-end position when the actual stage begins.
             await GManager.Control.GoGameAsync(stageIndex, true);
+            // ステージが始まったので主人公を戻す(石工は StageCgIntro が引き継いで
+            // 4.07 秒の登場まで自前で隠す)。
+            GManager.Control.SetPlayersSpriteVisible(true);
             SetTutorialEnemiesVisible(true);
         }
         else
@@ -506,8 +515,10 @@ public class StageSelectManager : MonoBehaviour
             variableCG.alpha = 0;
             staticCG.alpha = 0;
             GManager.Control.PreparePlayersForTutorial();
+            GManager.Control.SetPlayersSpriteVisible(false);
             await ShowPlayHUD(stageIndex);
             await GManager.Control.GoGameAsync(stageIndex, true);
+            GManager.Control.SetPlayersSpriteVisible(true);
         }
     }
 

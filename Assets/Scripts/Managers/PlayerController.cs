@@ -337,6 +337,15 @@ public class PlayerController
         ResetForStageAt(initialPos);
     }
 
+    /// <summary>ステージ導入より前(選択画面 → プレイ画面の遷移中)は主人公を描かない
+    /// ようにする(2026-09-16 指示「石工が始まる前に主人公が表示されるのが気になる」)。
+    /// UpdatePos は Playing 中しか呼ばれないので、この間だけ外から main を止めても
+    /// 石工の登場アニメ(StageCgIntro)と取り合いにならない。</summary>
+    public void SetSpriteVisible(bool visible)
+    {
+        if (main != null) main.enabled = visible;
+    }
+
     // 2P の左右配置を切り替えるときに、プレイヤーごとの開始位置へリセットする。
     // 1P の ResetForStage は従来どおり Init 時の initialPos を使う。
     public void ResetForStageAt(float2 startPosition)

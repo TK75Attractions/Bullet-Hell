@@ -1101,6 +1101,15 @@ public class GManager : MonoBehaviour
         PreparePlayersForStageStart();
     }
 
+    /// <summary>ステージ導入より前(遷移の覆いの下・解像中)に主人公を描くかどうか。
+    /// 2026-09-16 指示: 覆いが明けた直後の素のフィールドに主人公だけが立っている
+    /// 区間があり、ステージ導入(CG/暗転/額装)より前に見えていた。</summary>
+    public void SetPlayersSpriteVisible(bool visible)
+    {
+        PController?.SetSpriteVisible(visible);
+        PController2?.SetSpriteVisible(visible);
+    }
+
     public static float2 GetPlayerStartPosition(int playerIndex, bool reversed)
     {
         bool goesRight = (playerIndex == 1) != reversed;
