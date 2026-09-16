@@ -5678,7 +5678,19 @@ export default stage(
       ));
       // v38 (11): すれ違う 2 発も「出すところ」＝画面端に入る瞬間から破裂弾を 1 発。
       atBurstV38(V28_H + edgeRel, [edgeX, y], 1, 1.0, IS_LUNATIC);
-      s.at(V28_H, meteorLine(x0, x1, y, V28_CROSS_FLIGHT));
+      // v44 (4): 指示「Normal: 最後の方の、下を左から右へ行く隕石が、本体が表示されず
+      //   軌跡だけに見える」。下側の 1 発は発射 x = -2.5 が生存域 [-2,36) の外なので、
+      //   BulletDataUpdateJob.cs:78 のカリングで **出た最初のフレームに消されていた**
+      //   （尾 meteorLineTrail は経路上に置いた静止点なので画面内のぶんだけ残り、
+      //   軌跡だけが流れて見えていた）。v28RestBlock の上側版と同じ扱いで、
+      //   生存域の外から入るときだけカリングを免除する（life=flight で必ず消える）。
+      //   lunatic は bundle を据え置く指示なので easy / normal だけに適用する
+      //   （lunatic には同じ不具合が残る。親の判断待ち）。
+      const crossClip = meteorLine(x0, x1, y, V28_CROSS_FLIGHT);
+      if (!IS_LUNATIC && (x0 < -2 || x0 >= 36)) {
+        crossClip.parts[0].buffer.bullets[0].ignoreOutOfBoundsCulling = true;
+      }
+      s.at(V28_H, crossClip);
       s.at(V28_H, meteorLineTrail(x0, x1, y, V28_CROSS_FLIGHT));
     });
 
