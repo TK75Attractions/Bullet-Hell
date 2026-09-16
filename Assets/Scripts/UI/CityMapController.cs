@@ -125,6 +125,24 @@ public class CityMapController : MonoBehaviour
     [Tooltip("ステージ未実装の区画を沈める色。")]
     public Color dimTint = new Color(0.30f, 0.32f, 0.42f, 1f);
 
+    // ---- 選択区画のフォーカス(2026-09-16 U3) --------------------------------
+    // 選んだ区画の周りだけを残して外側を落とし、区画が「ジオラマの島」のように浮くようにする。
+    // 街の材質・darkenRenderers・露出 0.55・輪郭線は不変で、表示側(RT のポスト)だけで掛ける。
+    [Header("選択区画のフォーカス")]
+    [Tooltip("ON で選択中の区画の外側を落とす。")]
+    public bool focusEnabled = true;
+    [Tooltip("外側の落とし幅(0=無し / 1=真っ黒)。")]
+    [Range(0f, 1f)] public float focusAmount = 0.75f;
+    [Tooltip("フォーカス半径。カメラの orthographicSize に対する倍率で持つので、"
+        + "区画ごとに寄りの強さが違っても画面上の見え方が揃う(区画寄りでおよそ 7〜12 ユニット)。")]
+    public float focusRadiusScale = 0.95f;
+    [Tooltip("半径の外側どこまでで落とし切るか(1.0=段差 / 2.1=なだらか)。")]
+    public float focusFeather = 2.15f;
+    [Tooltip("選択区画の中の街灯を何倍にするか。")]
+    public float lanternFocusBoost = 1.65f;
+    [Tooltip("フォーカスの外側の街灯の倍率。")]
+    public float lanternFocusDim = 0.32f;
+
     [System.Serializable]
     public struct DarkenEntry
     {
@@ -311,7 +329,7 @@ public class CityMapController : MonoBehaviour
         EnsureDepthCamera(outline && outlineDepth);
         // 一度作ったマテリアルは壊さない。RawImage.material の setter は「破棄済み == null」で
         // 早期 return するため、破棄すると CanvasRenderer が死んだマテリアルを掴んだまま真っ黒になる。
-        if (pixelatePalette <= 1 && !colorGrade && !outline)
+        if (pixelatePalette <= 1 && !colorGrade && !outline && !focusEnabled)
         {
             if (pixelMat != null) ApplyViewMaterial();
             return;
@@ -350,6 +368,69 @@ public class CityMapController : MonoBehaviour
         pixelMat.SetFloat("_DepthThreshold", outlineDepthThreshold);
         pixelMat.SetFloat("_DepthSide", outlineDepthSide);
         pixelMat.SetTexture("_DepthTex", depthRT);
+        ApplyFocusMaterial();
+    }
+
+    // ---- 選択区画のフォーカス ------------------------------------------------
+
+    // 0=全景(減光なし) / 1=区画に寄り切っている。カメラの orthographicSize から決めるので、
+    // タイトルからの入場スイープ・戻りの逆再生・区画の切替(0.5 秒)に自動で追従する。
+    float focusWeight;
+    float lastFocusApplied = -1f;
+    int lastFocusDistrict = -1;
+
+    /// <summary>いまのフォーカス量(0..1)。検証用。</summary>
+    public float FocusWeight => focusWeight;
+
+    float ComputeFocusWeight()
+    {
+        if (!focusEnabled || selected < 1 || cityCamera == null) return 0f;
+        // 全景(size 21.09)では 0、区画へ寄る(size 4.5〜8.2)と 1。
+        return Mathf.Clamp01((18f - cityCamera.orthographicSize) / 9f);
+    }
+
+    // 表示板のフォーカス(中心 uv・半径 uv・落とし幅)を毎フレーム入れ直す。
+    void ApplyFocusMaterial()
+    {
+        if (pixelMat == null) return;
+        if (!focusEnabled || selected < 1 || cityCamera == null || focusWeight <= 0.002f)
+        {
+            pixelMat.SetFloat("_FocusAmount", 0f);
+            return;
+        }
+        Vector3 vp = cityCamera.WorldToViewportPoint(Anchors[selected]);
+        float size = Mathf.Max(0.01f, cityCamera.orthographicSize);
+        float radiusWorld = FocusRadiusWorld();
+        // 正投影なので、ワールド距離 → 画面比は線形。地面上の円は俯角ぶん縦へ潰れる。
+        float pitch = Mathf.Abs(cityCamera.transform.eulerAngles.x);
+        if (pitch > 180f) pitch = 360f - pitch;
+        float sinPitch = Mathf.Max(0.15f, Mathf.Sin(pitch * Mathf.Deg2Rad));
+        float aspect = cityCamera.aspect > 0.01f ? cityCamera.aspect : 16f / 9f;
+        float ru = radiusWorld / (2f * size * aspect);
+        float rv = radiusWorld * sinPitch / (2f * size);
+        pixelMat.SetFloat("_FocusAmount", focusAmount * focusWeight);
+        pixelMat.SetVector("_FocusCenter", new Vector4(vp.x, vp.y, 0f, 0f));
+        pixelMat.SetVector("_FocusRadius", new Vector4(ru, rv, 0f, 0f));
+        pixelMat.SetFloat("_FocusFeather", Mathf.Max(1.05f, focusFeather));
+    }
+
+    float FocusRadiusWorld()
+    {
+        float size = cityCamera != null ? cityCamera.orthographicSize : 6.75f;
+        return Mathf.Max(1f, focusRadiusScale * size);
+    }
+
+    // 街灯 1 灯ぶんのフォーカス倍率。選択区画の中は明るく、外は落とす。
+    float LanternFocusFactor(Light light)
+    {
+        if (!focusEnabled || selected < 1 || light == null || focusWeight <= 0.002f) return 1f;
+        Vector3 a = Anchors[selected];
+        Vector3 p = light.transform.position;
+        float d = new Vector2(p.x - a.x, p.z - a.z).magnitude;
+        float r = FocusRadiusWorld();
+        float k = Mathf.Clamp01((d - r) / Mathf.Max(0.01f, r * (Mathf.Max(1.05f, focusFeather) - 1f)));
+        k = k * k * (3f - 2f * k);
+        return Mathf.Lerp(1f, Mathf.Lerp(lanternFocusBoost, lanternFocusDim, k), focusWeight);
     }
 
     /// <summary>輪郭線の設定をまとめて変える。検証用。</summary>
@@ -884,6 +965,17 @@ public class CityMapController : MonoBehaviour
         }
         zoomIn = Mathf.MoveTowards(zoomIn, zoomInTarget, dt / ZoomDuration);
 
+        // 選択区画のフォーカス。カメラの引き具合から決めるので、入場スイープ・区画の
+        // 切替(0.5 秒)・戻りの逆再生に自動で追従する(全景では 0 = 減光なし)。
+        focusWeight = ComputeFocusWeight();
+        ApplyFocusMaterial();
+        if (selected != lastFocusDistrict || Mathf.Abs(focusWeight - lastFocusApplied) > 0.004f)
+        {
+            lastFocusDistrict = selected;
+            lastFocusApplied = focusWeight;
+            ApplyExposure();   // 街灯のフォーカス倍率を入れ直す
+        }
+
         // 区画の基調色は 0.5 秒でクロスフェード(俯瞰へ戻ると被せが 0 になる)。
         float tintStep = dt / Mathf.Max(0.01f, districtTintFade);
         bool tintChanged = false;
@@ -1017,7 +1109,8 @@ public class CityMapController : MonoBehaviour
         for (int i = 0; i < lanternLights.Count; i++)
         {
             if (lanternLights[i] == null) continue;
-            lanternLights[i].intensity = lanternIntensity * lanternExposure * entranceDim;
+            lanternLights[i].intensity =
+                lanternIntensity * lanternExposure * entranceDim * LanternFocusFactor(lanternLights[i]);
             lanternLights[i].range = lanternRange;
         }
         if (ambientSaved)

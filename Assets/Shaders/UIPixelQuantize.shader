@@ -35,6 +35,13 @@ Shader "BulletHell/UI/PixelQuantize"
         _DepthOutline ("Depth outline on/off", Float) = 0
         _DepthThreshold ("Depth outline threshold (world units)", Float) = 0.6
         _DepthSide ("Depth line side (0=near,1=far,2=both)", Float) = 1
+        // 選択区画のフォーカス(0 = 無し)。中心の楕円の外側だけを落とし、選んだ区画を
+        // 「ジオラマの島」のように浮かせる。半径は CityMapController がワールド単位から
+        // uv へ換算して入れる(正投影なので線形。地面の円は俯角ぶん縦へ潰れる)。
+        _FocusAmount ("Focus darken amount (0=off)", Range(0,1)) = 0
+        _FocusCenter ("Focus center (uv)", Vector) = (0.5,0.5,0,0)
+        _FocusRadius ("Focus radius (uv: x,y)", Vector) = (0.4,0.45,0,0)
+        _FocusFeather ("Focus feather (outer / inner)", Float) = 2.1
         _ColorMask ("Color Mask", Float) = 15
     }
 
@@ -104,6 +111,10 @@ Shader "BulletHell/UI/PixelQuantize"
             float _DepthOutline;
             float _DepthThreshold;
             float _DepthSide;
+            float _FocusAmount;
+            float4 _FocusCenter;
+            float4 _FocusRadius;
+            float _FocusFeather;
 
             float GammaLum(float2 uv)
             {
@@ -139,7 +150,8 @@ Shader "BulletHell/UI/PixelQuantize"
                 bool quantize = levels > 1.5;
                 bool grade = _GradeEnabled > 0.5;
                 bool outline = _OutlineEnabled > 0.5;
-                if (!quantize && !grade && !outline) return col;
+                bool focus = _FocusAmount > 0.002;
+                if (!quantize && !grade && !outline && !focus) return col;
 
                 // 階調も色の調整もガンマ空間で行う。RT はリニア(HDR)なので、そのまま
                 // 等間隔に丸めると暗部が全部 0 へ潰れる(夜の街が真っ黒になる)。
@@ -206,6 +218,15 @@ Shader "BulletHell/UI/PixelQuantize"
                     }
                     float3 oc = pow(saturate(_OutlineColor.rgb), 1.0 / 2.2);
                     g = lerp(g, oc, edge * _OutlineStrength);
+                }
+
+                if (focus)
+                {
+                    // 選択区画を中心にした楕円。内側(<=1)はそのまま、外側を _FocusAmount だけ落とす。
+                    float2 fd = (i.texcoord - _FocusCenter.xy) / max(_FocusRadius.xy, 1e-4);
+                    float fr = length(fd);
+                    float k = smoothstep(1.0, max(_FocusFeather, 1.05), fr);
+                    g *= lerp(1.0, 1.0 - _FocusAmount, k);
                 }
 
                 if (quantize)
