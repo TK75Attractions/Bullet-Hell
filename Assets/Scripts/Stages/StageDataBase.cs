@@ -10,13 +10,14 @@ public class StageDataBase
     private StageDataManager stageDataManager;
 
     // 一覧に表示するステージと表示順(2026-07-13 指摘: ①艦長 ②石工 ③浮浪者 ④姿見。
-    // 2026-09-13 に放浪者(高原の街道)を石工の次へ追加)。
+    // 2026-09-13 に放浪者(高原の街道)を石工の次へ追加、2026-09-17 に学者(聖堂前・仮組み)を
+    // 放浪者の次へ追加)。
     // stageDirectoryName で照合し、この配列に無いステージは一覧から除外(非表示)する。
     // 削除ではなく非表示なので、JSON は一切消さず、この配列を戻せば全ステージが再表示
     // される。進捗/引き継ぎコードは PlayHistory が stageDirectoryName でキー付けするため、
     // この並べ替え・絞り込みはセーブデータに一切影響しない(index 非依存)。
     // ※ mirror(領主様の姿見)は現状スタブ(単一レーザー・difficulties 未設定)。
-    private static readonly string[] VisibleOrder = { "captain", "stone", "wanderer", "vagrant", "mirror" };
+    private static readonly string[] VisibleOrder = { "captain", "stone", "wanderer", "scholar", "vagrant", "mirror" };
 
     public void Init()
     {
