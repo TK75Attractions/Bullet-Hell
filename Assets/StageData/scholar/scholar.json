@@ -32,6 +32,83 @@
                     "name": "idle",
                     "path": "scholar_idle.gif",
                     "loop": true,
+                    "next": "",
+                    "frameDuration": 0.1,
+                    "maxFrames": 0
+                },
+                {
+                    "name": "read",
+                    "path": "scholar_read.gif",
+                    "loop": true,
+                    "next": "",
+                    "frameDuration": 0.1,
+                    "maxFrames": 0
+                },
+                {
+                    "name": "catch",
+                    "path": "scholar_catch.gif",
+                    "loop": false,
+                    "next": "aim",
+                    "frameDuration": 0.157,
+                    "maxFrames": 0
+                },
+                {
+                    "name": "aim",
+                    "path": "scholar_aim.gif",
+                    "loop": false,
+                    "next": "",
+                    "frameDuration": 0.1,
+                    "maxFrames": 0
+                },
+                {
+                    "name": "fire",
+                    "path": "scholar_fire.gif",
+                    "loop": false,
+                    "next": "aim",
+                    "frameDuration": 0.14,
+                    "maxFrames": 0
+                },
+                {
+                    "name": "throw",
+                    "path": "scholar_throw.gif",
+                    "loop": false,
+                    "next": "idle",
+                    "frameDuration": 0.1,
+                    "maxFrames": 0
+                },
+                {
+                    "name": "defeated",
+                    "path": "scholar_defeated.gif",
+                    "loop": false,
+                    "next": "",
+                    "frameDuration": 0.1,
+                    "maxFrames": 0
+                }
+            ]
+        },
+        {
+            "id": "scholar_book",
+            "source": "externalGif",
+            "basePath": "Visuals",
+            "pixelsPerUnit": 100,
+            "pivot": {
+                "x": 0.5,
+                "y": 0.5
+            },
+            "clips": [
+                {
+                    "name": "fall",
+                    "path": "book_fall.gif",
+                    "loop": false,
+                    "next": "",
+                    "frameDuration": 0.2,
+                    "maxFrames": 0
+                },
+                {
+                    "name": "idle",
+                    "path": "book_idle.gif",
+                    "loop": true,
+                    "next": "",
                     "frameDuration": 0.1,
                     "maxFrames": 0
                 }
@@ -45,7 +122,7 @@
             "bossId": "scholar",
             "bossName": "学者",
             "visualId": "scholar",
-            "appearTime": 0.0,
+            "appearTime": 51.67,
             "lifeTime": 82.0,
             "maxHp": 1000,
             "startPos": {
@@ -58,14 +135,71 @@
             },
             "angle": 0,
             "sortingOrder": 5,
-            "fadeInSec": 0.0,
+            "fadeInSec": 0.3,
             "fadeOutSec": 0.0,
             "animation": {
-                "initialClip": "idle",
-                "events": [],
+                "initialClip": "read",
+                "events": [
+                    {
+                        "time": 4.13,
+                        "clip": "catch",
+                        "next": "aim",
+                        "overrideLoop": false,
+                        "loop": false
+                    },
+                    {
+                        "time": 50.13,
+                        "clip": "idle",
+                        "next": "",
+                        "overrideLoop": false,
+                        "loop": false
+                    }
+                ],
                 "triggers": []
             },
             "moves": []
+        },
+        {
+            "bossId": "scholar_book",
+            "bossName": "本",
+            "visualId": "scholar_book",
+            "appearTime": 55.8,
+            "lifeTime": 1.7,
+            "maxHp": 1,
+            "startPos": {
+                "x": 16.6,
+                "y": 12.6
+            },
+            "scale": {
+                "x": 4.6,
+                "y": 4.6
+            },
+            "angle": 0,
+            "sortingOrder": 4,
+            "fadeInSec": 0.0,
+            "fadeOutSec": 0.0,
+            "animation": {
+                "initialClip": "fall",
+                "events": [],
+                "triggers": []
+            },
+            "moves": [
+                {
+                    "time": 0.0,
+                    "duration": 1.6,
+                    "type": "moveto",
+                    "to": {
+                        "x": 17.0,
+                        "y": -2.0
+                    },
+                    "control": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "easing": "easeincubic",
+                    "relative": false
+                }
+            ]
         }
     ],
     "bulletSpawners": [
