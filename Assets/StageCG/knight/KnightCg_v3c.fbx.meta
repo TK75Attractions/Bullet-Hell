@@ -1,0 +1,655 @@
+fileFormatVersion: 2
+guid: be163d4d5d8425c4895488a52ff587ea
+ModelImporter:
+  serializedVersion: 24200
+  internalIDToNameTable: []
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: bank
+    second: {fileID: 2100000, guid: 38ddaba3cecbdeb4b8efcebbfa093747, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: cloth
+    second: {fileID: 2100000, guid: 9e0838707c35f1940b2891d918c8fdb4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: cloud_card
+    second: {fileID: 2100000, guid: 1a59f4db5f869ef43aaf5c9446b3dbff, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: fog_card
+    second: {fileID: 2100000, guid: 003a7fc06d0afbc4da0828a55c7cb447, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: fog_clear
+    second: {fileID: 2100000, guid: fef4bfc8f5ad2144983127de9699bc96, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: fog_dense
+    second: {fileID: 2100000, guid: fbb791ddcbe33a74a9c0c7a66d610126, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: hill_far
+    second: {fileID: 2100000, guid: 95d3d0c7b8586d34fbbbe83721163dea, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: hill_near
+    second: {fileID: 2100000, guid: ad1280f2b27b4c848b57a002675cfd57, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: light_shaft
+    second: {fileID: 2100000, guid: 4063ed1bfb2a4c949ad885371ee64ddc, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: mortar
+    second: {fileID: 2100000, guid: 0bf1f2cc096c0e541b65c6f65125f54b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: river
+    second: {fileID: 2100000, guid: b8da0d39261174f468de9c0adb733a6d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: sky
+    second: {fileID: 2100000, guid: 7f8aa4c438d1c67459128e19f9cab080, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: sky_dark
+    second: {fileID: 2100000, guid: 8955dce6b94d7e54e8a14ead1adb2fb2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: soul
+    second: {fileID: 2100000, guid: 2ab6770c43530914e8f962da1f4363b6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: soul_glow
+    second: {fileID: 2100000, guid: 47100f1d052cd464ca3e72518fcb7fcd, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: stone
+    second: {fileID: 2100000, guid: 7fd47a4d5ba57dd4992dfc5d89526670, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: stone_dark
+    second: {fileID: 2100000, guid: 3d2c6c2105870504fb9b96f9c8142566, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: stone_light
+    second: {fileID: 2100000, guid: 780d43a65eb76ca4881c38c8e8827387, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: tower
+    second: {fileID: 2100000, guid: 7523bf62931301f4eb4e7b33321407f0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_boss_stone_pedestal_baked_0
+    second: {fileID: 2100000, guid: ceb81618ad4fc5242876b2f1c88f7ec3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_bridge_abutment_0_1_baked_0
+    second: {fileID: 2100000, guid: 44929dab084ec5a43b9f86b895c9e609, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_bridge_abutment_0__1_baked_0
+    second: {fileID: 2100000, guid: f82941f730154934d8a1bd70c855080f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_bridge_abutment_1_1_baked_0
+    second: {fileID: 2100000, guid: 3b810932f9ccc4944991bd66c79e8747, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_bridge_abutment_1__1_baked_0
+    second: {fileID: 2100000, guid: 4e35f5f3f41850e4dbcc1f3704ae8e5d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_bridge_abutment_2_1_baked_0
+    second: {fileID: 2100000, guid: 24e2890d1d960d4489a8c58844b7f33a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_bridge_abutment_2__1_baked_0
+    second: {fileID: 2100000, guid: 1e085d430ecafdc4bad9706d120d48aa, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_bridge_arch_cross_section_00_baked_0
+    second: {fileID: 2100000, guid: eba6921a01a45cf4e9943651fb92a8db, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_bridge_arch_cross_section_01_baked_0
+    second: {fileID: 2100000, guid: f5ca179842ec89a4ea25082009e2ab62, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_bridge_arch_cross_section_02_baked_0
+    second: {fileID: 2100000, guid: d156ef9e84c6d524eb1a490fd81e0ace, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_bridge_deck_0_baked_0
+    second: {fileID: 2100000, guid: 043aedce784141c4683c2af37d67d4d6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_bridge_deck_1_baked_0
+    second: {fileID: 2100000, guid: 90a3918c12bfe444ea901d2d78a0297b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_bridge_fallen_block_00_baked_0
+    second: {fileID: 2100000, guid: 9646120ff523e5a47956a31efc33f810, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_bridge_fallen_block_01_baked_0
+    second: {fileID: 2100000, guid: 14c61f96ab48aa54f9259fee63064be0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_bridge_fallen_block_02_baked_0
+    second: {fileID: 2100000, guid: 657ea73f468aaa94c8ae602d9be32d7e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_bridge_fallen_block_03_baked_0
+    second: {fileID: 2100000, guid: 0abb3c5a266ce1041aa84a8ba4fdf0c9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_bridge_parapet_left_baked_0
+    second: {fileID: 2100000, guid: 90ef67e6af680884cb770d396e713c49, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_bridge_parapet_right_baked_0
+    second: {fileID: 2100000, guid: 38df502f2dcb1dd41b58ebf2992dccab, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_bridge_paving_baked_0
+    second: {fileID: 2100000, guid: 4999d36ce9f62f24f81226286d508952, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_helmet_00_baked_0
+    second: {fileID: 2100000, guid: 900147a715e1e91448421bf968307663, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_helmet_01_baked_0
+    second: {fileID: 2100000, guid: 67da62735dc44614b8c4d1ec3e26f118, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_helmet_02_baked_0
+    second: {fileID: 2100000, guid: 5998f790d1fcc0349a2cf10d75a183e4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_helmet_03_baked_0
+    second: {fileID: 2100000, guid: 89e4dba026d2a9c4ba93ffe47898f2bf, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_helmet_04_baked_0
+    second: {fileID: 2100000, guid: 1f5e37be289c72748baa7c041486ea02, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_helmet_05_baked_0
+    second: {fileID: 2100000, guid: 3a61a432c4272474b8702409b8349a21, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_helmet_06_baked_0
+    second: {fileID: 2100000, guid: fb4bcd247db4ce642b1919ea33cae422, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_helmet_07_baked_0
+    second: {fileID: 2100000, guid: d38cbee8011b1904f82015c5a0992436, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_near_gate_pillar_left_baked_0
+    second: {fileID: 2100000, guid: b439e134240edea458fcb87f119a7ce3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_near_gate_pillar_right_baked_0
+    second: {fileID: 2100000, guid: ebd954e0607e25e4eb76825e1cd456d1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_beam_00_baked_0
+    second: {fileID: 2100000, guid: 4e1cd7f5db963004ab5c2b3cb94acd07, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_beam_01_baked_0
+    second: {fileID: 2100000, guid: 99473395760601b49af1e8485d15640e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_beam_02_baked_0
+    second: {fileID: 2100000, guid: d78e3b735bdf79944b9fc40fe53b7089, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_00_baked_0
+    second: {fileID: 2100000, guid: aa71426bf739d4042a28c93e8618ede8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_01_baked_0
+    second: {fileID: 2100000, guid: 05ae64b4dbd77914e805e9c8710688c4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_02_baked_0
+    second: {fileID: 2100000, guid: d089a06cf0e88b34086f3e78a06cc541, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_03_baked_0
+    second: {fileID: 2100000, guid: e98ced15f38746c4dad1ecd5f666be18, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_04_baked_0
+    second: {fileID: 2100000, guid: 6b21f46ecf2d2694fb30b84854e6ba44, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_05_baked_0
+    second: {fileID: 2100000, guid: 250ebd0b146b12c44b1472353b1569a7, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_06_baked_0
+    second: {fileID: 2100000, guid: 5f0cb42f66dcaa942802eb7717a73929, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_07_baked_0
+    second: {fileID: 2100000, guid: d0f6c1a5dbdbf974294c54222026c176, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_08_baked_0
+    second: {fileID: 2100000, guid: 73c69d413b2884540b4afb802472e023, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_09_baked_0
+    second: {fileID: 2100000, guid: f10567f939f059449a753a57427fdac6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_10_baked_0
+    second: {fileID: 2100000, guid: 0cb160a5248cdb64f8b727f6bd2e3351, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_11_baked_0
+    second: {fileID: 2100000, guid: 23c68943446c47d4cb6f709811d5c06f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_12_baked_0
+    second: {fileID: 2100000, guid: 8a9fc8a15fb7c5547a725a14e83c2a16, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_13_baked_0
+    second: {fileID: 2100000, guid: 95d706f091b29cc46b2dfed194b4ec13, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_14_baked_0
+    second: {fileID: 2100000, guid: 55393703da4bf1745bae71dba0a25380, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_15_baked_0
+    second: {fileID: 2100000, guid: 1c8154e4f58cf534d82afbc91711241e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_16_baked_0
+    second: {fileID: 2100000, guid: df96ef7a2e94463488945a13f3b846e8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_17_baked_0
+    second: {fileID: 2100000, guid: a46b76c2bf4d45e4c8b8b6343586c3a8, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_18_baked_0
+    second: {fileID: 2100000, guid: 11a045429057df84db1c2ce42e4a4bc1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_19_baked_0
+    second: {fileID: 2100000, guid: 0f389be6d56ba0240b5afe47ccf4b5d5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_20_baked_0
+    second: {fileID: 2100000, guid: 8834b59f18a7b4b4dbdcda37dc5ae6e6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_21_baked_0
+    second: {fileID: 2100000, guid: 1c7bfdabc79a24e49b3d401ed9a71729, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_22_baked_0
+    second: {fileID: 2100000, guid: 4d663979dea26704898a8a6b111cfe55, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_23_baked_0
+    second: {fileID: 2100000, guid: 5c3f5c21a9d192144924107ccfc91db4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_plank_24_baked_0
+    second: {fileID: 2100000, guid: 6914da6c8dd88cc4fbf94fa876f631d9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_post_1_0_baked_0
+    second: {fileID: 2100000, guid: e31cb40863e496c45bc9f83b15dfc600, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_post_1_1_baked_0
+    second: {fileID: 2100000, guid: 9b5913ebd305b2e409021ce8dd99ce88, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_post_1_2_baked_0
+    second: {fileID: 2100000, guid: ece0eb90c2a923846a989d03b88dcd7c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_post_1_3_baked_0
+    second: {fileID: 2100000, guid: cb526da97464ea44a87573ff78b4f89f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_post__1_0_baked_0
+    second: {fileID: 2100000, guid: 89feb92c885da3641a486408bef9931b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_post__1_1_baked_0
+    second: {fileID: 2100000, guid: 9851d18126cebe24384908a15fdba68f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_post__1_2_baked_0
+    second: {fileID: 2100000, guid: 66aa6261df4605d46b947ca595748da9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_post__1_3_baked_0
+    second: {fileID: 2100000, guid: 6af8424c03a95ec4181a01dc2a82c2c4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_rope_1_baked_0
+    second: {fileID: 2100000, guid: eb8a4bd8e33c9844cb281b843bc80c1d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_repair_rope__1_baked_0
+    second: {fileID: 2100000, guid: 6833aee3338b3f44dbed603db314e9b6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_road_side_lane_seam_left_baked_0
+    second: {fileID: 2100000, guid: bb85496fc3e723d498ae6ba64703dd4a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_road_side_lane_seam_right_baked_0
+    second: {fileID: 2100000, guid: baf2d7eeb7682bf45bb3db2ef8726c92, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_shrine_broken_back_left_baked_0
+    second: {fileID: 2100000, guid: e0ccdad72e511c44eadb80d6bd0e70f5, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_shrine_broken_back_right_baked_0
+    second: {fileID: 2100000, guid: f1ffa3f2e240d9043b37ec3a872e0485, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_shrine_lower_step_baked_0
+    second: {fileID: 2100000, guid: f618a5de02c8cee4dba7ee2495963e79, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_shrine_masonry_course_0_baked_0
+    second: {fileID: 2100000, guid: 651c94b3a30aa554fad1580a9a37b7d3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_shrine_masonry_course_1_baked_0
+    second: {fileID: 2100000, guid: f2491ebaed41cdf4c85bfbf3cab54f37, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_standing_spear_left_0_baked_0
+    second: {fileID: 2100000, guid: 9d5494bacfafab54597a9c650f6b46b3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_standing_spear_left_0_baked_1
+    second: {fileID: 2100000, guid: a057f004c6c4d49439a4f82785d966b6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_standing_spear_left_1_baked_0
+    second: {fileID: 2100000, guid: e44aafc4299ad4e489ec77156ad74530, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_standing_spear_left_1_baked_1
+    second: {fileID: 2100000, guid: 0c84d5d5cbc1e584dae1563056cdf65c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_standing_spear_left_2_baked_0
+    second: {fileID: 2100000, guid: d8d1cd803a52c7644889216675081d08, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_standing_spear_left_2_baked_1
+    second: {fileID: 2100000, guid: eab4d0261fc7b504cb10bbbfdb866499, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_standing_spear_right_0_baked_0
+    second: {fileID: 2100000, guid: d6b3be4f142218f44bf2ae96bab1ce08, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_standing_spear_right_0_baked_1
+    second: {fileID: 2100000, guid: 7815ff206dbb1794da6f8bcc7d887753, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_standing_spear_right_1_baked_0
+    second: {fileID: 2100000, guid: dfdea185d683a1145a6a837d5598ad91, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_standing_spear_right_1_baked_1
+    second: {fileID: 2100000, guid: c48f04da64e946848a40c8ec3b4e2bb6, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_standing_spear_right_2_baked_0
+    second: {fileID: 2100000, guid: 86c3473afc7b00342bbf46a161e69e8b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_standing_spear_right_2_baked_1
+    second: {fileID: 2100000, guid: 4fcdaf7d356cb764bbd7cee46e997db1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_torn_standard_left_0_baked_0
+    second: {fileID: 2100000, guid: fd891c242af013d4c99a6e80cf30cb5c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_torn_standard_left_2_baked_0
+    second: {fileID: 2100000, guid: d47a510311c54674d8784b26cf971055, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_torn_standard_right_0_baked_0
+    second: {fileID: 2100000, guid: 0584755d2d6442f44b1e24f0e7b9ad1c, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: v3b_torn_standard_right_2_baked_0
+    second: {fileID: 2100000, guid: 9b9f8e82457eb2f4eb7c6581bf4fe4e5, type: 2}
+  materials:
+    materialImportMode: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importPhysicalCameras: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 0
+    importLights: 0
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    generateMeshLods: 0
+    meshLodGenerationFlags: 0
+    maximumMeshLod: -1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    strictVertexDataChecks: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 0
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 0
+  humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  importBlendShapeDeformPercent: 1
+  remapMaterialsIfMaterialImportModeIsNone: 0
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
