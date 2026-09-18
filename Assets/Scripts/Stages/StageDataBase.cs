@@ -17,7 +17,7 @@ public class StageDataBase
     // される。進捗/引き継ぎコードは PlayHistory が stageDirectoryName でキー付けするため、
     // この並べ替え・絞り込みはセーブデータに一切影響しない(index 非依存)。
     // ※ mirror(領主様の姿見)は現状スタブ(単一レーザー・difficulties 未設定)。
-    private static readonly string[] VisibleOrder = { "captain", "stone", "wanderer", "scholar", "vagrant", "mirror" };
+    private static readonly string[] VisibleOrder = { "captain", "stone", "wanderer", "scholar", "knight", "vagrant", "mirror" };
 
     public void Init()
     {

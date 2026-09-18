@@ -1,0 +1,941 @@
+{
+    "stageName": "騎士",
+    "MusicEvents": [
+        {
+            "barCount": 122,
+            "BPM": 200.0,
+            "beatTimings": [
+                0,
+                1,
+                2,
+                3
+            ],
+            "measure": 4,
+            "barStartOffsetBeats": 0
+        }
+    ],
+    "delayTime": 0.0,
+    "endTime": 147.0,
+    "screenShakes": [],
+    "stageDescription": "古戦場の石橋・レーザーと剣風",
+    "enemyVisuals": [
+        {
+            "id": "knight",
+            "source": "externalGif",
+            "basePath": "Visuals",
+            "pixelsPerUnit": 100,
+            "pivot": {
+                "x": 0.5,
+                "y": 0.5
+            },
+            "clips": [
+                {
+                    "name": "idle",
+                    "path": "knight_idle.gif",
+                    "loop": true,
+                    "frameDuration": 0.5,
+                    "maxFrames": 0
+                }
+            ]
+        }
+    ],
+    "multiBulletSpawners": [],
+    "bossSpawners": [],
+    "bulletSpawners": [],
+    "difficulties": [
+        {
+            "difficulty": "Easy",
+            "multiBulletSpawners": [],
+            "bossSpawners": [
+                {
+                    "bossId": "knight",
+                    "bossName": "騎士",
+                    "visualId": "knight",
+                    "appearTime": 0.5,
+                    "lifeTime": 147.0,
+                    "maxHp": 1000,
+                    "startPos": {
+                        "x": 16.0,
+                        "y": 11.92
+                    },
+                    "scale": {
+                        "x": 4.6,
+                        "y": 4.6
+                    },
+                    "angle": 0,
+                    "sortingOrder": 5,
+                    "fadeInSec": 0.8,
+                    "fadeOutSec": 0.0,
+                    "animation": {
+                        "initialClip": "idle",
+                        "events": [],
+                        "triggers": []
+                    },
+                    "moves": []
+                }
+            ],
+            "bulletSpawners": [
+                {
+                    "clipName": "knight_a01_hlines",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 6.0,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a02_vsweep",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 7.2,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a03_grid",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 9.6,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a04_randh",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 10.5,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a05_squares",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 14.1,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a06_grid2",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 19.5,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a07_split",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 21.3,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a08_diag",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 24.0,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_b01_wind1",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 37.5,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_b02_wind2",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 51.9,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_c01_corridor",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 66.3,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_c02_finale",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 96.0,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                }
+            ]
+        },
+        {
+            "difficulty": "Normal",
+            "multiBulletSpawners": [],
+            "bossSpawners": [
+                {
+                    "bossId": "knight",
+                    "bossName": "騎士",
+                    "visualId": "knight",
+                    "appearTime": 0.5,
+                    "lifeTime": 147.0,
+                    "maxHp": 1000,
+                    "startPos": {
+                        "x": 16.0,
+                        "y": 11.92
+                    },
+                    "scale": {
+                        "x": 4.6,
+                        "y": 4.6
+                    },
+                    "angle": 0,
+                    "sortingOrder": 5,
+                    "fadeInSec": 0.8,
+                    "fadeOutSec": 0.0,
+                    "animation": {
+                        "initialClip": "idle",
+                        "events": [],
+                        "triggers": []
+                    },
+                    "moves": []
+                }
+            ],
+            "bulletSpawners": [
+                {
+                    "clipName": "knight_a01_hlines",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 6.0,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a02_vsweep",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 7.2,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a03_grid",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 9.6,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a04_randh",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 10.5,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a05_squares",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 14.1,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a06_grid2",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 19.5,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a07_split",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 21.3,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a08_diag",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 24.0,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_b01_wind1",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 37.5,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_b02_wind2",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 51.9,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_c01_corridor",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 66.3,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_c02_finale",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 96.0,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                }
+            ]
+        },
+        {
+            "difficulty": "Lunatic",
+            "multiBulletSpawners": [],
+            "bossSpawners": [
+                {
+                    "bossId": "knight",
+                    "bossName": "騎士",
+                    "visualId": "knight",
+                    "appearTime": 0.5,
+                    "lifeTime": 147.0,
+                    "maxHp": 1000,
+                    "startPos": {
+                        "x": 16.0,
+                        "y": 11.92
+                    },
+                    "scale": {
+                        "x": 4.6,
+                        "y": 4.6
+                    },
+                    "angle": 0,
+                    "sortingOrder": 5,
+                    "fadeInSec": 0.8,
+                    "fadeOutSec": 0.0,
+                    "animation": {
+                        "initialClip": "idle",
+                        "events": [],
+                        "triggers": []
+                    },
+                    "moves": []
+                }
+            ],
+            "bulletSpawners": [
+                {
+                    "clipName": "knight_a01_hlines",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 6.0,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a02_vsweep",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 7.2,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a03_grid",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 9.6,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a04_randh",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 10.5,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a05_squares",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 14.1,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a06_grid2",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 19.5,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a07_split",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 21.3,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_a08_diag",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 24.0,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_b01_wind1",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 37.5,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_b02_wind2",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 51.9,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_c01_corridor",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 66.3,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                },
+                {
+                    "clipName": "knight_c02_finale",
+                    "count": 1,
+                    "interval": 0,
+                    "time": 96.0,
+                    "pos": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "originVlc": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "angle": 0,
+                    "angleInterval": 0,
+                    "color": {
+                        "x": 1,
+                        "y": 1,
+                        "z": 1,
+                        "w": 1
+                    }
+                }
+            ]
+        }
+    ]
+}

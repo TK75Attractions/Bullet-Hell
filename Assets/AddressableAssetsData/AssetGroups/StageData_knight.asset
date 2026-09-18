@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: StageData_knight
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: StageData_knight
+  m_GUID: 2e3ffd27647d1fd4e95f33daa6da97ac
+  m_SerializeEntries:
+  - m_GUID: 52c3a6b958482bb4e880b13d1d620f6e
+    m_Address: Assets/StageData/knight/knight.mp3
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-media
+    - stage-knight
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 590194e69aa504d4eb3bd971d82ee84d
+    m_Address: Assets/StageData/knight/knight.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - stage-data-json
+    - stage-knight
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 74e727200a544ea48b7e5cf70ac7590c, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 67ab882b8fb0ca34d9f34b3f88c12b05, type: 2}
+    - {fileID: 11400000, guid: 6f7c98460ff2206498a0ef839bd9357a, type: 2}

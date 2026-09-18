@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: BulletBuffers_knight
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: BulletBuffers_knight
+  m_GUID: 3d22d7e574104594ba9f94f7a48c0f3e
+  m_SerializeEntries:
+  - m_GUID: 159cf6a9c6887484cb284896262b162e
+    m_Address: Assets/BulletBuffers/knight/knight_b01_wind1.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-knight
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 50dfcd1eea0cc934e9b3718028f40382
+    m_Address: Assets/BulletBuffers/knight/knight_b02_wind2.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-knight
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7b60d5e5463e3c24fa7d45d47be4c9aa
+    m_Address: Assets/BulletBuffers/knight/knight_a04_randh.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-knight
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 82a75185554d1c0459f2bebc7820de22
+    m_Address: Assets/BulletBuffers/knight/knight_a07_split.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-knight
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9575d48f865d9eb4c987f3d5cefb2565
+    m_Address: Assets/BulletBuffers/knight/knight_a02_vsweep.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-knight
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9b61654d04dabbb4087c1d571bb53b9c
+    m_Address: Assets/BulletBuffers/knight/knight_c02_finale.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-knight
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9e8e8c21da0865d4aab45b088d00433e
+    m_Address: Assets/BulletBuffers/knight/knight_a06_grid2.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-knight
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a16d8f1c56761544d8e4617b8eca841e
+    m_Address: Assets/BulletBuffers/knight/knight_a03_grid.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-knight
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b4bb73a37cc87fb48b88a5d9c2ab0ea2
+    m_Address: Assets/BulletBuffers/knight/knight_a08_diag.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-knight
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cb63975e66757354482da01bcc1a9897
+    m_Address: Assets/BulletBuffers/knight/knight_a01_hlines.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-knight
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ce87955f6a0ae7045a6d03dcb0bc299f
+    m_Address: Assets/BulletBuffers/knight/knight_a05_squares.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-knight
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e8c9f1c34c4d81a4a983e8345d831bdd
+    m_Address: Assets/BulletBuffers/knight/knight_c01_corridor.json
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - bullet-buffer-stage-knight
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 74e727200a544ea48b7e5cf70ac7590c, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: cdab3bd60a459784ea36cf23fd82b1d9, type: 2}
+    - {fileID: 11400000, guid: a5771518bdf670048a67c639f81f2a84, type: 2}
