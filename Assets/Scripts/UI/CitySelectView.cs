@@ -20,11 +20,10 @@ public class CitySelectView : MonoBehaviour
     // ---- ▼とラベル(タイトルの部屋と同じ様式) --------------------------------
     private const string MinchoFontResource = "Fonts/ShipporiMincho-Regular SDF";
     // ▼はタイトルと同じ 12x8 ドットの三角を Point で 2 倍に拡大したドット絵。
-    private const int MarkerArrowDotW = 12;
-    private const int MarkerArrowDotH = 8;
-    private const float MarkerArrowPixel = 2f;   // 第 15 便: 3→2px/ドット(タイトルと同じ)
-    private const float MarkerArrowW = MarkerArrowDotW * MarkerArrowPixel;
-    private const float MarkerArrowH = MarkerArrowDotH * MarkerArrowPixel;
+    // 第 U8 便(2026-09-19 指示)でドット絵の▼をやめ、滑らかな三角へ。
+    // タイトルの▼と同じ 0.75 倍(24x16 → 18x12)。
+    private const float MarkerArrowW = 18f;
+    private const float MarkerArrowH = 12f;
     private const float MarkerFloatPx = 4f;
     private const float MarkerLabelGap = 46f;
     private const float MarkerLabelH = 46f;
@@ -89,10 +88,16 @@ public class CitySelectView : MonoBehaviour
     private const float HeadNumberY = 91f, HeadRuleY = 119f, HeadNameY = 232f, HeadGoldRuleY = 261f;
     private const float ColCx = 1367f;
     // サムネ(v11 は 509x175 の横長。CG は 16:9 なので中央を切り出して収める)。
-    private const float ThumbCx = 1367.5f, ThumbCy = 411.5f, ThumbW = 509f, ThumbH = 175f;
+    // サムネ枠(第 U8 便・2026-09-19 指示「サムネの枠を 16:9 に」)。
+    // v11 の絵は 509x175(約 2.9:1)で、16:9 の CG の上下 39% を切っていた。
+    // 幅はそのまま、高さを 509*9/16 = 286.3 → 286 にして 16:9(実 1.7797)にし、
+    // 上へ 12px ずらして(上端 324→312)情報行を下へ詰めた。
+    private const float ThumbCx = 1367.5f, ThumbCy = 455f, ThumbW = 509f, ThumbH = 286f;
     // 情報行。
     private const float RowLabelX = 1210f, RowValueX = 1404f, RowIconX = 1170f, RowRuleX = 1367f;
-    private const float LengthRowY = 622f, StatusRowY = 684f;
+    // サムネを 16:9 に伸ばしたぶん、情報行を下へ詰めた(第 U8 便)。
+    // 旧: 622 / 684。決定ボタンの上端(779)との隙間は 56px 残る。
+    private const float LengthRowY = 648f, StatusRowY = 706f;
     private const float StatusGemX0 = 1414f, StatusGemPitch = 42f;
     // 難易度一覧。
     private const float DiffHeadY = 357f, DiffHeadRuleY = 349f;
@@ -341,17 +346,17 @@ public class CitySelectView : MonoBehaviour
         AddRowIcon(rt, HighlandUi.ClockIcon(34, ownedTextures, ownedSprites), LengthRowY);
         HighlandUi.RubyText lengthLabel = Ruby("LengthLabel", rt, "プレイ[時間|じかん]", 20.5f,
             HighlandUi.InkSoft, TextAlignmentOptions.Left, false, 1.1f);
-        HighlandUi.PlaceLeft(lengthLabel.Body, RowLabelX, 628.6f, 260f, 20.5f);
+        HighlandUi.PlaceLeft(lengthLabel.Body, RowLabelX, LengthRowY + 6.6f, 260f, 20.5f);
         AddRowRule(rt, LengthRowY);
         lengthValue = HighlandUi.Text("LengthValue", rt, "--:--", 25f, HighlandUi.Ink,
             TextAlignmentOptions.Left, false, 2.1f);
-        HighlandUi.PlaceLeft(lengthValue, RowValueX, 631.2f, 220f, 25f);
+        HighlandUi.PlaceLeft(lengthValue, RowValueX, LengthRowY + 9.2f, 220f, 25f);
 
         // 情報行 2: 状態(難易度ごとの踏破を菱形 3 つで。2026-09-16 U5 の踏襲)。
         AddRowIcon(rt, HighlandUi.FlagIcon(34, ownedTextures, ownedSprites), StatusRowY);
         HighlandUi.RubyText statusLabel = Ruby("StatusLabel", rt, "[状態|じょうたい]", 20.5f,
             HighlandUi.InkSoft, TextAlignmentOptions.Left, false, 1.1f);
-        HighlandUi.PlaceLeft(statusLabel.Body, RowLabelX, 690.6f, 260f, 20.5f);
+        HighlandUi.PlaceLeft(statusLabel.Body, RowLabelX, StatusRowY + 6.6f, 260f, 20.5f);
         AddRowRule(rt, StatusRowY);
 
         gemFilled = HighlandUi.Gem(19, 22, true, 0f, ownedTextures, ownedSprites, "V11GemFill");
@@ -446,7 +451,8 @@ public class CitySelectView : MonoBehaviour
 
         // 操作ヒント「上下で選ぶ」(レバーの絵 + 明朝)。
         Image lever = HighlandUi.NewImage("LeverIcon", rt, HighlandUi.Icon("lever_white"), Color.white);
-        HighlandUi.Place(lever, DiffLeverX, DiffLeverY, 33f, 33f);
+        // 第 U8 便(2026-09-19 指示): レバーを 1.4 倍(33 → 46)にして〇✕ と重さを揃える。
+        HighlandUi.Place(lever, DiffLeverX, DiffLeverY, 46f, 46f);
         HighlandUi.RubyText guide = Ruby("DiffGuide", rt, "[上下|じょうげ]で[選|えら]ぶ", 20f,
             HighlandUi.InkSoft, TextAlignmentOptions.Left, false, 0.7f);
         HighlandUi.PlaceLeft(guide.Body, DiffGuideX, DiffGuideY, 260f, 20f);
@@ -539,7 +545,7 @@ public class CitySelectView : MonoBehaviour
 
     private void BuildMarker()
     {
-        arrowSprite = TitleManager.CreatePixelDownTriangleSprite(MarkerArrowDotW, MarkerArrowDotH);
+        arrowSprite = TitleManager.CreateSmoothDownTriangleSprite();
 
         GameObject markerObj = new GameObject("DistrictMarker", typeof(RectTransform));
         markerObj.transform.SetParent(root, false);
@@ -1032,9 +1038,8 @@ public class CitySelectView : MonoBehaviour
         float zoomFade = 1f - Mathf.Clamp01((map.ZoomAmount - 0.55f) / 0.45f);
         if (show)
         {
-            // 浮遊は 2px 単位のステップ移動(ドットが滑らかに滑らないようにする)。
-            float floatY = Mathf.Round(Mathf.Sin(animTime * 1.9f)
-                * MarkerFloatPx / MarkerArrowPixel) * MarkerArrowPixel;
+            // 浮遊は滑らかな正弦(第 U8 便でドット格子のステップ移動をやめた)。
+            float floatY = Mathf.Sin(animTime * 1.9f) * MarkerFloatPx;
             markerRoot.anchoredPosition = new Vector2(
                 (vp.x - 0.5f) * canvas.width,
                 (vp.y - 0.5f) * canvas.height + floatY);
@@ -1050,11 +1055,8 @@ public class CitySelectView : MonoBehaviour
             Color c = MarkerArrowInk;
             c.a = markerAlpha * zoomFade;
             markerArrow.color = c;
-            // ▼だけ画面のドット格子(2px)へ吸着させる。ラベルは滑らかなまま。
-            Vector2 mp = markerRoot.anchoredPosition;
-            markerArrow.rectTransform.anchoredPosition = new Vector2(
-                Mathf.Round(mp.x / MarkerArrowPixel) * MarkerArrowPixel - mp.x,
-                Mathf.Round(mp.y / MarkerArrowPixel) * MarkerArrowPixel - mp.y);
+            // 第 U8 便でドット格子への吸着はやめた(滑らかな三角になったので不要)。
+            markerArrow.rectTransform.anchoredPosition = Vector2.zero;
         }
 
         // 右パネル: 区画が選ばれているあいだ出す。難易度は同じパネルの中で本文と
