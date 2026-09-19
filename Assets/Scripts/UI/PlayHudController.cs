@@ -59,6 +59,8 @@ public class PlayHudController : MonoBehaviour
     private const float HitCardW = 244f;       // v11: x 28..272
     private const float ScoreCardW = 300f;     // v11: x 300..600
     private const float TrackW = 818f;         // v11: x 658..1476
+    // 2P のバー幅。P1/P2 のスコア札(中心 ±510・幅 300)の内側へ 30px 空けて収める。
+    private const float TrackW2 = 660f;
     private const float TrackH = 34f;          // v11: y 33..67
     // 曲名パネルは右端 930 を保ったまま左へ延長し、バーとの空白を詰める
     // (oracle レビュー「右側の空白が広い」)。
@@ -559,6 +561,24 @@ public class PlayHudController : MonoBehaviour
         ApplyPlayerTag(hitLabel2, "P2", false);
         ApplyPlayerTag(scoreLabel2, "P2", false);
 
+        // ---- 進捗バー: 2P は左右とも札が来るので細くして画面中央へ ----
+        // 1P は x 658..1476(中心 +107・幅 818)。2P だと右端 +525 が P2 スコア札の
+        // 左端 +360 に 165px 食い込んでいた(第 U9 便の実フレームで確認)。
+        // P1 スコア札の右端 -360 と P2 スコア札の左端 +360 の間へ、左右 30px 空けて収める。
+        if (barBack != null)
+        {
+            barBack.anchoredPosition = new Vector2(0f, RowY);
+            barBack.sizeDelta = new Vector2(TrackW2, TrackH);
+            Image bbImg2 = barBack.GetComponent<Image>();
+            if (bbImg2 != null)
+                bbImg2.sprite = HighlandUi.NotchPanel((int)TrackW2, (int)TrackH, 5f, true,
+                    ownedTextures, ownedSprites, "HudTrackPanelV11_2P", 4f, 1.1f, 0.7f, 0.2f, 2);
+            fillMaxInk = TrackW2 - 32f;          // 1P と同じ左右 16px の余白
+            Transform tb = barBack.Find("TrackBase");
+            if (tb != null)
+                ((RectTransform)tb).sizeDelta = new Vector2(fillMaxInk, ((RectTransform)tb).sizeDelta.y);
+        }
+
         // ---- 曲名: 右パネルを畳み、中央バー直上の小見出しへ ----
         if (songBg != null) songBg.gameObject.SetActive(false);
         if (songIconRect != null) songIconRect.gameObject.SetActive(false);
@@ -569,12 +589,22 @@ public class PlayHudController : MonoBehaviour
             // v11: 2P では曲名札を畳んで、進捗バーの直上へ小さく置く。
             if (songTitleText != null)
             {
-                songTitleText.fontSize = 20f;
+                // 第 U9 便: 20 → 16.5。ふりがなの上端が帯の外へはみ出していた
+                // (帯 104px に「曲名+ふりがな / バー / 経過時刻」を積むため)。
+                songTitleText.fontSize = 16.5f;
+                // ふりがなの大きさと本文からの距離は RubyText の svgSize で決まるので、
+                // 本文を縮めたぶんこちらも合わせる(16.5px ÷ 1.1483 = 14.4 SVG)。
+                // 合わせないと読みが大きいまま上へ離れ、帯の上端で切れる。
+                if (songRuby != null)
+                {
+                    songRuby.SetSvgSize(14.4f);
+                    lastSongText = null;      // 次の Update で読みを作り直させる
+                }
                 RectTransform nr = (RectTransform)songTitleText.transform;
                 nr.anchorMin = nr.anchorMax = new Vector2(0.5f, 0.5f);
                 nr.pivot = new Vector2(0.5f, 0.5f);
-                nr.anchoredPosition = new Vector2(107f, 30f);
-                nr.sizeDelta = new Vector2(TrackW, 26f);
+                nr.anchoredPosition = new Vector2(0f, 30f);
+                nr.sizeDelta = new Vector2(TrackW2, 26f);
                 rubiesPlaced = false;
             }
         }
