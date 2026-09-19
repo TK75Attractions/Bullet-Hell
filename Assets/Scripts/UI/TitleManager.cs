@@ -2036,27 +2036,32 @@ public class TitleManager : MonoBehaviour
     // 12桁スロットの表示更新: 入力済みは矢印+明色、未入力は薄いドット、カーソル位置は点滅。
     private void RefreshTransferDigits()
     {
-        for (int i = 0; i < transferDigitTexts.Length; i++)
+        // Symbols は ↑ ↓ ← → の順。矢印は上向きで焼いて Z 回転で向きを作る。
+        float[] rot = { 0f, 180f, 90f, -90f };
+        float blink = 0.5f + 0.5f * Mathf.Sin(transferCursorBlink * 6f);
+        for (int i = 0; i < transferSlotFrames.Length; i++)
         {
-            TMP_Text slot = transferDigitTexts[i];
-            if (slot == null) continue;
-            if (i < transferDigits.Count)
+            bool filled = i < transferDigits.Count;
+            bool cursor = i == transferDigits.Count;
+            if (transferSlotFrames[i] != null)
+                transferSlotFrames[i].sprite = filled || cursor ? transferSlotOn : transferSlotOff;
+            if (transferSlotArrows[i] != null)
             {
-                slot.text = DirectionTransferCode.Symbols[transferDigits[i]].ToString();
-                slot.color = DigitFilled;
+                transferSlotArrows[i].gameObject.SetActive(filled);
+                if (filled)
+                {
+                    int d = Mathf.Clamp(transferDigits[i], 0, 3);
+                    transferSlotArrows[i].rectTransform.localEulerAngles = new Vector3(0f, 0f, rot[d]);
+                }
             }
-            else if (i == transferDigits.Count)
+            if (transferSlotDots[i] != null)
             {
-                slot.text = "・";
-                float blink = 0.5f + 0.5f * Mathf.Sin(transferCursorBlink * 6f);
-                slot.color = Color.Lerp(DigitEmpty, DigitCursor, blink);
-            }
-            else
-            {
-                slot.text = "・";
-                slot.color = DigitEmpty;
+                transferSlotDots[i].gameObject.SetActive(!filled);
+                Color c = new Color(0.714f, 0.714f, 0.741f, cursor ? Mathf.Lerp(0.35f, 1f, blink) : 0.5f);
+                transferSlotDots[i].color = c;
             }
         }
+        TickV11Rubies();
     }
 
     // 引き継ぎ画面(第29便: ミニマル再設計)。装飾(バナー/スラッシュ/カード枠/
@@ -2076,89 +2081,202 @@ public class TitleManager : MonoBehaviour
         transferCG = rootObj.AddComponent<CanvasGroup>();
 
         // 最背面: 完成フレームのぼかしスナップショット(オープン時に差し込む)。
-        // メニュー・ロゴを退場させず、その凍結ぼかしを背景として敷く(第31便)。
         transferBackdrop = CreateRawImage("Backdrop", rootRect);
         StretchToParent(transferBackdrop.rectTransform);
-        // ぼかしは難易度オーバーレイと同じダウンサンプルピラミッド方式(BackdropBlurUtil)で
-        // 作るため、シェーダマテリアルは使わない。既定マテリアルで 1/4 解像度のぼかし RT を
-        // バイリニア拡大表示する。
-        transferBackdrop.color = new Color(0.55f, 0.62f, 0.72f, 1f); // 難易度オーバーレイと同じ軽い減光
+        transferBackdrop.color = new Color(0.55f, 0.62f, 0.72f, 1f);
         transferBackdrop.gameObject.SetActive(false);
-
-        // 背景: 薄いスクリム+中央の無枠パネル1枚のみ。パネルはわずかに透けさせ
-        // (0.90)、上辺ハイライト+下辺シャドウの各1pxで「ただの黒い板」感を消す
-        // (oracle 第29便)。
-        // 第34便(oracle bin34): 幅を絞り(940→800)、ヒント行削除に合わせ高さも詰める
-        // (600→480)。「黒い板」感を消すため、単色板の上に薄い青の内側レイヤー・
-        // 上下の締め・辺ハイライトを重ねる(明るいシアン全周枠はコード帯のネオンと
-        // 競合するため使わない)。
-        const float panelW = 800f;
-        // 第35便: ヒント行削除の名残で下部に空白が残っていたため高さを詰め(480→440)、
-        // 内容ブロック(見出し〜メッセージ)を y-12 下げてパネル中央に再配置する。
-        const float panelH = 440f;
-        const float panelHalfW = panelW * 0.5f;
-        const float panelHalfH = panelH * 0.5f;
-        Vector2 panelSize = new Vector2(panelW, panelH);
         CreatePanel("Scrim", rootRect, Vector2.zero, new Vector2(4000f, 4000f), new Color(0f, 0.024f, 0.071f, 0.22f));
-        // 背面の影板(わずかに右下へずらす。ぼかし無しでも黒板の浮きが和らぐ)。
-        CreatePanel("PanelShadow", rootRect, new Vector2(6f, -8f), panelSize, new Color(0f, 0f, 0f, 0.24f));
-        CreatePanel("Panel", rootRect, Vector2.zero, panelSize, new Color(0.008f, 0.031f, 0.078f, 0.90f));
-        // 下部の締め(内側グラデの代替)。
-        CreatePanel("PanelBottomDark", rootRect, new Vector2(0f, -(panelHalfH - 45f)), new Vector2(panelW, 90f), new Color(0f, 0f, 0f, 0.16f));
-        // 辺は細い銀の額装枠のみ(統一便2で足した4隅ブラケット・ヘッダー帯・
-        // スラッシュ・ダイヤノードの加飾は撤去。コードとコピー導線を主役に戻す)。
-        Color edgeSilver = new Color(0.268f, 0.325f, 0.456f);
-        CreatePanel("EdgeTop", rootRect, new Vector2(0f, panelHalfH - 1f), new Vector2(panelW, 2f), new Color(edgeSilver.r, edgeSilver.g, edgeSilver.b, 0.80f));
-        CreatePanel("EdgeBottom", rootRect, new Vector2(0f, -(panelHalfH - 1f)), new Vector2(panelW, 2f), new Color(edgeSilver.r, edgeSilver.g, edgeSilver.b, 0.60f));
-        CreatePanel("EdgeLeft", rootRect, new Vector2(-(panelHalfW - 1f), 0f), new Vector2(2f, panelH), new Color(edgeSilver.r, edgeSilver.g, edgeSilver.b, 0.60f));
-        CreatePanel("EdgeRight", rootRect, new Vector2(panelHalfW - 1f, 0f), new Vector2(2f, panelH), new Color(edgeSilver.r, edgeSilver.g, edgeSilver.b, 0.60f));
-        // コンテンツ(ラベル・コード帯・入力行)の左右端を揃える基準。
-        const float contentHalf = 272f;
 
-        // 見出しはタイポグラフィのみ(帯・スラッシュ・ルビ無し)。白見出し+シアン
-        // 英字サブ+短い1本の細線で締める(pre-d4f748c のシンプル様式へ戻す)。
-        TMP_Text heading = CreateText("Heading", rootRect, new Vector2(0f, 168f), new Vector2(700f, 52f), 40f, Color.white, TextAlignmentOptions.Center);
-        heading.fontStyle = FontStyles.Bold;
-        TMP_Text headingSub = CreateText("HeadingSub", rootRect, new Vector2(0f, 138f), new Vector2(700f, 22f), 15f, Cyan, TextAlignmentOptions.Center);
-        headingSub.characterSpacing = 8f;
-        headingSub.text = "DIRECTION CODE";
-        CreatePanel("HeadingRule", rootRect, new Vector2(0f, 114f), new Vector2(240f, 1f), new Color(0.275f, 0.863f, 0.941f, 0.28f));
+        // --- Highland UI v11(09_transfer_direction_code)の板 ---
+        Image panel = NewV11Image("Panel", rootRect, Color.white);
+        panel.sprite = HighlandUi.NotchPanel((int)HighlandUi.L(1102f), (int)HighlandUi.L(477f),
+            HighlandUi.L(29.5f), false, v11Textures, v11Sprites, "TransferPanel",
+            HighlandUi.L(11f), 1.9f * HighlandUi.S, 0.75f * HighlandUi.S);
+        PlaceV11(panel.rectTransform, 836f, 434.5f, 1102f, 477f);
 
-        // 方向シーケンス入力(SPEC §1): ↑↓←→ 12桁を4桁3組で表示。埋まった桁は明色、
-        // 未入力は薄いドット、カーソル位置は点滅。TickTransfer/TickTransferInput が更新する。
-        TMP_Text hint = CreateText("Hint", rootRect, new Vector2(0f, 96f), new Vector2(720f, 26f), 18f,
-            new Color(0.388f, 0.867f, 0.91f, 0.6f), TextAlignmentOptions.Center);
-        hint.text = "スティックで入力  A:決定  B:削除(長押しで戻る)";
-        transferHintText = hint;
-
-        transferDigitTexts = new TMP_Text[DirectionTransferCode.DigitCount];
-        const float slotW = 40f;
-        const float slotGap = 10f;
-        const float groupGap = 26f;
-        int groups = DirectionTransferCode.DigitCount / DirectionTransferCode.DigitGroupSize;
-        float totalW = DirectionTransferCode.DigitCount * slotW
-            + (DirectionTransferCode.DigitCount - groups) * slotGap
-            + (groups - 1) * groupGap;
-        float x = -totalW * 0.5f + slotW * 0.5f;
-        for (int i = 0; i < DirectionTransferCode.DigitCount; i++)
+        foreach (float sx in new[] { 307f, 1365f })
         {
-            TMP_Text slot = CreateText("Digit" + i, rootRect, new Vector2(x, 32f), new Vector2(slotW, 56f), 34f, DigitEmpty, TextAlignmentOptions.Center);
-            if (codeFont != null) slot.font = codeFont;
-            slot.fontStyle = FontStyles.Bold;
-            slot.text = "・";
-            transferDigitTexts[i] = slot;
-
-            x += slotW + slotGap;
-            if ((i + 1) % DirectionTransferCode.DigitGroupSize == 0) x += groupGap - slotGap;
+            Image d = NewV11Image("SideGem", rootRect, new Color(0.784f, 0.784f, 0.784f, 0.74f));
+            d.sprite = HighlandUi.DiamondRect(18, 23, false, 1.6f * HighlandUi.S,
+                v11Textures, v11Sprites, "TransferSideGem");
+            PlaceV11(d.rectTransform, sx, 408f, 16f, 20f);
         }
 
-        transferMessageText = CreateText("Message", rootRect, new Vector2(0f, -70f), new Vector2(720f, 160f), 22f, Cyan, TextAlignmentOptions.Center);
+        // 見出し(2026-09-19 U7 既定: 絵の「移動／方向コード」は機能が引き継ぎなので
+        // 「引き継ぎ／方向コード」にする)。
+        transferTitle1 = NewV11Ruby("Heading", rootRect, "[引|ひ]き[継|つ]ぎ", 33f, 4f,
+            836f, 260f, 700f, TextAlignmentOptions.Center);
+        transferTitle2 = NewV11Ruby("Heading2", rootRect, "[方向|ほうこう]コード", 44f, 4f,
+            836f, 330f, 800f, TextAlignmentOptions.Center);
+
+        AddV11Rule(rootRect, 362f, 576f, 32f, "TransferHeadRule");
+        AddV11Rule(rootRect, 566f, 576f, 32f, "TransferFootRule");
+
+        // --- コードのスロット ---
+        // v11 の絵は 12 桁 3 組だが、実装は 16 桁 4 組(DirectionTransferCode.DigitCount)。
+        // 桁を減らすとコードが変わってしまうので、札を一回り小さくして 4 組を収める。
+        const float slotW = 52f, slotH = 76f, pitch = 60f, groupGap = 90f, slotCy = 464f;
+        int groups = DirectionTransferCode.DigitCount / DirectionTransferCode.DigitGroupSize;
+        float span = (groups - 1) * ((DirectionTransferCode.DigitGroupSize - 1) * pitch + groupGap)
+            + (DirectionTransferCode.DigitGroupSize - 1) * pitch;
+        float x0 = 836f - span * 0.5f;
+
+        Sprite slotOn = HighlandUi.NotchFlat((int)HighlandUi.L(slotW), (int)HighlandUi.L(slotH),
+            HighlandUi.L(6f), new Color32(0x17, 0x17, 0x25, 0xFF), 0.6f,
+            new Color32(0xF0, 0xD7, 0x5B, 0xFF), 1.25f * HighlandUi.S, 0.78f,
+            v11Textures, v11Sprites, "TransferSlotOn");
+        Sprite slotOff = HighlandUi.NotchFlat((int)HighlandUi.L(slotW), (int)HighlandUi.L(slotH),
+            HighlandUi.L(6f), new Color32(0x17, 0x17, 0x25, 0xFF), 0.6f,
+            new Color32(0xAD, 0xAD, 0xAD, 0xFF), 1.25f * HighlandUi.S, 0.37f,
+            v11Textures, v11Sprites, "TransferSlotOff");
+        Sprite arrowSprite = HighlandUi.ArrowIcon((int)HighlandUi.L(28f), (int)HighlandUi.L(36f),
+            v11Textures, v11Sprites, "TransferArrow");
+        Sprite dotSprite = HighlandUi.Dot(10, v11Textures, v11Sprites, "TransferDot");
+
+        transferDigitTexts = new TMP_Text[0];
+        transferSlotFrames = new Image[DirectionTransferCode.DigitCount];
+        transferSlotArrows = new Image[DirectionTransferCode.DigitCount];
+        transferSlotDots = new Image[DirectionTransferCode.DigitCount];
+        transferSlotOn = slotOn;
+        transferSlotOff = slotOff;
+
+        float cx = x0;
+        for (int i = 0; i < DirectionTransferCode.DigitCount; i++)
+        {
+            Image frame = NewV11Image("Slot" + i, rootRect, Color.white);
+            frame.sprite = slotOff;
+            PlaceV11(frame.rectTransform, cx, slotCy, slotW, slotH);
+            transferSlotFrames[i] = frame;
+
+            Image arrow = NewV11Image("Arrow" + i, rootRect, Color.white);
+            arrow.sprite = arrowSprite;
+            PlaceV11(arrow.rectTransform, cx, slotCy, 28f, 36f);
+            arrow.gameObject.SetActive(false);
+            transferSlotArrows[i] = arrow;
+
+            Image dot = NewV11Image("Dot" + i, rootRect, new Color(0.714f, 0.714f, 0.741f, 0.5f));
+            dot.sprite = dotSprite;
+            PlaceV11(dot.rectTransform, cx, slotCy, 9f, 9f);
+            transferSlotDots[i] = dot;
+
+            if ((i + 1) % DirectionTransferCode.DigitGroupSize == 0
+                && i + 1 < DirectionTransferCode.DigitCount)
+            {
+                Image sep = NewV11Image("GroupSep", rootRect, new Color(0.8f, 0.8f, 0.8f, 0.65f));
+                sep.sprite = HighlandUi.SolidBar(v11Textures, v11Sprites);
+                PlaceV11(sep.rectTransform, cx + groupGap * 0.5f, slotCy, 1.15f, 87f);
+                cx += groupGap;
+            }
+            else cx += pitch;
+        }
+
+        // メッセージ欄(絵には無いので、スロット列の下に同じ書体で足す)。
+        transferMessageText = HighlandUi.Text("Message", rootRect, "", 20f,
+            HighlandUi.Accent, TextAlignmentOptions.Center, false, 0.6f);
+        HighlandUi.PlaceCentered(transferMessageText, 836f, 538f, 1000f, 20f);
         transferMessageText.textWrappingMode = TextWrappingModes.Normal;
 
-        SetChildText(rootRect, "Heading", "引き継ぎ");
-        transferMessageText.text = string.Empty;
+        // 操作ヒント(レバーで矢印 / 〇 決定 / ✕ 戻る)。
+        Image lever = NewV11Image("HintLever", rootRect, Color.white);
+        lever.sprite = HighlandUi.Icon("lever_white");
+        PlaceV11(lever.rectTransform, 753f, 593.5f, 27.5f, 27.5f);
+        transferHint1 = NewV11Ruby("HintLeverText", rootRect, "[矢印|やじるし]を [入|い]れよう", 20.5f, 0.6f,
+            779.276f, 603f, 400f, TextAlignmentOptions.Left);
 
+        Image circle = NewV11Image("HintCircle", rootRect, Color.white);
+        circle.sprite = HighlandUi.Icon("circle");
+        PlaceV11(circle.rectTransform, 636.15f, 636.6f, 40.5f, 40.5f);
+        transferHint2 = NewV11Ruby("HintApply", rootRect, "[決定|けってい]", 22f, 0.7f,
+            665.43f, 643f, 220f, TextAlignmentOptions.Left);
+
+        Image cross = NewV11Image("HintCross", rootRect, Color.white);
+        cross.sprite = HighlandUi.Icon("cross");
+        PlaceV11(cross.rectTransform, 981.15f, 636.6f, 40.5f, 40.5f);
+        transferHint3 = NewV11Ruby("HintBack", rootRect, "[戻|もど]る", 22f, 0.7f,
+            1010.43f, 643f, 220f, TextAlignmentOptions.Left);
+
+        transferHintText = transferHint1.Body;
+        transferMessageText.text = string.Empty;
         transferRoot.SetActive(false);
+    }
+
+    // ---- v11 の小物(引き継ぎ画面) -------------------------------------------
+
+    private readonly List<Texture2D> v11Textures = new List<Texture2D>();
+    private readonly List<Sprite> v11Sprites = new List<Sprite>();
+    private readonly List<HighlandUi.RubyText> v11Rubies = new List<HighlandUi.RubyText>();
+    private bool v11RubiesPlaced;
+    private Image[] transferSlotFrames = new Image[0];
+    private Image[] transferSlotArrows = new Image[0];
+    private Image[] transferSlotDots = new Image[0];
+    private Sprite transferSlotOn, transferSlotOff;
+    private HighlandUi.RubyText transferTitle1, transferTitle2, transferHint1, transferHint2, transferHint3;
+
+    private Image NewV11Image(string name, Transform parent, Color color)
+    {
+        GameObject go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        go.layer = gameObject.layer;
+        Image img = go.GetComponent<Image>();
+        img.rectTransform.SetParent(parent, false);
+        img.rectTransform.anchorMin = img.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        img.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        img.color = color;
+        img.raycastTarget = false;
+        return img;
+    }
+
+    private static void PlaceV11(RectTransform rt, float svgCx, float svgCy, float svgW, float svgH)
+    {
+        rt.anchoredPosition = new Vector2(HighlandUi.X(svgCx), HighlandUi.Y(svgCy));
+        rt.sizeDelta = new Vector2(HighlandUi.L(svgW), HighlandUi.L(svgH));
+    }
+
+    private HighlandUi.RubyText NewV11Ruby(string name, Transform parent, string markup,
+        float svgSize, float tracking, float svgX, float svgBaseline, float svgW,
+        TextAlignmentOptions align)
+    {
+        TMP_Text body = HighlandUi.Text(name, parent, "", svgSize, HighlandUi.InkSoft, align, false, tracking);
+        HighlandUi.RubyText r = new HighlandUi.RubyText(body, parent, svgSize, HighlandUi.InkSoft);
+        r.Apply(markup);
+        if (align == TextAlignmentOptions.Center) HighlandUi.PlaceCentered(body, svgX, svgBaseline, svgW, svgSize);
+        else HighlandUi.PlaceLeft(body, svgX, svgBaseline, svgW, svgSize);
+        v11Rubies.Add(r);
+        v11RubiesPlaced = false;
+        return r;
+    }
+
+    private void AddV11Rule(Transform parent, float svgY, float svgW, float svgGap, string name)
+    {
+        int w = Mathf.RoundToInt(HighlandUi.L(svgW));
+        Image rule = NewV11Image("Rule", parent, Color.white);
+        rule.sprite = HighlandUi.FadeRule(w, 12, 1.05f * HighlandUi.S, HighlandUi.L(svgGap),
+            new[] { 0f, 0.22f, 0.5f, 0.78f, 1f },
+            new[] { new Color32(0xBC, 0xAA, 0x4E, 0xFF), new Color32(0xBC, 0xAA, 0x4E, 0xFF),
+                    new Color32(0xFF, 0xE1, 0x6A, 0xFF), new Color32(0xBC, 0xAA, 0x4E, 0xFF),
+                    new Color32(0xBC, 0xAA, 0x4E, 0xFF) },
+            new[] { 0f, 0.30f, 0.95f, 0.30f, 0f },
+            v11Textures, v11Sprites, name);
+        rule.rectTransform.anchoredPosition = new Vector2(0f, HighlandUi.Y(svgY));
+        rule.rectTransform.sizeDelta = new Vector2(w, 12f);
+
+        Image gem = NewV11Image("RuleGem", parent, new Color(1f, 0.882f, 0.416f, 1f));
+        gem.sprite = HighlandUi.DiamondRect(13, 16, false, 1.5f * HighlandUi.S,
+            v11Textures, v11Sprites, name + "Gem");
+        PlaceV11(gem.rectTransform, 836f, svgY, 11.5f, 14f);
+    }
+
+    // 引き継ぎ画面のふりがなを表示後の初回に実測で置き直す。
+    private void TickV11Rubies()
+    {
+        if (v11RubiesPlaced) return;
+        bool all = true;
+        foreach (HighlandUi.RubyText r in v11Rubies)
+        {
+            if (r == null || r.Body == null) continue;
+            if (!r.Body.gameObject.activeInHierarchy) continue;
+            all &= r.EnsurePlaced();
+        }
+        v11RubiesPlaced = all;
     }
 
     // ---- ランキング盤面(SPEC §2.2) -----------------------------------------

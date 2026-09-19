@@ -523,6 +523,64 @@ public static class HighlandUi
         return MakeSprite(px, S2, S2, name, ownedTex, ownedSpr);
     }
 
+    /// <summary>
+    /// 方向コードの矢印(v11 の T_Slot_*_Arrow)。上向きで焼き、他の向きは
+    /// RectTransform の回転で作る。表示 <paramref name="w"/>x<paramref name="h"/> px。
+    /// </summary>
+    public static Sprite ArrowIcon(int w, int h, List<Texture2D> ownedTex, List<Sprite> ownedSpr,
+        string name = "V11Arrow")
+    {
+        const int ss = 4;
+        int W = w * ss, H = h * ss;
+        Color32[] px = new Color32[W * H];
+        // SVG は x∈[-13.7,13.7]・y∈[-18.65,17]。y は下向きなので反転して置く。
+        float[] sx = { -2.35f, -2.35f, -10.3f, -13.7f, 0f, 13.7f, 10.3f, 2.35f, 2.35f };
+        float[] sy = { 17f, -9.5f, -1.55f, -4.95f, -18.65f, -4.95f, -1.55f, -9.5f, 17f };
+        float kx = W / 28.4f, ky = H / 36.65f;
+        float cx = (W - 1) * 0.5f, cy = (H - 1) * 0.5f;
+        float[] xs = new float[sx.Length], ys = new float[sy.Length];
+        for (int i = 0; i < sx.Length; i++)
+        {
+            xs[i] = cx + sx[i] * kx;
+            ys[i] = cy - (sy[i] - (17f - 18.65f) * 0.5f) * ky;
+        }
+        // 2x2 の副標本で塗りつぶす(交差数による内外判定)。
+        for (int y = 0; y < H; y++)
+        {
+            for (int x = 0; x < W; x++)
+            {
+                int hit = 0;
+                for (int sy2 = 0; sy2 < 2; sy2++)
+                {
+                    for (int sx2 = 0; sx2 < 2; sx2++)
+                    {
+                        float px2 = x + 0.25f + sx2 * 0.5f, py2 = y + 0.25f + sy2 * 0.5f;
+                        bool inside = false;
+                        for (int i = 0, j = xs.Length - 1; i < xs.Length; j = i++)
+                        {
+                            if ((ys[i] > py2) != (ys[j] > py2) &&
+                                px2 < (xs[j] - xs[i]) * (py2 - ys[i]) / (ys[j] - ys[i]) + xs[i])
+                                inside = !inside;
+                        }
+                        if (inside) hit++;
+                    }
+                }
+                if (hit > 0) Blend(px, W, H, x, y, Color.white, hit / 4f);
+            }
+        }
+        return MakeSprite(px, W, H, name, ownedTex, ownedSpr);
+    }
+
+    /// <summary>白い丸(未入力のスロットの点など)。</summary>
+    public static Sprite Dot(int size, List<Texture2D> ownedTex, List<Sprite> ownedSpr,
+        string name = "V11Dot")
+    {
+        int S2 = Mathf.Max(8, size * 4);
+        Color32[] px = new Color32[S2 * S2];
+        Circle(px, S2, S2, (S2 - 1) * 0.5f, (S2 - 1) * 0.5f, S2 * 0.45f, 0f);
+        return MakeSprite(px, S2, S2, name, ownedTex, ownedSpr);
+    }
+
     // ---- 取り込み済みスプライト ---------------------------------------------
 
     private static readonly Dictionary<string, Sprite> loadedIcons = new Dictionary<string, Sprite>();
