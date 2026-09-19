@@ -67,6 +67,11 @@ public sealed class ResultScreen : MonoBehaviour
     // 参考画像の画素 → ここの値は ×1.1477(= 1080/941)。パネルは画面中央。
     private const float PanelW = 698f;     // 参考 608px = 画面幅の 36.4%
     private const float PanelH = 938f;     // 参考 817px = 画面高さの 86.8%
+    // 第 U9 便: 板だけ下へ 14px 伸ばす。座標系(PanelH)は動かさないので、
+    // HighlandUi.Y() で置いた中身はすべて同じ位置のまま、下端の余白だけ増える。
+    // 「次へ」を見本の位置へ下ろすと、その下の引き継ぎコードが内枠に触れるため。
+    private const float PanelExtendDown = 14f;
+    private const float PlateH = PanelH + PanelExtendDown;
     private const float PanelTop = PanelH * 0.5f;
     private const float ScrimAlpha = 0.20f;
 
@@ -86,13 +91,18 @@ public sealed class ResultScreen : MonoBehaviour
     private const float YKnot = -64f;         // 参考 y=527(月桂樹の結びの菱形)
     private const float YRowSep0 = -82f;      // 情報行の 1 本目の区切り線
     private const float RowPitch = 56.5f;     // 参考 50.25px
-    private const float YButton = -364f;
-    // v11 の「次へ」ボタン(SVG 328x72)。位置だけは文字リンクの行を残すため
-    // 設計より 38px 上のまま据え置く(2026-09-16 U4b と同じ意図した差)。
+    // v11 の「次へ」ボタン(SVG 328x72・y 785..857)。第 U9 便で設計どおりの位置へ
+    // 下ろした(旧 -364 = 設計より 38px 上。文字リンクの行を下に置くためだった)。
+    // 代わりに「もう一度 / タイトルへ」はボタンの左右へ回し、ボタンの下は
+    // 引き継ぎコードの 1 行だけにした。
+    private const float YButton = -402.5f;   // = HighlandUi.Y(821)
     private const float ButtonW = 377f;
     private const float ButtonH = 83f;
-    private const float YLinks = -421f;
-    private const float YTransfer = -440f;
+    // 文字リンクはボタンと同じ高さの左右。ボタンの外光(ButtonW+22)に掛からない x。
+    private const float XLinks = 255f;
+    private const float LinkW = 108f;
+    private const float LinkFont = 17f;
+    private const float YTransfer = -459f;
 
     private const float RowHalfW = 249f;   // 情報行の左右端
     private const float RowIconX = -216.5f; // 参考 x=646.5(アイコンの中心)
@@ -323,23 +333,24 @@ public sealed class ResultScreen : MonoBehaviour
         // 板は Highland UI v11 の「四隅を円弧でえぐった二重枠」(2026-09-19 U7)。
         // 旧 GoldPanelStyle.CreateOrnatePanelSprite(四隅のブラケット・翼形)は使わない。
         Image plate = NewImage("Plate", panelRect, Color.white);
-        plate.sprite = HighlandUi.NotchPanel((int)PanelW, (int)PanelH, HighlandUi.L(19f), false,
+        plate.sprite = HighlandUi.NotchPanel((int)PanelW, (int)PlateH, HighlandUi.L(19f), false,
             generatedTextures, generatedSprites, "ResultPanelV11",
             HighlandUi.L(5.2f), 1.45f * HighlandUi.S, 0.9f * HighlandUi.S);
         plate.type = Image.Type.Simple;
-        Stretch(plate.rectTransform);
+        SetRect(plate.rectTransform, new Vector2(0f, -PanelExtendDown * 0.5f),
+            new Vector2(PanelW, PlateH));
 
-        // 上下中央の中空菱形(枠を小さく切って重ねる)。
-        foreach (float sy in new[] { 63f, 878f })
+        // 上下中央の中空菱形(枠を小さく切って重ねる)。下の 1 つは伸ばした下端へ。
+        foreach (float cy in new[] { HighlandUi.Y(63f), HighlandUi.Y(878f) - PanelExtendDown })
         {
             Image cut = NewImage("CrestCut", panelRect, Vis(0x11, 0x11, 0x25));
-            SetRect(cut.rectTransform, new Vector2(0f, HighlandUi.Y(sy)),
+            SetRect(cut.rectTransform, new Vector2(0f, cy),
                 new Vector2(HighlandUi.L(20f), HighlandUi.L(12f)));
             Image gem = NewImage("Crest", panelRect, Vis(0xF4, 0xDF, 0x73));
             gem.sprite = HighlandUi.DiamondRect(Mathf.RoundToInt(HighlandUi.L(12.4f)),
                 Mathf.RoundToInt(HighlandUi.L(16.4f)), false, 1.7f * HighlandUi.S,
                 generatedTextures, generatedSprites, "ResultCrest");
-            SetRect(gem.rectTransform, new Vector2(0f, HighlandUi.Y(sy)),
+            SetRect(gem.rectTransform, new Vector2(0f, cy),
                 new Vector2(HighlandUi.L(12.4f), HighlandUi.L(16.4f)));
         }
 
@@ -671,9 +682,9 @@ public sealed class ResultScreen : MonoBehaviour
         EventTrigger trig = btnGo.AddComponent<EventTrigger>();
         AddTrigger(trig, EventTriggerType.PointerEnter, _ => SetActionSelection(0));
 
-        // --- 文字リンク(パネルの内側の最下段に収める) ---
-        BuildLink(1, new Vector2(-100f, YLinks), "もう一度", Action.Retry);
-        BuildLink(2, new Vector2(100f, YLinks), "タイトルへ", Action.Title);
+        // --- 文字リンク(ボタンの左右。下は引き継ぎコードの 1 行だけにする) ---
+        BuildLink(1, new Vector2(-XLinks, YButton), "もう一度", Action.Retry);
+        BuildLink(2, new Vector2(XLinks, YButton), "タイトルへ", Action.Title);
 
         transferCodeLine = NewText("TransferCodeLine", buttonRect, "", 13f,
             new Color(GoldDim.r, GoldDim.g, GoldDim.b, 0.9f), TextAlignmentOptions.Center);
@@ -689,19 +700,19 @@ public sealed class ResultScreen : MonoBehaviour
     {
         GameObject go = NewRect("Link" + slot, buttonRect);
         RectTransform rect = (RectTransform)go.transform;
-        SetRect(rect, pos, new Vector2(150f, 26f));
+        SetRect(rect, pos, new Vector2(LinkW, 30f));
         actionRects[slot] = rect;
         actionValues[slot] = action;
 
-        TMP_Text label = NewText("Label", rect, labelText, 18f,
+        TMP_Text label = NewText("Label", rect, labelText, LinkFont,
             new Color(SilverLabel.r, SilverLabel.g, SilverLabel.b, 0.78f), TextAlignmentOptions.Center);
-        label.characterSpacing = 9f;
+        label.characterSpacing = 4f;
         Stretch((RectTransform)label.transform);
         TmpAlign.CenterInkVertically(label);
         actionLabels[slot] = label;
 
         Image underline = NewImage("Underline", rect, new Color(GoldAccent.r, GoldAccent.g, GoldAccent.b, 0f));
-        SetRect(underline.rectTransform, new Vector2(0f, -13f), new Vector2(96f, 1.2f));
+        SetRect(underline.rectTransform, new Vector2(0f, -15f), new Vector2(LinkW - 12f, 1.2f));
         actionUnderlines[slot] = underline;
 
         Image hit = NewImage("Hit", rect, new Color(0f, 0f, 0f, 0f));
@@ -723,8 +734,8 @@ public sealed class ResultScreen : MonoBehaviour
     // 覆い、ボタン領域を置き換える(項目 3)。開閉は 0.2 秒のフェード。
     private void BuildRankingOverlay(RectTransform panel)
     {
-        const float overlayH = 628f;
-        const float overlayY = -(PanelH * 0.5f) + overlayH * 0.5f + 10f;
+        const float overlayH = 628f + PanelExtendDown;
+        const float overlayY = -(PanelH * 0.5f + PanelExtendDown) + overlayH * 0.5f + 10f;
 
         GameObject go = NewRect("RankingOverlay", panel);
         rankingOverlayRoot = go;
@@ -1300,11 +1311,9 @@ public sealed class ResultScreen : MonoBehaviour
 
         if (downEdge) SetActionSelection(selectedActionIndex == 0 ? 1 : selectedActionIndex);
         else if (upEdge) SetActionSelection(0);
-        if (selectedActionIndex != 0)
-        {
-            if (left && !navLeftPrev) SetActionSelection(1);
-            else if (right && !navRightPrev) SetActionSelection(2);
-        }
+        // 第 U9 便で文字リンクをボタンの左右へ移したので、左右はどこからでも効く。
+        if (left && !navLeftPrev) SetActionSelection(1);
+        else if (right && !navRightPrev) SetActionSelection(2);
         navLeftPrev = left;
         navRightPrev = right;
 
