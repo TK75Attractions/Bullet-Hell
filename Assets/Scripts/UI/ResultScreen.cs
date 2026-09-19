@@ -85,8 +85,10 @@ public sealed class ResultScreen : MonoBehaviour
     private const float RowPitch = 56.5f;     // 参考 50.25px
     private const float YRow0 = YRowSep0 - RowPitch * 0.5f;
     private const float YButton = -364f;
-    private const float ButtonW = 460f;       // 参考 400px = パネル幅の 65.8%
-    private const float ButtonH = 88f;        // 参考 80px
+    // v11 の「次へ」ボタン(SVG 328x72)。位置だけは文字リンクの行を残すため
+    // 設計より 38px 上のまま据え置く(2026-09-16 U4b と同じ意図した差)。
+    private const float ButtonW = 377f;
+    private const float ButtonH = 83f;
     private const float YLinks = -421f;
     private const float YTransfer = -440f;
 
@@ -152,6 +154,11 @@ public sealed class ResultScreen : MonoBehaviour
 
     private TMP_Text verdictText;
     private TMP_Text stageTitleText;
+    private HighlandUi.RubyText stageTitleRuby;
+    // v11 のふりがな(表示後の初回に実測で置き直す)。
+    private readonly System.Collections.Generic.List<HighlandUi.RubyText> rubies
+        = new System.Collections.Generic.List<HighlandUi.RubyText>();
+    private bool rubiesPlaced;
     private TMP_Text rankText;
     private TMP_Text rankText2;
     private TMP_Text p1RankTag;
@@ -177,7 +184,7 @@ public sealed class ResultScreen : MonoBehaviour
     private readonly TMP_Text[] rowLabels = new TMP_Text[RowCount];
     private readonly TMP_Text[] rowValues = new TMP_Text[RowCount];
     private readonly TMP_Text[] rowValues2 = new TMP_Text[RowCount];
-    private readonly TMP_Text[] rowSeparators = new TMP_Text[RowCount];
+    private readonly Image[] rowSeparators = new Image[RowCount];
     private readonly Image[] rowIcons = new Image[RowCount];
     private TMP_Text columnTagP1;
     private TMP_Text columnTagP2;
@@ -272,8 +279,9 @@ public sealed class ResultScreen : MonoBehaviour
 
     private void Build(RectTransform root)
     {
-        // 和文も欧文も明朝(ShipporiMincho)で通す。Oxanium 系はリザルトでは使わない。
-        mincho = Resources.Load<TMP_FontAsset>("Fonts/ShipporiMincho-Regular SDF");
+        // 2026-09-19 U7: 書体を Highland UI v11 の Noto Serif JP へ。和文も欧文も同じ。
+        mincho = HighlandUi.Serif;
+        if (mincho == null) mincho = Resources.Load<TMP_FontAsset>("Fonts/ShipporiMincho-Regular SDF");
 
         // --- 背景のぼかし板(項目 4)と薄い暗幕 ---
         GameObject blurGo = new GameObject("BackdropBlur", typeof(RectTransform), typeof(CanvasRenderer), typeof(RawImage));
@@ -305,12 +313,28 @@ public sealed class ResultScreen : MonoBehaviour
         SetRect(panelRect, Vector2.zero, new Vector2(PanelW, PanelH));
         panelGroup = panelGo.AddComponent<CanvasGroup>();
 
-        // 板は GoldPanelStyle と共用(U3 のステージ選択と同じ焼き込みの流儀)。
+        // 板は Highland UI v11 の「四隅を円弧でえぐった二重枠」(2026-09-19 U7)。
+        // 旧 GoldPanelStyle.CreateOrnatePanelSprite(四隅のブラケット・翼形)は使わない。
         Image plate = NewImage("Plate", panelRect, Color.white);
-        plate.sprite = GoldPanelStyle.CreateOrnatePanelSprite((int)PanelW, (int)PanelH,
-            generatedTextures, generatedSprites, "ResultPanel");
+        plate.sprite = HighlandUi.NotchPanel((int)PanelW, (int)PanelH, HighlandUi.L(19f), false,
+            generatedTextures, generatedSprites, "ResultPanelV11",
+            HighlandUi.L(5.2f), 1.45f * HighlandUi.S, 0.9f * HighlandUi.S);
         plate.type = Image.Type.Simple;
         Stretch(plate.rectTransform);
+
+        // 上下中央の中空菱形(枠を小さく切って重ねる)。
+        foreach (float sy in new[] { 63f, 878f })
+        {
+            Image cut = NewImage("CrestCut", panelRect, Vis(0x11, 0x11, 0x25));
+            SetRect(cut.rectTransform, new Vector2(0f, HighlandUi.Y(sy)),
+                new Vector2(HighlandUi.L(20f), HighlandUi.L(12f)));
+            Image gem = NewImage("Crest", panelRect, Vis(0xF4, 0xDF, 0x73));
+            gem.sprite = HighlandUi.DiamondRect(Mathf.RoundToInt(HighlandUi.L(12.4f)),
+                Mathf.RoundToInt(HighlandUi.L(16.4f)), false, 1.7f * HighlandUi.S,
+                generatedTextures, generatedSprites, "ResultCrest");
+            SetRect(gem.rectTransform, new Vector2(0f, HighlandUi.Y(sy)),
+                new Vector2(HighlandUi.L(12.4f), HighlandUi.L(16.4f)));
+        }
 
         BuildHeader(panelRect);
         BuildRank(panelRect);
@@ -328,46 +352,97 @@ public sealed class ResultScreen : MonoBehaviour
         SetRect(head, Vector2.zero, new Vector2(PanelW, PanelH));
         headerGroup = headGo.AddComponent<CanvasGroup>();
 
-        // RESULT: 銀灰・字間を参考画像に合わせて広く(幅 192 / 字高 21)。
-        TMP_Text resultLabel = NewText("ResultLabel", head, "RESULT", 30f, SilverLabel, TextAlignmentOptions.Center);
-        resultLabel.characterSpacing = 34f;
-        SetRect((RectTransform)resultLabel.transform, new Vector2(0f, YResult), new Vector2(460f, 40f));
+        // 「結果」(ふりがな けっか)。
+        HighlandUi.RubyText result = Ruby("ResultLabel", head, "[結果|けっか]", 23.5f,
+            HighlandUi.InkSoft, TextAlignmentOptions.Center, false, 6f);
+        HighlandUi.PlaceCentered(result.Body, 836f, 108.5f, 460f, 23.5f);
 
-        // RESULT の下の細い銀の罫 + 小さな白菱形。
-        AddRule(head, new Vector2(0f, YTopRule), 429f, false, SilverLabel, 0.5f);
-        AddDiamond(head, new Vector2(0f, YTopRule), 13f, new Color(InkWhite.r, InkWhite.g, InkWhite.b, 0.9f));
+        // その下の銀の罫(両端が消える)+ 中空の白菱形。
+        AddFadeRule(head, 123f, 482f, 26f, false);
+        AddCrest(head, 123f, 9.6f, 12f, 1.55f, Vis(0xDE, 0xDE, 0xDE));
 
-        // STAGE CLEAR: 参考画像の字高 49 / 幅 504。暖色の柔らかい発光を外側へ。
-        verdictText = NewText("Verdict", head, "STAGE CLEAR", 61f, GoldAccent, TextAlignmentOptions.Center);
-        verdictText.characterSpacing = 8f;
-        SetRect((RectTransform)verdictText.transform, new Vector2(0f, YVerdict), new Vector2(640f, 120f));
-        ApplyTextGlow(verdictText, new Color(0.78f, 0.50f, 0.18f, 0.70f), 0.085f, 0.58f);
+        // 「ステージクリア」。暖色のにじみを背後に敷く。
+        Image clearHalo = NewImage("ClearHalo", head, new Color(1f, 1f, 1f, 0.30f));
+        clearHalo.sprite = HighlandUi.Halo(generatedTextures, generatedSprites, "ResultClearHalo");
+        SetRect(clearHalo.rectTransform, new Vector2(0f, HighlandUi.Y(166f)),
+            new Vector2(HighlandUi.L(526f), HighlandUi.L(98f)));
 
-        // STAGE CLEAR の下: 両端が細く消える金の罫 + 中央の菱形。
-        AddRule(head, new Vector2(0f, YRule1), 520f, false);
-        AddDiamond(head, new Vector2(0f, YRule1), 15f, GoldAccent);
+        verdictText = HighlandUi.Text("Verdict", head, "ステージクリア", 49f, HighlandUi.Ink,
+            TextAlignmentOptions.Center, true, 3.6f);
+        HighlandUi.PlaceCentered(verdictText, 836f, 184f, 700f, 49f);
+        ApplyTextGlow(verdictText, new Color(0.78f, 0.62f, 0.30f, 0.55f), 0.075f, 0.58f);
+
+        AddFadeRule(head, 206f, 510f, 26f, true);
+        AddCrest(head, 206f, 9.4f, 13.4f, 1.55f, Vis(0xFF, 0xE4, 0x70));
 
         GameObject titleGo = NewRect("TitleGroup", panel);
         RectTransform titleRect = (RectTransform)titleGo.transform;
         SetRect(titleRect, Vector2.zero, new Vector2(PanelW, PanelH));
         titleGroup = titleGo.AddComponent<CanvasGroup>();
 
-        stageTitleText = NewText("StageTitle", titleRect, "", 53f, InkWhite, TextAlignmentOptions.Center);
-        stageTitleText.characterSpacing = 15f;
-        SetRect((RectTransform)stageTitleText.transform, new Vector2(0f, YStageTitle), new Vector2(600f, 90f));
+        stageTitleRuby = Ruby("StageTitle", titleRect, "", 43f, HighlandUi.Ink,
+            TextAlignmentOptions.Center, true, 10.1f);
+        stageTitleText = stageTitleRuby.Body;
+        HighlandUi.PlaceCentered(stageTitleText, 836f, 270f, 640f, 43f);
         ApplyTextGlow(stageTitleText, new Color(0.62f, 0.68f, 0.85f, 0.32f), 0.055f, 0.55f);
 
-        // 舞台名の下: 中央に菱形・左右に矢羽根の飾り罫(参考画像 幅 312)。
-        Image orn = NewImage("TitleOrnament", titleRect, Color.white);
-        orn.sprite = CreateOrnamentRuleSprite();
-        orn.type = Image.Type.Simple;
-        SetRect(orn.rectTransform, new Vector2(0f, YRule2), new Vector2(312f, 26f));
+        AddFadeRule(titleRect, 286f, 339f, 30f, true);
+        AddCrest(titleRect, 286f, 10.4f, 13.6f, 1.55f, Vis(0xFF, 0xE4, 0x70));
+    }
 
-        // その下の小さな金の菱形(ランク章の頭飾り)。
-        Image crest = NewImage("Crest", titleRect, Color.white);
-        crest.sprite = CreateCrestSprite();
-        crest.type = Image.Type.Simple;
-        SetRect(crest.rectTransform, new Vector2(0f, YCrest), new Vector2(102f, 28f));
+    // v11 の飾り罫(両端が透明へ消える。gold=金 / それ以外は銀)。
+    private void AddFadeRule(Transform parent, float svgY, float svgW, float svgGap, bool gold)
+    {
+        Color32[] cols = gold
+            ? new[] { Col(0xBC, 0xAA, 0x4E), Col(0xBC, 0xAA, 0x4E), Col(0xFF, 0xE1, 0x6A),
+                      Col(0xBC, 0xAA, 0x4E), Col(0xBC, 0xAA, 0x4E) }
+            : new[] { Col(0xD6, 0xD6, 0xD6), Col(0xAD, 0xAD, 0xAD), Col(0xD0, 0xD0, 0xD0),
+                      Col(0xAD, 0xAD, 0xAD), Col(0xD6, 0xD6, 0xD6) };
+        float[] offs = gold ? new[] { 0f, 0.22f, 0.5f, 0.78f, 1f } : new[] { 0f, 0.18f, 0.5f, 0.82f, 1f };
+        float[] al = gold ? new[] { 0f, 0.30f, 0.95f, 0.30f, 0f } : new[] { 0f, 0.45f, 0.72f, 0.45f, 0f };
+        int w = Mathf.RoundToInt(HighlandUi.L(svgW));
+        Image img = NewImage("Rule", parent, Color.white);
+        img.sprite = HighlandUi.FadeRule(w, 12, 1.1f * HighlandUi.S, HighlandUi.L(svgGap),
+            offs, cols, al, generatedTextures, generatedSprites, "ResultRule" + Mathf.RoundToInt(svgY));
+        img.type = Image.Type.Simple;
+        SetRect(img.rectTransform, new Vector2(0f, HighlandUi.Y(svgY)), new Vector2(w, 12f));
+    }
+
+    // 罫の中央に置く中空の菱形(+ にじみ)。
+    private void AddCrest(Transform parent, float svgY, float svgHalfW, float svgHalfH,
+        float strokeSvg, Color color)
+    {
+        Image halo = NewImage("CrestHalo", parent, new Color(1f, 1f, 1f, 0.85f));
+        halo.sprite = HighlandUi.Halo(generatedTextures, generatedSprites, "ResultCrestHalo");
+        SetRect(halo.rectTransform, new Vector2(0f, HighlandUi.Y(svgY)),
+            new Vector2(HighlandUi.L(svgHalfW * 4.6f), HighlandUi.L(svgHalfH * 3.7f)));
+        int w = Mathf.RoundToInt(HighlandUi.L(svgHalfW * 2f));
+        int h = Mathf.RoundToInt(HighlandUi.L(svgHalfH * 2f));
+        Image gem = NewImage("Crest", parent, color);
+        gem.sprite = HighlandUi.DiamondRect(w, h, false, strokeSvg * HighlandUi.S,
+            generatedTextures, generatedSprites, "ResultCrest" + Mathf.RoundToInt(svgY));
+        gem.type = Image.Type.Simple;
+        SetRect(gem.rectTransform, new Vector2(0f, HighlandUi.Y(svgY)), new Vector2(w, h));
+    }
+
+    private static Color32 Col(byte r, byte g, byte b) { return new Color32(r, g, b, 0xFF); }
+
+    // HighlandUi.Place* はパネル中心基準で置くので、行の入れ物(中心 = rowCy)の
+    // 中に入れるぶんだけ縦に戻す。ふりがなは Tick の EnsurePlaced で追従する。
+    private static void OffsetInRow(HighlandUi.RubyText r, float rowSvgCy)
+    {
+        RectTransform rt = (RectTransform)r.Body.transform;
+        rt.anchoredPosition = new Vector2(rt.anchoredPosition.x,
+            rt.anchoredPosition.y - HighlandUi.Y(rowSvgCy));
+    }
+
+    private HighlandUi.RubyText Ruby(string name, Transform parent, string markup, float svgSize,
+        Color color, TextAlignmentOptions align, bool bold, float tracking)
+    {
+        HighlandUi.RubyText r = HighlandUi.Ruby(name, parent, markup, svgSize, color, align, bold, tracking);
+        rubies.Add(r);
+        rubiesPlaced = false;
+        return r;
     }
 
     // 中段: 月桂樹に囲まれた大きな金のランク字
@@ -404,19 +479,21 @@ public sealed class ResultScreen : MonoBehaviour
         laurelKnot.type = Image.Type.Simple;
         SetRect(laurelKnot.rectTransform, new Vector2(0f, YKnot), new Vector2(23f, 31f));
 
-        TMP_Text rankLabel = NewText("RankLabel", rankGroupRect, "RANK", 30f,
-            new Color(GoldAccent.r, GoldAccent.g, GoldAccent.b, 0.95f), TextAlignmentOptions.Center);
-        rankLabel.characterSpacing = 14f;
-        SetRect((RectTransform)rankLabel.transform, new Vector2(0f, YRankLabel), new Vector2(300f, 40f));
-        ApplyTextGlow(rankLabel, new Color(0.72f, 0.45f, 0.16f, 0.55f), 0.06f, 0.5f);
+        // v11: 見出しは「ランク」、ランク字は白(#FFFFFF)。
+        TMP_Text rankLabel = HighlandUi.Text("RankLabel", rankGroupRect, "ランク", 27f,
+            HighlandUi.Ink, TextAlignmentOptions.Center, false, 1.1f);
+        HighlandUi.PlaceCentered(rankLabel, 836f, 361f, 300f, 27f);
+        ApplyTextGlow(rankLabel, new Color(0.72f, 0.55f, 0.28f, 0.45f), 0.055f, 0.5f);
 
-        rankText = NewText("Rank", rankGroupRect, "A", 186f, GoldBright, TextAlignmentOptions.Center);
+        rankText = NewText("Rank", rankGroupRect, "A", 138.5f * HighlandUi.S, HighlandUi.Ink, TextAlignmentOptions.Center);
+        rankText.font = HighlandUi.SerifBold;
         SetRect((RectTransform)rankText.transform, new Vector2(0f, YRank), new Vector2(460f, 260f));
-        rankGlowMat = ApplyTextGlow(rankText, new Color(0.94f, 0.62f, 0.22f, 0.50f), 0.060f, 0.40f);
+        rankGlowMat = ApplyTextGlow(rankText, new Color(0.94f, 0.72f, 0.34f, 0.45f), 0.060f, 0.40f);
 
-        rankText2 = NewText("Rank2", rankGroupRect, "A", 186f, GoldBright, TextAlignmentOptions.Center);
+        rankText2 = NewText("Rank2", rankGroupRect, "A", 138.5f * HighlandUi.S, HighlandUi.Ink, TextAlignmentOptions.Center);
+        rankText2.font = HighlandUi.SerifBold;
         SetRect((RectTransform)rankText2.transform, new Vector2(0f, YRank), new Vector2(460f, 260f));
-        rankGlowMat2 = ApplyTextGlow(rankText2, new Color(0.94f, 0.62f, 0.22f, 0.50f), 0.060f, 0.40f);
+        rankGlowMat2 = ApplyTextGlow(rankText2, new Color(0.94f, 0.72f, 0.34f, 0.45f), 0.060f, 0.40f);
         rankText2.gameObject.SetActive(false);
 
         p1RankTag = NewText("P1Tag", rankGroupRect, "1P", 26f, GoldDim, TextAlignmentOptions.Center);
@@ -434,7 +511,9 @@ public sealed class ResultScreen : MonoBehaviour
         AddDiamond(rankGroupRect, new Vector2(192f, 60f), 13f, new Color(GoldDim.r, GoldDim.g, GoldDim.b, 0.85f));
     }
 
-    private static readonly string[] RowLabelText = { "SCORE", "HITS", "DIFFICULTY", "RANKING" };
+    // v11 の情報行(ふりがな付き)。
+    private static readonly string[] RowLabelText =
+        { "スコア", "[当|あ]たった[回数|かいすう]", "[難|むずか]しさ", "ランキング" };
 
     private void BuildRows(RectTransform panelParent)
     {
@@ -445,49 +524,73 @@ public sealed class ResultScreen : MonoBehaviour
         SetRect(panel, Vector2.zero, new Vector2(PanelW, PanelH));
         rowsGroup = host.AddComponent<CanvasGroup>();
 
-        // 行の間の薄い区切り線(参考画像は 4 行の上下に 5 本)。
+        // 行の間の薄い区切り線(v11 は 4 行の上下に 5 本・両端が消える銀)。
+        float[] ruleY = { 558f, 610f, 658f, 707f, 760f };
         for (int i = 0; i <= RowCount; i++)
         {
-            Image line = NewImage("RowSep" + i, panel, new Color(GoldDim.r, GoldDim.g, GoldDim.b, 0.42f));
-            line.sprite = CreateRuleSprite();
+            int w = Mathf.RoundToInt(HighlandUi.L(484f));
+            Image line = NewImage("RowSep" + i, panel, new Color(1f, 1f, 1f, 0.75f));
+            line.sprite = HighlandUi.FadeRule(w, 12, 1f * HighlandUi.S, 0f,
+                new[] { 0f, 0.18f, 0.5f, 0.82f, 1f },
+                new[] { Col(0xD6, 0xD6, 0xD6), Col(0xAD, 0xAD, 0xAD), Col(0xD0, 0xD0, 0xD0),
+                        Col(0xAD, 0xAD, 0xAD), Col(0xD6, 0xD6, 0xD6) },
+                new[] { 0f, 0.45f, 0.72f, 0.45f, 0f },
+                generatedTextures, generatedSprites, "ResultTableRule");
             line.type = Image.Type.Simple;
-            SetRect(line.rectTransform, new Vector2(0f, YRowSep0 - i * RowPitch), new Vector2(RowSepW, 3f));
+            SetRect(line.rectTransform, new Vector2(0f, HighlandUi.Y(ruleY[i])), new Vector2(w, 12f));
         }
+
+        // 行の中心(v11 のアイコン y)と、ラベル/値のベースライン。
+        float[] rowCy = { 586f, 634f, 683f, 733f };
+        float[] labelBase = { 592.5f, 647f, 696f, 739.5f };
+        float[] valueBase = { 595.5f, 643.5f, 691.5f, 742.5f };
+        float[] valueSize = { 27f, 27f, 24f, 27f };
 
         Sprite[] icons = CreateRowIconSprites();
         for (int i = 0; i < RowCount; i++)
         {
             GameObject rowGo = NewRect("Row" + i, panel);
             RectTransform rect = (RectTransform)rowGo.transform;
-            Vector2 home = new Vector2(0f, YRow0 - i * RowPitch);
+            Vector2 home = new Vector2(0f, HighlandUi.Y(rowCy[i]));
             SetRect(rect, home, new Vector2(PanelW, RowPitch));
             rowRects[i] = rect;
             rowGroups[i] = rowGo.AddComponent<CanvasGroup>();
 
-            Image icon = NewImage("Icon", rect, new Color(GoldDim.r, GoldDim.g, GoldDim.b, 0.95f));
+            Image icon = NewImage("Icon", rect, Vis(0xED, 0xED, 0xED));
             icon.sprite = icons[i];
             icon.type = Image.Type.Simple;
-            SetRect(icon.rectTransform, new Vector2(RowIconX, 0f), new Vector2(34f, 34f));
+            SetRect(icon.rectTransform, new Vector2(HighlandUi.X(647f), 0f),
+                new Vector2(HighlandUi.L(34f), HighlandUi.L(34f)));
             rowIcons[i] = icon;
 
-            TMP_Text label = NewText("Label", rect, RowLabelText[i], 23f, SilverLabel, TextAlignmentOptions.Left);
-            label.characterSpacing = 11f;
-            SetRect((RectTransform)label.transform, new Vector2(RowLabelX + 130f, 0f), new Vector2(260f, 34f));
+            HighlandUi.RubyText labelRuby = Ruby("Label", rect, RowLabelText[i], 20.5f,
+                HighlandUi.InkSoft, TextAlignmentOptions.Left, false, 1.1f);
+            TMP_Text label = labelRuby.Body;
+            HighlandUi.PlaceLeft(label, 696f, labelBase[i], 300f, 20.5f);
+            // 行は中心が (0, rowCy) なので、ベースラインから得た絶対 y を行内の相対へ直す。
+            OffsetInRow(labelRuby, rowCy[i]);
             rowLabels[i] = label;
 
-            TMP_Text sep = NewText("Sep", rect, "|", 30f, new Color(GoldDim.r, GoldDim.g, GoldDim.b, 0.75f),
-                TextAlignmentOptions.Center);
-            SetRect((RectTransform)sep.transform, new Vector2(RowSepX, 0f), new Vector2(30f, 40f));
+            Image sep = NewImage("Sep", rect, new Color(0.839f, 0.839f, 0.839f, 0.77f));
+            sep.sprite = HighlandUi.SolidBar(generatedTextures, generatedSprites);
+            SetRect(sep.rectTransform, new Vector2(HighlandUi.X(875f), 0f),
+                new Vector2(HighlandUi.L(1f), HighlandUi.L(24.8f)));
             rowSeparators[i] = sep;
 
-            TMP_Text value = NewText("Value", rect, "", 31f, GoldAccent, TextAlignmentOptions.Left);
-            value.characterSpacing = 3f;
-            SetRect((RectTransform)value.transform, new Vector2(RowValueX + 150f, 0f), new Vector2(300f, 42f));
+            TMP_Text value = HighlandUi.Text("Value", rect, "", valueSize[i], HighlandUi.Ink,
+                TextAlignmentOptions.Left, false, 1.4f);
+            HighlandUi.PlaceLeft(value, 914f, valueBase[i], 300f, valueSize[i]);
+            value.rectTransform.anchoredPosition = new Vector2(
+                value.rectTransform.anchoredPosition.x,
+                value.rectTransform.anchoredPosition.y - HighlandUi.Y(rowCy[i]));
             rowValues[i] = value;
 
-            TMP_Text value2 = NewText("Value2", rect, "", 31f, GoldAccent, TextAlignmentOptions.Right);
-            value2.characterSpacing = 3f;
-            SetRect((RectTransform)value2.transform, new Vector2(RowValueRight - 150f, 0f), new Vector2(300f, 42f));
+            TMP_Text value2 = HighlandUi.Text("Value2", rect, "", valueSize[i], HighlandUi.Ink,
+                TextAlignmentOptions.Right, false, 1.4f);
+            HighlandUi.PlaceRight(value2, 1078f, valueBase[i], 300f, valueSize[i]);
+            value2.rectTransform.anchoredPosition = new Vector2(
+                value2.rectTransform.anchoredPosition.x,
+                value2.rectTransform.anchoredPosition.y - HighlandUi.Y(rowCy[i]));
             value2.gameObject.SetActive(false);
             rowValues2[i] = value2;
         }
@@ -526,16 +629,28 @@ public sealed class ResultScreen : MonoBehaviour
         SetRect(nextButtonGlow.rectTransform, Vector2.zero, new Vector2(ButtonW + 22f, ButtonH + 22f));
 
         nextButtonBody = NewImage("Body", btnRect, Color.white);
-        nextButtonBody.sprite = CreateButtonSprite();
+        nextButtonBody.sprite = HighlandUi.NotchPanel((int)ButtonW, (int)ButtonH,
+            HighlandUi.L(8.5f), true, generatedTextures, generatedSprites, "ResultNextV11",
+            HighlandUi.L(4.5f), 1.8f * HighlandUi.S, 0.7f * HighlandUi.S);
         nextButtonBody.type = Image.Type.Simple;
         Stretch(nextButtonBody.rectTransform);
         nextButtonBody.raycastTarget = true;
 
-        nextLabel = NewText("Label", btnRect, "次へ", 34f, GoldBright, TextAlignmentOptions.Center);
-        nextLabel.characterSpacing = 10f;
-        Stretch((RectTransform)nextLabel.transform);
-        TmpAlign.CenterInkVertically(nextLabel);
-        ApplyTextGlow(nextLabel, new Color(0.70f, 0.44f, 0.15f, 0.55f), 0.06f, 0.5f);
+        // v11: 〇 の操作アイコン + ふりがな付きの「次へ」。
+        Image btnIcon = NewImage("Icon", btnRect, Color.white);
+        btnIcon.sprite = HighlandUi.Icon("circle");
+        SetRect(btnIcon.rectTransform, new Vector2(HighlandUi.L(-33f), 0f),
+            new Vector2(HighlandUi.L(51.6f), HighlandUi.L(51.6f)));
+
+        HighlandUi.RubyText nextRuby = Ruby("Label", btnRect, "[次|つぎ]へ", 26f,
+            HighlandUi.Ink, TextAlignmentOptions.Left, true, 1f);
+        nextLabel = nextRuby.Body;
+        RectTransform nlr = (RectTransform)nextLabel.transform;
+        nlr.anchorMin = nlr.anchorMax = new Vector2(0.5f, 0.5f);
+        nlr.pivot = new Vector2(0f, 0.5f);
+        nlr.sizeDelta = new Vector2(HighlandUi.L(160f), HighlandUi.L(42f));
+        nlr.anchoredPosition = new Vector2(HighlandUi.L(0.68f), HighlandUi.L(-4f));
+        ApplyTextGlow(nextLabel, new Color(0.70f, 0.56f, 0.28f, 0.45f), 0.05f, 0.5f);
         actionLabels[0] = nextLabel;
 
         Button button = btnGo.AddComponent<Button>();
@@ -705,13 +820,18 @@ public sealed class ResultScreen : MonoBehaviour
         TmpAlign.CenterInkVertically(nextLabel);
 
         resultCleared = cleared;
-        verdictText.text = cleared ? "STAGE CLEAR" : "STAGE FAILED";
-        verdictText.color = cleared ? GoldAccent : FailRed;
+        verdictText.text = cleared ? "ステージクリア" : "ステージしっぱい";
+        verdictText.color = cleared ? InkWhite : FailRed;
 
         // 見出しは既存のステージ名(石工 / 放浪者 / 艦長 / 浮浪者)。舞台名の仮置き
         // (StageCityProfile.stageTitle)は使わない ＝ ステージ選択・ランキング見出しと同じ名前で
         // 一貫させる(2026-09-16 ユーザー決定「名前は変えないで、元のまま」)。
-        stageTitleText.text = StageCityProfile.DisplayNameOf(stage);
+        if (stageTitleRuby != null)
+        {
+            stageTitleRuby.Apply(StageCityProfile.ReadingMarkupOf(stage));
+            rubiesPlaced = false;
+        }
+        else stageTitleText.text = StageCityProfile.DisplayNameOf(stage);
 
         int provisionalScore = CalculateProvisionalScore(
             cleared, hitCount, counterCount, elapsedSeconds, endSeconds);
@@ -838,12 +958,9 @@ public sealed class ResultScreen : MonoBehaviour
             rowSeparators[i].gameObject.SetActive(!split);
             if (split)
             {
-                // 2 列になる行だけ右揃え(数字の桁をそろえる)。
-                rowValues[i].alignment = TextAlignmentOptions.Right;
-                SetRowValueRect(rowValues[i], 103f);
-                SetRowValueRect(rowValues2[i], RowValueRight);
-                rowValues[i].fontSize = 28f;
-                rowValues2[i].fontSize = 28f;
+                // 2 列になる行だけ右揃え(数字の桁をそろえる)。v11 の表の左右端へ。
+                PlaceValue(rowValues[i], 875f, true, 24f);
+                PlaceValue(rowValues2[i], 1078f, true, 24f);
             }
         }
         columnTagP1.gameObject.SetActive(true);
@@ -852,10 +969,15 @@ public sealed class ResultScreen : MonoBehaviour
         columnTagP2.text = p1OnLeft ? "2P" : "1P";
     }
 
-    private static void SetRowValueRect(TMP_Text text, float rightX)
+    // 情報行の値を v11 の列へ置く(svgX は左揃えなら左端・右揃えなら右端)。
+    private static void PlaceValue(TMP_Text text, float svgX, bool rightAligned, float svgSize)
     {
         RectTransform r = (RectTransform)text.transform;
-        r.anchoredPosition = new Vector2(rightX - r.sizeDelta.x * 0.5f, 0f);
+        r.anchorMin = r.anchorMax = new Vector2(0.5f, 0.5f);
+        r.pivot = new Vector2(rightAligned ? 1f : 0f, 0.5f);
+        r.anchoredPosition = new Vector2(HighlandUi.X(svgX), 0f);
+        text.alignment = rightAligned ? TextAlignmentOptions.Right : TextAlignmentOptions.Left;
+        text.fontSize = svgSize * HighlandUi.S;
     }
 
     public static int PlayerIndexForResultSide(bool rightSide, bool reversed)
@@ -881,12 +1003,9 @@ public sealed class ResultScreen : MonoBehaviour
         {
             rowValues2[i].gameObject.SetActive(false);
             rowSeparators[i].gameObject.SetActive(true);
-            rowValues[i].fontSize = 31f;
-            rowValues2[i].fontSize = 31f;
-            // 1P の値は参考画像どおり左揃え(縦罫から一定の距離で始まる)。
-            rowValues[i].alignment = TextAlignmentOptions.Left;
-            SetRowValueRect(rowValues[i], RowValueX + rowValues[i].rectTransform.sizeDelta.x);
-            SetRowValueRect(rowValues2[i], RowValueRight);
+            // 1P の値は v11 どおり縦罫の右 (x=914) から左揃え。難しさだけ一回り小さい。
+            PlaceValue(rowValues[i], 914f, false, i == RowDifficulty ? 24f : 27f);
+            PlaceValue(rowValues2[i], 1078f, true, 27f);
         }
     }
 
@@ -1049,6 +1168,19 @@ public sealed class ResultScreen : MonoBehaviour
     private void Update()
     {
         float dt = Time.unscaledDeltaTime;
+
+        // ふりがなの漢字直上合わせは、メッシュ生成後(表示後の初回)でないと空振りする。
+        if (!rubiesPlaced && Visible)
+        {
+            bool all = true;
+            foreach (HighlandUi.RubyText r in rubies)
+            {
+                if (r == null || r.Body == null) continue;
+                if (!r.Body.gameObject.activeInHierarchy) continue;
+                all &= r.EnsurePlaced();
+            }
+            rubiesPlaced = all;
+        }
 
         // 背景ぼかしのフェード(項目 4)。
         if (blurImage != null && blurImage.texture != null)
@@ -1398,11 +1530,12 @@ public sealed class ResultScreen : MonoBehaviour
 
     private static string DifficultyName(int difficulty)
     {
+        // 2026-09-19 U7: 表示は難易度選択(v11)と同じ日本語に揃える。内部名は不変。
         switch (Mathf.Clamp(difficulty, 0, 2))
         {
-            case 0: return "EASY";
-            case 2: return "LUNATIC";
-            default: return "NORMAL";
+            case 0: return "簡単";
+            case 2: return "難しい";
+            default: return "普通";
         }
     }
 
@@ -1729,77 +1862,102 @@ public sealed class ResultScreen : MonoBehaviour
     }
 
     // 情報行の細線アイコン(照準 / 盾 / 剣 / 王冠)。線幅をそろえて白で焼く。
+    // 情報行のアイコン(Highland UI v11: 星 / 照準 / 交差した剣 / トロフィー)。
+    // SVG は ±16 の枠に線幅 1.55 で描かれているので、その比率のまま焼く。
     private Sprite[] CreateRowIconSprites()
     {
         const int S = 128;
-        const float T = 7.5f;                     // 統一線幅
-        Color32 w = new Color32(0xFF, 0xFF, 0xFF, 0xFF);
+        float k = S / 34f;                        // SVG の ±17 を S へ
+        float c = (S - 1) * 0.5f;
+        float T = 1.55f * k;
+        System.Func<float, float> PX = v => c + v * k;
+        System.Func<float, float> PY = v => c - v * k;
         Sprite[] result = new Sprite[4];
 
-        // 0: 照準(SCORE)
+        // 0: 星(スコア)
         {
             Color32[] px = new Color32[S * S];
-            float c = (S - 1) * 0.5f;
-            GoldPanelStyle.DrawArc(px, S, S, c, c, 36f, 0f, 360f, T, w, 96);
-            for (int i = 0; i < 4; i++)
+            float[] sx = { 0.000f, 3.468f, 12.364f, 5.611f, 7.641f, 0.000f, -7.641f, -5.611f, -12.364f, -3.468f };
+            float[] sy = { -13.000f, -4.773f, -4.017f, 1.823f, 10.517f, 5.900f, 10.517f, 1.823f, -4.017f, -4.773f };
+            for (int i = 0; i < sx.Length; i++)
             {
-                float a = i * 90f * Mathf.Deg2Rad;
-                DrawLine(px, S, S, c + Mathf.Cos(a) * 30f, c + Mathf.Sin(a) * 30f,
-                    c + Mathf.Cos(a) * 58f, c + Mathf.Sin(a) * 58f, T, w);
+                int j = (i + 1) % sx.Length;
+                HighlandUi.Line(px, S, S, PX(sx[i]), PY(sy[i]), PX(sx[j]), PY(sy[j]), T);
             }
-            GoldPanelStyle.DrawArc(px, S, S, c, c, 6f, 0f, 360f, 12f, w, 32);
-            result[0] = MakeSprite(px, S, S, "ResultIconScore");
+            result[0] = MakeSprite(px, S, S, "ResultIconScoreV11");
         }
-        // 1: 盾(HITS)
+        // 1: 照準(当たった回数)
         {
             Color32[] px = new Color32[S * S];
-            float c = (S - 1) * 0.5f;
-            float top = c + 42f, side = 40f;
-            DrawLine(px, S, S, c - side, top, c + side, top, T, w);
-            DrawLine(px, S, S, c - side, top, c - side, c - 2f, T, w);
-            DrawLine(px, S, S, c + side, top, c + side, c - 2f, T, w);
-            float px0 = c - side, py0 = c - 2f;
-            for (int i = 1; i <= 18; i++)
+            HighlandUi.Circle(px, S, S, c, c, 10.9f * k, 1.45f * k);
+            HighlandUi.Circle(px, S, S, c, c, 5.2f * k, 1.25f * k);
+            HighlandUi.Line(px, S, S, PX(0f), PY(-15f), PX(0f), PY(-7.5f), T);
+            HighlandUi.Line(px, S, S, PX(0f), PY(7.5f), PX(0f), PY(15f), T);
+            HighlandUi.Line(px, S, S, PX(-15f), PY(0f), PX(-7.5f), PY(0f), T);
+            HighlandUi.Line(px, S, S, PX(7.5f), PY(0f), PX(15f), PY(0f), T);
+            HighlandUi.Circle(px, S, S, c, c, 1.3f * k, 0f);
+            result[1] = MakeSprite(px, S, S, "ResultIconHitsV11");
+        }
+        // 2: 交差した剣(難しさ)
+        {
+            Color32[] px = new Color32[S * S];
+            for (int sgn = -1; sgn <= 1; sgn += 2)
             {
-                float u = i / 18f;
-                float x = Mathf.Lerp(c - side, c, u);
-                float y = Mathf.Lerp(c - 2f, c - 48f, u * u * 0.65f + u * 0.35f);
-                DrawLine(px, S, S, px0, py0, x, y, T, w);
-                DrawLine(px, S, S, 2f * c - px0, py0, 2f * c - x, y, T, w);
-                px0 = x; py0 = y;
+                float rot = sgn * 43f * Mathf.Deg2Rad;
+                System.Func<float, float, Vector2> R = (vx, vy) =>
+                {
+                    float rx = vx * Mathf.Cos(rot) - vy * Mathf.Sin(rot);
+                    float ry = vx * Mathf.Sin(rot) + vy * Mathf.Cos(rot);
+                    return new Vector2(PX(rx), PY(ry));
+                };
+                // 刀身の輪郭(塗りの代わりに輪郭 + 中心線で近似)。
+                float[] bx = { 0f, 3f, 2f, -2f, -3f };
+                float[] by = { -15f, -9f, 5f, 5f, -9f };
+                for (int i = 0; i < bx.Length; i++)
+                {
+                    int j = (i + 1) % bx.Length;
+                    Vector2 p0 = R(bx[i], by[i]), p1 = R(bx[j], by[j]);
+                    HighlandUi.Line(px, S, S, p0.x, p0.y, p1.x, p1.y, 1.9f * k);
+                }
+                Vector2 g0 = R(-5.4f, 5.2f), g1 = R(5.4f, 5.2f);
+                HighlandUi.Line(px, S, S, g0.x, g0.y, g1.x, g1.y, 1.8f * k);
+                Vector2 h0 = R(0f, 5.6f), h1 = R(0f, 12.5f);
+                HighlandUi.Line(px, S, S, h0.x, h0.y, h1.x, h1.y, 1.8f * k);
+                Vector2 e0 = R(-2f, 12.5f), e1 = R(2f, 12.5f);
+                HighlandUi.Line(px, S, S, e0.x, e0.y, e1.x, e1.y, 1.8f * k);
             }
-            result[1] = MakeSprite(px, S, S, "ResultIconHits");
+            result[2] = MakeSprite(px, S, S, "ResultIconDifficultyV11");
         }
-        // 2: 剣(DIFFICULTY)
+        // 3: トロフィー(ランキング)
         {
             Color32[] px = new Color32[S * S];
-            float c = (S - 1) * 0.5f;
-            // 刀身(左右の稜線 + 切先)。細線だけで剣に見えるよう輪郭で描く。
-            DrawLine(px, S, S, c - 11f, c - 2f, c - 11f, c + 32f, T, w);
-            DrawLine(px, S, S, c + 11f, c - 2f, c + 11f, c + 32f, T, w);
-            DrawLine(px, S, S, c - 11f, c + 32f, c, c + 54f, T, w);
-            DrawLine(px, S, S, c + 11f, c + 32f, c, c + 54f, T, w);
-            DrawLine(px, S, S, c - 30f, c - 8f, c + 30f, c - 8f, T, w);         // 鍔
-            DrawLine(px, S, S, c, c - 8f, c, c - 38f, T, w);                    // 柄
-            DrawDiamond(px, S, S, c, c - 46f, 10f, w);                          // 柄頭
-            result[2] = MakeSprite(px, S, S, "ResultIconDifficulty");
-        }
-        // 3: 王冠(RANKING)
-        {
-            Color32[] px = new Color32[S * S];
-            float c = (S - 1) * 0.5f;
-            float b = c - 34f;
-            DrawLine(px, S, S, c - 44f, b, c + 44f, b, T, w);
-            float[] xs = { -44f, -22f, 0f, 22f, 44f };
-            float[] ys = { 20f, -8f, 34f, -8f, 20f };
-            for (int i = 0; i < xs.Length - 1; i++)
-                DrawLine(px, S, S, c + xs[i], c + ys[i], c + xs[i + 1], c + ys[i + 1], T, w);
-            DrawLine(px, S, S, c - 44f, b, c - 44f, c + 20f, T, w);
-            DrawLine(px, S, S, c + 44f, b, c + 44f, c + 20f, T, w);
-            DrawDiamond(px, S, S, c, c + 44f, 8f, w);
-            DrawDiamond(px, S, S, c - 44f, c + 28f, 7f, w);
-            DrawDiamond(px, S, S, c + 44f, c + 28f, 7f, w);
-            result[3] = MakeSprite(px, S, S, "ResultIconRanking");
+            HighlandUi.Line(px, S, S, PX(-8f), PY(-12f), PX(8f), PY(-12f), T);
+            HighlandUi.Line(px, S, S, PX(-8f), PY(-12f), PX(-8f), PY(-5f), T);
+            HighlandUi.Line(px, S, S, PX(8f), PY(-12f), PX(8f), PY(-5f), T);
+            // 椀の底(-8,-5 → 0,5 → 8,-5 を 2 本の弧で)。
+            for (int i = 0; i < 12; i++)
+            {
+                float u0 = i / 12f, u1 = (i + 1) / 12f;
+                System.Func<float, Vector2> B = u => new Vector2(
+                    PX(Mathf.Lerp(-8f, 0f, u)), PY(Mathf.Lerp(-5f, 5f, u * u * 0.55f + u * 0.45f)));
+                Vector2 p0 = B(u0), p1 = B(u1);
+                HighlandUi.Line(px, S, S, p0.x, p0.y, p1.x, p1.y, T);
+                HighlandUi.Line(px, S, S, 2f * c - p0.x, p0.y, 2f * c - p1.x, p1.y, T);
+            }
+            // 取っ手。
+            HighlandUi.Line(px, S, S, PX(-8f), PY(-9f), PX(-13f), PY(-9f), T);
+            HighlandUi.Line(px, S, S, PX(-13f), PY(-9f), PX(-13f), PY(-5f), T);
+            HighlandUi.Line(px, S, S, PX(-13f), PY(-5f), PX(-6f), PY(1f), T);
+            HighlandUi.Line(px, S, S, PX(8f), PY(-9f), PX(13f), PY(-9f), T);
+            HighlandUi.Line(px, S, S, PX(13f), PY(-9f), PX(13f), PY(-5f), T);
+            HighlandUi.Line(px, S, S, PX(13f), PY(-5f), PX(6f), PY(1f), T);
+            // 脚と台座。
+            HighlandUi.Line(px, S, S, PX(0f), PY(5f), PX(0f), PY(11f), T);
+            HighlandUi.Line(px, S, S, PX(-5f), PY(11f), PX(5f), PY(11f), T);
+            HighlandUi.Line(px, S, S, PX(5f), PY(11f), PX(8f), PY(14f), T);
+            HighlandUi.Line(px, S, S, PX(8f), PY(14f), PX(-8f), PY(14f), T);
+            HighlandUi.Line(px, S, S, PX(-8f), PY(14f), PX(-5f), PY(11f), T);
+            result[3] = MakeSprite(px, S, S, "ResultIconRankingV11");
         }
         return result;
     }
