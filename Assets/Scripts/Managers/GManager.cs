@@ -288,6 +288,10 @@ public class GManager : MonoBehaviour
             SSManager.NotifyGameStateChanged();
 
             ready = true;
+            // 設定画面はタイトル表示中に作っておく(第 U9 便)。初回オープンで
+            // 組み立てると 1 フレームが 2 秒止まっていた。板の画素はワーカー
+            // スレッドで塗るので、ここから始めても起動のカクつきは増えない。
+            if (optionMenu != null) StartCoroutine(optionMenu.PrewarmRoutine());
             LogStartup("Awake ready");
         }
         catch (Exception ex)

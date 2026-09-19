@@ -359,6 +359,75 @@ public class OptionMenu : MonoBehaviour
     // fromTitle=true でタイトルから開いた設定として振る舞う(終了行を隠し、
     // 再開する=タイトルへ戻る)。onResume はタイトル文脈での「再開する」押下時に
     // 呼ばれる(GManager が設定画面を閉じる)。
+    // =======================================================================
+    //  事前ビルド(第 U9 便)
+    // =======================================================================
+    // 設定画面は初回オープンで組み立てていたため、1 フレームが 2107ms 止まっていた
+    // (v11 の板 1 枚が 200 万画素を超える)。タイトル表示中に、
+    //   1) 板の画素をワーカースレッドで塗る(PrebakeV11Sprites)
+    //   2) 塗り終わってから EnsureInit(転送と組み立てだけ)
+    //   3) 見えない状態で 2 フレーム出して TMP のメッシュとマテリアルを暖める
+    // の順で済ませておく。引数は BuildFriendlyVisuals / BuildV11Frame と同じ値。
+    private bool prewarmed;
+
+    public static void PrebakeV11Sprites()
+    {
+        float S = HighlandUi.S;
+        // スライダーのつまみ
+        HighlandUi.PrebakeNotchFlat(30, 30, 9f, new Color32(0x38, 0x3C, 0x48, 0xFF), 1f,
+            new Color32(0xFF, 0xFF, 0xFF, 0xFF), 2f, 1f);
+        // エフェクトの「あり」「なし」
+        HighlandUi.PrebakeNotchPanel((int)HighlandUi.L(98f), (int)HighlandUi.L(49f),
+            HighlandUi.L(4.5f), true, HighlandUi.L(3.5f), 1.5f * S, 0.7f * S);
+        HighlandUi.PrebakeNotchFlat((int)HighlandUi.L(98f), (int)HighlandUi.L(49f),
+            HighlandUi.L(4.5f), new Color32(0x11, 0x11, 0x29, 0xFF), 0.5f,
+            new Color32(0xBB, 0xBB, 0xBB, 0xFF), 1.1f * S, 0.58f);
+        // 終了確認のパネルとボタン
+        HighlandUi.PrebakeNotchPanel((int)HighlandUi.L(508f), (int)HighlandUi.L(198f),
+            HighlandUi.L(13.5f), false, HighlandUi.L(5.5f), 1.65f * S, 0.7f * S);
+        HighlandUi.PrebakeNotchPanel((int)confirmButtonSize.x, (int)confirmButtonSize.y,
+            HighlandUi.L(6f), true, HighlandUi.L(4f), 1.6f * S, 0.7f * S);
+        HighlandUi.PrebakeNotchFlat((int)confirmButtonSize.x, (int)confirmButtonSize.y,
+            HighlandUi.L(6f), new Color32(0x11, 0x11, 0x29, 0xFF), 0.5f,
+            new Color32(0xB2, 0xB2, 0xB9, 0xFF), 1f * S, 0.65f);
+        // 本体のパネルと行の板(いちばん重い 3 枚)
+        HighlandUi.PrebakeNotchPanel((int)HighlandUi.L(765f), (int)HighlandUi.L(544f),
+            HighlandUi.L(19f), false, HighlandUi.L(6f), 1.65f * S, 0.7f * S);
+        HighlandUi.PrebakeNotchFlat((int)HighlandUi.L(642f), (int)HighlandUi.L(68f),
+            HighlandUi.L(6f), new Color32(0x16, 0x16, 0x2D, 0xFF), 0.36f,
+            new Color32(0xA4, 0xA4, 0xAE, 0xFF), 1f * S, 0.62f);
+        HighlandUi.PrebakeNotchPanel((int)HighlandUi.L(642f), (int)HighlandUi.L(68f),
+            HighlandUi.L(6f), true, HighlandUi.L(4f), 1.8f * S, 0.7f * S);
+    }
+
+    /// <summary>タイトル表示中に設定画面を作っておく(初回オープンのハング対策)。</summary>
+    public IEnumerator PrewarmRoutine()
+    {
+        if (prewarmed) yield break;
+        prewarmed = true;
+
+        bool wasActive = gameObject.activeSelf;
+        if (!initialized)
+        {
+            PrebakeV11Sprites();
+            // 塗り終わるまでは主スレッドを空けておく(実測 529ms・待ち上限 8 秒)。
+            float t = 0f;
+            while (!HighlandUi.PrebakeDone() && t < 8f) { t += Time.unscaledDeltaTime; yield return null; }
+            EnsureInit();   // 転送と組み立てだけなので実測 47ms
+            yield return null;
+        }
+
+        // TMP のメッシュ・マテリアル・シェーダ変種を、見えない状態で暖める。
+        CanvasGroup cg = group != null ? group : GetComponent<CanvasGroup>();
+        float alpha0 = cg != null ? cg.alpha : 1f;
+        if (cg != null) cg.alpha = 0f;
+        gameObject.SetActive(true);
+        yield return null;
+        yield return new WaitForEndOfFrame();
+        gameObject.SetActive(wasActive);
+        if (cg != null) cg.alpha = alpha0;
+    }
+
     public void Open(bool fromTitle = false, System.Action onResume = null)
     {
         titleContext = fromTitle;

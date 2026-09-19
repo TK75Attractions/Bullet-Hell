@@ -171,7 +171,19 @@ public static class HighlandUi
     {
         if (ss <= 0) ss = Mathf.Clamp(Mathf.CeilToInt(1200f / Mathf.Max(w, h)), 2, 4);
         int W = w * ss, H = h * ss;
-        Color32[] px = new Color32[W * H];
+        Color32[] px = TakePrebaked(NotchPanelKey(w, h, notch, button, innerInset, outerWidth, innerWidth, fillAlpha, ss));
+        if (px == null)
+        {
+            px = new Color32[W * H];
+            FillNotchPanel(px, W, H, ss, notch, button, innerInset, outerWidth, innerWidth, fillAlpha);
+        }
+        return MakeSprite(px, W, H, name, ownedTex, ownedSpr);
+    }
+
+    // NotchPanel の画素を塗る(Unity API を呼ばないので別スレッドでも動く)。
+    private static void FillNotchPanel(Color32[] px, int W, int H, int ss,
+        float notch, bool button, float innerInset, float outerWidth, float innerWidth, float fillAlpha)
+    {
         float hw = W * 0.5f, hh = H * 0.5f;
         float cx = (W - 1) * 0.5f, cy = (H - 1) * 0.5f;
         float rN = notch * ss;
@@ -184,7 +196,7 @@ public static class HighlandUi
         Color32 c2 = button ? TexBtnB : TexPanelC;
         Color32 d = button ? TexBtnC : TexPanelD;
 
-        for (int y = 0; y < H; y++)
+        System.Threading.Tasks.Parallel.For(0, H, y =>
         {
             for (int x = 0; x < W; x++)
             {
@@ -228,8 +240,7 @@ public static class HighlandUi
                         Mathf.Clamp01(tInner * 0.5f - Mathf.Abs(dIn) + 0.35f) * 0.68f * inside);
                 }
             }
-        }
-        return MakeSprite(px, W, H, name, ownedTex, ownedSpr);
+        });
     }
 
     /// <summary>
@@ -333,11 +344,23 @@ public static class HighlandUi
     {
         if (ss <= 0) ss = Mathf.Clamp(Mathf.CeilToInt(1200f / Mathf.Max(w, h)), 2, 4);
         int W = w * ss, H = h * ss;
-        Color32[] px = new Color32[W * H];
+        Color32[] px = TakePrebaked(NotchFlatKey(w, h, notch, fill, fillAlpha, stroke, strokeWidth, strokeAlpha, ss));
+        if (px == null)
+        {
+            px = new Color32[W * H];
+            FillNotchFlat(px, W, H, ss, notch, fill, fillAlpha, stroke, strokeWidth, strokeAlpha);
+        }
+        return MakeSprite(px, W, H, name, ownedTex, ownedSpr);
+    }
+
+    // NotchFlat の画素を塗る(別スレッド可)。
+    private static void FillNotchFlat(Color32[] px, int W, int H, int ss, float notch,
+        Color32 fill, float fillAlpha, Color32 stroke, float strokeWidth, float strokeAlpha)
+    {
         float hw = W * 0.5f, hh = H * 0.5f;
         float cx = (W - 1) * 0.5f, cy = (H - 1) * 0.5f;
         float rN = notch * ss, tOut = strokeWidth * ss;
-        for (int y = 0; y < H; y++)
+        System.Threading.Tasks.Parallel.For(0, H, y =>
         {
             for (int x = 0; x < W; x++)
             {
@@ -349,8 +372,88 @@ public static class HighlandUi
                     Blend(px, W, H, x, y, stroke,
                         Mathf.Clamp01(tOut * 0.5f - Mathf.Abs(d + tOut * 0.5f)) * strokeAlpha);
             }
-        }
-        return MakeSprite(px, W, H, name, ownedTex, ownedSpr);
+        });
+    }
+
+    // =======================================================================
+    //  事前焼き(prebake)
+    // =======================================================================
+    // v11 の板は 1 枚で 200 万画素を超えるものがあり、初回に作ると 1 フレームが
+    // 2 秒止まる(第 U9 便の実測: 設定画面の EnsureInit = 2107ms)。画素の計算は
+    // Unity API を使わないので、タイトル表示中にワーカースレッドで先に塗っておき、
+    // 本番の呼び出しでは配列を受け取って転送(MakeSprite)だけを行う。
+    private sealed class PrebakeEntry
+    {
+        public Color32[] px;
+        public System.Threading.Tasks.Task task;
+    }
+
+    private static readonly Dictionary<string, PrebakeEntry> prebaked =
+        new Dictionary<string, PrebakeEntry>();
+
+    private static string NotchPanelKey(int w, int h, float notch, bool button,
+        float innerInset, float outerWidth, float innerWidth, float fillAlpha, int ss)
+    {
+        return "P|" + w + "|" + h + "|" + notch.ToString("F4") + "|" + (button ? 1 : 0) + "|"
+            + innerInset.ToString("F4") + "|" + outerWidth.ToString("F4") + "|"
+            + innerWidth.ToString("F4") + "|" + fillAlpha.ToString("F4") + "|" + ss;
+    }
+
+    private static string NotchFlatKey(int w, int h, float notch, Color32 fill, float fillAlpha,
+        Color32 stroke, float strokeWidth, float strokeAlpha, int ss)
+    {
+        return "F|" + w + "|" + h + "|" + notch.ToString("F4") + "|"
+            + fill.r + "," + fill.g + "," + fill.b + "," + fill.a + "|" + fillAlpha.ToString("F4") + "|"
+            + stroke.r + "," + stroke.g + "," + stroke.b + "," + stroke.a + "|"
+            + strokeWidth.ToString("F4") + "|" + strokeAlpha.ToString("F4") + "|" + ss;
+    }
+
+    // 焼き済み(または焼いている途中)の配列を取り出す。無ければ null。
+    private static Color32[] TakePrebaked(string key)
+    {
+        if (!prebaked.TryGetValue(key, out PrebakeEntry e)) return null;
+        prebaked.Remove(key);
+        try { if (e.task != null) e.task.Wait(); }
+        catch (System.Exception ex) { Debug.LogWarning("HighlandUi prebake failed: " + ex.Message); return null; }
+        return e.px;
+    }
+
+    /// <summary>NotchPanel の画素をワーカースレッドで先に塗っておく(引数は本番と同じ値)。</summary>
+    public static void PrebakeNotchPanel(int w, int h, float notch, bool button,
+        float innerInset, float outerWidth, float innerWidth, float fillAlpha = 1f, int ss = 0)
+    {
+        if (ss <= 0) ss = Mathf.Clamp(Mathf.CeilToInt(1200f / Mathf.Max(w, h)), 2, 4);
+        string key = NotchPanelKey(w, h, notch, button, innerInset, outerWidth, innerWidth, fillAlpha, ss);
+        if (prebaked.ContainsKey(key)) return;
+        int W = w * ss, H = h * ss;
+        PrebakeEntry e = new PrebakeEntry { px = new Color32[W * H] };
+        int ssLocal = ss;
+        e.task = System.Threading.Tasks.Task.Run(() =>
+            FillNotchPanel(e.px, W, H, ssLocal, notch, button, innerInset, outerWidth, innerWidth, fillAlpha));
+        prebaked[key] = e;
+    }
+
+    /// <summary>NotchFlat の画素をワーカースレッドで先に塗っておく(引数は本番と同じ値)。</summary>
+    public static void PrebakeNotchFlat(int w, int h, float notch,
+        Color32 fill, float fillAlpha, Color32 stroke, float strokeWidth, float strokeAlpha, int ss = 0)
+    {
+        if (ss <= 0) ss = Mathf.Clamp(Mathf.CeilToInt(1200f / Mathf.Max(w, h)), 2, 4);
+        string key = NotchFlatKey(w, h, notch, fill, fillAlpha, stroke, strokeWidth, strokeAlpha, ss);
+        if (prebaked.ContainsKey(key)) return;
+        int W = w * ss, H = h * ss;
+        PrebakeEntry e = new PrebakeEntry { px = new Color32[W * H] };
+        int ssLocal = ss;
+        e.task = System.Threading.Tasks.Task.Run(() =>
+            FillNotchFlat(e.px, W, H, ssLocal, notch, fill, fillAlpha, stroke, strokeWidth, strokeAlpha));
+        prebaked[key] = e;
+    }
+
+    /// <summary>事前焼きがすべて終わっているか(待たずに確かめる)。</summary>
+    public static bool PrebakeDone()
+    {
+        foreach (KeyValuePair<string, PrebakeEntry> kv in prebaked)
+            if (kv.Value.task != null && !kv.Value.task.IsCompleted) return false;
+        return true;
     }
 
     /// <summary>
