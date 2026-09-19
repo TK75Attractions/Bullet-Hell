@@ -3,6 +3,90 @@
     "bullets": [
         {
             "originPos": {
+                "x": -4.0,
+                "y": 11.25
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0.0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1.0,
+                "y": 0.0
+            },
+            "radiusVlc": 0.0,
+            "radiusAccel": 0.0,
+            "thetaVlc": 0.0,
+            "thetaAccel": 0.0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "knight_warn",
+            "scale": {
+                "x": 0.0,
+                "y": 0.13
+            },
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "scaleEnd": {
+                "x": 40.0,
+                "y": 0.13
+            },
+            "colorEnd": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "animDuration": 0.16,
+            "appearTime": 0.3,
+            "appearDuration": 0.0,
+            "life": 1.2,
+            "random": 0,
+            "unCounterable": true,
+            "ignoreOutOfBoundsCulling": true,
+            "segments": [
+                {
+                    "duration": 0.16,
+                    "vlc": {
+                        "x": 125.0,
+                        "y": 0.0
+                    },
+                    "gravity": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "thetaVlc": 0.0,
+                    "easing": 0
+                }
+            ]
+        },
+        {
+            "originPos": {
                 "x": 16.0,
                 "y": 11.25
             },
@@ -43,29 +127,29 @@
             },
             "typeName": "knight_warn",
             "scale": {
-                "x": 60.0,
-                "y": 0.6
+                "x": 40.0,
+                "y": 0.13
             },
             "color": {
                 "x": 1.0,
                 "y": 1.0,
                 "z": 1.0,
-                "w": 0.0
+                "w": 1.0
             },
             "scaleEnd": {
-                "x": 0.0,
-                "y": 0.0
+                "x": 40.0,
+                "y": 0.6
             },
             "colorEnd": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
+                "x": 1.0,
+                "y": 0.008,
+                "z": 0.1274,
+                "w": 1.0
             },
-            "animDuration": 0.0,
-            "appearTime": 0.3,
+            "animDuration": 0.1,
+            "appearTime": 1.1,
             "appearDuration": 0.0,
-            "life": 1.25,
+            "life": 1.32,
             "random": 0,
             "unCounterable": true,
             "ignoreOutOfBoundsCulling": true
@@ -112,7 +196,7 @@
             },
             "typeName": "box",
             "scale": {
-                "x": 60.0,
+                "x": 40.0,
                 "y": 0.6
             },
             "color": {
@@ -181,24 +265,24 @@
             },
             "typeName": "knight_warn",
             "scale": {
-                "x": 60.0,
+                "x": 40.0,
                 "y": 0.6
             },
             "color": {
                 "x": 1.0,
-                "y": 1.0,
-                "z": 1.0,
-                "w": 0.0
+                "y": 0.008,
+                "z": 0.1274,
+                "w": 1.0
             },
             "scaleEnd": {
-                "x": 60.0,
-                "y": 0.05
+                "x": 40.0,
+                "y": 0.13
             },
             "colorEnd": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
+                "x": 0.3,
+                "y": 0.002,
+                "z": 0.038,
+                "w": 1.0
             },
             "animDuration": 0.3,
             "appearTime": 1.75,
@@ -210,6 +294,90 @@
         },
         {
             "originPos": {
+                "x": -4.0,
+                "y": 6.75
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0.0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1.0,
+                "y": 0.0
+            },
+            "radiusVlc": 0.0,
+            "radiusAccel": 0.0,
+            "thetaVlc": 0.0,
+            "thetaAccel": 0.0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "knight_warn",
+            "scale": {
+                "x": 0.0,
+                "y": 0.13
+            },
+            "color": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0,
+                "w": 1.0
+            },
+            "scaleEnd": {
+                "x": 40.0,
+                "y": 0.13
+            },
+            "colorEnd": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "animDuration": 0.16,
+            "appearTime": 0.3,
+            "appearDuration": 0.0,
+            "life": 1.2,
+            "random": 0,
+            "unCounterable": true,
+            "ignoreOutOfBoundsCulling": true,
+            "segments": [
+                {
+                    "duration": 0.16,
+                    "vlc": {
+                        "x": 125.0,
+                        "y": 0.0
+                    },
+                    "gravity": {
+                        "x": 0.0,
+                        "y": 0.0
+                    },
+                    "thetaVlc": 0.0,
+                    "easing": 0
+                }
+            ]
+        },
+        {
+            "originPos": {
                 "x": 16.0,
                 "y": 6.75
             },
@@ -250,29 +418,29 @@
             },
             "typeName": "knight_warn",
             "scale": {
-                "x": 60.0,
-                "y": 0.6
+                "x": 40.0,
+                "y": 0.13
             },
             "color": {
                 "x": 1.0,
                 "y": 1.0,
                 "z": 1.0,
-                "w": 0.0
+                "w": 1.0
             },
             "scaleEnd": {
-                "x": 0.0,
-                "y": 0.0
+                "x": 40.0,
+                "y": 0.6
             },
             "colorEnd": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
+                "x": 1.0,
+                "y": 0.008,
+                "z": 0.1274,
+                "w": 1.0
             },
-            "animDuration": 0.0,
-            "appearTime": 0.3,
+            "animDuration": 0.1,
+            "appearTime": 1.1,
             "appearDuration": 0.0,
-            "life": 1.25,
+            "life": 1.32,
             "random": 0,
             "unCounterable": true,
             "ignoreOutOfBoundsCulling": true
@@ -319,7 +487,7 @@
             },
             "typeName": "box",
             "scale": {
-                "x": 60.0,
+                "x": 40.0,
                 "y": 0.6
             },
             "color": {
@@ -388,24 +556,24 @@
             },
             "typeName": "knight_warn",
             "scale": {
-                "x": 60.0,
+                "x": 40.0,
                 "y": 0.6
             },
             "color": {
                 "x": 1.0,
-                "y": 1.0,
-                "z": 1.0,
-                "w": 0.0
+                "y": 0.008,
+                "z": 0.1274,
+                "w": 1.0
             },
             "scaleEnd": {
-                "x": 60.0,
-                "y": 0.05
+                "x": 40.0,
+                "y": 0.13
             },
             "colorEnd": {
-                "x": 0,
-                "y": 0,
-                "z": 0,
-                "w": 0
+                "x": 0.3,
+                "y": 0.002,
+                "z": 0.038,
+                "w": 1.0
             },
             "animDuration": 0.3,
             "appearTime": 1.75,
