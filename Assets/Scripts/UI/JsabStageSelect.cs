@@ -197,7 +197,10 @@ public class JsabStageSelect : MonoBehaviour
     private float[] exitFadeImageAlphas = new float[0];
 
     public bool DifficultyOpen => difficultyOpen;
-    public int DifficultyIndex => diffBar != null ? diffBar.index : 1;
+    // 街モード(style 2)の難易度は右パネルの中で差し替える(2026-09-19 U7)。
+    public int DifficultyIndex => cityMode && city != null
+        ? city.DifficultyIndex
+        : (diffBar != null ? diffBar.index : 1);
 
     // Returns (and clears) whether the mouse just clicked a difficulty button.
     public bool ConsumeMouseConfirm()
@@ -1190,10 +1193,18 @@ public class JsabStageSelect : MonoBehaviour
         mouseConfirm = false;
         if (cityMode)
         {
-            // まず区画へ寄り、寄り切ってからモーダルを出す。
-            if (city != null) city.SetCloseUp(true);
-            cityZoomPending = true;
-            StartCoroutine(OpenDifficultyAfterZoom());
+            // 2026-09-19 U7: 上から降りるモーダルはやめ、右パネルの本文(サムネ+情報行)を
+            // 難易度一覧へ差し替える。街の寄り込みは難易度確定後(PlayDifficultyExit)へ移した。
+            if (city != null)
+            {
+                StageData data = GetStage(currentIndex);
+                StageUnlockSettings.GetDifficultyMask(data?.stageDirectoryName,
+                    out bool easy, out bool normal, out bool lunatic);
+                city.SetDifficultyEnabled(easy, normal, lunatic);
+                city.SetTwoPlayer(GManager.Control != null && GManager.Control.twoPlayer);
+                city.SetDifficultyIndex(1);          // 既定は普通(旧モーダルと同じ)
+                city.SetDifficultyMode(true);
+            }
             return;
         }
         OpenDifficultyPanel();
@@ -1252,6 +1263,7 @@ public class JsabStageSelect : MonoBehaviour
     {
         // 街モードで区画へ寄っている最中(モーダル未表示)は確定させない。
         if (cityZoomPending) return false;
+        if (cityMode && city != null) return city.IsDifficultyEnabled(city.DifficultyIndex);
         return diffBar != null && diffBar.IsRowEnabled(diffBar.index);
     }
 
@@ -1269,7 +1281,11 @@ public class JsabStageSelect : MonoBehaviour
         difficultyOpen = false;
         cityZoomPending = false;
         SetCityRightColumnVisible(true);
-        if (cityMode && city != null) city.SetCloseUp(false);
+        if (cityMode && city != null)
+        {
+            city.SetDifficultyMode(false);
+            city.SetCloseUp(false);
+        }
         RestoreTopBar();
         if (diffRoot == null || !diffRoot.gameObject.activeSelf) return;
         RestoreDifficultyExit();
@@ -1284,6 +1300,15 @@ public class JsabStageSelect : MonoBehaviour
     // 完了後にホワイトアウトが始まる前提なので、行が画面外へ出た時点で返る。
     public async Task PlayDifficultyExit()
     {
+        if (cityMode)
+        {
+            // 2026-09-19 U7: 街モードは行が飛び去る演出を持たない。代わりに、
+            // 旧実装が「決定を押した瞬間」にやっていた区画への寄りをここで踏む。
+            if (city != null) city.SetCloseUp(true);
+            float until = Time.unscaledTime + CityMapController.ZoomDuration;
+            while (Time.unscaledTime < until) await Task.Yield();
+            return;
+        }
         if (diffRoot == null || !diffRoot.gameObject.activeSelf || diffPanel == null || diffExiting) return;
         diffExiting = true;
 
@@ -1514,7 +1539,9 @@ public class JsabStageSelect : MonoBehaviour
 
     public void MoveDifficulty(int dir)
     {
-        if (!difficultyOpen || diffBar == null) return;
+        if (!difficultyOpen) return;
+        if (cityMode && city != null) { city.MoveDifficulty(dir); return; }
+        if (diffBar == null) return;
         if (dir > 0) diffBar.Down();
         else diffBar.Up();
     }
@@ -2166,7 +2193,7 @@ public class JsabStageSelect : MonoBehaviour
         // StageSelectManager; here we only translate pointer position/click.
         // Ignore the pointer for a beat after opening so the interaction that opened
         // the modal (or a focus click on the game view) cannot immediately confirm.
-        if (difficultyOpen && !diffExiting)
+        if (difficultyOpen && !diffExiting && !cityMode)
         {
             if (diffBar != null) diffBar.Tick(dt);
             if (Time.unscaledTime - diffOpenTime >= 0.2f)

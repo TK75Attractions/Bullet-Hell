@@ -77,37 +77,80 @@ public class CitySelectView : MonoBehaviour
     private readonly System.Collections.Generic.List<Texture2D> ownedTextures = new System.Collections.Generic.List<Texture2D>();
     private readonly System.Collections.Generic.List<Sprite> ownedSprites = new System.Collections.Generic.List<Sprite>();
 
-    // ---- 右パネル(2026-09-16 U3 便で作り直し) --------------------------------
-    // リザルト新様式「夜の紺と金」(Docs/result-design-language.md §10)に揃えた
-    // 紺の半透明板。上から STAGE 番号 / 舞台名 / ステージ CG のサムネ / 情報行。
-    // 旧: 既存 JSAB カード(プレビュー動画)+ ステージ名 + 説明文。
-    private const float StagePanelW = 680f;
-    private const float StagePanelH = 860f;
-    private static readonly Vector2 StagePanelPos = new Vector2(496f, 10f);
-    private const float ThumbW = 600f;
-    private const float ThumbH = 338f;      // 16:9
-    private const float ThumbCenterY = 6f;
-    // STATUS 行の難易度マーク(EASY/NORMAL/LUNATIC)の並び。縦罫(x=44)より右、
-    // LENGTH の値の右端(x≒248)とおおむね揃う位置に 3 つ置く。
-    private const float DiffMarkX0 = 92f;
-    private const float DiffMarkPitch = 76f;
-    private const float DiffMarkFont = 13f;
+    // ---- 右パネル(2026-09-19 U7 便で「Highland UI v11」へ差し替え) ------------
+    // 出典は Instructions/UI/from_user_20260919/v11/。編集マスターの SVG は 1672x941 なので、
+    // 位置・寸法はすべて SVG 座標で書き、HighlandUi.X/Y/L で 1920x1080 へ読み替える
+    // (一律 1920/1672 = 1.1483 倍)。
+    // 旧 U3/U5 の「紺と金の額装パネル(GoldPanelStyle)」は街モードでは使わない。
+
+    // 右側の暗幕(StageBackdrop)。
+    private const float ScrimCx = 1316f, ScrimCy = 470.5f, ScrimW = 712f, ScrimH = 941f;
+    // 見出し。
+    private const float HeadNumberY = 91f, HeadRuleY = 119f, HeadNameY = 232f, HeadGoldRuleY = 261f;
+    private const float ColCx = 1367f;
+    // サムネ(v11 は 509x175 の横長。CG は 16:9 なので中央を切り出して収める)。
+    private const float ThumbCx = 1367.5f, ThumbCy = 411.5f, ThumbW = 509f, ThumbH = 175f;
+    // 情報行。
+    private const float RowLabelX = 1210f, RowValueX = 1404f, RowIconX = 1170f, RowRuleX = 1367f;
+    private const float LengthRowY = 622f, StatusRowY = 684f;
+    private const float StatusGemX0 = 1414f, StatusGemPitch = 42f;
+    // 難易度一覧。
+    private const float DiffHeadY = 357f, DiffHeadRuleY = 349f;
+    private const float DiffRowCx = 1367.5f, DiffRowW = 509f, DiffRowH = 74f;
+    private static readonly float[] DiffRowCy = { 431f, 522f, 613f };
+    private static readonly float[] DiffNameBaseline = { 445f, 536f, 627f };
+    private const float DiffNameX = 1140f, DiffBestX = 1595f, DiffGemX = 1380f;
+    private const float DiffAccentX = 1119.5f, DiffAccentW = 3f, DiffAccentH = 48f;
+    private const float DiffLeverX = 1308.6f, DiffLeverY = 705f, DiffGuideX = 1338.6f, DiffGuideY = 713f;
+    // 仕切り罫とボタン。
+    private const float FooterRuleY = 740f;
+    private const float ButtonCx = 1367f, ButtonCy = 820.5f, ButtonW = 376f, ButtonH = 83f;
+    private const float ButtonIconCx = 1334f, ButtonIconCy = 829.5f, ButtonIconSize = 51.6f;
+    private const float ButtonTextX = 1367.68f, ButtonTextY = 837f;
+
+    // 難易度の色(v11 の D_*_Accent)。0=簡単 / 1=普通 / 2=難しい。
+    private static readonly Color[] DiffAccentColors =
+    {
+        new Color(0.584f, 0.784f, 0.592f, 1f),   // #95C897
+        new Color(1.000f, 0.882f, 0.416f, 1f),   // #FFE16A
+        new Color(0.894f, 0.533f, 0.569f, 1f),   // #E48891
+    };
+    private static readonly string[] DiffNameMarkup = { "[簡単|かんたん]", "[普通|ふつう]", "[難|むずか]しい" };
 
     private CanvasGroup stagePanelCG;
     private RectTransform stagePanelRect;
     private TMP_Text stageNumberText;
-    private TMP_Text stageTitleText;
+    private HighlandUi.RubyText stageNameRuby;
     private RawImage thumbImage;
-    private Image thumbFallback;
+    private Image thumbPlate;
     private TMP_Text lengthValue;
-    private Image statusIcon;
-    // STATUS 行: 難易度ごとの菱形と英字(2026-09-16 U5)。index 0=EASY / 1=NORMAL / 2=LUNATIC。
-    private Image[] diffMarks;
-    private TMP_Text[] diffMarkLabels;
-    private Sprite diffMarkFilled;
-    private Sprite diffMarkHollow;
+    // STATUS 行: 難易度ごとの菱形。index 0=EASY / 1=NORMAL / 2=LUNATIC。
+    private Image[] statusGems;
     private Texture2D thumbTexture;
     private string thumbDir;
+
+    // 本文(サムネ+情報行)と難易度一覧は同じパネルの中で差し替える。
+    private CanvasGroup infoBodyCG;
+    private CanvasGroup diffBodyCG;
+    private Image[] diffRowPlate;      // 非選択の地
+    private Image[] diffRowSelected;   // 選択中の地(金枠)
+    private Image[] diffRowAccent;
+    private Image[] diffRowGem;
+    private HighlandUi.RubyText[] diffRowName;
+    private TMP_Text[] diffRowBestLabel;
+    private TMP_Text[] diffRowBestValue;
+    private Sprite gemFilled, gemHollow;
+    private int diffIndex = 1;
+    private bool[] diffEnabled = { true, true, true };
+    private bool diffMode;
+    private float diffBlend;           // 0 = 本文 / 1 = 難易度一覧
+    private StageData currentStage;
+    private bool twoPlayerBest;
+
+    // ふりがなの実測合わせ(表示後の初回に 1 度だけ効く)。
+    private readonly System.Collections.Generic.List<HighlandUi.RubyText> rubies
+        = new System.Collections.Generic.List<HighlandUi.RubyText>();
+    private bool rubiesPlaced;
 
     // 残り 10 秒を切ったときだけ画面下端へ出す明朝の残り秒数。
     private TMP_Text timeLeftText;
@@ -164,139 +207,291 @@ public class CitySelectView : MonoBehaviour
         BuildTimeLeft();
     }
 
+    // SVG 座標(中心)と画面 px の寸法で Graphic を置く(罫線など、縦だけ 1:1 で焼くもの用)。
+    private static void PlacePx(Graphic g, float svgCx, float svgCy, float pxW, float pxH)
+    {
+        RectTransform rt = g.rectTransform;
+        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = new Vector2(HighlandUi.X(svgCx), HighlandUi.Y(svgCy));
+        rt.sizeDelta = new Vector2(pxW, pxH);
+    }
+
+    private HighlandUi.RubyText Ruby(string name, Transform parent, string markup, float svgSize,
+        Color color, TextAlignmentOptions align, bool bold = false, float tracking = 0f)
+    {
+        HighlandUi.RubyText r = HighlandUi.Ruby(name, parent, markup, svgSize, color, align, bold, tracking);
+        rubies.Add(r);
+        rubiesPlaced = false;
+        return r;
+    }
+
     /// <summary>
-    /// 右パネル。リザルト新様式「夜の紺と金」(§10)と同じ紺の半透明板・金の罫線と菱形・
-    /// 四隅の金ブラケット・白い明朝で、上から
-    /// 1) STAGE 番号 2) ステージ名 3) ステージ CG のサムネ 4) 情報行(LENGTH / 難易度別 STATUS)。
+    /// 右パネル(Highland UI v11)。画面右の暗幕の上に、上から
+    /// 1) STAGE 番号 2) ステージ名(ふりがな) 3) CG サムネ 4) 情報行 5) 仕切り 6) 決定ボタン。
+    /// 3〜4 は「決定」で難易度一覧と差し替わる(<see cref="SetDifficultyMode"/>)。
     /// </summary>
     private void BuildStagePanel()
     {
-        GameObject go = new GameObject("StagePanel", typeof(RectTransform), typeof(CanvasGroup));
-        go.transform.SetParent(root, false);
-        stagePanelRect = (RectTransform)go.transform;
+        GameObject root2 = new GameObject("V11Panel", typeof(RectTransform), typeof(CanvasGroup));
+        root2.transform.SetParent(root, false);
+        stagePanelRect = (RectTransform)root2.transform;
         stagePanelRect.anchorMin = stagePanelRect.anchorMax = new Vector2(0.5f, 0.5f);
         stagePanelRect.pivot = new Vector2(0.5f, 0.5f);
-        stagePanelRect.anchoredPosition = StagePanelPos;
-        stagePanelRect.sizeDelta = new Vector2(StagePanelW, StagePanelH);
-        stagePanelCG = go.GetComponent<CanvasGroup>();
+        stagePanelRect.anchoredPosition = Vector2.zero;
+        stagePanelRect.sizeDelta = new Vector2(1920f, 1080f);
+        stagePanelCG = root2.GetComponent<CanvasGroup>();
         stagePanelCG.blocksRaycasts = false;
         stagePanelCG.alpha = 0f;
 
-        Image plate = NewImage("Plate", stagePanelRect, Color.white);
-        Stretch(plate.rectTransform);
-        plate.sprite = GoldPanelStyle.CreatePanelSprite((int)StagePanelW, (int)StagePanelH,
-            ownedTextures, ownedSprites, "CityStagePanel");
+        BuildV11Scrim();
+        BuildV11Header();
+        BuildV11InfoBody();
+        BuildV11DifficultyBody();
+        BuildV11Footer();
+        ApplyDifficultyVisual();
+    }
 
-        ruleSprite = GoldPanelStyle.CreateRuleSprite(ownedTextures, ownedSprites);
-        diamondSprite = GoldPanelStyle.CreateDiamondSprite(ownedTextures, ownedSprites);
+    private void BuildV11Scrim()
+    {
+        Image scrim = HighlandUi.NewImage("Scrim", stagePanelRect,
+            HighlandUi.HorizontalScrim(ownedTextures, ownedSprites), Color.white);
+        HighlandUi.Place(scrim, ScrimCx, ScrimCy, ScrimW, ScrimH);
+    }
 
-        // 1) STAGE 番号(小さい英字・字間広め・銀灰)。
-        stageNumberText = NewText("StageNumber", stagePanelRect, "", 24f,
-            GoldPanelStyle.SilverLabel, TextAlignmentOptions.Center);
-        SetRect((RectTransform)stageNumberText.transform, new Vector2(0f, 352f), new Vector2(560f, 34f));
-        StyleMincho(stageNumberText, 22f);
+    private void BuildV11Header()
+    {
+        // STAGE 番号。
+        stageNumberText = HighlandUi.Text("StageNumber", stagePanelRect, "", 25f,
+            new Color(0.949f, 0.949f, 0.949f, 0.88f), TextAlignmentOptions.Center, false, 9.5f);
+        HighlandUi.PlaceCentered(stageNumberText, ColCx, HeadNumberY, 520f, 25f);
 
-        // STAGE 番号の下の小さな菱形(リザルトの RESULT → 菱形 → 見出しと同じ運び)。
-        AddDiamond(stagePanelRect, new Vector2(0f, 318f), 13f, GoldPanelStyle.GoldAccent);
+        // 銀の細罫(両側)+ 中空の菱形。
+        Sprite silver = HighlandUi.FlatRule(Mathf.RoundToInt(HighlandUi.L(82f)), 10, 1.35f * HighlandUi.S,
+            new Color32(0xC5, 0xC5, 0xC5, 0xFF), ownedTextures, ownedSprites, "V11HeadRule");
+        foreach (float cx in new[] { (1270f + 1352f) * 0.5f, (1382f + 1464f) * 0.5f })
+        {
+            Image r = HighlandUi.NewImage("HeadRule", stagePanelRect, silver, new Color(1f, 1f, 1f, 0.75f));
+            PlacePx(r, cx, HeadRuleY, HighlandUi.L(82f), 10f);
+        }
+        AddDiamondPx("HeadDiamond", stagePanelRect, ColCx, HeadRuleY, 12.6f, 16f, 1.9f,
+            new Color(0.867f, 0.867f, 0.867f, 1f));
 
-        // 2) ステージ名(大きい明朝・白)。2026-09-16 ユーザー判定により既存の
-        //    ステージ名(石工 / 放浪者 / 艦長 / 浮浪者)をそのまま出す(舞台名の仮置きは使わない)。
-        stageTitleText = NewText("StageTitle", stagePanelRect, "", 58f,
-            GoldPanelStyle.InkWhite, TextAlignmentOptions.Center);
-        SetRect((RectTransform)stageTitleText.transform, new Vector2(0f, 262f), new Vector2(600f, 78f));
-        StyleMincho(stageTitleText, 6f);
-        GoldPanelStyle.ApplyTextGlow(stageTitleText,
-            new Color(GoldPanelStyle.GoldAccent.r, GoldPanelStyle.GoldAccent.g, GoldPanelStyle.GoldAccent.b, 0.55f),
-            0.055f, 0.5f);
+        // ステージ名(ふりがな付き)。
+        stageNameRuby = Ruby("StageName", stagePanelRect, "", 70.5f, HighlandUi.Ink,
+            TextAlignmentOptions.Center, true, 11.1f);
+        HighlandUi.PlaceCentered(stageNameRuby.Body, ColCx, HeadNameY, 640f, 70.5f);
 
-        // 名前の下に飾り罫と琥珀の菱形。
-        AddRule(stagePanelRect, new Vector2(0f, 206f), 520f, true);
+        // 金の飾り罫(両端が消える)+ 琥珀のにじみ + 中空の菱形。
+        Image halo = HighlandUi.NewImage("TitleHalo", stagePanelRect,
+            HighlandUi.Halo(ownedTextures, ownedSprites), Color.white);
+        HighlandUi.Place(halo, ColCx, HeadGoldRuleY, 57.0f, 57.6f);
+        Sprite gold = HighlandUi.FadeRule(Mathf.RoundToInt(HighlandUi.L(410f)), 12, 1.1f * HighlandUi.S,
+            HighlandUi.L(28f),
+            new[] { 0f, 0.22f, 0.5f, 0.78f, 1f },
+            new[] { Col(0xBC, 0xAA, 0x4E), Col(0xBC, 0xAA, 0x4E), Col(0xFF, 0xE1, 0x6A),
+                    Col(0xBC, 0xAA, 0x4E), Col(0xBC, 0xAA, 0x4E) },
+            new[] { 0f, 0.30f, 0.95f, 0.30f, 0f },
+            ownedTextures, ownedSprites, "V11TitleRule");
+        Image gr = HighlandUi.NewImage("TitleRule", stagePanelRect, gold, Color.white);
+        PlacePx(gr, ColCx, HeadGoldRuleY, HighlandUi.L(410f), 12f);
+        AddDiamondPx("TitleDiamond", stagePanelRect, ColCx, HeadGoldRuleY, 12.4f, 16f, 1.55f,
+            new Color(1f, 0.894f, 0.439f, 1f));
+    }
 
-        // 4) サムネ(角丸なし・細い枠。ステージ CG のレンダリング)。
-        GameObject thumbGO = new GameObject("Thumb", typeof(RectTransform));
-        thumbGO.transform.SetParent(stagePanelRect, false);
-        RectTransform tr = (RectTransform)thumbGO.transform;
-        tr.anchorMin = tr.anchorMax = new Vector2(0.5f, 0.5f);
-        tr.pivot = new Vector2(0.5f, 0.5f);
-        tr.anchoredPosition = new Vector2(0f, ThumbCenterY);
-        tr.sizeDelta = new Vector2(ThumbW, ThumbH);
+    private void BuildV11InfoBody()
+    {
+        GameObject go = new GameObject("InfoBody", typeof(RectTransform), typeof(CanvasGroup));
+        go.transform.SetParent(stagePanelRect, false);
+        RectTransform rt = (RectTransform)go.transform;
+        Stretch(rt);
+        infoBodyCG = go.GetComponent<CanvasGroup>();
+        infoBodyCG.blocksRaycasts = false;
 
-        thumbFallback = NewImage("ThumbFallback", tr, new Color(0.020f, 0.035f, 0.070f, 1f));
-        Stretch(thumbFallback.rectTransform);
+        // サムネ: 地 → CG → 外枠 → 内枠(枠を CG で隠さないよう別スプライトで重ねる)。
+        int tw = Mathf.RoundToInt(HighlandUi.L(ThumbW)), th = Mathf.RoundToInt(HighlandUi.L(ThumbH));
+        thumbPlate = HighlandUi.NewImage("ThumbPlate", rt,
+            HighlandUi.NotchFlat(tw, th, HighlandUi.L(4f), Col(0x16, 0x16, 0x2D), 1f,
+                Col(0, 0, 0), 0f, 0f, ownedTextures, ownedSprites, "V11ThumbPlate"), Color.white);
+        HighlandUi.Place(thumbPlate, ThumbCx, ThumbCy, ThumbW, ThumbH);
 
         thumbImage = new GameObject("ThumbImage", typeof(RectTransform)).AddComponent<RawImage>();
-        thumbImage.transform.SetParent(tr, false);
+        thumbImage.transform.SetParent(rt, false);
         thumbImage.raycastTarget = false;
         thumbImage.enabled = false;
-        Stretch(thumbImage.rectTransform);
+        HighlandUi.Place(thumbImage, ThumbCx, ThumbCy, ThumbW - 2f, ThumbH - 2f);
+        // 16:9 の CG を 509:175 の枠へ中央で切り出す。
+        float uvH = (16f / 9f) / (ThumbW / ThumbH);
+        thumbImage.uvRect = new Rect(0f, (1f - uvH) * 0.5f, 1f, uvH);
 
-        Image thumbFrame = NewImage("ThumbFrame", tr, Color.white);
-        Stretch(thumbFrame.rectTransform);
-        thumbFrame.sprite = GoldPanelStyle.CreateThinFrameSprite(ownedTextures, ownedSprites);
-        thumbFrame.type = Image.Type.Sliced;
+        Image outer = HighlandUi.NewImage("ThumbFrame", rt,
+            HighlandUi.NotchFlat(tw, th, HighlandUi.L(4f), Col(0, 0, 0), 0f,
+                Col(0xBC, 0xBC, 0xBC), 1.2f * HighlandUi.S, 0.69f,
+                ownedTextures, ownedSprites, "V11ThumbFrame"), Color.white);
+        HighlandUi.Place(outer, ThumbCx, ThumbCy, ThumbW, ThumbH);
 
-        // 6) 情報行。AREA は不要(2026-09-16 ユーザー決定)、DIFFICULTY は曲の長さへ。
-        //    STATUS は難易度ごとの踏破状況(2026-09-16 U5 指示)なので 2 段ぶんの高さを取る。
-        AddRule(stagePanelRect, new Vector2(0f, -220f), 520f, false);
-        lengthValue = AddInfoRow(stagePanelRect, -272f, "LENGTH",
-            Resources.Load<Sprite>("UI/result_icon_time"), out _);
-        BuildStatusRow(stagePanelRect, -344f);
-    }
+        Image inner = HighlandUi.NewImage("ThumbInner", rt,
+            HighlandUi.NotchFlat(Mathf.RoundToInt(HighlandUi.L(ThumbW - 6f)),
+                Mathf.RoundToInt(HighlandUi.L(ThumbH - 6f)), HighlandUi.L(7f), Col(0, 0, 0), 0f,
+                Col(0x8A, 0x8A, 0x8A), 0.55f * HighlandUi.S, 0.38f,
+                ownedTextures, ownedSprites, "V11ThumbInner"), Color.white);
+        HighlandUi.Place(inner, ThumbCx, ThumbCy, ThumbW - 6f, ThumbH - 6f);
 
-    // STATUS 行。ラベルの右に EASY / NORMAL / LUNATIC を小さく並べ、その上に菱形を置く。
-    // 菱形: クリア済み=金の塗り / 挑戦済み未クリア=金の枠だけ / 未プレイ=暗い枠だけ。
-    private void BuildStatusRow(RectTransform parent, float y)
-    {
-        AddInfoRow(parent, y, "STATUS", CreateFlagIconSprite(), out statusIcon).gameObject.SetActive(false);
+        // 情報行 1: プレイ時間。
+        AddRowIcon(rt, HighlandUi.ClockIcon(34, ownedTextures, ownedSprites), LengthRowY);
+        HighlandUi.RubyText lengthLabel = Ruby("LengthLabel", rt, "プレイ[時間|じかん]", 20.5f,
+            HighlandUi.InkSoft, TextAlignmentOptions.Left, false, 1.1f);
+        HighlandUi.PlaceLeft(lengthLabel.Body, RowLabelX, 628.6f, 260f, 20.5f);
+        AddRowRule(rt, LengthRowY);
+        lengthValue = HighlandUi.Text("LengthValue", rt, "--:--", 25f, HighlandUi.Ink,
+            TextAlignmentOptions.Left, false, 2.1f);
+        HighlandUi.PlaceLeft(lengthValue, RowValueX, 631.2f, 220f, 25f);
 
-        diffMarkFilled = CreateDiffMarkSprite(true);
-        diffMarkHollow = CreateDiffMarkSprite(false);
-        diffMarks = new Image[StageDifficultyProgress.DifficultyCount];
-        diffMarkLabels = new TMP_Text[StageDifficultyProgress.DifficultyCount];
+        // 情報行 2: 状態(難易度ごとの踏破を菱形 3 つで。2026-09-16 U5 の踏襲)。
+        AddRowIcon(rt, HighlandUi.FlagIcon(34, ownedTextures, ownedSprites), StatusRowY);
+        HighlandUi.RubyText statusLabel = Ruby("StatusLabel", rt, "[状態|じょうたい]", 20.5f,
+            HighlandUi.InkSoft, TextAlignmentOptions.Left, false, 1.1f);
+        HighlandUi.PlaceLeft(statusLabel.Body, RowLabelX, 690.6f, 260f, 20.5f);
+        AddRowRule(rt, StatusRowY);
 
-        string[] names = { "EASY", "NORMAL", "LUNATIC" };
-        for (int i = 0; i < diffMarks.Length; i++)
+        gemFilled = HighlandUi.Gem(19, 22, true, 0f, ownedTextures, ownedSprites, "V11GemFill");
+        gemHollow = HighlandUi.Gem(19, 22, false, 1.7f, ownedTextures, ownedSprites, "V11GemHollow");
+        statusGems = new Image[StageDifficultyProgress.DifficultyCount];
+        for (int i = 0; i < statusGems.Length; i++)
         {
-            float cx = DiffMarkX0 + DiffMarkPitch * i;
-
-            Image mark = NewImage("DiffMark" + i, parent, GoldPanelStyle.GoldAccent);
-            mark.sprite = diffMarkFilled;
-            mark.type = Image.Type.Simple;
-            mark.preserveAspect = true;
-            SetRect(mark.rectTransform, new Vector2(cx, y + 14f), new Vector2(16f, 16f));
-            diffMarks[i] = mark;
-
-            TMP_Text lab = NewText("DiffName" + i, parent, names[i], DiffMarkFont,
-                GoldPanelStyle.SilverLabel, TextAlignmentOptions.Center);
-            SetRect((RectTransform)lab.transform, new Vector2(cx, y - 15f), new Vector2(DiffMarkPitch, 22f));
-            StyleMincho(lab, 1f);
-            diffMarkLabels[i] = lab;
+            Image g = HighlandUi.NewImage("StatusGem" + i, rt, gemFilled, HighlandUi.Accent);
+            HighlandUi.Place(g, StatusGemX0 + StatusGemPitch * i, StatusRowY, 19f, 22f);
+            statusGems[i] = g;
         }
     }
 
-    // 菱形のマーク。塗り(クリア済み)と枠だけ(未クリア)の 2 種を焼く。
-    // 表示 16px に対し 48px で焼くので、枠線は縮小しても 1.5px ぶん残る。
-    private Sprite CreateDiffMarkSprite(bool filled)
+    private void AddRowIcon(Transform parent, Sprite icon, float svgCy)
     {
-        const int S = 48;
-        Color32[] px = new Color32[S * S];
-        Color32 white = new Color32(0xFF, 0xFF, 0xFF, 0xFF);
-        float c = (S - 1) * 0.5f;
-        float ring = c * 0.92f;
-        for (int y = 0; y < S; y++)
-        {
-            for (int x = 0; x < S; x++)
-            {
-                float m = (Mathf.Abs(x - c) + Mathf.Abs(y - c)) * 0.7071f;
-                float cov = filled
-                    ? Mathf.Clamp01(ring * 0.7071f - m + 0.5f)
-                    : Mathf.Clamp01(1.6f - Mathf.Abs(m - ring * 0.7071f));
-                GoldPanelStyle.Blend(px, S, S, x, y, white, cov);
-            }
-        }
-        return GoldPanelStyle.MakeSprite(px, S, S,
-            filled ? "CityDiffMarkFilled" : "CityDiffMarkHollow", ownedTextures, ownedSprites);
+        Image img = HighlandUi.NewImage("RowIcon", parent, icon, new Color(0.929f, 0.929f, 0.929f, 1f));
+        HighlandUi.Place(img, RowIconX, svgCy, 34f, 34f);
     }
+
+    private void AddRowRule(Transform parent, float svgCy)
+    {
+        Image img = HighlandUi.NewImage("RowRule", parent,
+            HighlandUi.SolidBar(ownedTextures, ownedSprites), new Color(0.749f, 0.749f, 0.749f, 0.62f));
+        HighlandUi.Place(img, RowRuleX, svgCy, 1f, 26f);
+    }
+
+    private void BuildV11DifficultyBody()
+    {
+        GameObject go = new GameObject("DifficultyBody", typeof(RectTransform), typeof(CanvasGroup));
+        go.transform.SetParent(stagePanelRect, false);
+        RectTransform rt = (RectTransform)go.transform;
+        Stretch(rt);
+        diffBodyCG = go.GetComponent<CanvasGroup>();
+        diffBodyCG.blocksRaycasts = false;
+        diffBodyCG.alpha = 0f;
+        go.SetActive(false);
+
+        // 見出し「難しさ」と両側の細罫。
+        Sprite headRule = HighlandUi.FlatRule(Mathf.RoundToInt(HighlandUi.L(117f)), 10,
+            0.85f * HighlandUi.S, Col(0xC8, 0xC8, 0xC8), ownedTextures, ownedSprites, "V11DiffHeadRule");
+        foreach (float cx in new[] { (1116f + 1233f) * 0.5f, (1501f + 1618f) * 0.5f })
+        {
+            Image r = HighlandUi.NewImage("DiffHeadRule", rt, headRule, new Color(1f, 1f, 1f, 0.52f));
+            PlacePx(r, cx, DiffHeadRuleY, HighlandUi.L(117f), 10f);
+        }
+        HighlandUi.RubyText head = Ruby("DiffHeading", rt, "[難|むずか]しさ", 23.5f,
+            HighlandUi.InkSoft, TextAlignmentOptions.Center, false, 3f);
+        HighlandUi.PlaceCentered(head.Body, ColCx, DiffHeadY, 360f, 23.5f);
+
+        int rw = Mathf.RoundToInt(HighlandUi.L(DiffRowW)), rh = Mathf.RoundToInt(HighlandUi.L(DiffRowH));
+        Sprite plate = HighlandUi.NotchFlat(rw, rh, HighlandUi.L(5f), Col(0x16, 0x16, 0x2D), 0.55f,
+            Col(0x9D, 0x9D, 0xA8), 0.85f * HighlandUi.S, 0.70f, ownedTextures, ownedSprites, "V11DiffPlate");
+        Sprite chosen = HighlandUi.NotchPanel(rw, rh, HighlandUi.L(5f), true,
+            ownedTextures, ownedSprites, "V11DiffChosen",
+            HighlandUi.L(4f), 1.7f * HighlandUi.S, 0.7f * HighlandUi.S);
+
+        int n = DiffRowCy.Length;
+        diffRowPlate = new Image[n];
+        diffRowSelected = new Image[n];
+        diffRowAccent = new Image[n];
+        diffRowGem = new Image[n];
+        diffRowName = new HighlandUi.RubyText[n];
+        diffRowBestLabel = new TMP_Text[n];
+        diffRowBestValue = new TMP_Text[n];
+
+        for (int i = 0; i < n; i++)
+        {
+            float cy = DiffRowCy[i];
+            diffRowPlate[i] = HighlandUi.NewImage("DiffPlate" + i, rt, plate, Color.white);
+            HighlandUi.Place(diffRowPlate[i], DiffRowCx, cy, DiffRowW, DiffRowH);
+            diffRowSelected[i] = HighlandUi.NewImage("DiffChosen" + i, rt, chosen, Color.white);
+            HighlandUi.Place(diffRowSelected[i], DiffRowCx, cy, DiffRowW, DiffRowH);
+
+            diffRowAccent[i] = HighlandUi.NewImage("DiffAccent" + i, rt,
+                HighlandUi.SolidBar(ownedTextures, ownedSprites), DiffAccentColors[i]);
+            HighlandUi.Place(diffRowAccent[i], DiffAccentX, cy, DiffAccentW, DiffAccentH);
+
+            diffRowGem[i] = HighlandUi.NewImage("DiffGem" + i, rt, gemFilled, HighlandUi.Accent);
+            HighlandUi.Place(diffRowGem[i], DiffGemX, cy, 19f, 22f);
+
+            diffRowName[i] = Ruby("DiffName" + i, rt, DiffNameMarkup[i], 23f,
+                HighlandUi.InkSoft, TextAlignmentOptions.Left, false, 1.2f);
+            HighlandUi.PlaceLeft(diffRowName[i].Body, DiffNameX, DiffNameBaseline[i], 220f, 23f);
+
+            diffRowBestLabel[i] = HighlandUi.Text("DiffBestLabel" + i, rt, "ベスト", 15.5f,
+                HighlandUi.InkSoft, TextAlignmentOptions.Right, false, 1.2f);
+            HighlandUi.PlaceRight(diffRowBestLabel[i], DiffBestX, DiffNameBaseline[i] - 28f, 160f, 15.5f);
+            diffRowBestValue[i] = HighlandUi.Text("DiffBestValue" + i, rt, "—", 21f,
+                HighlandUi.InkSoft, TextAlignmentOptions.Right, false, 1f);
+            HighlandUi.PlaceRight(diffRowBestValue[i], DiffBestX, DiffNameBaseline[i] + 2f, 220f, 21f);
+        }
+
+        // 操作ヒント「上下で選ぶ」(レバーの絵 + 明朝)。
+        Image lever = HighlandUi.NewImage("LeverIcon", rt, HighlandUi.Icon("lever_white"), Color.white);
+        HighlandUi.Place(lever, DiffLeverX, DiffLeverY, 33f, 33f);
+        HighlandUi.RubyText guide = Ruby("DiffGuide", rt, "[上下|じょうげ]で[選|えら]ぶ", 20f,
+            HighlandUi.InkSoft, TextAlignmentOptions.Left, false, 0.7f);
+        HighlandUi.PlaceLeft(guide.Body, DiffGuideX, DiffGuideY, 260f, 20f);
+    }
+
+    private void BuildV11Footer()
+    {
+        Sprite footer = HighlandUi.FadeRule(Mathf.RoundToInt(HighlandUi.L(526f)), 12, 1.1f * HighlandUi.S,
+            HighlandUi.L(30f),
+            new[] { 0f, 0.18f, 0.5f, 0.82f, 1f },
+            new[] { Col(0xD6, 0xD6, 0xD6), Col(0xAD, 0xAD, 0xAD), Col(0xD0, 0xD0, 0xD0),
+                    Col(0xAD, 0xAD, 0xAD), Col(0xD6, 0xD6, 0xD6) },
+            new[] { 0f, 0.45f, 0.72f, 0.45f, 0f },
+            ownedTextures, ownedSprites, "V11FooterRule");
+        Image fr = HighlandUi.NewImage("FooterRule", stagePanelRect, footer, Color.white);
+        PlacePx(fr, ColCx, FooterRuleY, HighlandUi.L(526f), 12f);
+        AddDiamondPx("FooterDiamond", stagePanelRect, ColCx, FooterRuleY, 12f, 15f, 1.55f,
+            new Color(0.871f, 0.871f, 0.871f, 1f));
+
+        Image btn = HighlandUi.NewImage("TravelButton", stagePanelRect,
+            HighlandUi.NotchPanel(Mathf.RoundToInt(HighlandUi.L(ButtonW)),
+                Mathf.RoundToInt(HighlandUi.L(ButtonH)), HighlandUi.L(9.5f), true,
+                ownedTextures, ownedSprites, "V11TravelButton",
+                HighlandUi.L(4.5f), 1.8f * HighlandUi.S, 0.7f * HighlandUi.S), Color.white);
+        HighlandUi.Place(btn, ButtonCx, ButtonCy, ButtonW, ButtonH);
+
+        Image icon = HighlandUi.NewImage("ButtonIcon", stagePanelRect, HighlandUi.Icon("circle"), Color.white);
+        HighlandUi.Place(icon, ButtonIconCx, ButtonIconCy, ButtonIconSize, ButtonIconSize);
+
+        HighlandUi.RubyText label = Ruby("ButtonText", stagePanelRect, "[決定|けってい]", 26f,
+            HighlandUi.Ink, TextAlignmentOptions.Left, true, 1f);
+        HighlandUi.PlaceLeft(label.Body, ButtonTextX, ButtonTextY, 200f, 26f);
+    }
+
+    private void AddDiamondPx(string name, Transform parent, float svgCx, float svgCy,
+        float svgW, float svgH, float strokeSvg, Color color)
+    {
+        int w = Mathf.RoundToInt(HighlandUi.L(svgW)), h = Mathf.RoundToInt(HighlandUi.L(svgH));
+        Image img = HighlandUi.NewImage(name, parent,
+            HighlandUi.DiamondRect(w, h, false, strokeSvg * HighlandUi.S,
+                ownedTextures, ownedSprites, "V11Dia" + name), color);
+        HighlandUi.Place(img, svgCx, svgCy, svgW, svgH);
+    }
+
+    private static Color32 Col(byte r, byte g, byte b) { return new Color32(r, g, b, 0xFF); }
 
     // 残り時間の最小表示(上部バーは街モードでは隠すため)。
     private void BuildTimeLeft()
@@ -530,58 +725,51 @@ public class CitySelectView : MonoBehaviour
     {
         if (stagePanelRect == null) return;
 
+        currentStage = data;
         if (stageNumberText != null)
             stageNumberText.text = stageNumber >= 1 ? string.Format("STAGE {0:00}", stageNumber) : "STAGE";
         // 見出しは既存のステージ名(石工 / 放浪者 / 艦長 / 浮浪者)。
         // StageCityProfile.stageTitle(舞台名の仮置き)は使わない(2026-09-16 ユーザー判定)。
-        if (stageTitleText != null) stageTitleText.text = StageCityProfile.DisplayNameOf(data);
+        if (stageNameRuby != null)
+        {
+            stageNameRuby.Apply(StageCityProfile.ReadingMarkupOf(data));
+            rubiesPlaced = false;
+        }
 
         // 曲の長さ。BGM クリップ長が取れないときは endTime で代用する。
         if (lengthValue != null) lengthValue.text = FormatLength(data);
 
-        // STATUS = 難易度ごとの踏破状況(2026-09-16 U5 指示)。
+        // 状態 = 難易度ごとの踏破状況(2026-09-16 U5 指示を v11 の菱形で)。
         ApplyStatusRow(data);
+        ApplyDifficultyVisual();
 
         UpdateThumbnail(data);
     }
 
     // 難易度ごとの菱形を現在のステージの記録に合わせる。
-    //   クリア済み  : 金の塗り菱形 + 明るい英字
-    //   挑戦済み未クリア: 金の枠だけの菱形 + 中間の英字
-    //   未プレイ    : 暗い枠だけの菱形 + 沈んだ英字
+    //   クリア済み      : 塗りの黄
+    //   挑戦済み未クリア: 枠だけの黄
+    //   未プレイ        : 枠だけの銀
     private void ApplyStatusRow(StageData data)
     {
-        if (diffMarks == null) return;
+        if (statusGems == null) return;
         string dir = data != null ? data.stageDirectoryName : null;
-        bool any = false;
-        for (int i = 0; i < diffMarks.Length; i++)
+        for (int i = 0; i < statusGems.Length; i++)
         {
-            bool cleared = StageDifficultyProgress.HasCleared(dir, i);
-            bool played = cleared || StageDifficultyProgress.HasPlayed(dir, i);
-            any |= cleared;
-
-            Image mark = diffMarks[i];
-            if (mark != null)
-            {
-                mark.sprite = cleared ? diffMarkFilled : diffMarkHollow;
-                Color c = cleared ? GoldPanelStyle.GoldAccent
-                    : played ? GoldPanelStyle.GoldDim : GoldPanelStyle.SilverLabel;
-                mark.color = new Color(c.r, c.g, c.b, cleared ? 1f : played ? 0.95f : 0.30f);
-            }
-
-            TMP_Text lab = diffMarkLabels[i];
-            if (lab != null)
-            {
-                Color c = cleared ? GoldPanelStyle.GoldAccent : GoldPanelStyle.SilverLabel;
-                lab.color = new Color(c.r, c.g, c.b, cleared ? 0.95f : played ? 0.72f : 0.34f);
-            }
+            Image gem = statusGems[i];
+            if (gem == null) continue;
+            SetGemState(gem, dir, i);
         }
+    }
 
-        if (statusIcon != null)
-        {
-            Color c = any ? GoldPanelStyle.GoldAccent : GoldPanelStyle.SilverLabel;
-            statusIcon.color = new Color(c.r, c.g, c.b, any ? 0.90f : 0.55f);
-        }
+    private void SetGemState(Image gem, string dir, int difficulty)
+    {
+        bool cleared = StageDifficultyProgress.HasCleared(dir, difficulty);
+        bool played = cleared || StageDifficultyProgress.HasPlayed(dir, difficulty);
+        gem.sprite = cleared ? gemFilled : gemHollow;
+        gem.color = cleared ? HighlandUi.Accent
+            : played ? HighlandUi.Accent
+            : new Color(HighlandUi.Silver.r, HighlandUi.Silver.g, HighlandUi.Silver.b, 0.75f);
     }
 
     /// <summary>
@@ -627,7 +815,122 @@ public class CitySelectView : MonoBehaviour
             thumbImage.texture = thumbTexture;
             thumbImage.enabled = thumbTexture != null;
         }
-        if (thumbFallback != null) thumbFallback.enabled = true;   // 枠の中の地は常に敷く
+    }
+
+    // ---- 難易度一覧(パネル内差し替え。2026-09-19 U7) --------------------------
+
+    /// <summary>右パネルの本文を難易度一覧へ差し替える(<c>false</c> で本文へ戻す)。</summary>
+    public void SetDifficultyMode(bool on)
+    {
+        if (diffMode == on) return;
+        diffMode = on;
+        if (on && diffBodyCG != null) diffBodyCG.gameObject.SetActive(true);
+        rubiesPlaced = false;        // 表に出た側のふりがなを置き直す
+        ApplyDifficultyVisual();
+    }
+
+    public bool DifficultyMode => diffMode;
+    public int DifficultyIndex => diffIndex;
+
+    /// <summary>選択できる難易度。無効な行は暗く沈める。</summary>
+    public void SetDifficultyEnabled(bool easy, bool normal, bool lunatic)
+    {
+        diffEnabled[0] = easy; diffEnabled[1] = normal; diffEnabled[2] = lunatic;
+        ApplyDifficultyVisual();
+    }
+
+    public bool IsDifficultyEnabled(int index)
+    {
+        return index >= 0 && index < diffEnabled.Length && diffEnabled[index];
+    }
+
+    /// <summary>選択行を設定する(無効な行は飛ばさずそのまま置く。確定側で弾く)。</summary>
+    public void SetDifficultyIndex(int index)
+    {
+        diffIndex = Mathf.Clamp(index, 0, DiffRowCy.Length - 1);
+        ApplyDifficultyVisual();
+    }
+
+    /// <summary>上下で 1 段動かす(端で止まる。既存の DefficultyBar と同じ)。</summary>
+    public void MoveDifficulty(int dir)
+    {
+        SetDifficultyIndex(diffIndex + (dir > 0 ? 1 : -1));
+    }
+
+    /// <summary>ベストスコアの出典(1P/2P)。</summary>
+    public void SetTwoPlayer(bool on)
+    {
+        if (twoPlayerBest == on) return;
+        twoPlayerBest = on;
+        ApplyDifficultyVisual();
+    }
+
+    private void ApplyDifficultyVisual()
+    {
+        if (diffRowPlate == null) return;
+        string dir = currentStage != null ? currentStage.stageDirectoryName : null;
+        for (int i = 0; i < diffRowPlate.Length; i++)
+        {
+            bool sel = i == diffIndex;
+            bool on = diffEnabled[i];
+            if (diffRowSelected[i] != null) diffRowSelected[i].enabled = sel;
+            if (diffRowPlate[i] != null) diffRowPlate[i].enabled = !sel;
+
+            float dim = on ? 1f : 0.42f;
+            if (diffRowAccent[i] != null)
+            {
+                Color c = DiffAccentColors[i];
+                diffRowAccent[i].color = new Color(c.r, c.g, c.b, dim);
+            }
+            if (diffRowName[i] != null)
+            {
+                Color c = sel ? HighlandUi.Ink : HighlandUi.InkSoft;
+                diffRowName[i].Body.color = new Color(c.r, c.g, c.b, dim);
+                diffRowName[i].SetAlpha(dim);
+            }
+            if (diffRowGem[i] != null)
+            {
+                SetGemState(diffRowGem[i], dir, i);
+                Color c = diffRowGem[i].color;
+                diffRowGem[i].color = new Color(c.r, c.g, c.b, c.a * dim);
+            }
+            if (diffRowBestLabel[i] != null)
+                diffRowBestLabel[i].color = new Color(HighlandUi.InkSoft.r, HighlandUi.InkSoft.g,
+                    HighlandUi.InkSoft.b, dim * 0.9f);
+            if (diffRowBestValue[i] != null)
+            {
+                diffRowBestValue[i].text = BestScoreText(dir, i);
+                Color c = sel ? HighlandUi.Ink : HighlandUi.InkSoft;
+                diffRowBestValue[i].color = new Color(c.r, c.g, c.b, dim);
+            }
+        }
+    }
+
+    // その難易度のベストスコア。記録が無ければ絵と同じ長音符を出す。
+    private string BestScoreText(string dir, int difficulty)
+    {
+        if (string.IsNullOrEmpty(dir)) return "—";
+        System.Collections.Generic.List<RankingStore.Entry> top =
+            RankingStore.GetTop(dir, difficulty, twoPlayerBest ? "2P" : "1P", 1);
+        return top != null && top.Count > 0 ? top[0].score.ToString("N0") : "—";
+    }
+
+    // 本文 ⇄ 難易度一覧のクロスフェード(0.25 秒)。
+    private void TickDifficultyBlend(float dt)
+    {
+        if (infoBodyCG == null || diffBodyCG == null) return;
+        float want = diffMode ? 1f : 0f;
+        if (Mathf.Approximately(diffBlend, want))
+        {
+            if (!diffMode && diffBodyCG.gameObject.activeSelf && diffBlend <= 0f)
+                diffBodyCG.gameObject.SetActive(false);
+            return;
+        }
+        diffBlend = Mathf.MoveTowards(diffBlend, want, dt / 0.25f);
+        infoBodyCG.alpha = 1f - diffBlend;
+        diffBodyCG.alpha = diffBlend;
+        infoBodyCG.gameObject.SetActive(diffBlend < 1f);
+        if (diffBlend <= 0f && !diffMode) diffBodyCG.gameObject.SetActive(false);
     }
 
     /// <summary>CG サムネの場所。無ければ null。</summary>
@@ -754,13 +1057,28 @@ public class CitySelectView : MonoBehaviour
                 Mathf.Round(mp.y / MarkerArrowPixel) * MarkerArrowPixel - mp.y);
         }
 
-        // 右パネル: 区画が選ばれているあいだ出し、決定の寄り込み(難易度モーダル)で消す。
-        // 入場スイープ中も出したままにする(パネルの中身は左右キーで即差し替わる)。
+        // 右パネル: 区画が選ばれているあいだ出す。難易度は同じパネルの中で本文と
+        // 差し替わる(2026-09-19 U7)ので、寄り込みでは消さない。
         if (stagePanelCG != null)
         {
             float want = district >= 1
-                ? 1f - Mathf.Clamp01((map.ZoomAmount - 0.2f) / 0.5f) : 0f;
+                ? 1f - Mathf.Clamp01((map.ZoomAmount - 0.55f) / 0.45f) : 0f;
             stagePanelCG.alpha = Mathf.MoveTowards(stagePanelCG.alpha, want, dt / 0.25f);
+        }
+        TickDifficultyBlend(dt);
+
+        // ふりがなの漢字直上合わせは、メッシュ生成後(表示後の初回)でないと空振りする。
+        if (!rubiesPlaced && stagePanelCG != null && stagePanelCG.alpha > 0.01f)
+        {
+            bool all = true;
+            foreach (HighlandUi.RubyText r in rubies)
+            {
+                if (r == null || r.Body == null) continue;
+                // 非表示のあいだは TMP の実測が空振りするので、表に出たときに置き直す。
+                if (!r.Body.gameObject.activeInHierarchy) continue;
+                all &= r.EnsurePlaced();
+            }
+            rubiesPlaced = all;
         }
 
         // 情報パネル: 区画へ寄り切ってからプレビューを出す。
@@ -783,97 +1101,6 @@ public class CitySelectView : MonoBehaviour
         return string.Format("district={0} markerA={1:F2} preview={2:F2} | {3}",
             district, markerAlpha, previewCG != null ? previewCG.alpha : -1f,
             map != null ? map.DebugState() : "map=null");
-    }
-
-    // ---- 右パネルの小物 ------------------------------------------------------
-
-    private Sprite ruleSprite;
-    private Sprite diamondSprite;
-
-    // 明朝(ShipporiMincho)＋字間。リザルト新様式に合わせ、英字も明朝で字間を広げる。
-    private void StyleMincho(TMP_Text text, float spacing)
-    {
-        if (text == null) return;
-        TMP_FontAsset m = MinchoFont;
-        if (m != null) text.font = m;
-        text.characterSpacing = spacing;
-        text.textWrappingMode = TextWrappingModes.NoWrap;
-        text.overflowMode = TextOverflowModes.Overflow;
-    }
-
-    private static void SetRect(RectTransform rt, Vector2 pos, Vector2 size)
-    {
-        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
-        rt.pivot = new Vector2(0.5f, 0.5f);
-        rt.anchoredPosition = pos;
-        rt.sizeDelta = size;
-    }
-
-    // 金の細い罫線 1 本(中央に琥珀の菱形を置くかどうか)。
-    private void AddRule(RectTransform parent, Vector2 pos, float width, bool withDiamond)
-    {
-        Image rule = NewImage("Rule", parent, new Color(1f, 1f, 1f, 0.85f));
-        rule.sprite = ruleSprite;
-        rule.type = Image.Type.Simple;
-        SetRect(rule.rectTransform, pos, new Vector2(width, 16f));
-        if (withDiamond) AddDiamond(parent, pos, 16f, GoldPanelStyle.GoldAccent);
-    }
-
-    private void AddDiamond(RectTransform parent, Vector2 pos, float size, Color color)
-    {
-        Image d = NewImage("Diamond", parent, color);
-        d.sprite = diamondSprite;
-        d.type = Image.Type.Simple;
-        SetRect(d.rectTransform, pos, new Vector2(size, size));
-    }
-
-    // 情報行(アイコン + ラベル英字 + 縦罫 + 値)。戻り値は値の TMP。
-    private TMP_Text AddInfoRow(RectTransform parent, float y, string label, Sprite icon, out Image iconImage)
-    {
-        iconImage = null;
-        if (icon != null)
-        {
-            iconImage = NewImage("Icon", parent, new Color(GoldPanelStyle.SilverLabel.r,
-                GoldPanelStyle.SilverLabel.g, GoldPanelStyle.SilverLabel.b, 0.85f));
-            iconImage.sprite = icon;
-            iconImage.type = Image.Type.Simple;
-            iconImage.preserveAspect = true;
-            SetRect(iconImage.rectTransform, new Vector2(-228f, y), new Vector2(28f, 28f));
-        }
-
-        TMP_Text lab = NewText("Label", parent, label, 24f, GoldPanelStyle.SilverLabel, TextAlignmentOptions.Left);
-        SetRect((RectTransform)lab.transform, new Vector2(-88f, y), new Vector2(216f, 32f));
-        StyleMincho(lab, 12f);
-
-        TMP_Text bar = NewText("Bar", parent, "|", 24f,
-            new Color(GoldPanelStyle.GoldDim.r, GoldPanelStyle.GoldDim.g, GoldPanelStyle.GoldDim.b, 0.75f),
-            TextAlignmentOptions.Center);
-        SetRect((RectTransform)bar.transform, new Vector2(44f, y), new Vector2(20f, 32f));
-        StyleMincho(bar, 0f);
-
-        TMP_Text value = NewText("Value", parent, "", 28f, GoldPanelStyle.GoldAccent, TextAlignmentOptions.Right);
-        SetRect((RectTransform)value.transform, new Vector2(128f, y), new Vector2(240f, 34f));
-        StyleMincho(value, 4f);
-        return value;
-    }
-
-    // STATUS 行の旗アイコン(踏破の目印)。既存の Resources/UI には無いのでここで焼く。
-    private Sprite CreateFlagIconSprite()
-    {
-        const int S = 64;
-        Color32[] px = new Color32[S * S];
-        Color32 white = new Color32(0xFF, 0xFF, 0xFF, 0xFF);
-        // 旗竿。
-        GoldPanelStyle.DrawLine(px, S, S, 18f, 6f, 18f, 58f, 4f, white);
-        // 三角の旗(竿の上半分から右へ)。
-        for (int y = 32; y <= 56; y++)
-        {
-            float t = (56 - y) / 24f;                 // 上で長く、下で短い
-            float x1 = 20f + 26f * t;
-            for (int x = 20; x <= (int)x1; x++)
-                GoldPanelStyle.Blend(px, S, S, x, y, white, Mathf.Clamp01(x1 - x + 0.5f));
-        }
-        return GoldPanelStyle.MakeSprite(px, S, S, "CityStatusFlag", ownedTextures, ownedSprites);
     }
 
     // ---- 小物 ----------------------------------------------------------------

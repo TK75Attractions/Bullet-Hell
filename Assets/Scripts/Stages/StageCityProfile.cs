@@ -91,6 +91,46 @@ public class StageCityProfile : ScriptableObject
         return data.stageName != null ? data.stageName : "";
     }
 
+    // ステージ名のふりがな(Highland UI v11 の見出しに付ける。2026-09-19 U7)。
+    // 書式は HighlandUi.RubyText の [漢字|よみ]。表に無い名前はふりがな無しで出す。
+    private static readonly (string name, string markup)[] Readings =
+    {
+        ("石工", "[石工|いしく]"),
+        ("放浪者", "[放浪者|ほうろうしゃ]"),
+        ("艦長", "[艦長|かんちょう]"),
+        ("学者", "[学者|がくしゃ]"),
+        ("浮浪者", "[浮浪者|ふろうしゃ]"),
+        ("騎士", "[騎士|きし]"),
+        ("領主様の姿見", "[領主様|りょうしゅさま]の[姿見|すがたみ]"),
+        // 舞台名(リザルトなどで舞台名を出す場合)。
+        ("高原都市", "[高原|こうげん][都市|とし]"),
+        ("高原の街道", "[高原|こうげん]の[街道|かいどう]"),
+        ("河畔の都市", "[河畔|かはん]の[都市|とし]"),
+        ("聖堂前", "[聖堂前|せいどうまえ]"),
+        ("洞窟墓", "[洞窟墓|どうくつばか]"),
+        ("古戦場の石橋", "[古戦場|こせんじょう]の[石橋|いしばし]"),
+        ("鏡の無い村", "[鏡|かがみ]の[無|な]い[村|むら]"),
+    };
+
+    /// <summary>
+    /// 表示名を <c>[漢字|よみ]</c> のふりがな書式で返す(未登録ならそのままの文字列)。
+    /// </summary>
+    public static string ReadingMarkupOf(StageData data)
+    {
+        return ReadingMarkup(DisplayNameOf(data));
+    }
+
+    /// <summary>任意の日本語名にふりがなを付ける(未登録ならそのまま返す)。</summary>
+    public static string ReadingMarkup(string displayName)
+    {
+        if (string.IsNullOrEmpty(displayName)) return "";
+        foreach ((string name, string markup) in Readings)
+        {
+            if (name == displayName) return markup;
+        }
+        return displayName;
+    }
+
     /// <summary>
     /// 舞台名(リザルト画面・選択画面に出す土地の名前)。
     /// 資産 → 内蔵表 → DisplayNameOf の順で拾う(2026-09-16 リザルト改修で追加)。
