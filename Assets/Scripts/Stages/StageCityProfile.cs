@@ -2,10 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// ステージ(stageDirectoryName)と「城壁の街」の区画番号(1..9)の対応表。
+/// ステージ(stageDirectoryName)と「城壁の街」の区画番号(1..10)の対応表。
 ///
-/// 区画は Instructions/ステージ選択/cg/v2_notes.md の 9 区画:
-/// 1 市場 / 2 地下 / 3 石切り場 / 4 廃屋 / 5 大河 / 6 地下墓地 / 7 宝物館 / 8 聖堂前 / 9 大聖堂。
+/// 区画は Instructions/ステージ選択/cg/v2_notes.md の 9 区画に、v6b で足した 1 区画:
+/// 1 市場 / 2 地下 / 3 石切り場 / 4 廃屋 / 5 大河 / 6 地下墓地 / 7 宝物館 / 8 聖堂前 / 9 大聖堂 /
+/// 10 古戦場の石橋(城壁の内側・大河の上。2026-09-19)。
 ///
 /// 資産 <c>Assets/Resources/StageCityProfile.asset</c> があればそれを使い、無ければ
 /// <see cref="Defaults"/> の内蔵表で動く。後からステージを増やすときは資産に 1 行足すだけでよい
@@ -19,8 +20,8 @@ public class StageCityProfile : ScriptableObject
     {
         [Tooltip("StageData.stageDirectoryName")]
         public string stageDirectoryName;
-        [Tooltip("城壁の街の区画番号(1..9)。0 で未割当=選択リストに出さない。")]
-        [Range(0, 9)] public int district;
+        [Tooltip("城壁の街の区画番号(1..10)。0 で未割当=選択リストに出さない。")]
+        [Range(0, 10)] public int district;
         [Tooltip("街モードで▼のラベルに出す日本語名。空なら StageData.stageName を使う。")]
         public string displayName;
         [Tooltip("舞台名(リザルト/選択画面に出す土地の名前)。空なら displayName → stageName の順で拾う。")]
@@ -39,7 +40,7 @@ public class StageCityProfile : ScriptableObject
         ("captain", 5, "艦長", "河畔の都市"),    // 大河(西)。StageData 側は "Captain" のままなのでここで補う
         ("scholar", 8, "学者", "聖堂前"),        // 聖堂前。弾幕メーカーの途中データを仮組み(2026-09-17)
         ("vagrant", 6, "浮浪者", "洞窟墓"),      // 地下墓地(北西)
-        ("knight", 0, "騎士", "古戦場の石橋"),  // 区画は未割当(0)。佐甲の Siv3D 版を取り込み中(2026-09-18)
+        ("knight", 10, "騎士", "古戦場の石橋"), // 石橋(西・大河の上)。v6b で区画を足して割り当て(2026-09-19)
         ("mirror", 0, "領主様の姿見", "鏡の無い村"), // 区画は未割当(0)。舞台名だけ持たせる
     };
 
@@ -57,6 +58,7 @@ public class StageCityProfile : ScriptableObject
         new Color(1.00f, 0.95f, 1.08f, 1f),   // 07 宝物館(未実装)
         new Color(1.00f, 0.95f, 1.08f, 1f),   // 08 聖堂前(未実装)
         new Color(1.00f, 0.95f, 1.08f, 1f),   // 09 大聖堂(未実装)
+        new Color(1.06f, 1.00f, 0.95f, 1f),   // 10 古戦場の石橋(騎士・灰と錆の暖かい灰)
     };
 
     /// <summary>区画の基調色(1 を中立とする倍率)。範囲外は白。</summary>
@@ -172,7 +174,7 @@ public class StageCityProfile : ScriptableObject
         return 0;
     }
 
-    /// <summary>区画 1..9 のうち、ステージが割り当たっているものを true にした長さ 10 の配列。</summary>
+    /// <summary>区画 1..10 のうち、ステージが割り当たっているものを true にした長さ 11 の配列。</summary>
     public static bool[] BuildAvailability(StageDataBase sdb)
     {
         bool[] flags = new bool[CityMapController.DistrictCount + 1];

@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 /// <summary>
-/// ステージ選択の背景を Astra 制作の 3D「城壁の街」(Instructions/ステージ選択/cg/v5.fbx) にする。
+/// ステージ選択の背景を Astra 制作の 3D「城壁の街」(Instructions/ステージ選択/cg/v6b.fbx) にする。
 ///
 /// 仕組みはタイトルの部屋 (<see cref="TitleRoomController"/>) と同じ「専用カメラ → RenderTexture →
 /// 選択画面 Canvas 最背面の RawImage」方式。街はレイヤー <c>CityCG</c>(12) に置き、専用カメラだけが
@@ -25,8 +25,9 @@ public class CityMapController : MonoBehaviour
 {
     public static CityMapController Instance { get; private set; }
 
-    /// <summary>区画は 1..9。0 は「区画なし」を表す。</summary>
-    public const int DistrictCount = 9;
+    /// <summary>区画は 1..10。0 は「区画なし」を表す。
+    /// 10 は v6b で城壁の内側・大河の上へ足した「古戦場の石橋」(2026-09-19)。</summary>
+    public const int DistrictCount = 10;
 
     [Header("素材")]
     public GameObject cityPrefab;
@@ -124,6 +125,11 @@ public class CityMapController : MonoBehaviour
     public Color glowTint = new Color(1.045f, 1.02f, 0.975f, 1f);
     [Tooltip("ステージ未実装の区画を沈める色。")]
     public Color dimTint = new Color(0.30f, 0.32f, 0.42f, 1f);
+    // 区画 10(古戦場の石橋)は選択用メッシュ district_10_ground が橋の下の水面にあり、
+    // 橋に隠れて画面にほとんど出ない(v6b_notes.md の指摘)。地面だけでなく橋本体にも
+    // 同じ発光を掛け、強さも少し上げて「選ばれている」のが分かるようにする(2026-09-19)。
+    [Tooltip("区画 10(石橋)の選択中の発光。地面が橋の下なので橋本体へ少し強めに掛ける。")]
+    public Color bridgeGlowTint = new Color(1.26f, 1.17f, 0.99f, 1f);
 
     // ---- 選択区画のフォーカス(2026-09-16 U3) --------------------------------
     // 選んだ区画の周りだけを残して外側を落とし、区画が「ジオラマの島」のように浮くようにする。
@@ -185,7 +191,25 @@ public class CityMapController : MonoBehaviour
         target = new Vector3(0f, 1.8f, 0f),
     };
 
-    // index 0 は未使用(区画番号 1..9 をそのまま添字に使う)。
+    // 区画 10(古戦場の石橋)のカメラ。俯角 40°・正投影・距離は他区画と同じで、方位だけ決め直した。
+    // Astra の camera_district_10(yaw 30°)は灯台(-18.3,-13.1・高さ 5.9m)が橋の東半分の手前に
+    // 立ち、祠・石像・旗が隠れる(深度 RT を読んだ遮蔽率 実測: 祠 25% / 石像 23% / 旗 7%)。
+    // 北東(yaw -135°)へ回すと遮蔽は消えるが、月光が南西から差すので橋の見える面が全部影になる。
+    // 南西寄りの yaw 55° は灯台・船・城壁のどれも橋に掛からず、かつ月光が当たる面を見る:
+    // 祠 75% / 石像 55% / 旗 3 枚とも 100% / 木の仮橋 63%(.tmp_select/c6/score.txt)。
+    static readonly CamPose Bridge10 = MakeDistrictPose(
+        new Vector3(-21.600f, 2.050f, -9.380f),   // 注視点: 橋の中央(路面 Y=2.10 の少し下)
+        pitch: 40f, yaw: 55f, size: 5.60f, distance: 60f);
+
+    // 注視点・俯角・方位・寄りから CamPose を組む(JSON の position を手で書くより読みやすい)。
+    static CamPose MakeDistrictPose(Vector3 target, float pitch, float yaw, float size, float distance)
+    {
+        Vector3 euler = new Vector3(pitch, yaw, 0f);
+        Vector3 dir = Quaternion.Euler(euler) * Vector3.forward;
+        return new CamPose { pos = target - dir * distance, euler = euler, size = size, target = target };
+    }
+
+    // index 0 は未使用(区画番号 1..10 をそのまま添字に使う)。
     static readonly CamPose[] Districts =
     {
         default,
@@ -198,7 +222,12 @@ public class CityMapController : MonoBehaviour
         new CamPose { pos = new Vector3(15.046038f, 67.240585f, 66.172745f), euler = new Vector3(46f, -165f, 0f), size = 4.5f, target = new Vector3(-1.135135f, 2.5f, 5.783784f) },
         new CamPose { pos = new Vector3(-0.810811f, 65.940582f, -68.735466f), euler = new Vector3(46f, 0f, 0f), size = 5.0625f, target = new Vector3(-0.810811f, 1.2f, -6.216216f) },
         new CamPose { pos = new Vector3(-3.059994f, 62.999130f, -68.346001f), euler = new Vector3(40f, 0f, 0f), size = 8.732357f, target = new Vector3(-3.059994f, 5.148245f, 0.597996f) },
+        // 区画 10(古戦場の石橋)。Astra の camera_district_10 は区画 05 と同じ南西から見る方位で、
+        // 手前に来る城壁がアーチの下半分を隠す(v6b_notes.md の指摘)。街の内側・北東から
+        // 橋を見下ろす方位へ振り直した(採用値は .tmp_select/progress.md の第 15 便)。
+        Bridge10,
     };
+
 
     // 区画 anchor(v2_camera.json)。▼とラベルはこの真上に置く。
     static readonly Vector3[] Anchors =
@@ -213,6 +242,7 @@ public class CityMapController : MonoBehaviour
         new Vector3(-1.135135f, 0.12f, 5.783784f),
         new Vector3(-0.810811f, 0.12f, -6.216216f),
         new Vector3(-3.621622f, 0.12f, 0.054054f),
+        new Vector3(-23.420000f, 2.58f, -9.380000f),   // 10 古戦場の石橋(祠の上段の 4cm 上)
     };
 
     // ▼を置く高さ。カメラの orthographicSize(= 画面の半分の高さの実寸)に対する比で
@@ -220,7 +250,15 @@ public class CityMapController : MonoBehaviour
     // (実寸で持つと、寄った(size 6.75)ときに 6m の▼が画面外まで飛ぶ)。
     // 区画 05(大河・艦長)は▼が街灯の灯りに重なって読めなかったので高く逃がす
     // (第 13 便の指摘 .tmp_select/s18/z_captain_arrow_4x.png)。
-    static readonly float[] MarkerHeightFactor = { 0f, 0.30f, 0.30f, 0.30f, 0.26f, 0.52f, 0.26f, 0.28f, 0.26f, 0.55f };
+    static readonly float[] MarkerHeightFactor = { 0f, 0.30f, 0.30f, 0.30f, 0.26f, 0.52f, 0.26f, 0.28f, 0.26f, 0.55f, 0.30f };
+
+    // 区画 10 で地面と一緒に光らせる橋の実体メッシュ(霧カード・旗・槍・石像は除く)。
+    static readonly string[] Bridge10GlowRenderers =
+    {
+        "v6b_three_span_masonry", "v6b_broken_span_timber_repair", "v6b_damaged_parapets",
+        "v6b_approach_east", "v6b_approach_west", "v6b_west_wall_walk_landing",
+        "v6b_shrine_two_tier_base", "v6b_broken_gateposts",
+    };
 
     static readonly string[] DistrictParents =
     {
@@ -228,6 +266,7 @@ public class CityMapController : MonoBehaviour
         "district_01_market", "district_02_underground", "district_03_quarry",
         "district_04_ruins", "district_05_river", "district_06_catacombs",
         "district_07_treasury", "district_08_forecourt", "district_09_cathedral",
+        "district_10_bridge",
     };
 
     public const float MoveDuration = 0.5f;
@@ -244,6 +283,13 @@ public class CityMapController : MonoBehaviour
     Light fillLight;
     readonly System.Collections.Generic.List<Light> lanternLights = new System.Collections.Generic.List<Light>();
     readonly Renderer[] groundRenderers = new Renderer[DistrictCount + 1];
+    // 選択中に発光させる Renderer 群(既定は地面 1 枚。区画 10 だけ橋本体も含む)。
+    readonly Renderer[][] glowRenderers = new Renderer[DistrictCount + 1][];
+    // 材質そのものの _BaseColor(素の色)。MPB で色を入れ直すときの基準にする。
+    // v5_wall_face のように _BaseColor が白でない材質(テクスチャ無しの無地石)があり、
+    // 白を基準にすると 4 倍明るくなって白飛びする(区画 10 の石橋で実際に起きた。2026-09-19)。
+    readonly System.Collections.Generic.Dictionary<Renderer, Color> materialBaseColor =
+        new System.Collections.Generic.Dictionary<Renderer, Color>();
     readonly Renderer[][] districtRenderers = new Renderer[DistrictCount + 1][];
     readonly float[] glowWeight = new float[DistrictCount + 1];
     readonly bool[] available = new bool[DistrictCount + 1];
@@ -670,8 +716,10 @@ public class CityMapController : MonoBehaviour
             Transform parent = FindDeep(cityRoot, DistrictParents[d]);
             if (parent == null) continue;
             districtRenderers[d] = parent.GetComponentsInChildren<Renderer>(true);
+            foreach (Renderer r in districtRenderers[d]) RememberBaseColor(r);
             Transform ground = FindDeep(parent, string.Format("district_{0:00}_ground", d));
             if (ground != null) groundRenderers[d] = ground.GetComponent<Renderer>();
+            glowRenderers[d] = BuildGlowGroup(parent, d);
         }
 
         // ---- カメラ ----
@@ -720,6 +768,39 @@ public class CityMapController : MonoBehaviour
 
         ApplyView(Overview);
         ApplyExposure();
+    }
+
+    // 材質の素の _BaseColor を覚えておく(MPB を入れる前の値)。
+    void RememberBaseColor(Renderer r)
+    {
+        if (r == null || materialBaseColor.ContainsKey(r)) return;
+        Material m = r.sharedMaterial;
+        materialBaseColor[r] = m != null && m.HasProperty(BaseColorId) ? m.GetColor(BaseColorId) : Color.white;
+    }
+
+    // 素の色に倍率を掛ける(アルファは素のまま)。
+    Color TintedBase(Renderer r, Color factor)
+    {
+        Color b = materialBaseColor.TryGetValue(r, out Color c) ? c : Color.white;
+        return new Color(b.r * factor.r, b.g * factor.g, b.b * factor.b, b.a);
+    }
+
+    // 選択中に光らせる Renderer 群を作る。既定は区画の地面 1 枚だけ。
+    // 区画 10 は地面が橋の下の水面にあって見えないので、橋本体のメッシュも足す。
+    Renderer[] BuildGlowGroup(Transform parent, int district)
+    {
+        var list = new System.Collections.Generic.List<Renderer>();
+        if (groundRenderers[district] != null) list.Add(groundRenderers[district]);
+        if (district == 10)
+        {
+            foreach (string n in Bridge10GlowRenderers)
+            {
+                Transform t = FindDeep(parent, n);
+                Renderer r = t != null ? t.GetComponent<Renderer>() : null;
+                if (r != null) list.Add(r);
+            }
+        }
+        return list.ToArray();
     }
 
     // 街灯・門灯の点光源。FBX には Blender の POINT ライトと同じ位置に空オブジェクト
@@ -1062,7 +1143,8 @@ public class CityMapController : MonoBehaviour
                 if (r == null) continue;
                 r.GetPropertyBlock(mpb);
                 float k = DarkenFactor(r.name);
-                mpb.SetColor(BaseColorId, k < 1f ? new Color(baseTint.r * k, baseTint.g * k, baseTint.b * k, baseTint.a) : baseTint);
+                Color f = k < 1f ? new Color(baseTint.r * k, baseTint.g * k, baseTint.b * k, baseTint.a) : baseTint;
+                mpb.SetColor(BaseColorId, TintedBase(r, f));
                 mpb.SetColor(EmissionId, emis);
                 r.SetPropertyBlock(mpb);
             }
@@ -1081,13 +1163,20 @@ public class CityMapController : MonoBehaviour
         float pulse = 1f + 0.025f * Mathf.Sin(time * 2.0f);
         for (int d = 1; d <= DistrictCount; d++)
         {
-            Renderer ground = groundRenderers[d];
-            if (ground == null) continue;
+            Renderer[] group = glowRenderers[d];
+            if (group == null || group.Length == 0) continue;
             float w = glowWeight[d] * pulse;
-            Color c = Color.Lerp(available[d] ? Color.white : dimTint, glowTint, Mathf.Clamp01(w));
-            ground.GetPropertyBlock(mpb);
-            mpb.SetColor(BaseColorId, c);
-            ground.SetPropertyBlock(mpb);
+            Color tint = d == 10 ? bridgeGlowTint : glowTint;
+            Color c = Color.Lerp(available[d] ? Color.white : dimTint, tint, Mathf.Clamp01(w));
+            foreach (Renderer r in group)
+            {
+                if (r == null) continue;
+                float k = DarkenFactor(r.name);
+                Color f = k < 1f ? new Color(c.r * k, c.g * k, c.b * k, c.a) : c;
+                r.GetPropertyBlock(mpb);
+                mpb.SetColor(BaseColorId, TintedBase(r, f));
+                r.SetPropertyBlock(mpb);
+            }
         }
     }
 

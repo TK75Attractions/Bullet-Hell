@@ -145,7 +145,7 @@ public class CitySelectView : MonoBehaviour
         // 街の描画役(3D)は Canvas のスケールを受けないようシーンのルートへ置く。
         GameObject rig = new GameObject("CityMapRig");
         map = rig.AddComponent<CityMapController>();
-        map.cityPrefab = Resources.Load<GameObject>("CityCG/CityMap_v5");
+        map.cityPrefab = Resources.Load<GameObject>("CityCG/CityMap_v6b");
         map.targetTexture = Resources.Load<RenderTexture>("CityCG/CityMapRT");
         map.rendererIndex = 1;
 
