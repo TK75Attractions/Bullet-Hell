@@ -51,19 +51,19 @@ public class PlayHudController : MonoBehaviour
 
     // レイアウト定数(1080p ref・キャンバス中心原点)。全要素は帯の中心線に乗せる。
     private const float BandH = 104f;
-    private const float RowY = 488f;            // 540(上端) - BandH/2
+    private const float RowY = 490f;            // 540(上端) - v11 の進捗バー中心 y=50
     // 登場時に HUD 全体(帯+曲名バー)を上から滑り込ませる距離(canvas px)。
     // AnimateHUDIn の 70px を継ぎ、額縁フェード/カメラズームと同じ eased 値で降ろす。
     private const float HudSlideY = 56f;
-    private const float CardH = 72f;
-    private const float HitCardW = 220f;
-    private const float ScoreCardW = 320f;
-    private const float TrackW = 620f;
-    private const float TrackH = 26f;
+    private const float CardH = 72f;           // v11: y 14..86
+    private const float HitCardW = 244f;       // v11: x 28..272
+    private const float ScoreCardW = 300f;     // v11: x 300..600
+    private const float TrackW = 818f;         // v11: x 658..1476
+    private const float TrackH = 34f;          // v11: y 33..67
     // 曲名パネルは右端 930 を保ったまま左へ延長し、バーとの空白を詰める
     // (oracle レビュー「右側の空白が広い」)。
-    private const float SongPanelW = 340f;
-    private const float SongPanelCenterX = 760f; // 右端 930 - W/2
+    private const float SongPanelW = 368f;      // v11: x 1524..1892
+    private const float SongPanelCenterX = 748f; // 中心 1708 - 960
 
     private TMP_FontAsset font;
 
@@ -76,8 +76,9 @@ public class PlayHudController : MonoBehaviour
 
     // (b) 進捗バー
     private RectTransform barBack;
-    private ParallelogramGraphic barFillPara;
-    private Image barFillGlow;      // フィル先端のシアン発光
+    private ParallelogramGraphic barFillPara;   // 旧 19° フィル(v11 では使わない)
+    private Image barFill;          // v11 の水平な黄色フィル
+    private Image barFillGlow;
     private TMP_Text barTimeText;   // 0:54 / 1:22
     private float fillSkew;
     private float fillMaxInk;
@@ -104,7 +105,9 @@ public class PlayHudController : MonoBehaviour
 
     // 右端の曲名パネル(曲名は中央揃え、♪アイコンはインク幅に追従)
     private Image songBg;
-    private TMP_Text songNameText;
+    private TMP_Text songNameText;      // シーン既定のテキスト(v11 では非表示)
+    private TMP_Text songTitleText;     // v11 の曲名(ふりがな付き)
+    private HighlandUi.RubyText songRuby;
     private RectTransform songIconRect;
     private string lastSongText;
 
@@ -203,34 +206,31 @@ public class PlayHudController : MonoBehaviour
         Image bandBg = NewImage("BandBg", bandRoot, BandNavy);
         StretchFull(bandBg.rectTransform);
 
-        // 帯下辺: 銀エッジ+その上の青アクセント(リザルトのヘッダー帯の金属
-        // エッジ+ボタン下辺発光の語彙)。
-        Image edgeBlue = NewImage("BandEdgeBlue", bandRoot, new Color(FillBlue.r, FillBlue.g, FillBlue.b, 0.40f));
-        AnchorBottomStretch(edgeBlue.rectTransform, 2f, 1.5f);
-        Image edgeSilver = NewImage("BandEdgeSilver", bandRoot, BandEdgeSilver);
-        AnchorBottomStretch(edgeSilver.rectTransform, 0f, 2f);
+        // 帯下辺(v11): 金の細罫を中央で切り、白い中空の菱形を置く。
+        Image bottomRule = NewImage("BandBottomRule", bandRoot, new Color(1f, 1f, 1f, 0.95f));
+        bottomRule.sprite = HighlandUi.FlatRule(1920, 10, 1.3f, new Color32(0xF3, 0xDC, 0x6B, 0xFF),
+            ownedTextures, ownedSprites, "HudBottomRule");
+        SetBand(bottomRule.rectTransform, 960f, 99f, 1920f, 10f);
+        Image bottomGap = NewImage("BandBottomGap", bandRoot, new Color(0f, 0f, 0f, 0f));
+        SetBand(bottomGap.rectTransform, 960f, 99f, 22f, 10f);
+        Image bottomGem = NewImage("BandBottomGem", bandRoot, Color.white);
+        bottomGem.sprite = HighlandUi.DiamondRect(9, 8, false, 1.45f,
+            ownedTextures, ownedSprites, "HudBottomGem");
+        SetBand(bottomGem.rectTransform, 960f, 99f, 9f, 8f);
 
         // ---- 左: 被弾/スコアのミニカード ----
-        Sprite hitPanel = UiButtonStyle.CreateHudPanelSprite((int)HitCardW, (int)CardH,
-            ownedTextures, ownedSprites, "HudHitPanel");
-        Sprite scorePanel = UiButtonStyle.CreateHudPanelSprite((int)ScoreCardW, (int)CardH,
-            ownedTextures, ownedSprites, "HudScorePanel");
-        float hitCx = -960f + 28f + HitCardW * 0.5f;
-        float scoreCx = -960f + 28f + HitCardW + 12f + ScoreCardW * 0.5f;
+        Sprite hitPanel = V11Plate((int)HitCardW, "HudHitPanel");
+        Sprite scorePanel = V11Plate((int)ScoreCardW, "HudScorePanel");
+        float hitCx = 150f - 960f;              // v11: x 28..272
+        float scoreCx = 450f - 960f;            // v11: x 300..600
         hitValue = BuildStatCard("HitCard", hitPanel, hitCx, HitCardW,
-            "被弾", "HIT", "UI/result_icon_hit");
+            "[当|あ]たった[回数|かいすう]", 18.5f, 0.8f);
         hitLabel = lastBuiltLabel;
         scoreValue = BuildStatCard("ScoreCard", scorePanel, scoreCx, ScoreCardW,
-            "スコア", "SCORE", "UI/result_icon_score");
+            "スコア", 20.5f, 2f);
         scoreLabel = lastBuiltLabel;
 
-        // ---- 仕切りのスラッシュ対(カード群/バー間、バー/曲名間) ----
-        // 右セパレータ(548)は 2P で隠して +352 の鏡像へ置き換えるため参照を保持。
-        // 呼び出し内容は AddSeparator(548f) と同一(1P では見た目不変)。
-        AddSeparator(-352f);
-        sepRightA = UiButtonStyle.AddSlash(bandRoot, "SepSlashA", new Color(1f, 1f, 1f, 0.9f), 548f, 6f, 44f);
-        sepRightB = UiButtonStyle.AddSlash(bandRoot, "SepSlashB",
-            new Color(CyanBright.r, CyanBright.g, CyanBright.b, 0.55f), 548f + 16f, 2.5f, 44f);
+        // v11 は 19° のスラッシュ仕切りを持たない(各札が枠で分かれている)。
 
         // ---- 中央: 曲進捗バー(平行四辺形トラック+フィル) ----
         Transform bb = transform.Find("BarBack");
@@ -238,51 +238,52 @@ public class PlayHudController : MonoBehaviour
         {
             barBack = (RectTransform)bb;
             // シーン直下(キャンバス中心アンカー)なので y はキャンバス座標で与える。
-            barBack.anchoredPosition = new Vector2(-10f, RowY);
+            // v11: x 658..1476 の中心 = 1067 → キャンバス中心基準で +107。
+            barBack.anchoredPosition = new Vector2(107f, RowY);
             barBack.sizeDelta = new Vector2(TrackW, TrackH);
             Image bbImg = bb.GetComponent<Image>();
             if (bbImg != null)
             {
-                bbImg.sprite = UiButtonStyle.CreateHudPanelSprite((int)TrackW, (int)TrackH,
-                    ownedTextures, ownedSprites, "HudTrackPanel");
+                bbImg.sprite = HighlandUi.NotchPanel((int)TrackW, (int)TrackH, 5f, true,
+                    ownedTextures, ownedSprites, "HudTrackPanelV11", 4f, 1.1f, 0.7f, 0.2f, 2);
                 bbImg.type = Image.Type.Simple;
                 bbImg.color = Color.white;
             }
-            // 旧フィル(矩形 Image)は使わず、トラックの斜辺に平行な
-            // ParallelogramGraphic で左から伸ばす。
+            // 旧フィル(矩形 Image)と 19° の斜辺はやめ、v11 の水平な黄色バーにする。
             Transform bf = bb.Find("BarFill");
             if (bf != null) bf.gameObject.SetActive(false);
             const float fillH = 16f;
-            fillSkew = fillH * Mathf.Tan(UiButtonStyle.SlashAngleDeg * Mathf.Deg2Rad);
-            fillMaxInk = TrackW - 12f - fillSkew;
-            barFillPara = UiButtonStyle.AddSlash(barBack, "Fill", FillBlue, 0f, 0.1f, fillH);
-            RectTransform fr = barFillPara.rectTransform;
-            fr.anchorMin = fr.anchorMax = new Vector2(0f, 0.5f);
-            fr.pivot = new Vector2(0f, 0.5f);
-            fr.anchoredPosition = new Vector2(6f, 0f);
-            // フィル先端のシアン発光(斜辺に合わせて 19° 傾ける)。
-            barFillGlow = NewImage("FillGlow", barBack, new Color(CyanBright.r, CyanBright.g, CyanBright.b, 0.9f));
-            barFillGlow.rectTransform.anchorMin = new Vector2(0f, 0.5f);
-            barFillGlow.rectTransform.anchorMax = new Vector2(0f, 0.5f);
-            barFillGlow.rectTransform.pivot = new Vector2(0.5f, 0.5f);
-            barFillGlow.rectTransform.sizeDelta = new Vector2(3f, fillH + 4f);
-            barFillGlow.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -UiButtonStyle.SlashAngleDeg);
+            fillSkew = 0f;
+            fillMaxInk = 786f;                       // v11: x 674..1460
+            Image track = NewImage("TrackBase", barBack, new Color(1f, 1f, 1f, 0.10f));
+            track.rectTransform.anchorMin = track.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            track.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            track.rectTransform.sizeDelta = new Vector2(fillMaxInk, fillH);
+            barFillPara = null;
+            barFill = NewImage("Fill", barBack, Color.white);
+            barFill.sprite = HighlandUi.HorizontalBar(ownedTextures, ownedSprites);
+            barFill.rectTransform.anchorMin = barFill.rectTransform.anchorMax = new Vector2(0f, 0.5f);
+            barFill.rectTransform.pivot = new Vector2(0f, 0.5f);
+            barFill.rectTransform.anchoredPosition = new Vector2(16f, 0f);
+            barFill.rectTransform.sizeDelta = new Vector2(0f, fillH);
+            barFillGlow = null;
 
-            // 経過/全体の時刻テキスト(バー右端の外側)。
-            barTimeText = NewText("BarTime", barBack, "0:00 / 0:00", 20f,
-                new Color(0.72f, 0.86f, 0.95f, 0.9f), TextAlignmentOptions.Left);
+            // 経過/全体の時刻テキスト(バー右端の外側。v11 の絵には無いが残す)。
+            barTimeText = NewText("BarTime", barBack, "0:00 / 0:00", 18f,
+                new Color(0.88f, 0.88f, 0.88f, 0.85f), TextAlignmentOptions.Left);
+            // v11 の絵には無い項目なので、バーの右上(枠の外)へ小さく逃がす
+            // (右の曲名札と重ねない。2026-09-19 U7 の既定)。
+            barTimeText.alignment = TextAlignmentOptions.Right;
             RectTransform tr = (RectTransform)barTimeText.transform;
-            tr.anchorMin = new Vector2(1f, 0.5f);
-            tr.anchorMax = new Vector2(1f, 0.5f);
-            tr.pivot = new Vector2(0f, 0.5f);
-            tr.anchoredPosition = new Vector2(14f, 0f);
-            tr.sizeDelta = new Vector2(220f, 30f);
-            inkCenterLabels.Add(barTimeText);
+            tr.anchorMin = tr.anchorMax = new Vector2(1f, 1f);
+            tr.pivot = new Vector2(1f, 0f);
+            tr.anchoredPosition = new Vector2(-2f, 1f);
+            tr.sizeDelta = new Vector2(220f, 24f);
+            barTimeText.fontSize = 15f;
         }
 
         // ---- 右: 曲名パネル(カードと同型のパネルに ♪+曲名を中央配置) ----
-        Sprite songPanel = UiButtonStyle.CreateHudPanelSprite((int)SongPanelW, (int)CardH,
-            ownedTextures, ownedSprites, "HudSongPanel");
+        Sprite songPanel = V11Plate((int)SongPanelW, "HudSongPanel");
         songBg = NewImage("SongPanel", bandRoot, Color.white);
         songBg.sprite = songPanel;
         songBg.type = Image.Type.Simple;
@@ -290,16 +291,39 @@ public class PlayHudController : MonoBehaviour
         songBg.rectTransform.pivot = new Vector2(0.5f, 0.5f);
         songBg.rectTransform.anchoredPosition = new Vector2(SongPanelCenterX, 0f);
         songBg.rectTransform.sizeDelta = new Vector2(SongPanelW, CardH);
+        // 札の中の細罫 + 菱形(左右のカードと同じ)。
+        {
+            Image rule = NewImage("Rule", songBg.rectTransform, Color.white);
+            rule.sprite = HighlandUi.FadeRule((int)(SongPanelW - 52f), 10, 0.75f, 16f,
+                new[] { 0f, 0.25f, 0.5f, 0.75f, 1f },
+                new[] { new Color32(0xFF, 0xE1, 0x6A, 0xFF), new Color32(0xFF, 0xE1, 0x6A, 0xFF),
+                        new Color32(0xFF, 0xE1, 0x6A, 0xFF), new Color32(0xFF, 0xE1, 0x6A, 0xFF),
+                        new Color32(0xFF, 0xE1, 0x6A, 0xFF) },
+                new[] { 0f, 0.4f, 0.55f, 0.4f, 0f },
+                ownedTextures, ownedSprites, "HudSongRule");
+            SetLocal(rule.rectTransform, 0f, -23f, SongPanelW - 52f, 10f);
+            Image gem = NewImage("Gem", songBg.rectTransform, new Color(1f, 0.882f, 0.416f, 1f));
+            gem.sprite = HighlandUi.DiamondRect(10, 13, false, 1.5f, ownedTextures, ownedSprites, "HudSongGem");
+            SetLocal(gem.rectTransform, 0f, -23f, 9.6f, 12.4f);
+        }
+
         if (songNameText != null)
         {
-            songNameText.alignment = TextAlignmentOptions.Center;
-            // 曲名だけ1段大きく明るく見える不均衡を抑える(48→40px・白を一段減光)。
-            songNameText.fontSize = 40f;
-            songNameText.color = SongWhite;
-            RectTransform nr = (RectTransform)songNameText.transform;
-            nr.anchoredPosition = new Vector2(SongPanelCenterX + 12f, RowY);
-            // 曲名は和文になり得る。基準 y(RowY=帯中心線)を確定させた後に登録。
-            inkCenterLabels.Add(songNameText);
+            // v11: 曲名は札の中央・25px の明朝(太)+ ふりがな。
+            songNameText.gameObject.SetActive(false);
+            songRuby = HudRuby("SongName", bandRoot, "", 25f, HighlandUi.InkSoft,
+                TextAlignmentOptions.Center, 3f, true);
+            songTitleText = songRuby.Body;
+            SetBand((RectTransform)songTitleText.transform, 1735f, 46.5f, 300f, 40f);
+        }
+        // ♪ アイコン(v11: x 1549..1582 / y 29..67)。SongIcon は帯ではなく
+        // PlayHUD 直下(キャンバス座標)にあるので、そちらの系で置く。
+        if (songIconRect != null)
+        {
+            songIconRect.anchorMin = songIconRect.anchorMax = new Vector2(0.5f, 0.5f);
+            songIconRect.pivot = new Vector2(0.5f, 0.5f);
+            songIconRect.anchoredPosition = new Vector2(1563f - 960f, 540f - 48f);
+            songIconRect.sizeDelta = new Vector2(30f, 38f);
         }
 
         // ---- 額装(プレイ領域フレーム) ----
@@ -415,10 +439,16 @@ public class PlayHudController : MonoBehaviour
         rect.sizeDelta = size;
     }
 
-    // ステータスミニカード: 平行四辺形パネル(銀枠+半透明紺)+左のアイコン+
-    // 和文ラベル(シアン英字添え)+右寄せの白数値。リザルトカードの帯内縮小版。
+    // v11 の札: 地は無く、四隅をえぐった金の枠 + 内側の銀線。中にふりがな付きの
+    // ラベル(左)と白い数値(右)、下寄りに両端が消える金の細罫と中空の菱形。
+    private Sprite V11Plate(int width, string name)
+    {
+        return HighlandUi.NotchPanel(width, (int)CardH, 6f, true,
+            ownedTextures, ownedSprites, name, 4f, 1.15f, 0.7f, 0f, 3);
+    }
+
     private TMP_Text BuildStatCard(string name, Sprite panel, float centerX, float width,
-        string jp, string en, string iconResource)
+        string labelMarkup, float labelSvgSize, float labelTracking)
     {
         GameObject go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
         go.layer = gameObject.layer;
@@ -434,56 +464,72 @@ public class PlayHudController : MonoBehaviour
         bg.color = Color.white;
         bg.raycastTarget = false;
 
-        // 左のアイコン(リザルトカードと同じ Material Symbols 資産)。
-        Sprite iconSprite = Resources.Load<Sprite>(iconResource);
-        float labelX = -width * 0.5f + 30f;
-        if (iconSprite != null)
-        {
-            Image icon = NewImage("Icon", rect, IconWarm);
-            icon.sprite = iconSprite;
-            icon.type = Image.Type.Simple;
-            icon.rectTransform.anchorMin = icon.rectTransform.anchorMax = new Vector2(0f, 0.5f);
-            icon.rectTransform.pivot = new Vector2(0.5f, 0.5f);
-            icon.rectTransform.anchoredPosition = new Vector2(38f, 0f);
-            icon.rectTransform.sizeDelta = new Vector2(26f, 26f);
-            labelX = -width * 0.5f + 58f;
-        }
+        // 札の中の細罫(両端が消える金)+ 中空の菱形。y=75 は帯座標で -23。
+        Image rule = NewImage("Rule", rect, Color.white);
+        rule.sprite = HighlandUi.FadeRule((int)(width - 52f), 10, 0.75f, 16f,
+            new[] { 0f, 0.25f, 0.5f, 0.75f, 1f },
+            new[] { new Color32(0xFF, 0xE1, 0x6A, 0xFF), new Color32(0xFF, 0xE1, 0x6A, 0xFF),
+                    new Color32(0xFF, 0xE1, 0x6A, 0xFF), new Color32(0xFF, 0xE1, 0x6A, 0xFF),
+                    new Color32(0xFF, 0xE1, 0x6A, 0xFF) },
+            new[] { 0f, 0.4f, 0.55f, 0.4f, 0f },
+            ownedTextures, ownedSprites, name + "Rule");
+        SetLocal(rule.rectTransform, 0f, -23f, width - 52f, 10f);
+        Image gem = NewImage("Gem", rect, new Color(1f, 0.882f, 0.416f, 1f));
+        gem.sprite = HighlandUi.DiamondRect(10, 13, false, 1.5f, ownedTextures, ownedSprites, name + "Gem");
+        SetLocal(gem.rectTransform, 0f, -23f, 9.6f, 12.4f);
 
-        // ラベル(JP 白グレー + シアン英字)。英字はリザルトの #38C2E0 より一段
-        // 明るい #42E4FF(輝度+約17%)。12px と小さく弾幕上の帯に載るため、同値だと
-        // リザルトより暗い階層に見える(oracle 提案 2026-07-12)。
-        TMP_Text label = NewText("Label", rect, jp + " <size=12><color=#42E4FF>" + en + "</color></size>",
-            19f, LabelGray, TextAlignmentOptions.Left);
+        // ラベル(ふりがな付き・左寄せ)。
+        HighlandUi.RubyText labelRuby = HudRuby(name + "Label", rect, labelMarkup, labelSvgSize,
+            HighlandUi.Ink, TextAlignmentOptions.Left, labelTracking);
+        TMP_Text label = labelRuby.Body;
         RectTransform lr = (RectTransform)label.transform;
-        lr.anchorMin = lr.anchorMax = new Vector2(0.5f, 0.5f);
+        lr.anchorMin = lr.anchorMax = new Vector2(0f, 0.5f);
         lr.pivot = new Vector2(0f, 0.5f);
-        lr.anchoredPosition = new Vector2(labelX, 0f);
-        lr.sizeDelta = new Vector2(width - 150f, 30f);
+        lr.sizeDelta = new Vector2(width - 60f, labelSvgSize * 1.6f);
+        lr.anchoredPosition = new Vector2(25f, 5f);
 
-        // 数値(白・右寄せ。斜辺を避けて右マージン 24)。
-        TMP_Text value = NewText("Value", rect, "0", 29f, ValueWhite, TextAlignmentOptions.Right);
+        // 数値(白・右寄せ)。
+        TMP_Text value = NewText("Value", rect, "0", 24f, HighlandUi.InkSoft, TextAlignmentOptions.Right);
         RectTransform vr = (RectTransform)value.transform;
         vr.anchorMin = vr.anchorMax = new Vector2(1f, 0.5f);
         vr.pivot = new Vector2(1f, 0.5f);
-        vr.anchoredPosition = new Vector2(-24f, 0f);
+        vr.anchoredPosition = new Vector2(-27f, -8f);
         vr.sizeDelta = new Vector2(170f, 36f);
-        value.characterSpacing = 2f;
+        value.characterSpacing = 1.5f / 24f * 100f;
 
-        inkCenterLabels.Add(label);
-        inkCenterLabels.Add(value);
         lastBuiltLabel = label;
         return value;
     }
 
-    // 仕切りのスラッシュ対(白の主線+シアンの細い補助線、19°、帯の中心線に配置)。
-    // リザルトの「白主線+青アクセント」の語彙(oracle レビューで補助線を
-    // 白→シアンへ)。
-    private void AddSeparator(float centerX)
+    // 帯(1920x104)の SVG 座標で置く。
+    private static void SetBand(RectTransform rt, float svgCx, float svgCy, float w, float h)
     {
-        const float h = 44f;
-        UiButtonStyle.AddSlash(bandRoot, "SepSlashA", new Color(1f, 1f, 1f, 0.9f), centerX, 6f, h);
-        UiButtonStyle.AddSlash(bandRoot, "SepSlashB",
-            new Color(CyanBright.r, CyanBright.g, CyanBright.b, 0.55f), centerX + 16f, 2.5f, h);
+        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = new Vector2(svgCx - 960f, 52f - svgCy);
+        rt.sizeDelta = new Vector2(w, h);
+    }
+
+    private static void SetLocal(RectTransform rt, float x, float y, float w, float h)
+    {
+        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = new Vector2(x, y);
+        rt.sizeDelta = new Vector2(w, h);
+    }
+
+    // HUD は 1920x104 の等倍なので、HighlandUi の 1.1483 倍を打ち消して使う。
+    private readonly List<HighlandUi.RubyText> rubies = new List<HighlandUi.RubyText>();
+    private bool rubiesPlaced;
+
+    private HighlandUi.RubyText HudRuby(string name, Transform parent, string markup, float svgSize,
+        Color color, TextAlignmentOptions align, float tracking, bool bold = false)
+    {
+        HighlandUi.RubyText r = HighlandUi.Ruby(name, parent, markup, svgSize / HighlandUi.S,
+            color, align, bold, tracking / HighlandUi.S);
+        rubies.Add(r);
+        rubiesPlaced = false;
+        return r;
     }
 
     // 2P レイアウトの遅延構築(Playing かつ twoPlayer を最初に検出した Update から 1 度)。
@@ -496,29 +542,22 @@ public class PlayHudController : MonoBehaviour
         twoPlayerBuilt = true;
 
         // ---- 右: P2 の被弾/スコア(左 P1 の鏡像・外=被弾/内=スコア) ----
-        Sprite hitPanel2 = UiButtonStyle.CreateHudPanelSprite((int)HitCardW, (int)CardH,
-            ownedTextures, ownedSprites, "HudHitPanel2");
-        Sprite scorePanel2 = UiButtonStyle.CreateHudPanelSprite((int)ScoreCardW, (int)CardH,
-            ownedTextures, ownedSprites, "HudScorePanel2");
-        float hitCx2 = 960f - 28f - HitCardW * 0.5f;
-        float scoreCx2 = 960f - 28f - HitCardW - 12f - ScoreCardW * 0.5f;
+        Sprite hitPanel2 = V11Plate((int)HitCardW, "HudHitPanel2");
+        Sprite scorePanel2 = V11Plate((int)ScoreCardW, "HudScorePanel2");
+        float hitCx2 = 960f - 150f;             // 左 P1 の鏡像
+        float scoreCx2 = 960f - 450f;
         scoreValue2 = BuildStatCard("ScoreCard2", scorePanel2, scoreCx2, ScoreCardW,
-            "スコア", "SCORE", "UI/result_icon_score");
+            "スコア", 20.5f, 2f);
         TMP_Text scoreLabel2 = lastBuiltLabel;
         hitValue2 = BuildStatCard("HitCard2", hitPanel2, hitCx2, HitCardW,
-            "被弾", "HIT", "UI/result_icon_hit");
+            "[当|あ]たった[回数|かいすう]", 18.5f, 0.8f);
         TMP_Text hitLabel2 = lastBuiltLabel;
 
-        // プレイヤータグ(1P=温色 / 2P=シアン)。EN サブラベルは 2P で外し余白を確保。
-        ApplyPlayerTag(hitLabel, "被弾", true);
-        ApplyPlayerTag(scoreLabel, "スコア", true);
-        ApplyPlayerTag(hitLabel2, "被弾", false);
-        ApplyPlayerTag(scoreLabel2, "スコア", false);
-
-        // ---- 仕切り: 右セパレータ(548)を隠して +352 の鏡像へ ----
-        if (sepRightA != null) sepRightA.gameObject.SetActive(false);
-        if (sepRightB != null) sepRightB.gameObject.SetActive(false);
-        AddSeparator(352f);
+        // プレイヤータグ(1P=温色 / 2P=シアン)。
+        ApplyPlayerTag(hitLabel, "P1", true);
+        ApplyPlayerTag(scoreLabel, "P1", true);
+        ApplyPlayerTag(hitLabel2, "P2", false);
+        ApplyPlayerTag(scoreLabel2, "P2", false);
 
         // ---- 曲名: 右パネルを畳み、中央バー直上の小見出しへ ----
         if (songBg != null) songBg.gameObject.SetActive(false);
@@ -527,11 +566,17 @@ public class PlayHudController : MonoBehaviour
         {
             // oracle 指摘: 曲名が小さく進捗バーの飾り文字に近い。中央軸としての存在感を
             // 少し戻すため一段拡大(22→25)。バー幅・位置は不変。
-            songNameText.fontSize = 25f;
-            songNameText.alignment = TextAlignmentOptions.Center;
-            RectTransform nr = (RectTransform)songNameText.transform;
-            nr.anchoredPosition = new Vector2(-10f, RowY + 30f); // 進捗バー(-10,RowY)の直上
-            nr.sizeDelta = new Vector2(TrackW, 28f);
+            // v11: 2P では曲名札を畳んで、進捗バーの直上へ小さく置く。
+            if (songTitleText != null)
+            {
+                songTitleText.fontSize = 20f;
+                RectTransform nr = (RectTransform)songTitleText.transform;
+                nr.anchorMin = nr.anchorMax = new Vector2(0.5f, 0.5f);
+                nr.pivot = new Vector2(0.5f, 0.5f);
+                nr.anchoredPosition = new Vector2(107f, 30f);
+                nr.sizeDelta = new Vector2(TrackW, 26f);
+                rubiesPlaced = false;
+            }
         }
 
         // ---- バー時刻: バー直下の中央へ(1P では右外だが 2P は P2 カードと被る) ----
@@ -549,13 +594,18 @@ public class PlayHudController : MonoBehaviour
         inkCentered = false;
     }
 
-    // ラベルへ P1/P2 タグ(トーン色つき)を付与する。2P では EN サブラベルを外す。
-    private void ApplyPlayerTag(TMP_Text label, string jp, bool isP1)
+    // ラベルの上に小さく P1/P2 のタグを出す(v11 の絵には無い。2P 用の既定)。
+    private void ApplyPlayerTag(TMP_Text label, string tag, bool isP1)
     {
         if (label == null) return;
-        string tone = isP1 ? "#FFCC66" : "#73D9FF";
-        string tag = isP1 ? "P1" : "P2";
-        label.text = "<color=" + tone + "><size=15>" + tag + "</size></color> " + jp;
+        TMP_Text t = HighlandUi.Text(tag, label.transform.parent, tag, 13f / HighlandUi.S,
+            isP1 ? new Color(1f, 0.80f, 0.40f, 1f) : new Color(0.45f, 0.85f, 1f, 1f),
+            TextAlignmentOptions.Right, false, 0f);
+        RectTransform rt = (RectTransform)t.transform;
+        rt.anchorMin = rt.anchorMax = new Vector2(1f, 0.5f);
+        rt.pivot = new Vector2(1f, 0.5f);
+        rt.sizeDelta = new Vector2(60f, 20f);
+        rt.anchoredPosition = new Vector2(-27f, 16f);
     }
 
     private static void StretchFull(RectTransform rect)
@@ -630,29 +680,36 @@ public class PlayHudController : MonoBehaviour
             inkCentered = all;
         }
 
-        // 曲名パネル内: ♪アイコンをインク幅に追従させて文字の左に置く。
-        if (songNameText != null && songIconRect != null && songNameText.text != lastSongText)
+        // 曲名(v11): シーン既定のテキストが差し替わったら、ふりがな付きへ写す。
+        if (songNameText != null && songRuby != null && songNameText.text != lastSongText)
         {
             lastSongText = songNameText.text;
-            // 曲名が変わったらインク中心も変わる(和文/欧文混在)ので再補正。
-            TmpAlign.CenterInkVertically(songNameText);
-            songNameText.ForceMeshUpdate();
-            songIconRect.anchoredPosition = new Vector2(
-                SongPanelCenterX + 12f - songNameText.preferredWidth * 0.5f - 26f,
-                RowY);
+            songRuby.Apply(StageCityProfile.ReadingMarkup(lastSongText));
+            rubiesPlaced = false;
+        }
+
+        // ふりがなの実測合わせ(帯が出た後の初回)。
+        if (!rubiesPlaced)
+        {
+            bool allRuby = true;
+            for (int i = 0; i < rubies.Count; i++)
+            {
+                if (rubies[i] == null || rubies[i].Body == null) continue;
+                if (!rubies[i].Body.gameObject.activeInHierarchy) continue;
+                allRuby &= rubies[i].EnsurePlaced();
+            }
+            rubiesPlaced = allRuby;
         }
 
         // (b) 進捗バー。フィルはトラック斜辺に平行な平行四辺形を幅で伸ばす。
         float end = sr.EndTime;
         float cur = sr.CurrentTime;
         float progress = end > 0.001f ? Mathf.Clamp01(cur / end) : 0f;
-        if (barBack != null && barFillPara != null)
+        if (barBack != null && barFill != null)
         {
             float ink = fillMaxInk * progress;
-            RectTransform fr = barFillPara.rectTransform;
-            fr.sizeDelta = new Vector2(Mathf.Max(0.1f, ink) + fillSkew, fr.sizeDelta.y);
-            if (barFillGlow != null)
-                barFillGlow.rectTransform.anchoredPosition = new Vector2(6f + ink + fillSkew * 0.5f, 0f);
+            RectTransform fr = barFill.rectTransform;
+            fr.sizeDelta = new Vector2(Mathf.Max(0.1f, ink), fr.sizeDelta.y);
             if (barTimeText != null)
                 barTimeText.text = FormatTime(cur) + " / " + FormatTime(end);
         }

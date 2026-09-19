@@ -621,6 +621,29 @@ public static class HighlandUi
         return MakeSprite(px, W, H, name, ownedTex, ownedSpr);
     }
 
+    /// <summary>
+    /// HUD の進捗フィル(上から白 → 黄 → 落ち着いた黄の縦グラデ。v11 の H_Progress_Gradient)。
+    /// 横は 9-slice せず引き伸ばす。
+    /// </summary>
+    public static Sprite HorizontalBar(List<Texture2D> ownedTex, List<Sprite> ownedSpr,
+        string name = "V11Bar")
+    {
+        const int W = 4, H = 32;
+        Color32[] px = new Color32[W * H];
+        Color32 a = new Color32(0xFF, 0xFF, 0xFF, 0xFF);
+        Color32 b = new Color32(0xFF, 0xEA, 0x78, 0xFF);
+        Color32 c = new Color32(0xEA, 0xD0, 0x52, 0xFF);
+        for (int y = 0; y < H; y++)
+        {
+            float t = 1f - y / (float)(H - 1);     // 画面は y 上向き
+            Color32 col = t < 0.45f
+                ? Color32.Lerp(a, b, t / 0.45f)
+                : Color32.Lerp(b, c, (t - 0.45f) / 0.55f);
+            for (int x = 0; x < W; x++) px[y * W + x] = col;
+        }
+        return MakeSprite(px, W, H, name, ownedTex, ownedSpr);
+    }
+
     /// <summary>難易度の左端に出す細い縦帯(1 色のベタ)。</summary>
     public static Sprite SolidBar(List<Texture2D> ownedTex, List<Sprite> ownedSpr,
         string name = "V11Solid")
