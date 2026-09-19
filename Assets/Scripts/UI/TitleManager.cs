@@ -266,6 +266,7 @@ public class TitleManager : MonoBehaviour
     private CanvasGroup[] markerLabelCG = new CanvasGroup[0];
     private TMP_Text[] markerLabelTexts = new TMP_Text[0];
     private TMP_Text[] markerLabelShadows = new TMP_Text[0];
+    private TMP_Text[] markerLabelHalos = new TMP_Text[0];
     private float[] markerLabelAlpha = new float[0];
     private bool markerInkCentered;
     private bool objectMenuOn;
@@ -276,15 +277,13 @@ public class TitleManager : MonoBehaviour
     private TMP_FontAsset minchoFont;
     private bool minchoFontTried;
     // ▼の寸法・浮遊量・ラベルまでの距離(px・1920x1080 基準)。
-    // ▼は 12x8 ドットの三角を Point で整数倍に拡大したドット絵(第 14 便)。
-    // 第 15 便で一回り小さくした: 非選択 2px/ドット(24x16)、選択中 3px/ドット(36x24)。
-    // 中間の倍率は使わない(半端な倍率にするとドットの階段が不揃いになる)。
-    private const int MarkerArrowDotW = 12;
-    private const int MarkerArrowDotH = 8;
-    private const float MarkerArrowPixel = 2f;      // 1 ドットあたりの画面 px
-    private const float MarkerArrowPixelSel = 3f;   // 選択中
-    private const float MarkerArrowW = MarkerArrowDotW * MarkerArrowPixel;
-    private const float MarkerArrowH = MarkerArrowDotH * MarkerArrowPixel;
+    // 第 U8 便(2026-09-19 指示)で**ドット絵をやめ**、輪郭を滑らかに焼いた
+    // ベクター相当の三角にし、大きさも 0.75 倍にした。
+    // 旧: 12x8 ドット × 2px = 24x16(選択中 36x24)。
+    // 新: 18x12(選択中は同じ 1.5 倍で 27x18)。拡大は連続に補間する。
+    private const float MarkerArrowW = 18f;
+    private const float MarkerArrowH = 12f;
+    private const float MarkerArrowSelScale = 1.5f;
     private const float MarkerLift = 30f;     // 対象の上端から▼までの距離
     private const float MarkerFloatPx = 4f;   // 上下の浮遊
     private const float MarkerLabelGap = 40f; // ▼の中心からラベル中心まで
@@ -295,13 +294,19 @@ public class TitleManager : MonoBehaviour
     // 非選択も同じ白のまま alpha だけ落とす。
     private static readonly Color MarkerArrowInk = new Color(1f, 1f, 1f, 1f);
     private static readonly Color MarkerArrowInkDim = new Color(1f, 1f, 1f, 0.58f);
-    // ラベルは枠・帯・背景板なしの明朝体。白〜生成りの文字 1 枚と、その後ろに
-    // 1px ずらした暗い影 1 枚だけ(読みやすさのため)。
+    // ラベルは枠・帯・背景板なしの明朝体。白〜生成りの文字の後ろに暗い影を敷く。
     private static readonly Color MarkerLabelInk = new Color(0.976f, 0.961f, 0.918f, 1f);
-    // 縁取り(8 方向の暗縁)はやめ、右下 2px の落ち影 1 枚だけにする。
-    // 読みにくいときも縁は付けず、影を濃く/少し離す範囲で調整する。
-    private static readonly Color MarkerLabelShadow = new Color(0f, 0f, 0f, 0.60f);
-    private static readonly Vector2 MarkerLabelShadowOffset = new Vector2(2f, -2f);
+    // 第 U8 便(2026-09-19 指示「▼の上の文字が見づらい。特に設定」)。
+    // 右下の落ち影 1 枚では、ランタンの明るい炎の前に来る「設定」が読めなかった。
+    // 影を 2 枚にし、どちらも TMP のアウトライン(SDF の膨らませ)で太らせる:
+    //   ・Halo   … ずらさずに置く黒。文字の輪郭のすぐ外へ暗い縁を作る
+    //   ・Shadow … 右下 3px の落ち影
+    // 縁取りの線は足さない(様式は据え置き。あくまで影を濃く・少し広く)。
+    private static readonly Color MarkerLabelShadow = new Color(0f, 0f, 0f, 0.86f);
+    private static readonly Vector2 MarkerLabelShadowOffset = new Vector2(3f, -3f);
+    private static readonly Color MarkerLabelHalo = new Color(0f, 0f, 0f, 0.66f);
+    private const float MarkerLabelHaloDilate = 0.34f;   // TMP の outlineWidth
+    private const float MarkerLabelShadowDilate = 0.24f;
     // 字間 +4%。TMP の characterSpacing は 1/100em 単位なので 4 = +4%。
     private const float MarkerLabelSpacing = 4f;
     private const float MarkerLabelBoxW = 360f;  // 折り返さないための十分な幅
@@ -312,13 +317,18 @@ public class TitleManager : MonoBehaviour
     {
         Vector2.zero,             // スタート
         new Vector2(0f, 6f),      // 設定
-        new Vector2(62f, 4f),     // 引き継ぎ(ランタンの炎を外す)
+        Vector2.zero,             // 引き継ぎ(第 U8 便から▼の右へ置くので横ずらしは不要)
         Vector2.zero,             // ランキング
         Vector2.zero,             // 1P
         Vector2.zero,             // 2P
     };
     private static readonly string[] MarkerLabels =
         { "スタート", "設定", "引き継ぎ", "ランキング", "1P", "2P" };
+    // 第 U8 便(2026-09-19 指示)。「引き継ぎ」だけ▼の**右**へ置く
+    // (ランタンの炎の真上を避けるための横ずらしでは足りなかった)。他は▼の上のまま。
+    private static readonly bool[] MarkerLabelToRight =
+        { false, false, true, false, false, false };
+    private const float MarkerLabelRightGap = 16f;   // ▼の右端からラベルの左端まで
     // 投影点からの微調整(px・+y は上)。実フレームで詰めた値:
     // 引き継ぎ=手紙の真上はランタンの炎と重なって▼が読めないので封筒の右上へ、
     // ランキング=本の上ではなく一段上の棚板の前へ出す。
@@ -457,10 +467,22 @@ public class TitleManager : MonoBehaviour
         objectMenuOn = useObjectMenu;
         if (objectMenuOn)
         {
+            // 第 U8 便(2026-09-19 指示): ロゴは部屋の 3D 空間に立てた板
+            // (TitleRoomController.BuildLogoBoard)へ移した。カメラが寄ると
+            // 自然に画面の外へ出ていく。Canvas 上の 2D ロゴは両方とも下ろす。
+            if (room.HasLogoBoard)
+            {
+                if (sceneLogoRect != null) sceneLogoRect.gameObject.SetActive(false);
+                if (roomLogoRect != null) roomLogoRect.gameObject.SetActive(false);
+                logoRect = null;
+                room.SetLogoAlpha(1f);
+                room.SetLogoBob(0f);
+            }
             // ロゴは窓の中央上部へ(実測: 窓の中心は画面 x≈960・上端 y≈115)。
-            // 部屋モードでは新ロゴ(v2)を出し、旧ロゴは隠す(コードは残す)。
-            EnsureRoomLogo();
-            if (roomLogoRect != null)
+            // 板が作れなかったときだけ、従来どおり Canvas の新ロゴ(v2)を出す。
+            else { EnsureRoomLogo(); }
+            if (room.HasLogoBoard) { }
+            else if (roomLogoRect != null)
             {
                 if (sceneLogoRect != null) sceneLogoRect.gameObject.SetActive(false);
                 logoRect = roomLogoRect;
@@ -566,10 +588,11 @@ public class TitleManager : MonoBehaviour
         markerLabelCG = new CanvasGroup[n];
         markerLabelTexts = new TMP_Text[n];
         markerLabelShadows = new TMP_Text[n];
+        markerLabelHalos = new TMP_Text[n];
         markerLabelAlpha = new float[n];
 
         if (markerArrowSprite == null)
-            markerArrowSprite = CreatePixelDownTriangleSprite(MarkerArrowDotW, MarkerArrowDotH);
+            markerArrowSprite = CreateSmoothDownTriangleSprite();
 
         for (int i = 0; i < n; i++)
         {
@@ -599,7 +622,12 @@ public class TitleManager : MonoBehaviour
             label.anchorMin = label.anchorMax = new Vector2(0.5f, 0.5f);
             label.pivot = new Vector2(0.5f, 0.5f);
             Vector2 labelNudge = i < MarkerLabelOffset.Length ? MarkerLabelOffset[i] : Vector2.zero;
-            label.anchoredPosition = new Vector2(labelNudge.x, MarkerLabelGap + labelNudge.y);
+            bool toRight = i < MarkerLabelToRight.Length && MarkerLabelToRight[i];
+            label.anchoredPosition = toRight
+                // 右に置くときは、箱(幅 bandW)の左端が▼の右端 + 隙間に来るようにする。
+                ? new Vector2(MarkerArrowW * 0.5f * MarkerArrowSelScale + MarkerLabelRightGap
+                    + bandW * 0.5f + labelNudge.x, labelNudge.y)
+                : new Vector2(labelNudge.x, MarkerLabelGap + labelNudge.y);
             label.sizeDelta = new Vector2(bandW, MarkerLabelH);
             CanvasGroup cg = labelObj.GetComponent<CanvasGroup>();
             cg.alpha = 0f;
@@ -607,16 +635,24 @@ public class TitleManager : MonoBehaviour
             cg.interactable = false;
             markerLabelCG[i] = cg;
 
-            // 落ち影 1 枚(右下)。先に作った子ほど奥に描かれるので本体より前に作る。
+            // 影 2 枚(落ち影 → 輪郭のハロ)。先に作った子ほど奥に描かれるので
+            // 本体より前に作る。位置は右へ置くときも揃えて左寄せにする。
+            TextAlignmentOptions align = toRight
+                ? TextAlignmentOptions.Left : TextAlignmentOptions.Center;
             TMP_Text shadow = CreateText("Shadow", label, MarkerLabelShadowOffset,
-                new Vector2(bandW, MarkerLabelH), MarkerLabelFont, MarkerLabelShadow,
-                TextAlignmentOptions.Center);
+                new Vector2(bandW, MarkerLabelH), MarkerLabelFont, MarkerLabelShadow, align);
             StyleMarkerLabel(shadow, text);
+            DilateLabel(shadow, MarkerLabelShadowDilate, MarkerLabelShadow);
             markerLabelShadows[i] = shadow;
 
+            TMP_Text halo = CreateText("Halo", label, Vector2.zero,
+                new Vector2(bandW, MarkerLabelH), MarkerLabelFont, MarkerLabelHalo, align);
+            StyleMarkerLabel(halo, text);
+            DilateLabel(halo, MarkerLabelHaloDilate, MarkerLabelHalo);
+            markerLabelHalos[i] = halo;
+
             TMP_Text ink = CreateText("Text", label, new Vector2(0f, 0f),
-                new Vector2(bandW, MarkerLabelH), MarkerLabelFont, MarkerLabelInk,
-                TextAlignmentOptions.Center);
+                new Vector2(bandW, MarkerLabelH), MarkerLabelFont, MarkerLabelInk, align);
             StyleMarkerLabel(ink, text);
             markerLabelTexts[i] = ink;
         }
@@ -635,6 +671,19 @@ public class TitleManager : MonoBehaviour
         label.text = text;
     }
 
+    // 影の 1 枚を TMP のアウトラインで太らせる。SDF の輪郭を外へ広げるので、
+    // 文字の形はそのままに暗い部分だけが広がる(コピーを何枚も重ねずに済む)。
+    private static void DilateLabel(TMP_Text label, float width, Color color)
+    {
+        if (label == null || width <= 0f) return;
+        Material mat = label.fontMaterial;   // このテキスト専用のインスタンスになる
+        if (mat == null) return;
+        mat.EnableKeyword("OUTLINE_ON");
+        mat.SetColor(ShaderUtilities.ID_OutlineColor, color);
+        mat.SetFloat(ShaderUtilities.ID_OutlineWidth, width);
+        label.UpdateMeshPadding();
+    }
+
     // 明朝体は Resources から 1 度だけ読む(見つからなければ uiFont のまま)。
     private TMP_FontAsset MinchoFont
     {
@@ -650,10 +699,6 @@ public class TitleManager : MonoBehaviour
             return minchoFont;
         }
     }
-
-    // ▼の画面位置をドット格子へ吸着させる。
-    private static float SnapToArrowGrid(float v)
-        => Mathf.Round(v / MarkerArrowPixel) * MarkerArrowPixel;
 
     // ドット絵の▼。アンチエイリアスを掛けず、Point フィルタで整数倍に拡大して使う。
     internal static Sprite CreatePixelDownTriangleSprite(int w, int h)
@@ -682,6 +727,44 @@ public class TitleManager : MonoBehaviour
         return sprite;
     }
 
+    // 滑らかな(アンチエイリアスした)下向き三角。第 U8 便でドット絵の▼を置き換えた。
+    // 表示は 18x12 前後なので、6 倍の 108x72 で焼いて Bilinear で縮小する。
+    // 各画素は三角形の符号付き距離から被覆率を出すので、拡大率が半端でも
+    // 階段が出ない(ドット絵の▼は整数倍でしか綺麗にならなかった)。
+    internal static Sprite CreateSmoothDownTriangleSprite()
+    {
+        const int w = 108, h = 72;
+        Texture2D tex = new Texture2D(w, h, TextureFormat.RGBA32, false)
+        {
+            hideFlags = HideFlags.DontSave,
+            wrapMode = TextureWrapMode.Clamp,
+            filterMode = FilterMode.Bilinear,
+        };
+        // 上辺が幅いっぱい、下端が頂点。焼き込みの端に 1px の余白を残す。
+        float hw = w * 0.5f - 1f;
+        float hh = h * 0.5f - 1f;
+        float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+        // 右の斜辺 (hw,hh)→(0,-hh) の外向き法線(正規化前は (2hh, -hw))。
+        float len = Mathf.Sqrt(4f * hh * hh + hw * hw);
+        for (int y = 0; y < h; y++)
+        {
+            for (int x = 0; x < w; x++)
+            {
+                float px = Mathf.Abs(x - cx);
+                float py = y - cy;
+                float dTop = py - hh;
+                float dSide = ((px - hw) * 2f * hh - (py - hh) * hw) / len;
+                float d = Mathf.Max(dTop, dSide);
+                float cov = Mathf.Clamp01(0.5f - d);
+                tex.SetPixel(x, y, new Color(1f, 1f, 1f, cov));
+            }
+        }
+        tex.Apply();
+        Sprite sprite = Sprite.Create(tex, new Rect(0f, 0f, w, h), new Vector2(0.5f, 0.5f), 100f);
+        sprite.hideFlags = HideFlags.DontSave;
+        return sprite;
+    }
+
     // ▼とラベルを部屋のオブジェクトの上へ置き直す(毎フレーム)。
     private void UpdateObjectMenu(float dt)
     {
@@ -702,6 +785,8 @@ public class TitleManager : MonoBehaviour
                 if (t != null) all &= TmpAlign.CenterInkVertically(t);
             foreach (TMP_Text t in markerLabelShadows)
                 if (t != null) all &= TmpAlign.CenterInkVertically(t);
+            foreach (TMP_Text t in markerLabelHalos)
+                if (t != null) all &= TmpAlign.CenterInkVertically(t);
             markerInkCentered = all;
         }
 
@@ -717,9 +802,8 @@ public class TitleManager : MonoBehaviour
             if (marker.gameObject.activeSelf != onScreen) marker.gameObject.SetActive(onScreen);
             if (!onScreen) continue;
 
-            // 浮遊は 2px 単位のステップ移動(ドットが滑らかに滑らないようにする)。
-            float floatY = Mathf.Round(Mathf.Sin(animTime * 1.9f + i * 0.9f)
-                * MarkerFloatPx / MarkerArrowPixel) * MarkerArrowPixel;
+            // 浮遊は滑らかな正弦(第 U8 便でドット格子のステップ移動をやめた)。
+            float floatY = Mathf.Sin(animTime * 1.9f + i * 0.9f) * MarkerFloatPx;
             Vector2 nudge = i < MarkerScreenOffset.Length ? MarkerScreenOffset[i] : Vector2.zero;
             marker.anchoredPosition = new Vector2(
                 (vp.x - 0.5f) * canvas.width + nudge.x,
@@ -736,14 +820,11 @@ public class TitleManager : MonoBehaviour
                 Color c = Color.Lerp(MarkerArrowInkDim, MarkerArrowInk, markerLabelAlpha[i]);
                 c.a *= zoomFade;
                 markerArrows[i].color = c;
-                // 拡大率はドット単位で切り替える(2px/3px)。中間の倍率は挟まない。
-                float s = markerLabelAlpha[i] >= 0.5f
-                    ? MarkerArrowPixelSel / MarkerArrowPixel : 1f;
+                // 拡大はラベルのフェードと同じ重みで連続に補間する
+                // (ドット格子への吸着はやめたので段差を作る必要がない)。
+                float s = Mathf.Lerp(1f, MarkerArrowSelScale, markerLabelAlpha[i]);
                 markerArrows[i].rectTransform.localScale = new Vector3(s, s, 1f);
-                // ▼だけ画面のドット格子(2px)へ吸着させる。ラベルは滑らかなまま。
-                Vector2 mp = marker.anchoredPosition;
-                markerArrows[i].rectTransform.anchoredPosition = new Vector2(
-                    SnapToArrowGrid(mp.x) - mp.x, SnapToArrowGrid(mp.y) - mp.y);
+                markerArrows[i].rectTransform.anchoredPosition = Vector2.zero;
             }
         }
     }
@@ -773,7 +854,13 @@ public class TitleManager : MonoBehaviour
     }
 
     // 部屋のカメラを寄せる/戻す(決定・戻る)。
-    private void FocusRoom(int menuIndexValue) => Room?.FocusMenu(menuIndexValue);
+    private void FocusRoom(int menuIndexValue)
+    {
+        // 設定・引き継ぎ・ランキングの寄りは従来どおり ease-in-out で止まる。
+        Room?.SetZoomHandoff(false);
+        Room?.FocusMenu(menuIndexValue);
+    }
+
     private void UnfocusRoom() => Room?.ClearFocus();
 
     // GManager の設定画面オープン/クローズから呼ぶ(ランタンへ寄る/戻る)。
@@ -1066,13 +1153,19 @@ public class TitleManager : MonoBehaviour
         {
             promptText.alpha = 0.35f + 0.55f * (0.5f + 0.5f * Mathf.Sin(animTime * 3.5f));
         }
+        // 拍ごとの拡大(1 + 0.035*beatPulse)は「ロゴが振動している」ように
+        // 見えるため廃止し、軽い上下の浮遊だけにする(2026-09-15 指示)。
+        // 周期 2pi/1.2 = 約 5.24 秒・振幅 8px。scale は常に 1。
+        float logoBob = Mathf.Sin(animTime * 1.2f) * 8f;
         if (logoRect != null)
         {
-            // 拍ごとの拡大(1 + 0.035*beatPulse)は「ロゴが振動している」ように
-            // 見えるため廃止し、軽い上下の浮遊だけにする(2026-09-15 指示)。
-            // 周期 2pi/1.2 = 約 5.24 秒・振幅 8px。scale は常に 1。
-            logoRect.anchoredPosition = new Vector2(logoRect.anchoredPosition.x, logoBaseY + Mathf.Sin(animTime * 1.2f) * 8f);
+            logoRect.anchoredPosition = new Vector2(logoRect.anchoredPosition.x, logoBaseY + logoBob);
             logoRect.localScale = Vector3.one;
+        }
+        else
+        {
+            // 3D の板になった後も、同じ式・同じ振幅(全景カメラでの 8px)で揺らす。
+            Room?.SetLogoBob(logoBob);
         }
         for (int i = 0; i < shapeGraphics.Length; i++)
         {
@@ -1127,8 +1220,10 @@ public class TitleManager : MonoBehaviour
         StartExitCrossfade = 0f;
         StartExitRunning = true;
 
-        // 決定と同時に「地図へ寄る」を始め、行の飛び出し・ロゴ上抜けも同時に走らせる
-        // (寄りの速度の山にクロスフェードを合わせるので、先行の待ちは置かない)。
+        // 決定と同時に「地図へ寄る」を始め、行の飛び出し・ロゴ上抜けも同時に走らせる。
+        // 第 U8 便(2026-09-19 指示「動く方向が連続になるように」): 受け渡しのあいだ
+        // 寄りを ease-in(p^2)にし、終端で速度を 0 に落とさないまま街へ渡す。
+        Room?.SetZoomHandoff(true);
         FocusRoom((int)TitleMenuAction.Start);
 
         const float flashDur = 0.175f;
@@ -1314,6 +1409,7 @@ public class TitleManager : MonoBehaviour
         ReturnRunning = false;
         group.alpha = 1f;
         Room?.SetExitDim(1f);
+        Room?.SetZoomHandoff(false);
         transform.localScale = Vector3.one;
         animTime = 0f;
         // ここで通常のタイトル更新(UpdateTitle)へ引き渡す。
@@ -1337,6 +1433,9 @@ public class TitleManager : MonoBehaviour
         gameObject.SetActive(true);
         // 環境光・反射は街側が「選択画面の値 → 既定」へ送り返すので、部屋は触らない。
         Room?.SetGlobalsOwned(false);
+        // 戻りも受け渡し(ease = p^2 の逆再生 = 速→遅)。街の退場スイープが
+        // 加速しながら渡してくるので、タイトル側は最大速度で受けて全景で止まる。
+        Room?.SetZoomHandoff(true);
         ApplyRoomLayout();              // 部屋を起こす(寄りは 0 に戻る)
         ShowMenu();
         // 起こした直後に「地図へ寄り切った姿勢」へ置き直し、そこから引き戻す。
@@ -1808,10 +1907,21 @@ public class TitleManager : MonoBehaviour
         StartCoroutine(AfterRoomZoomRoutine(act));
     }
 
+    // パネルを出し始めるまでの待ち。第 U8 便(2026-09-19 指示)で
+    // 「寄り切ってから表示」→「寄りながら表示」へ変えた。
+    // ぼかしスナップショットは開いた瞬間の絵を凍らせるので、まったくの 0 秒で
+    // 開くと寄る前の構図が全面に出てしまう。寄りの 1/3 ほど進んでから撮り、
+    // 残りの 2/3(0.4 秒)をフェードインに使う。フェードの尺は各パネル側。
+    public const float PanelOpenLead = TitleRoomController.ZoomDuration * 0.33f;
+    /// <summary>パネルのフェードイン時間。寄り(0.6 秒)の残りと同じ長さにする。</summary>
+    public const float PanelFadeIn = TitleRoomController.ZoomDuration - PanelOpenLead;
+    /// <summary>パネルのフェードアウト時間。戻り(引き)の途中で消え切るようにする。</summary>
+    public const float PanelFadeOut = TitleRoomController.ZoomDuration * 0.7f;
+
     private IEnumerator AfterRoomZoomRoutine(System.Action act)
     {
         float t = 0f;
-        while (t < StartZoomLead) { t += Time.unscaledDeltaTime; yield return null; }
+        while (t < PanelOpenLead) { t += Time.unscaledDeltaTime; yield return null; }
         act();
     }
 
@@ -1880,7 +1990,7 @@ public class TitleManager : MonoBehaviour
         RectTransform rootRect = transferRoot != null ? (RectTransform)transferRoot.transform : null;
         float startAlpha = transferCG != null ? transferCG.alpha : 1f;
         float t = 0f;
-        const float dur = 0.14f;
+        const float dur = PanelFadeOut;   // 第 U8 便: 引きながら消えるよう尺を伸ばした
         while (t < dur)
         {
             t += Time.unscaledDeltaTime;
@@ -1923,12 +2033,14 @@ public class TitleManager : MonoBehaviour
             transferBackdrop.texture = transferBlurRT;
             transferBackdrop.gameObject.SetActive(true);
         }
-        // パネルをふわりと出す(急な表示を防ぐ。難易度オーバーレイと同傾向)。
+        // パネルをふわりと出す。第 U8 便から、カメラが寄っている途中に重なるよう
+        // 尺を寄りの残り(PanelFadeIn)に合わせた。
         float t = 0f;
-        while (t < 0.14f)
+        while (t < PanelFadeIn)
         {
             t += Time.unscaledDeltaTime;
-            if (transferCG != null) transferCG.alpha = Mathf.Clamp01(t / 0.14f);
+            float p = Mathf.Clamp01(t / PanelFadeIn);
+            if (transferCG != null) transferCG.alpha = p * p * (3f - 2f * p);
             yield return null;
         }
         if (transferCG != null) transferCG.alpha = 1f;
@@ -2108,6 +2220,11 @@ public class TitleManager : MonoBehaviour
             836f, 260f, 700f, TextAlignmentOptions.Center);
         transferTitle2 = NewV11Ruby("Heading2", rootRect, "[方向|ほうこう]コード", 44f, 4f,
             836f, 330f, 800f, TextAlignmentOptions.Center);
+        // 第 U8 便(2026-09-19 指示): 下段の「矢印を入れよう」は消し、
+        // 代わりに見出し「方向コード」の左へレバーのアイコンを置く。
+        Image headLever = NewV11Image("HeadingLever", rootRect, Color.white);
+        headLever.sprite = HighlandUi.Icon("lever_white");
+        PlaceV11(headLever.rectTransform, 672f, 334f, 52f, 52f);
 
         AddV11Rule(rootRect, 362f, 576f, 32f, "TransferHeadRule");
         AddV11Rule(rootRect, 566f, 576f, 32f, "TransferFootRule");
@@ -2176,13 +2293,7 @@ public class TitleManager : MonoBehaviour
         HighlandUi.PlaceCentered(transferMessageText, 836f, 538f, 1000f, 20f);
         transferMessageText.textWrappingMode = TextWrappingModes.Normal;
 
-        // 操作ヒント(レバーで矢印 / 〇 決定 / ✕ 戻る)。
-        Image lever = NewV11Image("HintLever", rootRect, Color.white);
-        lever.sprite = HighlandUi.Icon("lever_white");
-        PlaceV11(lever.rectTransform, 753f, 593.5f, 27.5f, 27.5f);
-        transferHint1 = NewV11Ruby("HintLeverText", rootRect, "[矢印|やじるし]を [入|い]れよう", 20.5f, 0.6f,
-            779.276f, 603f, 400f, TextAlignmentOptions.Left);
-
+        // 操作ヒント(〇 決定 / ✕ 戻る)。レバーの行は見出しの左へ移した(第 U8 便)。
         Image circle = NewV11Image("HintCircle", rootRect, Color.white);
         circle.sprite = HighlandUi.Icon("circle");
         PlaceV11(circle.rectTransform, 636.15f, 636.6f, 40.5f, 40.5f);
@@ -2195,7 +2306,7 @@ public class TitleManager : MonoBehaviour
         transferHint3 = NewV11Ruby("HintBack", rootRect, "[戻|もど]る", 22f, 0.7f,
             1010.43f, 643f, 220f, TextAlignmentOptions.Left);
 
-        transferHintText = transferHint1.Body;
+        transferHintText = transferHint2.Body;
         transferMessageText.text = string.Empty;
         transferRoot.SetActive(false);
     }
@@ -2333,7 +2444,7 @@ public class TitleManager : MonoBehaviour
         RectTransform rootRect = rankingRoot != null ? (RectTransform)rankingRoot.transform : null;
         float startAlpha = rankingCG != null ? rankingCG.alpha : 1f;
         float t = 0f;
-        const float dur = 0.14f;
+        const float dur = PanelFadeOut;   // 第 U8 便: 引きながら消えるよう尺を伸ばした
         while (t < dur)
         {
             t += Time.unscaledDeltaTime;
@@ -2371,10 +2482,11 @@ public class TitleManager : MonoBehaviour
             rankingBackdrop.gameObject.SetActive(true);
         }
         float t = 0f;
-        while (t < 0.14f)
+        while (t < PanelFadeIn)
         {
             t += Time.unscaledDeltaTime;
-            if (rankingCG != null) rankingCG.alpha = Mathf.Clamp01(t / 0.14f);
+            float p = Mathf.Clamp01(t / PanelFadeIn);
+            if (rankingCG != null) rankingCG.alpha = p * p * (3f - 2f * p);
             yield return null;
         }
         if (rankingCG != null) rankingCG.alpha = 1f;

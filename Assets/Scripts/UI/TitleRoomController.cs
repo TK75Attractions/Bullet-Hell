@@ -52,6 +52,54 @@ public class TitleRoomController : MonoBehaviour
     [Tooltip("ON で立ち絵だけを専用レイヤー・専用カメラで 1920x1080 の RT へ描き、粗い部屋の上に元解像度で重ねる(プレイ中のボスと同じ方式)。OFF で部屋と同じ低解像度。")]
     public bool heroFullRes = true;
 
+    [Header("立ち絵の左リムライト(2026-09-19 指示)")]
+    // 画面左のランタンの橙の光が、髪・腕・マント・杖の「左を向いた縁」にだけ
+    // 細く乗る(参考: Instructions/UI/from_user_20260919/title_fix/hero_rimlight_reference.webp)。
+    // 板ポリなので法線は使えない。原画のアルファを行ごとに左から走査して
+    // 「透明 → 不透明」へ変わる縁を見つけ、そこから右へ数テクセルだけ減衰する
+    // マスクを焼き、URP/Lit の Emission(自発光)として足す。
+    // 自発光なので heroBrightness(ベース色の倍率)とは独立に効く。
+    [Tooltip("リムライトの強さ。0 で無し。")]
+    [Range(0f, 3f)] public float heroRimStrength = 1.5f;
+    [Tooltip("リムライトの色(ランタンの橙)。")]
+    public Color heroRimColor = new Color(1.0f, 0.62f, 0.30f, 1f);
+    // 原画 1024px の立ち絵は画面では約 470px なので、1 テクセル ≒ 0.46 画面 px。
+    // 指示の「幅 2〜4(画面 px)」は原画で 5〜9 テクセルにあたる。
+    [Tooltip("リムの幅(原画のテクセル数)。画面では約 0.46 倍の太さになる。")]
+    [Range(1f, 16f)] public float heroRimWidth = 6f;
+    Texture2D heroRimTex;
+    static readonly int HeroEmissionColorId = Shader.PropertyToID("_EmissionColor");
+
+    [Header("タイトルロゴ(部屋の 3D 空間に立てる板・2026-09-19 指示)")]
+    // 旧: Canvas 上の 2D 画像。カメラが寄っても動かないので「画面に貼り付いた紙」に
+    // 見えていた。部屋の奥(背面壁 z=4.72 の手前)に板として置くと、寄りで
+    // 自然に画面の外へ出ていく。
+    // 板の位置と大きさは「全景カメラで画面のどこに何 px で写るか」から逆算するので、
+    // 下の 3 つを触るだけで見え方を合わせられる(値の正は .tmp_ui/progress.md U8)。
+    [Tooltip("全景カメラで見たときのロゴの中心(1920x1080 の画面中心からの px)。")]
+    // y は旧 2D ロゴ(261)より 45px 上げてある。旧位置だと絵の下端が「設定」の
+    // ラベルに重なって読めなかった(2026-09-19 の指摘 5 の一因)。
+    public Vector2 logoScreenPos = new Vector2(19f, 306f);
+    [Tooltip("全景カメラで見たときのロゴの幅(px)。高さは原画の縦横比で決まる。")]
+    public float logoScreenWidth = 484f;
+    [Tooltip("板を置く奥行き(部屋のワールド z)。背面壁は z=4.72。")]
+    public float logoPlaneZ = 4.40f;
+    Transform logoBoard;
+    Renderer logoRenderer;
+    MaterialPropertyBlock logoMpb;
+    float logoBobPx;
+
+    /// <summary>ロゴの板が作れているか(TitleManager が 2D のロゴを出すかの判断に使う)。</summary>
+    public bool HasLogoBoard => logoRenderer != null;
+
+    /// <summary>ロゴの上下の揺れ(全景カメラでの px)。TitleManager が毎フレーム渡す。</summary>
+    public void SetLogoBob(float offsetPx)
+    {
+        if (Mathf.Approximately(offsetPx, logoBobPx)) return;
+        logoBobPx = offsetPx;
+        ApplyLogoTransform();
+    }
+
     Transform heroBoard;
     Renderer heroRenderer;
     Transform heroShadow;
@@ -310,6 +358,11 @@ public class TitleRoomController : MonoBehaviour
         SetLayerRecursive(room, layer);
 
         lanternTf = FindDeep(roomRoot, "obj_lantern");
+        // 机の脇の杖は出さない。主人公の立ち絵が杖を持っているので同じ杖が 2 本に
+        // 見える(2026-09-19 のユーザー指摘)。モデルは残したまま枝ごと下ろす。
+        Transform staffTf = FindDeep(roomRoot, "obj_staff");
+        if (staffTf == null) staffTf = FindDeep(roomRoot, "staff_mesh");
+        if (staffTf != null) staffTf.gameObject.SetActive(false);
         cloak1 = FindDeep(roomRoot, "cloak_01");
         cloak2 = FindDeep(roomRoot, "cloak_02");
         if (cloak1 != null) cloak1Home = cloak1.localRotation;
@@ -332,6 +385,7 @@ public class TitleRoomController : MonoBehaviour
         };
 
         BuildHeroBoard(heroLayer);
+        BuildLogoBoard(heroLayer);
 
         // ---- カメラ ----
         GameObject camObj = new GameObject("TitleRoomCamera");
@@ -503,6 +557,7 @@ public class TitleRoomController : MonoBehaviour
         mat.SetTexture("_BaseMap", heroTex);
         mat.SetColor("_BaseColor", Color.white);
         SetPremultipliedAlphaWrite(mat);
+        ApplyHeroRim(mat, heroTex);
 
         GameObject board = GameObject.CreatePrimitive(PrimitiveType.Quad);
         board.name = "HeroBoard";
@@ -542,6 +597,169 @@ public class TitleRoomController : MonoBehaviour
             SetLayerRecursive(shade, layer);
         }
         ApplyHeroTransform(0f);
+    }
+
+    // ---- タイトルロゴの板 --------------------------------------------------
+
+    // ロゴは立ち絵と同じ「元解像度で描くレイヤー」へ置く。部屋は 640x360 の
+    // ドット風なので、部屋レイヤーに置くとドット絵のロゴがさらに潰れる。
+    void BuildLogoBoard(int layer)
+    {
+        Texture tex = Resources.Load<Texture2D>("UI/jbi-logo-pixel");
+        if (tex == null) tex = Resources.Load<Texture2D>("UI/jbi-logo-v2");
+        if (tex == null) return;
+
+        Shader unlit = Shader.Find("Universal Render Pipeline/Unlit");
+        if (unlit == null) return;
+        Material mat = new Material(unlit) { hideFlags = HideFlags.DontSave, name = "TitleLogoMat" };
+        mat.SetFloat("_Surface", 1f);      // Transparent
+        mat.SetFloat("_Blend", 0f);        // Alpha
+        mat.SetFloat("_ZWrite", 0f);
+        mat.SetFloat("_Cull", 0f);
+        mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        mat.SetTexture("_BaseMap", tex);
+        mat.SetColor("_BaseColor", Color.white);
+        SetPremultipliedAlphaWrite(mat);
+        mat.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent + 10;
+
+        GameObject board = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        board.name = "TitleLogoBoard";
+        DestroyImmediate(board.GetComponent<Collider>());
+        board.transform.SetParent(transform, false);
+        logoRenderer = board.GetComponent<Renderer>();
+        logoRenderer.sharedMaterial = mat;
+        logoRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        logoRenderer.receiveShadows = false;
+        logoBoard = board.transform;
+        SetLayerRecursive(board, layer);
+        logoAspect = tex.height > 0 ? (float)tex.width / tex.height : 2f;
+        ApplyLogoTransform();
+    }
+
+    float logoAspect = 2f;
+
+    // 全景カメラで「画面中心から (px,py) の所へ幅 w px」で写るように板を置く。
+    //   ・視野の高さ(世界単位) = 2 * d * tan(vFov/2) が画面 1080px に対応する。
+    //   ・奥行き d は「板の中心の z が logoPlaneZ になる」条件から解く。
+    void ApplyLogoTransform()
+    {
+        if (logoBoard == null) return;
+        Quaternion rot = Quaternion.Euler(TitleEuler);
+        Vector3 fwd = rot * Vector3.forward;
+        Vector3 right = rot * Vector3.right;
+        Vector3 up = rot * Vector3.up;
+        // 画面 1px あたりの世界の大きさ(距離 1 のとき)。
+        float k = 2f * Mathf.Tan(TitleVFov * 0.5f * Mathf.Deg2Rad) / 1080f;
+        float px = logoScreenPos.x;
+        float py = logoScreenPos.y + logoBobPx;
+        float denom = fwd.z + right.z * px * k + up.z * py * k;
+        if (Mathf.Abs(denom) < 1e-5f) return;
+        float d = (logoPlaneZ - TitlePos.z) / denom;
+        if (d <= 0.1f) return;
+        Vector3 center = TitlePos + fwd * d + right * (px * k * d) + up * (py * k * d);
+        float wWorld = logoScreenWidth * k * d;
+        logoBoard.localPosition = center;
+        logoBoard.localRotation = rot;    // Unity の Quad は -Z が表。カメラと同じ回転で正対する
+        logoBoard.localScale = new Vector3(wWorld, wWorld / Mathf.Max(0.01f, logoAspect), 1f);
+    }
+
+    /// <summary>ロゴの見え方(退場フェードなど)。1 で表示、0 で消える。</summary>
+    public void SetLogoAlpha(float alpha)
+    {
+        if (logoRenderer == null) return;
+        alpha = Mathf.Clamp01(alpha);
+        bool visible = alpha > 0.004f;
+        if (logoRenderer.enabled != visible) logoRenderer.enabled = visible;
+        if (!visible) return;
+        logoMpb ??= new MaterialPropertyBlock();
+        logoRenderer.GetPropertyBlock(logoMpb);
+        logoMpb.SetColor("_BaseColor", new Color(1f, 1f, 1f, alpha));
+        logoRenderer.SetPropertyBlock(logoMpb);
+    }
+
+    // ---- 立ち絵の左リムライト ----------------------------------------------
+
+    /// <summary>立ち絵の材質へ「左を向いた縁だけ橙に光る」自発光を仕込む。</summary>
+    void ApplyHeroRim(Material mat, Texture heroTex)
+    {
+        if (mat == null) return;
+        if (heroRimStrength <= 0.0001f)
+        {
+            mat.DisableKeyword("_EMISSION");
+            mat.SetColor(HeroEmissionColorId, Color.black);
+            return;
+        }
+        if (heroRimTex == null) heroRimTex = BuildLeftRimTexture(heroTex, heroRimWidth);
+        if (heroRimTex == null) return;
+        mat.EnableKeyword("_EMISSION");
+        mat.SetTexture("_EmissionMap", heroRimTex);
+        mat.SetColor(HeroEmissionColorId, heroRimColor * heroRimStrength);
+        mat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;   // リアルタイムのみ
+    }
+
+    /// <summary>
+    /// 原画の左向きの縁だけを残したマスク(白 = リム)。
+    /// 読み取り不可のインポート設定でも使えるよう RenderTexture 経由で取り出す。
+    /// </summary>
+    static Texture2D BuildLeftRimTexture(Texture src, float widthTexels)
+    {
+        if (src == null) return null;
+        int w = src.width, h = src.height;
+        if (w <= 2 || h <= 2) return null;
+
+        RenderTexture rt = RenderTexture.GetTemporary(w, h, 0,
+            RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+        RenderTexture prev = RenderTexture.active;
+        Graphics.Blit(src, rt);
+        RenderTexture.active = rt;
+        Texture2D copy = new Texture2D(w, h, TextureFormat.RGBA32, false) { hideFlags = HideFlags.DontSave };
+        copy.ReadPixels(new Rect(0f, 0f, w, h), 0, 0, false);
+        copy.Apply(false);
+        RenderTexture.active = prev;
+        RenderTexture.ReleaseTemporary(rt);
+
+        Color32[] srcPx = copy.GetPixels32();
+        Color32[] outPx = new Color32[w * h];
+        float width = Mathf.Max(1f, widthTexels);
+        const byte cut = 128;   // 材質のアルファカットオフ 0.5 と同じしきい値
+        for (int y = 0; y < h; y++)
+        {
+            int row = y * w;
+            // 行を左から走査し、「透明 → 不透明」へ変わった点から右へ減衰させる。
+            // 腕と胴のすき間など内側の縁にも同じように乗る(左からの光なので正しい)。
+            int since = int.MaxValue;
+            bool prevOpaque = false;
+            for (int x = 0; x < w; x++)
+            {
+                bool opaque = srcPx[row + x].a >= cut;
+                if (opaque && !prevOpaque) since = 0;
+                else if (opaque && since != int.MaxValue) since++;
+                else if (!opaque) since = int.MaxValue;
+                prevOpaque = opaque;
+
+                byte v = 0;
+                if (opaque && since != int.MaxValue)
+                {
+                    // 縁で 1、width テクセルで 0 へ。二乗で立ち上がりを締める。
+                    float k = Mathf.Clamp01(1f - since / width);
+                    k *= k;
+                    v = (byte)Mathf.RoundToInt(k * 255f);
+                }
+                outPx[row + x] = new Color32(v, v, v, 255);
+            }
+        }
+        DestroyImmediate(copy);
+
+        Texture2D rim = new Texture2D(w, h, TextureFormat.RGBA32, false, false)
+        {
+            name = "HeroRimMask",
+            hideFlags = HideFlags.DontSave,
+            wrapMode = TextureWrapMode.Clamp,
+            filterMode = FilterMode.Bilinear,
+        };
+        rim.SetPixels32(outPx);
+        rim.Apply(false);
+        return rim;
     }
 
     // 中心が濃く外周で 0 になる円。接地影に使う。
@@ -840,6 +1058,7 @@ public class TitleRoomController : MonoBehaviour
         if (roomRoot != null) roomRoot.gameObject.SetActive(on);
         if (heroBoard != null) heroBoard.gameObject.SetActive(on);
         if (heroShadow != null) heroShadow.gameObject.SetActive(on);
+        if (logoBoard != null) logoBoard.gameObject.SetActive(on);
         if (roomCamera != null) roomCamera.gameObject.SetActive(on);
         if (heroCamera != null) heroCamera.gameObject.SetActive(on);
         foreach (Light light in new[] { moonLight, fillLight, lanternLight, selectionLight, cloakLight1, cloakLight2 })
@@ -951,10 +1170,42 @@ public class TitleRoomController : MonoBehaviour
         UpdateCamera(selection, zoomProgress);   // 1 コマ目から寄り切った絵を出す
     }
 
+    // ---- 選択メニューへの視線の微調整(2026-09-19 指示) ----------------------
+    // 全景のまま、選択中のメニューの対象へ yaw/pitch を数度だけ振る。
+    // 寄り(zoomProgress)が進むと寄りの姿勢が主になるので、演出とは干渉しない。
+    [Header("選択メニューへ振る視線")]
+    [Tooltip("全景から対象を正面に捉える姿勢まで、どれだけ寄せるか。0.15 で約 2〜3 度。")]
+    [Range(0f, 0.6f)] public float menuLookAmount = 0.15f;
+    [Tooltip("視線が切り替わるまでの時間(秒・臨界減衰)。")]
+    public float menuLookSmoothTime = 0.12f;
+    Vector3 menuLookNow;
+    Vector3 menuLookVel;
+    bool menuLookReady;
+
+    void UpdateMenuLook(float dt)
+    {
+        Vector3 want = SelectionCenter(selection);
+        if (!menuLookReady) { menuLookNow = want; menuLookVel = Vector3.zero; menuLookReady = true; return; }
+        menuLookNow = Vector3.SmoothDamp(menuLookNow, want, ref menuLookVel,
+            Mathf.Max(0.01f, menuLookSmoothTime), Mathf.Infinity, dt);
+    }
+
+    // 全景の姿勢に、選択中の対象への振りを混ぜたもの。
+    Quaternion OverviewRotation()
+    {
+        Quaternion home = Quaternion.Euler(TitleEuler);
+        if (menuLookAmount <= 0.0001f || !menuLookReady) return home;
+        Vector3 dir = menuLookNow - TitlePos;
+        if (dir.sqrMagnitude < 1e-4f) return home;
+        return Quaternion.Slerp(home, Quaternion.LookRotation(dir, Vector3.up), menuLookAmount);
+    }
+
     public void Tick(float dt)
     {
         if (!built || !activeNow) return;
         time += dt;
+
+        UpdateMenuLook(dt);
 
         // 寄り/戻りの進み(ease-out cubic は姿勢の補間側で掛ける)。
         float target = zoomTarget >= 0 ? 1f : 0f;
@@ -968,19 +1219,35 @@ public class TitleRoomController : MonoBehaviour
         UpdateCloaks(dt);
     }
 
+    // ステージ選択への受け渡し中だけ立てる。寄りの終端で速度を 0 に落とさず、
+    // 加速したまま街のスイープへ渡す(2026-09-19 指示「動く方向が連続になるように」)。
+    // ease = p^2 は 往きで「遅→速」、戻りで「速→遅」になるので、入場・退場の
+    // どちらでも継ぎ目側が最大速度になる。
+    bool zoomHandoff;
+
+    /// <summary>ステージ選択との受け渡し中か。true のあいだ寄りは ease-in(p^2)。</summary>
+    public void SetZoomHandoff(bool on) => zoomHandoff = on;
+
+    /// <summary>いまの寄りの「進みに対する姿勢の進み」(グラフ検証用)。</summary>
+    public float ZoomEase => zoomHandoff
+        ? zoomProgress * zoomProgress
+        : zoomProgress * zoomProgress * (3f - 2f * zoomProgress);
+
     void UpdateCamera(int viewIndex, float progress)
     {
+        Quaternion home = OverviewRotation();
         Vector3 pos = TitlePos;
-        Quaternion rot = Quaternion.Euler(TitleEuler);
+        Quaternion rot = home;
         float fov = TitleVFov;
         if (progress > 0f && focusViews != null && viewIndex >= 0 && viewIndex < focusViews.Length)
         {
             ResolveFocus(focusViews[viewIndex], out Vector3 fpos, out Quaternion frot, out float ffov);
-            // ease-in-out(SmoothStep)。速度が中点で最大になるので、そこへ
+            // 通常は ease-in-out(SmoothStep)。速度が中点で最大になるので、そこへ
             // クロスフェードの中心を合わせられる(旧: ease-out cubic = 出だしが最速)。
-            float ease = progress * progress * (3f - 2f * progress);
+            // 受け渡し中だけ ease-in(p^2)にして、終端で速度を 0 に落とさない。
+            float ease = ZoomEase;
             pos = Vector3.Lerp(TitlePos, fpos, ease);
-            rot = Quaternion.Slerp(Quaternion.Euler(TitleEuler), frot, ease);
+            rot = Quaternion.Slerp(home, frot, ease);
             fov = Mathf.Lerp(TitleVFov, ffov, ease);
         }
         ApplyPose(pos, rot, fov);
