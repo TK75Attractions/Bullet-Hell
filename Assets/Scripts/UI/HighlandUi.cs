@@ -363,25 +363,27 @@ public static class HighlandUi
         const int ss = 4;
         int W = Mathf.Max(8, w) * ss, H = Mathf.Max(8, h) * ss;
         Color32[] px = new Color32[W * H];
-        float cx = W - 1f;                 // 枝は右端(番号側)へ開く
-        float cy = (H - 1) * 0.5f;
-        float rx = W * 0.92f, ry = H * 0.46f;
-        // 幹: 右下から左上へ弧を描く。
-        for (int i = 0; i <= 220; i++)
+        const int leafCount = 6;
+        const float leafLen = 0.36f, leafW = 0.045f, stemW = 0.22f;
+        const float bulge = 0.30f, span = 0.86f, spread = 1.15f;
+
+        // 茎: t=0(下) → 1(上)。右(番号側)を弦にして左へふくらむ弧。
+        System.Func<float, Vector2> stem = t => new Vector2(
+            W * (0.80f - bulge * Mathf.Sin(Mathf.PI * t)),
+            H * (0.5f + span * (t - 0.5f)));
+        for (int i = 0; i <= 200; i++)
         {
-            float a = Mathf.Lerp(-1.15f, 1.15f, i / 220f);
-            float x = cx - rx * Mathf.Cos(a) * 0.55f - rx * 0.30f;
-            float y = cy + ry * Mathf.Sin(a);
-            Disc(px, W, H, x, y, 0.55f * ss);
+            Vector2 p = stem(i / 200f);
+            Disc(px, W, H, p.x, p.y, stemW * ss);
         }
-        // 葉: 弧に沿って 5 枚ずつ、外向きに倒した楕円。
-        for (int k = 0; k < 4; k++)
+        // 葉: 茎の各点から外(左)へ、上下に開いて生やす。
+        for (int k = 0; k < leafCount; k++)
         {
-            float a = Mathf.Lerp(-0.92f, 0.92f, k / 3f);
-            float bx = cx - rx * Mathf.Cos(a) * 0.55f - rx * 0.28f;
-            float by = cy + ry * Mathf.Sin(a);
-            float tilt = a * 0.85f + (a >= 0f ? 0.62f : -0.62f);
-            Leaf(px, W, H, bx, by, 0.36f * W, 0.155f * H, tilt);
+            float t = 0.10f + 0.80f * k / (leafCount - 1);
+            Vector2 p = stem(t);
+            float ang = Mathf.PI + (t - 0.5f) * 2f * spread;
+            float a = leafLen * W * 0.5f, b = leafW * H;
+            Leaf(px, W, H, p.x + a * Mathf.Cos(ang), p.y + a * Mathf.Sin(ang), a, b, ang);
         }
         return MakeSprite(px, W, H, name, ownedTex, ownedSpr);
     }
@@ -413,7 +415,7 @@ public static class HighlandUi
                 float v = (-dx * sn + dy * cs) / b;
                 // |u|^1.0 + |v|^2 <= 1 で先の尖った形にする。
                 float m = Mathf.Abs(u) + v * v - 1f;
-                Blend(px, W, H, x, y, Color.white, Mathf.Clamp01(-m * Mathf.Min(a, b) * 0.9f + 0.5f));
+                Blend(px, W, H, x, y, Color.white, Mathf.Clamp01(-m * b * 1.2f + 0.5f));
             }
     }
 
