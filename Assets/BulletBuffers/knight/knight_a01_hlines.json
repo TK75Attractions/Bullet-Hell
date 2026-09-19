@@ -3,7 +3,7 @@
     "bullets": [
         {
             "originPos": {
-                "x": -4.0,
+                "x": 16.0,
                 "y": 11.25
             },
             "originVlc": {
@@ -43,18 +43,18 @@
             },
             "typeName": "knight_warn",
             "scale": {
-                "x": 0.0,
-                "y": 0.13
+                "x": 60.0,
+                "y": 0.6
             },
             "color": {
                 "x": 1.0,
                 "y": 1.0,
                 "z": 1.0,
-                "w": 1.0
+                "w": 0.0
             },
             "scaleEnd": {
-                "x": 40.0,
-                "y": 0.13
+                "x": 0.0,
+                "y": 0.0
             },
             "colorEnd": {
                 "x": 0,
@@ -62,28 +62,13 @@
                 "z": 0,
                 "w": 0
             },
-            "animDuration": 0.16,
+            "animDuration": 0.0,
             "appearTime": 0.3,
             "appearDuration": 0.0,
-            "life": 1.2,
+            "life": 1.25,
             "random": 0,
             "unCounterable": true,
-            "ignoreOutOfBoundsCulling": true,
-            "segments": [
-                {
-                    "duration": 0.16,
-                    "vlc": {
-                        "x": 125.0,
-                        "y": 0.0
-                    },
-                    "gravity": {
-                        "x": 0.0,
-                        "y": 0.0
-                    },
-                    "thetaVlc": 0.0,
-                    "easing": 0
-                }
-            ]
+            "ignoreOutOfBoundsCulling": true
         },
         {
             "originPos": {
@@ -125,9 +110,9 @@
                 "z": 0,
                 "w": 0
             },
-            "typeName": "knight_warn",
+            "typeName": "box",
             "scale": {
-                "x": 40.0,
+                "x": 60.0,
                 "y": 0.13
             },
             "color": {
@@ -137,7 +122,76 @@
                 "w": 1.0
             },
             "scaleEnd": {
-                "x": 40.0,
+                "x": 60.0,
+                "y": 0.3
+            },
+            "colorEnd": {
+                "x": 1.0,
+                "y": 0.504,
+                "z": 0.5637,
+                "w": 1.0
+            },
+            "animDuration": 0.06,
+            "appearTime": 1.2,
+            "appearDuration": 0.0,
+            "life": 1.26,
+            "random": 0,
+            "unCounterable": true,
+            "ignoreOutOfBoundsCulling": true
+        },
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 11.25
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0.0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1.0,
+                "y": 0.0
+            },
+            "radiusVlc": 0.0,
+            "radiusAccel": 0.0,
+            "thetaVlc": 0.0,
+            "thetaAccel": 0.0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "box",
+            "scale": {
+                "x": 60.0,
+                "y": 0.3
+            },
+            "color": {
+                "x": 1.0,
+                "y": 0.504,
+                "z": 0.5637,
+                "w": 1.0
+            },
+            "scaleEnd": {
+                "x": 60.0,
                 "y": 0.6
             },
             "colorEnd": {
@@ -146,8 +200,8 @@
                 "z": 0.1274,
                 "w": 1.0
             },
-            "animDuration": 0.1,
-            "appearTime": 1.1,
+            "animDuration": 0.06,
+            "appearTime": 1.26,
             "appearDuration": 0.0,
             "life": 1.32,
             "random": 0,
@@ -196,7 +250,7 @@
             },
             "typeName": "box",
             "scale": {
-                "x": 40.0,
+                "x": 60.0,
                 "y": 0.6
             },
             "color": {
@@ -216,7 +270,7 @@
                 "w": 0
             },
             "animDuration": 0.0,
-            "appearTime": 1.2,
+            "appearTime": 1.32,
             "appearDuration": 0.0,
             "life": 1.8,
             "random": 0,
@@ -265,7 +319,7 @@
             },
             "typeName": "knight_warn",
             "scale": {
-                "x": 40.0,
+                "x": 60.0,
                 "y": 0.6
             },
             "color": {
@@ -275,7 +329,7 @@
                 "w": 1.0
             },
             "scaleEnd": {
-                "x": 40.0,
+                "x": 60.0,
                 "y": 0.13
             },
             "colorEnd": {
@@ -294,7 +348,7 @@
         },
         {
             "originPos": {
-                "x": -4.0,
+                "x": 16.0,
                 "y": 6.75
             },
             "originVlc": {
@@ -334,18 +388,18 @@
             },
             "typeName": "knight_warn",
             "scale": {
-                "x": 0.0,
-                "y": 0.13
+                "x": 60.0,
+                "y": 0.6
             },
             "color": {
                 "x": 1.0,
                 "y": 1.0,
                 "z": 1.0,
-                "w": 1.0
+                "w": 0.0
             },
             "scaleEnd": {
-                "x": 40.0,
-                "y": 0.13
+                "x": 0.0,
+                "y": 0.0
             },
             "colorEnd": {
                 "x": 0,
@@ -353,28 +407,13 @@
                 "z": 0,
                 "w": 0
             },
-            "animDuration": 0.16,
+            "animDuration": 0.0,
             "appearTime": 0.3,
             "appearDuration": 0.0,
-            "life": 1.2,
+            "life": 1.25,
             "random": 0,
             "unCounterable": true,
-            "ignoreOutOfBoundsCulling": true,
-            "segments": [
-                {
-                    "duration": 0.16,
-                    "vlc": {
-                        "x": 125.0,
-                        "y": 0.0
-                    },
-                    "gravity": {
-                        "x": 0.0,
-                        "y": 0.0
-                    },
-                    "thetaVlc": 0.0,
-                    "easing": 0
-                }
-            ]
+            "ignoreOutOfBoundsCulling": true
         },
         {
             "originPos": {
@@ -416,9 +455,9 @@
                 "z": 0,
                 "w": 0
             },
-            "typeName": "knight_warn",
+            "typeName": "box",
             "scale": {
-                "x": 40.0,
+                "x": 60.0,
                 "y": 0.13
             },
             "color": {
@@ -428,7 +467,76 @@
                 "w": 1.0
             },
             "scaleEnd": {
-                "x": 40.0,
+                "x": 60.0,
+                "y": 0.3
+            },
+            "colorEnd": {
+                "x": 1.0,
+                "y": 0.504,
+                "z": 0.5637,
+                "w": 1.0
+            },
+            "animDuration": 0.06,
+            "appearTime": 1.2,
+            "appearDuration": 0.0,
+            "life": 1.26,
+            "random": 0,
+            "unCounterable": true,
+            "ignoreOutOfBoundsCulling": true
+        },
+        {
+            "originPos": {
+                "x": 16.0,
+                "y": 6.75
+            },
+            "originVlc": {
+                "x": 0,
+                "y": 0
+            },
+            "playerInfluence": {
+                "x": 0,
+                "y": 0
+            },
+            "startX": 0,
+            "speed": 0.0,
+            "gravity": {
+                "x": 0.0,
+                "y": 0.0
+            },
+            "initialAngle": 0.0,
+            "angleSpeed": 0.0,
+            "useVelocityAngle": false,
+            "polarForm": {
+                "x": 1.0,
+                "y": 0.0
+            },
+            "radiusVlc": 0.0,
+            "radiusAccel": 0.0,
+            "thetaVlc": 0.0,
+            "thetaAccel": 0.0,
+            "startPos": {
+                "x": 0,
+                "y": 0
+            },
+            "polynomial": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 0
+            },
+            "typeName": "box",
+            "scale": {
+                "x": 60.0,
+                "y": 0.3
+            },
+            "color": {
+                "x": 1.0,
+                "y": 0.504,
+                "z": 0.5637,
+                "w": 1.0
+            },
+            "scaleEnd": {
+                "x": 60.0,
                 "y": 0.6
             },
             "colorEnd": {
@@ -437,8 +545,8 @@
                 "z": 0.1274,
                 "w": 1.0
             },
-            "animDuration": 0.1,
-            "appearTime": 1.1,
+            "animDuration": 0.06,
+            "appearTime": 1.26,
             "appearDuration": 0.0,
             "life": 1.32,
             "random": 0,
@@ -487,7 +595,7 @@
             },
             "typeName": "box",
             "scale": {
-                "x": 40.0,
+                "x": 60.0,
                 "y": 0.6
             },
             "color": {
@@ -507,7 +615,7 @@
                 "w": 0
             },
             "animDuration": 0.0,
-            "appearTime": 1.2,
+            "appearTime": 1.32,
             "appearDuration": 0.0,
             "life": 1.8,
             "random": 0,
@@ -556,7 +664,7 @@
             },
             "typeName": "knight_warn",
             "scale": {
-                "x": 40.0,
+                "x": 60.0,
                 "y": 0.6
             },
             "color": {
@@ -566,7 +674,7 @@
                 "w": 1.0
             },
             "scaleEnd": {
-                "x": 40.0,
+                "x": 60.0,
                 "y": 0.13
             },
             "colorEnd": {
