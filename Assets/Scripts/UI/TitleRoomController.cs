@@ -77,11 +77,14 @@ public class TitleRoomController : MonoBehaviour
     // 板の位置と大きさは「全景カメラで画面のどこに何 px で写るか」から逆算するので、
     // 下の 3 つを触るだけで見え方を合わせられる(値の正は .tmp_ui/progress.md U8)。
     [Tooltip("全景カメラで見たときのロゴの中心(1920x1080 の画面中心からの px)。")]
-    // y は旧 2D ロゴ(261)より 45px 上げてある。旧位置だと絵の下端が「設定」の
+    // y は旧 2D ロゴ(261)より 57px 上げてある。旧位置だと絵の下端が「設定」の
     // ラベルに重なって読めなかった(2026-09-19 の指摘 5 の一因)。
-    public Vector2 logoScreenPos = new Vector2(19f, 306f);
+    // 第 U9 便: 306 → 318。あわせて幅を 484 → 452 に詰めた(-6.6%)。
+    // ロゴの絵の下端は「上へ 12px(位置) + 8px(縮小)= 20px」持ち上がり、上端は 4px しか
+    // 動かない(天井の梁に触れない)。「設定」のラベルとの最小の隙間は 29px → 49px。
+    public Vector2 logoScreenPos = new Vector2(19f, 318f);
     [Tooltip("全景カメラで見たときのロゴの幅(px)。高さは原画の縦横比で決まる。")]
-    public float logoScreenWidth = 484f;
+    public float logoScreenWidth = 452f;
     [Tooltip("板を置く奥行き(部屋のワールド z)。背面壁は z=4.72。")]
     public float logoPlaneZ = 4.40f;
     Transform logoBoard;
