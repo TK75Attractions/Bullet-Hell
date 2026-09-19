@@ -432,7 +432,9 @@ public class OptionMenu : MonoBehaviour
 
         if (openAnimT < 1f && group != null)
         {
-            openAnimT = Mathf.Min(1f, openAnimT + dt / 0.18f);
+            // タイトルから開くときは、カメラの寄りに重なるようフェードを伸ばす
+            // (第 U8 便・2026-09-19 指示「寄りながら表示」)。プレイ中のポーズは従来どおり。
+            openAnimT = Mathf.Min(1f, openAnimT + dt / (titleContext ? TitleManager.PanelFadeIn : 0.18f));
             float e = 1f - (1f - openAnimT) * (1f - openAnimT);
             group.alpha = e;
             transform.localScale = Vector3.one * (0.97f + 0.03f * e);
@@ -611,7 +613,7 @@ public class OptionMenu : MonoBehaviour
         EnsureInit();
         closing = true;
 
-        const float closeDuration = 0.18f;
+        float closeDuration = TitleManager.PanelFadeOut;   // 第 U8 便: 引きながら消える
         float time = 0f;
         while (time < closeDuration)
         {
@@ -966,7 +968,9 @@ public class OptionMenu : MonoBehaviour
         // 下部の操作ヒント(レバー / 〇 決定 / ✕ 戻る)。
         Image lever = NewV11Image("HintLever", root, Color.white);
         lever.sprite = HighlandUi.Icon("lever_white");
-        SetV11(lever.rectTransform, 585.25f, 656f, 27.5f, 27.5f);
+        // 第 U8 便(2026-09-19 指示): レバーは〇✕ に比べて絵が小さく見づらいので
+        // 1.4 倍(27.5 → 38.5)にする。中心は動かさない。
+        SetV11(lever.rectTransform, 585.25f, 656f, 38.5f, 38.5f);
         hintLever = new HighlandUi.RubyText(
             HighlandUi.Text("HintLeverText", root, "", 19f, HighlandUi.InkSoft, TextAlignmentOptions.Left, false, 0.7f),
             root, 19f, HighlandUi.InkSoft);

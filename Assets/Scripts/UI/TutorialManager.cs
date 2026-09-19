@@ -139,7 +139,9 @@ public class TutorialManager : MonoBehaviour
         // 左: 操作アイコンの札 + 20fps の再生。
         moveIconRoot = CreateIconRoot("MoveIcons", cardRect);
         moveIconGroup = moveIconRoot.gameObject.AddComponent<CanvasGroup>();
-        moveIconImage = BuildKeyTag(moveIconRoot, 535f, 273f, 194f, 194f, 13.5f, "anim_lever", 150f);
+        // 第 U8 便(2026-09-19 指示): レバーの絵が〇に比べて小さく見えるので
+        // 札はそのままにアイコンだけ 150 → 182(約 1.21 倍)へ。札の内側に 24px 残る。
+        moveIconImage = BuildKeyTag(moveIconRoot, 535f, 273f, 194f, 194f, 13.5f, "anim_lever", 182f);
 
         dashIconRoot = CreateIconRoot("DashIcons", cardRect);
         dashIconGroup = dashIconRoot.gameObject.AddComponent<CanvasGroup>();
