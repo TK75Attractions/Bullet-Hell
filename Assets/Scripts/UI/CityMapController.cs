@@ -304,11 +304,23 @@ public class CityMapController : MonoBehaviour
     float savedReflectionIntensity;
     bool ambientSaved;
 
-    // カメラ移動。from → to を dur 秒で ease-in-out する。
+    // カメラ移動には 2 つの形がある(第 U8 便・2026-09-19 指示)。
+    //  ・Spring … 区画から区画への移動。臨界減衰のばね(SmoothDamp)で目標へ追従する。
+    //             移動中に目標が変わっても速度が残るので、左右に連打しても折れない。
+    //             旧: 0.5 秒の ease-in-out 直線補間 = 目標が変わるたび速度 0 から再出発。
+    //  ・Curve  … タイトルとの受け渡しスイープ。尺が決まっていて、継ぎ目側の端を
+    //             ease で止めない(入場 = ease-out / 退場 = ease-in)。
+    enum MoveShape { EaseInOut, EaseOut, EaseIn }
     CamPose viewFrom;
     CamPose viewTo;
     float moveT = 1f;
     float moveDur = MoveDuration;
+    MoveShape moveShape = MoveShape.EaseInOut;
+    bool springMode;
+    Vector3 springPosVel, springEulerVel, springTargetVel;
+    float springSizeVel;
+    /// <summary>区画間の追従の速さ(臨界減衰ばねの smoothTime・秒)。体感は約 0.55 秒。</summary>
+    public const float MoveSmoothTime = 0.20f;
     CamPose viewNow;
     int selected;          // 0 = 全景
     float zoomIn;          // 0=区画の引き / 1=決定後の寄り
@@ -323,7 +335,10 @@ public class CityMapController : MonoBehaviour
     /// <summary>いま選択中の区画(0=全景)。</summary>
     public int SelectedDistrict => selected;
     /// <summary>カメラ移動が終わっているか(プレビュー動画はこれで出す)。</summary>
-    public bool Arrived => moveT >= 1f;
+    public bool Arrived => springMode ? springSettled : moveT >= 1f;
+    bool springSettled = true;
+    /// <summary>カメラがまだ動いているか(フォーカス後処理の更新判定に使う)。</summary>
+    bool Moving => springMode ? !springSettled : moveT < 1f;
     public float ZoomAmount => zoomIn;
     /// <summary>街の描画先。ドット風のときは低解像度の RT。</summary>
     public RenderTexture Texture => pixelRT != null ? pixelRT : targetTexture;
@@ -445,7 +460,7 @@ public class CityMapController : MonoBehaviour
     {
         if (selected < 1) { focusCenterWorld = Vector3.zero; return; }
         Vector3 anchor = Anchors[selected];
-        focusCenterWorld = moveT < 1f
+        focusCenterWorld = Moving
             ? new Vector3(viewNow.target.x, anchor.y, viewNow.target.z)
             : anchor;
     }
@@ -932,7 +947,8 @@ public class CityMapController : MonoBehaviour
             tintWeight = tintWeightTarget;
             ApplyViewMaterial();
         }
-        BeginMove(TargetPose(), animate ? MoveDuration : 0f);
+        if (animate) BeginSpring(TargetPose());
+        else BeginMove(TargetPose(), 0f);
     }
 
     // 入場スイープの始点を全景より何倍引くか(タイトルの「地図へ寄る」の続きに
@@ -961,7 +977,10 @@ public class CityMapController : MonoBehaviour
         from.size *= EntrancePullBack;
         viewNow = from;
         ApplyView(viewNow);
-        BeginMove(TargetPose(), duration);
+        // 第 U8 便(指摘 10): 入場は **ease-out のみ**。タイトルの寄りが加速した
+        // まま渡してくるので、こちらは最大速度で受けて区画で静かに止まる。
+        // (旧 ease-in-out は出だしが速度 0 = 継ぎ目で必ず折れていた。)
+        BeginMove(TargetPose(), duration, MoveShape.EaseOut);
     }
 
     /// <summary>タイトルへ戻る(入場スイープの逆再生)。いまの姿勢から、全景と同じ
@@ -978,20 +997,25 @@ public class CityMapController : MonoBehaviour
         Vector3 back = Quaternion.Euler(to.euler) * Vector3.back;
         to.pos += back * Vector3.Distance(Overview.pos, Overview.target) * (EntrancePullBack - 1f);
         to.size *= EntrancePullBack;
-        BeginMove(to, duration);
+        // 第 U8 便(指摘 10): 退場は **ease-in のみ**。加速しながらタイトルへ渡し、
+        // タイトル側(寄り戻しの ease = p^2)が最大速度で受けて全景で止まる。
+        BeginMove(to, duration, MoveShape.EaseIn);
     }
 
     /// <summary>決定でさらに寄る / 戻す。</summary>
     public void SetCloseUp(bool on)
     {
         zoomInTarget = on ? 1f : 0f;
-        BeginMove(TargetPose(), ZoomDuration);
+        // 第 U8 便: 決定の寄りもばねで追う(区画移動の途中で決定されても折れない)。
+        BeginSpring(TargetPose());
     }
 
-    void BeginMove(CamPose to, float dur)
+    void BeginMove(CamPose to, float dur, MoveShape shape = MoveShape.EaseInOut)
     {
+        springMode = false;
         viewFrom = viewNow;
         viewTo = to;
+        moveShape = shape;
         moveDur = Mathf.Max(0.0001f, dur);
         moveT = dur <= 0f ? 1f : 0f;
         if (moveT >= 1f)
@@ -1000,6 +1024,30 @@ public class CityMapController : MonoBehaviour
             ApplyView(viewNow);
         }
     }
+
+    // 区画から区画への移動。いまの速度を残したまま目標だけ差し替える。
+    void BeginSpring(CamPose to)
+    {
+        if (!springMode)
+        {
+            // 直前が Curve 移動なら、その瞬間の速度をばねへ引き継ぐ
+            // (ここで 0 にすると「連打 → 一瞬止まる」が残る)。
+            springPosVel = curveVel.pos;
+            springEulerVel = curveVel.euler;
+            springTargetVel = curveVel.target;
+            springSizeVel = curveVel.size;
+            springMode = true;
+        }
+        viewTo = to;
+        viewFrom = viewNow;
+        moveT = 1f;
+        springSettled = false;
+    }
+
+    // Curve 移動の 1 コマ前の姿勢(速度を測ってばねへ渡すため)。
+    CamPose curveVel;
+    CamPose curvePrev;
+    bool curvePrevValid;
 
     // 街の CG は全画面のまま、区画の中心だけを画面の左 27% へ寄せる。正投影なので
     // カメラをそのまま右へ平行移動すれば、写っているものが左へずれる
@@ -1046,18 +1094,52 @@ public class CityMapController : MonoBehaviour
         if (!built || !activeNow) return;
         time += dt;
 
-        if (moveT < 1f)
+        if (springMode)
+        {
+            // 臨界減衰のばね。目標が途中で変わっても速度が連続なので、
+            // 左右の連続入力でカメラが折れない(第 U8 便の指摘 15)。
+            float st = MoveSmoothTime;
+            viewNow.pos = Vector3.SmoothDamp(viewNow.pos, viewTo.pos, ref springPosVel, st, Mathf.Infinity, dt);
+            viewNow.target = Vector3.SmoothDamp(viewNow.target, viewTo.target, ref springTargetVel, st, Mathf.Infinity, dt);
+            viewNow.size = Mathf.SmoothDamp(viewNow.size, viewTo.size, ref springSizeVel, st, Mathf.Infinity, dt);
+            // 方位角は -180/180 を跨ぐので、現在値に近い等価な目標へ寄せてから補間する。
+            Vector3 wantEuler = NearestEuler(viewNow.euler, viewTo.euler);
+            viewNow.euler = Vector3.SmoothDamp(viewNow.euler, wantEuler, ref springEulerVel, st, Mathf.Infinity, dt);
+            ApplyView(viewNow);
+            springSettled =
+                (viewNow.pos - viewTo.pos).sqrMagnitude < 1e-4f &&
+                springPosVel.sqrMagnitude < 1e-4f &&
+                Mathf.Abs(viewNow.size - viewTo.size) < 0.01f;
+            curvePrevValid = false;
+        }
+        else if (moveT < 1f)
         {
             moveT = Mathf.Min(1f, moveT + dt / moveDur);
-            float e = EaseInOut(moveT);
-            viewNow = new CamPose
+            float e = Ease(moveShape, moveT);
+            CamPose next = new CamPose
             {
                 pos = Vector3.Lerp(viewFrom.pos, viewTo.pos, e),
                 euler = LerpEuler(viewFrom.euler, viewTo.euler, e),
                 size = Mathf.Lerp(viewFrom.size, viewTo.size, e),
                 target = Vector3.Lerp(viewFrom.target, viewTo.target, e),
             };
+            if (curvePrevValid && dt > 1e-5f)
+            {
+                curveVel = new CamPose
+                {
+                    pos = (next.pos - curvePrev.pos) / dt,
+                    euler = (next.euler - curvePrev.euler) / dt,
+                    size = (next.size - curvePrev.size) / dt,
+                    target = (next.target - curvePrev.target) / dt,
+                };
+            }
+            curvePrev = next;
+            curvePrevValid = true;
+            viewNow = next;
             ApplyView(viewNow);
+            // 着いたら速度を捨てる(次にばねへ切り替えるとき、古い速度を
+            // 引き継いでカメラが飛び出さないように)。
+            if (moveT >= 1f) { curveVel = default; curvePrevValid = false; }
         }
         zoomIn = Mathf.MoveTowards(zoomIn, zoomInTarget, dt / ZoomDuration);
 
@@ -1067,7 +1149,7 @@ public class CityMapController : MonoBehaviour
         focusWeight = ComputeFocusWeight();
         ApplyFocusMaterial();
         // 移動中は中心が動くので毎フレーム、着いたら変化したときだけ街灯を入れ直す。
-        if (moveT < 1f || selected != lastFocusDistrict || Mathf.Abs(focusWeight - lastFocusApplied) > 0.004f)
+        if (Moving || selected != lastFocusDistrict || Mathf.Abs(focusWeight - lastFocusApplied) > 0.004f)
         {
             lastFocusDistrict = selected;
             lastFocusApplied = focusWeight;
@@ -1108,6 +1190,25 @@ public class CityMapController : MonoBehaviour
     static float EaseInOut(float t)
     {
         return t < 0.5f ? 2f * t * t : 1f - Mathf.Pow(-2f * t + 2f, 2f) * 0.5f;
+    }
+
+    static float Ease(MoveShape shape, float t)
+    {
+        switch (shape)
+        {
+            case MoveShape.EaseOut: return 1f - (1f - t) * (1f - t);   // 出だし最速 → 静かに止まる
+            case MoveShape.EaseIn: return t * t;                        // 静かに出て加速したまま渡す
+            default: return EaseInOut(t);
+        }
+    }
+
+    // 方位角の目標を「現在値にいちばん近い等価な角度」へ直す(ばね補間用)。
+    static Vector3 NearestEuler(Vector3 now, Vector3 want)
+    {
+        return new Vector3(
+            now.x + Mathf.DeltaAngle(now.x, want.x),
+            now.y + Mathf.DeltaAngle(now.y, want.y),
+            now.z + Mathf.DeltaAngle(now.z, want.z));
     }
 
     // 方位角は -180/180 を跨ぐので最短経路で補間する。
