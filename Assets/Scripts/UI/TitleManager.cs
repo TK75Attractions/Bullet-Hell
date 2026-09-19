@@ -2046,7 +2046,8 @@ public class TitleManager : MonoBehaviour
         float t = 0f;
         while (t < PanelFadeIn)
         {
-            t += Time.unscaledDeltaTime;
+            // dt はクランプする(初回オープンのスプライト焼きで 1 コマが長くなる)。
+            t += Mathf.Min(Time.unscaledDeltaTime, 0.05f);
             float p = Mathf.Clamp01(t / PanelFadeIn);
             if (transferCG != null) transferCG.alpha = p * p * (3f - 2f * p);
             yield return null;
@@ -2493,7 +2494,8 @@ public class TitleManager : MonoBehaviour
         float t = 0f;
         while (t < PanelFadeIn)
         {
-            t += Time.unscaledDeltaTime;
+            // dt はクランプする(初回オープンのスプライト焼きで 1 コマが長くなる)。
+            t += Mathf.Min(Time.unscaledDeltaTime, 0.05f);
             float p = Mathf.Clamp01(t / PanelFadeIn);
             if (rankingCG != null) rankingCG.alpha = p * p * (3f - 2f * p);
             yield return null;

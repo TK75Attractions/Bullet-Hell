@@ -434,7 +434,11 @@ public class OptionMenu : MonoBehaviour
         {
             // タイトルから開くときは、カメラの寄りに重なるようフェードを伸ばす
             // (第 U8 便・2026-09-19 指示「寄りながら表示」)。プレイ中のポーズは従来どおり。
-            openAnimT = Mathf.Min(1f, openAnimT + dt / (titleContext ? TitleManager.PanelFadeIn : 0.18f));
+            // dt はクランプする。初回オープンは EnsureInit がスプライトを焼くぶん
+            // 1 フレームが数百 ms 掛かり、その dt をそのまま足すとフェードが
+            // 1 コマで終わってしまう(第 U8 便で実測)。
+            float step = Mathf.Min(dt, 0.05f) / (titleContext ? TitleManager.PanelFadeIn : 0.18f);
+            openAnimT = Mathf.Min(1f, openAnimT + step);
             float e = 1f - (1f - openAnimT) * (1f - openAnimT);
             group.alpha = e;
             transform.localScale = Vector3.one * (0.97f + 0.03f * e);
