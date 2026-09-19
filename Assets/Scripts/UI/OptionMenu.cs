@@ -9,18 +9,22 @@ using UnityEngine.UI;
 // scene-authored typography so the layout remains easy to tune.
 public class OptionMenu : MonoBehaviour
 {
-    private static readonly float[] rowY = { 170f, 10f, -130f, -280f };
-    private const float itemBaseX = -410f;
-    private const float sliderWidth = 660f;
+    // Highland UI v11 の実座標(SVG 1672x941 → 1920x1080 は 1.1483 倍)。
+    // 行の中心 y: 続ける 323 / 音量 408 / エフェクト 493 / 終了する 577。
+    private static readonly float[] rowY = { 169.4f, 71.8f, -25.8f, -122.3f };
+    private const float itemBaseX = -318f;      // v11: ラベル左端 x=559
+    private const float sliderWidth = 351.4f;   // v11: 306 * 1.1483
     private const float selectedShiftX = 10f;
     private const float textBlockShiftY = -10f;
     // CJK フォールバックの行メトリクスで上に乗る分の光学補正。フォントサイズに
     // 比例する(32px 時 -7 → 25px 時 -5.5)。
     private const float confirmButtonTextOffsetY = -5.5f;
-    private static readonly Vector2 yesButtonPosition = new Vector2(-160f, -95f);
-    private static readonly Vector2 noButtonPosition = new Vector2(160f, -95f);
+    // v11 の終了確認(パネル中心からの相対)。
+    private static readonly Vector2 yesButtonPosition = new Vector2(-124.6f, -45.4f);
+    private static readonly Vector2 noButtonPosition = new Vector2(123.2f, -45.4f);
+    private static readonly Vector2 confirmButtonSize = new Vector2(210f, 68f);
 
-    private static readonly Color unselectedColor = new Color(0.78f, 0.84f, 0.92f);
+    private static readonly Color unselectedColor = new Color(0.949f, 0.949f, 0.949f);
     private static readonly Color disabledGray = new Color(0.42f, 0.46f, 0.54f);
     private static readonly Color accentBlue = new Color(0.16f, 0.58f, 1f);
 
@@ -38,12 +42,24 @@ public class OptionMenu : MonoBehaviour
     private readonly RectTransform[] headerRects = new RectTransform[4];
     private readonly Vector2[] headerBasePositions = new Vector2[4];
 
+    // v11 の部品(2026-09-19 U7)。
+    private readonly System.Collections.Generic.List<Texture2D> ownedTextures
+        = new System.Collections.Generic.List<Texture2D>();
+    private readonly System.Collections.Generic.List<Sprite> ownedSprites
+        = new System.Collections.Generic.List<Sprite>();
+    private readonly HighlandUi.RubyText[] itemRuby = new HighlandUi.RubyText[4];
+    private readonly Image[] rowPlates = new Image[4];
+    private readonly Image[] rowGems = new Image[4];
+    private Sprite rowPlateSprite, rowChosenSprite;
+    private Image effectsOnPlate, effectsOffPlate;
+    private Sprite effectsChosen, effectsPlain;
+    private Sprite confirmChosen, confirmPlain;
+    private TMP_Text effectsOnText, effectsOffText;
+    private HighlandUi.RubyText confirmTitleRuby;
+
     private RectTransform sliderFill;
     private RectTransform sliderKnob;
     private Graphic sliderKnobGraphic;
-    private Graphic toggleTrack;
-    private RectTransform toggleKnob;
-    private Graphic toggleKnobGraphic;
     private TMP_Text toggleStateText;
 
     private CanvasGroup countdownGroup;
@@ -132,8 +148,33 @@ public class OptionMenu : MonoBehaviour
         yesText = confirm.Find("YesText").GetComponent<TMP_Text>();
         noText = confirm.Find("NoText").GetComponent<TMP_Text>();
 
-        quitItemTextOriginal = items[3] != null ? items[3].text : "プレイを終了";
+        quitItemTextOriginal = "ステージを [終了|しゅうりょう]する";
         quitRubyActiveOriginal = rubyRects[3] != null && rubyRects[3].gameObject.activeSelf;
+
+        // v11: 行ラベルは自前のふりがな付きへ。シーンのルビは畳む。
+        string[] markup =
+        {
+            "[続|つづ]ける", "[音量|おんりょう]", "エフェクト", "ステージを [終了|しゅうりょう]する",
+        };
+        for (int i = 0; i < 4; i++)
+        {
+            if (rubyRects[i] != null) rubyRects[i].gameObject.SetActive(false);
+            if (badges[i] != null) badges[i].gameObject.SetActive(false);
+            if (items[i] == null) continue;
+            items[i].font = HighlandUi.Serif;
+            items[i].fontSize = 25f * HighlandUi.S;
+            items[i].characterSpacing = 1.1f / 25f * 100f;
+            items[i].alignment = TextAlignmentOptions.Left;
+            items[i].rectTransform.pivot = new Vector2(0f, 0.5f);
+            items[i].rectTransform.sizeDelta = new Vector2(520f, 25f * HighlandUi.S * 1.6f);
+            itemVisualOffsetY[i] = 0f;
+            itemRuby[i] = new HighlandUi.RubyText(items[i], items[i].transform.parent,
+                25f, HighlandUi.InkSoft);
+            itemRuby[i].Apply(markup[i]);
+        }
+        if (selectBand != null) selectBand.gameObject.SetActive(false);
+        for (int i = 0; i < headerRects.Length; i++)
+            if (headerRects[i] != null) headerRects[i].gameObject.SetActive(false);
 
         Transform on = transform.Find("OnText");
         Transform off = transform.Find("OffText");
@@ -167,61 +208,60 @@ public class OptionMenu : MonoBehaviour
         menuShade.transform.SetSiblingIndex(1);
         menuShade.SetActive(false);
 
+        BuildV11Frame();
+
         RectTransform sliderBack = sliderFill.parent as RectTransform;
-        GameObject knobObject = new GameObject("SliderKnob", typeof(RectTransform), typeof(CanvasRenderer), typeof(CapsuleGraphic));
+        sliderBack.anchoredPosition = new Vector2(HighlandUi.X(950f), HighlandUi.Y(408.5f));
+        sliderBack.sizeDelta = new Vector2(sliderWidth, 12f);
+        Image sliderBackImg = sliderBack.GetComponent<Image>();
+        if (sliderBackImg != null) sliderBackImg.color = new Color(0.8f, 0.8f, 0.8f, 0.3f);
+        sliderFill.sizeDelta = new Vector2(sliderWidth, HighlandUi.L(3f));
+        Image sliderFillImg = sliderFill.GetComponent<Image>();
+        if (sliderFillImg != null) sliderFillImg.color = Color.white;
+        // 溝は 3px の細線。背景の Image は薄い灰にして高さだけ合わせる。
+        sliderBack.sizeDelta = new Vector2(sliderWidth, HighlandUi.L(3f));
+
+        // 両端の小さな中空菱形(v11 の O_Volume_Min / Max)。
+        foreach (float sx in new[] { 781f, 1118f })
+        {
+            Image d = NewV11Image("VolumeEnd", transform, new Color(0.867f, 0.769f, 0.318f, 1f));
+            d.sprite = HighlandUi.DiamondRect(9, 11, false, 1f * HighlandUi.S,
+                ownedTextures, ownedSprites, "OptVolEnd");
+            SetV11(d.rectTransform, sx, 408.5f, 8f, 9.6f);
+        }
+
+        // つまみ(v11 の八角形)。
+        GameObject knobObject = new GameObject("SliderKnob", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
         knobObject.layer = gameObject.layer;
         sliderKnob = (RectTransform)knobObject.transform;
         sliderKnob.SetParent(sliderBack, false);
         sliderKnob.anchorMin = sliderKnob.anchorMax = new Vector2(0.5f, 0.5f);
-        sliderKnob.sizeDelta = Vector2.one * 48f;
-        sliderKnobGraphic = knobObject.GetComponent<CapsuleGraphic>();
-        sliderKnobGraphic.color = new Color(0.05f, 0.06f, 0.10f, 1f);
-        sliderKnobGraphic.raycastTarget = false;
-        GameObject knobFillObject = new GameObject("Fill", typeof(RectTransform), typeof(CanvasRenderer), typeof(CapsuleGraphic));
-        knobFillObject.layer = gameObject.layer;
-        RectTransform knobFill = (RectTransform)knobFillObject.transform;
-        knobFill.SetParent(sliderKnob, false);
-        knobFill.anchorMin = knobFill.anchorMax = new Vector2(0.5f, 0.5f);
-        knobFill.sizeDelta = Vector2.one * 38f;
-        CapsuleGraphic knobFillGraphic = knobFillObject.GetComponent<CapsuleGraphic>();
-        knobFillGraphic.color = Color.white;
-        knobFillGraphic.raycastTarget = false;
+        sliderKnob.sizeDelta = Vector2.one * HighlandUi.L(26f);
+        Image knobImg = knobObject.GetComponent<Image>();
+        knobImg.sprite = HighlandUi.NotchFlat(30, 30, 9f, new Color32(0x38, 0x3C, 0x48, 0xFF), 1f,
+            new Color32(0xFF, 0xFF, 0xFF, 0xFF), 2f, 1f, ownedTextures, ownedSprites, "OptKnob");
+        knobImg.raycastTarget = false;
+        sliderKnobGraphic = knobImg;
 
-        GameObject toggleObject = new GameObject("EffectToggle", typeof(RectTransform), typeof(CanvasRenderer), typeof(CapsuleGraphic));
-        toggleObject.layer = gameObject.layer;
-        RectTransform toggleRect = (RectTransform)toggleObject.transform;
-        toggleRect.SetParent(transform, false);
-        toggleRect.anchorMin = toggleRect.anchorMax = new Vector2(0.5f, 0.5f);
-        toggleRect.anchoredPosition = new Vector2(400f, rowY[2]);
-        toggleRect.sizeDelta = new Vector2(154f, 52f);
-        CapsuleGraphic toggleOutline = toggleObject.GetComponent<CapsuleGraphic>();
-        toggleOutline.color = new Color(0.42f, 0.58f, 0.72f, 0.9f);
-        toggleOutline.raycastTarget = false;
-
-        GameObject trackObject = new GameObject("Track", typeof(RectTransform), typeof(CanvasRenderer), typeof(CapsuleGraphic));
-        trackObject.layer = gameObject.layer;
-        RectTransform trackRect = (RectTransform)trackObject.transform;
-        trackRect.SetParent(toggleRect, false);
-        trackRect.anchorMin = trackRect.anchorMax = new Vector2(0.5f, 0.5f);
-        trackRect.sizeDelta = new Vector2(146f, 44f);
-        toggleTrack = trackObject.GetComponent<CapsuleGraphic>();
-        toggleTrack.raycastTarget = false;
-
-        GameObject toggleKnobObject = new GameObject("Knob", typeof(RectTransform), typeof(CanvasRenderer), typeof(CapsuleGraphic));
-        toggleKnobObject.layer = gameObject.layer;
-        toggleKnob = (RectTransform)toggleKnobObject.transform;
-        toggleKnob.SetParent(trackRect, false);
-        toggleKnob.anchorMin = toggleKnob.anchorMax = new Vector2(0.5f, 0.5f);
-        toggleKnob.sizeDelta = Vector2.one * 36f;
-        toggleKnobGraphic = toggleKnobObject.GetComponent<CapsuleGraphic>();
-        toggleKnobGraphic.raycastTarget = false;
-
-        toggleStateText = CreateLabel("EffectState", transform, new Vector2(515f, rowY[2]), new Vector2(90f, 48f), 25f);
-        toggleStateText.rectTransform.anchoredPosition = new Vector2(565f, rowY[2]);
-        toggleStateText.rectTransform.sizeDelta = new Vector2(130f, 56f);
-        toggleStateText.font = items[0].font;
-        toggleStateText.fontSize = 38f;
-        toggleStateText.fontStyle = FontStyles.Normal;
+        // エフェクトの「あり」「なし」(v11 は独立した 2 つのボタン)。
+        effectsOnPlate = NewV11Image("EffectsOn", transform, Color.white);
+        SetV11(effectsOnPlate.rectTransform, 947f, 492.5f, 98f, 49f);
+        effectsOffPlate = NewV11Image("EffectsOff", transform, Color.white);
+        SetV11(effectsOffPlate.rectTransform, 1070f, 492.5f, 98f, 49f);
+        effectsChosen = HighlandUi.NotchPanel((int)HighlandUi.L(98f), (int)HighlandUi.L(49f),
+            HighlandUi.L(4.5f), true, ownedTextures, ownedSprites, "OptEffOn",
+            HighlandUi.L(3.5f), 1.5f * HighlandUi.S, 0.7f * HighlandUi.S);
+        effectsPlain = HighlandUi.NotchFlat((int)HighlandUi.L(98f), (int)HighlandUi.L(49f),
+            HighlandUi.L(4.5f), new Color32(0x11, 0x11, 0x29, 0xFF), 0.5f,
+            new Color32(0xBB, 0xBB, 0xBB, 0xFF), 1.1f * HighlandUi.S, 0.58f,
+            ownedTextures, ownedSprites, "OptEffOff");
+        effectsOnText = HighlandUi.Text("EffectsOnText", transform, "あり", 20f,
+            HighlandUi.Ink, TextAlignmentOptions.Center, false, 1.1f);
+        HighlandUi.PlaceCentered(effectsOnText, 947f, 500f, 120f, 20f);
+        effectsOffText = HighlandUi.Text("EffectsOffText", transform, "なし", 20f,
+            HighlandUi.InkSoft, TextAlignmentOptions.Center, false, 1.1f);
+        HighlandUi.PlaceCentered(effectsOffText, 1070f, 500f, 120f, 20f);
+        toggleStateText = effectsOnText;
 
         GameObject countdownObject = new GameObject("ResumeCountdown", typeof(RectTransform), typeof(CanvasGroup));
         countdownObject.layer = gameObject.layer;
@@ -259,24 +299,53 @@ public class OptionMenu : MonoBehaviour
         GameObject shade = CreateImage("ConfirmShade", confirmGroup.transform, Vector2.zero, new Vector2(1920f, 1080f), new Color(0f, 0f, 0f, 0.94f));
         shade.transform.SetSiblingIndex(1);
 
-        confirmTitle.text = "プレイを終了しますか";
-        confirmTitle.rectTransform.anchoredPosition = new Vector2(0f, 72f);
-        confirmTitle.rectTransform.sizeDelta = new Vector2(760f, 80f);
+        // v11 の確認パネル(四隅をえぐった二重枠)。
+        Image confirmPanel = NewV11Image("ConfirmPanel", confirmGroup.transform, Color.white);
+        confirmPanel.sprite = HighlandUi.NotchPanel((int)HighlandUi.L(508f), (int)HighlandUi.L(198f),
+            HighlandUi.L(13.5f), false, ownedTextures, ownedSprites, "OptConfirmPanel",
+            HighlandUi.L(5.5f), 1.65f * HighlandUi.S, 0.7f * HighlandUi.S);
+        confirmPanel.rectTransform.anchoredPosition = Vector2.zero;
+        confirmPanel.rectTransform.sizeDelta = new Vector2(HighlandUi.L(508f), HighlandUi.L(198f));
+
+        AddV11Rule(confirmGroup.transform, 20.7f, 380f, 34f, "OptConfirmRule");
+
+        confirmTitle.font = HighlandUi.Serif;
+        confirmTitle.rectTransform.anchoredPosition = new Vector2(0f, 56.8f);
+        confirmTitle.rectTransform.sizeDelta = new Vector2(HighlandUi.L(460f), 25f * HighlandUi.S * 1.6f);
         confirmTitle.alignment = TextAlignmentOptions.Center;
-        confirmTitle.fontSize = 48f;
+        confirmTitle.fontSize = 25f * HighlandUi.S;
+        confirmTitle.characterSpacing = 1.25f / 25f * 100f;
+        confirmTitleRuby = new HighlandUi.RubyText(confirmTitle, confirmGroup.transform, 25f, HighlandUi.InkSoft);
+        confirmTitleRuby.Apply("ステージを [終了|しゅうりょう]しますか？");
         confirmDetail.text = string.Empty;
         confirmDetail.gameObject.SetActive(false);
 
-        // 青い単色面と細い輪郭だけの、静かな確認ボタンにする。
-        Color buttonBase = new Color(0.025f, 0.08f, 0.14f, 0.96f);
         yesButton = CreateImage("YesButton", confirmGroup.transform, yesButtonPosition,
-            new Vector2(240f, 72f), buttonBase).GetComponent<Image>();
+            confirmButtonSize, Color.white).GetComponent<Image>();
         noButton = CreateImage("NoButton", confirmGroup.transform, noButtonPosition,
-            new Vector2(240f, 72f), buttonBase).GetComponent<Image>();
-        SetupSimpleConfirmOutline(yesButton);
-        SetupSimpleConfirmOutline(noButton);
+            confirmButtonSize, Color.white).GetComponent<Image>();
+        confirmChosen = HighlandUi.NotchPanel((int)confirmButtonSize.x, (int)confirmButtonSize.y,
+            HighlandUi.L(6f), true, ownedTextures, ownedSprites, "OptConfirmYes",
+            HighlandUi.L(4f), 1.6f * HighlandUi.S, 0.7f * HighlandUi.S);
+        confirmPlain = HighlandUi.NotchFlat((int)confirmButtonSize.x, (int)confirmButtonSize.y,
+            HighlandUi.L(6f), new Color32(0x11, 0x11, 0x29, 0xFF), 0.5f,
+            new Color32(0xB2, 0xB2, 0xB9, 0xFF), 1f * HighlandUi.S, 0.65f,
+            ownedTextures, ownedSprites, "OptConfirmNo");
         yesButtonGroup = yesButton.gameObject.AddComponent<CanvasGroup>();
         noButtonGroup = noButton.gameObject.AddComponent<CanvasGroup>();
+
+        // 〇 / ✕ の操作アイコン(✕ は「戻る」の記号)。
+        Image yesIcon = NewV11Image("YesIcon", confirmGroup.transform, Color.white);
+        yesIcon.sprite = HighlandUi.Icon("circle");
+        yesIcon.rectTransform.anchoredPosition = yesButtonPosition + new Vector2(HighlandUi.L(-31.3f), HighlandUi.L(1.5f));
+        yesIcon.rectTransform.sizeDelta = Vector2.one * HighlandUi.L(39.5f);
+        Image noIcon = NewV11Image("NoIcon", confirmGroup.transform, Color.white);
+        noIcon.sprite = HighlandUi.Icon("cross");
+        noIcon.rectTransform.anchoredPosition = noButtonPosition + new Vector2(HighlandUi.L(-31.3f), HighlandUi.L(1.5f));
+        noIcon.rectTransform.sizeDelta = Vector2.one * HighlandUi.L(39.5f);
+
+        yesText.font = HighlandUi.Serif;
+        noText.font = HighlandUi.Serif;
         yesText.text = "はい";
         noText.text = "いいえ";
         SetupButtonText(yesText, yesButtonPosition);
@@ -335,11 +404,15 @@ public class OptionMenu : MonoBehaviour
         if (items[3] != null)
         {
             items[3].gameObject.SetActive(!titleContext);
-            items[3].text = quitItemTextOriginal;
+            // v11: 文言は「ステージを 終了する」。ふりがなは RubyText が持つので
+            // 本文を直接代入せず Apply で入れ直す(読みの位置が狂わないように)。
+            if (itemRuby[3] != null) itemRuby[3].Apply(quitItemTextOriginal);
+            else items[3].text = quitItemTextOriginal;
         }
-        if (badges[3] != null) badges[3].gameObject.SetActive(!titleContext);
-        if (rubyRects[3] != null)
-            rubyRects[3].gameObject.SetActive(!titleContext && quitRubyActiveOriginal);
+        // 旧シーンの飾り(菱形・ルビ)は v11 では使わない。
+        if (badges[3] != null) badges[3].gameObject.SetActive(false);
+        if (rubyRects[3] != null) rubyRects[3].gameObject.SetActive(false);
+        if (itemRuby[3] != null) itemRuby[3].SetAlpha(titleContext ? 0f : 1f);
     }
 
 
@@ -449,10 +522,11 @@ public class OptionMenu : MonoBehaviour
             }
             if (items[i] != null) items[i].color = selected ? Color.white : unselectedColor;
         }
+        RefreshV11Rows();
 
         bool volumeSelected = index == 1 && !confirmOpen;
-        sliderKnob.sizeDelta = Vector2.one * (volumeSelected ? 54f : 48f);
-        sliderKnobGraphic.color = new Color(0.05f, 0.06f, 0.10f, 1f);
+        if (sliderKnob != null)
+            sliderKnob.sizeDelta = Vector2.one * HighlandUi.L(volumeSelected ? 29f : 26f);
     }
 
     private void OpenConfirm()
@@ -483,9 +557,10 @@ public class OptionMenu : MonoBehaviour
     {
         if (sliderKnob != null && sliderKnob.parent != null)
             sliderKnob.parent.gameObject.SetActive(visible);
-        if (toggleKnob != null && toggleKnob.parent != null && toggleKnob.parent.parent != null)
-            toggleKnob.parent.parent.gameObject.SetActive(visible);
-        if (toggleStateText != null) toggleStateText.gameObject.SetActive(visible);
+        if (effectsOnPlate != null) effectsOnPlate.gameObject.SetActive(visible);
+        if (effectsOffPlate != null) effectsOffPlate.gameObject.SetActive(visible);
+        if (effectsOnText != null) effectsOnText.gameObject.SetActive(visible);
+        if (effectsOffText != null) effectsOffText.gameObject.SetActive(visible);
     }
 
     public async void BeginResume()
@@ -759,22 +834,14 @@ public class OptionMenu : MonoBehaviour
         bool yes = confirmIndex == 0;
         yesButton.rectTransform.anchoredPosition = yesButtonPosition;
         noButton.rectTransform.anchoredPosition = noButtonPosition;
-        yesText.rectTransform.anchoredPosition = yesButtonPosition + new Vector2(0f, confirmButtonTextOffsetY);
-        noText.rectTransform.anchoredPosition = noButtonPosition + new Vector2(0f, confirmButtonTextOffsetY);
-        if (yesButtonGroup != null) yesButtonGroup.alpha = yes ? 1f : 0.72f;
-        if (noButtonGroup != null) noButtonGroup.alpha = yes ? 0.72f : 1f;
-        yesButton.color = yes
-            ? new Color(0.04f, 0.30f, 0.52f, 0.98f)
-            : new Color(0.025f, 0.08f, 0.14f, 0.96f);
-        noButton.color = yes
-            ? new Color(0.025f, 0.08f, 0.14f, 0.96f)
-            : new Color(0.04f, 0.30f, 0.52f, 0.98f);
-        yesButton.GetComponent<Outline>().effectColor = yes
-            ? new Color(0.55f, 0.88f, 1f, 0.90f)
-            : new Color(0.30f, 0.72f, 1f, 0.35f);
-        noButton.GetComponent<Outline>().effectColor = yes
-            ? new Color(0.30f, 0.72f, 1f, 0.35f)
-            : new Color(0.55f, 0.88f, 1f, 0.90f);
+        yesText.rectTransform.anchoredPosition = yesButtonPosition + new Vector2(HighlandUi.L(-2.5f), confirmButtonTextOffsetY);
+        noText.rectTransform.anchoredPosition = noButtonPosition + new Vector2(HighlandUi.L(-2.5f), confirmButtonTextOffsetY);
+        if (yesButtonGroup != null) yesButtonGroup.alpha = 1f;
+        if (noButtonGroup != null) noButtonGroup.alpha = 1f;
+        yesButton.color = Color.white;
+        noButton.color = Color.white;
+        yesButton.sprite = yes ? confirmChosen : confirmPlain;
+        noButton.sprite = yes ? confirmPlain : confirmChosen;
         yesText.color = yes ? Color.white : unselectedColor;
         noText.color = yes ? unselectedColor : Color.white;
         ApplyConfirmSelectionScale();
@@ -795,20 +862,161 @@ public class OptionMenu : MonoBehaviour
         if (sliderFill == null) return;
         float volume = Mathf.Clamp01(AudioListener.volume);
         sliderFill.sizeDelta = new Vector2(sliderWidth * volume, sliderFill.sizeDelta.y);
-        sliderKnob.anchoredPosition = new Vector2(-sliderWidth * 0.5f + sliderWidth * volume, 0f);
+        if (sliderKnob != null)
+            sliderKnob.anchoredPosition = new Vector2(-sliderWidth * 0.5f + sliderWidth * volume, 0f);
     }
 
     private void RefreshEffects()
     {
-        toggleTrack.color = effectsOn
-            ? new Color(0.04f, 0.27f, 0.47f, 1f)
-            : new Color(0.035f, 0.055f, 0.085f, 1f);
-        toggleKnob.anchoredPosition = new Vector2(effectsOn ? 49f : -49f, 0f);
-        toggleKnob.localEulerAngles = Vector3.zero;
-        toggleKnobGraphic.color = effectsOn ? Color.white : new Color(0.70f, 0.75f, 0.82f, 1f);
-        toggleStateText.text = effectsOn ? "ON" : "OFF";
-        toggleStateText.color = effectsOn ? new Color(0.62f, 0.88f, 1f) : new Color(0.86f, 0.90f, 0.96f);
+        if (effectsOnPlate != null) effectsOnPlate.sprite = effectsOn ? effectsChosen : effectsPlain;
+        if (effectsOffPlate != null) effectsOffPlate.sprite = effectsOn ? effectsPlain : effectsChosen;
+        if (effectsOnText != null) effectsOnText.color = effectsOn ? HighlandUi.Ink : HighlandUi.InkSoft;
+        if (effectsOffText != null) effectsOffText.color = effectsOn ? HighlandUi.InkSoft : HighlandUi.Ink;
     }
+
+    // =======================================================================
+    //  Highland UI v11 の枠組み(2026-09-19 U7)
+    // =======================================================================
+
+    private Image NewV11Image(string name, Transform parent, Color color)
+    {
+        GameObject go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        go.layer = gameObject.layer;
+        Image img = go.GetComponent<Image>();
+        RectTransform rt = img.rectTransform;
+        rt.SetParent(parent, false);
+        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        img.color = color;
+        img.raycastTarget = false;
+        return img;
+    }
+
+    // SVG(1672x941)の中心座標と寸法で置く。
+    private static void SetV11(RectTransform rt, float svgCx, float svgCy, float svgW, float svgH)
+    {
+        rt.anchoredPosition = new Vector2(HighlandUi.X(svgCx), HighlandUi.Y(svgCy));
+        rt.sizeDelta = new Vector2(HighlandUi.L(svgW), HighlandUi.L(svgH));
+    }
+
+    // 両端が消える金の細罫 + 中央の中空菱形。localY は画面(px)。
+    private void AddV11Rule(Transform parent, float localY, float svgW, float svgGap, string name)
+    {
+        int w = Mathf.RoundToInt(HighlandUi.L(svgW));
+        Image rule = NewV11Image("Rule", parent, Color.white);
+        rule.sprite = HighlandUi.FadeRule(w, 12, 1.05f * HighlandUi.S, HighlandUi.L(svgGap),
+            new[] { 0f, 0.22f, 0.5f, 0.78f, 1f },
+            new[] { new Color32(0xBC, 0xAA, 0x4E, 0xFF), new Color32(0xBC, 0xAA, 0x4E, 0xFF),
+                    new Color32(0xFF, 0xE1, 0x6A, 0xFF), new Color32(0xBC, 0xAA, 0x4E, 0xFF),
+                    new Color32(0xBC, 0xAA, 0x4E, 0xFF) },
+            new[] { 0f, 0.30f, 0.95f, 0.30f, 0f },
+            ownedTextures, ownedSprites, name);
+        rule.rectTransform.anchoredPosition = new Vector2(0f, localY);
+        rule.rectTransform.sizeDelta = new Vector2(w, 12f);
+
+        Image gem = NewV11Image("RuleGem", parent, new Color(1f, 0.882f, 0.416f, 1f));
+        gem.sprite = HighlandUi.DiamondRect(11, 14, false, 1.5f * HighlandUi.S,
+            ownedTextures, ownedSprites, name + "Gem");
+        gem.rectTransform.anchoredPosition = new Vector2(0f, localY);
+        gem.rectTransform.sizeDelta = new Vector2(HighlandUi.L(9.6f), HighlandUi.L(12.4f));
+    }
+
+    // 設定パネルの地・見出し・行の板・操作ヒント。シーンの文字より背面へ回す。
+    private void BuildV11Frame()
+    {
+        Transform root = transform;
+
+        Image panel = NewV11Image("V11Panel", root, Color.white);
+        panel.sprite = HighlandUi.NotchPanel((int)HighlandUi.L(765f), (int)HighlandUi.L(544f),
+            HighlandUi.L(19f), false, ownedTextures, ownedSprites, "OptPanel",
+            HighlandUi.L(6f), 1.65f * HighlandUi.S, 0.7f * HighlandUi.S);
+        SetV11(panel.rectTransform, 835.5f, 435f, 765f, 544f);
+        panel.transform.SetSiblingIndex(2);
+
+        // 行の板(選択中は金枠)。文字より後ろへ回すため、パネルの直後に挿す。
+        rowPlateSprite = HighlandUi.NotchFlat((int)HighlandUi.L(642f), (int)HighlandUi.L(68f),
+            HighlandUi.L(6f), new Color32(0x16, 0x16, 0x2D, 0xFF), 0.36f,
+            new Color32(0xA4, 0xA4, 0xAE, 0xFF), 1f * HighlandUi.S, 0.62f,
+            ownedTextures, ownedSprites, "OptRowPlate");
+        rowChosenSprite = HighlandUi.NotchPanel((int)HighlandUi.L(642f), (int)HighlandUi.L(68f),
+            HighlandUi.L(6f), true, ownedTextures, ownedSprites, "OptRowChosen",
+            HighlandUi.L(4f), 1.8f * HighlandUi.S, 0.7f * HighlandUi.S);
+        float[] rowSvgCy = { 323f, 408f, 493f, 577f };
+        for (int i = 0; i < 4; i++)
+        {
+            rowPlates[i] = NewV11Image("V11Row" + i, root, Color.white);
+            rowPlates[i].sprite = rowPlateSprite;
+            SetV11(rowPlates[i].rectTransform, 835f, rowSvgCy[i], 642f, 68f);
+            rowPlates[i].transform.SetSiblingIndex(3 + i);
+
+            rowGems[i] = NewV11Image("V11RowGem" + i, root, new Color(1f, 0.882f, 0.416f, 1f));
+            rowGems[i].sprite = HighlandUi.Gem(15, 18, true, 0f, ownedTextures, ownedSprites, "OptRowGem");
+            SetV11(rowGems[i].rectTransform, 537f, rowSvgCy[i], 17f, 20f);
+            rowGems[i].transform.SetSiblingIndex(7 + i);
+        }
+
+        // 見出し「設定」+ その下の飾り罫。
+        TMP_Text heading = HighlandUi.Text("V11Heading", root, "", 37f, HighlandUi.InkSoft,
+            TextAlignmentOptions.Center, false, 5.2f);
+        headingRuby = new HighlandUi.RubyText(heading, root, 37f, HighlandUi.InkSoft);
+        headingRuby.Apply("[設定|せってい]");
+        HighlandUi.PlaceCentered(heading, 836f, 230f, 460f, 37f);
+        AddV11Rule(root, HighlandUi.Y(260f), 388f, 34f, "OptHeaderRule");
+
+        // 下部の操作ヒント(レバー / 〇 決定 / ✕ 戻る)。
+        Image lever = NewV11Image("HintLever", root, Color.white);
+        lever.sprite = HighlandUi.Icon("lever_white");
+        SetV11(lever.rectTransform, 585.25f, 656f, 27.5f, 27.5f);
+        hintLever = new HighlandUi.RubyText(
+            HighlandUi.Text("HintLeverText", root, "", 19f, HighlandUi.InkSoft, TextAlignmentOptions.Left, false, 0.7f),
+            root, 19f, HighlandUi.InkSoft);
+        hintLever.Apply("[選|えら]ぶ・[変|か]える");
+        HighlandUi.PlaceLeft(hintLever.Body, 615.25f, 664f, 260f, 19f);
+
+        Image circle = NewV11Image("HintCircle", root, Color.white);
+        circle.sprite = HighlandUi.Icon("circle");
+        SetV11(circle.rectTransform, 841.65f, 658.5f, 36.2f, 36.2f);
+        hintConfirm = new HighlandUi.RubyText(
+            HighlandUi.Text("HintConfirmText", root, "", 19f, HighlandUi.InkSoft, TextAlignmentOptions.Left, false, 0.7f),
+            root, 19f, HighlandUi.InkSoft);
+        hintConfirm.Apply("[決定|けってい]");
+        HighlandUi.PlaceLeft(hintConfirm.Body, 871.65f, 664f, 200f, 19f);
+
+        Image cross = NewV11Image("HintCross", root, Color.white);
+        cross.sprite = HighlandUi.Icon("cross");
+        SetV11(cross.rectTransform, 1043.65f, 658.5f, 36.2f, 36.2f);
+        hintBack = new HighlandUi.RubyText(
+            HighlandUi.Text("HintBackText", root, "", 19f, HighlandUi.InkSoft, TextAlignmentOptions.Left, false, 0.7f),
+            root, 19f, HighlandUi.InkSoft);
+        hintBack.Apply("[戻|もど]る");
+        HighlandUi.PlaceLeft(hintBack.Body, 1073.65f, 664f, 200f, 19f);
+    }
+
+    private HighlandUi.RubyText headingRuby, hintLever, hintConfirm, hintBack;
+
+    // 行の選択状態と、ふりがなの追従。
+    private void RefreshV11Rows()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            bool selected = i == index && !confirmOpen;
+            bool shown = items[i] != null && items[i].gameObject.activeSelf;
+            if (rowPlates[i] != null)
+            {
+                rowPlates[i].gameObject.SetActive(shown);
+                rowPlates[i].sprite = selected ? rowChosenSprite : rowPlateSprite;
+            }
+            if (rowGems[i] != null) rowGems[i].gameObject.SetActive(shown && selected);
+            if (itemRuby[i] != null) itemRuby[i].Layout();
+        }
+        if (headingRuby != null) headingRuby.EnsurePlaced();
+        if (hintLever != null) hintLever.EnsurePlaced();
+        if (hintConfirm != null) hintConfirm.EnsurePlaced();
+        if (hintBack != null) hintBack.EnsurePlaced();
+        if (confirmTitleRuby != null && confirmGroup != null && confirmGroup.activeSelf)
+            confirmTitleRuby.EnsurePlaced();
+    }
+
 
     private GameObject CreateImage(string objectName, Transform parent, Vector2 position, Vector2 size, Color color)
     {
@@ -842,15 +1050,17 @@ public class OptionMenu : MonoBehaviour
         return label;
     }
 
+    // v11: ボタンの中は「左に 〇 / ✕ のアイコン、右に文字」。文字は左寄せで置く。
     private static void SetupButtonText(TMP_Text text, Vector2 position)
     {
-        text.rectTransform.anchoredPosition = position + new Vector2(0f, confirmButtonTextOffsetY);
-        text.rectTransform.sizeDelta = new Vector2(260f, 86f);
-        text.alignment = TextAlignmentOptions.Center;
-        // 共通ラベル則(UiButtonStyle)で枠との余白を確保する
-        // (2026-07-11 指摘「余白をもっと広く」。旧32px→25px)。
-        text.fontSize = UiButtonStyle.LabelSizeConfirm;
-        text.fontStyle = FontStyles.Bold;
+        text.rectTransform.pivot = new Vector2(0f, 0.5f);
+        text.rectTransform.anchoredPosition = position
+            + new Vector2(HighlandUi.L(-2.5f), confirmButtonTextOffsetY);
+        text.rectTransform.sizeDelta = new Vector2(HighlandUi.L(120f), HighlandUi.L(40f));
+        text.alignment = TextAlignmentOptions.Left;
+        text.fontSize = 24f * HighlandUi.S;
+        text.fontStyle = FontStyles.Normal;
+        text.characterSpacing = 1.6f / 24f * 100f;
     }
 
     private void ApplyHeaderEntrance(float normalizedTime)
@@ -902,6 +1112,10 @@ public class OptionMenu : MonoBehaviour
     {
         BackdropBlurUtil.ReleaseRT(ref confirmBlurRT);
         BackdropBlurUtil.ReleaseRT(ref menuBlurRT);
+        foreach (Sprite sp in ownedSprites) if (sp != null) Destroy(sp);
+        foreach (Texture2D tx in ownedTextures) if (tx != null) Destroy(tx);
+        ownedSprites.Clear();
+        ownedTextures.Clear();
     }
 
 

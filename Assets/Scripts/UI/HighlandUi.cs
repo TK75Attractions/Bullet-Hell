@@ -784,7 +784,7 @@ public static class HighlandUi
 
         private List<(int start, int len, string reading)> lastSpans;
 
-        private bool Layout()
+        public bool Layout()
         {
             if (lastSpans == null) return false;
             float rubySize = Mathf.Min(bodySvgSize * 0.56f, 7.5f + 0.185f * bodySvgSize);
