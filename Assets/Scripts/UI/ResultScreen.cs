@@ -78,12 +78,14 @@ public sealed class ResultScreen : MonoBehaviour
     private const float YRule2 = 212f;        // 参考 y=286(矢羽根つきの飾り罫)
     private const float YCrest = 180f;        // 参考 y=314(小さな金の菱形)
     private const float YRankLabel = 137f;    // 参考 y=351
-    private const float YRank = 48f;          // 参考 y=431(ランク字の中心)
+    private const float YRank = 48f;          // 参考 y=431(ランク字の中心。輪・月桂樹の中心)
+    // ランク字だけは TMP の行送りのぶん下へずれるので、見本(基線 SVG 478.5)に
+    // 合わせて 10.5px 持ち上げる(第 U8 便・実フレーム実測で -9 SVG のずれ)。
+    private const float YRankText = YRank + 10.5f;
     private const float YLaurel = 27f;        // 参考 y=442.5(月桂樹の中心)
     private const float YKnot = -64f;         // 参考 y=527(月桂樹の結びの菱形)
     private const float YRowSep0 = -82f;      // 情報行の 1 本目の区切り線
     private const float RowPitch = 56.5f;     // 参考 50.25px
-    private const float YRow0 = YRowSep0 - RowPitch * 0.5f;
     private const float YButton = -364f;
     // v11 の「次へ」ボタン(SVG 328x72)。位置だけは文字リンクの行を残すため
     // 設計より 38px 上のまま据え置く(2026-09-16 U4b と同じ意図した差)。
@@ -181,6 +183,11 @@ public sealed class ResultScreen : MonoBehaviour
     private const int RowRanking = 3;
     private readonly CanvasGroup[] rowGroups = new CanvasGroup[RowCount];
     private readonly RectTransform[] rowRects = new RectTransform[RowCount];
+    // 情報行の定位置(v11 の rowCy から作る)。入場アニメはここへ戻す。
+    // 第 U8 便(2026-09-19「文字がずれている」)まで、入場アニメが旧 U4b 版の
+    // YRow0 / RowPitch で毎フレーム上書きしていたため、4 行とも v11 の設計より
+    // 約 21px(SVG 18.5)高い位置で止まっていた。
+    private readonly float[] rowHomeY = new float[RowCount];
     private readonly TMP_Text[] rowLabels = new TMP_Text[RowCount];
     private readonly TMP_Text[] rowValues = new TMP_Text[RowCount];
     private readonly TMP_Text[] rowValues2 = new TMP_Text[RowCount];
@@ -487,12 +494,12 @@ public sealed class ResultScreen : MonoBehaviour
 
         rankText = NewText("Rank", rankGroupRect, "A", 138.5f * HighlandUi.S, HighlandUi.Ink, TextAlignmentOptions.Center);
         rankText.font = HighlandUi.SerifBold;
-        SetRect((RectTransform)rankText.transform, new Vector2(0f, YRank), new Vector2(460f, 260f));
+        SetRect((RectTransform)rankText.transform, new Vector2(0f, YRankText), new Vector2(460f, 260f));
         rankGlowMat = ApplyTextGlow(rankText, new Color(0.94f, 0.72f, 0.34f, 0.45f), 0.060f, 0.40f);
 
         rankText2 = NewText("Rank2", rankGroupRect, "A", 138.5f * HighlandUi.S, HighlandUi.Ink, TextAlignmentOptions.Center);
         rankText2.font = HighlandUi.SerifBold;
-        SetRect((RectTransform)rankText2.transform, new Vector2(0f, YRank), new Vector2(460f, 260f));
+        SetRect((RectTransform)rankText2.transform, new Vector2(0f, YRankText), new Vector2(460f, 260f));
         rankGlowMat2 = ApplyTextGlow(rankText2, new Color(0.94f, 0.72f, 0.34f, 0.45f), 0.060f, 0.40f);
         rankText2.gameObject.SetActive(false);
 
@@ -552,6 +559,7 @@ public sealed class ResultScreen : MonoBehaviour
             GameObject rowGo = NewRect("Row" + i, panel);
             RectTransform rect = (RectTransform)rowGo.transform;
             Vector2 home = new Vector2(0f, HighlandUi.Y(rowCy[i]));
+            rowHomeY[i] = home.y;
             SetRect(rect, home, new Vector2(PanelW, RowPitch));
             rowRects[i] = rect;
             rowGroups[i] = rowGo.AddComponent<CanvasGroup>();
@@ -597,12 +605,12 @@ public sealed class ResultScreen : MonoBehaviour
 
         columnTagP1 = NewText("ColTagP1", panel, "1P", 18f, GoldDim, TextAlignmentOptions.Right);
         columnTagP1.characterSpacing = 8f;
-        SetRect((RectTransform)columnTagP1.transform, new Vector2(103f - 90f, YRowSep0 + 18f), new Vector2(180f, 26f));
+        SetRect((RectTransform)columnTagP1.transform, new Vector2(103f - 90f, HighlandUi.Y(548f)), new Vector2(180f, 26f));
         columnTagP1.gameObject.SetActive(false);
 
         columnTagP2 = NewText("ColTagP2", panel, "2P", 18f, GoldDim, TextAlignmentOptions.Right);
         columnTagP2.characterSpacing = 8f;
-        SetRect((RectTransform)columnTagP2.transform, new Vector2(RowValueRight - 90f, YRowSep0 + 18f), new Vector2(180f, 26f));
+        SetRect((RectTransform)columnTagP2.transform, new Vector2(RowValueRight - 90f, HighlandUi.Y(548f)), new Vector2(180f, 26f));
         columnTagP2.gameObject.SetActive(false);
     }
 
@@ -932,11 +940,11 @@ public sealed class ResultScreen : MonoBehaviour
         string rightRank = p1OnLeft ? rank2 : rank1;
 
         rankText.text = leftRank;
-        rankText.rectTransform.anchoredPosition = new Vector2(-rankOffset, YRank);
+        rankText.rectTransform.anchoredPosition = new Vector2(-rankOffset, YRankText);
         rankText.rectTransform.localScale = Vector3.one * rankScale;
         rankText2.gameObject.SetActive(true);
         rankText2.text = rightRank;
-        rankText2.rectTransform.anchoredPosition = new Vector2(rankOffset, YRank);
+        rankText2.rectTransform.anchoredPosition = new Vector2(rankOffset, YRankText);
         rankText2.rectTransform.localScale = Vector3.one * rankScale;
         rankText2.color = rankText.color;
         if (rankGlowMat2 != null && rankGlowMat != null)
@@ -992,7 +1000,7 @@ public sealed class ResultScreen : MonoBehaviour
         if (laurelRight != null) laurelRight.gameObject.SetActive(true);
         if (laurelKnot != null) laurelKnot.gameObject.SetActive(true);
         if (rankRings != null) rankRings.gameObject.SetActive(true);
-        rankText.rectTransform.anchoredPosition = new Vector2(0f, YRank);
+        rankText.rectTransform.anchoredPosition = new Vector2(0f, YRankText);
         rankText.rectTransform.localScale = Vector3.one;
         rankText2.gameObject.SetActive(false);
         p1RankTag.gameObject.SetActive(false);
@@ -1134,7 +1142,7 @@ public sealed class ResultScreen : MonoBehaviour
         {
             float p = EaseOutCubic((t - (EnterRowsStart + i * EnterRowStagger)) / EnterRowDur);
             rowGroups[i].alpha = p;
-            rowRects[i].anchoredPosition = new Vector2(14f * (1f - p), YRow0 - i * RowPitch);
+            rowRects[i].anchoredPosition = new Vector2(14f * (1f - p), rowHomeY[i]);
         }
 
         // 数値カウントアップ。
