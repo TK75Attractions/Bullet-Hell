@@ -88,6 +88,20 @@ public class TutorialManager : MonoBehaviour
         text.text = text.text.Replace('\uFF01', '!');
     }
 
+    // ---- Highland UI v11 のチュートリアルカード(2026-09-19 U7) ----------------
+    // 出典 07_tutorial_move / states/08_tutorial_dash_CIRCLE_ONLY。
+    // 左に操作アイコンの札(20fps のスプライトシート再生)、縦の仕切りを挟んで
+    // 右にふりがな付きの本文 2 行。
+    private const float CardPanelCx = 836f, CardPanelCy = 273f, CardPanelW = 1400f, CardPanelH = 310f;
+
+    private readonly List<Texture2D> ownedTextures = new List<Texture2D>();
+    private readonly List<Sprite> ownedSprites = new List<Sprite>();
+    private RawImage moveIconImage, dashIconImage;
+    private float animTime;
+    private HighlandUi.RubyText moveLine1, moveLine2, dashLine1, dashLine2;
+    private RectTransform moveDivider, dashDivider;
+    private TMP_Text progressText;
+
     private void BuildTutorialVisuals()
     {
         GameObject card = new GameObject("TutorialCard", typeof(RectTransform));
@@ -95,95 +109,208 @@ public class TutorialManager : MonoBehaviour
         cardRect = (RectTransform)card.transform;
         cardRect.SetParent(transform, false);
         cardRect.anchorMin = cardRect.anchorMax = new Vector2(0.5f, 0.5f);
-        cardBasePosition = new Vector2(0f, 345f);
+        cardBasePosition = new Vector2(HighlandUi.X(CardPanelCx), HighlandUi.Y(CardPanelCy));
         cardRect.anchoredPosition = cardBasePosition;
-        cardRect.sizeDelta = new Vector2(900f, 230f);
+        cardRect.sizeDelta = new Vector2(HighlandUi.L(CardPanelW), HighlandUi.L(CardPanelH));
         cardRect.SetAsFirstSibling();
         cardGroup = card.AddComponent<CanvasGroup>();
         cardGroup.alpha = 0f;
-        // ユーザー確定様式(2026-07-11): 端の白スラッシュは付けず、
-        // パネル上下辺に控えめな青ラインを沿わせるだけにする。
-        CreateRibbonPanel("Panel", cardRect, Vector2.zero, new Vector2(780f, 194f), panelColor, 34f);
-        CreateEdgeLine(cardRect, new Vector2(780f, 194f), 34f, true);
-        CreateEdgeLine(cardRect, new Vector2(780f, 194f), 34f, false);
 
-        tutorialRect.anchoredPosition = new Vector2(145f, cardBasePosition.y);
-        tutorialRect.sizeDelta = new Vector2(410f, 92f);
-        tutorialText.alignment = TextAlignmentOptions.MidlineLeft;
-        tutorialText.fontStyle = FontStyles.Bold;
-        tutorialText.enableAutoSizing = true;
-        tutorialText.fontSizeMin = 27f;
-        tutorialText.fontSizeMax = 46f;
-        tutorialText.enableWordWrapping = false;
+        // 板(四隅をえぐった二重枠)。
+        Image plate = NewCardImage("Panel", cardRect, Color.white);
+        plate.sprite = HighlandUi.NotchPanel((int)HighlandUi.L(CardPanelW), (int)HighlandUi.L(CardPanelH),
+            HighlandUi.L(27f), false, ownedTextures, ownedSprites, "TutPanel",
+            HighlandUi.L(11f), 1.9f * HighlandUi.S, 0.75f * HighlandUi.S);
+        plate.rectTransform.sizeDelta = cardRect.sizeDelta;
 
-        // 実機はジョイスティック+ボタン想定(2026-07-13 指摘)。WASD の 4 キーの代わりに
-        // 「スティック」1 枚、ダッシュは「ボタン」で案内する。各キーキャップには
-        // ランタイム生成のアイコン(スティック左右 / ボタン)を添える(2026-07-14 要望)。
+        // 左右の中空菱形(x=159 / 1513, y=279)。
+        foreach (float sx in new[] { 159f, 1513f })
+        {
+            Image d = NewCardImage("SideGem", cardRect, new Color(0.784f, 0.784f, 0.784f, 0.6f));
+            d.sprite = HighlandUi.DiamondRect(17, 20, false, 1.4f * HighlandUi.S,
+                ownedTextures, ownedSprites, "TutSideGem");
+            PlaceInCard(d.rectTransform, sx, 279f, 14.4f, 17.6f);
+        }
+
+        // 縦の仕切り(中央に菱形ぶんの隙間)。移動は x=725 / ダッシュは x=810。
+        moveDivider = BuildDivider(725f);
+        dashDivider = BuildDivider(810f);
+
+        // 左: 操作アイコンの札 + 20fps の再生。
         moveIconRoot = CreateIconRoot("MoveIcons", cardRect);
         moveIconGroup = moveIconRoot.gameObject.AddComponent<CanvasGroup>();
-        moveKeys.Add(CreateKey(moveIconRoot, "スティック", UiIconFactory.IconKind.Stick, Vector2.zero, new Vector2(248f, 62f)));
+        moveIconImage = BuildKeyTag(moveIconRoot, 535f, 273f, 194f, 194f, 13.5f, "anim_lever", 150f);
 
-        // ダッシュは「移動しながらボタン」を示すため、スティックとボタンの2枚を縦に並べる。
         dashIconRoot = CreateIconRoot("DashIcons", cardRect);
         dashIconGroup = dashIconRoot.gameObject.AddComponent<CanvasGroup>();
-        dashKeys.Add(CreateKey(dashIconRoot, "スティック", UiIconFactory.IconKind.Stick, new Vector2(0f, 34f), new Vector2(248f, 56f)));
-        dashKeys.Add(CreateKey(dashIconRoot, "ボタン", UiIconFactory.IconKind.Button, new Vector2(0f, -34f), new Vector2(248f, 56f)));
+        dashIconImage = BuildKeyTag(dashIconRoot, 535f, 272f, 180f, 188f, 12.5f, "anim_circle", 140f);
 
-        // 「ダッシュ中は無敵!」の注記(ダッシュステップのみ表示)。無敵は PlayerController の
-        // invincible(dash>0 で true・TryHit を無効化)で実装済み=事実として明記する。
-        // 濃紺パネル上なのでアクセントのシアンで強調(既存の強調色を踏襲)。card の子に
-        // するので cardGroup のフェードに追従する。
-        dashNote = CreateLabel("DashNote", cardRect, new Vector2(145f, -44f), new Vector2(440f, 46f), 26f);
-        dashNote.text = "ダッシュ中は無敵!";
-        dashNote.color = cyan;
-        dashNote.fontStyle = FontStyles.Bold;
-        dashNote.alignment = TextAlignmentOptions.MidlineLeft;
-        dashNote.gameObject.SetActive(false);
+        // 右: 本文 2 行(ふりがな付き)。シーンの TutorialText は使わない。
+        tutorialText.alpha = 0f;
+        tutorialText.gameObject.SetActive(false);
+        moveLine1 = BuildLine("MoveLine1", 834.32f, 263f, "レバーで [上|うえ]・[下|した]・[左|ひだり]・[右|みぎ]に");
+        moveLine2 = BuildLine("MoveLine2", 946.25f, 330f, "[移動|いどう]しよう！");
+        dashLine1 = BuildLine("DashLine1", 975.55f, 263f, "[押|お]すとダッシュ！");
+        dashLine2 = BuildLine("DashLine2", 957.7f, 330f, "ダッシュ[中|ちゅう]は[無敵|むてき]！");
 
+        // 2P の「1P OK / 2P --」表示(v11 の絵には無い項目。既定で本文の下へ)。
+        progressText = HighlandUi.Text("Progress", cardRect, "", 20f, HighlandUi.InkSoft,
+            TextAlignmentOptions.Center, false, 1f);
+        PlaceTextInCard(progressText, 1110f, 386f, 520f, 20f, TextAlignmentOptions.Center);
+        progressText.gameObject.SetActive(false);
+
+        SetLineGroup(false);
         moveIconRoot.gameObject.SetActive(false);
         dashIconRoot.gameObject.SetActive(false);
     }
 
-    private void CreateRibbonPanel(string objectName, Transform parent, Vector2 position, Vector2 size, Color color, float slant)
+    private RectTransform BuildDivider(float svgX)
     {
-        GameObject go = new GameObject(objectName, typeof(RectTransform), typeof(CanvasRenderer), typeof(ParallelogramGraphic));
+        GameObject go = new GameObject("Divider", typeof(RectTransform));
         go.layer = gameObject.layer;
-        RectTransform rect = (RectTransform)go.transform;
-        rect.SetParent(parent, false);
-        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.anchoredPosition = position;
-        rect.sizeDelta = size;
+        RectTransform root = (RectTransform)go.transform;
+        root.SetParent(cardRect, false);
+        root.anchorMin = root.anchorMax = new Vector2(0.5f, 0.5f);
+        root.pivot = new Vector2(0.5f, 0.5f);
+        root.anchoredPosition = Vector2.zero;
+        root.sizeDelta = Vector2.zero;
 
-        ParallelogramGraphic graphic = go.GetComponent<ParallelogramGraphic>();
-        graphic.color = color;
-        graphic.Slant = slant;
-        graphic.SlantRightEdge = true;
-        graphic.raycastTarget = false;
+        foreach (float cy in new[] { 215.5f, 330.5f })
+        {
+            Image line = NewCardImage("Line", root, new Color(0.788f, 0.788f, 0.788f, 0.45f));
+            line.sprite = HighlandUi.SolidBar(ownedTextures, ownedSprites);
+            PlaceInCard(line.rectTransform, svgX, cy, 1.05f, 87f);
+        }
+        Image gem = NewCardImage("Gem", root, new Color(0.788f, 0.788f, 0.788f, 0.74f));
+        gem.sprite = HighlandUi.DiamondRect(15, 18, false, 1.7f * HighlandUi.S,
+            ownedTextures, ownedSprites, "TutDivGem");
+        PlaceInCard(gem.rectTransform, svgX, 273f, 12.6f, 15.4f);
+        return root;
     }
 
-    // パネルの上辺/下辺に沿う細い青ライン。パネルと同じ平行四辺形規約で作り、
-    // 高さ h の帯の skew を panelSlant*h/panelH にすると端の斜めに正確に沿う。
-    private void CreateEdgeLine(Transform parent, Vector2 panelSize, float panelSlant, bool top)
+    // 白い札 + その上で 20fps 再生する操作アイコン。
+    private RawImage BuildKeyTag(Transform parent, float svgCx, float svgCy,
+        float svgW, float svgH, float notch, string animResource, float iconSvgSize)
     {
-        const float h = 3f;
-        float skew = panelSlant * h / panelSize.y;
-        GameObject go = new GameObject(top ? "EdgeLineTop" : "EdgeLineBottom",
-            typeof(RectTransform), typeof(CanvasRenderer), typeof(ParallelogramGraphic));
-        go.layer = gameObject.layer;
-        RectTransform rect = (RectTransform)go.transform;
-        rect.SetParent(parent, false);
-        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.sizeDelta = new Vector2(panelSize.x - panelSlant + skew, h);
-        float dirX = top ? 1f : -1f;
-        rect.anchoredPosition = new Vector2(dirX * (panelSlant - skew) * 0.5f,
-            dirX * (panelSize.y - h) * 0.5f);
+        Image tag = NewCardImage("Tag", parent, Color.white);
+        tag.sprite = HighlandUi.NotchFlat((int)HighlandUi.L(svgW), (int)HighlandUi.L(svgH),
+            HighlandUi.L(notch), new Color32(0xF5, 0xF5, 0xF5, 0xFF), 1f,
+            new Color32(0xF0, 0xD7, 0x5B, 0xFF), 1.8f * HighlandUi.S, 1f,
+            ownedTextures, ownedSprites, "TutTag" + animResource);
+        PlaceInCard(tag.rectTransform, svgCx, svgCy, svgW, svgH);
 
-        ParallelogramGraphic line = go.GetComponent<ParallelogramGraphic>();
-        Color c = cyan; c.a = 0.55f;
-        line.color = c;
-        line.Slant = skew;
-        line.SlantRightEdge = true;
-        line.raycastTarget = false;
+        GameObject go = new GameObject("Anim", typeof(RectTransform), typeof(CanvasRenderer), typeof(RawImage));
+        go.layer = gameObject.layer;
+        RawImage img = go.GetComponent<RawImage>();
+        img.rectTransform.SetParent(parent, false);
+        img.rectTransform.anchorMin = img.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        img.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        img.raycastTarget = false;
+        img.texture = Resources.Load<Texture2D>("UI/v11/" + animResource);
+        PlaceInCard(img.rectTransform, svgCx, svgCy, iconSvgSize, iconSvgSize);
+        return img;
+    }
+
+    private HighlandUi.RubyText BuildLine(string name, float svgX, float svgBaseline, string markup)
+    {
+        TMP_Text body = HighlandUi.Text(name, cardRect, "", 35f, HighlandUi.InkSoft,
+            TextAlignmentOptions.Left, false, 0.7f);
+        HighlandUi.RubyText r = new HighlandUi.RubyText(body, cardRect, 35f, HighlandUi.InkSoft);
+        r.Apply(markup);
+        PlaceTextInCard(body, svgX, svgBaseline, 700f, 35f, TextAlignmentOptions.Left);
+        rubies.Add(r);
+        return r;
+    }
+
+    private readonly List<HighlandUi.RubyText> rubies = new List<HighlandUi.RubyText>();
+    private bool rubiesPlaced;
+
+    // カード(中心 = SVG の CardPanelCx/Cy)の中へ SVG 座標で置く。
+    private void PlaceInCard(RectTransform rt, float svgCx, float svgCy, float svgW, float svgH)
+    {
+        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = new Vector2(
+            HighlandUi.L(svgCx - CardPanelCx), HighlandUi.L(CardPanelCy - svgCy));
+        rt.sizeDelta = new Vector2(HighlandUi.L(svgW), HighlandUi.L(svgH));
+    }
+
+    private void PlaceTextInCard(TMP_Text t, float svgX, float svgBaseline, float svgW, float svgSize,
+        TextAlignmentOptions align)
+    {
+        RectTransform rt = (RectTransform)t.transform;
+        rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(align == TextAlignmentOptions.Center ? 0.5f : 0f, 0.5f);
+        t.alignment = align;
+        rt.sizeDelta = new Vector2(HighlandUi.L(svgW), HighlandUi.L(svgSize * 1.6f));
+        rt.anchoredPosition = new Vector2(
+            HighlandUi.L(svgX - CardPanelCx),
+            HighlandUi.L(CardPanelCy - (svgBaseline - svgSize * 0.34f)));
+    }
+
+    private Image NewCardImage(string name, Transform parent, Color color)
+    {
+        GameObject go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        go.layer = gameObject.layer;
+        Image img = go.GetComponent<Image>();
+        img.rectTransform.SetParent(parent, false);
+        img.rectTransform.anchorMin = img.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+        img.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+        img.color = color;
+        img.raycastTarget = false;
+        return img;
+    }
+
+    // 表示中の本文だけ出す。
+    private void SetLineGroup(bool dash)
+    {
+        if (moveLine1 == null) return;
+        moveLine1.SetVisible(!dash);
+        moveLine2.SetVisible(!dash);
+        dashLine1.SetVisible(dash);
+        dashLine2.SetVisible(dash);
+        if (moveDivider != null) moveDivider.gameObject.SetActive(!dash);
+        if (dashDivider != null) dashDivider.gameObject.SetActive(dash);
+        rubiesPlaced = false;
+    }
+
+    // 20fps のスプライトシート再生(〇=64 コマ 8x8 / レバー=128 コマ 8x16)。
+    private void Update()
+    {
+        if (cardGroup == null || cardGroup.alpha <= 0.001f) return;
+        animTime += Time.unscaledDeltaTime;
+        StepSheet(moveIconImage, 8, 16, 128);
+        StepSheet(dashIconImage, 8, 8, 64);
+
+        if (!rubiesPlaced)
+        {
+            bool all = true;
+            foreach (HighlandUi.RubyText r in rubies)
+            {
+                if (r == null || r.Body == null) continue;
+                if (!r.Body.gameObject.activeInHierarchy) continue;
+                all &= r.EnsurePlaced();
+            }
+            rubiesPlaced = all;
+        }
+    }
+
+    private void StepSheet(RawImage img, int cols, int rows, int frames)
+    {
+        if (img == null || img.texture == null || !img.gameObject.activeInHierarchy) return;
+        int f = Mathf.FloorToInt(animTime * 20f) % frames;
+        int cx = f % cols, cy = f / cols;
+        float w = 1f / cols, h = 1f / rows;
+        // スプライトシートの原点は左上、UV は左下始まりなので行を反転する。
+        img.uvRect = new Rect(cx * w, 1f - (cy + 1) * h, w, h);
+    }
+
+    private void OnDestroy()
+    {
+        foreach (Sprite sp in ownedSprites) if (sp != null) Destroy(sp);
+        foreach (Texture2D tx in ownedTextures) if (tx != null) Destroy(tx);
+        ownedSprites.Clear();
+        ownedTextures.Clear();
     }
 
     private RectTransform CreateIconRoot(string objectName, Transform parent)
@@ -193,45 +320,9 @@ public class TutorialManager : MonoBehaviour
         RectTransform rect = (RectTransform)go.transform;
         rect.SetParent(parent, false);
         rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.anchoredPosition = new Vector2(-210f, 0f);
-        rect.sizeDelta = new Vector2(280f, 150f);
+        rect.anchoredPosition = Vector2.zero;
+        rect.sizeDelta = cardRect.sizeDelta;
         return rect;
-    }
-
-    private KeyVisual CreateKey(Transform parent, string label, UiIconFactory.IconKind iconKind, Vector2 position, Vector2 size)
-    {
-        GameObject key = CreateImageObject("Key_" + label, parent, keyColor);
-        RectTransform rect = (RectTransform)key.transform;
-        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.anchoredPosition = position;
-        rect.sizeDelta = size;
-
-        Outline outline = key.AddComponent<Outline>();
-        outline.effectColor = new Color(0.01f, 0.23f, 0.48f, 0.95f);
-        outline.effectDistance = new Vector2(2f, -2f);
-
-        GameObject accent = CreateImageObject("CyanEdge", rect, cyan);
-        RectTransform accentRect = (RectTransform)accent.transform;
-        accentRect.anchorMin = accentRect.anchorMax = new Vector2(0.5f, 0.5f);
-        accentRect.anchoredPosition = new Vector2(0f, -size.y * 0.5f + 3f);
-        accentRect.sizeDelta = new Vector2(size.x - 8f, 6f);
-
-        // アイコンを左側に配置し、ラベルを右の残り領域へ中央寄せする。
-        float textLeftPad = 0f;
-        float iconH = 30f;
-        float iconW = iconH * (iconKind == UiIconFactory.IconKind.Button ? 1.6f : 1.333f);
-        UiIconFactory.CreateIcon(rect, "Icon", iconKind,
-            new Vector2(-size.x * 0.5f + 16f + iconW * 0.5f, 1f), new Vector2(iconW, iconH), iconTint);
-        textLeftPad = 16f + iconW + 8f;
-
-        float labelW = Mathf.Max(40f, size.x - textLeftPad - 12f);
-        Vector2 labelPos = new Vector2((textLeftPad - 12f) * 0.5f, 2f);
-        TMP_Text keyText = CreateLabel("Label", rect, labelPos, new Vector2(labelW, size.y), label.Length >= 4 ? 24f : 30f);
-        keyText.text = label;
-        keyText.fontStyle = FontStyles.Bold;
-        keyText.color = new Color(0.035f, 0.055f, 0.09f);
-
-        return new KeyVisual { rect = rect, image = key.GetComponent<Image>(), basePosition = position };
     }
 
     private GameObject CreateImageObject(string objectName, Transform parent, Color color)
@@ -312,12 +403,11 @@ public class TutorialManager : MonoBehaviour
 
     private void SetTutorialProgress(string message, bool twoPlayer, bool p1Complete, bool p2Complete)
     {
-        if (tutorialText == null) return;
-        tutorialRect.sizeDelta = new Vector2(410f, twoPlayer ? 120f : 92f);
-        tutorialText.text = twoPlayer
-            ? message + "\n<size=24><color=#FFCC66>1P " + (p1Complete ? "OK" : "--")
-                + "</color>  <color=#73D9FF>2P " + (p2Complete ? "OK" : "--") + "</color></size>"
-            : message;
+        if (progressText == null) return;
+        progressText.gameObject.SetActive(twoPlayer);
+        if (!twoPlayer) return;
+        progressText.text = "<color=#FFCC66>1P " + (p1Complete ? "OK" : "--")
+            + "</color>   <color=#73D9FF>2P " + (p2Complete ? "OK" : "--") + "</color>";
     }
 
     private async Task ShowTutorialStep(string message, bool dash)
@@ -327,20 +417,12 @@ public class TutorialManager : MonoBehaviour
         dashIconRoot.gameObject.SetActive(dash);
         CanvasGroup icons = dash ? dashIconGroup : moveIconGroup;
 
-        // ダッシュステップは無敵注記を出す分、本文を少し上げて重なりを避ける。
-        if (dashNote != null) dashNote.gameObject.SetActive(dash);
-        tutorialRect.anchoredPosition = new Vector2(145f, cardBasePosition.y + (dash ? 26f : 0f));
-
-        tutorialText.text = message;
-        tutorialText.color = Color.white;
+        SetLineGroup(dash);
 
         cardGroup.alpha = 0f;
         cardRect.anchoredPosition = cardBasePosition;
         cardRect.localScale = Vector3.one;
         cardRect.localEulerAngles = Vector3.zero;
-        tutorialText.alpha = 0f;
-        tutorialRect.localScale = Vector3.one;
-        tutorialRect.localEulerAngles = Vector3.zero;
         icons.alpha = 0f;
         ResetKeys(keys);
 
@@ -352,7 +434,6 @@ public class TutorialManager : MonoBehaviour
             float p = Mathf.Clamp01(time / duration);
             float iconFade = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((p - 0.2f) / 0.8f));
             cardGroup.alpha = p;
-            tutorialText.alpha = p;
             icons.alpha = iconFade;
 
             await Task.Yield();
@@ -363,9 +444,6 @@ public class TutorialManager : MonoBehaviour
         cardRect.anchoredPosition = cardBasePosition;
         cardRect.localScale = Vector3.one;
         cardRect.localEulerAngles = Vector3.zero;
-        tutorialText.alpha = 1f;
-        tutorialRect.localScale = Vector3.one;
-        tutorialRect.localEulerAngles = Vector3.zero;
         icons.alpha = 1f;
         SnapKeys(keys);
     }
@@ -381,14 +459,12 @@ public class TutorialManager : MonoBehaviour
             float p = Mathf.Clamp01(time / duration);
             float fade = 1f - p;
             cardGroup.alpha = fade;
-            tutorialText.alpha = fade;
             (dash ? dashIconGroup : moveIconGroup).alpha = fade * fade;
 
             await Task.Yield();
             if (this == null) return;
         }
         cardGroup.alpha = 0f;
-        tutorialText.alpha = 0f;
         (dash ? dashIconGroup : moveIconGroup).alpha = 0f;
         cardRect.localScale = Vector3.one;
         cardRect.localEulerAngles = Vector3.zero;

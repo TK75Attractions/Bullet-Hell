@@ -806,6 +806,18 @@ public static class HighlandUi
             foreach (TMP_Text r in rubies) r.alpha = a;
         }
 
+        /// <summary>本文と読みをまとめて出し入れする(読みは別オブジェクトなので必要)。</summary>
+        public void SetVisible(bool on)
+        {
+            if (Body != null) Body.gameObject.SetActive(on);
+            for (int i = 0; i < rubies.Count; i++)
+            {
+                if (rubies[i] == null) continue;
+                bool used = lastSpans != null && i < lastSpans.Count;
+                rubies[i].gameObject.SetActive(on && used);
+            }
+        }
+
         public static List<(int start, int len, string reading)> Parse(string markup, out string plain)
         {
             var spans = new List<(int, int, string)>();
