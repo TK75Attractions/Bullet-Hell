@@ -17,7 +17,7 @@ public static class StageUnlockSettings
     /// UnlockAll でも解放しないステージ。姿見(mirror)は endTime 未設定の WIP で、
     /// 起動すると BulletRenderSystem が範囲外参照で落ちるため常にロックしておく。
     /// </summary>
-    private static readonly string[] AlwaysLockedDirectories = { "mirror" };
+    private static readonly string[] AlwaysLockedDirectories = {  };
 
     /// <summary>UnlockAll=false のときにロックするステージ(従来の挙動)。</summary>
     private static readonly string[] LegacyLockedDirectories = { "stone", "mirror" };

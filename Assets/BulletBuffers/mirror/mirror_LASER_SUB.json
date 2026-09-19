@@ -10,17 +10,27 @@
         "x": 0,
         "y": 0
       },
-      "startX": 0,
-      "speed": 0,
-      "gravity": 0,
-      "angleSpeed": 0,
-      "initialAngle": 0,
-      "polarForm": {
+      "playerInfluence": {
         "x": 0,
         "y": 0
       },
+      "startX": 0,
+      "speed": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
+      "angleSpeed": 0,
+      "initialAngle": 0,
+      "useVelocityAngle": true,
+      "polarForm": {
+        "x": 1,
+        "y": 0
+      },
       "radiusVlc": 0,
+      "radiusAccel": 0,
       "thetaVlc": 0,
+      "thetaAccel": 0,
       "startPos": {
         "x": 0,
         "y": 0
@@ -42,10 +52,11 @@
         "z": 0.8,
         "w": 0.8
       },
-      "appearTime": 3,
-      "appearDuration": 3,
-      "life": 3,
+      "appearTime": 0.7,
+      "appearDuration": 0.7,
+      "life": 0.7,
       "random": 0,
+      "warpCooldown": 0,
       "unCounterable": false
     },
     {
@@ -57,17 +68,27 @@
         "x": 0,
         "y": 0
       },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
       "startX": 0,
       "speed": 6,
-      "gravity": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
       "angleSpeed": 0,
       "initialAngle": 0,
+      "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
         "y": -1.0471976
       },
       "radiusVlc": 0,
+      "radiusAccel": 0,
       "thetaVlc": 0,
+      "thetaAccel": 0,
       "startPos": {
         "x": 0,
         "y": 0
@@ -93,6 +114,7 @@
       "appearDuration": 0,
       "life": 10,
       "random": 0,
+      "warpCooldown": 0,
       "unCounterable": false
     },
     {
@@ -104,17 +126,27 @@
         "x": 0,
         "y": 0
       },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
       "startX": 0,
       "speed": 6,
-      "gravity": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
       "angleSpeed": 0,
       "initialAngle": 0,
+      "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
         "y": -1.0471976
       },
       "radiusVlc": 0,
+      "radiusAccel": 0,
       "thetaVlc": 0,
+      "thetaAccel": 0,
       "startPos": {
         "x": 0,
         "y": 0
@@ -140,6 +172,7 @@
       "appearDuration": 0,
       "life": 10,
       "random": 0,
+      "warpCooldown": 0,
       "unCounterable": false
     },
     {
@@ -151,17 +184,27 @@
         "x": 0,
         "y": 0
       },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
       "startX": 0,
       "speed": 6,
-      "gravity": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
       "angleSpeed": 0,
       "initialAngle": 0,
+      "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
         "y": -1.0471976
       },
       "radiusVlc": 0,
+      "radiusAccel": 0,
       "thetaVlc": 0,
+      "thetaAccel": 0,
       "startPos": {
         "x": 0,
         "y": 0
@@ -187,6 +230,7 @@
       "appearDuration": 0,
       "life": 10,
       "random": 0,
+      "warpCooldown": 0,
       "unCounterable": false
     },
     {
@@ -198,17 +242,27 @@
         "x": 0,
         "y": 0
       },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
       "startX": 0,
       "speed": 6,
-      "gravity": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
       "angleSpeed": 0,
       "initialAngle": 0,
+      "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
         "y": -0.6981317
       },
       "radiusVlc": 0,
+      "radiusAccel": 0,
       "thetaVlc": 0,
+      "thetaAccel": 0,
       "startPos": {
         "x": 0,
         "y": 0
@@ -234,6 +288,7 @@
       "appearDuration": 0,
       "life": 10,
       "random": 0,
+      "warpCooldown": 0,
       "unCounterable": false
     },
     {
@@ -245,17 +300,27 @@
         "x": 0,
         "y": 0
       },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
       "startX": 0,
       "speed": 6,
-      "gravity": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
       "angleSpeed": 0,
       "initialAngle": 0,
+      "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
         "y": -0.6981317
       },
       "radiusVlc": 0,
+      "radiusAccel": 0,
       "thetaVlc": 0,
+      "thetaAccel": 0,
       "startPos": {
         "x": 0,
         "y": 0
@@ -281,6 +346,7 @@
       "appearDuration": 0,
       "life": 10,
       "random": 0,
+      "warpCooldown": 0,
       "unCounterable": false
     },
     {
@@ -292,17 +358,27 @@
         "x": 0,
         "y": 0
       },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
       "startX": 0,
       "speed": 6,
-      "gravity": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
       "angleSpeed": 0,
       "initialAngle": 0,
+      "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
         "y": -0.6981317
       },
       "radiusVlc": 0,
+      "radiusAccel": 0,
       "thetaVlc": 0,
+      "thetaAccel": 0,
       "startPos": {
         "x": 0,
         "y": 0
@@ -328,6 +404,7 @@
       "appearDuration": 0,
       "life": 10,
       "random": 0,
+      "warpCooldown": 0,
       "unCounterable": false
     },
     {
@@ -339,17 +416,27 @@
         "x": 0,
         "y": 0
       },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
       "startX": 0,
       "speed": 6,
-      "gravity": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
       "angleSpeed": 0,
       "initialAngle": 0,
+      "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
         "y": -0.34906584
       },
       "radiusVlc": 0,
+      "radiusAccel": 0,
       "thetaVlc": 0,
+      "thetaAccel": 0,
       "startPos": {
         "x": 0,
         "y": 0
@@ -375,6 +462,7 @@
       "appearDuration": 0,
       "life": 10,
       "random": 0,
+      "warpCooldown": 0,
       "unCounterable": false
     },
     {
@@ -386,17 +474,27 @@
         "x": 0,
         "y": 0
       },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
       "startX": 0,
       "speed": 6,
-      "gravity": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
       "angleSpeed": 0,
       "initialAngle": 0,
+      "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
         "y": -0.34906584
       },
       "radiusVlc": 0,
+      "radiusAccel": 0,
       "thetaVlc": 0,
+      "thetaAccel": 0,
       "startPos": {
         "x": 0,
         "y": 0
@@ -422,6 +520,7 @@
       "appearDuration": 0,
       "life": 10,
       "random": 0,
+      "warpCooldown": 0,
       "unCounterable": false
     },
     {
@@ -433,17 +532,27 @@
         "x": 0,
         "y": 0
       },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
       "startX": 0,
       "speed": 6,
-      "gravity": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
       "angleSpeed": 0,
       "initialAngle": 0,
+      "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
         "y": -0.34906584
       },
       "radiusVlc": 0,
+      "radiusAccel": 0,
       "thetaVlc": 0,
+      "thetaAccel": 0,
       "startPos": {
         "x": 0,
         "y": 0
@@ -469,6 +578,7 @@
       "appearDuration": 0,
       "life": 10,
       "random": 0,
+      "warpCooldown": 0,
       "unCounterable": false
     },
     {
@@ -480,17 +590,27 @@
         "x": 0,
         "y": 0
       },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
       "startX": 0,
       "speed": 6,
-      "gravity": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
       "angleSpeed": 0,
       "initialAngle": 0,
+      "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
         "y": 0
       },
       "radiusVlc": 0,
+      "radiusAccel": 0,
       "thetaVlc": 0,
+      "thetaAccel": 0,
       "startPos": {
         "x": 0,
         "y": 0
@@ -516,6 +636,7 @@
       "appearDuration": 0,
       "life": 10,
       "random": 0,
+      "warpCooldown": 0,
       "unCounterable": false
     },
     {
@@ -527,17 +648,27 @@
         "x": 0,
         "y": 0
       },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
       "startX": 0,
       "speed": 6,
-      "gravity": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
       "angleSpeed": 0,
       "initialAngle": 0,
+      "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
         "y": 0
       },
       "radiusVlc": 0,
+      "radiusAccel": 0,
       "thetaVlc": 0,
+      "thetaAccel": 0,
       "startPos": {
         "x": 0,
         "y": 0
@@ -563,6 +694,7 @@
       "appearDuration": 0,
       "life": 10,
       "random": 0,
+      "warpCooldown": 0,
       "unCounterable": false
     },
     {
@@ -574,17 +706,27 @@
         "x": 0,
         "y": 0
       },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
       "startX": 0,
       "speed": 6,
-      "gravity": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
       "angleSpeed": 0,
       "initialAngle": 0,
+      "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
         "y": 0
       },
       "radiusVlc": 0,
+      "radiusAccel": 0,
       "thetaVlc": 0,
+      "thetaAccel": 0,
       "startPos": {
         "x": 0,
         "y": 0
@@ -610,6 +752,7 @@
       "appearDuration": 0,
       "life": 10,
       "random": 0,
+      "warpCooldown": 0,
       "unCounterable": false
     },
     {
@@ -621,17 +764,27 @@
         "x": 0,
         "y": 0
       },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
       "startX": 0,
       "speed": 6,
-      "gravity": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
       "angleSpeed": 0,
       "initialAngle": 0,
+      "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
         "y": 0.34906584
       },
       "radiusVlc": 0,
+      "radiusAccel": 0,
       "thetaVlc": 0,
+      "thetaAccel": 0,
       "startPos": {
         "x": 0,
         "y": 0
@@ -657,6 +810,7 @@
       "appearDuration": 0,
       "life": 10,
       "random": 0,
+      "warpCooldown": 0,
       "unCounterable": false
     },
     {
@@ -668,17 +822,27 @@
         "x": 0,
         "y": 0
       },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
       "startX": 0,
       "speed": 6,
-      "gravity": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
       "angleSpeed": 0,
       "initialAngle": 0,
+      "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
         "y": 0.34906584
       },
       "radiusVlc": 0,
+      "radiusAccel": 0,
       "thetaVlc": 0,
+      "thetaAccel": 0,
       "startPos": {
         "x": 0,
         "y": 0
@@ -704,6 +868,7 @@
       "appearDuration": 0,
       "life": 10,
       "random": 0,
+      "warpCooldown": 0,
       "unCounterable": false
     },
     {
@@ -715,17 +880,27 @@
         "x": 0,
         "y": 0
       },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
       "startX": 0,
       "speed": 6,
-      "gravity": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
       "angleSpeed": 0,
       "initialAngle": 0,
+      "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
         "y": 0.34906584
       },
       "radiusVlc": 0,
+      "radiusAccel": 0,
       "thetaVlc": 0,
+      "thetaAccel": 0,
       "startPos": {
         "x": 0,
         "y": 0
@@ -751,6 +926,7 @@
       "appearDuration": 0,
       "life": 10,
       "random": 0,
+      "warpCooldown": 0,
       "unCounterable": false
     },
     {
@@ -762,17 +938,27 @@
         "x": 0,
         "y": 0
       },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
       "startX": 0,
       "speed": 6,
-      "gravity": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
       "angleSpeed": 0,
       "initialAngle": 0,
+      "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
         "y": 0.6981317
       },
       "radiusVlc": 0,
+      "radiusAccel": 0,
       "thetaVlc": 0,
+      "thetaAccel": 0,
       "startPos": {
         "x": 0,
         "y": 0
@@ -798,6 +984,7 @@
       "appearDuration": 0,
       "life": 10,
       "random": 0,
+      "warpCooldown": 0,
       "unCounterable": false
     },
     {
@@ -809,17 +996,27 @@
         "x": 0,
         "y": 0
       },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
       "startX": 0,
       "speed": 6,
-      "gravity": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
       "angleSpeed": 0,
       "initialAngle": 0,
+      "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
         "y": 0.6981317
       },
       "radiusVlc": 0,
+      "radiusAccel": 0,
       "thetaVlc": 0,
+      "thetaAccel": 0,
       "startPos": {
         "x": 0,
         "y": 0
@@ -845,6 +1042,7 @@
       "appearDuration": 0,
       "life": 10,
       "random": 0,
+      "warpCooldown": 0,
       "unCounterable": false
     },
     {
@@ -856,17 +1054,27 @@
         "x": 0,
         "y": 0
       },
+      "playerInfluence": {
+        "x": 0,
+        "y": 0
+      },
       "startX": 0,
       "speed": 6,
-      "gravity": 0,
+      "gravity": {
+        "x": 0,
+        "y": 0
+      },
       "angleSpeed": 0,
       "initialAngle": 0,
+      "useVelocityAngle": true,
       "polarForm": {
         "x": 1,
         "y": 0.6981317
       },
       "radiusVlc": 0,
+      "radiusAccel": 0,
       "thetaVlc": 0,
+      "thetaAccel": 0,
       "startPos": {
         "x": 0,
         "y": 0
@@ -892,9 +1100,10 @@
       "appearDuration": 0,
       "life": 10,
       "random": 0,
+      "warpCooldown": 0,
       "unCounterable": false
     }
   ],
-  "homing": true,
+  "homing": false,
   "isLaser": false
 }

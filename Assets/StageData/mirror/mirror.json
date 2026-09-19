@@ -17,228 +17,195 @@
     }
   ],
   "delayTime": 3,
+  "endTime": 65.454544,
   "stageDescription": "Stage Description Here",
-  "enemySpawners": [],
-  "bulletSpawners": [
+  "enemyVisuals": [],
+  "multiBulletSpawners": [],
+  "bossSpawners": [],
+  "bulletSpawners": [],
+  "difficulties": [
     {
-      "clipName": "mirror_LASER",
-      "count": 1,
-      "interval": 0,
-      "time": 9,
-      "pos": {
-        "x": 4,
-        "y": 12
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "mirror_LASER_SUB",
-      "count": 1,
-      "interval": 0,
-      "time": 8.3,
-      "pos": {
-        "x": 4,
-        "y": 12
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "mirror_LASER",
-      "count": 1,
-      "interval": 0,
-      "time": 9,
-      "pos": {
-        "x": 10,
-        "y": 14.5
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "mirror_LASER_SUB",
-      "count": 1,
-      "interval": 0,
-      "time": 8.3,
-      "pos": {
-        "x": 10,
-        "y": 14.5
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "mirror_LASER",
-      "count": 1,
-      "interval": 0,
-      "time": 9,
-      "pos": {
-        "x": 16,
-        "y": 16
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "mirror_LASER_SUB",
-      "count": 1,
-      "interval": 0,
-      "time": 8.3,
-      "pos": {
-        "x": 16,
-        "y": 16
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "mirror_LASER",
-      "count": 1,
-      "interval": 0,
-      "time": 9,
-      "pos": {
-        "x": 22,
-        "y": 14.5
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "mirror_LASER_SUB",
-      "count": 1,
-      "interval": 0,
-      "time": 8.3,
-      "pos": {
-        "x": 22,
-        "y": 14.5
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "mirror_LASER",
-      "count": 1,
-      "interval": 0,
-      "time": 9,
-      "pos": {
-        "x": 28,
-        "y": 12
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
-    },
-    {
-      "clipName": "mirror_LASER_SUB",
-      "count": 1,
-      "interval": 0,
-      "time": 8.3,
-      "pos": {
-        "x": 28,
-        "y": 12
-      },
-      "originVlc": {
-        "x": 0,
-        "y": 0
-      },
-      "angle": 0,
-      "angleInterval": 0,
-      "color": {
-        "x": 1,
-        "y": 0,
-        "z": 0.3,
-        "w": 1
-      }
+      "difficulty": "Lunatic",
+      "multiBulletSpawners": [],
+      "bossSpawners": [],
+      "bulletSpawners": [
+        {
+          "clipName": "mirror_Bomb_L",
+          "count": 1,
+          "interval": 0,
+          "time": 9,
+          "pos": {
+            "x": 16,
+            "y": 9
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 120,
+          "color": {
+            "x": 1,
+            "y": 0,
+            "z": 0.3,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "mirror_BombD_L",
+          "count": 1,
+          "interval": 0,
+          "time": 10,
+          "pos": {
+            "x": 16,
+            "y": 9
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 120,
+          "color": {
+            "x": 1,
+            "y": 0,
+            "z": 0.3,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "mirror_Bomb_L",
+          "count": 1,
+          "interval": 0,
+          "time": 13.363636,
+          "pos": {
+            "x": 16,
+            "y": 9
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 120,
+          "color": {
+            "x": 1,
+            "y": 0,
+            "z": 0.3,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "mirror_BombD_L",
+          "count": 1,
+          "interval": 0,
+          "time": 14.363636,
+          "pos": {
+            "x": 16,
+            "y": 9
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 120,
+          "color": {
+            "x": 1,
+            "y": 0,
+            "z": 0.3,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "mirror_Bomb_L",
+          "count": 1,
+          "interval": 0,
+          "time": 17.727272,
+          "pos": {
+            "x": 16,
+            "y": 9
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 120,
+          "color": {
+            "x": 1,
+            "y": 0,
+            "z": 0.3,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "mirror_BombD_L",
+          "count": 1,
+          "interval": 0,
+          "time": 18.727272,
+          "pos": {
+            "x": 16,
+            "y": 9
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 120,
+          "color": {
+            "x": 1,
+            "y": 0,
+            "z": 0.3,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "mirror_Bomb_L",
+          "count": 1,
+          "interval": 0,
+          "time": 22.09091,
+          "pos": {
+            "x": 16,
+            "y": 9
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 120,
+          "color": {
+            "x": 1,
+            "y": 0,
+            "z": 0.3,
+            "w": 1
+          }
+        },
+        {
+          "clipName": "mirror_BombD_L",
+          "count": 1,
+          "interval": 0,
+          "time": 23.09091,
+          "pos": {
+            "x": 16,
+            "y": 9
+          },
+          "originVlc": {
+            "x": 0,
+            "y": 0
+          },
+          "angle": 0,
+          "angleInterval": 120,
+          "color": {
+            "x": 1,
+            "y": 0,
+            "z": 0.3,
+            "w": 1
+          }
+        }
+      ]
     }
   ]
 }
