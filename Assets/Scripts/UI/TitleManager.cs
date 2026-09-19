@@ -2674,7 +2674,11 @@ public class TitleManager : MonoBehaviour
         rankingRowDate = new TMP_Text[rowCount];
         rankingRowLaurelL = new Image[rowCount];
         rankingRowLaurelR = new Image[rowCount];
-        Sprite sprig = HighlandUi.LaurelSprig(26, 34, v11Textures, v11Sprites, "RankingLaurel");
+        // 第 U9 便: 自前の近似をやめ、v11 の 10_ranking SVG の葉のパスを 2 倍解像度で
+        // 焼いた PNG(Resources/UI/v11/laurel_sprig・64x96)に差し替えた。無ければ
+        // 従来の手描きへ落ちる。表示は SVG 実寸の 28 x 41.6(= 画面 32.2 x 47.8px)。
+        Sprite sprig = HighlandUi.Icon("laurel_sprig");
+        if (sprig == null) sprig = HighlandUi.LaurelSprig(26, 34, v11Textures, v11Sprites, "RankingLaurel");
         for (int i = 0; i < rowCount; i++)
         {
             float baseY = 279f + 53f * i;
@@ -2687,7 +2691,7 @@ public class TitleManager : MonoBehaviour
                 Image lr = NewV11Image("RowLaurel" + i + (k == 0 ? "L" : "R"), rootRect,
                     new Color(1f, 0.882f, 0.416f, 0f));
                 lr.sprite = sprig;
-                PlaceV11(lr.rectTransform, 468f + (k == 0 ? -26f : 26f), baseY - 11f, 26f, 34f);
+                PlaceV11(lr.rectTransform, 468f + (k == 0 ? -26f : 26f), baseY - 9f, 28f, 41.6f);
                 if (k == 1) lr.rectTransform.localScale = new Vector3(-1f, 1f, 1f);
                 if (k == 0) rankingRowLaurelL[i] = lr; else rankingRowLaurelR[i] = lr;
             }
