@@ -117,18 +117,24 @@ public static class HighlandUi
     // =======================================================================
 
     /// <summary>
-    /// 四隅を半径 <paramref name="r"/> の円弧でえぐった矩形の符号付き距離。
+    /// 四隅を半径 <paramref name="r"/> の四分円で<b>えぐった</b>(内側へ凹む)矩形の符号付き距離。
     /// 中心 (0,0)・半幅 <paramref name="hw"/>・半高 <paramref name="hh"/>。負が内側。
+    ///
+    /// v11 の SVG は
+    /// <c>M x+r y H x+w-r A r r 0 0 0 x+w y+r ...</c>(sweep=0)で、
+    /// 円弧の中心は<b>矩形の角そのもの</b>にある。つまり形は
+    /// 「矩形 − 四隅に置いた半径 r の円」= 角丸(凸)ではなく凹角。
+    /// 2026-09-19 の指摘「角がただの角丸になっている」はここが凸だったため。
     /// </summary>
     public static float NotchSdf(float ax, float ay, float hw, float hh, float r)
     {
-        float cx = hw - r, cy = hh - r;
-        if (ax > cx && ay > cy)
-        {
-            float dx = ax - cx, dy = ay - cy;
-            return Mathf.Sqrt(dx * dx + dy * dy) - r;
-        }
-        return Mathf.Max(ax - hw, ay - hh);
+        // 矩形の符号付き距離。
+        float dRect = Mathf.Max(ax - hw, ay - hh);
+        if (r <= 0f) return dRect;
+        // 角に置いた円(中心 = 角)を引く。円の内側ほど正(= 外側)。
+        float dx = ax - hw, dy = ay - hh;
+        float dHole = r - Mathf.Sqrt(dx * dx + dy * dy);
+        return Mathf.Max(dRect, dHole);
     }
 
     private static Color32 SampleBorderGold(float t)
@@ -169,7 +175,6 @@ public static class HighlandUi
         float hw = W * 0.5f, hh = H * 0.5f;
         float cx = (W - 1) * 0.5f, cy = (H - 1) * 0.5f;
         float rN = notch * ss;
-        float rInner = (notch + innerInset) * ss;
         float tOuter = outerWidth * ss;
         float tInner = innerWidth * ss;
         float inset = innerInset * ss;
@@ -213,10 +218,12 @@ public static class HighlandUi
                 Blend(px, W, H, x, y, SampleBorderGold(1f - gt),
                     Mathf.Clamp01(tOuter * 0.5f - Mathf.Abs(dOut + tOuter * 0.5f)) * inside);
 
-                // 内側の銀の細線。
+                // 内側の銀の細線。外枠を内側へ inset ぶん平行移動した曲線
+                // (= dOut + inset)。凹角では円弧の中心が外枠と同じ「矩形の角」に
+                // 残り、半径だけ notch + inset へ広がる(v11 SVG の実値: 19 → 24.2)。
                 if (innerInset > 0f)
                 {
-                    float dIn = NotchSdf(ax, ay, hw - 0.5f - inset, hh - 0.5f - inset, rInner);
+                    float dIn = dOut + inset;
                     Blend(px, W, H, x, y, TexInnerSilver,
                         Mathf.Clamp01(tInner * 0.5f - Mathf.Abs(dIn) + 0.35f) * 0.68f * inside);
                 }
@@ -239,7 +246,7 @@ public static class HighlandUi
         float hw = W * 0.5f, hh = H * 0.5f;
         float cx = (W - 1) * 0.5f, cy = (H - 1) * 0.5f;
         float rN = notch * ss, tOut = outerWidth * ss;
-        float inset = innerInset * ss, rIn = (notch + innerInset) * ss;
+        float inset = innerInset * ss;
 
         for (int y = 0; y < H; y++)
         {
@@ -251,7 +258,7 @@ public static class HighlandUi
                     Mathf.Clamp01(tOut * 0.5f - Mathf.Abs(dOut + tOut * 0.5f)) * outerAlpha);
                 if (innerInset > 0f)
                 {
-                    float dIn = NotchSdf(ax, ay, hw - 0.5f - inset, hh - 0.5f - inset, rIn);
+                    float dIn = dOut + inset;   // 外枠の内側 inset の平行曲線(凹角の中心は共通)
                     Blend(px, W, H, x, y, outer,
                         Mathf.Clamp01(0.6f * ss - Mathf.Abs(dIn)) * innerAlpha);
                 }
