@@ -353,6 +353,70 @@ public static class HighlandUi
         return MakeSprite(px, W, H, name, ownedTex, ownedSpr);
     }
 
+    /// <summary>
+    /// 小さな月桂樹の枝(左半分)。ランキングの 1〜3 位の番号を挟む飾り。
+    /// 右半分は localScale.x = -1 で反転して使う。色は Image.color で着ける。
+    /// </summary>
+    public static Sprite LaurelSprig(int w, int h,
+        List<Texture2D> ownedTex, List<Sprite> ownedSpr, string name)
+    {
+        const int ss = 4;
+        int W = Mathf.Max(8, w) * ss, H = Mathf.Max(8, h) * ss;
+        Color32[] px = new Color32[W * H];
+        float cx = W - 1f;                 // 枝は右端(番号側)へ開く
+        float cy = (H - 1) * 0.5f;
+        float rx = W * 0.92f, ry = H * 0.46f;
+        // 幹: 右下から左上へ弧を描く。
+        for (int i = 0; i <= 220; i++)
+        {
+            float a = Mathf.Lerp(-1.15f, 1.15f, i / 220f);
+            float x = cx - rx * Mathf.Cos(a) * 0.55f - rx * 0.30f;
+            float y = cy + ry * Mathf.Sin(a);
+            Disc(px, W, H, x, y, 0.55f * ss);
+        }
+        // 葉: 弧に沿って 5 枚ずつ、外向きに倒した楕円。
+        for (int k = 0; k < 4; k++)
+        {
+            float a = Mathf.Lerp(-0.92f, 0.92f, k / 3f);
+            float bx = cx - rx * Mathf.Cos(a) * 0.55f - rx * 0.28f;
+            float by = cy + ry * Mathf.Sin(a);
+            float tilt = a * 0.85f + (a >= 0f ? 0.62f : -0.62f);
+            Leaf(px, W, H, bx, by, 0.36f * W, 0.155f * H, tilt);
+        }
+        return MakeSprite(px, W, H, name, ownedTex, ownedSpr);
+    }
+
+    private static void Disc(Color32[] px, int W, int H, float cx, float cy, float r)
+    {
+        int x0 = Mathf.Max(0, Mathf.FloorToInt(cx - r - 1)), x1 = Mathf.Min(W - 1, Mathf.CeilToInt(cx + r + 1));
+        int y0 = Mathf.Max(0, Mathf.FloorToInt(cy - r - 1)), y1 = Mathf.Min(H - 1, Mathf.CeilToInt(cy + r + 1));
+        for (int y = y0; y <= y1; y++)
+            for (int x = x0; x <= x1; x++)
+            {
+                float d = Mathf.Sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy)) - r;
+                Blend(px, W, H, x, y, Color.white, Mathf.Clamp01(0.5f - d));
+            }
+    }
+
+    // 先の尖った葉(楕円を傾けたもの)。
+    private static void Leaf(Color32[] px, int W, int H, float cx, float cy, float a, float b, float rot)
+    {
+        float cs = Mathf.Cos(rot), sn = Mathf.Sin(rot);
+        float r = Mathf.Max(a, b) + 2f;
+        int x0 = Mathf.Max(0, Mathf.FloorToInt(cx - r)), x1 = Mathf.Min(W - 1, Mathf.CeilToInt(cx + r));
+        int y0 = Mathf.Max(0, Mathf.FloorToInt(cy - r)), y1 = Mathf.Min(H - 1, Mathf.CeilToInt(cy + r));
+        for (int y = y0; y <= y1; y++)
+            for (int x = x0; x <= x1; x++)
+            {
+                float dx = x - cx, dy = y - cy;
+                float u = (dx * cs + dy * sn) / a;
+                float v = (-dx * sn + dy * cs) / b;
+                // |u|^1.0 + |v|^2 <= 1 で先の尖った形にする。
+                float m = Mathf.Abs(u) + v * v - 1f;
+                Blend(px, W, H, x, y, Color.white, Mathf.Clamp01(-m * Mathf.Min(a, b) * 0.9f + 0.5f));
+            }
+    }
+
     /// <summary>縦横比の違う菱形(中空/塗り)。表示寸法の 4 倍で焼く。</summary>
     public static Sprite DiamondRect(int w, int h, bool filled, float strokePx,
         List<Texture2D> ownedTex, List<Sprite> ownedSpr, string name)

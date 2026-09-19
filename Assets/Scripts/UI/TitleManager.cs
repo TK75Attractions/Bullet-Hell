@@ -195,6 +195,13 @@ public class TitleManager : MonoBehaviour
     private bool rankingOpen;
     private TMP_Text rankingHeaderText;
     private TMP_Text[] rankingRowTexts = new TMP_Text[0];
+    private TMP_Text[] rankingRowRank = new TMP_Text[0];
+    private TMP_Text[] rankingRowScore = new TMP_Text[0];
+    private TMP_Text[] rankingRowDate = new TMP_Text[0];
+    private Image[] rankingRowLaurelL = new Image[0];
+    private Image[] rankingRowLaurelR = new Image[0];
+    private TMP_Text rankingStageLabel;
+    private HighlandUi.RubyText rankingDiffLabel, rankingModeLabel;
     private int rankingStageIndex;
     private int rankingDifficultyIndex = DirectionTransferCode.DifficultyCount - 1;
     private int rankingModeIndex; // 0=1P, 1=2P
@@ -1223,8 +1230,9 @@ public class TitleManager : MonoBehaviour
         // 決定と同時に「地図へ寄る」を始め、行の飛び出し・ロゴ上抜けも同時に走らせる。
         // 第 U8 便(2026-09-19 指示「動く方向が連続になるように」): 受け渡しのあいだ
         // 寄りを ease-in(p^2)にし、終端で速度を 0 に落とさないまま街へ渡す。
+        // FocusRoom は受け渡しを false に戻すので、ここでは直接 FocusMenu を呼ぶ。
+        Room?.FocusMenu((int)TitleMenuAction.Start);
         Room?.SetZoomHandoff(true);
-        FocusRoom((int)TitleMenuAction.Start);
 
         const float flashDur = 0.175f;
         // 行とロゴはクロスフェードが終わる 0.55 秒までに片付ける。
@@ -2421,6 +2429,7 @@ public class TitleManager : MonoBehaviour
             if (heading != null) rankingInkCentered = TmpAlign.CenterInkVertically(heading);
         }
         RefreshRankingBoard();
+        v11RubiesPlaced = false;   // 表示のたびにふりがなを置き直す
     }
 
     public void CloseRanking()
@@ -2526,6 +2535,8 @@ public class TitleManager : MonoBehaviour
         }
 
         if (changed) RefreshRankingBoard();
+        // ふりがなは表示後に本文の実測から置き直す(盤面を開いているあいだ毎フレーム試す)。
+        TickV11Rubies();
         return false;
     }
 
@@ -2533,29 +2544,45 @@ public class TitleManager : MonoBehaviour
     {
         string stageDir = DirectionTransferCode.StageOrder[rankingStageIndex];
         string stageName = TransferAchievements.StageDisplayName(stageDir);
-        string diffName = DifficultyUtility.GetDisplayName((Difficulty)rankingDifficultyIndex);
         string mode = RankingModes[rankingModeIndex];
-        if (rankingHeaderText != null)
-        {
-            rankingHeaderText.text = $"{stageName}  {diffName}  {mode}";
-        }
+        // v11(10_ranking)の副見出しは「ステージ ・ 難易度 ・ 人数」の 3 語。
+        if (rankingStageLabel != null) rankingStageLabel.text = stageName;
+        if (rankingDiffLabel != null)
+            rankingDiffLabel.Apply(RankingDifficultyMarkup[Mathf.Clamp(rankingDifficultyIndex, 0, 2)]);
+        if (rankingModeLabel != null)
+            rankingModeLabel.Apply(rankingModeIndex == 0 ? "1[人|ひとり]プレイ" : "2[人|ふたり]プレイ");
 
         List<RankingStore.Entry> top = RankingStore.GetTop(stageDir, rankingDifficultyIndex, mode);
         for (int i = 0; i < rankingRowTexts.Length; i++)
         {
-            TMP_Text row = rankingRowTexts[i];
-            if (row == null) continue;
-            if (i < top.Count)
+            bool has = i < top.Count;
+            Color ink = has ? HighlandUi.Ink : new Color(1f, 1f, 1f, 0.28f);
+            if (rankingRowRank[i] != null)
             {
-                RankingStore.Entry e = top[i];
-                row.text = $"{i + 1,2}   {e.name,-3}   {e.score,8:N0}   {e.dateTime}";
-                row.color = MenuTextBase;
+                rankingRowRank[i].color = i < 3
+                    ? new Color(1f, 0.882f, 0.416f, has ? 1f : 0.30f)
+                    : new Color(0.91f, 0.91f, 0.91f, has ? 1f : 0.28f);
             }
-            else
+            if (rankingRowTexts[i] != null)
             {
-                row.text = $"{i + 1,2}   ---";
-                row.color = new Color(MenuTextBase.r, MenuTextBase.g, MenuTextBase.b, 0.35f);
+                rankingRowTexts[i].text = has ? top[i].name : "---";
+                rankingRowTexts[i].color = ink;
             }
+            if (rankingRowScore[i] != null)
+            {
+                rankingRowScore[i].text = has ? top[i].score.ToString("N0") : "—";
+                rankingRowScore[i].color = ink;
+            }
+            if (rankingRowDate[i] != null)
+            {
+                rankingRowDate[i].text = has ? top[i].dateTime : string.Empty;
+                rankingRowDate[i].color = new Color(0.839f, 0.839f, 0.839f, has ? 1f : 0.28f);
+            }
+            float la = i < 3 && has ? 1f : 0f;
+            if (rankingRowLaurelL[i] != null)
+                rankingRowLaurelL[i].color = new Color(1f, 0.882f, 0.416f, la);
+            if (rankingRowLaurelR[i] != null)
+                rankingRowLaurelR[i].color = new Color(1f, 0.882f, 0.416f, la);
         }
     }
 
@@ -2577,43 +2604,132 @@ public class TitleManager : MonoBehaviour
         rankingBackdrop.color = new Color(0.55f, 0.62f, 0.72f, 1f);
         rankingBackdrop.gameObject.SetActive(false);
 
-        const float panelW = 900f;
-        const float panelH = 720f;
-        const float panelHalfW = panelW * 0.5f;
-        const float panelHalfH = panelH * 0.5f;
-        Vector2 panelSize = new Vector2(panelW, panelH);
-        CreatePanel("Scrim", rootRect, Vector2.zero, new Vector2(4000f, 4000f), new Color(0f, 0.024f, 0.071f, 0.22f));
-        CreatePanel("PanelShadow", rootRect, new Vector2(6f, -8f), panelSize, new Color(0f, 0f, 0f, 0.24f));
-        CreatePanel("Panel", rootRect, Vector2.zero, panelSize, new Color(0.008f, 0.031f, 0.078f, 0.90f));
-        Color edgeSilver = new Color(0.268f, 0.325f, 0.456f);
-        CreatePanel("EdgeTop", rootRect, new Vector2(0f, panelHalfH - 1f), new Vector2(panelW, 2f), new Color(edgeSilver.r, edgeSilver.g, edgeSilver.b, 0.80f));
-        CreatePanel("EdgeBottom", rootRect, new Vector2(0f, -(panelHalfH - 1f)), new Vector2(panelW, 2f), new Color(edgeSilver.r, edgeSilver.g, edgeSilver.b, 0.60f));
-        CreatePanel("EdgeLeft", rootRect, new Vector2(-(panelHalfW - 1f), 0f), new Vector2(2f, panelH), new Color(edgeSilver.r, edgeSilver.g, edgeSilver.b, 0.60f));
-        CreatePanel("EdgeRight", rootRect, new Vector2(panelHalfW - 1f, 0f), new Vector2(2f, panelH), new Color(edgeSilver.r, edgeSilver.g, edgeSilver.b, 0.60f));
+        // ---- Highland UI v11 (10_ranking) の盤面 ----
+        // SVG 実値: 外枠 348..1324 / 55..899(976x844・凹角 r=30・内側 11px に銀線)
+        const float pCx = 836f, pCy = 477f, pW = 976f, pH = 844f;
+        CreatePanel("Scrim", rootRect, Vector2.zero, new Vector2(4000f, 4000f),
+            new Color(0f, 0.024f, 0.071f, 0.22f));
 
-        TMP_Text heading = CreateText("Heading", rootRect, new Vector2(0f, panelHalfH - 56f), new Vector2(700f, 52f), 36f, Color.white, TextAlignmentOptions.Center);
-        heading.fontStyle = FontStyles.Bold;
-        heading.text = "ランキング";
+        Image panel = NewV11Image("Panel", rootRect, Color.white);
+        panel.sprite = HighlandUi.NotchPanel((int)HighlandUi.L(pW), (int)HighlandUi.L(pH),
+            HighlandUi.L(30f), false, v11Textures, v11Sprites, "RankingPanel",
+            HighlandUi.L(11f), 1.9f * HighlandUi.S, 0.75f * HighlandUi.S);
+        PlaceV11(panel.rectTransform, pCx, pCy, pW, pH);
 
-        TMP_Text header = CreateText("SubHeader", rootRect, new Vector2(0f, panelHalfH - 104f), new Vector2(820f, 30f), 22f, Cyan, TextAlignmentOptions.Center);
-        header.characterSpacing = 3f;
-        rankingHeaderText = header;
-
-        TMP_Text hint = CreateText("Hint", rootRect, new Vector2(0f, panelHalfH - 132f), new Vector2(820f, 22f), 15f,
-            new Color(0.388f, 0.867f, 0.91f, 0.55f), TextAlignmentOptions.Center);
-        hint.text = "←→ 難易度   ↑↓ ステージ   A モード切替   B 戻る";
-
-        rankingRowTexts = new TMP_Text[RankingStore.TopCount];
-        const float rowH = 40f;
-        float rowTop = panelHalfH - 176f;
-        for (int i = 0; i < rankingRowTexts.Length; i++)
+        // 左右の小さな菱形(SVG 369,440 / 1303,440)。
+        foreach (float sx in new[] { 369f, 1303f })
         {
-            TMP_Text row = CreateText("Row" + i, rootRect, new Vector2(0f, rowTop - i * rowH), new Vector2(760f, rowH), 22f, MenuTextBase, TextAlignmentOptions.Left);
-            if (codeFont != null) row.font = codeFont;
-            rankingRowTexts[i] = row;
+            Image d = NewV11Image("SideGem", rootRect, new Color(0.784f, 0.784f, 0.784f, 0.74f));
+            d.sprite = HighlandUi.DiamondRect(18, 23, false, 1.6f * HighlandUi.S,
+                v11Textures, v11Sprites, "RankingSideGem");
+            PlaceV11(d.rectTransform, sx, 440f, 16f, 20f);
         }
 
+        // 見出し「ランキング」(51px)と、その下の金の飾り罫 + 菱形(SVG y=168)。
+        TMP_Text heading = HighlandUi.Text("Heading", rootRect, "ランキング", 51f,
+            HighlandUi.Ink, TextAlignmentOptions.Center, true, 5f);
+        HighlandUi.PlaceCentered(heading, 836f, 144f, 800f, 51f);
+        AddV11Rule(rootRect, 168f, 782f, 32f, "RankingHeadRule");
+
+        // 副見出し: ステージ ・ 難易度(ふりがな) ・ 人数(ふりがな)。
+        rankingStageLabel = HighlandUi.Text("SubStage", rootRect, "", 22.5f,
+            HighlandUi.InkSoft, TextAlignmentOptions.Center, false, 1f);
+        HighlandUi.PlaceCentered(rankingStageLabel, 698f, 213f, 260f, 22.5f);
+        rankingHeaderText = rankingStageLabel;
+        rankingDiffLabel = NewV11Ruby("SubDiff", rootRect, "[普通|ふつう]", 22.5f, 1f,
+            859f, 213f, 200f, TextAlignmentOptions.Center);
+        rankingModeLabel = NewV11Ruby("SubMode", rootRect, "1[人|ひとり]プレイ", 22.5f, 1f,
+            1000f, 213f, 220f, TextAlignmentOptions.Center);
+        foreach (float sx in new[] { 778.5f, 929.5f })
+        {
+            TMP_Text dot = HighlandUi.Text("SubDot", rootRect, "・", 22.5f,
+                new Color(0.949f, 0.949f, 0.949f, 0.7f), TextAlignmentOptions.Center, false, 0f);
+            HighlandUi.PlaceCentered(dot, sx, 213f, 40f, 22.5f);
+        }
+
+        // 表の細い横罫(SVG y=241 から 53px 間隔で 11 本・421..1251)。
+        int ruleW = Mathf.RoundToInt(HighlandUi.L(830f));
+        Sprite tableRule = HighlandUi.FadeRule(ruleW, 12, 0.9f * HighlandUi.S, 0f,
+            new[] { 0f, 0.15f, 0.5f, 0.85f, 1f },
+            new[] { new Color32(0xD6, 0xD6, 0xD6, 0xFF), new Color32(0xAD, 0xAD, 0xAD, 0xFF),
+                    new Color32(0xD0, 0xD0, 0xD0, 0xFF), new Color32(0xAD, 0xAD, 0xAD, 0xFF),
+                    new Color32(0xD6, 0xD6, 0xD6, 0xFF) },
+            new[] { 0f, 0.40f, 0.62f, 0.40f, 0f },
+            v11Textures, v11Sprites, "RankingTableRule");
+        for (int i = 0; i <= RankingStore.TopCount; i++)
+        {
+            Image r = NewV11Image("RowRule" + i, rootRect, new Color(1f, 1f, 1f, 0.7f));
+            r.sprite = tableRule;
+            r.rectTransform.anchoredPosition = new Vector2(0f, HighlandUi.Y(241f + 53f * i));
+            r.rectTransform.sizeDelta = new Vector2(ruleW, 12f);
+        }
+
+        // 10 行(順位 / 名前 / スコア / 日付)。1〜3 位は月桂樹で番号を挟む。
+        int rowCount = RankingStore.TopCount;
+        rankingRowTexts = new TMP_Text[rowCount];
+        rankingRowRank = new TMP_Text[rowCount];
+        rankingRowScore = new TMP_Text[rowCount];
+        rankingRowDate = new TMP_Text[rowCount];
+        rankingRowLaurelL = new Image[rowCount];
+        rankingRowLaurelR = new Image[rowCount];
+        Sprite sprig = HighlandUi.LaurelSprig(26, 34, v11Textures, v11Sprites, "RankingLaurel");
+        for (int i = 0; i < rowCount; i++)
+        {
+            float baseY = 279f + 53f * i;
+            rankingRowRank[i] = HighlandUi.Text("RowRank" + i, rootRect, (i + 1).ToString(), 33f,
+                HighlandUi.Ink, TextAlignmentOptions.Center, false, 0f);
+            HighlandUi.PlaceCentered(rankingRowRank[i], 468f, baseY, 120f, 33f);
+
+            for (int k = 0; k < 2; k++)
+            {
+                Image lr = NewV11Image("RowLaurel" + i + (k == 0 ? "L" : "R"), rootRect,
+                    new Color(1f, 0.882f, 0.416f, 0f));
+                lr.sprite = sprig;
+                PlaceV11(lr.rectTransform, 468f + (k == 0 ? -26f : 26f), baseY - 11f, 26f, 34f);
+                if (k == 1) lr.rectTransform.localScale = new Vector3(-1f, 1f, 1f);
+                if (k == 0) rankingRowLaurelL[i] = lr; else rankingRowLaurelR[i] = lr;
+            }
+
+            rankingRowTexts[i] = HighlandUi.Text("RowName" + i, rootRect, "", 27f,
+                HighlandUi.Ink, TextAlignmentOptions.Left, false, 3.6f);
+            HighlandUi.PlaceLeft(rankingRowTexts[i], 578f, baseY - 1.2f, 260f, 27f);
+
+            rankingRowScore[i] = HighlandUi.Text("RowScore" + i, rootRect, "", 34f,
+                HighlandUi.Ink, TextAlignmentOptions.Right, false, 1.2f);
+            HighlandUi.PlaceRight(rankingRowScore[i], 1089f, baseY + 0.5f, 360f, 34f);
+
+            rankingRowDate[i] = HighlandUi.Text("RowDate" + i, rootRect, "", 16f,
+                new Color(0.839f, 0.839f, 0.839f, 1f), TextAlignmentOptions.Right, false, 0.8f);
+            HighlandUi.PlaceRight(rankingRowDate[i], 1243f, baseY - 5.5f, 200f, 16f);
+        }
+
+        // 下の飾り罫(SVG y=800)と操作ヒント。
+        AddV11Rule(rootRect, 800f, 720f, 32f, "RankingFootRule");
+        AddRankingHint(rootRect, "lever_white", 581.2f, 830.4f, 34f,
+            "[左右|さゆう]：[難|むずか]しさ", 606.9f, 836f);
+        AddRankingHint(rootRect, "lever_white", 956.2f, 830.4f, 34f,
+            "[上下|じょうげ]：ステージ", 981.9f, 836f);
+        AddRankingHint(rootRect, "circle", 579.1f, 867.2f, 34f,
+            "[人数|にんずう]を[変|か]える", 606.2f, 874f);
+        AddRankingHint(rootRect, "cross", 1000.2f, 867.2f, 34f,
+            "[戻|もど]る", 1027.9f, 874f);
+
         rankingRoot.SetActive(false);
+    }
+
+    // 難易度の表示名(ふりがな付き)。v11 の絵は「普通」。
+    private static readonly string[] RankingDifficultyMarkup =
+        { "[簡単|かんたん]", "[普通|ふつう]", "[難|むずか]しい" };
+
+    // ランキング盤面の操作ヒント 1 本(アイコン + ふりがな付きの文字)。
+    private void AddRankingHint(Transform parent, string icon, float iconCx, float iconCy,
+        float iconSize, string markup, float textX, float textBaseline)
+    {
+        Image img = NewV11Image("HintIcon", parent, Color.white);
+        img.sprite = HighlandUi.Icon(icon);
+        PlaceV11(img.rectTransform, iconCx, iconCy, iconSize, iconSize);
+        NewV11Ruby("HintText", parent, markup, 18.2f, 0.35f, textX, textBaseline, 340f,
+            TextAlignmentOptions.Left);
     }
 
     // ---- UI helpers -------------------------------------------------------
