@@ -274,7 +274,7 @@ public class StageSelectManager : MonoBehaviour
         UpdateTimeDim();
         // 街モード(style 2)は上部バーを隠すので、残り時間だけ別途渡す
         // (タイマー本体・時間切れの自動スタートは従来どおり)。
-        if (jsab != null) jsab.SetRemainingTime(remainingTime);
+        if (jsab != null) jsab.SetRemainingTime(remainingTime, phaseTotalTime);
 
         if (isTransitioning) return;
         if (timeUp) button = true;

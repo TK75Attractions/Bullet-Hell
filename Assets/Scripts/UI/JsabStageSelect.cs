@@ -1731,9 +1731,9 @@ public class JsabStageSelect : MonoBehaviour
 
     /// <summary>残り時間(秒)。街モードでは上部バーを隠しているので、10 秒を切ったときだけ
     /// 画面下端に小さく出すために使う。タイマー本体・自動スタートは従来どおり動く。</summary>
-    public void SetRemainingTime(float seconds)
+    public void SetRemainingTime(float seconds, float total)
     {
-        if (city != null) city.SetRemainingTime(seconds, cityMode);
+        if (city != null) city.SetRemainingTime(seconds, total, cityMode);
     }
 
     public void SetStage(int index, int total, bool animate)

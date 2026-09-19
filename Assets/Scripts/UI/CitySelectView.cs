@@ -48,6 +48,8 @@ public class CitySelectView : MonoBehaviour
     private static readonly Color Cyan = new Color(0.22f, 0.76f, 0.878f, 1f);
 
     private RectTransform root;
+    // 残り時間のストップウォッチ(Highland Timer v14・2026-09-19)。
+    private readonly StageTimerWidget timer = new StageTimerWidget();
     private TMP_FontAsset uiFont;
     private TMP_FontAsset minchoFont;
     private bool minchoTried;
@@ -527,18 +529,26 @@ public class CitySelectView : MonoBehaviour
             stagePanelRect.gameObject.SetActive(on);
     }
 
-    /// <summary>残り時間の最小表示。10 秒を切ったときだけ出す。</summary>
-    public void SetRemainingTime(float seconds, bool cityMode)
+    /// <summary>残り時間。街モードではストップウォッチ型タイマー(Highland Timer v14)を
+    /// 画面の左下へ出し、旧「のこり N」の小さな表示は隠す(2026-09-19 指示)。</summary>
+    public void SetRemainingTime(float seconds, float total, bool cityMode)
     {
+        float dt = Time.unscaledDeltaTime;
+        if (timer != null)
+        {
+            if (!timer.Built) timer.Build(root);
+            timer.Tick(seconds, total, cityMode, dt);
+        }
         if (timeLeftText == null) return;
-        bool show = cityMode && seconds <= 10.5f && seconds > 0.05f;
+        // 新タイマーが出ているあいだ旧表示は使わない。
+        bool show = cityMode && timer == null && seconds <= 10.5f && seconds > 0.05f;
         if (show)
         {
             string label = string.Format("のこり {0}", Mathf.CeilToInt(seconds));
             timeLeftText.text = label;
             if (timeLeftShadow != null) timeLeftShadow.text = label;
         }
-        timeLeftAlpha = Mathf.MoveTowards(timeLeftAlpha, show ? 1f : 0f, Time.unscaledDeltaTime / 0.2f);
+        timeLeftAlpha = Mathf.MoveTowards(timeLeftAlpha, show ? 1f : 0f, dt / 0.2f);
         timeLeftText.alpha = timeLeftAlpha;
         if (timeLeftShadow != null) timeLeftShadow.alpha = timeLeftAlpha * MarkerLabelShadow.a;
     }
